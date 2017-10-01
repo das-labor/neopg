@@ -49,7 +49,7 @@ AC_SUBST(VERSION_NUMBER)
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([serial-tests dist-bzip2 foreign])
 AM_MAINTAINER_MODE
-AC_CONFIG_SRCDIR([src/err-sources.h.in])
+AC_CONFIG_SRCDIR([src/gpg-error.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_SILENT_RULES

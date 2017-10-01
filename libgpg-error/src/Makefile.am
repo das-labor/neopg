@@ -16,11 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, see <https://www.gnu.org/licenses/>.
 
-# We distribute the generated sources err-sources.h and err-codes.h,
-# because they are needed to build the po directory, and they don't
-# depend on the configuration anyway.
-
-
 gpg_extra_headers =
 extra_cppflags =
 
@@ -29,22 +24,15 @@ localedir = $(datadir)/locale
 lib_LTLIBRARIES = libgpg-error.la
 include_HEADERS = gpg-error.h gpgrt.h
 
-EXTRA_DIST = mkstrtable.awk err-sources.h.in err-codes.h.in \
-	mkerrnos.awk errnos.in README \
-	mkerrcodes.awk mkerrcodes1.awk mkerrcodes2.awk mkerrcodes.c \
-	mkw32errmap.c w32-add.h w32ce-add.h \
-	err-sources.h err-codes.h \
-	gpg-error.vers gpg-error.def.in \
+EXTRA_DIST = mkstrtable.awk err-codes.h.in \
+	w32-add.h gpg-error.vers gpg-error.def.in \
         versioninfo.rc.in gpg-error.w32-manifest.in
 
-BUILT_SOURCES = err-sources.h err-codes.h code-to-errno.h code-from-errno.h \
-	gpg-error.def mkw32errmap.map.c
+BUILT_SOURCES = gpg-error.def
 
-tmp_files = _mkerrcodes.h _gpg-error.def.h mkw32errmap.tab.h mkw32errmap.map.c
+tmp_files = _gpg-error.def.h
 
-CLEANFILES = err-sources.h err-codes.h code-to-errno.h code-from-errno.h \
-        mkerrcodes mkerrcodes.h gpg-error.def mkw32errmap.tab.h \
-	mkw32errmap.map.c $(tmp_files)
+CLEANFILES = gpg-error.def $(tmp_files)
 
 
 #
@@ -132,32 +120,6 @@ libgpg_error_la_SOURCES = gettext.h $(arch_sources) \
 libgpg_error_la_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" $(extra_cppflags)
 libgpg_error_la_LIBADD = $(gpg_error_res) $(intllibs) $(LTLIBMULTITHREAD)
 
-# We build err-sources.h and err-codes.h in the source directory.
-# This is needed because gettext does only look into the source
-# directory to find the files listed in po/POTFILE.in.  To make these
-# rules work we also need to depend on Makefile.am and not on the
-# generated files Makefile.in or Makefile.
-$(srcdir)/err-sources.h: Makefile.am mkstrtable.awk err-sources.h.in
-	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=3 \
-		$(srcdir)/err-sources.h.in >$@
-
-$(srcdir)/err-codes.h: Makefile.am mkstrtable.awk err-codes.h.in
-	$(AWK) -f $(srcdir)/mkstrtable.awk -v textidx=3 \
-		$(srcdir)/err-codes.h.in >$@
-
-code-to-errno.h: Makefile mkerrnos.awk errnos.in
-	$(AWK) -f $(srcdir)/mkerrnos.awk $(srcdir)/errnos.in >$@
-
-# It is correct to use $(CPP).  We want the host's idea of the error codes.
-mkerrcodes.h: Makefile mkerrcodes.awk $(gpg_extra_headers)
-	$(AWK) -f $(srcdir)/mkerrcodes1.awk $(srcdir)/errnos.in >_$@
-	$(CPP) $(CPPFLAGS) $(extra_cppflags) -P _$@ | grep GPG_ERR_ | \
-               $(AWK) -f $(srcdir)/mkerrcodes.awk >$@
-	-rm _$@
-
-mkw32errmap.map.c:
-	echo "/*dummy*/" > $@
-
 # We use CC proper for preprocessing thus we have to convince it that
 # the data is really to be preprocessed.
 gpg-error.def: Makefile gpg-error.def.in
@@ -165,13 +127,4 @@ gpg-error.def: Makefile gpg-error.def.in
 	$(CPP) $(DEFAULT_INCLUDES) $(INCLUDES) $(extra_cppflags) _$@.h | \
 	  grep -v '^#' >$@
 	-rm _$@.h
-
-# It is correct to use $(CC_FOR_BUILD) here.  We want to run the
-# program at build time.
-mkerrcodes: mkerrcodes.c mkerrcodes.h Makefile
-	$(CC_FOR_BUILD) -I. -I$(srcdir) -o $@ $(srcdir)/mkerrcodes.c
-
-
-code-from-errno.h: mkerrcodes Makefile
-	./mkerrcodes | $(AWK) -f $(srcdir)/mkerrcodes2.awk >$@
 

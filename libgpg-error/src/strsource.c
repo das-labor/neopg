@@ -25,7 +25,64 @@
 #include <gpg-error.h>
 
 #include "gettext.h"
-#include "err-sources.h"
+
+static const char *
+err_source (gpg_err_source_t source)
+{
+  switch (source)
+    {
+    case GPG_ERR_SOURCE_UNKNOWN:
+      return gettext_noop("Unspecified source");
+    case GPG_ERR_SOURCE_GCRYPT:
+      return gettext_noop("gcrypt");
+    case GPG_ERR_SOURCE_GPG:
+      return gettext_noop("GnuPG");
+    case GPG_ERR_SOURCE_GPGSM:
+      return gettext_noop("GpgSM");
+    case GPG_ERR_SOURCE_GPGAGENT:
+      return gettext_noop("GPG Agent");
+    case GPG_ERR_SOURCE_PINENTRY:
+      return gettext_noop("Pinentry");
+    case GPG_ERR_SOURCE_SCD:
+      return gettext_noop("SCD");
+    case GPG_ERR_SOURCE_GPGME:
+      return gettext_noop("GPGME");
+    case GPG_ERR_SOURCE_KEYBOX:
+      return gettext_noop("Keybox");
+    case GPG_ERR_SOURCE_KSBA:
+      return gettext_noop("KSBA");
+    case GPG_ERR_SOURCE_DIRMNGR:
+      return gettext_noop("Dirmngr");
+    case GPG_ERR_SOURCE_GSTI:
+      return gettext_noop("GSTI");
+    case GPG_ERR_SOURCE_GPA:
+      return gettext_noop("GPA");
+    case GPG_ERR_SOURCE_KLEO:
+      return gettext_noop("Kleopatra");
+    case GPG_ERR_SOURCE_G13:
+      return gettext_noop("G13");
+    case GPG_ERR_SOURCE_ASSUAN:
+      return gettext_noop("Assuan");
+
+    case GPG_ERR_SOURCE_TLS:
+      return gettext_noop("TLS");
+
+    case GPG_ERR_SOURCE_ANY:
+      return gettext_noop("Any source");
+    case GPG_ERR_SOURCE_USER_1:
+      return gettext_noop("User defined source 1");
+    case GPG_ERR_SOURCE_USER_2:
+      return gettext_noop("User defined source 2");
+    case GPG_ERR_SOURCE_USER_3:
+      return gettext_noop("User defined source 3");
+    case GPG_ERR_SOURCE_USER_4:
+      return gettext_noop("User defined source 4");
+    case GPG_ERR_SOURCE_DIM:
+    default:
+      break;
+    }
+  return gettext_noop("Unknown source");
+};
 
 /* Return a pointer to a string containing a description of the error
    source in the error value ERR.  */
@@ -33,5 +90,5 @@ const char *
 _gpg_strsource (gpg_error_t err)
 {
   gpg_err_source_t source = gpg_err_source (err);
-  return dgettext (PACKAGE, msgstr + msgidx[msgidxof (source)]);
+  return dgettext (PACKAGE, err_source(source));
 }

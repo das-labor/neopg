@@ -9,5 +9,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-src/err-sources.h
-src/err-codes.h
+src/strsource.c
+src/strerror.c
