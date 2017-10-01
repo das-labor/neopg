@@ -1,0 +1,1526 @@
+# Serbian translation for libgpg-error.
+# Copyright (C) 2014 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error-1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2014-11-03 11:42+0200\n"
+"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Language-Team: Serbian <(nothing)>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Unspecified source"
+msgstr "Ненаведени извор"
+
+msgid "gcrypt"
+msgstr "гкрипт"
+
+msgid "GnuPG"
+msgstr "ГнуПГ"
+
+msgid "GpgSM"
+msgstr "ГпгСМ"
+
+msgid "GPG Agent"
+msgstr "ГПГ агент"
+
+msgid "Pinentry"
+msgstr "Унос пина"
+
+msgid "SCD"
+msgstr "СЦД"
+
+msgid "GPGME"
+msgstr "ГПГМЕ"
+
+msgid "Keybox"
+msgstr "Поље кључа"
+
+msgid "KSBA"
+msgstr "КСБА"
+
+msgid "Dirmngr"
+msgstr "Управник директоријума"
+
+msgid "GSTI"
+msgstr "ГСТИ"
+
+msgid "GPA"
+msgstr "ГПА"
+
+msgid "Kleopatra"
+msgstr "Клеопатра"
+
+msgid "G13"
+msgstr ""
+
+msgid "Assuan"
+msgstr ""
+
+msgid "TLS"
+msgstr ""
+
+msgid "Any source"
+msgstr "Било који извор"
+
+msgid "User defined source 1"
+msgstr "1. корисников извор"
+
+msgid "User defined source 2"
+msgstr "2. корисников извор"
+
+msgid "User defined source 3"
+msgstr "3. корисников извор"
+
+msgid "User defined source 4"
+msgstr "4. корисников извор"
+
+msgid "Unknown source"
+msgstr "Непознат извор"
+
+msgid "Success"
+msgstr "Успешно"
+
+msgid "General error"
+msgstr "Општа грешка"
+
+msgid "Unknown packet"
+msgstr "Непознат пакет"
+
+msgid "Unknown version in packet"
+msgstr "Непознато издање у пакету"
+
+msgid "Invalid public key algorithm"
+msgstr "Неисправан алгоритам јавног кључа"
+
+msgid "Invalid digest algorithm"
+msgstr "Непознат алгоритам апсорпције"
+
+msgid "Bad public key"
+msgstr "Лош јавни кључ"
+
+msgid "Bad secret key"
+msgstr "Лош тајни кључ"
+
+msgid "Bad signature"
+msgstr "Лош потпис"
+
+msgid "No public key"
+msgstr "Нема јавног кључа"
+
+msgid "Checksum error"
+msgstr "Грешка провере суме"
+
+msgid "Bad passphrase"
+msgstr "Лоша пропусна реч"
+
+msgid "Invalid cipher algorithm"
+msgstr "Неисправан алгоритам шифровања"
+
+msgid "Cannot open keyring"
+msgstr "Привезак кључева је отворен"
+
+msgid "Invalid packet"
+msgstr "Неисправан пакет"
+
+msgid "Invalid armor"
+msgstr "Неисправан штит"
+
+msgid "No user ID"
+msgstr "Нема ИБ-а корисника"
+
+msgid "No secret key"
+msgstr "Нема тајног кључа"
+
+msgid "Wrong secret key used"
+msgstr "Коришћен је погрешан тајни кључ"
+
+msgid "Bad session key"
+msgstr "Лош кључ сесије"
+
+msgid "Unknown compression algorithm"
+msgstr "Непознат алгоритам сажимања"
+
+msgid "Number is not prime"
+msgstr "Број није прост"
+
+msgid "Invalid encoding method"
+msgstr "Неисправан начин кодирања"
+
+msgid "Invalid encryption scheme"
+msgstr "Неисправна шема шифровања"
+
+msgid "Invalid signature scheme"
+msgstr "Неисправна шема потписа"
+
+msgid "Invalid attribute"
+msgstr "Неисправна особина"
+
+msgid "No value"
+msgstr "Нема вредности"
+
+msgid "Not found"
+msgstr "Нисам пронашао"
+
+msgid "Value not found"
+msgstr "Нисам пронашао вредност"
+
+msgid "Syntax error"
+msgstr "Садржајна грешка"
+
+msgid "Bad MPI value"
+msgstr "Лоша МПИ вредност"
+
+msgid "Invalid passphrase"
+msgstr "Неисправна пропусна реч"
+
+msgid "Invalid signature class"
+msgstr "Неисправан разред потписа"
+
+msgid "Resources exhausted"
+msgstr "Изворишта су истрошена"
+
+msgid "Invalid keyring"
+msgstr "Неисправан прстен кључа"
+
+msgid "Trust DB error"
+msgstr "Грешка поверења БП-а"
+
+msgid "Bad certificate"
+msgstr "Лош уверење"
+
+msgid "Invalid user ID"
+msgstr "Неисправан ИБ-а корисника"
+
+msgid "Unexpected error"
+msgstr "Неочекивана грешка"
+
+msgid "Time conflict"
+msgstr "Сукоб времена"
+
+msgid "Keyserver error"
+msgstr "Грешка сервера кључа"
+
+msgid "Wrong public key algorithm"
+msgstr "Погрешан алгоритам јавног кључа"
+
+msgid "Tribute to D. A."
+msgstr "У част Д. А."
+
+msgid "Weak encryption key"
+msgstr "Слаб кључ шифровања"
+
+msgid "Invalid key length"
+msgstr "Неисправна дужина кључа"
+
+msgid "Invalid argument"
+msgstr "Неисправан аргумент"
+
+msgid "Syntax error in URI"
+msgstr "Грешка израза у путањи"
+
+msgid "Invalid URI"
+msgstr "Неисправна путања"
+
+msgid "Network error"
+msgstr "Грешка мреже"
+
+msgid "Unknown host"
+msgstr "Непознат домаћин"
+
+msgid "Selftest failed"
+msgstr "Самопроба није успела"
+
+msgid "Data not encrypted"
+msgstr "Подаци нису шифровани"
+
+msgid "Data not processed"
+msgstr "Подаци нису обрађени"
+
+msgid "Unusable public key"
+msgstr "Неупотребљив јавни кључ"
+
+msgid "Unusable secret key"
+msgstr "Неупотребљив тајни кључ"
+
+msgid "Invalid value"
+msgstr "Неисправна вредност"
+
+msgid "Bad certificate chain"
+msgstr "Лош ланац уверења"
+
+msgid "Missing certificate"
+msgstr "Недостаје уверење"
+
+msgid "No data"
+msgstr "Нема података"
+
+msgid "Bug"
+msgstr "Грешка"
+
+msgid "Not supported"
+msgstr "Није подржано"
+
+msgid "Invalid operation code"
+msgstr "Неисправна шифра радње"
+
+msgid "Timeout"
+msgstr "Време је истекло"
+
+msgid "Internal error"
+msgstr "Унутрашња грешка"
+
+msgid "EOF (gcrypt)"
+msgstr "КРД (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Неисправан предмет"
+
+msgid "Provided object is too short"
+msgstr "Достављени предмет је прекратак"
+
+msgid "Provided object is too large"
+msgstr "Достављени предмет је предуг"
+
+msgid "Missing item in object"
+msgstr "Недостаје ставка у предмету"
+
+msgid "Not implemented"
+msgstr "Није примењено"
+
+msgid "Conflicting use"
+msgstr "Противна употреба"
+
+msgid "Invalid cipher mode"
+msgstr "Неисправан код шифрера"
+
+msgid "Invalid flag"
+msgstr "Неисправна опција"
+
+msgid "Invalid handle"
+msgstr "Неисправна ручка"
+
+msgid "Result truncated"
+msgstr "Резултат је скраћен"
+
+msgid "Incomplete line"
+msgstr "Непотпун ред"
+
+msgid "Invalid response"
+msgstr "Неисправан одговор"
+
+msgid "No agent running"
+msgstr "Нема покренутог агента"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "Agent error"
+msgstr "грешка агента"
+
+msgid "Invalid data"
+msgstr "Неисправни подаци"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Необичан неуспех Асуан сервера"
+
+msgid "General Assuan error"
+msgstr "Општа грешка Асуана"
+
+msgid "Invalid session key"
+msgstr "Неисправан кључ сесије"
+
+msgid "Invalid S-expression"
+msgstr "Неисправан С-израз"
+
+msgid "Unsupported algorithm"
+msgstr "Неподржани алгоритам"
+
+msgid "No pinentry"
+msgstr "Нема уноса пина"
+
+msgid "pinentry error"
+msgstr "грешка уноса пина"
+
+msgid "Bad PIN"
+msgstr "Лош ПИН"
+
+msgid "Invalid name"
+msgstr "Неисправан назив"
+
+msgid "Bad data"
+msgstr "Лоши подаци"
+
+msgid "Invalid parameter"
+msgstr "Неисправан параметар"
+
+msgid "Wrong card"
+msgstr "Лоша картица"
+
+msgid "No dirmngr"
+msgstr "Нема управника директоријумом"
+
+msgid "dirmngr error"
+msgstr "грешка управника директоријумом"
+
+msgid "Certificate revoked"
+msgstr "Уверење је опозвано"
+
+msgid "No CRL known"
+msgstr "Нема познатог ЦРЛ-а"
+
+msgid "CRL too old"
+msgstr "ЦРЛ је престар"
+
+msgid "Line too long"
+msgstr "Ред је предуг"
+
+msgid "Not trusted"
+msgstr "Није од поверења"
+
+msgid "Operation cancelled"
+msgstr "Радња је отказана"
+
+msgid "Bad CA certificate"
+msgstr "Лоше уверење издавача"
+
+msgid "Certificate expired"
+msgstr "Уверење је истекло"
+
+msgid "Certificate too young"
+msgstr "Уверење је превише ново"
+
+msgid "Unsupported certificate"
+msgstr "Неподржано уверење"
+
+msgid "Unknown S-expression"
+msgstr "Непознат С-израз"
+
+msgid "Unsupported protection"
+msgstr "Неподржана заштита"
+
+msgid "Corrupted protection"
+msgstr "Оштећена заштита"
+
+msgid "Ambiguous name"
+msgstr "Нејасан назив"
+
+msgid "Card error"
+msgstr "Грешка картице"
+
+msgid "Card reset required"
+msgstr "Потребно је поновно постављање картице"
+
+msgid "Card removed"
+msgstr "Картица је уклоњена"
+
+msgid "Invalid card"
+msgstr "Неисправна картица"
+
+msgid "Card not present"
+msgstr "Картица није присутна"
+
+msgid "No PKCS15 application"
+msgstr "Нема ПКЦС15 програма"
+
+msgid "Not confirmed"
+msgstr "Није потврђено"
+
+msgid "Configuration error"
+msgstr "Грешка подешавања"
+
+msgid "No policy match"
+msgstr "Нема одговарајуће политике"
+
+msgid "Invalid index"
+msgstr "Неисправан индекс"
+
+msgid "Invalid ID"
+msgstr "Неисправан ИБ"
+
+msgid "No SmartCard daemon"
+msgstr "Нема позадинца паметне картице"
+
+msgid "SmartCard daemon error"
+msgstr "Грешка позадинца паметне картице"
+
+msgid "Unsupported protocol"
+msgstr "Неподржан протокол"
+
+msgid "Bad PIN method"
+msgstr "Лош начин ПИН-а"
+
+msgid "Card not initialized"
+msgstr "Картица није покренута"
+
+msgid "Unsupported operation"
+msgstr "Неподржана радња"
+
+msgid "Wrong key usage"
+msgstr "Погрешна употреба кључа"
+
+msgid "Nothing found"
+msgstr "Нисам нашао ништа"
+
+msgid "Wrong blob type"
+msgstr "Погрешна врста бвоб-а"
+
+msgid "Missing value"
+msgstr "Недостаје вредност"
+
+msgid "Hardware problem"
+msgstr "Хардверски проблем"
+
+msgid "PIN blocked"
+msgstr "ПИН је блокиран"
+
+msgid "Conditions of use not satisfied"
+msgstr "Услови коришћења нису задовољени"
+
+msgid "PINs are not synced"
+msgstr "ПИН-ови нису усаглашени"
+
+msgid "Invalid CRL"
+msgstr "Неисправан ЦРЛ"
+
+msgid "BER error"
+msgstr "Грешка БЕР-а"
+
+msgid "Invalid BER"
+msgstr "Неисправан БЕР"
+
+msgid "Element not found"
+msgstr "Нисам пронашао елемент"
+
+msgid "Identifier not found"
+msgstr "Нисам пронашао одредника"
+
+msgid "Invalid tag"
+msgstr "Неисправна ознака"
+
+msgid "Invalid length"
+msgstr "Неисправна дужина"
+
+msgid "Invalid key info"
+msgstr "Неисправни подаци кључа"
+
+msgid "Unexpected tag"
+msgstr "Неочекивана ознака"
+
+msgid "Not DER encoded"
+msgstr "Није кодирано ДЕР-ом"
+
+msgid "No CMS object"
+msgstr "Није ЦМС предмет"
+
+msgid "Invalid CMS object"
+msgstr "Неисправан ЦМС предмет"
+
+msgid "Unknown CMS object"
+msgstr "Непознат ЦМС предмет"
+
+msgid "Unsupported CMS object"
+msgstr "Неподржан ЦМС предмет"
+
+msgid "Unsupported encoding"
+msgstr "Неподржано кодирање"
+
+msgid "Unsupported CMS version"
+msgstr "Неподржано ЦМС издање"
+
+msgid "Unknown algorithm"
+msgstr "Непознат алгоритам"
+
+msgid "Invalid crypto engine"
+msgstr "Неисправан погон шифровања"
+
+msgid "Public key not trusted"
+msgstr "Јавни кључ није поверљив"
+
+msgid "Decryption failed"
+msgstr "Дешифровање није успело"
+
+msgid "Key expired"
+msgstr "Кључ је истекао"
+
+msgid "Signature expired"
+msgstr "Потпис је истекао"
+
+msgid "Encoding problem"
+msgstr "Проблем кодирања"
+
+msgid "Invalid state"
+msgstr "Неисправно стање"
+
+msgid "Duplicated value"
+msgstr "Удвостручена вредност"
+
+msgid "Missing action"
+msgstr "Недостаје радња"
+
+msgid "ASN.1 module not found"
+msgstr "Нисам пронашао модул АСН.1"
+
+msgid "Invalid OID string"
+msgstr "Неисправна ОИД ниска"
+
+msgid "Invalid time"
+msgstr "Неисправно време"
+
+msgid "Invalid CRL object"
+msgstr "Неисправан ЦРЛ предмет"
+
+msgid "Unsupported CRL version"
+msgstr "Неподржано ЦРЛ издање"
+
+msgid "Invalid certificate object"
+msgstr "Неисправан предмет уверења"
+
+msgid "Unknown name"
+msgstr "Непознат назив"
+
+msgid "A locale function failed"
+msgstr "Језичка функција није успела"
+
+msgid "Not locked"
+msgstr "Није закључано"
+
+msgid "Protocol violation"
+msgstr "Кршење протокола"
+
+msgid "Invalid MAC"
+msgstr "Неисправан МАК"
+
+msgid "Invalid request"
+msgstr "Неисправан захтев"
+
+msgid "Unknown extension"
+msgstr "Непознато проширење"
+
+msgid "Unknown critical extension"
+msgstr "Непознат критичан израз"
+
+msgid "Locked"
+msgstr "Закључано"
+
+msgid "Unknown option"
+msgstr "Непозната опција"
+
+msgid "Unknown command"
+msgstr "Непозната наредба"
+
+msgid "Not operational"
+msgstr "Није делотворно"
+
+msgid "No passphrase given"
+msgstr "Није дата пропусна реч"
+
+msgid "No PIN given"
+msgstr "Није дат ПИН"
+
+#, fuzzy
+#| msgid "Not locked"
+msgid "Not enabled"
+msgstr "Није закључано"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "No crypto engine"
+msgstr "Неисправан погон шифровања"
+
+#, fuzzy
+#| msgid "Missing value"
+msgid "Missing key"
+msgstr "Недостаје вредност"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "Too many objects"
+msgstr "Није ЦМС предмет"
+
+msgid "Limit reached"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card not initialized"
+msgid "Not initialized"
+msgstr "Картица није покренута"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing issuer certificate"
+msgstr "Недостаје уверење"
+
+msgid "No keyserver available"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid time"
+msgid "Invalid elliptic curve"
+msgstr "Неисправно време"
+
+#, fuzzy
+#| msgid "Unknown source"
+msgid "Unknown elliptic curve"
+msgstr "Непознат извор"
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated key"
+msgstr "Удвостручена вредност"
+
+#, fuzzy
+#| msgid "Ambiguous name"
+msgid "Ambiguous result"
+msgstr "Нејасан назив"
+
+msgid "No crypto context"
+msgstr ""
+
+msgid "Wrong crypto context"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Bad crypto context"
+msgstr "Неисправан погон шифровања"
+
+msgid "Conflict in the crypto context"
+msgstr ""
+
+#, fuzzy
+#| msgid "No public key"
+msgid "Broken public key"
+msgstr "Нема јавног кључа"
+
+#, fuzzy
+#| msgid "No secret key"
+msgid "Broken secret key"
+msgstr "Нема тајног кључа"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Invalid MAC algorithm"
+msgstr "Непознат алгоритам апсорпције"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "Operation fully cancelled"
+msgstr "Радња је отказана"
+
+msgid "Operation not yet finished"
+msgstr "Радња није још завршена"
+
+msgid "Buffer too short"
+msgstr "Међумеморија је прекратка"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Неисправан одредник дужине у С-изразу"
+
+msgid "String too long in S-expression"
+msgstr "Ниска је предуга у С-изразу"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Неодговарајуће заграде у С-изразу"
+
+msgid "S-expression not canonical"
+msgstr "С-израз није правилан"
+
+msgid "Bad character in S-expression"
+msgstr "Лош знак у С-изразу"
+
+msgid "Bad quotation in S-expression"
+msgstr "Лоше цитирање у С-изразу"
+
+msgid "Zero prefix in S-expression"
+msgstr "Нулти префикс у С-изразу"
+
+msgid "Nested display hints in S-expression"
+msgstr "Уграђени савети приказа у С-изразу"
+
+msgid "Unmatched display hints"
+msgstr "Неодговарајући савети приказа"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Неочекивана резервисана тачка у С-изразу"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Лош хексадецимални знак у С-изразу"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Непарни хексадецимални бројеви у С-изразу"
+
+#, fuzzy
+#| msgid "Bad octadecimal character in S-expression"
+msgid "Bad octal character in S-expression"
+msgstr "Лош октадецимални знак у С-изразу"
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "Подаци нису шифровани"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "Непознат назив"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "Нема јавног кључа"
+
+msgid "Legacy key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Buffer too short"
+msgid "Request too short"
+msgstr "Међумеморија је прекратка"
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "Request too long"
+msgstr "Ред је предуг"
+
+msgid "Object is in termination state"
+msgstr ""
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "No certificate chain"
+msgstr "Лош ланац уверења"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Certificate is too large"
+msgstr "Уверење је превише ново"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid record"
+msgstr "Неисправна картица"
+
+msgid "The MAC does not verify"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unexpected tag"
+msgid "Unexpected message"
+msgstr "Неочекивана ознака"
+
+msgid "Compression or decompression failed"
+msgstr ""
+
+msgid "A counter would wrap"
+msgstr ""
+
+msgid "Fatal alert message received"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid cipher algorithm"
+msgid "No cipher algorithm"
+msgstr "Неисправан алгоритам шифровања"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing client certificate"
+msgstr "Недостаје уверење"
+
+#, fuzzy
+#| msgid "Certificate revoked"
+msgid "Close notification received"
+msgstr "Уверење је опозвано"
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Ticket expired"
+msgstr "Кључ је истекао"
+
+#, fuzzy
+#| msgid "Bad public key"
+msgid "Bad ticket"
+msgstr "Лош јавни кључ"
+
+#, fuzzy
+#| msgid "Unknown packet"
+msgid "Unknown identity"
+msgstr "Непознат пакет"
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "Bad certificate message in handshake"
+msgstr "Лош ланац уверења"
+
+msgid "Bad certificate request message in handshake"
+msgstr ""
+
+msgid "Bad certificate verify message in handshake"
+msgstr ""
+
+msgid "Bad change cipher message in handshake"
+msgstr ""
+
+msgid "Bad client hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello done message in handshake"
+msgstr ""
+
+msgid "Bad finished message in handshake"
+msgstr ""
+
+msgid "Bad server key exchange message in handshake"
+msgstr ""
+
+msgid "Bad client key exchange message in handshake"
+msgstr ""
+
+msgid "Bogus string"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Key disabled"
+msgstr "Кључ је истекао"
+
+msgid "Not possible with a card based key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid object"
+msgid "Invalid lock object"
+msgstr "Неисправан предмет"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "Општа грешка ИПЦ-а"
+
+msgid "IPC accept call failed"
+msgstr "Прихватање позива ИПЦ-а није успело"
+
+msgid "IPC connect call failed"
+msgstr "Повезивање позива ИПЦ-а није успело"
+
+msgid "Invalid IPC response"
+msgstr "Неисправан ИПЦ одговор"
+
+msgid "Invalid value passed to IPC"
+msgstr "Неисправна вредност прослеђена ИПЦ-у"
+
+msgid "Incomplete line passed to IPC"
+msgstr "Непотпун ред је прослеђен ИПЦ-у"
+
+msgid "Line passed to IPC too long"
+msgstr "Ред прослеђен ИПЦ-у је предуг"
+
+msgid "Nested IPC commands"
+msgstr "Уграђене ИПЦ наредбе"
+
+msgid "No data callback in IPC"
+msgstr "Нема опозива података у ИПЦ-у"
+
+msgid "No inquire callback in IPC"
+msgstr "Нема опозива распитивања у ИПЦ-у"
+
+msgid "Not an IPC server"
+msgstr "Није ИПЦ сервер"
+
+msgid "Not an IPC client"
+msgstr "Није ИПЦ клијент"
+
+msgid "Problem starting IPC server"
+msgstr "Проблем покретања ИПЦ сервера"
+
+msgid "IPC read error"
+msgstr "Грешка читања ИПЦ-а"
+
+msgid "IPC write error"
+msgstr "Грешка писања ИПЦ-а"
+
+msgid "Too much data for IPC layer"
+msgstr "Превише података за ИПЦ слој"
+
+msgid "Unexpected IPC command"
+msgstr "Неочекивана ИПЦ наредба"
+
+msgid "Unknown IPC command"
+msgstr "Непозната ИПЦ наредба"
+
+msgid "IPC syntax error"
+msgstr "Садржајна грешка ИПЦ-а"
+
+msgid "IPC call has been cancelled"
+msgstr "ИПЦ позив је отказан"
+
+msgid "No input source for IPC"
+msgstr "Нема извора улаза за ИПЦ"
+
+msgid "No output source for IPC"
+msgstr "Нема извора излаза за ИПЦ"
+
+msgid "IPC parameter error"
+msgstr "Грешка параметра ИПЦ-а"
+
+msgid "Unknown IPC inquire"
+msgstr "Непознато распитивање ИПЦ-а"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Crypto engine too old"
+msgstr "Неисправан погон шифровања"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+msgid "User ID already exists"
+msgstr ""
+
+msgid "Name already exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "Удвостручена вредност"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "Уверење је превише ново"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "Достављени предмет је прекратак"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "Непознат назив"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "Неисправна шифра радње"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "Непознат назив"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "Непозната грешка система"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "Неисправна ОИД ниска"
+
+#, fuzzy
+#| msgid "Invalid S-expression"
+msgid "Invalid textual address form"
+msgstr "Неисправан С-израз"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing DNS query packet"
+msgstr "Недостаје уверење"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "Дешифровање није успело"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "Време је истекло"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "General LDAP error"
+msgstr "Општа грешка ИПЦ-а"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP attribute error"
+msgstr "Општа грешка"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP name error"
+msgstr "Општа грешка"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP security error"
+msgstr "Општа грешка Асуана"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP service error"
+msgstr "Општа грешка"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP update error"
+msgstr "Општа грешка Асуана"
+
+msgid "Experimental LDAP error code"
+msgstr ""
+
+#, fuzzy
+#| msgid "IPC write error"
+msgid "Private LDAP error code"
+msgstr "Грешка писања ИПЦ-а"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other general LDAP error"
+msgstr "Општа грешка ИПЦ-а"
+
+#, fuzzy
+#| msgid "IPC connect call failed"
+msgid "LDAP connecting failed (X)"
+msgstr "Повезивање позива ИПЦ-а није успело"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral limit exceeded"
+msgstr "Општа грешка"
+
+msgid "LDAP client loop"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "No LDAP results returned"
+msgstr "Потребно је поновно постављање картице"
+
+#, fuzzy
+#| msgid "Element not found"
+msgid "LDAP control not found"
+msgstr "Нисам пронашао елемент"
+
+#, fuzzy
+#| msgid "Not supported"
+msgid "Not supported by LDAP"
+msgstr "Није подржано"
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "LDAP connect error"
+msgstr "Неочекивана грешка"
+
+msgid "Out of memory in LDAP"
+msgstr ""
+
+msgid "Bad parameter to an LDAP routine"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported operation"
+msgid "User cancelled LDAP operation"
+msgstr "Неподржана радња"
+
+#, fuzzy
+#| msgid "Bad certificate"
+msgid "Bad LDAP search filter"
+msgstr "Лош уверење"
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "Unknown LDAP authentication method"
+msgstr "Непознато проширење"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "Timeout in LDAP"
+msgstr "Време је истекло"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP decoding error"
+msgstr "грешка управника директоријумом"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP encoding error"
+msgstr "грешка управника директоријумом"
+
+#, fuzzy
+#| msgid "IPC read error"
+msgid "LDAP local error"
+msgstr "Грешка читања ИПЦ-а"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot contact LDAP server"
+msgstr "Није ИПЦ сервер"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP success"
+msgstr "Успешно"
+
+#, fuzzy
+#| msgid "Configuration error"
+msgid "LDAP operations error"
+msgstr "Грешка подешавања"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP protocol error"
+msgstr "Кршење протокола"
+
+msgid "Time limit exceeded in LDAP"
+msgstr ""
+
+msgid "Size limit exceeded in LDAP"
+msgstr ""
+
+msgid "LDAP compare false"
+msgstr ""
+
+msgid "LDAP compare true"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "LDAP authentication method not supported"
+msgstr "Непознато проширење"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr ""
+
+msgid "Partial LDAP results+referral received"
+msgstr ""
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral"
+msgstr "Општа грешка"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr ""
+
+msgid "Critical LDAP extension is unavailable"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Confidentiality required by LDAP"
+msgstr "Потребно је поновно постављање картице"
+
+msgid "LDAP SASL bind in progress"
+msgstr ""
+
+msgid "No such LDAP attribute"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid attribute"
+msgid "Undefined LDAP attribute type"
+msgstr "Неисправна особина"
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate matching in LDAP"
+msgstr "Неподржана заштита"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Constraint violation in LDAP"
+msgstr "Кршење протокола"
+
+msgid "LDAP type or value exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid syntax in LDAP"
+msgstr "Неисправно стање"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "No such LDAP object"
+msgstr "Није ЦМС предмет"
+
+#, fuzzy
+#| msgid "Hardware problem"
+msgid "LDAP alias problem"
+msgstr "Хардверски проблем"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid DN syntax in LDAP"
+msgstr "Неисправно стање"
+
+msgid "LDAP entry is a leaf"
+msgstr ""
+
+#, fuzzy
+#| msgid "Encoding problem"
+msgid "LDAP alias dereferencing problem"
+msgstr "Проблем кодирања"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate LDAP authentication"
+msgstr "Неподржана заштита"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid LDAP credentials"
+msgstr "Неисправна картица"
+
+msgid "Insufficient access for LDAP"
+msgstr ""
+
+msgid "LDAP server is busy"
+msgstr ""
+
+msgid "LDAP server is unavailable"
+msgstr ""
+
+msgid "LDAP server is unwilling to perform"
+msgstr ""
+
+msgid "Loop detected by LDAP"
+msgstr ""
+
+#, fuzzy
+#| msgid "Missing action"
+msgid "LDAP naming violation"
+msgstr "Недостаје радња"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP object class violation"
+msgstr "Кршење протокола"
+
+#, fuzzy
+#| msgid "Operation not yet finished"
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "Радња није још завршена"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation not allowed on RDN"
+msgstr "Радња је отказана"
+
+msgid "Already exists (LDAP)"
+msgstr ""
+
+msgid "Cannot modify LDAP object class"
+msgstr ""
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "LDAP results too large"
+msgstr "Ред је предуг"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation affects multiple DSAs"
+msgstr "Радња је отказана"
+
+msgid "Virtual LDAP list view error"
+msgstr ""
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other LDAP error"
+msgstr "Општа грешка ИПЦ-а"
+
+#, fuzzy
+#| msgid "Resources exhausted"
+msgid "Resources exhausted in LCUP"
+msgstr "Изворишта су истрошена"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Security violation in LCUP"
+msgstr "Кршење протокола"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid data in LCUP"
+msgstr "Неисправно стање"
+
+#, fuzzy
+#| msgid "Unsupported certificate"
+msgid "Unsupported scheme in LCUP"
+msgstr "Неподржано уверење"
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Reload required in LCUP"
+msgstr "Потребно је поновно постављање картице"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP cancelled"
+msgstr "Успешно"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "No LDAP operation to cancel"
+msgstr "Није делотворно"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "Too late to cancel LDAP"
+msgstr "Није делотворно"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot cancel LDAP"
+msgstr "Није ИПЦ сервер"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP assertion failed"
+msgstr "Дешифровање није успело"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr ""
+
+msgid "User defined error code 1"
+msgstr "1. код грешке који је одредио корисник"
+
+msgid "User defined error code 2"
+msgstr "2. код грешке који је одредио корисник"
+
+msgid "User defined error code 3"
+msgstr "3. код грешке који је одредио корисник"
+
+msgid "User defined error code 4"
+msgstr "4. код грешке који је одредио корисник"
+
+msgid "User defined error code 5"
+msgstr "5. код грешке који је одредио корисник"
+
+msgid "User defined error code 6"
+msgstr "6. код грешке који је одредио корисник"
+
+msgid "User defined error code 7"
+msgstr "7. код грешке који је одредио корисник"
+
+msgid "User defined error code 8"
+msgstr "8. код грешке који је одредио корисник"
+
+msgid "User defined error code 9"
+msgstr "9. код грешке који је одредио корисник"
+
+msgid "User defined error code 10"
+msgstr "10. код грешке који је одредио корисник"
+
+msgid "User defined error code 11"
+msgstr "11. код грешке који је одредио корисник"
+
+msgid "User defined error code 12"
+msgstr "12. код грешке који је одредио корисник"
+
+msgid "User defined error code 13"
+msgstr "13. код грешке који је одредио корисник"
+
+msgid "User defined error code 14"
+msgstr "14. код грешке који је одредио корисник"
+
+msgid "User defined error code 15"
+msgstr "15. код грешке који је одредио корисник"
+
+msgid "User defined error code 16"
+msgstr "16. код грешке који је одредио корисник"
+
+msgid "System error w/o errno"
+msgstr "Број в/о грешке системске грешке"
+
+msgid "Unknown system error"
+msgstr "Непозната грешка система"
+
+msgid "End of file"
+msgstr "Крај датотеке"
+
+msgid "Unknown error code"
+msgstr "Непознат код грешке"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr "Употреба: %s GPG-ERROR [...]\n"
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s: упозорење: не могу да препознам „%s“\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Изворишта су истрошена"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Неисправни подаци"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Општа грешка"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "грешка управника директоријумом"

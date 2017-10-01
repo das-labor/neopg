@@ -1,0 +1,1529 @@
+# Esperanto translation of Libgpg-error
+# Copyright (C) 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Felipe Castro <fefcas@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2013-02-23 20:22+0100\n"
+"Last-Translator: Felipe Castro <fefcas@gmail.com>\n"
+"Language-Team: Esperanto <translation-team-eo@lists.sourceforge.net>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unspecified source"
+msgstr "Neindikita fonto"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "GPG Agento"
+
+msgid "Pinentry"
+msgstr "Pinentry"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Keybox"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TLS"
+msgstr ""
+
+msgid "Any source"
+msgstr "Iu ajn fonto"
+
+msgid "User defined source 1"
+msgstr "Uzant-difinita fonto 1"
+
+msgid "User defined source 2"
+msgstr "Uzant-difinita fonto 2"
+
+msgid "User defined source 3"
+msgstr "Uzant-difinita fonto 3"
+
+msgid "User defined source 4"
+msgstr "Uzant-difinita fonto 4"
+
+msgid "Unknown source"
+msgstr "Nekonata fonto"
+
+msgid "Success"
+msgstr "Sukceso"
+
+msgid "General error"
+msgstr "Ĝenerala eraro"
+
+msgid "Unknown packet"
+msgstr "Nekonata paketo"
+
+msgid "Unknown version in packet"
+msgstr "Nekonata versio en paketo"
+
+msgid "Invalid public key algorithm"
+msgstr "Malvalida publika ŝlosila algoritmo"
+
+msgid "Invalid digest algorithm"
+msgstr "Malvalida resuma algoritmo"
+
+msgid "Bad public key"
+msgstr "Malĝusta publika ŝlosilo"
+
+msgid "Bad secret key"
+msgstr "Malĝusta sekreta ŝlosilo"
+
+msgid "Bad signature"
+msgstr "malĝusta subskribo"
+
+msgid "No public key"
+msgstr "Neniu publika ŝlosilo"
+
+msgid "Checksum error"
+msgstr "Eraro en kontrolsumo"
+
+msgid "Bad passphrase"
+msgstr "Malĝusta pasfrazo"
+
+msgid "Invalid cipher algorithm"
+msgstr "Malvalida ĉifra algoritmo"
+
+msgid "Cannot open keyring"
+msgstr "Malfermo de ŝlosilringo"
+
+msgid "Invalid packet"
+msgstr "Malvalida paketo"
+
+msgid "Invalid armor"
+msgstr "Malvalida kiraso"
+
+msgid "No user ID"
+msgstr "Neniu ID de uzanto"
+
+msgid "No secret key"
+msgstr "Neniu sekreta ŝlosilo"
+
+msgid "Wrong secret key used"
+msgstr "Malĝusta sekreta ŝlosilo uzata"
+
+msgid "Bad session key"
+msgstr "Malĝusta seanca ŝlosilo"
+
+msgid "Unknown compression algorithm"
+msgstr "Nekonata densiga algoritmo"
+
+msgid "Number is not prime"
+msgstr "Numero ne estas primo"
+
+msgid "Invalid encoding method"
+msgstr "Malvalida enkodiga metodo"
+
+msgid "Invalid encryption scheme"
+msgstr "Malvalida ĉifriga skemo"
+
+msgid "Invalid signature scheme"
+msgstr "Malvalida subskriba skemo"
+
+msgid "Invalid attribute"
+msgstr "Malvalida atributo"
+
+msgid "No value"
+msgstr "Neniu valoro"
+
+msgid "Not found"
+msgstr "Ne trovita"
+
+msgid "Value not found"
+msgstr "Valoro ne estas trovita"
+
+msgid "Syntax error"
+msgstr "Sintaks-eraro"
+
+msgid "Bad MPI value"
+msgstr "Malĝusta valoro MPI"
+
+msgid "Invalid passphrase"
+msgstr "Malvalida pasfrazo"
+
+msgid "Invalid signature class"
+msgstr "Malvalida subskriba klaso"
+
+msgid "Resources exhausted"
+msgstr "Rimedoj estas plenuzitaj"
+
+msgid "Invalid keyring"
+msgstr "Malvalida ŝlosilringo"
+
+msgid "Trust DB error"
+msgstr "Eraro de fidinda DB"
+
+msgid "Bad certificate"
+msgstr "Malĝusta atestilo"
+
+msgid "Invalid user ID"
+msgstr "Malvalida ID de uzanto"
+
+msgid "Unexpected error"
+msgstr "Neatendita eraro"
+
+msgid "Time conflict"
+msgstr "Konflikto de tempo"
+
+msgid "Keyserver error"
+msgstr "Ŝlosilservila eraro"
+
+msgid "Wrong public key algorithm"
+msgstr "Malkorekta publika ŝlosila algoritmo"
+
+msgid "Tribute to D. A."
+msgstr "Omaĝo al D. A."
+
+msgid "Weak encryption key"
+msgstr "Malforta ĉifra ŝlosilo"
+
+msgid "Invalid key length"
+msgstr "Malvalida ŝlosila longo"
+
+msgid "Invalid argument"
+msgstr "Malvalida argumento"
+
+msgid "Syntax error in URI"
+msgstr "Sintaks-eraro en URI"
+
+msgid "Invalid URI"
+msgstr "Malvalida URI"
+
+msgid "Network error"
+msgstr "Ret-eraro"
+
+msgid "Unknown host"
+msgstr "Nekonata retnodo"
+
+msgid "Selftest failed"
+msgstr "Memtesto fiaskis"
+
+msgid "Data not encrypted"
+msgstr "Datumaro ne ĉifrita"
+
+msgid "Data not processed"
+msgstr "Datumaro ne procezita"
+
+msgid "Unusable public key"
+msgstr "Neuzebla publika ŝlosilo"
+
+msgid "Unusable secret key"
+msgstr "Neuzebla sekreta ŝlosilo"
+
+msgid "Invalid value"
+msgstr "Malvalida valoro"
+
+msgid "Bad certificate chain"
+msgstr "Malĝusta atestila ĉeno"
+
+msgid "Missing certificate"
+msgstr "Mankas atestilo"
+
+msgid "No data"
+msgstr "Neniu datumaro"
+
+msgid "Bug"
+msgstr "Program-miso"
+
+msgid "Not supported"
+msgstr "Ne subtenata"
+
+msgid "Invalid operation code"
+msgstr "Malvalida operacia kodo"
+
+msgid "Timeout"
+msgstr "Tempofino"
+
+msgid "Internal error"
+msgstr "Interna eraro"
+
+msgid "EOF (gcrypt)"
+msgstr "EOF (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Malvalida objekto"
+
+msgid "Provided object is too short"
+msgstr "Provizita objekto tro mallongas"
+
+msgid "Provided object is too large"
+msgstr "Provizita objekto tro larĝas"
+
+msgid "Missing item in object"
+msgstr "Mankas ero en objekto"
+
+msgid "Not implemented"
+msgstr "Ne realigita"
+
+msgid "Conflicting use"
+msgstr "Konflikta uzo"
+
+msgid "Invalid cipher mode"
+msgstr "Malvalida ĉifra reĝimo"
+
+msgid "Invalid flag"
+msgstr "Malvalida flago"
+
+msgid "Invalid handle"
+msgstr "Malvalida traktilo"
+
+msgid "Result truncated"
+msgstr "Rezulto estas tranĉita"
+
+msgid "Incomplete line"
+msgstr "Malkompleta linio"
+
+msgid "Invalid response"
+msgstr "Malvalida respondo"
+
+msgid "No agent running"
+msgstr "Neniu agento rulas"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "Agent error"
+msgstr "agent-eraro"
+
+msgid "Invalid data"
+msgstr "Malvalida datumaro"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Nespecifa paneo de servilo Assuan"
+
+msgid "General Assuan error"
+msgstr "Ĝenerala eraro de Assuan"
+
+msgid "Invalid session key"
+msgstr "Malvalida seanca ŝlosilo"
+
+msgid "Invalid S-expression"
+msgstr "Malvalida S-esprimo"
+
+msgid "Unsupported algorithm"
+msgstr "Nesubtenata algoritmo"
+
+msgid "No pinentry"
+msgstr "Neniu pinentry"
+
+msgid "pinentry error"
+msgstr "Eraro de pinentry"
+
+msgid "Bad PIN"
+msgstr "Malĝusta PIN"
+
+msgid "Invalid name"
+msgstr "Malvalida nomo"
+
+msgid "Bad data"
+msgstr "Malĝusta datumaro"
+
+msgid "Invalid parameter"
+msgstr "Malvalida parametro"
+
+msgid "Wrong card"
+msgstr "Malkorekta karto"
+
+msgid "No dirmngr"
+msgstr "Neniu dirmngr"
+
+msgid "dirmngr error"
+msgstr "eraro de dirmngr"
+
+msgid "Certificate revoked"
+msgstr "Atestilo estas senvalidita"
+
+msgid "No CRL known"
+msgstr "Neniu konata CRL"
+
+msgid "CRL too old"
+msgstr "CRL tro malnovas"
+
+msgid "Line too long"
+msgstr "Linio tro longas"
+
+msgid "Not trusted"
+msgstr "Ne fidinda"
+
+msgid "Operation cancelled"
+msgstr "Operacio estas nuligita"
+
+msgid "Bad CA certificate"
+msgstr "Malĝusta atestilo CA"
+
+msgid "Certificate expired"
+msgstr "Atestilo malvalidiĝis"
+
+msgid "Certificate too young"
+msgstr "Atestilo tro novas"
+
+msgid "Unsupported certificate"
+msgstr "Nesubtenata atestilo"
+
+msgid "Unknown S-expression"
+msgstr "Nekonata S-esprimo"
+
+msgid "Unsupported protection"
+msgstr "Nesubtenata protekto"
+
+msgid "Corrupted protection"
+msgstr "Rompita protekto"
+
+msgid "Ambiguous name"
+msgstr "Plursenca nomo"
+
+msgid "Card error"
+msgstr "Kart-eraro"
+
+msgid "Card reset required"
+msgstr "Kart-reekigo estas postulata"
+
+msgid "Card removed"
+msgstr "Karto estas demetita"
+
+msgid "Invalid card"
+msgstr "Malvalida karto"
+
+msgid "Card not present"
+msgstr "Karto ne ĉeestas"
+
+msgid "No PKCS15 application"
+msgstr "Neniu aplikaĵo PKCS15"
+
+msgid "Not confirmed"
+msgstr "Ne konfirmita"
+
+msgid "Configuration error"
+msgstr "Agord-eraro"
+
+msgid "No policy match"
+msgstr "Neniu kongruo de politiko"
+
+msgid "Invalid index"
+msgstr "Malvalida indekso"
+
+msgid "Invalid ID"
+msgstr "Malvalida ID"
+
+msgid "No SmartCard daemon"
+msgstr "Neniu demono SmartCard"
+
+msgid "SmartCard daemon error"
+msgstr "Eraro de la demono SmartCard"
+
+msgid "Unsupported protocol"
+msgstr "Nesubtenata protokolo"
+
+msgid "Bad PIN method"
+msgstr "Malĝusta PIN-metodo"
+
+msgid "Card not initialized"
+msgstr "Karto ne estas ekigita"
+
+msgid "Unsupported operation"
+msgstr "Nesubtenata operacio"
+
+msgid "Wrong key usage"
+msgstr "Malkorekta uzmaniero de ŝlosilo"
+
+msgid "Nothing found"
+msgstr "Nenio trovita"
+
+msgid "Wrong blob type"
+msgstr "Malkorekta tipo de blob"
+
+msgid "Missing value"
+msgstr "Mankas valoro"
+
+msgid "Hardware problem"
+msgstr "Problemo de aparataro"
+
+msgid "PIN blocked"
+msgstr "PIN estas blokita"
+
+msgid "Conditions of use not satisfied"
+msgstr "Uzkondiĉoj ne estas kontentigitaj"
+
+msgid "PINs are not synced"
+msgstr "PIN-oj ne estas sinkronigitaj"
+
+msgid "Invalid CRL"
+msgstr "Malvalida CRL"
+
+msgid "BER error"
+msgstr "Eraro de BER"
+
+msgid "Invalid BER"
+msgstr "Malvalida BER"
+
+msgid "Element not found"
+msgstr "Elemento ne estas trovita"
+
+msgid "Identifier not found"
+msgstr "Identiganto ne estas trovita"
+
+msgid "Invalid tag"
+msgstr "Malvalida marko"
+
+msgid "Invalid length"
+msgstr "Malvalida longo"
+
+msgid "Invalid key info"
+msgstr "Malvalida ŝlosil-informo"
+
+msgid "Unexpected tag"
+msgstr "Neatentida marko"
+
+msgid "Not DER encoded"
+msgstr "Neniu enkodita DER"
+
+msgid "No CMS object"
+msgstr "Neniu objekto CMS"
+
+msgid "Invalid CMS object"
+msgstr "Malvalida objekto CMS"
+
+msgid "Unknown CMS object"
+msgstr "Nekonata objekto CMS"
+
+msgid "Unsupported CMS object"
+msgstr "Nesubtenata objekto CMS"
+
+msgid "Unsupported encoding"
+msgstr "Nesubtenata enkodigo"
+
+msgid "Unsupported CMS version"
+msgstr "Nesubtenata versio CMS"
+
+msgid "Unknown algorithm"
+msgstr "Nekonata algoritmo"
+
+msgid "Invalid crypto engine"
+msgstr "Malvalida ĉifra maŝino"
+
+msgid "Public key not trusted"
+msgstr "Publika ŝlosilo ne estas fidinda"
+
+msgid "Decryption failed"
+msgstr "Malĉifro fiaskis"
+
+msgid "Key expired"
+msgstr "Ŝlosilo malvalidiĝis"
+
+msgid "Signature expired"
+msgstr "Subskribo malvalidiĝis"
+
+msgid "Encoding problem"
+msgstr "Ekodiga problemo"
+
+msgid "Invalid state"
+msgstr "Malvalida stato"
+
+msgid "Duplicated value"
+msgstr "Duobligita valoro"
+
+msgid "Missing action"
+msgstr "Mankas ago"
+
+msgid "ASN.1 module not found"
+msgstr "Modulo ASN.1 ne estas trovita"
+
+msgid "Invalid OID string"
+msgstr "Malvalida ĉeno OID"
+
+msgid "Invalid time"
+msgstr "Malvalida tempo"
+
+msgid "Invalid CRL object"
+msgstr "Malvalida objekto CRL"
+
+msgid "Unsupported CRL version"
+msgstr "Nesubtenata versio CRL"
+
+msgid "Invalid certificate object"
+msgstr "Malvalida atestila objekto"
+
+msgid "Unknown name"
+msgstr "Nekonata nomo"
+
+msgid "A locale function failed"
+msgstr "Lokaĵara funkcio fiaskis"
+
+msgid "Not locked"
+msgstr "Ne ŝlosita"
+
+msgid "Protocol violation"
+msgstr "Perforto de protokolo"
+
+msgid "Invalid MAC"
+msgstr "Malvalida MAC"
+
+msgid "Invalid request"
+msgstr "Malvalida peto"
+
+msgid "Unknown extension"
+msgstr "Nekonata aldono"
+
+msgid "Unknown critical extension"
+msgstr "Nekonata grava aldono"
+
+msgid "Locked"
+msgstr "Ŝlosita"
+
+msgid "Unknown option"
+msgstr "Nekonata modifilo"
+
+msgid "Unknown command"
+msgstr "Nekonata komando"
+
+msgid "Not operational"
+msgstr "Ne operaciebla"
+
+msgid "No passphrase given"
+msgstr "Neniu pasfrazo estis donata"
+
+msgid "No PIN given"
+msgstr "Neniu PIN estis donata"
+
+#, fuzzy
+#| msgid "Not locked"
+msgid "Not enabled"
+msgstr "Ne ŝlosita"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "No crypto engine"
+msgstr "Malvalida ĉifra maŝino"
+
+#, fuzzy
+#| msgid "Missing value"
+msgid "Missing key"
+msgstr "Mankas valoro"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "Too many objects"
+msgstr "Neniu objekto CMS"
+
+msgid "Limit reached"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card not initialized"
+msgid "Not initialized"
+msgstr "Karto ne estas ekigita"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing issuer certificate"
+msgstr "Mankas atestilo"
+
+msgid "No keyserver available"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid time"
+msgid "Invalid elliptic curve"
+msgstr "Malvalida tempo"
+
+#, fuzzy
+#| msgid "Unknown source"
+msgid "Unknown elliptic curve"
+msgstr "Nekonata fonto"
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated key"
+msgstr "Duobligita valoro"
+
+#, fuzzy
+#| msgid "Ambiguous name"
+msgid "Ambiguous result"
+msgstr "Plursenca nomo"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "No crypto context"
+msgstr "Malvalida ĉifra maŝino"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Wrong crypto context"
+msgstr "Malvalida ĉifra maŝino"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Bad crypto context"
+msgstr "Malvalida ĉifra maŝino"
+
+msgid "Conflict in the crypto context"
+msgstr ""
+
+#, fuzzy
+#| msgid "No public key"
+msgid "Broken public key"
+msgstr "Neniu publika ŝlosilo"
+
+#, fuzzy
+#| msgid "No secret key"
+msgid "Broken secret key"
+msgstr "Neniu sekreta ŝlosilo"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Invalid MAC algorithm"
+msgstr "Malvalida resuma algoritmo"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "Operation fully cancelled"
+msgstr "Operacio estas nuligita"
+
+msgid "Operation not yet finished"
+msgstr "La operacio ankoraŭ ne finiĝis"
+
+msgid "Buffer too short"
+msgstr "Bufro tro mallongas"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Malvalida long-indikilo en S-esprimo"
+
+msgid "String too long in S-expression"
+msgstr "Ĉeno tro longa en S-esprimo"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Senpara kurbkrampo en S-esprimo"
+
+msgid "S-expression not canonical"
+msgstr "S-esprimo ne estas kanona"
+
+msgid "Bad character in S-expression"
+msgstr "Malĝusta signo en S-esprimo"
+
+msgid "Bad quotation in S-expression"
+msgstr "Malĝusta citigo en S-esprimo"
+
+msgid "Zero prefix in S-expression"
+msgstr "Nul-prefikso en S-esprimo"
+
+msgid "Nested display hints in S-expression"
+msgstr "Nestitaj montraj konsiletoj en S-esprimo"
+
+msgid "Unmatched display hints"
+msgstr "Nekongruaj montraj konsiletoj"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Neatendita rezervita interpunkcio en S-esprimo"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Malĝusta deksesuma signo en S-esprimo"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Malparaj deksesumaj numeroj en S-esprimo"
+
+#, fuzzy
+#| msgid "Bad octadecimal character in S-expression"
+msgid "Bad octal character in S-expression"
+msgstr "Malĝusta okuma signo en S-esprimo"
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "Datumaro ne ĉifrita"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "Nekonata nomo"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "Neniu publika ŝlosilo"
+
+msgid "Legacy key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Buffer too short"
+msgid "Request too short"
+msgstr "Bufro tro mallongas"
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "Request too long"
+msgstr "Linio tro longas"
+
+msgid "Object is in termination state"
+msgstr ""
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "No certificate chain"
+msgstr "Malĝusta atestila ĉeno"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Certificate is too large"
+msgstr "Atestilo tro novas"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid record"
+msgstr "Malvalida karto"
+
+msgid "The MAC does not verify"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unexpected tag"
+msgid "Unexpected message"
+msgstr "Neatentida marko"
+
+msgid "Compression or decompression failed"
+msgstr ""
+
+msgid "A counter would wrap"
+msgstr ""
+
+msgid "Fatal alert message received"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid cipher algorithm"
+msgid "No cipher algorithm"
+msgstr "Malvalida ĉifra algoritmo"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing client certificate"
+msgstr "Mankas atestilo"
+
+#, fuzzy
+#| msgid "Certificate revoked"
+msgid "Close notification received"
+msgstr "Atestilo estas senvalidita"
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Ticket expired"
+msgstr "Ŝlosilo malvalidiĝis"
+
+#, fuzzy
+#| msgid "Bad public key"
+msgid "Bad ticket"
+msgstr "Malĝusta publika ŝlosilo"
+
+#, fuzzy
+#| msgid "Unknown packet"
+msgid "Unknown identity"
+msgstr "Nekonata paketo"
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "Bad certificate message in handshake"
+msgstr "Malĝusta atestila ĉeno"
+
+msgid "Bad certificate request message in handshake"
+msgstr ""
+
+msgid "Bad certificate verify message in handshake"
+msgstr ""
+
+msgid "Bad change cipher message in handshake"
+msgstr ""
+
+msgid "Bad client hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello done message in handshake"
+msgstr ""
+
+msgid "Bad finished message in handshake"
+msgstr ""
+
+msgid "Bad server key exchange message in handshake"
+msgstr ""
+
+msgid "Bad client key exchange message in handshake"
+msgstr ""
+
+msgid "Bogus string"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Key disabled"
+msgstr "Ŝlosilo malvalidiĝis"
+
+msgid "Not possible with a card based key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid object"
+msgid "Invalid lock object"
+msgstr "Malvalida objekto"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "Ĝenerala eraro de IPC"
+
+msgid "IPC accept call failed"
+msgstr "Akcepta voko de IPC fiaskis"
+
+msgid "IPC connect call failed"
+msgstr "Konekta voko de IPC fiaskis"
+
+msgid "Invalid IPC response"
+msgstr "Malvalida respondo de IPC"
+
+msgid "Invalid value passed to IPC"
+msgstr "Malvalida valoro estis pasata al IPC"
+
+msgid "Incomplete line passed to IPC"
+msgstr "Nekompleta linio estis pasata al IPC"
+
+msgid "Line passed to IPC too long"
+msgstr "Pasita linio al IPC tro longas"
+
+msgid "Nested IPC commands"
+msgstr "Nestitaj komandoj IPC"
+
+msgid "No data callback in IPC"
+msgstr "Neniu datumar funkcivoko en IPC"
+
+msgid "No inquire callback in IPC"
+msgstr "Neniu enketa funkcivoko en IPC"
+
+msgid "Not an IPC server"
+msgstr "Ne estas servilo IPC"
+
+msgid "Not an IPC client"
+msgstr "Ne estas kliento IPC"
+
+msgid "Problem starting IPC server"
+msgstr "Problemo dum ekigo de servilo IPC"
+
+msgid "IPC read error"
+msgstr "Leg-eraro de IPC"
+
+msgid "IPC write error"
+msgstr "Skrib-eraro de IPC"
+
+msgid "Too much data for IPC layer"
+msgstr "Tro multa datumaro por tavolo IPC"
+
+msgid "Unexpected IPC command"
+msgstr "Neatendita komando IPC"
+
+msgid "Unknown IPC command"
+msgstr "Nekonata komando IPC"
+
+msgid "IPC syntax error"
+msgstr "Sintaks-eraro de IPC"
+
+msgid "IPC call has been cancelled"
+msgstr "IPC-voko estas nuligita"
+
+msgid "No input source for IPC"
+msgstr "Neniu enig-fonto por IPC"
+
+msgid "No output source for IPC"
+msgstr "Neniu elig-fonto por IPC"
+
+msgid "IPC parameter error"
+msgstr "Parametra eraro de IPC"
+
+msgid "Unknown IPC inquire"
+msgstr "Nekonata enketo de IPC"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Crypto engine too old"
+msgstr "Malvalida ĉifra maŝino"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+msgid "User ID already exists"
+msgstr ""
+
+msgid "Name already exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "Duobligita valoro"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "Atestilo tro novas"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "Provizita objekto tro mallongas"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "Nekonata nomo"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "Malvalida operacia kodo"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "Nekonata nomo"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "Nekonata sistem-eraro"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "Malvalida ĉeno OID"
+
+#, fuzzy
+#| msgid "Invalid S-expression"
+msgid "Invalid textual address form"
+msgstr "Malvalida S-esprimo"
+
+#, fuzzy
+#| msgid "Missing certificate"
+msgid "Missing DNS query packet"
+msgstr "Mankas atestilo"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "Malĉifro fiaskis"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "Tempofino"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "General LDAP error"
+msgstr "Ĝenerala eraro de IPC"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP attribute error"
+msgstr "Ĝenerala eraro"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP name error"
+msgstr "Ĝenerala eraro"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP security error"
+msgstr "Ĝenerala eraro de Assuan"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP service error"
+msgstr "Ĝenerala eraro"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP update error"
+msgstr "Ĝenerala eraro de Assuan"
+
+msgid "Experimental LDAP error code"
+msgstr ""
+
+#, fuzzy
+#| msgid "IPC write error"
+msgid "Private LDAP error code"
+msgstr "Skrib-eraro de IPC"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other general LDAP error"
+msgstr "Ĝenerala eraro de IPC"
+
+#, fuzzy
+#| msgid "IPC connect call failed"
+msgid "LDAP connecting failed (X)"
+msgstr "Konekta voko de IPC fiaskis"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral limit exceeded"
+msgstr "Ĝenerala eraro"
+
+msgid "LDAP client loop"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "No LDAP results returned"
+msgstr "Kart-reekigo estas postulata"
+
+#, fuzzy
+#| msgid "Element not found"
+msgid "LDAP control not found"
+msgstr "Elemento ne estas trovita"
+
+#, fuzzy
+#| msgid "Not supported"
+msgid "Not supported by LDAP"
+msgstr "Ne subtenata"
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "LDAP connect error"
+msgstr "Neatendita eraro"
+
+msgid "Out of memory in LDAP"
+msgstr ""
+
+msgid "Bad parameter to an LDAP routine"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported operation"
+msgid "User cancelled LDAP operation"
+msgstr "Nesubtenata operacio"
+
+#, fuzzy
+#| msgid "Bad certificate"
+msgid "Bad LDAP search filter"
+msgstr "Malĝusta atestilo"
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "Unknown LDAP authentication method"
+msgstr "Nekonata aldono"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "Timeout in LDAP"
+msgstr "Tempofino"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP decoding error"
+msgstr "eraro de dirmngr"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP encoding error"
+msgstr "eraro de dirmngr"
+
+#, fuzzy
+#| msgid "IPC read error"
+msgid "LDAP local error"
+msgstr "Leg-eraro de IPC"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot contact LDAP server"
+msgstr "Ne estas servilo IPC"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP success"
+msgstr "Sukceso"
+
+#, fuzzy
+#| msgid "Configuration error"
+msgid "LDAP operations error"
+msgstr "Agord-eraro"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP protocol error"
+msgstr "Perforto de protokolo"
+
+msgid "Time limit exceeded in LDAP"
+msgstr ""
+
+msgid "Size limit exceeded in LDAP"
+msgstr ""
+
+msgid "LDAP compare false"
+msgstr ""
+
+msgid "LDAP compare true"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "LDAP authentication method not supported"
+msgstr "Nekonata aldono"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr ""
+
+msgid "Partial LDAP results+referral received"
+msgstr ""
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral"
+msgstr "Ĝenerala eraro"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr ""
+
+msgid "Critical LDAP extension is unavailable"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Confidentiality required by LDAP"
+msgstr "Kart-reekigo estas postulata"
+
+msgid "LDAP SASL bind in progress"
+msgstr ""
+
+msgid "No such LDAP attribute"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid attribute"
+msgid "Undefined LDAP attribute type"
+msgstr "Malvalida atributo"
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate matching in LDAP"
+msgstr "Nesubtenata protekto"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Constraint violation in LDAP"
+msgstr "Perforto de protokolo"
+
+msgid "LDAP type or value exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid syntax in LDAP"
+msgstr "Malvalida stato"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "No such LDAP object"
+msgstr "Neniu objekto CMS"
+
+#, fuzzy
+#| msgid "Hardware problem"
+msgid "LDAP alias problem"
+msgstr "Problemo de aparataro"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid DN syntax in LDAP"
+msgstr "Malvalida stato"
+
+msgid "LDAP entry is a leaf"
+msgstr ""
+
+#, fuzzy
+#| msgid "Encoding problem"
+msgid "LDAP alias dereferencing problem"
+msgstr "Ekodiga problemo"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate LDAP authentication"
+msgstr "Nesubtenata protekto"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid LDAP credentials"
+msgstr "Malvalida karto"
+
+msgid "Insufficient access for LDAP"
+msgstr ""
+
+msgid "LDAP server is busy"
+msgstr ""
+
+msgid "LDAP server is unavailable"
+msgstr ""
+
+msgid "LDAP server is unwilling to perform"
+msgstr ""
+
+msgid "Loop detected by LDAP"
+msgstr ""
+
+#, fuzzy
+#| msgid "Missing action"
+msgid "LDAP naming violation"
+msgstr "Mankas ago"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP object class violation"
+msgstr "Perforto de protokolo"
+
+#, fuzzy
+#| msgid "Operation not yet finished"
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "La operacio ankoraŭ ne finiĝis"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation not allowed on RDN"
+msgstr "Operacio estas nuligita"
+
+msgid "Already exists (LDAP)"
+msgstr ""
+
+msgid "Cannot modify LDAP object class"
+msgstr ""
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "LDAP results too large"
+msgstr "Linio tro longas"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation affects multiple DSAs"
+msgstr "Operacio estas nuligita"
+
+msgid "Virtual LDAP list view error"
+msgstr ""
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other LDAP error"
+msgstr "Ĝenerala eraro de IPC"
+
+#, fuzzy
+#| msgid "Resources exhausted"
+msgid "Resources exhausted in LCUP"
+msgstr "Rimedoj estas plenuzitaj"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Security violation in LCUP"
+msgstr "Perforto de protokolo"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid data in LCUP"
+msgstr "Malvalida stato"
+
+#, fuzzy
+#| msgid "Unsupported certificate"
+msgid "Unsupported scheme in LCUP"
+msgstr "Nesubtenata atestilo"
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Reload required in LCUP"
+msgstr "Kart-reekigo estas postulata"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP cancelled"
+msgstr "Sukceso"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "No LDAP operation to cancel"
+msgstr "Ne operaciebla"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "Too late to cancel LDAP"
+msgstr "Ne operaciebla"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot cancel LDAP"
+msgstr "Ne estas servilo IPC"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP assertion failed"
+msgstr "Malĉifro fiaskis"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr ""
+
+msgid "User defined error code 1"
+msgstr "Uzant-difinita erarkodo 1"
+
+msgid "User defined error code 2"
+msgstr "Uzant-difinita erarkodo 2"
+
+msgid "User defined error code 3"
+msgstr "Uzant-difinita erarkodo 3"
+
+msgid "User defined error code 4"
+msgstr "Uzant-difinita erarkodo 4"
+
+msgid "User defined error code 5"
+msgstr "Uzant-difinita erarkodo 5"
+
+msgid "User defined error code 6"
+msgstr "Uzant-difinita erarkodo 6"
+
+msgid "User defined error code 7"
+msgstr "Uzant-difinita erarkodo 7"
+
+msgid "User defined error code 8"
+msgstr "Uzant-difinita erarkodo 8"
+
+msgid "User defined error code 9"
+msgstr "Uzant-difinita erarkodo 9"
+
+msgid "User defined error code 10"
+msgstr "Uzant-difinita erarkodo 10"
+
+msgid "User defined error code 11"
+msgstr "Uzant-difinita erarkodo 11"
+
+msgid "User defined error code 12"
+msgstr "Uzant-difinita erarkodo 12"
+
+msgid "User defined error code 13"
+msgstr "Uzant-difinita erarkodo 13"
+
+msgid "User defined error code 14"
+msgstr "Uzant-difinita erarkodo 14"
+
+msgid "User defined error code 15"
+msgstr "Uzant-difinita erarkodo 15"
+
+msgid "User defined error code 16"
+msgstr "Uzant-difinita erarkodo 16"
+
+msgid "System error w/o errno"
+msgstr "Sistem-eraro sen errno"
+
+msgid "Unknown system error"
+msgstr "Nekonata sistem-eraro"
+
+msgid "End of file"
+msgstr "Fino de dosiero"
+
+msgid "Unknown error code"
+msgstr "Nekonata erar-kodo"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr "Uzmaniero: %s GPG-ERARO [...]\n"
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s: averto: ne eblis rekoni %s\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Rimedoj estas plenuzitaj"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Malvalida datumaro"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Ĝenerala eraro"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "eraro de dirmngr"

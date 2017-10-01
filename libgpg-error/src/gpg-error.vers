@@ -1,0 +1,135 @@
+# libgpg-error.vers - What symbols to export           -*- std -*-
+# Copyright (C) 2014 g10 Code GmbH
+#
+# This file is part of libgpg-error.
+#
+# libgpg-error is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of the
+# License, or (at your option) any later version.
+#
+# libgpg-error is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, see <https://www.gnu.org/licenses/>.
+#
+# NOTE: When adding new functions, please make sure to add them to
+#       visibility.h and gpg-error.def.in as well.
+
+
+GPG_ERROR_1.0 {
+  global:
+    gpg_strerror;
+    gpg_strerror_r;
+    gpg_strsource;
+    gpg_err_code_from_errno;
+    gpg_err_code_to_errno;
+    gpg_err_code_from_syserror;
+    gpg_err_set_errno;
+    gpg_error_check_version;
+
+    gpgrt_lock_init;
+    gpgrt_lock_lock;
+    gpgrt_lock_unlock;
+    gpgrt_lock_destroy;
+    gpgrt_yield;
+    gpgrt_lock_trylock;
+
+    gpgrt_set_syscall_clamp;
+    gpgrt_get_syscall_clamp;
+
+    gpgrt_fopen;
+    gpgrt_mopen;
+    gpgrt_fopenmem;
+    gpgrt_fopenmem_init;
+    gpgrt_fdopen;
+    gpgrt_fdopen_nc;
+    gpgrt_sysopen;
+    gpgrt_sysopen_nc;
+    gpgrt_fpopen;
+    gpgrt_fpopen_nc;
+    gpgrt_freopen;
+    gpgrt_fopencookie;
+    gpgrt_fclose;
+    gpgrt_fclose_snatch;
+    gpgrt_onclose;
+    gpgrt_fileno;
+    gpgrt_fileno_unlocked;
+    gpgrt_syshd;
+    gpgrt_syshd_unlocked;
+    _gpgrt_set_std_fd;
+    _gpgrt_get_std_stream;
+    gpgrt_flockfile;
+    gpgrt_ftrylockfile;
+    gpgrt_funlockfile;
+    _gpgrt_pending;
+    _gpgrt_pending_unlocked;
+    gpgrt_feof;
+    gpgrt_feof_unlocked;
+    gpgrt_ferror;
+    gpgrt_ferror_unlocked;
+    gpgrt_clearerr;
+    gpgrt_clearerr_unlocked;
+    gpgrt_fflush;
+    gpgrt_fseek;
+    gpgrt_fseeko;
+    gpgrt_ftell;
+    gpgrt_ftello;
+    gpgrt_rewind;
+    gpgrt_fgetc;
+    _gpgrt_getc_underflow;
+    gpgrt_fputc;
+    _gpgrt_putc_overflow;
+    gpgrt_ungetc;
+    gpgrt_read;
+    gpgrt_write;
+    gpgrt_write_sanitized;
+    gpgrt_write_hexstring;
+    gpgrt_fread;
+    gpgrt_fwrite;
+    gpgrt_fgets;
+    gpgrt_fputs;
+    gpgrt_fputs_unlocked;
+    gpgrt_getline;
+    gpgrt_read_line;
+    gpgrt_free;
+    gpgrt_fprintf;
+    gpgrt_fprintf_unlocked;
+    gpgrt_printf;
+    gpgrt_printf_unlocked;
+    gpgrt_vfprintf;
+    gpgrt_vfprintf_unlocked;
+    gpgrt_setvbuf;
+    gpgrt_setbuf;
+    gpgrt_set_binary;
+    gpgrt_set_nonblock;
+    gpgrt_get_nonblock;
+    gpgrt_poll;
+    gpgrt_tmpfile;
+    gpgrt_opaque_set;
+    gpgrt_opaque_get;
+    gpgrt_fname_set;
+    gpgrt_fname_get;
+
+    gpgrt_asprintf;
+    gpgrt_vasprintf;
+    gpgrt_bsprintf;
+    gpgrt_vbsprintf;
+    gpgrt_snprintf;
+    gpgrt_vsnprintf;
+
+    gpgrt_check_version;
+    gpg_err_init;
+    gpg_err_deinit;
+    gpgrt_set_alloc_func;
+
+    gpgrt_b64dec_start;
+    gpgrt_b64dec_proc;
+    gpgrt_b64dec_finish;
+
+  local:
+    *;
+};

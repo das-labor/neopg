@@ -1,0 +1,1366 @@
+# Translation of libgpg-error to Ukrainian
+# Copyright (C) 2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2012, 2014, 2015.
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2015-07-12 16:21+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 1.5\n"
+
+msgid "Unspecified source"
+msgstr "Невказане джерело"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "Агент GPG"
+
+msgid "Pinentry"
+msgstr "Pinentry"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Keybox"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TLS"
+msgstr "TLS"
+
+msgid "Any source"
+msgstr "Будь-яке джерело"
+
+msgid "User defined source 1"
+msgstr "Визначене користувачем джерело 1"
+
+msgid "User defined source 2"
+msgstr "Визначене користувачем джерело 2"
+
+msgid "User defined source 3"
+msgstr "Визначене користувачем джерело 3"
+
+msgid "User defined source 4"
+msgstr "Визначене користувачем джерело 4"
+
+msgid "Unknown source"
+msgstr "Невідоме джерело"
+
+msgid "Success"
+msgstr "Виконано"
+
+msgid "General error"
+msgstr "Загальна помилка"
+
+msgid "Unknown packet"
+msgstr "Невідомий пакет"
+
+msgid "Unknown version in packet"
+msgstr "Невідома версія у пакеті"
+
+msgid "Invalid public key algorithm"
+msgstr "Некоректний алгоритм відкритого ключа"
+
+msgid "Invalid digest algorithm"
+msgstr "Некоректний алгоритм контрольної суми"
+
+msgid "Bad public key"
+msgstr "Помилковий відкритий ключ"
+
+msgid "Bad secret key"
+msgstr "Помилковий закритий ключ"
+
+msgid "Bad signature"
+msgstr "Непридатний підпис"
+
+msgid "No public key"
+msgstr "Немає відкритого ключа"
+
+msgid "Checksum error"
+msgstr "Помилка у контрольній сумі"
+
+msgid "Bad passphrase"
+msgstr "Помилковий пароль"
+
+msgid "Invalid cipher algorithm"
+msgstr "Некоректний алгоритм шифрування"
+
+msgid "Cannot open keyring"
+msgstr "Відкриття сховища ключів"
+
+msgid "Invalid packet"
+msgstr "Некоректний пакет"
+
+msgid "Invalid armor"
+msgstr "Некоректний код ASCII"
+
+msgid "No user ID"
+msgstr "Немає ідентифікатора користувача"
+
+msgid "No secret key"
+msgstr "Немає закритого ключа"
+
+msgid "Wrong secret key used"
+msgstr "Використано помилковий закритий код"
+
+msgid "Bad session key"
+msgstr "Помилковий ключ сеансу"
+
+msgid "Unknown compression algorithm"
+msgstr "Невідомий алгоритм стискання"
+
+msgid "Number is not prime"
+msgstr "Число не є простим"
+
+msgid "Invalid encoding method"
+msgstr "Некоректний алгоритм кодування"
+
+msgid "Invalid encryption scheme"
+msgstr "Некоректна схема шифрування"
+
+msgid "Invalid signature scheme"
+msgstr "Некоректна схема підписування"
+
+msgid "Invalid attribute"
+msgstr "Некоректний атрибут"
+
+msgid "No value"
+msgstr "Немає значення"
+
+msgid "Not found"
+msgstr "Не знайдено"
+
+msgid "Value not found"
+msgstr "Значення не знайдено"
+
+msgid "Syntax error"
+msgstr "Синтаксична помилка"
+
+msgid "Bad MPI value"
+msgstr "Помилкове значення MPI"
+
+msgid "Invalid passphrase"
+msgstr "Некоректний пароль"
+
+msgid "Invalid signature class"
+msgstr "Некоректний клас підпису"
+
+msgid "Resources exhausted"
+msgstr "Вичерпано ресурси"
+
+msgid "Invalid keyring"
+msgstr "Некоректне сховище ключів"
+
+msgid "Trust DB error"
+msgstr "Помилка бази даних щодо надійності"
+
+msgid "Bad certificate"
+msgstr "Помилковий сертифікат"
+
+msgid "Invalid user ID"
+msgstr "Некоректний ідентифікатор користувача"
+
+msgid "Unexpected error"
+msgstr "Неочікувана помилка"
+
+msgid "Time conflict"
+msgstr "Суперечливі дані щодо часу"
+
+msgid "Keyserver error"
+msgstr "Помилка сервера ключів"
+
+msgid "Wrong public key algorithm"
+msgstr "Помилковий алгоритм відкритого ключа"
+
+msgid "Tribute to D. A."
+msgstr "Присвячується D. A."
+
+msgid "Weak encryption key"
+msgstr "Слабкий ключ шифрування"
+
+msgid "Invalid key length"
+msgstr "Некоректна довжина ключа"
+
+msgid "Invalid argument"
+msgstr "Некоректний аргумент"
+
+msgid "Syntax error in URI"
+msgstr "Синтаксична помилку у адресі"
+
+msgid "Invalid URI"
+msgstr "Некоректна адреса"
+
+msgid "Network error"
+msgstr "Помилка мережі"
+
+msgid "Unknown host"
+msgstr "Невідомий вузол"
+
+msgid "Selftest failed"
+msgstr "Помилка під час самоперевірки"
+
+msgid "Data not encrypted"
+msgstr "Дані не зашифровано"
+
+msgid "Data not processed"
+msgstr "Дані не оброблено"
+
+msgid "Unusable public key"
+msgstr "Непридатний до використання відкритий ключ"
+
+msgid "Unusable secret key"
+msgstr "Непридатний до використання закритий ключ"
+
+msgid "Invalid value"
+msgstr "Некоректне значення"
+
+msgid "Bad certificate chain"
+msgstr "Помилковий ланцюжок сертифікації"
+
+msgid "Missing certificate"
+msgstr "Не вистачає сертифіката"
+
+msgid "No data"
+msgstr "Немає даних"
+
+msgid "Bug"
+msgstr "Вада"
+
+msgid "Not supported"
+msgstr "Не підтримується"
+
+msgid "Invalid operation code"
+msgstr "Некоректний код дії"
+
+msgid "Timeout"
+msgstr "Час очікування"
+
+msgid "Internal error"
+msgstr "Внутрішня помилка"
+
+msgid "EOF (gcrypt)"
+msgstr "EOF (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Некоректний об’єкт"
+
+msgid "Provided object is too short"
+msgstr "Наданий об’єкт є надто коротким"
+
+msgid "Provided object is too large"
+msgstr "Наданий об’єкт є надто довгим"
+
+msgid "Missing item in object"
+msgstr "У об’єкті не вистачає елемента"
+
+msgid "Not implemented"
+msgstr "Не реалізовано"
+
+msgid "Conflicting use"
+msgstr "Суперечливе використання"
+
+msgid "Invalid cipher mode"
+msgstr "Некоректний режим шифрування"
+
+msgid "Invalid flag"
+msgstr "Некоректний прапорець"
+
+msgid "Invalid handle"
+msgstr "Некоректний обробник"
+
+msgid "Result truncated"
+msgstr "Список результатів обрізано"
+
+msgid "Incomplete line"
+msgstr "Незавершений рядок"
+
+msgid "Invalid response"
+msgstr "Некоректна відповідь"
+
+msgid "No agent running"
+msgstr "Агент не запущено"
+
+msgid "Agent error"
+msgstr "Помилка агента"
+
+msgid "Invalid data"
+msgstr "Некоректні дані"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Невизначена помилка сервера Assuan"
+
+msgid "General Assuan error"
+msgstr "Загальна помилка бібліотеки Assuan"
+
+msgid "Invalid session key"
+msgstr "Некоректний ключ сеансу"
+
+msgid "Invalid S-expression"
+msgstr "Некоректний S-вираз"
+
+msgid "Unsupported algorithm"
+msgstr "Непідтримуваний алгоритм"
+
+msgid "No pinentry"
+msgstr "Немає pinentry"
+
+msgid "pinentry error"
+msgstr "Помилка pinentry"
+
+msgid "Bad PIN"
+msgstr "Помилковий пінкод"
+
+msgid "Invalid name"
+msgstr "Некоректне назва"
+
+msgid "Bad data"
+msgstr "Помилкові дані"
+
+msgid "Invalid parameter"
+msgstr "Некоректний параметр"
+
+msgid "Wrong card"
+msgstr "Помилкова картка"
+
+msgid "No dirmngr"
+msgstr "Немає dirmngr"
+
+msgid "dirmngr error"
+msgstr "Помилка dirmngr"
+
+msgid "Certificate revoked"
+msgstr "Сертифікат відкликано"
+
+msgid "No CRL known"
+msgstr "Немає жодної відомої CRL"
+
+msgid "CRL too old"
+msgstr "CRL застарий"
+
+msgid "Line too long"
+msgstr "Рядок надто довгий"
+
+msgid "Not trusted"
+msgstr "Ненадійний"
+
+msgid "Operation cancelled"
+msgstr "Дію скасовано"
+
+msgid "Bad CA certificate"
+msgstr "Помилковий сертифікат CA"
+
+msgid "Certificate expired"
+msgstr "Термін дії сертифіката минув"
+
+msgid "Certificate too young"
+msgstr "Сертифікат є надто новим"
+
+msgid "Unsupported certificate"
+msgstr "Непідтримуваний сертифікат"
+
+msgid "Unknown S-expression"
+msgstr "Невідомий S-вираз"
+
+msgid "Unsupported protection"
+msgstr "Непідтримуваний захист"
+
+msgid "Corrupted protection"
+msgstr "Захист пошкоджено"
+
+msgid "Ambiguous name"
+msgstr "Неоднозначна назва"
+
+msgid "Card error"
+msgstr "Помилка під час роботи з карткою"
+
+msgid "Card reset required"
+msgstr "Надіслано запит на скидання картки"
+
+msgid "Card removed"
+msgstr "Картку вилучено"
+
+msgid "Invalid card"
+msgstr "Некоректна картка"
+
+msgid "Card not present"
+msgstr "Немає картки"
+
+msgid "No PKCS15 application"
+msgstr "Немає програми обробки PKCS15"
+
+msgid "Not confirmed"
+msgstr "Не підтверджено"
+
+msgid "Configuration error"
+msgstr "Помилка налаштування"
+
+msgid "No policy match"
+msgstr "Немає відповідного правила"
+
+msgid "Invalid index"
+msgstr "Некоректний індекс"
+
+msgid "Invalid ID"
+msgstr "Некоректний ідентифікатор"
+
+msgid "No SmartCard daemon"
+msgstr "Немає фонової служби SmartCard"
+
+msgid "SmartCard daemon error"
+msgstr "Помилка фонової служби SmartCard"
+
+msgid "Unsupported protocol"
+msgstr "Непідтримуваний протокол"
+
+msgid "Bad PIN method"
+msgstr "Помилковий метод обробки пінкоду"
+
+msgid "Card not initialized"
+msgstr "Картку не ініціалізовано"
+
+msgid "Unsupported operation"
+msgstr "Непідтримувана дія"
+
+msgid "Wrong key usage"
+msgstr "Помилкове використання ключа"
+
+msgid "Nothing found"
+msgstr "Нічого не знайдено"
+
+msgid "Wrong blob type"
+msgstr "Помилковий тип бінарного коду"
+
+msgid "Missing value"
+msgstr "Не вистачає значення"
+
+msgid "Hardware problem"
+msgstr "Апаратні проблеми"
+
+msgid "PIN blocked"
+msgstr "Пінкод заблоковано"
+
+msgid "Conditions of use not satisfied"
+msgstr "Не задоволено умови користування"
+
+msgid "PINs are not synced"
+msgstr "Пінкоди не синхронізовано"
+
+msgid "Invalid CRL"
+msgstr "Некоректне значення CRL"
+
+msgid "BER error"
+msgstr "Помилка BER"
+
+msgid "Invalid BER"
+msgstr "Некоректне значення BER"
+
+msgid "Element not found"
+msgstr "Елемента не знайдено"
+
+msgid "Identifier not found"
+msgstr "Не знайдено ідентифікатора"
+
+msgid "Invalid tag"
+msgstr "Некоректний теґ"
+
+msgid "Invalid length"
+msgstr "Некоректна довжина"
+
+msgid "Invalid key info"
+msgstr "Некоректні дані щодо ключа"
+
+msgid "Unexpected tag"
+msgstr "Неочікуваний теґ"
+
+msgid "Not DER encoded"
+msgstr "Не закодовано DER"
+
+msgid "No CMS object"
+msgstr "Немає об’єкта CMS"
+
+msgid "Invalid CMS object"
+msgstr "Некоректний об’єкт CMS"
+
+msgid "Unknown CMS object"
+msgstr "Невідомий об’єкт CMS"
+
+msgid "Unsupported CMS object"
+msgstr "Непідтримуваний об’єкт CMS"
+
+msgid "Unsupported encoding"
+msgstr "Непідтримуване кодування"
+
+msgid "Unsupported CMS version"
+msgstr "Непідтримувана версія CMS"
+
+msgid "Unknown algorithm"
+msgstr "Невідомий алгоритм"
+
+msgid "Invalid crypto engine"
+msgstr "Некоректний рушій шифрування"
+
+msgid "Public key not trusted"
+msgstr "Відкритий ключ не є надійним"
+
+msgid "Decryption failed"
+msgstr "Спроба розшифрування зазнала невдачі"
+
+msgid "Key expired"
+msgstr "Строк дії ключа вичерпано"
+
+msgid "Signature expired"
+msgstr "Строк дії підпису вичерпано"
+
+msgid "Encoding problem"
+msgstr "Проблема з кодуванням"
+
+msgid "Invalid state"
+msgstr "Некоректний стан"
+
+msgid "Duplicated value"
+msgstr "Дублювання значення"
+
+msgid "Missing action"
+msgstr "Не вистачає дії"
+
+msgid "ASN.1 module not found"
+msgstr "Не знайдено модуля ASN.1"
+
+msgid "Invalid OID string"
+msgstr "Некоректний рядок OID"
+
+msgid "Invalid time"
+msgstr "Некоректний час"
+
+msgid "Invalid CRL object"
+msgstr "Некоректний об’єкт CRL"
+
+msgid "Unsupported CRL version"
+msgstr "Непідтримувана версія CRL"
+
+msgid "Invalid certificate object"
+msgstr "Некоректний об’єкт сертифікації"
+
+msgid "Unknown name"
+msgstr "Невідома назва"
+
+msgid "A locale function failed"
+msgstr "Помилка функції локалізації"
+
+msgid "Not locked"
+msgstr "Не заблоковано"
+
+msgid "Protocol violation"
+msgstr "Порушення протоколу"
+
+msgid "Invalid MAC"
+msgstr "Некоректна MAC-адреса"
+
+msgid "Invalid request"
+msgstr "Некоректний запит"
+
+msgid "Unknown extension"
+msgstr "Невідоме розширення"
+
+msgid "Unknown critical extension"
+msgstr "Невідоме критичне розширення"
+
+msgid "Locked"
+msgstr "Заблоковано"
+
+msgid "Unknown option"
+msgstr "Невідомий параметр"
+
+msgid "Unknown command"
+msgstr "Невідома команда"
+
+msgid "Not operational"
+msgstr "Використання неможливе"
+
+msgid "No passphrase given"
+msgstr "Не вказано пароля"
+
+msgid "No PIN given"
+msgstr "Не вказано пінкоду"
+
+msgid "Not enabled"
+msgstr "Не увімкнено"
+
+msgid "No crypto engine"
+msgstr "Немає рушія шифрування"
+
+msgid "Missing key"
+msgstr "Пропущено ключ"
+
+msgid "Too many objects"
+msgstr "Забагато об’єктів"
+
+msgid "Limit reached"
+msgstr "Досягнуто обмеження"
+
+msgid "Not initialized"
+msgstr "Не ініціалізовано"
+
+msgid "Missing issuer certificate"
+msgstr "Не вистачає сертифіката видавця"
+
+msgid "No keyserver available"
+msgstr "Немає доступних серверів ключів"
+
+msgid "Invalid elliptic curve"
+msgstr "Некоректна еліптична крива"
+
+msgid "Unknown elliptic curve"
+msgstr "Невідома еліптична крива"
+
+msgid "Duplicated key"
+msgstr "Дублювання ключа"
+
+msgid "Ambiguous result"
+msgstr "Неоднозначний результат"
+
+msgid "No crypto context"
+msgstr "Немає контексту шифрування"
+
+msgid "Wrong crypto context"
+msgstr "Помилковий контекст шифрування"
+
+msgid "Bad crypto context"
+msgstr "Некоректний контекст шифрування"
+
+msgid "Conflict in the crypto context"
+msgstr "Конфлікт у контексті шифрування"
+
+msgid "Broken public key"
+msgstr "Пошкоджений відкритий ключ"
+
+msgid "Broken secret key"
+msgstr "Пошкоджений закритий ключ"
+
+msgid "Invalid MAC algorithm"
+msgstr "Некоректний алгоритм MAC"
+
+msgid "Operation fully cancelled"
+msgstr "Дію повністю скасовано"
+
+msgid "Operation not yet finished"
+msgstr "Виконання дії ще не завершено"
+
+msgid "Buffer too short"
+msgstr "Занадто короткий буфер"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Некоректний специфікатор довжини у S-виразі"
+
+msgid "String too long in S-expression"
+msgstr "Занадто довгий рядок у S-виразі"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Незакриті дужки у S-виразі"
+
+msgid "S-expression not canonical"
+msgstr "S-вираз не є канонічним"
+
+msgid "Bad character in S-expression"
+msgstr "Помилковий символ у S-виразі"
+
+msgid "Bad quotation in S-expression"
+msgstr "Помилкові лапки у S-виразі"
+
+msgid "Zero prefix in S-expression"
+msgstr "Нульовий префікс у S-виразі"
+
+msgid "Nested display hints in S-expression"
+msgstr "Вкладені настанови щодо показу у S-виразі"
+
+msgid "Unmatched display hints"
+msgstr "Невідповідні настанови щодо показу"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Неочікувана зарезервована пунктуація у S-виразі"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Помилковий шістнадцятковий символ у S-виразі"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Дивні шістнадцяткові числа у S-виразі"
+
+msgid "Bad octal character in S-expression"
+msgstr "Помилковий вісімковий символ у S-виразі"
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "Дані не зашифровано"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "Невідома назва"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "Немає відкритого ключа"
+
+msgid "Legacy key"
+msgstr "Застарілий ключ"
+
+msgid "Request too short"
+msgstr "Занадто короткий запит"
+
+msgid "Request too long"
+msgstr "Надто довгий запит"
+
+msgid "Object is in termination state"
+msgstr "Об’єкт перебуває у стані переривання"
+
+msgid "No certificate chain"
+msgstr "Немає ланцюжка сертифікації"
+
+msgid "Certificate is too large"
+msgstr "Сертифікат є надто великим"
+
+msgid "Invalid record"
+msgstr "Некоректний запис"
+
+msgid "The MAC does not verify"
+msgstr "MAC не пройшов перевірку"
+
+msgid "Unexpected message"
+msgstr "Неочікуване повідомлення"
+
+msgid "Compression or decompression failed"
+msgstr "Помилка під час стискання або видобування"
+
+msgid "A counter would wrap"
+msgstr "Відлік буде автоматично розпочато з початку"
+
+msgid "Fatal alert message received"
+msgstr "Отримано критичне попереджувальне повідомлення"
+
+msgid "No cipher algorithm"
+msgstr "Немає алгоритму шифрування"
+
+msgid "Missing client certificate"
+msgstr "Не вистачає сертифіката клієнта"
+
+msgid "Close notification received"
+msgstr "Отримано сповіщення щодо закриття"
+
+msgid "Ticket expired"
+msgstr "Строк дії квитка вичерпано"
+
+msgid "Bad ticket"
+msgstr "Помилковий квиток"
+
+msgid "Unknown identity"
+msgstr "Невідомий профіль"
+
+msgid "Bad certificate message in handshake"
+msgstr "Помилкове повідомлення щодо сертифікації під час підтвердження зв’язку"
+
+msgid "Bad certificate request message in handshake"
+msgstr ""
+"Помилкове повідомлення щодо запиту сертифікації під час підтвердження зв’язку"
+
+msgid "Bad certificate verify message in handshake"
+msgstr ""
+"Помилкове повідомлення щодо перевірки сертифікації під час підтвердження "
+"зв’язку"
+
+msgid "Bad change cipher message in handshake"
+msgstr "Помилкове повідомлення щодо зміни шифру під час підтвердження зв’язку"
+
+msgid "Bad client hello message in handshake"
+msgstr "Помилкове вітальне повідомлення клієнта під час підтвердження зв’язку"
+
+msgid "Bad server hello message in handshake"
+msgstr "Помилкове вітальне повідомлення сервера під час підтвердження зв’язку"
+
+msgid "Bad server hello done message in handshake"
+msgstr ""
+"Помилкове повідомлення про завершення вітання від сервера під час "
+"підтвердження зв’язку"
+
+msgid "Bad finished message in handshake"
+msgstr "Помилкове завершальне повідомлення під час підтвердження зв’язку"
+
+msgid "Bad server key exchange message in handshake"
+msgstr ""
+"Помилкове повідомлення щодо обміну ключами із сервером під час підтвердження "
+"зв’язку"
+
+msgid "Bad client key exchange message in handshake"
+msgstr ""
+"Помилкове повідомлення щодо обміну ключами із клієнтом під час підтвердження "
+"зв’язку"
+
+msgid "Bogus string"
+msgstr "Фіктивний рядок"
+
+msgid "Forbidden"
+msgstr "Заборонено"
+
+msgid "Key disabled"
+msgstr "Ключ вимкнено"
+
+msgid "Not possible with a card based key"
+msgstr "Неможливе для ключа, заснованого на картці"
+
+msgid "Invalid lock object"
+msgstr "Некоректний об’єкт блокування"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "Загальна помилка IPC"
+
+msgid "IPC accept call failed"
+msgstr "Помилка виклику прийняття IPC"
+
+msgid "IPC connect call failed"
+msgstr "Помилка з’єднувального виклику IPC"
+
+msgid "Invalid IPC response"
+msgstr "Некоректна відповідь IPC"
+
+msgid "Invalid value passed to IPC"
+msgstr "IPC передано некоректне значення"
+
+msgid "Incomplete line passed to IPC"
+msgstr "IPC передано незавершений рядок"
+
+msgid "Line passed to IPC too long"
+msgstr "Рядок, переданий IPC, є надто довгим"
+
+msgid "Nested IPC commands"
+msgstr "Вкладені команди IPC"
+
+msgid "No data callback in IPC"
+msgstr "Немає зворотного виклику щодо даних у IPC"
+
+msgid "No inquire callback in IPC"
+msgstr "Немає інформаційного зворотного виклику у IPC"
+
+msgid "Not an IPC server"
+msgstr "Не є сервером IPC"
+
+msgid "Not an IPC client"
+msgstr "Не є клієнтом IPC"
+
+msgid "Problem starting IPC server"
+msgstr "Проблеми із запуском сервера IPC"
+
+msgid "IPC read error"
+msgstr "Помилка читання IPC"
+
+msgid "IPC write error"
+msgstr "Помилка запису IPC"
+
+msgid "Too much data for IPC layer"
+msgstr "Забагато даних для шару IPC"
+
+msgid "Unexpected IPC command"
+msgstr "Неочікувана команда IPC"
+
+msgid "Unknown IPC command"
+msgstr "Невідома команда IPC"
+
+msgid "IPC syntax error"
+msgstr "Синтаксична помилка IPC"
+
+msgid "IPC call has been cancelled"
+msgstr "Виклик IPC було скасовано"
+
+msgid "No input source for IPC"
+msgstr "Немає джерела вхідних даних для IPC"
+
+msgid "No output source for IPC"
+msgstr "Немає місця виведення даних для IPC"
+
+msgid "IPC parameter error"
+msgstr "Помилка у параметрі IPC"
+
+msgid "Unknown IPC inquire"
+msgstr "Невідомий запит IPC"
+
+#, fuzzy
+#| msgid "No crypto engine"
+msgid "Crypto engine too old"
+msgstr "Немає рушія шифрування"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+#, fuzzy
+#| msgid "Already exists (LDAP)"
+msgid "User ID already exists"
+msgstr "Вже існує (LDAP)"
+
+#, fuzzy
+#| msgid "Already exists (LDAP)"
+msgid "Name already exists"
+msgstr "Вже існує (LDAP)"
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "Дублювання значення"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "Сертифікат є надто новим"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "Наданий об’єкт є надто коротким"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "Невідома назва"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "Некоректний код дії"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "Невідома назва"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "Невідома системна помилка"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "Некоректний рядок OID"
+
+#, fuzzy
+#| msgid "Invalid S-expression"
+msgid "Invalid textual address form"
+msgstr "Некоректний S-вираз"
+
+#, fuzzy
+#| msgid "Missing issuer certificate"
+msgid "Missing DNS query packet"
+msgstr "Не вистачає сертифіката видавця"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "Спроба розшифрування зазнала невдачі"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "Час очікування"
+
+msgid "General LDAP error"
+msgstr "Загальна помилка LDAP"
+
+msgid "General LDAP attribute error"
+msgstr "Загальна помилка атрибута LDAP"
+
+msgid "General LDAP name error"
+msgstr "Загальна помилка назви LDAP"
+
+msgid "General LDAP security error"
+msgstr "Загальна помилка захисту LDAP"
+
+msgid "General LDAP service error"
+msgstr "Загальна помилка служби LDAP"
+
+msgid "General LDAP update error"
+msgstr "Загальна помилка оновлення LDAP"
+
+msgid "Experimental LDAP error code"
+msgstr "Експериментальний код помилки LDAP"
+
+msgid "Private LDAP error code"
+msgstr "Код конфіденційної помилки LDAP"
+
+msgid "Other general LDAP error"
+msgstr "Інша загальна помилка LDAP"
+
+msgid "LDAP connecting failed (X)"
+msgstr "Не вдалося з’єднатися із LDAP (X)"
+
+msgid "LDAP referral limit exceeded"
+msgstr "Перевищення обмежень щодо спрямовування у LDAP"
+
+msgid "LDAP client loop"
+msgstr "Циклічний клієнт LDAP"
+
+msgid "No LDAP results returned"
+msgstr "Не повернуто результатів LDAP"
+
+msgid "LDAP control not found"
+msgstr "Не знайдено керування LDAP"
+
+msgid "Not supported by LDAP"
+msgstr "Не підтримується LDAP"
+
+msgid "LDAP connect error"
+msgstr "Помилка з’єднання LDAP"
+
+msgid "Out of memory in LDAP"
+msgstr "Не вистачає пам’яті у LDAP"
+
+msgid "Bad parameter to an LDAP routine"
+msgstr "Помилковий параметр підпрограми LDAP"
+
+msgid "User cancelled LDAP operation"
+msgstr "Дію LDAP скасовано користувачем"
+
+msgid "Bad LDAP search filter"
+msgstr "Помилковий фільтр пошуку LDAP"
+
+msgid "Unknown LDAP authentication method"
+msgstr "Невідомий спосіб розпізнавання LDAP"
+
+msgid "Timeout in LDAP"
+msgstr "Перевищення часу очікування у LDAP"
+
+msgid "LDAP decoding error"
+msgstr "Помилка декодування LDAP"
+
+msgid "LDAP encoding error"
+msgstr "Помилка кодування LDAP"
+
+msgid "LDAP local error"
+msgstr "Локальна помилка LDAP"
+
+msgid "Cannot contact LDAP server"
+msgstr "Не вдалося встановити зв’язок із сервером LDAP"
+
+msgid "LDAP success"
+msgstr "Успіх LDAP"
+
+msgid "LDAP operations error"
+msgstr "Помилка дій LDAP"
+
+msgid "LDAP protocol error"
+msgstr "Помилка протоколу LDAP"
+
+msgid "Time limit exceeded in LDAP"
+msgstr "Перевищено час очікування у LDAP"
+
+msgid "Size limit exceeded in LDAP"
+msgstr "Перевищено обмеження на розмір у LDAP"
+
+msgid "LDAP compare false"
+msgstr "Порівняння LDAP: не збігаються"
+
+msgid "LDAP compare true"
+msgstr "Порівняння LDAP: збігаються"
+
+msgid "LDAP authentication method not supported"
+msgstr "Підтримки методу розпізнавання LDAP не передбачено"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr "Потрібен потужніший спосіб розпізнавання LDAP"
+
+msgid "Partial LDAP results+referral received"
+msgstr "Отримано часткові результати і спрямування LDAP"
+
+msgid "LDAP referral"
+msgstr "Спрямування LDAP"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr "Перевищено адміністративне обмеження LDAP"
+
+msgid "Critical LDAP extension is unavailable"
+msgstr "Недоступне критичне розширення LDAP"
+
+msgid "Confidentiality required by LDAP"
+msgstr "Конфіденційно потрібне LDAP"
+
+msgid "LDAP SASL bind in progress"
+msgstr "Виконуємо прив’язування SASL LDAP"
+
+msgid "No such LDAP attribute"
+msgstr "Немає такого атрибута LDAP"
+
+msgid "Undefined LDAP attribute type"
+msgstr "Невизначний тип атрибута LDAP"
+
+msgid "Inappropriate matching in LDAP"
+msgstr "Неприйнятна відповідність у LDAP"
+
+msgid "Constraint violation in LDAP"
+msgstr "Порушення обмежень у LDAP"
+
+msgid "LDAP type or value exists"
+msgstr "Тип або значення LDAP існує"
+
+msgid "Invalid syntax in LDAP"
+msgstr "Некоректний синтаксис у LDAP"
+
+msgid "No such LDAP object"
+msgstr "Немає такого об’єкта LDAP"
+
+msgid "LDAP alias problem"
+msgstr "Проблема псевдоніма LDAP"
+
+msgid "Invalid DN syntax in LDAP"
+msgstr "Некоректний синтаксис DN у LDAP"
+
+msgid "LDAP entry is a leaf"
+msgstr "Запис LDAP є листком"
+
+msgid "LDAP alias dereferencing problem"
+msgstr "Проблемі з скасування прив’язки псевдоніма LDAP"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr "Помилка уповноваження проксі LDAP (X)"
+
+msgid "Inappropriate LDAP authentication"
+msgstr "Неприйнятне розпізнавання LDAP"
+
+msgid "Invalid LDAP credentials"
+msgstr "Некоректні реєстраційні дані LDAP"
+
+msgid "Insufficient access for LDAP"
+msgstr "Недостатні права доступу до LDAP"
+
+msgid "LDAP server is busy"
+msgstr "Сервер LDAP зайнято виконанням завдання"
+
+msgid "LDAP server is unavailable"
+msgstr "Сервер LDAP недоступний"
+
+msgid "LDAP server is unwilling to perform"
+msgstr "Сервер LDAP не бажає працювати"
+
+msgid "Loop detected by LDAP"
+msgstr "LDAP виявлено цикл"
+
+msgid "LDAP naming violation"
+msgstr "Порушення іменування LDAP"
+
+msgid "LDAP object class violation"
+msgstr "Порушення класу об’єктів LDAP"
+
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "Дію LDAP не дозволено для об’єктів, які не є листками"
+
+msgid "LDAP operation not allowed on RDN"
+msgstr "Дію LDAP не дозволено над RDN"
+
+msgid "Already exists (LDAP)"
+msgstr "Вже існує (LDAP)"
+
+msgid "Cannot modify LDAP object class"
+msgstr "Не вдалося змінити клас об’єкта LDAP"
+
+msgid "LDAP results too large"
+msgstr "Результати LDAP є надто великими"
+
+msgid "LDAP operation affects multiple DSAs"
+msgstr "Дія LDAP стосується декількох DSA"
+
+msgid "Virtual LDAP list view error"
+msgstr "Помилка перегляду списку віртуальної LDAP"
+
+msgid "Other LDAP error"
+msgstr "Інша помилка LDAP"
+
+msgid "Resources exhausted in LCUP"
+msgstr "Вичерпано ресурси у LCUP"
+
+msgid "Security violation in LCUP"
+msgstr "Порушення захисту у LCUP"
+
+msgid "Invalid data in LCUP"
+msgstr "Некоректні дані у LCUP"
+
+msgid "Unsupported scheme in LCUP"
+msgstr "Непідтримувана схема у LCUP"
+
+msgid "Reload required in LCUP"
+msgstr "Потрібне перезавантаження у LCUP"
+
+msgid "LDAP cancelled"
+msgstr "LDAP скасовано"
+
+msgid "No LDAP operation to cancel"
+msgstr "Немає дії LDAP для скасовування"
+
+msgid "Too late to cancel LDAP"
+msgstr "Запізно для скасовування LDAP"
+
+msgid "Cannot cancel LDAP"
+msgstr "Не вдалося скасувати LDAP"
+
+msgid "LDAP assertion failed"
+msgstr "Помилка оцінки LDAP"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr "Уповноваження за допомогою проксі заборонено LDAP"
+
+msgid "User defined error code 1"
+msgstr "Визначений користувачем код помилки 1"
+
+msgid "User defined error code 2"
+msgstr "Визначений користувачем код помилки 2"
+
+msgid "User defined error code 3"
+msgstr "Визначений користувачем код помилки 3"
+
+msgid "User defined error code 4"
+msgstr "Визначений користувачем код помилки 4"
+
+msgid "User defined error code 5"
+msgstr "Визначений користувачем код помилки 5"
+
+msgid "User defined error code 6"
+msgstr "Визначений користувачем код помилки 6"
+
+msgid "User defined error code 7"
+msgstr "Визначений користувачем код помилки 7"
+
+msgid "User defined error code 8"
+msgstr "Визначений користувачем код помилки 8"
+
+msgid "User defined error code 9"
+msgstr "Визначений користувачем код помилки 9"
+
+msgid "User defined error code 10"
+msgstr "Визначений користувачем код помилки 10"
+
+msgid "User defined error code 11"
+msgstr "Визначений користувачем код помилки 11"
+
+msgid "User defined error code 12"
+msgstr "Визначений користувачем код помилки 12"
+
+msgid "User defined error code 13"
+msgstr "Визначений користувачем код помилки 13"
+
+msgid "User defined error code 14"
+msgstr "Визначений користувачем код помилки 14"
+
+msgid "User defined error code 15"
+msgstr "Визначений користувачем код помилки 15"
+
+msgid "User defined error code 16"
+msgstr "Визначений користувачем код помилки 16"
+
+msgid "System error w/o errno"
+msgstr "Системна помилка без номера"
+
+msgid "Unknown system error"
+msgstr "Невідома системна помилка"
+
+msgid "End of file"
+msgstr "Кінець файла"
+
+msgid "Unknown error code"
+msgstr "Помилка з невідомим кодом"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr "Користування: %s ПОМИЛКА-GPG [...]\n"
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s: попередження: не вдалося розпізнати %s\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Вичерпано ресурси"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Некоректні дані"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Загальна помилка"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "Помилка dirmngr"

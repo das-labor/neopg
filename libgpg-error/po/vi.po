@@ -1,0 +1,1516 @@
+# Vietnamese translation for Lib. GPG Error.
+# Copyright © 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Clytie Siddall <clytie@riverland.net.au>, 2006-2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2013-02-23 20:10+0100\n"
+"Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
+"Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: LocFactoryEditor 1.8\n"
+
+msgid "Unspecified source"
+msgstr "Nguồn chưa ghi rõ"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "Tác nhân GPG"
+
+msgid "Pinentry"
+msgstr "Pinentry"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Keybox"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TLS"
+msgstr ""
+
+msgid "Any source"
+msgstr "Bất cứ nguồn nào"
+
+msgid "User defined source 1"
+msgstr "Nguồn tự xác định 1"
+
+msgid "User defined source 2"
+msgstr "Nguồn tự xác định 2"
+
+msgid "User defined source 3"
+msgstr "Nguồn tự xác định 3"
+
+msgid "User defined source 4"
+msgstr "Nguồn tự xác định 4"
+
+msgid "Unknown source"
+msgstr "Nguồn không rõ"
+
+msgid "Success"
+msgstr "Thành công"
+
+msgid "General error"
+msgstr "Lỗi chung"
+
+msgid "Unknown packet"
+msgstr "Gói tin không rõ"
+
+msgid "Unknown version in packet"
+msgstr "Gặp phiên bản không rõ trong gói tin"
+
+msgid "Invalid public key algorithm"
+msgstr "Thuật toán khoá công không hợp lệ"
+
+msgid "Invalid digest algorithm"
+msgstr "Thuật toán bộ tóm tắt (digest) không hợp lệ"
+
+msgid "Bad public key"
+msgstr "Khoá công sai"
+
+msgid "Bad secret key"
+msgstr "Khoá bí mật sai"
+
+msgid "Bad signature"
+msgstr "Chữ ký sai"
+
+msgid "No public key"
+msgstr "Không có khoá công"
+
+msgid "Checksum error"
+msgstr "Lỗi tổng kiểm tra"
+
+msgid "Bad passphrase"
+msgstr "Cụm từ mật khẩu sai"
+
+msgid "Invalid cipher algorithm"
+msgstr "Thuật toán mật mã không hợp lệ"
+
+msgid "Cannot open keyring"
+msgstr "Vòng khoá đã mở"
+
+msgid "Invalid packet"
+msgstr "Gói tin không hợp lệ"
+
+msgid "Invalid armor"
+msgstr "Bọc sắt không hợp lệ"
+
+msgid "No user ID"
+msgstr "Không có mã số người dùng"
+
+msgid "No secret key"
+msgstr "Không có khoá bí mật"
+
+msgid "Wrong secret key used"
+msgstr "Đã dùng khoá bí mật không đúng"
+
+msgid "Bad session key"
+msgstr "Khoá buổi hợp sai"
+
+msgid "Unknown compression algorithm"
+msgstr "Thuật toán nén không rõ"
+
+msgid "Number is not prime"
+msgstr "Số không phải nguyên tố"
+
+msgid "Invalid encoding method"
+msgstr "Phương pháp mã hoá không hợp lệ"
+
+msgid "Invalid encryption scheme"
+msgstr "Lược đồ mật mã hoá không hợp lệ"
+
+msgid "Invalid signature scheme"
+msgstr "Lược đồ chữ ký không hợp lệ"
+
+msgid "Invalid attribute"
+msgstr "Thuộc tính không hợp lệ"
+
+msgid "No value"
+msgstr "Không có giá trị"
+
+msgid "Not found"
+msgstr "Không tìm thấy"
+
+msgid "Value not found"
+msgstr "Không tìm thấy giá trị"
+
+msgid "Syntax error"
+msgstr "Lỗi cú pháp"
+
+msgid "Bad MPI value"
+msgstr "Giá trị MPI sai"
+
+msgid "Invalid passphrase"
+msgstr "Cụm từ mật khẩu không hợp lệ"
+
+msgid "Invalid signature class"
+msgstr "Hạng chữ ký không hợp lệ"
+
+msgid "Resources exhausted"
+msgstr "Cạn tài nguyên"
+
+msgid "Invalid keyring"
+msgstr "Vòng khoá không hợp lệ"
+
+msgid "Trust DB error"
+msgstr "Lỗi CSDL tin cậy"
+
+msgid "Bad certificate"
+msgstr "Chứng nhận sai"
+
+msgid "Invalid user ID"
+msgstr "Mã số người dùng không hợp lệ"
+
+msgid "Unexpected error"
+msgstr "Gặp lỗi bất thường"
+
+msgid "Time conflict"
+msgstr "Giờ xung đột"
+
+msgid "Keyserver error"
+msgstr "Lỗi máy phục vụ khoá"
+
+msgid "Wrong public key algorithm"
+msgstr "Thuật toán khoá công không đúng"
+
+msgid "Tribute to D. A."
+msgstr "Cống cho D. A."
+
+msgid "Weak encryption key"
+msgstr "Khoá mật mã yếu"
+
+msgid "Invalid key length"
+msgstr "Chiều dài khoá không hợp lệ"
+
+msgid "Invalid argument"
+msgstr "Đối số không hợp lệ"
+
+msgid "Syntax error in URI"
+msgstr "Lỗi cú pháp trong URI"
+
+msgid "Invalid URI"
+msgstr "URI không hợp lệ"
+
+msgid "Network error"
+msgstr "Lỗi chạy mạng"
+
+msgid "Unknown host"
+msgstr "Không nhận ra máy chủ"
+
+msgid "Selftest failed"
+msgstr "Lỗi tự thử"
+
+msgid "Data not encrypted"
+msgstr "Chưa mật mã dữ liệu"
+
+msgid "Data not processed"
+msgstr "Chưa xử lý dữ liệu"
+
+msgid "Unusable public key"
+msgstr "Khoá công vô ích"
+
+msgid "Unusable secret key"
+msgstr "Khoá bí mật vô ích"
+
+msgid "Invalid value"
+msgstr "Giá trị không hợp lệ"
+
+msgid "Bad certificate chain"
+msgstr "Dây chứng nhận sai"
+
+msgid "Missing certificate"
+msgstr "Chứng nhận còn thiếu"
+
+msgid "No data"
+msgstr "Không có dữ liệu"
+
+msgid "Bug"
+msgstr "Lỗi"
+
+msgid "Not supported"
+msgstr "Không được hỗ trợ"
+
+msgid "Invalid operation code"
+msgstr "Mã thao tác không hợp lệ"
+
+msgid "Timeout"
+msgstr "Quá giờ"
+
+msgid "Internal error"
+msgstr "Lỗi nội bộ"
+
+msgid "EOF (gcrypt)"
+msgstr "Kết thúc tập tin (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Đối tượng không hợp lệ"
+
+msgid "Provided object is too short"
+msgstr "Đã cung cấp một đối tượng quá ngắn"
+
+msgid "Provided object is too large"
+msgstr "Đã cung cấp một đối tượng quá lớn"
+
+msgid "Missing item in object"
+msgstr "Thiếu mục trong đối tượng"
+
+msgid "Not implemented"
+msgstr "Không được thực hiện"
+
+msgid "Conflicting use"
+msgstr "Cách sử dụng xung đột"
+
+msgid "Invalid cipher mode"
+msgstr "Chế độ mật mã không hợp lệ"
+
+msgid "Invalid flag"
+msgstr "Cờ không hợp lệ"
+
+msgid "Invalid handle"
+msgstr "Bộ quản lý không hợp lệ"
+
+msgid "Result truncated"
+msgstr "Kết quả bị cắt ngắn"
+
+msgid "Incomplete line"
+msgstr "Dòng không hoàn toàn"
+
+msgid "Invalid response"
+msgstr "Đáp ứng không hợp lệ"
+
+msgid "No agent running"
+msgstr "Không có tác nhân đang chạy"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "Agent error"
+msgstr "lỗi tác nhân"
+
+msgid "Invalid data"
+msgstr "Dữ liệu không hợp lệ"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Lỗi máy phục vụ Assuan chung"
+
+msgid "General Assuan error"
+msgstr "Lỗi Assuan chung"
+
+msgid "Invalid session key"
+msgstr "Khoá buổi hợp không hợp lệ"
+
+msgid "Invalid S-expression"
+msgstr "Biểu thức S không hợp lệ"
+
+msgid "Unsupported algorithm"
+msgstr "Thuật toán không được hỗ trợ"
+
+msgid "No pinentry"
+msgstr "Không có pinentry"
+
+msgid "pinentry error"
+msgstr "Lỗi pinentry"
+
+msgid "Bad PIN"
+msgstr "PIN sai"
+
+msgid "Invalid name"
+msgstr "Tên không hợp lệ"
+
+msgid "Bad data"
+msgstr "Dữ liệu sai"
+
+msgid "Invalid parameter"
+msgstr "Tham số không hợp lệ"
+
+msgid "Wrong card"
+msgstr "Thẻ không đúng"
+
+msgid "No dirmngr"
+msgstr "Không có dirmngr"
+
+msgid "dirmngr error"
+msgstr "Lỗi dirmngr"
+
+msgid "Certificate revoked"
+msgstr "Chứng nhận bị thu hồi"
+
+msgid "No CRL known"
+msgstr "Không co CRL đã biết"
+
+msgid "CRL too old"
+msgstr "CRL quá cũ"
+
+msgid "Line too long"
+msgstr "Dòng quá dài"
+
+msgid "Not trusted"
+msgstr "Không tin cậy"
+
+msgid "Operation cancelled"
+msgstr "Thao tác bị hủy bỏ"
+
+msgid "Bad CA certificate"
+msgstr "Chứng nhận CA (nhà cầm quyền chứng nhận) sai"
+
+msgid "Certificate expired"
+msgstr "Chứng nhận đã hết hạn"
+
+msgid "Certificate too young"
+msgstr "Chứng nhận quá mới"
+
+msgid "Unsupported certificate"
+msgstr "Chứng nhận không được hỗ trợ"
+
+msgid "Unknown S-expression"
+msgstr "Biểu thức S không rõ"
+
+msgid "Unsupported protection"
+msgstr "Sự bảo vệ không được hỗ trợ"
+
+msgid "Corrupted protection"
+msgstr "Sự bảo vệ bị hỏng"
+
+msgid "Ambiguous name"
+msgstr "Tên mờ hồ"
+
+msgid "Card error"
+msgstr "Lỗi thẻ"
+
+msgid "Card reset required"
+msgstr "Cần thiết lập lại thẻ"
+
+msgid "Card removed"
+msgstr "Thẻ bị gỡ bỏ"
+
+msgid "Invalid card"
+msgstr "Thẻ không hợp lệ"
+
+msgid "Card not present"
+msgstr "Không có thẻ"
+
+msgid "No PKCS15 application"
+msgstr "Không có ứng dụng PKCS15"
+
+msgid "Not confirmed"
+msgstr "Chưa xác nhận"
+
+msgid "Configuration error"
+msgstr "Lỗi cấu hình"
+
+msgid "No policy match"
+msgstr "Không có chính sách tương ứng"
+
+msgid "Invalid index"
+msgstr "Chỉ mục không hợp lệ"
+
+msgid "Invalid ID"
+msgstr "Mã số không hợp lệ"
+
+msgid "No SmartCard daemon"
+msgstr "Không có trình nền Thẻ Khéo"
+
+msgid "SmartCard daemon error"
+msgstr "Lỗi trình nền Thẻ Khéo"
+
+msgid "Unsupported protocol"
+msgstr "Giao thức không được hỗ trợ"
+
+msgid "Bad PIN method"
+msgstr "Phương pháp PIN sai"
+
+msgid "Card not initialized"
+msgstr "Chưa sơ khởi thẻ"
+
+msgid "Unsupported operation"
+msgstr "Thao tác không được hỗ trợ"
+
+msgid "Wrong key usage"
+msgstr "Sai dùng khoá"
+
+msgid "Nothing found"
+msgstr "Không tìm thấy"
+
+msgid "Wrong blob type"
+msgstr "Sai kiểu blob"
+
+msgid "Missing value"
+msgstr "Thiếu giá trị"
+
+msgid "Hardware problem"
+msgstr "Lỗi phần cứng"
+
+msgid "PIN blocked"
+msgstr "PIN bị chặn"
+
+msgid "Conditions of use not satisfied"
+msgstr "Chưa thỏa mãn các điều kiện dùng"
+
+msgid "PINs are not synced"
+msgstr "Các PIN chưa đồng bộ"
+
+msgid "Invalid CRL"
+msgstr "CRL không hợp lệ"
+
+msgid "BER error"
+msgstr "Lỗi BER"
+
+msgid "Invalid BER"
+msgstr "BER không hợp lệ"
+
+msgid "Element not found"
+msgstr "Không tìm thấy phần tử"
+
+msgid "Identifier not found"
+msgstr "Không tìm thấy bộ nhận diện"
+
+msgid "Invalid tag"
+msgstr "Thẻ (tag) không hợp lệ"
+
+msgid "Invalid length"
+msgstr "Chiều dài không hợp lệ"
+
+msgid "Invalid key info"
+msgstr "Thông tin khoá không hợp lệ"
+
+msgid "Unexpected tag"
+msgstr "Thẻ (tag) bất thường"
+
+msgid "Not DER encoded"
+msgstr "Không phải mã hoá DER"
+
+msgid "No CMS object"
+msgstr "Không có đối tượng CMS"
+
+msgid "Invalid CMS object"
+msgstr "Đối tượng CMS không hợp lệ"
+
+msgid "Unknown CMS object"
+msgstr "Đối tượng CMS không rõ"
+
+msgid "Unsupported CMS object"
+msgstr "Đối tượng CMS không được hỗ trợ"
+
+msgid "Unsupported encoding"
+msgstr "Bảng mã không được hỗ trợ"
+
+msgid "Unsupported CMS version"
+msgstr "Phiên bản CMS không được hỗ trợ"
+
+msgid "Unknown algorithm"
+msgstr "Thuật toán không rõ"
+
+msgid "Invalid crypto engine"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+msgid "Public key not trusted"
+msgstr "Khoá công không tin cậy"
+
+msgid "Decryption failed"
+msgstr "Lỗi giải mật mã"
+
+msgid "Key expired"
+msgstr "Khoá hết hạn"
+
+msgid "Signature expired"
+msgstr "Chữ ký hết hạn"
+
+msgid "Encoding problem"
+msgstr "Lỗi mã hoá"
+
+msgid "Invalid state"
+msgstr "Tình trạng không hợp lệ"
+
+msgid "Duplicated value"
+msgstr "Giá trị trùng"
+
+msgid "Missing action"
+msgstr "Thiếu hành động"
+
+msgid "ASN.1 module not found"
+msgstr "Không tìm thấy mô-đun ASN.1"
+
+msgid "Invalid OID string"
+msgstr "Chuỗi OID không hợp lệ"
+
+msgid "Invalid time"
+msgstr "Thời gian không hợp lệ"
+
+msgid "Invalid CRL object"
+msgstr "Đối tượng CRL không hợp lệ"
+
+msgid "Unsupported CRL version"
+msgstr "Phiên bản CRL không được hỗ trợ"
+
+msgid "Invalid certificate object"
+msgstr "Đối tượng chứng nhận không hợp lệ"
+
+msgid "Unknown name"
+msgstr "Tên không rõ"
+
+msgid "A locale function failed"
+msgstr "Một hàm miền địa phương bị lỗi"
+
+msgid "Not locked"
+msgstr "Không phải bị khoá"
+
+msgid "Protocol violation"
+msgstr "Vi phạm giao thức"
+
+msgid "Invalid MAC"
+msgstr "MAC không hợp lệ"
+
+msgid "Invalid request"
+msgstr "Yêu cầu không hợp lệ"
+
+msgid "Unknown extension"
+msgstr "Phần mở rộng không rõ"
+
+msgid "Unknown critical extension"
+msgstr "Phần mở rộng nghiêm trọng không rõ"
+
+msgid "Locked"
+msgstr "Bị khoá"
+
+msgid "Unknown option"
+msgstr "Tùy chọn không rõ"
+
+msgid "Unknown command"
+msgstr "Lệnh không rõ"
+
+msgid "Not operational"
+msgstr "Không hoạt động được"
+
+msgid "No passphrase given"
+msgstr "Chưa đưa ra cụm từ mật khẩu"
+
+msgid "No PIN given"
+msgstr "Chưa đưa ra số cá nhân PIN"
+
+#, fuzzy
+msgid "Not enabled"
+msgstr "Không phải bị khoá"
+
+#, fuzzy
+msgid "No crypto engine"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+#, fuzzy
+msgid "Missing key"
+msgstr "Thiếu giá trị"
+
+#, fuzzy
+msgid "Too many objects"
+msgstr "Không có đối tượng CMS"
+
+msgid "Limit reached"
+msgstr ""
+
+#, fuzzy
+msgid "Not initialized"
+msgstr "Chưa sơ khởi thẻ"
+
+#, fuzzy
+msgid "Missing issuer certificate"
+msgstr "Chứng nhận còn thiếu"
+
+msgid "No keyserver available"
+msgstr ""
+
+#, fuzzy
+msgid "Invalid elliptic curve"
+msgstr "Thời gian không hợp lệ"
+
+#, fuzzy
+msgid "Unknown elliptic curve"
+msgstr "Nguồn không rõ"
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated key"
+msgstr "Giá trị trùng"
+
+#, fuzzy
+#| msgid "Ambiguous name"
+msgid "Ambiguous result"
+msgstr "Tên mờ hồ"
+
+#, fuzzy
+msgid "No crypto context"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+#, fuzzy
+msgid "Wrong crypto context"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Bad crypto context"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+msgid "Conflict in the crypto context"
+msgstr ""
+
+#, fuzzy
+#| msgid "No public key"
+msgid "Broken public key"
+msgstr "Không có khoá công"
+
+#, fuzzy
+#| msgid "No secret key"
+msgid "Broken secret key"
+msgstr "Không có khoá bí mật"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Invalid MAC algorithm"
+msgstr "Thuật toán bộ tóm tắt (digest) không hợp lệ"
+
+#, fuzzy
+msgid "Operation fully cancelled"
+msgstr "Thao tác bị hủy bỏ"
+
+msgid "Operation not yet finished"
+msgstr "Thao tác chưa kết thúc"
+
+msgid "Buffer too short"
+msgstr "Vùng đệm quá ngắn"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Chỉ thị chiều dài không hợp lệ trong biểu thức S"
+
+msgid "String too long in S-expression"
+msgstr "Chuỗi quá dài trong biểu thức S"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Có dấu ngoặc chưa khớp trong biểu thức S"
+
+msgid "S-expression not canonical"
+msgstr "Biểu thức S không phải chuẩn tắc"
+
+msgid "Bad character in S-expression"
+msgstr "Ký tự sai trong biểu thức S"
+
+msgid "Bad quotation in S-expression"
+msgstr "Đoạn trích dẫn sai trong biểu thức S"
+
+msgid "Zero prefix in S-expression"
+msgstr "Tiền tố số không trong biểu thức S"
+
+msgid "Nested display hints in S-expression"
+msgstr "Có mẹo trình bày lồng nhau trong biểu thức S"
+
+msgid "Unmatched display hints"
+msgstr "Có mẹo trình bày chưa khớp"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Có dấu chấm câu dành riêng bất thường trong biểu thức S"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Ký tự thập lục sai trong biểu thức S"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Có số thập lục lẻ trong biểu thức S"
+
+#, fuzzy
+msgid "Bad octal character in S-expression"
+msgstr "Ký tự bát phân sai trong biểu thức S"
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "Chưa mật mã dữ liệu"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "Tên không rõ"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "Không có khoá công"
+
+msgid "Legacy key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Buffer too short"
+msgid "Request too short"
+msgstr "Vùng đệm quá ngắn"
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "Request too long"
+msgstr "Dòng quá dài"
+
+msgid "Object is in termination state"
+msgstr ""
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "No certificate chain"
+msgstr "Dây chứng nhận sai"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Certificate is too large"
+msgstr "Chứng nhận quá mới"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid record"
+msgstr "Thẻ không hợp lệ"
+
+msgid "The MAC does not verify"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unexpected tag"
+msgid "Unexpected message"
+msgstr "Thẻ (tag) bất thường"
+
+msgid "Compression or decompression failed"
+msgstr ""
+
+msgid "A counter would wrap"
+msgstr ""
+
+msgid "Fatal alert message received"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid cipher algorithm"
+msgid "No cipher algorithm"
+msgstr "Thuật toán mật mã không hợp lệ"
+
+#, fuzzy
+msgid "Missing client certificate"
+msgstr "Chứng nhận còn thiếu"
+
+#, fuzzy
+#| msgid "Certificate revoked"
+msgid "Close notification received"
+msgstr "Chứng nhận bị thu hồi"
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Ticket expired"
+msgstr "Khoá hết hạn"
+
+#, fuzzy
+#| msgid "Bad public key"
+msgid "Bad ticket"
+msgstr "Khoá công sai"
+
+#, fuzzy
+#| msgid "Unknown packet"
+msgid "Unknown identity"
+msgstr "Gói tin không rõ"
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "Bad certificate message in handshake"
+msgstr "Dây chứng nhận sai"
+
+msgid "Bad certificate request message in handshake"
+msgstr ""
+
+msgid "Bad certificate verify message in handshake"
+msgstr ""
+
+msgid "Bad change cipher message in handshake"
+msgstr ""
+
+msgid "Bad client hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello done message in handshake"
+msgstr ""
+
+msgid "Bad finished message in handshake"
+msgstr ""
+
+msgid "Bad server key exchange message in handshake"
+msgstr ""
+
+msgid "Bad client key exchange message in handshake"
+msgstr ""
+
+msgid "Bogus string"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Key disabled"
+msgstr "Khoá hết hạn"
+
+msgid "Not possible with a card based key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid object"
+msgid "Invalid lock object"
+msgstr "Đối tượng không hợp lệ"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "Lỗi IPC chung"
+
+msgid "IPC accept call failed"
+msgstr "Lời gọi chấp nhận IPC bị lỗi"
+
+msgid "IPC connect call failed"
+msgstr "Lời gọi kết nối IPC bị lỗi"
+
+msgid "Invalid IPC response"
+msgstr "Đáp ứng IPC không hợp lệ"
+
+msgid "Invalid value passed to IPC"
+msgstr "Giá trị không hợp lệ được gửi cho IPC"
+
+msgid "Incomplete line passed to IPC"
+msgstr "Dòng không hoàn toàn được gửi cho IPC"
+
+msgid "Line passed to IPC too long"
+msgstr "Dòng quá dài được gửi cho IPC"
+
+msgid "Nested IPC commands"
+msgstr "Các câu lệnh IPC lồng nhau"
+
+msgid "No data callback in IPC"
+msgstr "Không có lời gọi ngược lại dữ liệu trong IPC"
+
+msgid "No inquire callback in IPC"
+msgstr "Không có lời gọi ngược lại yêu cầu trong IPC"
+
+msgid "Not an IPC server"
+msgstr "Không phải trình phục vụ IPC"
+
+msgid "Not an IPC client"
+msgstr "Không phải ứng dụng khách IPC"
+
+msgid "Problem starting IPC server"
+msgstr "Gặp khó khăn trong việc khởi chạy trình phục vụ IPC"
+
+msgid "IPC read error"
+msgstr "Lỗi đọc IPC"
+
+msgid "IPC write error"
+msgstr "Lỗi ghi IPC"
+
+msgid "Too much data for IPC layer"
+msgstr "Quá nhiều dữ liệu cho lớp IPC"
+
+msgid "Unexpected IPC command"
+msgstr "Câu lệnh IPC bất thường"
+
+msgid "Unknown IPC command"
+msgstr "Câu lệnh IPC không rõ"
+
+msgid "IPC syntax error"
+msgstr "Lỗi cú pháp IPC"
+
+msgid "IPC call has been cancelled"
+msgstr "Lời gọi IPC bị thôi"
+
+msgid "No input source for IPC"
+msgstr "Không có nguồn nhập vào cho IPC"
+
+msgid "No output source for IPC"
+msgstr "Không có nguồn kết xuất cho IPC"
+
+msgid "IPC parameter error"
+msgstr "Lỗi tham số IPC"
+
+msgid "Unknown IPC inquire"
+msgstr "Yêu cầu IPC không rõ"
+
+#, fuzzy
+msgid "Crypto engine too old"
+msgstr "Cơ chế mật mã không hợp lệ"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+msgid "User ID already exists"
+msgstr ""
+
+msgid "Name already exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "Giá trị trùng"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "Chứng nhận quá mới"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "Đã cung cấp một đối tượng quá ngắn"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "Tên không rõ"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "Mã thao tác không hợp lệ"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "Tên không rõ"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "Gặp lỗi hệ thống không rõ"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "Chuỗi OID không hợp lệ"
+
+#, fuzzy
+#| msgid "Invalid S-expression"
+msgid "Invalid textual address form"
+msgstr "Biểu thức S không hợp lệ"
+
+#, fuzzy
+msgid "Missing DNS query packet"
+msgstr "Chứng nhận còn thiếu"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "Lỗi giải mật mã"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "Quá giờ"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "General LDAP error"
+msgstr "Lỗi IPC chung"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP attribute error"
+msgstr "Lỗi chung"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP name error"
+msgstr "Lỗi chung"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP security error"
+msgstr "Lỗi Assuan chung"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP service error"
+msgstr "Lỗi chung"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP update error"
+msgstr "Lỗi Assuan chung"
+
+msgid "Experimental LDAP error code"
+msgstr ""
+
+#, fuzzy
+#| msgid "IPC write error"
+msgid "Private LDAP error code"
+msgstr "Lỗi ghi IPC"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other general LDAP error"
+msgstr "Lỗi IPC chung"
+
+#, fuzzy
+#| msgid "IPC connect call failed"
+msgid "LDAP connecting failed (X)"
+msgstr "Lời gọi kết nối IPC bị lỗi"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral limit exceeded"
+msgstr "Lỗi chung"
+
+msgid "LDAP client loop"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "No LDAP results returned"
+msgstr "Cần thiết lập lại thẻ"
+
+#, fuzzy
+#| msgid "Element not found"
+msgid "LDAP control not found"
+msgstr "Không tìm thấy phần tử"
+
+#, fuzzy
+#| msgid "Not supported"
+msgid "Not supported by LDAP"
+msgstr "Không được hỗ trợ"
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "LDAP connect error"
+msgstr "Gặp lỗi bất thường"
+
+msgid "Out of memory in LDAP"
+msgstr ""
+
+msgid "Bad parameter to an LDAP routine"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported operation"
+msgid "User cancelled LDAP operation"
+msgstr "Thao tác không được hỗ trợ"
+
+#, fuzzy
+#| msgid "Bad certificate"
+msgid "Bad LDAP search filter"
+msgstr "Chứng nhận sai"
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "Unknown LDAP authentication method"
+msgstr "Phần mở rộng không rõ"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "Timeout in LDAP"
+msgstr "Quá giờ"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP decoding error"
+msgstr "Lỗi dirmngr"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP encoding error"
+msgstr "Lỗi dirmngr"
+
+#, fuzzy
+#| msgid "IPC read error"
+msgid "LDAP local error"
+msgstr "Lỗi đọc IPC"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot contact LDAP server"
+msgstr "Không phải trình phục vụ IPC"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP success"
+msgstr "Thành công"
+
+#, fuzzy
+#| msgid "Configuration error"
+msgid "LDAP operations error"
+msgstr "Lỗi cấu hình"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP protocol error"
+msgstr "Vi phạm giao thức"
+
+msgid "Time limit exceeded in LDAP"
+msgstr ""
+
+msgid "Size limit exceeded in LDAP"
+msgstr ""
+
+msgid "LDAP compare false"
+msgstr ""
+
+msgid "LDAP compare true"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "LDAP authentication method not supported"
+msgstr "Phần mở rộng không rõ"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr ""
+
+msgid "Partial LDAP results+referral received"
+msgstr ""
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral"
+msgstr "Lỗi chung"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr ""
+
+msgid "Critical LDAP extension is unavailable"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Confidentiality required by LDAP"
+msgstr "Cần thiết lập lại thẻ"
+
+msgid "LDAP SASL bind in progress"
+msgstr ""
+
+msgid "No such LDAP attribute"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid attribute"
+msgid "Undefined LDAP attribute type"
+msgstr "Thuộc tính không hợp lệ"
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate matching in LDAP"
+msgstr "Sự bảo vệ không được hỗ trợ"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Constraint violation in LDAP"
+msgstr "Vi phạm giao thức"
+
+msgid "LDAP type or value exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid syntax in LDAP"
+msgstr "Tình trạng không hợp lệ"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "No such LDAP object"
+msgstr "Không có đối tượng CMS"
+
+#, fuzzy
+#| msgid "Hardware problem"
+msgid "LDAP alias problem"
+msgstr "Lỗi phần cứng"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid DN syntax in LDAP"
+msgstr "Tình trạng không hợp lệ"
+
+msgid "LDAP entry is a leaf"
+msgstr ""
+
+#, fuzzy
+#| msgid "Encoding problem"
+msgid "LDAP alias dereferencing problem"
+msgstr "Lỗi mã hoá"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate LDAP authentication"
+msgstr "Sự bảo vệ không được hỗ trợ"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid LDAP credentials"
+msgstr "Thẻ không hợp lệ"
+
+msgid "Insufficient access for LDAP"
+msgstr ""
+
+msgid "LDAP server is busy"
+msgstr ""
+
+msgid "LDAP server is unavailable"
+msgstr ""
+
+msgid "LDAP server is unwilling to perform"
+msgstr ""
+
+msgid "Loop detected by LDAP"
+msgstr ""
+
+#, fuzzy
+#| msgid "Missing action"
+msgid "LDAP naming violation"
+msgstr "Thiếu hành động"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP object class violation"
+msgstr "Vi phạm giao thức"
+
+#, fuzzy
+#| msgid "Operation not yet finished"
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "Thao tác chưa kết thúc"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation not allowed on RDN"
+msgstr "Thao tác bị hủy bỏ"
+
+msgid "Already exists (LDAP)"
+msgstr ""
+
+msgid "Cannot modify LDAP object class"
+msgstr ""
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "LDAP results too large"
+msgstr "Dòng quá dài"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation affects multiple DSAs"
+msgstr "Thao tác bị hủy bỏ"
+
+msgid "Virtual LDAP list view error"
+msgstr ""
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other LDAP error"
+msgstr "Lỗi IPC chung"
+
+#, fuzzy
+#| msgid "Resources exhausted"
+msgid "Resources exhausted in LCUP"
+msgstr "Cạn tài nguyên"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Security violation in LCUP"
+msgstr "Vi phạm giao thức"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid data in LCUP"
+msgstr "Tình trạng không hợp lệ"
+
+#, fuzzy
+#| msgid "Unsupported certificate"
+msgid "Unsupported scheme in LCUP"
+msgstr "Chứng nhận không được hỗ trợ"
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Reload required in LCUP"
+msgstr "Cần thiết lập lại thẻ"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP cancelled"
+msgstr "Thành công"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "No LDAP operation to cancel"
+msgstr "Không hoạt động được"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "Too late to cancel LDAP"
+msgstr "Không hoạt động được"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot cancel LDAP"
+msgstr "Không phải trình phục vụ IPC"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP assertion failed"
+msgstr "Lỗi giải mật mã"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr ""
+
+msgid "User defined error code 1"
+msgstr "Mã lỗi tự xác định 1"
+
+msgid "User defined error code 2"
+msgstr "Mã lỗi tự xác định 2"
+
+msgid "User defined error code 3"
+msgstr "Mã lỗi tự xác định 3"
+
+msgid "User defined error code 4"
+msgstr "Mã lỗi tự xác định 4"
+
+msgid "User defined error code 5"
+msgstr "Mã lỗi tự xác định 5"
+
+msgid "User defined error code 6"
+msgstr "Mã lỗi tự xác định 6"
+
+msgid "User defined error code 7"
+msgstr "Mã lỗi tự xác định 7"
+
+msgid "User defined error code 8"
+msgstr "Mã lỗi tự xác định 8"
+
+msgid "User defined error code 9"
+msgstr "Mã lỗi tự xác định 9"
+
+msgid "User defined error code 10"
+msgstr "Mã lỗi tự xác định 10"
+
+msgid "User defined error code 11"
+msgstr "Mã lỗi tự xác định 11"
+
+msgid "User defined error code 12"
+msgstr "Mã lỗi tự xác định 12"
+
+msgid "User defined error code 13"
+msgstr "Mã lỗi tự xác định 13"
+
+msgid "User defined error code 14"
+msgstr "Mã lỗi tự xác định 14"
+
+msgid "User defined error code 15"
+msgstr "Mã lỗi tự xác định 15"
+
+msgid "User defined error code 16"
+msgstr "Mã lỗi tự xác định 16"
+
+msgid "System error w/o errno"
+msgstr "Lỗi hệ thống không có số thứ tự lỗi"
+
+msgid "Unknown system error"
+msgstr "Gặp lỗi hệ thống không rõ"
+
+msgid "End of file"
+msgstr "Kết thúc tập tin"
+
+msgid "Unknown error code"
+msgstr "Mã lỗi không rõ"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr "Sử dụng: %s GPG-ERROR [...]\n"
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s: cảnh báo : không thể nhận ra %s\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Cạn tài nguyên"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Dữ liệu không hợp lệ"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Lỗi chung"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "Lỗi dirmngr"

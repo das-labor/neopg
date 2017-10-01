@@ -1,0 +1,1475 @@
+# Danish translation libgpg-error.
+# Copyright (C) 2014 g10 Code GmbH og nedenstående oversættere.
+# This file is distributed under the same license as the libgpg-error package.
+# Joe Hansen <joedalton2@yahoo.dk>, 2012, 2014.
+#
+# invalid -> ugyldig
+# bad -> ødelagt
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.10\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2014-11-17 20:08+0100\n"
+"Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
+"Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unspecified source"
+msgstr "Uspecificeret kilde"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "GPG-agent"
+
+# pinentry is a small collection of dialog programs that allow GnuPG to read passphrases and PIN numbers in a secure manner. There are versions for the common GTK and Qt toolkits as well as for the text terminal (Curses).
+msgid "Pinentry"
+msgstr "Pinentry"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Keybox"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TLS"
+msgstr "TLS"
+
+msgid "Any source"
+msgstr "Enhver kilde"
+
+msgid "User defined source 1"
+msgstr "Brugerdefineret kilde 1"
+
+msgid "User defined source 2"
+msgstr "Brugerdefineret kilde 2"
+
+msgid "User defined source 3"
+msgstr "Brugerdefineret kilde 3"
+
+msgid "User defined source 4"
+msgstr "Brugerdefineret kilde 4"
+
+msgid "Unknown source"
+msgstr "Ukendt kilde"
+
+msgid "Success"
+msgstr "Lykkedes"
+
+msgid "General error"
+msgstr "Generel fejl"
+
+msgid "Unknown packet"
+msgstr "Ukendt pakke"
+
+msgid "Unknown version in packet"
+msgstr "Ukendt version i pakke"
+
+msgid "Invalid public key algorithm"
+msgstr "Ugyldig offentlig nøglealgoritme"
+
+msgid "Invalid digest algorithm"
+msgstr "Ugyldig sammendragsalgoritme"
+
+msgid "Bad public key"
+msgstr "Ødelagt offentlig nøgle"
+
+msgid "Bad secret key"
+msgstr "Ødelagt hemmelig nøgle"
+
+msgid "Bad signature"
+msgstr "Ødelagt underskrift"
+
+msgid "No public key"
+msgstr "Ingen offentlig nøgle"
+
+msgid "Checksum error"
+msgstr "Kontrolsumsfejl"
+
+msgid "Bad passphrase"
+msgstr "Ødelagt adgangsfrase"
+
+msgid "Invalid cipher algorithm"
+msgstr "Ugyldig chifferalgoritme"
+
+msgid "Cannot open keyring"
+msgstr "Nøglering åben"
+
+msgid "Invalid packet"
+msgstr "Ugyldig pakke"
+
+# armering eller pansring?
+msgid "Invalid armor"
+msgstr "Ugyldig pansring"
+
+msgid "No user ID"
+msgstr "Ingen bruger-id"
+
+msgid "No secret key"
+msgstr "Ingen hemmelig nøgle"
+
+msgid "Wrong secret key used"
+msgstr "Der blev brugt forkert hemmelig nøgle"
+
+msgid "Bad session key"
+msgstr "Ødelagt sessionnøgle"
+
+msgid "Unknown compression algorithm"
+msgstr "Ukendt komprimeringsalgoritme"
+
+msgid "Number is not prime"
+msgstr "Tal er ikke et primtal"
+
+msgid "Invalid encoding method"
+msgstr "Ugyldig kodningsmetode"
+
+msgid "Invalid encryption scheme"
+msgstr "Ugyldig krypteringsskema"
+
+msgid "Invalid signature scheme"
+msgstr "Ugyldig underskriftsskema"
+
+msgid "Invalid attribute"
+msgstr "Ugyldig attribut"
+
+msgid "No value"
+msgstr "Ingen værdi"
+
+msgid "Not found"
+msgstr "Ikke fundet"
+
+msgid "Value not found"
+msgstr "Værdi blev ikke fundet"
+
+msgid "Syntax error"
+msgstr "Syntaksfejl"
+
+msgid "Bad MPI value"
+msgstr "Ugyldig MPI-værdi"
+
+msgid "Invalid passphrase"
+msgstr "Ugyldig adgangsfrase"
+
+msgid "Invalid signature class"
+msgstr "Ugyldig underskriftklasse"
+
+msgid "Resources exhausted"
+msgstr "Ressourcer opbrugt"
+
+msgid "Invalid keyring"
+msgstr "Ugyldig nøglering"
+
+msgid "Trust DB error"
+msgstr "Trust DB-fejl"
+
+msgid "Bad certificate"
+msgstr "Ødelagt certifikat"
+
+msgid "Invalid user ID"
+msgstr "Ugyldig bruger-id"
+
+msgid "Unexpected error"
+msgstr "Uventet fejl"
+
+msgid "Time conflict"
+msgstr "Tidskonflikt"
+
+msgid "Keyserver error"
+msgstr "Nøgleserverfejl"
+
+msgid "Wrong public key algorithm"
+msgstr "Forkert offentlig nøglealgoritme"
+
+msgid "Tribute to D. A."
+msgstr "Tribut til D. A."
+
+msgid "Weak encryption key"
+msgstr "Svag krypteringsnøgle"
+
+msgid "Invalid key length"
+msgstr "Ugyldig nøglelængde"
+
+msgid "Invalid argument"
+msgstr "Ugyldigt argument"
+
+msgid "Syntax error in URI"
+msgstr "Syntaksfejl i URI"
+
+msgid "Invalid URI"
+msgstr "Ugyldig URI"
+
+msgid "Network error"
+msgstr "Netværksfejl"
+
+msgid "Unknown host"
+msgstr "Ukendt vært"
+
+msgid "Selftest failed"
+msgstr "Egentest mislykkedes"
+
+msgid "Data not encrypted"
+msgstr "Data er ikke krypteret"
+
+msgid "Data not processed"
+msgstr "Data er ikke behandlet"
+
+msgid "Unusable public key"
+msgstr "Ubrugelig offentlig nøgle"
+
+msgid "Unusable secret key"
+msgstr "Ubrugelig hemmelig nøgle"
+
+msgid "Invalid value"
+msgstr "Ugyldig værdi"
+
+msgid "Bad certificate chain"
+msgstr "Ødelagt certifikatkæde"
+
+msgid "Missing certificate"
+msgstr "Manglende certifikat"
+
+msgid "No data"
+msgstr "Ingen data"
+
+msgid "Bug"
+msgstr "Fejl"
+
+msgid "Not supported"
+msgstr "Ikke understøttet"
+
+msgid "Invalid operation code"
+msgstr "Ugyldig handlingskode"
+
+msgid "Timeout"
+msgstr "Tidsudløb"
+
+msgid "Internal error"
+msgstr "Intern fejl"
+
+msgid "EOF (gcrypt)"
+msgstr "EOF (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Ugyldigt objekt"
+
+msgid "Provided object is too short"
+msgstr "Angivet objekt er for kort"
+
+msgid "Provided object is too large"
+msgstr "Angivet objekt er for stort"
+
+msgid "Missing item in object"
+msgstr "Manglende punkt i objekt"
+
+msgid "Not implemented"
+msgstr "Ikke implementeret"
+
+msgid "Conflicting use"
+msgstr "Konfliktende brug"
+
+msgid "Invalid cipher mode"
+msgstr "Ugyldig ciffertilstand"
+
+msgid "Invalid flag"
+msgstr "Ugyldigt flag"
+
+msgid "Invalid handle"
+msgstr "Ugyldigt håndtag"
+
+msgid "Result truncated"
+msgstr "Resultat afkortet"
+
+msgid "Incomplete line"
+msgstr "Ufuldstændig linje"
+
+msgid "Invalid response"
+msgstr "Ugyldigt svar"
+
+msgid "No agent running"
+msgstr "Ingen agent kører"
+
+msgid "Agent error"
+msgstr "Agentfejl"
+
+msgid "Invalid data"
+msgstr "Ugyldige data"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Uspecificeret Assuan-serverfejl"
+
+msgid "General Assuan error"
+msgstr "Generel Assuanfejl"
+
+msgid "Invalid session key"
+msgstr "Ugyldig sessionsnøgle"
+
+msgid "Invalid S-expression"
+msgstr "Ugyldigt S-udtryk"
+
+msgid "Unsupported algorithm"
+msgstr "Ej understøttet algoritme"
+
+msgid "No pinentry"
+msgstr "Ingen pinentry"
+
+msgid "pinentry error"
+msgstr "pinentry-fejl"
+
+msgid "Bad PIN"
+msgstr "Ødelagt PIN"
+
+msgid "Invalid name"
+msgstr "Ugyldigt navn"
+
+msgid "Bad data"
+msgstr "Ødelagte data"
+
+msgid "Invalid parameter"
+msgstr "Ugyldig parameter"
+
+msgid "Wrong card"
+msgstr "Forkert kort"
+
+msgid "No dirmngr"
+msgstr "Ingen dirmngr"
+
+msgid "dirmngr error"
+msgstr "dirmngr-fejl"
+
+msgid "Certificate revoked"
+msgstr "Certifikat tilbagekaldt"
+
+msgid "No CRL known"
+msgstr "Ingen kendt CRL"
+
+msgid "CRL too old"
+msgstr "CRL er for gammel"
+
+msgid "Line too long"
+msgstr "Linje er for lang"
+
+msgid "Not trusted"
+msgstr "Ikke troværdig"
+
+msgid "Operation cancelled"
+msgstr "Handling afbrudt"
+
+msgid "Bad CA certificate"
+msgstr "Ødelagt CA-certifikat"
+
+msgid "Certificate expired"
+msgstr "Certifikat udløbet"
+
+msgid "Certificate too young"
+msgstr "Certifikat for ungt"
+
+msgid "Unsupported certificate"
+msgstr "Ej understøttet certifikat"
+
+msgid "Unknown S-expression"
+msgstr "Ukendt S-udtryk"
+
+msgid "Unsupported protection"
+msgstr "Ej understøttet beskyttelse"
+
+msgid "Corrupted protection"
+msgstr "Ødelagt beskyttelse"
+
+msgid "Ambiguous name"
+msgstr "Tvetydigt navn"
+
+msgid "Card error"
+msgstr "Kortfejl"
+
+msgid "Card reset required"
+msgstr "Kortnulstilling krævet"
+
+msgid "Card removed"
+msgstr "Kort fjernet"
+
+msgid "Invalid card"
+msgstr "Ugyldigt kort"
+
+msgid "Card not present"
+msgstr "Kort er ikke til stede"
+
+msgid "No PKCS15 application"
+msgstr "Intet PKCS15-program"
+
+msgid "Not confirmed"
+msgstr "Ikke bekræftet"
+
+msgid "Configuration error"
+msgstr "Konfigurationsfejl"
+
+msgid "No policy match"
+msgstr "Ingen politikmatch"
+
+msgid "Invalid index"
+msgstr "Ugyldigt indeks"
+
+msgid "Invalid ID"
+msgstr "Ugyldigt id"
+
+msgid "No SmartCard daemon"
+msgstr "Ingen SmartCard-dæmon"
+
+msgid "SmartCard daemon error"
+msgstr "SmartCard-dæmonfejl"
+
+msgid "Unsupported protocol"
+msgstr "Ej understøttet protokol"
+
+msgid "Bad PIN method"
+msgstr "Ødelagt PIN-metode"
+
+msgid "Card not initialized"
+msgstr "Kort er ikke initialiseret"
+
+msgid "Unsupported operation"
+msgstr "Ej understøttet handling"
+
+msgid "Wrong key usage"
+msgstr "Forkert nøglebrug"
+
+msgid "Nothing found"
+msgstr "Intet fundet"
+
+msgid "Wrong blob type"
+msgstr "Forkert blobtype"
+
+msgid "Missing value"
+msgstr "Manglende værdi"
+
+msgid "Hardware problem"
+msgstr "Maskinelt problem"
+
+msgid "PIN blocked"
+msgstr "PIN blokeret"
+
+msgid "Conditions of use not satisfied"
+msgstr "Betingelser for brug er ikke overholdt"
+
+msgid "PINs are not synced"
+msgstr "PIN'er er ikke synkroniserede"
+
+msgid "Invalid CRL"
+msgstr "Ugyldig CRL"
+
+msgid "BER error"
+msgstr "BER-fejl"
+
+msgid "Invalid BER"
+msgstr "Ugyldig BER"
+
+msgid "Element not found"
+msgstr "Element er ikke fundet"
+
+msgid "Identifier not found"
+msgstr "Identifikator er ikke fundet"
+
+msgid "Invalid tag"
+msgstr "Ugyldigt mærke"
+
+msgid "Invalid length"
+msgstr "Ugyldig længde"
+
+msgid "Invalid key info"
+msgstr "Ugyldig nøgleinformation"
+
+msgid "Unexpected tag"
+msgstr "Uventet mærke"
+
+msgid "Not DER encoded"
+msgstr "Ikke DER-kodet"
+
+msgid "No CMS object"
+msgstr "Intet CMS-objekt"
+
+msgid "Invalid CMS object"
+msgstr "Ugyldigt CMS-objekt"
+
+msgid "Unknown CMS object"
+msgstr "Ukendt CMS-objekt"
+
+msgid "Unsupported CMS object"
+msgstr "Ej understøttet CMS-objekt"
+
+msgid "Unsupported encoding"
+msgstr "Ej understøttet kodning"
+
+msgid "Unsupported CMS version"
+msgstr "Ej understøttet CMS-version"
+
+msgid "Unknown algorithm"
+msgstr "Ukendt algoritme"
+
+msgid "Invalid crypto engine"
+msgstr "Ugyldig cryptomotor"
+
+msgid "Public key not trusted"
+msgstr "Offentlig nøgle er ikke troværdig"
+
+msgid "Decryption failed"
+msgstr "Afkryptering mislykkedes"
+
+msgid "Key expired"
+msgstr "Nøgle udløbet"
+
+msgid "Signature expired"
+msgstr "Underskrift udløbet"
+
+msgid "Encoding problem"
+msgstr "Kodningsproblem"
+
+msgid "Invalid state"
+msgstr "Ugyldig tilstand"
+
+msgid "Duplicated value"
+msgstr "Duplikeret værdi"
+
+msgid "Missing action"
+msgstr "Manglende handling"
+
+msgid "ASN.1 module not found"
+msgstr "ASN.1-modul er ikke fundet"
+
+msgid "Invalid OID string"
+msgstr "Ugyldig OID-streng"
+
+msgid "Invalid time"
+msgstr "Ugyldig tid"
+
+msgid "Invalid CRL object"
+msgstr "Ugyldigt CRL-objekt"
+
+msgid "Unsupported CRL version"
+msgstr "Ej understøttet CRL-version"
+
+msgid "Invalid certificate object"
+msgstr "Ugyldigt certifikatobjekt"
+
+msgid "Unknown name"
+msgstr "Ukendt navn"
+
+msgid "A locale function failed"
+msgstr "En lokal funktion mislykkedes"
+
+msgid "Not locked"
+msgstr "Ikke låst"
+
+msgid "Protocol violation"
+msgstr "Protokolovertrædelse"
+
+msgid "Invalid MAC"
+msgstr "Ugyldig MAC"
+
+msgid "Invalid request"
+msgstr "Ugyldig forespørgsel"
+
+msgid "Unknown extension"
+msgstr "Ukendt udvidelse"
+
+msgid "Unknown critical extension"
+msgstr "Ukendt kritisk udvidelse"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Unknown option"
+msgstr "Ukendt indstilling"
+
+msgid "Unknown command"
+msgstr "Ukendt kommando"
+
+msgid "Not operational"
+msgstr "Ikke funktionsdygtig"
+
+msgid "No passphrase given"
+msgstr "Ingen adgangsfrase angivet"
+
+msgid "No PIN given"
+msgstr "Ingen PIN angivet"
+
+msgid "Not enabled"
+msgstr "Ikke aktiveret"
+
+msgid "No crypto engine"
+msgstr "Ingen cryptomotor"
+
+msgid "Missing key"
+msgstr "Manglende nøgle"
+
+msgid "Too many objects"
+msgstr "For mange objekter"
+
+msgid "Limit reached"
+msgstr "Begrænsning nået"
+
+msgid "Not initialized"
+msgstr "Ikke initialiseret"
+
+msgid "Missing issuer certificate"
+msgstr "Manglende udstedercertfikat"
+
+msgid "No keyserver available"
+msgstr "Ingen nøgleserver tilgængelig"
+
+msgid "Invalid elliptic curve"
+msgstr "Ugyldig elliptisk kurve"
+
+msgid "Unknown elliptic curve"
+msgstr "Ukendt elliptisk kurve"
+
+msgid "Duplicated key"
+msgstr "Duplikeret nøgle"
+
+msgid "Ambiguous result"
+msgstr "Tvetydigt resultat"
+
+msgid "No crypto context"
+msgstr "Ingen cryptokontekst"
+
+msgid "Wrong crypto context"
+msgstr "Forkert cryptokontekst"
+
+msgid "Bad crypto context"
+msgstr "Ugyldig cryptokontekst"
+
+msgid "Conflict in the crypto context"
+msgstr "Konflikt i cryptokonteksten"
+
+msgid "Broken public key"
+msgstr "Ødelagt offentlig nøgle"
+
+msgid "Broken secret key"
+msgstr "Ødelagt hemmelig nøgle"
+
+msgid "Invalid MAC algorithm"
+msgstr "Ugyldig MAC-algoritme"
+
+msgid "Operation fully cancelled"
+msgstr "Handling fuldt afbrudt"
+
+msgid "Operation not yet finished"
+msgstr "Handling ikke færdig endnu"
+
+msgid "Buffer too short"
+msgstr "Buffer for kort"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Ugyldig længdeangiver i S-udtryk"
+
+msgid "String too long in S-expression"
+msgstr "Streng for kort i S-udtryk"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Ej matchende parenteser i S-udtryk"
+
+msgid "S-expression not canonical"
+msgstr "S-udtryk er ikke kanonisk"
+
+msgid "Bad character in S-expression"
+msgstr "Ødelagt tegn i S-udtryk"
+
+msgid "Bad quotation in S-expression"
+msgstr "Ødelagt citation i S-udtryk"
+
+msgid "Zero prefix in S-expression"
+msgstr "Nulpræfiks i S-udtryk"
+
+msgid "Nested display hints in S-expression"
+msgstr "Indlejrede visningsfif i S-udtryk"
+
+msgid "Unmatched display hints"
+msgstr "Ej matchende visningsfif"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Uventet reserveret punktum i S-udtryk"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Ødelagt hexadecimalt tegn i S-udtryk"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Ulige hexadecimalt tal i S-udtryk"
+
+msgid "Bad octal character in S-expression"
+msgstr "Ødelagt oktalt tegn i S-udtryk"
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "Data er ikke krypteret"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "Ukendt navn"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "Ingen offentlig nøgle"
+
+msgid "Legacy key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Buffer too short"
+msgid "Request too short"
+msgstr "Buffer for kort"
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "Request too long"
+msgstr "Linje er for lang"
+
+msgid "Object is in termination state"
+msgstr ""
+
+msgid "No certificate chain"
+msgstr "Ingen certifikatkæde"
+
+msgid "Certificate is too large"
+msgstr "Certifikatet er for stort"
+
+msgid "Invalid record"
+msgstr "Ugyldig post"
+
+msgid "The MAC does not verify"
+msgstr "MAC'en verificerer ikke"
+
+msgid "Unexpected message"
+msgstr "Uventet besked"
+
+msgid "Compression or decompression failed"
+msgstr "Pakning eller udpakning mislykkedes"
+
+msgid "A counter would wrap"
+msgstr "En tæller ville pakke ind"
+
+msgid "Fatal alert message received"
+msgstr "Modtog »fatal alarm«-besked"
+
+msgid "No cipher algorithm"
+msgstr "Ingen chifferalgoritme"
+
+msgid "Missing client certificate"
+msgstr "Manglende klientcertfikat"
+
+msgid "Close notification received"
+msgstr "Luk modtaget påmindelse"
+
+msgid "Ticket expired"
+msgstr "Billetten udløbet"
+
+msgid "Bad ticket"
+msgstr "Ødelagt billet"
+
+msgid "Unknown identity"
+msgstr "Ukendt identitet"
+
+msgid "Bad certificate message in handshake"
+msgstr "Besked om ødelagt certifikat i håndtrykket"
+
+msgid "Bad certificate request message in handshake"
+msgstr "Besked om ødelagt certifikatforespørgsel i håndtrykket"
+
+msgid "Bad certificate verify message in handshake"
+msgstr "Besked om ødelagt certifikatforespørgsel i håndtrykket"
+
+msgid "Bad change cipher message in handshake"
+msgstr "Ødelagt »ændr chiffer«-besked i håndtrykket"
+
+msgid "Bad client hello message in handshake"
+msgstr "Besked om ødelagt klienthilsen i håndtrykket"
+
+msgid "Bad server hello message in handshake"
+msgstr "Besked om ødelagt serverhilsen i håndtrykket"
+
+# engelsk fejl
+msgid "Bad server hello done message in handshake"
+msgstr "Ødelagt »afsluttet serverhilsen«-besked i håndtrykket"
+
+msgid "Bad finished message in handshake"
+msgstr "Ødelagt »afsluttet«-besked i håndtrykket"
+
+msgid "Bad server key exchange message in handshake"
+msgstr "Besked om ødelagt udveksling af servernøgle i håndtrykket"
+
+msgid "Bad client key exchange message in handshake"
+msgstr "Besked om ødelagt udveksling af klientnøgle i håndtrykket"
+
+msgid "Bogus string"
+msgstr "Fejlbehæftet streng"
+
+msgid "Forbidden"
+msgstr ""
+
+msgid "Key disabled"
+msgstr "Nøglen er deaktiveret"
+
+msgid "Not possible with a card based key"
+msgstr "Ikke muligt med en kortbaseret nøgle"
+
+msgid "Invalid lock object"
+msgstr "Ugyldigt låseobjekt"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "Generel IPC-fejl"
+
+msgid "IPC accept call failed"
+msgstr "IPC-acceptkald mislykkedes"
+
+msgid "IPC connect call failed"
+msgstr "IPC-forbindelseskald mislykkedes"
+
+msgid "Invalid IPC response"
+msgstr "Ugyldigt IPC-svar"
+
+msgid "Invalid value passed to IPC"
+msgstr "Ugyldig værdi sendt til IPC"
+
+msgid "Incomplete line passed to IPC"
+msgstr "Ufuldstændig linje sendt til IPC"
+
+msgid "Line passed to IPC too long"
+msgstr "Linje sendt til IPC er for lang"
+
+msgid "Nested IPC commands"
+msgstr "Indlejrede IPC-kommandoer"
+
+msgid "No data callback in IPC"
+msgstr "Ingen datatilbagekald i IPC"
+
+msgid "No inquire callback in IPC"
+msgstr "Ingen inquire-tilbagekald i IPC"
+
+msgid "Not an IPC server"
+msgstr "Ikke en IPC-server"
+
+msgid "Not an IPC client"
+msgstr "Ikke en IPC-klient"
+
+msgid "Problem starting IPC server"
+msgstr "Problem med at starte IPC-server"
+
+msgid "IPC read error"
+msgstr "IPC-læsefejl"
+
+msgid "IPC write error"
+msgstr "IPC-skrivefejl"
+
+msgid "Too much data for IPC layer"
+msgstr "For mange data for IPC-lag"
+
+msgid "Unexpected IPC command"
+msgstr "Uventet IPC-kommando"
+
+msgid "Unknown IPC command"
+msgstr "Ukendt IPC-kommando"
+
+msgid "IPC syntax error"
+msgstr "IPC-syntaksfejl"
+
+msgid "IPC call has been cancelled"
+msgstr "IPC-kald er blevet afbrudt"
+
+msgid "No input source for IPC"
+msgstr "Ingen inddatakilde for IPC"
+
+msgid "No output source for IPC"
+msgstr "Ingen uddatakilde for IPC"
+
+msgid "IPC parameter error"
+msgstr "IPC-parameterfejl"
+
+msgid "Unknown IPC inquire"
+msgstr "Ukendt IPC-inquire"
+
+#, fuzzy
+#| msgid "No crypto engine"
+msgid "Crypto engine too old"
+msgstr "Ingen cryptomotor"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+msgid "User ID already exists"
+msgstr ""
+
+msgid "Name already exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "Duplikeret værdi"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "Certifikat for ungt"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "Angivet objekt er for kort"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "Ukendt navn"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "Ugyldig handlingskode"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "Ukendt navn"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "Ukendt systemfejl"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "Ugyldig OID-streng"
+
+#, fuzzy
+#| msgid "Invalid S-expression"
+msgid "Invalid textual address form"
+msgstr "Ugyldigt S-udtryk"
+
+#, fuzzy
+#| msgid "Missing issuer certificate"
+msgid "Missing DNS query packet"
+msgstr "Manglende udstedercertfikat"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "Afkryptering mislykkedes"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "Tidsudløb"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "General LDAP error"
+msgstr "Generel IPC-fejl"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP attribute error"
+msgstr "Generel fejl"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP name error"
+msgstr "Generel fejl"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP security error"
+msgstr "Generel Assuanfejl"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP service error"
+msgstr "Generel fejl"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP update error"
+msgstr "Generel Assuanfejl"
+
+msgid "Experimental LDAP error code"
+msgstr ""
+
+#, fuzzy
+#| msgid "IPC write error"
+msgid "Private LDAP error code"
+msgstr "IPC-skrivefejl"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other general LDAP error"
+msgstr "Generel IPC-fejl"
+
+#, fuzzy
+#| msgid "IPC connect call failed"
+msgid "LDAP connecting failed (X)"
+msgstr "IPC-forbindelseskald mislykkedes"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral limit exceeded"
+msgstr "Generel fejl"
+
+msgid "LDAP client loop"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "No LDAP results returned"
+msgstr "Kortnulstilling krævet"
+
+#, fuzzy
+#| msgid "Element not found"
+msgid "LDAP control not found"
+msgstr "Element er ikke fundet"
+
+#, fuzzy
+#| msgid "Not supported"
+msgid "Not supported by LDAP"
+msgstr "Ikke understøttet"
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "LDAP connect error"
+msgstr "Uventet fejl"
+
+msgid "Out of memory in LDAP"
+msgstr ""
+
+msgid "Bad parameter to an LDAP routine"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported operation"
+msgid "User cancelled LDAP operation"
+msgstr "Ej understøttet handling"
+
+#, fuzzy
+#| msgid "Bad certificate"
+msgid "Bad LDAP search filter"
+msgstr "Ødelagt certifikat"
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "Unknown LDAP authentication method"
+msgstr "Ukendt udvidelse"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "Timeout in LDAP"
+msgstr "Tidsudløb"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP decoding error"
+msgstr "dirmngr-fejl"
+
+#, fuzzy
+#| msgid "dirmngr error"
+msgid "LDAP encoding error"
+msgstr "dirmngr-fejl"
+
+#, fuzzy
+#| msgid "IPC read error"
+msgid "LDAP local error"
+msgstr "IPC-læsefejl"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot contact LDAP server"
+msgstr "Ikke en IPC-server"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP success"
+msgstr "Lykkedes"
+
+#, fuzzy
+#| msgid "Configuration error"
+msgid "LDAP operations error"
+msgstr "Konfigurationsfejl"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP protocol error"
+msgstr "Protokolovertrædelse"
+
+msgid "Time limit exceeded in LDAP"
+msgstr ""
+
+msgid "Size limit exceeded in LDAP"
+msgstr ""
+
+msgid "LDAP compare false"
+msgstr ""
+
+msgid "LDAP compare true"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "LDAP authentication method not supported"
+msgstr "Ukendt udvidelse"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr ""
+
+#, fuzzy
+#| msgid "Fatal alert message received"
+msgid "Partial LDAP results+referral received"
+msgstr "Modtog »fatal alarm«-besked"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral"
+msgstr "Generel fejl"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr ""
+
+msgid "Critical LDAP extension is unavailable"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Confidentiality required by LDAP"
+msgstr "Kortnulstilling krævet"
+
+msgid "LDAP SASL bind in progress"
+msgstr ""
+
+msgid "No such LDAP attribute"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid attribute"
+msgid "Undefined LDAP attribute type"
+msgstr "Ugyldig attribut"
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate matching in LDAP"
+msgstr "Ej understøttet beskyttelse"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Constraint violation in LDAP"
+msgstr "Protokolovertrædelse"
+
+msgid "LDAP type or value exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid syntax in LDAP"
+msgstr "Ugyldig tilstand"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "No such LDAP object"
+msgstr "Intet CMS-objekt"
+
+#, fuzzy
+#| msgid "Hardware problem"
+msgid "LDAP alias problem"
+msgstr "Maskinelt problem"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid DN syntax in LDAP"
+msgstr "Ugyldig tilstand"
+
+msgid "LDAP entry is a leaf"
+msgstr ""
+
+#, fuzzy
+#| msgid "Encoding problem"
+msgid "LDAP alias dereferencing problem"
+msgstr "Kodningsproblem"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate LDAP authentication"
+msgstr "Ej understøttet beskyttelse"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid LDAP credentials"
+msgstr "Ugyldigt kort"
+
+msgid "Insufficient access for LDAP"
+msgstr ""
+
+msgid "LDAP server is busy"
+msgstr ""
+
+#, fuzzy
+#| msgid "No keyserver available"
+msgid "LDAP server is unavailable"
+msgstr "Ingen nøgleserver tilgængelig"
+
+msgid "LDAP server is unwilling to perform"
+msgstr ""
+
+msgid "Loop detected by LDAP"
+msgstr ""
+
+#, fuzzy
+#| msgid "Missing action"
+msgid "LDAP naming violation"
+msgstr "Manglende handling"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP object class violation"
+msgstr "Protokolovertrædelse"
+
+#, fuzzy
+#| msgid "Operation not yet finished"
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "Handling ikke færdig endnu"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation not allowed on RDN"
+msgstr "Handling afbrudt"
+
+msgid "Already exists (LDAP)"
+msgstr ""
+
+msgid "Cannot modify LDAP object class"
+msgstr ""
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "LDAP results too large"
+msgstr "Linje er for lang"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation affects multiple DSAs"
+msgstr "Handling afbrudt"
+
+msgid "Virtual LDAP list view error"
+msgstr ""
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other LDAP error"
+msgstr "Generel IPC-fejl"
+
+#, fuzzy
+#| msgid "Resources exhausted"
+msgid "Resources exhausted in LCUP"
+msgstr "Ressourcer opbrugt"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Security violation in LCUP"
+msgstr "Protokolovertrædelse"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid data in LCUP"
+msgstr "Ugyldig tilstand"
+
+#, fuzzy
+#| msgid "Unsupported certificate"
+msgid "Unsupported scheme in LCUP"
+msgstr "Ej understøttet certifikat"
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Reload required in LCUP"
+msgstr "Kortnulstilling krævet"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP cancelled"
+msgstr "Lykkedes"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "No LDAP operation to cancel"
+msgstr "Ikke funktionsdygtig"
+
+#, fuzzy
+#| msgid "Not operational"
+msgid "Too late to cancel LDAP"
+msgstr "Ikke funktionsdygtig"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot cancel LDAP"
+msgstr "Ikke en IPC-server"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP assertion failed"
+msgstr "Afkryptering mislykkedes"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr ""
+
+msgid "User defined error code 1"
+msgstr "Brugerdefineret fejlkode 1"
+
+msgid "User defined error code 2"
+msgstr "Brugerdefineret fejlkode 2"
+
+msgid "User defined error code 3"
+msgstr "Brugerdefineret fejlkode 3"
+
+msgid "User defined error code 4"
+msgstr "Brugerdefineret fejlkode 4"
+
+msgid "User defined error code 5"
+msgstr "Brugerdefineret fejlkode 5"
+
+msgid "User defined error code 6"
+msgstr "Brugerdefineret fejlkode 6"
+
+msgid "User defined error code 7"
+msgstr "Brugerdefineret fejlkode 7"
+
+msgid "User defined error code 8"
+msgstr "Brugerdefineret fejlkode 8"
+
+msgid "User defined error code 9"
+msgstr "Brugerdefineret fejlkode 9"
+
+msgid "User defined error code 10"
+msgstr "Brugerdefineret fejlkode 10"
+
+msgid "User defined error code 11"
+msgstr "Brugerdefineret fejlkode 11"
+
+msgid "User defined error code 12"
+msgstr "Brugerdefineret fejlkode 12"
+
+msgid "User defined error code 13"
+msgstr "Brugerdefineret fejlkode 13"
+
+msgid "User defined error code 14"
+msgstr "Brugerdefineret fejlkode 14"
+
+msgid "User defined error code 15"
+msgstr "Brugerdefineret fejlkode 15"
+
+msgid "User defined error code 16"
+msgstr "Brugerdefineret fejlkode 16"
+
+msgid "System error w/o errno"
+msgstr "Systemfejl w/o errno"
+
+msgid "Unknown system error"
+msgstr "Ukendt systemfejl"
+
+msgid "End of file"
+msgstr "Slutning på fil"
+
+msgid "Unknown error code"
+msgstr "Ukendt fejlkode"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr "Brug: %s GPG-ERROR [...]\n"
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s: advarsel: kunne ikke genkende %s\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Ressourcer opbrugt"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Ugyldige data"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Generel fejl"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "dirmngr-fejl"

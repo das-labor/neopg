@@ -1,0 +1,873 @@
+/* gpg-error.h or gpgrt.h - Public interface to libgpg-error.   -*- c -*-
+ * Copyright (C) 2003-2004, 2010, 2013-2017 g10 Code GmbH
+ *
+ * This file is part of libgpg-error.
+ *
+ * libgpg-error is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * libgpg-error is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, see <https://www.gnu.org/licenses/>.
+ *
+ * @configure_input@
+ */
+
+#ifndef GPG_ERROR_H
+#define GPG_ERROR_H 1
+#ifndef GPGRT_H
+#define GPGRT_H 1
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+/* The version string of this header. */
+#define GPG_ERROR_VERSION @version@
+#define GPGRT_VERSION     @version@
+
+/* The version number of this header. */
+#define GPG_ERROR_VERSION_NUMBER @version-number@
+#define GPGRT_VERSION_NUMBER     @version-number@
+
+
+#ifdef __GNUC__
+# define GPG_ERR_INLINE __inline__
+#elif defined(_MSC_VER) && _MSC_VER >= 1300
+# define GPG_ERR_INLINE __inline
+#elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+# define GPG_ERR_INLINE inline
+#else
+# ifndef GPG_ERR_INLINE
+#  define GPG_ERR_INLINE
+# endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#if 0 /* just to make Emacs auto-indent happy */
+}
+#endif
+#endif /* __cplusplus */
+
+/* The GnuPG project consists of many components.  Error codes are
+   exchanged between all components.  The common error codes and their
+   user-presentable descriptions are kept into a shared library to
+   allow adding new error codes and components without recompiling any
+   of the other components.  The interface will not change in a
+   backward incompatible way.
+
+   An error code together with an error source build up an error
+   value.  As the error value is been passed from one component to
+   another, it preserver the information about the source and nature
+   of the error.
+
+   A component of the GnuPG project can define the following macros to
+   tune the behaviour of the library:
+
+   GPG_ERR_SOURCE_DEFAULT: Define to an error source of type
+   gpg_err_source_t to make that source the default for gpg_error().
+   Otherwise GPG_ERR_SOURCE_UNKNOWN is used as default.
+
+   GPG_ERR_ENABLE_GETTEXT_MACROS: Define to provide macros to map the
+   internal gettext API to standard names.  This has only an effect on
+   Windows platforms.
+
+   GPGRT_ENABLE_ES_MACROS: Define to provide "es_" macros for the
+   estream functions.
+
+   In addition to the error codes, Libgpg-error also provides a set of
+   functions used by most GnuPG components.  */
+
+
+/* The error source type gpg_err_source_t.
+
+   Where as the Poo out of a welle small
+   Taketh his firste springing and his sours.
+					--Chaucer.  */
+
+/* Only use free slots, never change or reorder the existing
+   entries.  */
+typedef enum
+  {
+@include:err-sources@
+    /* This is one more than the largest allowed entry.  */
+    GPG_ERR_SOURCE_DIM = 128
+  } gpg_err_source_t;
+
+
+/* The error code type gpg_err_code_t.  */
+
+/* Only use free slots, never change or reorder the existing
+   entries.  */
+typedef enum
+  {
+@include:err-codes@
+    /* The following error codes are used to map system errors.  */
+#define GPG_ERR_SYSTEM_ERROR	(1 << 15)
+@include:errnos@
+    /* This is one more than the largest allowed entry.  */
+    GPG_ERR_CODE_DIM = 65536
+  } gpg_err_code_t;
+
+
+/* The error value type gpg_error_t.  */
+
+/* We would really like to use bit-fields in a struct, but using
+   structs as return values can cause binary compatibility issues, in
+   particular if you want to do it efficiently (also see
+   -freg-struct-return option to GCC).  */
+typedef unsigned int gpg_error_t;
+
+/* We use the lowest 16 bits of gpg_error_t for error codes.  The 16th
+   bit indicates system errors.  */
+#define GPG_ERR_CODE_MASK	(GPG_ERR_CODE_DIM - 1)
+
+/* Bits 17 to 24 are reserved.  */
+
+/* We use the upper 7 bits of gpg_error_t for error sources.  */
+#define GPG_ERR_SOURCE_MASK	(GPG_ERR_SOURCE_DIM - 1)
+#define GPG_ERR_SOURCE_SHIFT	24
+
+/* The highest bit is reserved.  It shouldn't be used to prevent
+   potential negative numbers when transmitting error values as
+   text.  */
+
+
+/* GCC feature test.  */
+#if __GNUC__
+# define _GPG_ERR_GCC_VERSION (__GNUC__ * 10000 \
+                               + __GNUC_MINOR__ * 100 \
+                               + __GNUC_PATCHLEVEL__)
+#else
+# define _GPG_ERR_GCC_VERSION 0
+#endif
+
+#undef _GPG_ERR_HAVE_CONSTRUCTOR
+#if _GPG_ERR_GCC_VERSION > 30100
+# define _GPG_ERR_CONSTRUCTOR	__attribute__ ((__constructor__))
+# define _GPG_ERR_HAVE_CONSTRUCTOR
+#else
+# define _GPG_ERR_CONSTRUCTOR
+#endif
+
+#define GPGRT_GCC_VERSION  _GPG_ERR_GCC_VERSION
+
+#if _GPG_ERR_GCC_VERSION >= 29200
+# define _GPGRT__RESTRICT __restrict__
+#else
+# define _GPGRT__RESTRICT
+#endif
+
+/* The noreturn attribute.  */
+#if _GPG_ERR_GCC_VERSION >= 20500
+# define GPGRT_ATTR_NORETURN   __attribute__ ((noreturn))
+#else
+# define GPGRT_ATTR_NORETURN
+#endif
+
+/* The printf attributes.  */
+#if _GPG_ERR_GCC_VERSION >= 40400
+# define GPGRT_ATTR_PRINTF(f, a) \
+                    __attribute__ ((format(__gnu_printf__,f,a)))
+# define GPGRT_ATTR_NR_PRINTF(f, a) \
+                    __attribute__ ((noreturn, format(__gnu_printf__,f,a)))
+#elif _GPG_ERR_GCC_VERSION >= 20500
+# define GPGRT_ATTR_PRINTF(f, a) \
+                    __attribute__ ((format(printf,f,a)))
+# define GPGRT_ATTR_NR_PRINTF(f, a) \
+                    __attribute__ ((noreturn, format(printf,f,a)))
+#else
+# define GPGRT_ATTR_PRINTF(f, a)
+# define GPGRT_ATTR_NR_PRINTF(f, a)
+#endif
+#if _GPG_ERR_GCC_VERSION >= 20800
+# define GPGRT_ATTR_FORMAT_ARG(a)  __attribute__ ((__format_arg__ (a)))
+#else
+# define GPGRT_ATTR_FORMAT_ARG(a)
+#endif
+
+/* The sentinel attribute.  */
+#if _GPG_ERR_GCC_VERSION >= 40000
+# define GPGRT_ATTR_SENTINEL(a)  __attribute__ ((sentinel(a)))
+#else
+# define GPGRT_ATTR_SENTINEL(a)
+#endif
+
+/* The used and unused attributes.
+   I am not sure since when the unused attribute is really supported.
+   In any case it it only needed for gcc versions which print a
+   warning.  Thus let us require gcc >= 3.5.  */
+#if _GPG_ERR_GCC_VERSION >= 40000
+# define GPGRT_ATTR_USED  __attribute__ ((used))
+#else
+# define GPGRT_ATTR_USED
+#endif
+#if _GPG_ERR_GCC_VERSION >= 30500
+# define GPGRT_ATTR_UNUSED  __attribute__ ((unused))
+#else
+# define GPGRT_ATTR_UNUSED
+#endif
+
+/* The deprecated attribute.  */
+#if _GPG_ERR_GCC_VERSION >= 30100
+# define GPGRT_ATTR_DEPRECATED  __attribute__ ((__deprecated__))
+#else
+# define GPGRT_ATTR_DEPRECATED
+#endif
+
+/* The pure attribute.  */
+#if _GPG_ERR_GCC_VERSION >= 29600
+# define GPGRT_ATTR_PURE  __attribute__ ((__pure__))
+#else
+# define GPGRT_ATTR_PURE
+#endif
+
+/* The malloc attribute.  */
+#if _GPG_ERR_GCC_VERSION >= 30200
+# define GPGRT_ATTR_MALLOC  __attribute__ ((__malloc__))
+#else
+# define GPGRT_ATTR_MALLOC
+#endif
+
+/* A macro defined if a GCC style __FUNCTION__ macro is available.  */
+#undef GPGRT_HAVE_MACRO_FUNCTION
+#if _GPG_ERR_GCC_VERSION >= 20500
+# define GPGRT_HAVE_MACRO_FUNCTION 1
+#endif
+
+/* A macro defined if the pragma GCC push_options is available.  */
+#undef GPGRT_HAVE_PRAGMA_GCC_PUSH
+#if _GPG_ERR_GCC_VERSION >= 40400
+# define GPGRT_HAVE_PRAGMA_GCC_PUSH 1
+#endif
+
+/* Detect LeakSanitizer (LSan) support for GCC and Clang based on
+ * whether AddressSanitizer (ASAN) is enabled via -fsanitize=address).
+ * Note that -fsanitize=leak just affect the linker options which
+ * cannot be detected here.  In that case you have to define the
+ * GPGRT_HAVE_LEAK_SANITIZER macro manually.  */
+#ifdef __GNUC__
+# ifdef __SANITIZE_ADDRESS__
+#  define GPGRT_HAVE_LEAK_SANITIZER
+# elif defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#   define GPGRT_HAVE_LEAK_SANITIZER
+#  endif
+# endif
+#endif
+
+
+/* The new name for the inline macro.  */
+#define GPGRT_INLINE GPG_ERR_INLINE
+
+#ifdef GPGRT_HAVE_LEAK_SANITIZER
+# include <sanitizer/lsan_interface.h>
+#endif
+
+/* Mark heap objects as non-leaked memory. */
+static GPGRT_INLINE void
+gpgrt_annotate_leaked_object (const void *p)
+{
+#ifdef GPGRT_HAVE_LEAK_SANITIZER
+  __lsan_ignore_object(p);
+#else
+  (void)p;
+#endif
+}
+
+
+/* Initialization function.  */
+
+/* Initialize the library.  This function should be run early.  */
+gpg_error_t gpg_err_init (void) _GPG_ERR_CONSTRUCTOR;
+
+/* If this is defined, the library is already initialized by the
+   constructor and does not need to be initialized explicitely.  */
+#undef GPG_ERR_INITIALIZED
+#ifdef _GPG_ERR_HAVE_CONSTRUCTOR
+# define GPG_ERR_INITIALIZED	1
+# define gpgrt_init() do { gpg_err_init (); } while (0)
+#else
+# define gpgrt_init() do { ; } while (0)
+#endif
+
+/* See the source on how to use the deinit function; it is usually not
+   required.  */
+void gpg_err_deinit (int mode);
+
+/* Register blocking system I/O clamping functions.  */
+void gpgrt_set_syscall_clamp (void (*pre)(void), void (*post)(void));
+
+/* Get current I/O clamping functions.  */
+void gpgrt_get_syscall_clamp (void (**r_pre)(void), void (**r_post)(void));
+
+/* Register a custom malloc/realloc/free function.  */
+void gpgrt_set_alloc_func  (void *(*f)(void *a, size_t n));
+
+
+
+/* Constructor and accessor functions.  */
+
+/* Construct an error value from an error code and source.  Within a
+   subsystem, use gpg_error.  */
+static GPG_ERR_INLINE gpg_error_t
+gpg_err_make (gpg_err_source_t source, gpg_err_code_t code)
+{
+  return code == GPG_ERR_NO_ERROR ? GPG_ERR_NO_ERROR
+    : (((source & GPG_ERR_SOURCE_MASK) << GPG_ERR_SOURCE_SHIFT)
+       | (code & GPG_ERR_CODE_MASK));
+}
+
+
+/* The user should define GPG_ERR_SOURCE_DEFAULT before including this
+   file to specify a default source for gpg_error.  */
+#ifndef GPG_ERR_SOURCE_DEFAULT
+#define GPG_ERR_SOURCE_DEFAULT	GPG_ERR_SOURCE_UNKNOWN
+#endif
+
+static GPG_ERR_INLINE gpg_error_t
+gpg_error (gpg_err_code_t code)
+{
+  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, code);
+}
+
+
+/* Retrieve the error code from an error value.  */
+static GPG_ERR_INLINE gpg_err_code_t
+gpg_err_code (gpg_error_t err)
+{
+  return (gpg_err_code_t) (err & GPG_ERR_CODE_MASK);
+}
+
+
+/* Retrieve the error source from an error value.  */
+static GPG_ERR_INLINE gpg_err_source_t
+gpg_err_source (gpg_error_t err)
+{
+  return (gpg_err_source_t) ((err >> GPG_ERR_SOURCE_SHIFT)
+			     & GPG_ERR_SOURCE_MASK);
+}
+
+
+/* String functions.  */
+
+/* Return a pointer to a string containing a description of the error
+   code in the error value ERR.  This function is not thread-safe.  */
+const char *gpg_strerror (gpg_error_t err);
+
+/* Return the error string for ERR in the user-supplied buffer BUF of
+   size BUFLEN.  This function is, in contrast to gpg_strerror,
+   thread-safe if a thread-safe strerror_r() function is provided by
+   the system.  If the function succeeds, 0 is returned and BUF
+   contains the string describing the error.  If the buffer was not
+   large enough, ERANGE is returned and BUF contains as much of the
+   beginning of the error string as fits into the buffer.  */
+int gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen);
+
+/* Return a pointer to a string containing a description of the error
+   source in the error value ERR.  */
+const char *gpg_strsource (gpg_error_t err);
+
+
+/* Mapping of system errors (errno).  */
+
+/* Retrieve the error code for the system error ERR.  This returns
+   GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
+   this). */
+gpg_err_code_t gpg_err_code_from_errno (int err);
+
+
+/* Retrieve the system error for the error code CODE.  This returns 0
+   if CODE is not a system error code.  */
+int gpg_err_code_to_errno (gpg_err_code_t code);
+
+
+/* Retrieve the error code directly from the ERRNO variable.  This
+   returns GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped
+   (report this) and GPG_ERR_MISSING_ERRNO if ERRNO has the value 0. */
+gpg_err_code_t gpg_err_code_from_syserror (void);
+
+
+/* Set the ERRNO variable.  This function is the preferred way to set
+   ERRNO due to peculiarities on WindowsCE.  */
+void gpg_err_set_errno (int err);
+
+/* Return or check the version.  Both functions are identical.  */
+const char *gpgrt_check_version (const char *req_version);
+const char *gpg_error_check_version (const char *req_version);
+
+/* System specific type definitions.  */
+@define:gpgrt_ssize_t@
+@define:gpgrt_off_t@
+
+@include:os-add@
+
+/* Self-documenting convenience functions.  */
+
+static GPG_ERR_INLINE gpg_error_t
+gpg_err_make_from_errno (gpg_err_source_t source, int err)
+{
+  return gpg_err_make (source, gpg_err_code_from_errno (err));
+}
+
+
+static GPG_ERR_INLINE gpg_error_t
+gpg_error_from_errno (int err)
+{
+  return gpg_error (gpg_err_code_from_errno (err));
+}
+
+static GPG_ERR_INLINE gpg_error_t
+gpg_error_from_syserror (void)
+{
+  return gpg_error (gpg_err_code_from_syserror ());
+}
+
+
+
+/* Lock functions.  */
+
+@include:lock-obj@
+
+#define GPGRT_LOCK_DEFINE(name) \
+  static gpgrt_lock_t name  = GPGRT_LOCK_INITIALIZER
+
+/* NB: If GPGRT_LOCK_DEFINE is not used, zero out the lock variable
+   before passing it to gpgrt_lock_init.  */
+gpg_err_code_t gpgrt_lock_init (gpgrt_lock_t *lockhd);
+gpg_err_code_t gpgrt_lock_lock (gpgrt_lock_t *lockhd);
+gpg_err_code_t gpgrt_lock_trylock (gpgrt_lock_t *lockhd);
+gpg_err_code_t gpgrt_lock_unlock (gpgrt_lock_t *lockhd);
+gpg_err_code_t gpgrt_lock_destroy (gpgrt_lock_t *lockhd);
+
+
+
+/* Thread functions.  */
+
+gpg_err_code_t gpgrt_yield (void);
+
+
+
+
+/* Estream */
+
+/* The definition of this struct is entirely private.  You must not
+   use it for anything.  It is only here so some functions can be
+   implemented as macros.  */
+struct _gpgrt_stream_internal;
+struct _gpgrt__stream
+{
+  /* The layout of this struct must never change.  It may be grown,
+     but only if all functions which access the new members are
+     versioned.  */
+
+  /* Various flags.  */
+  struct {
+    unsigned int magic: 16;
+    unsigned int writing: 1;
+    unsigned int reserved: 15;
+  } flags;
+
+  /* A pointer to the stream buffer.  */
+  unsigned char *buffer;
+
+  /* The size of the buffer in bytes.  */
+  size_t buffer_size;
+
+  /* The length of the usable data in the buffer, only valid when in
+     read mode (see flags).  */
+  size_t data_len;
+
+  /* The current position of the offset pointer, valid in read and
+     write mode.  */
+  size_t data_offset;
+
+  size_t data_flushed;
+  unsigned char *unread_buffer;
+  size_t unread_buffer_size;
+
+  /* The number of unread bytes.  */
+  size_t unread_data_len;
+
+  /* A pointer to our internal data for this stream.  */
+  struct _gpgrt_stream_internal *intern;
+};
+
+/* The opaque type for an estream.  */
+typedef struct _gpgrt__stream *gpgrt_stream_t;
+#ifdef GPGRT_ENABLE_ES_MACROS
+typedef struct _gpgrt__stream *estream_t;
+#endif
+
+typedef @api_ssize_t@ (*gpgrt_cookie_read_function_t) (void *cookie,
+                                                 void *buffer, size_t size);
+typedef @api_ssize_t@ (*gpgrt_cookie_write_function_t) (void *cookie,
+                                                  const void *buffer,
+                                                  size_t size);
+typedef int (*gpgrt_cookie_seek_function_t) (void *cookie,
+                                             gpgrt_off_t *pos, int whence);
+typedef int (*gpgrt_cookie_close_function_t) (void *cookie);
+
+struct _gpgrt_cookie_io_functions
+{
+  gpgrt_cookie_read_function_t func_read;
+  gpgrt_cookie_write_function_t func_write;
+  gpgrt_cookie_seek_function_t func_seek;
+  gpgrt_cookie_close_function_t func_close;
+};
+typedef struct _gpgrt_cookie_io_functions gpgrt_cookie_io_functions_t;
+#ifdef GPGRT_ENABLE_ES_MACROS
+typedef struct _gpgrt_cookie_io_functions  es_cookie_io_functions_t;
+#define es_cookie_read_function_t  gpgrt_cookie_read_function_t
+#define es_cookie_write_function_t gpgrt_cookie_read_function_t
+#define es_cookie_seek_function_t  gpgrt_cookie_read_function_t
+#define es_cookie_close_function_t gpgrt_cookie_read_function_t
+#endif
+
+enum gpgrt_syshd_types
+  {
+    GPGRT_SYSHD_NONE = 0,  /* No system handle available.                   */
+    GPGRT_SYSHD_FD = 1,    /* A file descriptor as returned by open().      */
+    GPGRT_SYSHD_SOCK = 2,  /* A socket as returned by socket().             */
+    GPGRT_SYSHD_RVID = 3,  /* A rendezvous id (see libassuan's gpgcedev.c).  */
+    GPGRT_SYSHD_HANDLE = 4 /* A HANDLE object (Windows).                    */
+  };
+
+struct _gpgrt_syshd
+{
+  enum gpgrt_syshd_types type;
+  union {
+    int fd;
+    int sock;
+    int rvid;
+    void *handle;
+  } u;
+};
+typedef struct _gpgrt_syshd gpgrt_syshd_t;
+#ifdef GPGRT_ENABLE_ES_MACROS
+typedef struct _gpgrt_syshd es_syshd_t;
+#define ES_SYSHD_NONE   GPGRT_SYSHD_NONE
+#define ES_SYSHD_FD     GPGRT_SYSHD_FD
+#define ES_SYSHD_SOCK   GPGRT_SYSHD_SOCK
+#define ES_SYSHD_RVID   GPGRT_SYSHD_RVID
+#define ES_SYSHD_HANDLE GPGRT_SYSHD_HANDLE
+#endif
+
+/* The object used with gpgrt_poll.  */
+struct _gpgrt_poll_s
+{
+  gpgrt_stream_t stream;
+  unsigned int want_read:1;
+  unsigned int want_write:1;
+  unsigned int want_oob:1;
+  unsigned int want_rdhup:1;
+  unsigned int _reserv1:4;
+  unsigned int got_read:1;
+  unsigned int got_write:1;
+  unsigned int got_oob:1;
+  unsigned int got_rdhup:1;
+  unsigned int _reserv2:4;
+  unsigned int got_err:1;
+  unsigned int got_hup:1;
+  unsigned int got_nval:1;
+  unsigned int _reserv3:4;
+  unsigned int ignore:1;
+  unsigned int user:8;       /* For application use.  */
+};
+typedef struct _gpgrt_poll_s gpgrt_poll_t;
+#ifdef GPGRT_ENABLE_ES_MACROS
+typedef struct _gpgrt_poll_s es_poll_t;
+#endif
+
+gpgrt_stream_t gpgrt_fopen (const char *_GPGRT__RESTRICT path,
+                            const char *_GPGRT__RESTRICT mode);
+gpgrt_stream_t gpgrt_mopen (void *_GPGRT__RESTRICT data,
+                            size_t data_n, size_t data_len,
+                            unsigned int grow,
+                            void *(*func_realloc) (void *mem, size_t size),
+                            void (*func_free) (void *mem),
+                            const char *_GPGRT__RESTRICT mode);
+gpgrt_stream_t gpgrt_fopenmem (size_t memlimit,
+                               const char *_GPGRT__RESTRICT mode);
+gpgrt_stream_t gpgrt_fopenmem_init (size_t memlimit,
+                                    const char *_GPGRT__RESTRICT mode,
+                                    const void *data, size_t datalen);
+gpgrt_stream_t gpgrt_fdopen    (int filedes, const char *mode);
+gpgrt_stream_t gpgrt_fdopen_nc (int filedes, const char *mode);
+gpgrt_stream_t gpgrt_sysopen    (gpgrt_syshd_t *syshd, const char *mode);
+gpgrt_stream_t gpgrt_sysopen_nc (gpgrt_syshd_t *syshd, const char *mode);
+gpgrt_stream_t gpgrt_fpopen    (FILE *fp, const char *mode);
+gpgrt_stream_t gpgrt_fpopen_nc (FILE *fp, const char *mode);
+gpgrt_stream_t gpgrt_freopen (const char *_GPGRT__RESTRICT path,
+                              const char *_GPGRT__RESTRICT mode,
+                              gpgrt_stream_t _GPGRT__RESTRICT stream);
+gpgrt_stream_t gpgrt_fopencookie (void *_GPGRT__RESTRICT cookie,
+                                  const char *_GPGRT__RESTRICT mode,
+                                  gpgrt_cookie_io_functions_t functions);
+int gpgrt_fclose (gpgrt_stream_t stream);
+int gpgrt_fclose_snatch (gpgrt_stream_t stream,
+                         void **r_buffer, size_t *r_buflen);
+int gpgrt_onclose (gpgrt_stream_t stream, int mode,
+                   void (*fnc) (gpgrt_stream_t, void*), void *fnc_value);
+int gpgrt_fileno (gpgrt_stream_t stream);
+int gpgrt_fileno_unlocked (gpgrt_stream_t stream);
+int gpgrt_syshd (gpgrt_stream_t stream, gpgrt_syshd_t *syshd);
+int gpgrt_syshd_unlocked (gpgrt_stream_t stream, gpgrt_syshd_t *syshd);
+
+void _gpgrt_set_std_fd (int no, int fd);
+gpgrt_stream_t _gpgrt_get_std_stream (int fd);
+
+#define gpgrt_stdin  _gpgrt_get_std_stream (0)
+#define gpgrt_stdout _gpgrt_get_std_stream (1)
+#define gpgrt_stderr _gpgrt_get_std_stream (2)
+
+
+void gpgrt_flockfile (gpgrt_stream_t stream);
+int  gpgrt_ftrylockfile (gpgrt_stream_t stream);
+void gpgrt_funlockfile (gpgrt_stream_t stream);
+
+int gpgrt_feof (gpgrt_stream_t stream);
+int gpgrt_feof_unlocked (gpgrt_stream_t stream);
+int gpgrt_ferror (gpgrt_stream_t stream);
+int gpgrt_ferror_unlocked (gpgrt_stream_t stream);
+void gpgrt_clearerr (gpgrt_stream_t stream);
+void gpgrt_clearerr_unlocked (gpgrt_stream_t stream);
+
+int _gpgrt_pending (gpgrt_stream_t stream);          /* (private) */
+int _gpgrt_pending_unlocked (gpgrt_stream_t stream); /* (private) */
+
+#define gpgrt_pending(stream) _gpgrt_pending (stream)
+
+#define gpgrt_pending_unlocked(stream)				\
+  (((!(stream)->flags.writing)					\
+    && (((stream)->data_offset < (stream)->data_len)		\
+        || ((stream)->unread_data_len)))                        \
+   ? 1 : _gpgrt_pending_unlocked ((stream)))
+
+int gpgrt_fflush (gpgrt_stream_t stream);
+int gpgrt_fseek (gpgrt_stream_t stream, long int offset, int whence);
+int gpgrt_fseeko (gpgrt_stream_t stream, gpgrt_off_t offset, int whence);
+long int gpgrt_ftell (gpgrt_stream_t stream);
+gpgrt_off_t gpgrt_ftello (gpgrt_stream_t stream);
+void gpgrt_rewind (gpgrt_stream_t stream);
+
+int gpgrt_fgetc (gpgrt_stream_t stream);
+int gpgrt_fputc (int c, gpgrt_stream_t stream);
+
+int _gpgrt_getc_underflow (gpgrt_stream_t stream);       /* (private) */
+int _gpgrt_putc_overflow (int c, gpgrt_stream_t stream); /* (private) */
+
+#define gpgrt_getc_unlocked(stream)				\
+  (((!(stream)->flags.writing)					\
+    && ((stream)->data_offset < (stream)->data_len)		\
+    && (! (stream)->unread_data_len))				\
+  ? ((int) (stream)->buffer[((stream)->data_offset)++])		\
+  : _gpgrt_getc_underflow ((stream)))
+
+#define gpgrt_putc_unlocked(c, stream)				\
+  (((stream)->flags.writing					\
+    && ((stream)->data_offset < (stream)->buffer_size)		\
+    && (c != '\n'))						\
+  ? ((int) ((stream)->buffer[((stream)->data_offset)++] = (c)))	\
+  : _gpgrt_putc_overflow ((c), (stream)))
+
+#define gpgrt_getc(stream)    gpgrt_fgetc (stream)
+#define gpgrt_putc(c, stream) gpgrt_fputc (c, stream)
+
+int gpgrt_ungetc (int c, gpgrt_stream_t stream);
+
+int gpgrt_read (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                void *_GPGRT__RESTRICT buffer, size_t bytes_to_read,
+                size_t *_GPGRT__RESTRICT bytes_read);
+int gpgrt_write (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                 const void *_GPGRT__RESTRICT buffer, size_t bytes_to_write,
+                 size_t *_GPGRT__RESTRICT bytes_written);
+int gpgrt_write_sanitized (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                           const void *_GPGRT__RESTRICT buffer, size_t length,
+                           const char *delimiters,
+                           size_t *_GPGRT__RESTRICT bytes_written);
+int gpgrt_write_hexstring (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                           const void *_GPGRT__RESTRICT buffer, size_t length,
+                           int reserved,
+                           size_t *_GPGRT__RESTRICT bytes_written);
+
+size_t gpgrt_fread (void *_GPGRT__RESTRICT ptr, size_t size, size_t nitems,
+                    gpgrt_stream_t _GPGRT__RESTRICT stream);
+size_t gpgrt_fwrite (const void *_GPGRT__RESTRICT ptr, size_t size, size_t memb,
+                     gpgrt_stream_t _GPGRT__RESTRICT stream);
+
+char *gpgrt_fgets (char *_GPGRT__RESTRICT s, int n,
+                   gpgrt_stream_t _GPGRT__RESTRICT stream);
+int gpgrt_fputs (const char *_GPGRT__RESTRICT s,
+                 gpgrt_stream_t _GPGRT__RESTRICT stream);
+int gpgrt_fputs_unlocked (const char *_GPGRT__RESTRICT s,
+                          gpgrt_stream_t _GPGRT__RESTRICT stream);
+
+@api_ssize_t@ gpgrt_getline (char *_GPGRT__RESTRICT *_GPGRT__RESTRICT lineptr,
+                       size_t *_GPGRT__RESTRICT n,
+                       gpgrt_stream_t stream);
+@api_ssize_t@ gpgrt_read_line (gpgrt_stream_t stream,
+                         char **addr_of_buffer, size_t *length_of_buffer,
+                         size_t *max_length);
+void gpgrt_free (void *a);
+
+int gpgrt_fprintf (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                   const char *_GPGRT__RESTRICT format, ...)
+                   GPGRT_ATTR_PRINTF(2,3);
+int gpgrt_fprintf_unlocked (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                            const char *_GPGRT__RESTRICT format, ...)
+                            GPGRT_ATTR_PRINTF(2,3);
+
+int gpgrt_printf (const char *_GPGRT__RESTRICT format, ...)
+                  GPGRT_ATTR_PRINTF(1,2);
+int gpgrt_printf_unlocked (const char *_GPGRT__RESTRICT format, ...)
+                           GPGRT_ATTR_PRINTF(1,2);
+
+int gpgrt_vfprintf (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                    const char *_GPGRT__RESTRICT format, va_list ap)
+                    GPGRT_ATTR_PRINTF(2,0);
+int gpgrt_vfprintf_unlocked (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                             const char *_GPGRT__RESTRICT format, va_list ap)
+                             GPGRT_ATTR_PRINTF(2,0);
+
+int gpgrt_setvbuf (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                   char *_GPGRT__RESTRICT buf, int mode, size_t size);
+void gpgrt_setbuf (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                   char *_GPGRT__RESTRICT buf);
+
+void gpgrt_set_binary (gpgrt_stream_t stream);
+int  gpgrt_set_nonblock (gpgrt_stream_t stream, int onoff);
+int  gpgrt_get_nonblock (gpgrt_stream_t stream);
+
+int gpgrt_poll (gpgrt_poll_t *fdlist, unsigned int nfds, int timeout);
+
+gpgrt_stream_t gpgrt_tmpfile (void);
+
+void gpgrt_opaque_set (gpgrt_stream_t _GPGRT__RESTRICT stream,
+                       void *_GPGRT__RESTRICT opaque);
+void *gpgrt_opaque_get (gpgrt_stream_t stream);
+
+void gpgrt_fname_set (gpgrt_stream_t stream, const char *fname);
+const char *gpgrt_fname_get (gpgrt_stream_t stream);
+
+int gpgrt_asprintf (char **r_buf, const char * _GPGRT__RESTRICT format, ...)
+                    GPGRT_ATTR_PRINTF(2,3);
+int gpgrt_vasprintf (char **r_buf, const char * _GPGRT__RESTRICT format,
+                     va_list ap)
+                     GPGRT_ATTR_PRINTF(2,0);
+char *gpgrt_bsprintf (const char * _GPGRT__RESTRICT format, ...)
+                      GPGRT_ATTR_PRINTF(1,2);
+char *gpgrt_vbsprintf (const char * _GPGRT__RESTRICT format, va_list ap)
+                       GPGRT_ATTR_PRINTF(1,0);
+int gpgrt_snprintf (char *buf, size_t bufsize,
+                    const char * _GPGRT__RESTRICT format, ...)
+                    GPGRT_ATTR_PRINTF(3,4);
+int gpgrt_vsnprintf (char *buf,size_t bufsize,
+                     const char * _GPGRT__RESTRICT format, va_list arg_ptr)
+                     GPGRT_ATTR_PRINTF(3,0);
+
+
+#ifdef GPGRT_ENABLE_ES_MACROS
+# define es_fopen             gpgrt_fopen
+# define es_mopen             gpgrt_mopen
+# define es_fopenmem          gpgrt_fopenmem
+# define es_fopenmem_init     gpgrt_fopenmem_init
+# define es_fdopen            gpgrt_fdopen
+# define es_fdopen_nc         gpgrt_fdopen_nc
+# define es_sysopen           gpgrt_sysopen
+# define es_sysopen_nc        gpgrt_sysopen_nc
+# define es_fpopen            gpgrt_fpopen
+# define es_fpopen_nc         gpgrt_fpopen_nc
+# define es_freopen           gpgrt_freopen
+# define es_fopencookie       gpgrt_fopencookie
+# define es_fclose            gpgrt_fclose
+# define es_fclose_snatch     gpgrt_fclose_snatch
+# define es_onclose           gpgrt_onclose
+# define es_fileno            gpgrt_fileno
+# define es_fileno_unlocked   gpgrt_fileno_unlocked
+# define es_syshd             gpgrt_syshd
+# define es_syshd_unlocked    gpgrt_syshd_unlocked
+# define es_stdin             _gpgrt_get_std_stream (0)
+# define es_stdout            _gpgrt_get_std_stream (1)
+# define es_stderr            _gpgrt_get_std_stream (2)
+# define es_flockfile         gpgrt_flockfile
+# define es_ftrylockfile      gpgrt_ftrylockfile
+# define es_funlockfile       gpgrt_funlockfile
+# define es_feof              gpgrt_feof
+# define es_feof_unlocked     gpgrt_feof_unlocked
+# define es_ferror            gpgrt_ferror
+# define es_ferror_unlocked   gpgrt_ferror_unlocked
+# define es_clearerr          gpgrt_clearerr
+# define es_clearerr_unlocked gpgrt_clearerr_unlocked
+# define es_pending           gpgrt_pending
+# define es_pending_unlocked  gpgrt_pending_unlocked
+# define es_fflush            gpgrt_fflush
+# define es_fseek             gpgrt_fseek
+# define es_fseeko            gpgrt_fseeko
+# define es_ftell             gpgrt_ftell
+# define es_ftello            gpgrt_ftello
+# define es_rewind            gpgrt_rewind
+# define es_fgetc             gpgrt_fgetc
+# define es_fputc             gpgrt_fputc
+# define es_getc_unlocked     gpgrt_getc_unlocked
+# define es_putc_unlocked     gpgrt_putc_unlocked
+# define es_getc              gpgrt_getc
+# define es_putc              gpgrt_putc
+# define es_ungetc            gpgrt_ungetc
+# define es_read              gpgrt_read
+# define es_write             gpgrt_write
+# define es_write_sanitized   gpgrt_write_sanitized
+# define es_write_hexstring   gpgrt_write_hexstring
+# define es_fread             gpgrt_fread
+# define es_fwrite            gpgrt_fwrite
+# define es_fgets             gpgrt_fgets
+# define es_fputs             gpgrt_fputs
+# define es_fputs_unlocked    gpgrt_fputs_unlocked
+# define es_getline           gpgrt_getline
+# define es_read_line         gpgrt_read_line
+# define es_free              gpgrt_free
+# define es_fprintf           gpgrt_fprintf
+# define es_fprintf_unlocked  gpgrt_fprintf_unlocked
+# define es_printf            gpgrt_printf
+# define es_printf_unlocked   gpgrt_printf_unlocked
+# define es_vfprintf          gpgrt_vfprintf
+# define es_vfprintf_unlocked gpgrt_vfprintf_unlocked
+# define es_setvbuf           gpgrt_setvbuf
+# define es_setbuf            gpgrt_setbuf
+# define es_set_binary        gpgrt_set_binary
+# define es_set_nonblock      gpgrt_set_nonblock
+# define es_get_nonblock      gpgrt_get_nonblock
+# define es_poll              gpgrt_poll
+# define es_tmpfile           gpgrt_tmpfile
+# define es_opaque_set        gpgrt_opaque_set
+# define es_opaque_get        gpgrt_opaque_get
+# define es_fname_set         gpgrt_fname_set
+# define es_fname_get         gpgrt_fname_get
+# define es_asprintf          gpgrt_asprintf
+# define es_vasprintf         gpgrt_vasprintf
+# define es_bsprintf          gpgrt_bsprintf
+# define es_vbsprintf         gpgrt_vbsprintf
+#endif /*GPGRT_ENABLE_ES_MACROS*/
+
+/* Base64 decode functions.  */
+
+struct _gpgrt_b64state;
+typedef struct _gpgrt_b64state *gpgrt_b64state_t;
+
+gpgrt_b64state_t gpgrt_b64dec_start (const char *title);
+gpg_error_t gpgrt_b64dec_proc (gpgrt_b64state_t state,
+                               void *buffer, size_t length, size_t *r_nbytes);
+gpg_error_t gpgrt_b64dec_finish (gpgrt_b64state_t state);
+
+#ifdef __cplusplus
+}
+#endif
+#endif	/* GPGRT_H */
+#endif	/* GPG_ERROR_H */

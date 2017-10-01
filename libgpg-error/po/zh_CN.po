@@ -1,0 +1,1511 @@
+# Simplified Chinese translation to libgpg-error.
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Aron Xu <happyaron.xu@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2013-02-23 20:11+0100\n"
+"Last-Translator: Aron Xu <happyaron.xu@gmail.com>\n"
+"Language-Team: Chinese (simplified) <translation-team-zh-cn@lists."
+"sourceforge.net>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Unspecified source"
+msgstr "未指定源"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "GPG 代理"
+
+msgid "Pinentry"
+msgstr ""
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr ""
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr ""
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr ""
+
+msgid "G13"
+msgstr ""
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TLS"
+msgstr ""
+
+msgid "Any source"
+msgstr "任何来源"
+
+msgid "User defined source 1"
+msgstr "用户定义的来源1"
+
+msgid "User defined source 2"
+msgstr "用户定义的来源2"
+
+msgid "User defined source 3"
+msgstr "用户定义的来源3"
+
+msgid "User defined source 4"
+msgstr "用户定义的来源4"
+
+msgid "Unknown source"
+msgstr "来源不明"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "General error"
+msgstr "一般错误"
+
+msgid "Unknown packet"
+msgstr "未知的包"
+
+msgid "Unknown version in packet"
+msgstr "包中未知的版本"
+
+msgid "Invalid public key algorithm"
+msgstr "无效的公钥算法"
+
+msgid "Invalid digest algorithm"
+msgstr "无效的摘要算法"
+
+msgid "Bad public key"
+msgstr "损坏的公钥"
+
+msgid "Bad secret key"
+msgstr "损坏的密钥"
+
+msgid "Bad signature"
+msgstr "损坏的签名"
+
+msgid "No public key"
+msgstr "没有公钥"
+
+msgid "Checksum error"
+msgstr "校验错误"
+
+msgid "Bad passphrase"
+msgstr "损坏的密码"
+
+msgid "Invalid cipher algorithm"
+msgstr "无效的密码算法"
+
+msgid "Cannot open keyring"
+msgstr ""
+
+msgid "Invalid packet"
+msgstr "无效的数据包"
+
+msgid "Invalid armor"
+msgstr ""
+
+msgid "No user ID"
+msgstr "没有用户ID"
+
+msgid "No secret key"
+msgstr "没有秘匙"
+
+msgid "Wrong secret key used"
+msgstr "使用了错误的密钥"
+
+msgid "Bad session key"
+msgstr "损坏的会话密钥"
+
+msgid "Unknown compression algorithm"
+msgstr "未知的压缩算法"
+
+msgid "Number is not prime"
+msgstr "不是素数"
+
+msgid "Invalid encoding method"
+msgstr "无效的编码方法"
+
+msgid "Invalid encryption scheme"
+msgstr "无效的加密方案"
+
+msgid "Invalid signature scheme"
+msgstr "无效的签名方案"
+
+msgid "Invalid attribute"
+msgstr "无效的属性"
+
+msgid "No value"
+msgstr "没有值"
+
+msgid "Not found"
+msgstr "未找到"
+
+msgid "Value not found"
+msgstr "没有发现值"
+
+msgid "Syntax error"
+msgstr "语法错误"
+
+msgid "Bad MPI value"
+msgstr "损坏的MPI 值"
+
+msgid "Invalid passphrase"
+msgstr "无效的密码"
+
+msgid "Invalid signature class"
+msgstr ""
+
+msgid "Resources exhausted"
+msgstr "内存耗尽"
+
+msgid "Invalid keyring"
+msgstr "无效的密钥环"
+
+msgid "Trust DB error"
+msgstr "信任数据库错误"
+
+msgid "Bad certificate"
+msgstr "损坏的证书"
+
+msgid "Invalid user ID"
+msgstr "无效的用户ID"
+
+msgid "Unexpected error"
+msgstr "意外错误"
+
+msgid "Time conflict"
+msgstr "时间冲突"
+
+msgid "Keyserver error"
+msgstr "密钥服务器错误"
+
+msgid "Wrong public key algorithm"
+msgstr "错误的公开密钥算法"
+
+msgid "Tribute to D. A."
+msgstr ""
+
+msgid "Weak encryption key"
+msgstr "弱加密密钥"
+
+msgid "Invalid key length"
+msgstr "无效的密钥长度"
+
+msgid "Invalid argument"
+msgstr "无效的参数"
+
+msgid "Syntax error in URI"
+msgstr "以下URI 中语法错误"
+
+msgid "Invalid URI"
+msgstr "无效的URI"
+
+msgid "Network error"
+msgstr "网络错误"
+
+msgid "Unknown host"
+msgstr "未知的主机"
+
+msgid "Selftest failed"
+msgstr "自测失败"
+
+msgid "Data not encrypted"
+msgstr "数据未加密"
+
+msgid "Data not processed"
+msgstr "数据未处理"
+
+msgid "Unusable public key"
+msgstr "不可用公钥"
+
+msgid "Unusable secret key"
+msgstr "不可用密钥"
+
+msgid "Invalid value"
+msgstr "无效值"
+
+msgid "Bad certificate chain"
+msgstr "损坏的证书链"
+
+msgid "Missing certificate"
+msgstr "缺失证书"
+
+msgid "No data"
+msgstr "无数据"
+
+msgid "Bug"
+msgstr "错误"
+
+msgid "Not supported"
+msgstr "不支持"
+
+msgid "Invalid operation code"
+msgstr "无效的操作码"
+
+msgid "Timeout"
+msgstr "超时"
+
+msgid "Internal error"
+msgstr "内部错误"
+
+msgid "EOF (gcrypt)"
+msgstr "EOF (gcrypt)"
+
+msgid "Invalid object"
+msgstr "无效的对象"
+
+msgid "Provided object is too short"
+msgstr "提供对象太短"
+
+msgid "Provided object is too large"
+msgstr "提供对象太大"
+
+msgid "Missing item in object"
+msgstr "对象中缺少项目"
+
+msgid "Not implemented"
+msgstr "未实现"
+
+msgid "Conflicting use"
+msgstr ""
+
+msgid "Invalid cipher mode"
+msgstr "无效的加密模式"
+
+msgid "Invalid flag"
+msgstr ""
+
+msgid "Invalid handle"
+msgstr ""
+
+msgid "Result truncated"
+msgstr "结果已截断"
+
+msgid "Incomplete line"
+msgstr "不完整行"
+
+msgid "Invalid response"
+msgstr "无效的响应"
+
+msgid "No agent running"
+msgstr "未运行代理"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "Agent error"
+msgstr "代理错误"
+
+msgid "Invalid data"
+msgstr "无效的数据"
+
+msgid "Unspecific Assuan server fault"
+msgstr ""
+
+msgid "General Assuan error"
+msgstr "一般Assuan 错误"
+
+msgid "Invalid session key"
+msgstr "无效的会话密钥"
+
+msgid "Invalid S-expression"
+msgstr ""
+
+msgid "Unsupported algorithm"
+msgstr "不支持的算法"
+
+msgid "No pinentry"
+msgstr ""
+
+msgid "pinentry error"
+msgstr ""
+
+msgid "Bad PIN"
+msgstr "损坏的PIN"
+
+msgid "Invalid name"
+msgstr "无效的名称"
+
+msgid "Bad data"
+msgstr "不良数据"
+
+msgid "Invalid parameter"
+msgstr "无效的参数"
+
+msgid "Wrong card"
+msgstr "错卡"
+
+msgid "No dirmngr"
+msgstr ""
+
+msgid "dirmngr error"
+msgstr ""
+
+msgid "Certificate revoked"
+msgstr "证书已吊销"
+
+msgid "No CRL known"
+msgstr ""
+
+msgid "CRL too old"
+msgstr ""
+
+msgid "Line too long"
+msgstr "线太长"
+
+msgid "Not trusted"
+msgstr "不信任"
+
+msgid "Operation cancelled"
+msgstr "操作已取消"
+
+msgid "Bad CA certificate"
+msgstr "损坏的CA 证书"
+
+msgid "Certificate expired"
+msgstr "证书已过期"
+
+msgid "Certificate too young"
+msgstr "证书太新"
+
+msgid "Unsupported certificate"
+msgstr "不支持的凭证"
+
+msgid "Unknown S-expression"
+msgstr ""
+
+msgid "Unsupported protection"
+msgstr "不受支持的保护"
+
+msgid "Corrupted protection"
+msgstr "损坏的保护"
+
+msgid "Ambiguous name"
+msgstr ""
+
+msgid "Card error"
+msgstr "卡错误"
+
+msgid "Card reset required"
+msgstr "要求重置卡"
+
+msgid "Card removed"
+msgstr "卡已删除"
+
+msgid "Invalid card"
+msgstr "无效的卡"
+
+msgid "Card not present"
+msgstr ""
+
+msgid "No PKCS15 application"
+msgstr "没有PKCS15 应用程序"
+
+msgid "Not confirmed"
+msgstr "未确认"
+
+msgid "Configuration error"
+msgstr "配置错误"
+
+msgid "No policy match"
+msgstr "没有匹配的规则"
+
+msgid "Invalid index"
+msgstr "无效的索引"
+
+msgid "Invalid ID"
+msgstr "无效的 ID"
+
+msgid "No SmartCard daemon"
+msgstr "没有智能卡守护进程"
+
+msgid "SmartCard daemon error"
+msgstr "智能卡守护程序错误"
+
+msgid "Unsupported protocol"
+msgstr "不支持的协议"
+
+msgid "Bad PIN method"
+msgstr ""
+
+msgid "Card not initialized"
+msgstr "卡未初始化"
+
+msgid "Unsupported operation"
+msgstr "不支持的操作"
+
+msgid "Wrong key usage"
+msgstr "错误的密钥用法"
+
+msgid "Nothing found"
+msgstr "未发现"
+
+msgid "Wrong blob type"
+msgstr ""
+
+msgid "Missing value"
+msgstr "缺失值"
+
+msgid "Hardware problem"
+msgstr "硬件问题"
+
+msgid "PIN blocked"
+msgstr "PIN 已屏蔽"
+
+msgid "Conditions of use not satisfied"
+msgstr "使用条件不满足"
+
+msgid "PINs are not synced"
+msgstr "PINs 不同步"
+
+msgid "Invalid CRL"
+msgstr "无效的 CRL"
+
+msgid "BER error"
+msgstr "BER 错误"
+
+msgid "Invalid BER"
+msgstr "无效的BER"
+
+msgid "Element not found"
+msgstr "未找到元素"
+
+msgid "Identifier not found"
+msgstr "未找到标识符"
+
+msgid "Invalid tag"
+msgstr "无效的标签"
+
+msgid "Invalid length"
+msgstr "无效的长度"
+
+msgid "Invalid key info"
+msgstr "无效的密钥信息"
+
+msgid "Unexpected tag"
+msgstr ""
+
+msgid "Not DER encoded"
+msgstr ""
+
+msgid "No CMS object"
+msgstr "没有CMS 对象"
+
+msgid "Invalid CMS object"
+msgstr "无效的CMS 对象"
+
+msgid "Unknown CMS object"
+msgstr "未知的CMS 对象"
+
+msgid "Unsupported CMS object"
+msgstr "不支持的CMS 对象"
+
+msgid "Unsupported encoding"
+msgstr "不支持的编码"
+
+msgid "Unsupported CMS version"
+msgstr "不支持的CMS 版本"
+
+msgid "Unknown algorithm"
+msgstr "未知的算法"
+
+msgid "Invalid crypto engine"
+msgstr "无效的加密引擎"
+
+msgid "Public key not trusted"
+msgstr "公钥不被信任"
+
+msgid "Decryption failed"
+msgstr "解密失败"
+
+msgid "Key expired"
+msgstr "密钥已过期"
+
+msgid "Signature expired"
+msgstr "签名过期"
+
+msgid "Encoding problem"
+msgstr "编码问题"
+
+msgid "Invalid state"
+msgstr "无效的州"
+
+msgid "Duplicated value"
+msgstr "重复值"
+
+msgid "Missing action"
+msgstr ""
+
+msgid "ASN.1 module not found"
+msgstr "ASN.1 模块未找到"
+
+msgid "Invalid OID string"
+msgstr "无效的OID 字符串"
+
+msgid "Invalid time"
+msgstr "无效的时间"
+
+msgid "Invalid CRL object"
+msgstr "无效的CRL 对象"
+
+msgid "Unsupported CRL version"
+msgstr "不支持的CRL 版本"
+
+msgid "Invalid certificate object"
+msgstr "无效的证书对象"
+
+msgid "Unknown name"
+msgstr "未知名称"
+
+msgid "A locale function failed"
+msgstr "区域设置功能失败"
+
+msgid "Not locked"
+msgstr "未锁定"
+
+msgid "Protocol violation"
+msgstr "违反协议"
+
+msgid "Invalid MAC"
+msgstr "无效的MAC"
+
+msgid "Invalid request"
+msgstr "无效的请求"
+
+msgid "Unknown extension"
+msgstr "未知的扩展名"
+
+msgid "Unknown critical extension"
+msgstr ""
+
+msgid "Locked"
+msgstr "已锁定"
+
+msgid "Unknown option"
+msgstr "未知的选项"
+
+msgid "Unknown command"
+msgstr "未知命令"
+
+msgid "Not operational"
+msgstr ""
+
+msgid "No passphrase given"
+msgstr "没有给出密码"
+
+msgid "No PIN given"
+msgstr "没有给出PIN"
+
+#, fuzzy
+msgid "Not enabled"
+msgstr "未锁定"
+
+#, fuzzy
+msgid "No crypto engine"
+msgstr "无效的加密引擎"
+
+#, fuzzy
+msgid "Missing key"
+msgstr "缺失值"
+
+#, fuzzy
+msgid "Too many objects"
+msgstr "没有CMS 对象"
+
+msgid "Limit reached"
+msgstr ""
+
+#, fuzzy
+msgid "Not initialized"
+msgstr "卡未初始化"
+
+#, fuzzy
+msgid "Missing issuer certificate"
+msgstr "缺失证书"
+
+msgid "No keyserver available"
+msgstr ""
+
+#, fuzzy
+msgid "Invalid elliptic curve"
+msgstr "无效的时间"
+
+#, fuzzy
+msgid "Unknown elliptic curve"
+msgstr "来源不明"
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated key"
+msgstr "重复值"
+
+msgid "Ambiguous result"
+msgstr ""
+
+#, fuzzy
+msgid "No crypto context"
+msgstr "无效的加密引擎"
+
+#, fuzzy
+msgid "Wrong crypto context"
+msgstr "无效的加密引擎"
+
+#, fuzzy
+#| msgid "Invalid crypto engine"
+msgid "Bad crypto context"
+msgstr "无效的加密引擎"
+
+msgid "Conflict in the crypto context"
+msgstr ""
+
+#, fuzzy
+#| msgid "No public key"
+msgid "Broken public key"
+msgstr "没有公钥"
+
+#, fuzzy
+#| msgid "No secret key"
+msgid "Broken secret key"
+msgstr "没有秘匙"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Invalid MAC algorithm"
+msgstr "无效的摘要算法"
+
+#, fuzzy
+msgid "Operation fully cancelled"
+msgstr "操作已取消"
+
+msgid "Operation not yet finished"
+msgstr "操作尚未完成"
+
+msgid "Buffer too short"
+msgstr "缓冲区太短"
+
+msgid "Invalid length specifier in S-expression"
+msgstr ""
+
+msgid "String too long in S-expression"
+msgstr ""
+
+msgid "Unmatched parentheses in S-expression"
+msgstr ""
+
+msgid "S-expression not canonical"
+msgstr ""
+
+msgid "Bad character in S-expression"
+msgstr ""
+
+msgid "Bad quotation in S-expression"
+msgstr ""
+
+msgid "Zero prefix in S-expression"
+msgstr ""
+
+msgid "Nested display hints in S-expression"
+msgstr ""
+
+msgid "Unmatched display hints"
+msgstr ""
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr ""
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr ""
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr ""
+
+msgid "Bad octal character in S-expression"
+msgstr ""
+
+msgid "All subkeys are expired or revoked"
+msgstr ""
+
+#, fuzzy
+#| msgid "Data not encrypted"
+msgid "Database is corrupted"
+msgstr "数据未加密"
+
+msgid "Server indicated a failure"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "No name"
+msgstr "未知名称"
+
+#, fuzzy
+#| msgid "No public key"
+msgid "No key"
+msgstr "没有公钥"
+
+msgid "Legacy key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Buffer too short"
+msgid "Request too short"
+msgstr "缓冲区太短"
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "Request too long"
+msgstr "线太长"
+
+msgid "Object is in termination state"
+msgstr ""
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "No certificate chain"
+msgstr "损坏的证书链"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Certificate is too large"
+msgstr "证书太新"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid record"
+msgstr "无效的卡"
+
+msgid "The MAC does not verify"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "Unexpected message"
+msgstr "意外错误"
+
+msgid "Compression or decompression failed"
+msgstr ""
+
+msgid "A counter would wrap"
+msgstr ""
+
+msgid "Fatal alert message received"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid cipher algorithm"
+msgid "No cipher algorithm"
+msgstr "无效的密码算法"
+
+#, fuzzy
+msgid "Missing client certificate"
+msgstr "缺失证书"
+
+#, fuzzy
+#| msgid "Certificate revoked"
+msgid "Close notification received"
+msgstr "证书已吊销"
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Ticket expired"
+msgstr "密钥已过期"
+
+#, fuzzy
+#| msgid "Bad public key"
+msgid "Bad ticket"
+msgstr "损坏的公钥"
+
+#, fuzzy
+#| msgid "Unknown packet"
+msgid "Unknown identity"
+msgstr "未知的包"
+
+#, fuzzy
+#| msgid "Bad certificate chain"
+msgid "Bad certificate message in handshake"
+msgstr "损坏的证书链"
+
+msgid "Bad certificate request message in handshake"
+msgstr ""
+
+msgid "Bad certificate verify message in handshake"
+msgstr ""
+
+msgid "Bad change cipher message in handshake"
+msgstr ""
+
+msgid "Bad client hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello message in handshake"
+msgstr ""
+
+msgid "Bad server hello done message in handshake"
+msgstr ""
+
+msgid "Bad finished message in handshake"
+msgstr ""
+
+msgid "Bad server key exchange message in handshake"
+msgstr ""
+
+msgid "Bad client key exchange message in handshake"
+msgstr ""
+
+msgid "Bogus string"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+#, fuzzy
+#| msgid "Key expired"
+msgid "Key disabled"
+msgstr "密钥已过期"
+
+msgid "Not possible with a card based key"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid object"
+msgid "Invalid lock object"
+msgstr "无效的对象"
+
+msgid "True"
+msgstr ""
+
+msgid "False"
+msgstr ""
+
+msgid "General IPC error"
+msgstr "一般IPC 错误"
+
+msgid "IPC accept call failed"
+msgstr ""
+
+msgid "IPC connect call failed"
+msgstr ""
+
+msgid "Invalid IPC response"
+msgstr ""
+
+msgid "Invalid value passed to IPC"
+msgstr ""
+
+msgid "Incomplete line passed to IPC"
+msgstr ""
+
+msgid "Line passed to IPC too long"
+msgstr ""
+
+msgid "Nested IPC commands"
+msgstr ""
+
+msgid "No data callback in IPC"
+msgstr ""
+
+msgid "No inquire callback in IPC"
+msgstr ""
+
+msgid "Not an IPC server"
+msgstr "不是IPC 服务器"
+
+msgid "Not an IPC client"
+msgstr "不是IPC 客户端"
+
+msgid "Problem starting IPC server"
+msgstr ""
+
+msgid "IPC read error"
+msgstr "IPC 读取错误"
+
+msgid "IPC write error"
+msgstr "IPC写入 错误"
+
+msgid "Too much data for IPC layer"
+msgstr ""
+
+msgid "Unexpected IPC command"
+msgstr ""
+
+msgid "Unknown IPC command"
+msgstr "未知IPC 命令"
+
+msgid "IPC syntax error"
+msgstr "IPC 语法错误"
+
+msgid "IPC call has been cancelled"
+msgstr ""
+
+msgid "No input source for IPC"
+msgstr ""
+
+msgid "No output source for IPC"
+msgstr ""
+
+msgid "IPC parameter error"
+msgstr "IPC 参数错误"
+
+msgid "Unknown IPC inquire"
+msgstr ""
+
+#, fuzzy
+msgid "Crypto engine too old"
+msgstr "无效的加密引擎"
+
+msgid "Screen or window too small"
+msgstr ""
+
+msgid "Screen or window too large"
+msgstr ""
+
+msgid "Required environment variable not set"
+msgstr ""
+
+msgid "User ID already exists"
+msgstr ""
+
+msgid "Name already exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Duplicated value"
+msgid "Duplicated name"
+msgstr "重复值"
+
+#, fuzzy
+#| msgid "Certificate too young"
+msgid "Object is too young"
+msgstr "证书太新"
+
+#, fuzzy
+#| msgid "Provided object is too short"
+msgid "Object is too old"
+msgstr "提供对象太短"
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Unknown flag"
+msgstr "未知名称"
+
+#, fuzzy
+#| msgid "Invalid operation code"
+msgid "Invalid execution order"
+msgstr "无效的操作码"
+
+msgid "Already fetched"
+msgstr ""
+
+msgid "Try again later"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown name"
+msgid "Wrong name"
+msgstr "未知名称"
+
+msgid "System bug detected"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown system error"
+msgid "Unknown DNS error"
+msgstr "未知的系统错误"
+
+#, fuzzy
+#| msgid "Invalid OID string"
+msgid "Invalid DNS section"
+msgstr "无效的OID 字符串"
+
+msgid "Invalid textual address form"
+msgstr ""
+
+#, fuzzy
+msgid "Missing DNS query packet"
+msgstr "缺失证书"
+
+msgid "Missing DNS answer packet"
+msgstr ""
+
+msgid "Connection closed in DNS"
+msgstr ""
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "Verification failed in DNS"
+msgstr "解密失败"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "DNS Timeout"
+msgstr "超时"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "General LDAP error"
+msgstr "一般IPC 错误"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP attribute error"
+msgstr "一般错误"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP name error"
+msgstr "一般错误"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP security error"
+msgstr "一般Assuan 错误"
+
+#, fuzzy
+#| msgid "General error"
+msgid "General LDAP service error"
+msgstr "一般错误"
+
+#, fuzzy
+#| msgid "General Assuan error"
+msgid "General LDAP update error"
+msgstr "一般Assuan 错误"
+
+msgid "Experimental LDAP error code"
+msgstr ""
+
+#, fuzzy
+#| msgid "IPC write error"
+msgid "Private LDAP error code"
+msgstr "IPC写入 错误"
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other general LDAP error"
+msgstr "一般IPC 错误"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP connecting failed (X)"
+msgstr "解密失败"
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral limit exceeded"
+msgstr "一般错误"
+
+msgid "LDAP client loop"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "No LDAP results returned"
+msgstr "要求重置卡"
+
+#, fuzzy
+#| msgid "Element not found"
+msgid "LDAP control not found"
+msgstr "未找到元素"
+
+#, fuzzy
+#| msgid "Not supported"
+msgid "Not supported by LDAP"
+msgstr "不支持"
+
+#, fuzzy
+#| msgid "Unexpected error"
+msgid "LDAP connect error"
+msgstr "意外错误"
+
+msgid "Out of memory in LDAP"
+msgstr ""
+
+msgid "Bad parameter to an LDAP routine"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported operation"
+msgid "User cancelled LDAP operation"
+msgstr "不支持的操作"
+
+#, fuzzy
+#| msgid "Bad certificate"
+msgid "Bad LDAP search filter"
+msgstr "损坏的证书"
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "Unknown LDAP authentication method"
+msgstr "未知的扩展名"
+
+#, fuzzy
+#| msgid "Timeout"
+msgid "Timeout in LDAP"
+msgstr "超时"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "LDAP decoding error"
+msgstr "代理错误"
+
+#, fuzzy
+#| msgid "agent error"
+msgid "LDAP encoding error"
+msgstr "代理错误"
+
+#, fuzzy
+#| msgid "IPC read error"
+msgid "LDAP local error"
+msgstr "IPC 读取错误"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot contact LDAP server"
+msgstr "不是IPC 服务器"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP success"
+msgstr "成功"
+
+#, fuzzy
+#| msgid "Configuration error"
+msgid "LDAP operations error"
+msgstr "配置错误"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP protocol error"
+msgstr "违反协议"
+
+msgid "Time limit exceeded in LDAP"
+msgstr ""
+
+msgid "Size limit exceeded in LDAP"
+msgstr ""
+
+msgid "LDAP compare false"
+msgstr ""
+
+msgid "LDAP compare true"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unknown extension"
+msgid "LDAP authentication method not supported"
+msgstr "未知的扩展名"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr ""
+
+msgid "Partial LDAP results+referral received"
+msgstr ""
+
+#, fuzzy
+#| msgid "General error"
+msgid "LDAP referral"
+msgstr "一般错误"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr ""
+
+msgid "Critical LDAP extension is unavailable"
+msgstr ""
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Confidentiality required by LDAP"
+msgstr "要求重置卡"
+
+msgid "LDAP SASL bind in progress"
+msgstr ""
+
+msgid "No such LDAP attribute"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid attribute"
+msgid "Undefined LDAP attribute type"
+msgstr "无效的属性"
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate matching in LDAP"
+msgstr "不受支持的保护"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Constraint violation in LDAP"
+msgstr "违反协议"
+
+msgid "LDAP type or value exists"
+msgstr ""
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid syntax in LDAP"
+msgstr "无效的州"
+
+#, fuzzy
+#| msgid "No CMS object"
+msgid "No such LDAP object"
+msgstr "没有CMS 对象"
+
+#, fuzzy
+#| msgid "Hardware problem"
+msgid "LDAP alias problem"
+msgstr "硬件问题"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid DN syntax in LDAP"
+msgstr "无效的州"
+
+msgid "LDAP entry is a leaf"
+msgstr ""
+
+#, fuzzy
+#| msgid "Encoding problem"
+msgid "LDAP alias dereferencing problem"
+msgstr "编码问题"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr ""
+
+#, fuzzy
+#| msgid "Unsupported protection"
+msgid "Inappropriate LDAP authentication"
+msgstr "不受支持的保护"
+
+#, fuzzy
+#| msgid "Invalid card"
+msgid "Invalid LDAP credentials"
+msgstr "无效的卡"
+
+msgid "Insufficient access for LDAP"
+msgstr ""
+
+msgid "LDAP server is busy"
+msgstr ""
+
+msgid "LDAP server is unavailable"
+msgstr ""
+
+msgid "LDAP server is unwilling to perform"
+msgstr ""
+
+msgid "Loop detected by LDAP"
+msgstr ""
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP naming violation"
+msgstr "违反协议"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "LDAP object class violation"
+msgstr "违反协议"
+
+#, fuzzy
+#| msgid "Operation not yet finished"
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "操作尚未完成"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation not allowed on RDN"
+msgstr "操作已取消"
+
+msgid "Already exists (LDAP)"
+msgstr ""
+
+msgid "Cannot modify LDAP object class"
+msgstr ""
+
+#, fuzzy
+#| msgid "Line too long"
+msgid "LDAP results too large"
+msgstr "线太长"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "LDAP operation affects multiple DSAs"
+msgstr "操作已取消"
+
+msgid "Virtual LDAP list view error"
+msgstr ""
+
+#, fuzzy
+#| msgid "General IPC error"
+msgid "Other LDAP error"
+msgstr "一般IPC 错误"
+
+#, fuzzy
+#| msgid "Resources exhausted"
+msgid "Resources exhausted in LCUP"
+msgstr "内存耗尽"
+
+#, fuzzy
+#| msgid "Protocol violation"
+msgid "Security violation in LCUP"
+msgstr "违反协议"
+
+#, fuzzy
+#| msgid "Invalid state"
+msgid "Invalid data in LCUP"
+msgstr "无效的州"
+
+#, fuzzy
+#| msgid "Unsupported certificate"
+msgid "Unsupported scheme in LCUP"
+msgstr "不支持的凭证"
+
+#, fuzzy
+#| msgid "Card reset required"
+msgid "Reload required in LCUP"
+msgstr "要求重置卡"
+
+#, fuzzy
+#| msgid "Success"
+msgid "LDAP cancelled"
+msgstr "成功"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "No LDAP operation to cancel"
+msgstr "操作已取消"
+
+#, fuzzy
+#| msgid "Operation cancelled"
+msgid "Too late to cancel LDAP"
+msgstr "操作已取消"
+
+#, fuzzy
+#| msgid "Not an IPC server"
+msgid "Cannot cancel LDAP"
+msgstr "不是IPC 服务器"
+
+#, fuzzy
+#| msgid "Decryption failed"
+msgid "LDAP assertion failed"
+msgstr "解密失败"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr ""
+
+msgid "User defined error code 1"
+msgstr "用户定义的错误代码1"
+
+msgid "User defined error code 2"
+msgstr "用户定义的错误代码2"
+
+msgid "User defined error code 3"
+msgstr "用户定义的错误代码3"
+
+msgid "User defined error code 4"
+msgstr "用户定义的错误代码4"
+
+msgid "User defined error code 5"
+msgstr "用户定义的错误代码5"
+
+msgid "User defined error code 6"
+msgstr "用户定义的错误代码6"
+
+msgid "User defined error code 7"
+msgstr "用户定义的错误代码7"
+
+msgid "User defined error code 8"
+msgstr "用户定义的错误代码8"
+
+msgid "User defined error code 9"
+msgstr "用户定义的错误码9"
+
+msgid "User defined error code 10"
+msgstr "用户定义的错误代码10"
+
+msgid "User defined error code 11"
+msgstr "用户定义的错误代码11"
+
+msgid "User defined error code 12"
+msgstr "用户定义的错误代码12"
+
+msgid "User defined error code 13"
+msgstr "用户定义的错误代码13"
+
+msgid "User defined error code 14"
+msgstr "用户定义的错误代码14"
+
+msgid "User defined error code 15"
+msgstr "用户定义的错误代码15"
+
+msgid "User defined error code 16"
+msgstr "用户定义的错误代码16"
+
+msgid "System error w/o errno"
+msgstr ""
+
+msgid "Unknown system error"
+msgstr "未知的系统错误"
+
+msgid "End of file"
+msgstr "文件结尾"
+
+msgid "Unknown error code"
+msgstr "未知的错误代码"
+
+#, c-format
+msgid "Usage: %s GPG-ERROR [...]\n"
+msgstr ""
+
+#, c-format
+msgid "%s: warning: could not recognize %s\n"
+msgstr "%s：警告：无法识别 %s\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "内存耗尽"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "无效的数据"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "一般错误"
+
+#, fuzzy
+#~| msgid "Encoding problem"
+#~ msgid "Encoding error"
+#~ msgstr "编码问题"
