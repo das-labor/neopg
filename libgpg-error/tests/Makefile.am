@@ -19,17 +19,11 @@
 
 ## Process this file with automake to produce Makefile.in
 
-if HAVE_W32CE_SYSTEM
-extra_includes = -idirafter $(top_builddir)/src/gpg-extra
-else
-extra_includes =
-endif
-
 gpg_error_lib = ../src/libgpg-error.la
 
 TESTS = t-version t-strerror t-syserror t-lock t-printf t-poll t-b64dec
 
-AM_CPPFLAGS = -I$(top_builddir)/src $(extra_includes)
+AM_CPPFLAGS = -I$(top_builddir)/src
 
 AM_LDFLAGS = -no-install
 LDADD = $(gpg_error_lib)

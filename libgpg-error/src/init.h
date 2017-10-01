@@ -39,21 +39,11 @@ struct domainlist_s
 };
 
 
-
-/* 119 bytes for an error message should be enough.  With this size we
-   can assume that the allocation does not take up more than 128 bytes
-   per thread.  Note that this is only used for W32CE.  */
-#define STRBUFFER_SIZE 120
-
 /* The TLS space definition. */
 struct tls_space_s
 {
   /* Flag used by w32-gettext.  */
   int gt_use_utf8;
-  
-#ifdef HAVE_W32CE_SYSTEM
-  char strerror_buffer[STRBUFFER_SIZE];
-#endif
 };
 
 /* Return the TLS.  */

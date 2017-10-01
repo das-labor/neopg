@@ -17,30 +17,16 @@
 # along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 # (Process this file with autoconf to produce a configure script.)
-# The following lines are used by ./autogen.sh.
 AC_PREREQ(2.59)
 min_automake_version="1.14"
 
-# To build a release you need to create a tag with the version number
-# (git tag -s libgpg-error-n.m) and run "./autogen.sh --force".
-# Please bump the version number immediately after the release, do
-# another commit, and a push so that the git magic is able to work.
-# See below for the LT versions.
 m4_define([mym4_package],[libgpg-error])
 m4_define([mym4_major], [1])
 m4_define([mym4_minor], [28])
 
-# Below is m4 magic to extract and compute the revision number, the
-# decimalized short revision number, a beta version string, and a flag
-# indicating a development version (mym4_isgit). Note that the m4
-# processing is done by autoconf and not during the configure run.
-m4_define([mym4_verslist], m4_split(m4_esyscmd([./autogen.sh --find-version] \
-                           mym4_package mym4_major mym4_minor),[:]))
-m4_define([mym4_isbeta],       m4_argn(2, mym4_verslist))
-m4_define([mym4_version],      m4_argn(4, mym4_verslist))
-m4_define([mym4_revision],     m4_argn(7, mym4_verslist))
-m4_define([mym4_revision_dec], m4_argn(8, mym4_verslist))
-m4_esyscmd([echo ]mym4_version[>VERSION])
+m4_define([mym4_version], 1.28-beta)
+m4_define([mym4_revision], 0)
+m4_define([mym4_revision_dec], 0)
 AC_INIT([mym4_package],[mym4_version], [https://bugs.gnupg.org])
 # LT Version numbers, remember to change them just *before* a release.
 #   (Code changed:			REVISION++)
@@ -61,7 +47,7 @@ VERSION_NUMBER=m4_esyscmd(printf "0x%02x%02x00" mym4_major mym4_minor)
 AC_SUBST(VERSION_NUMBER)
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([serial-tests dist-bzip2])
+AM_INIT_AUTOMAKE([serial-tests dist-bzip2 foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([src/err-sources.h.in])
 AC_CONFIG_HEADER([config.h])
@@ -84,15 +70,10 @@ AC_GNU_SOURCE
 # Set some variables depending on the platform for later use.
 have_w32_system=no
 have_w64_system=no
-have_w32ce_system=no
 case "${host}" in
     x86_64-*mingw32*)
         have_w32_system=yes
         have_w64_system=yes
-        ;;
-    *-mingw32ce*)
-        have_w32_system=yes
-        have_w32ce_system=yes
         ;;
     *-mingw32*)
         have_w32_system=yes
@@ -156,7 +137,6 @@ AH_BOTTOM([
 ])
 
 
-# Note, that autogen.sh greps for the next line.
 AM_GNU_GETTEXT_VERSION([0.19.3])
 AM_GNU_GETTEXT([external])
 
@@ -455,58 +435,20 @@ AC_SEARCH_LIBS([sched_yield], [rt posix4],
 #
 estream_INIT
 
-#
-# Substitution used for gpg-error-config
-#
-GPG_ERROR_CONFIG_LIBS="$config_libs"
-if test "x$LIBTHREAD" != x; then
-  GPG_ERROR_CONFIG_LIBS="${GPG_ERROR_CONFIG_LIBS} ${LIBTHREAD}"
-fi
-if test "x$LIBMULTITHREAD" != x; then
-  GPG_ERROR_CONFIG_MT_LIBS="${LIBMULTITHREAD}"
-else
-  GPG_ERROR_CONFIG_MT_LIBS=""
-fi
-GPG_ERROR_CONFIG_CFLAGS=""
-if test "x$THREADLIB_CPPFLAGS" != x; then
-  GPG_ERROR_CONFIG_MT_CFLAGS="${THREADLIB_CPPFLAGS}"
-else
-  GPG_ERROR_CONFIG_MT_CFLAGS=""
-fi
-GPG_ERROR_CONFIG_ISUBDIRAFTER=""
-GPG_ERROR_CONFIG_HOST="$host"
-AC_SUBST(GPG_ERROR_CONFIG_LIBS)
-AC_SUBST(GPG_ERROR_CONFIG_CFLAGS)
-AC_SUBST(GPG_ERROR_CONFIG_MT_LIBS)
-AC_SUBST(GPG_ERROR_CONFIG_MT_CFLAGS)
-AC_SUBST(GPG_ERROR_CONFIG_ISUBDIRAFTER)
-AC_SUBST(GPG_ERROR_CONFIG_HOST)
-
 
 #
 # Special defines for certain platforms
 #
-force_use_syscfg=no
 if test "$have_w32_system" = yes; then
     AC_DEFINE(HAVE_W32_SYSTEM,1,[Defined if we run on a W32 API based system])
     if test "$have_w64_system" = yes; then
       AC_DEFINE(HAVE_W64_SYSTEM,1,[Defined if we run on 64 bit W32 API system])
     fi
-    if test "$have_w32ce_system" = yes; then
-      AC_DEFINE(HAVE_W32CE_SYSTEM,1,[Defined if we run on WindowsCE])
-      GPG_ERROR_CONFIG_ISUBDIRAFTER="gpg-extra"
-    fi
-    force_use_syscfg=yes
-fi
-if test x$cross_compiling = xyes; then
-    force_use_syscfg=yes
 fi
 
 AM_CONDITIONAL(HAVE_W32_SYSTEM, test "$have_w32_system" = yes)
 AM_CONDITIONAL(HAVE_W64_SYSTEM, test "$have_w64_system" = yes)
-AM_CONDITIONAL(HAVE_W32CE_SYSTEM, test "$have_w32ce_system" = yes)
 AM_CONDITIONAL(CROSS_COMPILING, test x$cross_compiling = xyes)
-AM_CONDITIONAL(FORCE_USE_SYSCFG, test x$force_use_syscfg = xyes)
 
 AC_DEFINE_UNQUOTED(HOST_TRIPLET_STRING, "$host", [The host triplet])
 
@@ -527,31 +469,6 @@ BUILD_FILEVERSION=`echo "${BUILD_VERSION}" | tr . ,`
 AC_SUBST(BUILD_VERSION)
 AC_SUBST(BUILD_FILEVERSION)
 
-AC_ARG_ENABLE([build-timestamp],
-  AC_HELP_STRING([--enable-build-timestamp],
-                 [set an explicit build timestamp for reproducibility.
-                  (default is the current time in ISO-8601 format)]),
-     [if test "$enableval" = "yes"; then
-        BUILD_TIMESTAMP=`date -u +%Y-%m-%dT%H:%M+0000 2>/dev/null || date`
-      else
-        BUILD_TIMESTAMP="$enableval"
-      fi],
-     [BUILD_TIMESTAMP="<none>"])
-AC_SUBST(BUILD_TIMESTAMP)
-AC_DEFINE_UNQUOTED(BUILD_TIMESTAMP, "$BUILD_TIMESTAMP",
-                   [The time this package was configured for a build])
-
-
-
-AC_ARG_ENABLE(languages, AC_HELP_STRING([--disable-languages],
-                        [do not build support for other languages than C]))
-AM_CONDITIONAL([LANGUAGES_SOME], [test "x$enable_languages" != xno])
-
-build_doc=yes
-AC_ARG_ENABLE([doc], AC_HELP_STRING([--disable-doc],
-                                    [do not build the documentation]),
-                     build_doc=$enableval, build_doc=yes)
-AM_CONDITIONAL([BUILD_DOC], [test "x$build_doc" != xno])
 
 build_tests=yes
 AC_ARG_ENABLE([tests], AC_HELP_STRING([--disable-tests],
@@ -563,11 +480,9 @@ AM_CONDITIONAL([BUILD_TESTS], [test "x$build_tests" != xno])
 # Substitution
 #
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([doc/Makefile po/Makefile.in m4/Makefile])
+AC_CONFIG_FILES([po/Makefile.in m4/Makefile])
 AC_CONFIG_FILES([src/Makefile tests/Makefile])
-AC_CONFIG_FILES([lang/Makefile lang/cl/Makefile lang/cl/gpg-error.asd])
 AC_CONFIG_FILES([src/versioninfo.rc src/gpg-error.w32-manifest])
-AC_CONFIG_FILES([src/gpg-error-config], [chmod +x src/gpg-error-config])
 
 AC_OUTPUT
 
@@ -577,12 +492,6 @@ if test "$have_w32_system" != yes; then
      tmp=" NO-THREADS"
    fi
 fi
-echo "
-        $PACKAGE_NAME v$PACKAGE_VERSION has been configured as follows:
-
-        Revision: mym4_revision  (mym4_revision_dec)
-        Platform: $host$tmp
-"
 if test "$gcry_cv_gcc_attribute_aligned" != "yes" ; then
 cat <<G10EOF
 ***

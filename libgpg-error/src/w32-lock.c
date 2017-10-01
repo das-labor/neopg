@@ -34,7 +34,6 @@
 #include <windows.h>
 
 #include "lock.h"
-#include "w32-lock-obj.h"
 
 
 

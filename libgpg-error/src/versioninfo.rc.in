@@ -45,7 +45,6 @@ BEGIN
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "libgpg-error\0"
             VALUE "ProductVersion", "@PACKAGE_VERSION@\0"
-            VALUE "SpecialBuild", "@BUILD_TIMESTAMP@\0"
         END
     END
 END

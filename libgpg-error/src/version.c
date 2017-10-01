@@ -41,7 +41,7 @@ cright_blurb (void)
     "This is Libgpg-error " PACKAGE_VERSION " - An error code library\n"
     "Copyright 2003-2004, 2010, 2013-2017 g10 Code GmbH\n"
     "\n"
-    "(" BUILD_REVISION " " BUILD_TIMESTAMP ")\n"
+    "(" BUILD_REVISION ")\n"
     "\n\n";
   return blurb;
 }

@@ -33,10 +33,6 @@ EXPORTS
  /* @6 - Not anymore used.  */
  gpg_err_code_from_syserror   @7
  gpg_err_set_errno            @8
-#ifdef HAVE_W32CE_SYSTEM
-   _gpg_w32ce_get_errno       @9
-   _gpg_w32ce_strerror        @10
-#endif
 #ifdef HAVE_W32_SYSTEM
    _gpg_w32_bindtextdomain     @11
    _gpg_w32_textdomain         @12
