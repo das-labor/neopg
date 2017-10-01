@@ -513,8 +513,14 @@ write_special (const char *fname, int lnr, const char *tag)
     }
   else if (!strcmp (tag, "include:lock-obj"))
     {
+#if 0
       if (try_include_file (fname, lnr, "./lock-obj-pub.native.h", write_line))
         include_file (fname, lnr, "syscfg/lock-obj-pub.&.h", write_line);
+#else
+write_line("#include <pthread.h>");
+write_line("#define gpgrt_lock_t pthread_mutex_t");
+write_line("#define GPGRT_LOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER");
+#endif
     }
   else
     return 0; /* Unknown tag.  */
