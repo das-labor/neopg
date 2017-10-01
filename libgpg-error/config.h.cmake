@@ -146,15 +146,22 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #cmakedefine const
 
+#cmakedefine PKGDATADIR "@PKGDATADIR@"
 
 /* Force using of NLS for W32 even if no libintl has been found.  This is 
    okay because we have our own gettext implementation for W32.  */
 #if defined(HAVE_W32_SYSTEM) && !defined(ENABLE_NLS)
 #define ENABLE_NLS 1
 #endif
+
+/* Connect the generic estream-printf.c to our framework.  */
+#define _ESTREAM_PRINTF_REALLOC _gpgrt_realloc
+#define _ESTREAM_PRINTF_EXTRA_INCLUDE "gpgrt-int.h"
+
 /* For building we need to define these macro.  */
 #define GPG_ERR_ENABLE_GETTEXT_MACROS 1
 #define GPG_ERR_ENABLE_ERRNO_MACROS 1
+#define GPGRT_ENABLE_ES_MACROS 1
 
 #if defined(HAVE_W32_SYSTEM) && !defined(HAVE_STDINT_H)
 #define uint32_t unsigned __int32

@@ -114,22 +114,34 @@ add_custom_command(OUTPUT ${BIN_DIR}/mkerrcodes.h  COMMAND ${AWK_EXECUTABLE} -f 
                                                    #COMMAND set INCLUDE="\"${INCLUDE_STRING}\""
                                                    COMMAND ${ERR_COMPILER} ${COMPILER_SPECIFIC_PREPROCECC_COMMAND} ${BIN_DIR}/_mkerrcodes.h ${NULL_DEVICE} | "\"${GREP_EXECUTABLE}\"" GPG_ERR_ | 
                                                        "\"${AWK_EXECUTABLE}\"" -f ${SRC_DIR}/mkerrcodes.awk > ${BIN_DIR}/mkerrcodes.h)
+
+if(BUILD_CROSS_TOOLS)
+    add_executable(mkerrcodes ${BIN_DIR}/mkerrcodes.h src/mkerrcodes.c)
+    if(TARGET_CPP)
+        # if TARGET_CPP is set, we want to compile for another platform. To get the correct
+        install(TARGETS mkerrcodes RUNTIME DESTINATION bin
+                                   LIBRARY DESTINATION lib
+                                   ARCHIVE DESTINATION lib)
+    endif(TARGET_CPP)
+else(BUILD_CROSS_TOOLS)
+    find_program(MKERRCODES mkerrcodes)
+endif(BUILD_CROSS_TOOLS)
+
+if(WIN32)
+
 add_custom_command(OUTPUT ${BIN_DIR}/mkw32errmap.tab.h COMMAND ${ERR_COMPILER} ${COMPILER_SPECIFIC_PREPROCECC_COMMAND} -DRESOLVE_MACROS ${SRC_DIR}/mkw32errmap.c ${NULL_DEVICE} | "\"${GREP_EXECUTABLE}\"" \"{&mkw32errmap_marker\" > ${BIN_DIR}/mkw32errmap.tab.h)
 
 if(BUILD_CROSS_TOOLS)
     add_executable(mkw32errmap src/mkw32errmap.c ${BIN_DIR}/mkw32errmap.tab.h)
-    add_executable(mkerrcodes ${BIN_DIR}/mkerrcodes.h src/mkerrcodes.c)
     get_target_property(MKW32ERRMAP mkw32errmap LOCATION)
-    get_target_property(MKERRCODES mkerrcodes LOCATION)
     if(TARGET_CPP)
         # if TARGET_CPP is set, we want to compile for another platform. To get the correct 
-        install(TARGETS mkw32errmap mkerrcodes RUNTIME DESTINATION bin
+        install(TARGETS mkw32errmap RUNTIME DESTINATION bin
                                                LIBRARY DESTINATION lib
                                                ARCHIVE DESTINATION lib)
     endif(TARGET_CPP)
 else(BUILD_CROSS_TOOLS)
     find_program(MKW32ERRMAP mkw32errmap)
-    find_program(MKERRCODES mkerrcodes)
     if(NOT MKW32ERRMAP OR NOT MKERRCODES)
         message(FATAL_ERROR "could not find mkw32errmap or mkerrcodes")
     endif(NOT MKW32ERRMAP OR NOT MKERRCODES)
@@ -146,7 +158,9 @@ else(WINCE)
     file(WRITE ${BIN_DIR}/mkw32errmap.map.c "/*dummy*/")
 endif(WINCE)
 
-add_custom_command(OUTPUT ${BIN_DIR}/code-from-errno.h COMMAND ${MKERRCODES} | "\"${AWK_EXECUTABLE}\"" -f ${SRC_DIR}/mkerrcodes2.awk > ${BIN_DIR}/code-from-errno.h DEPENDS ${MKERRCODES})
+endif(WIN32)
+
+add_custom_command(OUTPUT ${BIN_DIR}/code-from-errno.h COMMAND ./mkerrcodes | "\"${AWK_EXECUTABLE}\"" -f ${SRC_DIR}/mkerrcodes2.awk > ${BIN_DIR}/code-from-errno.h DEPENDS ${MKERRCODES})
 set(gpg_error_GENERATED_SRCS ${gpg_error_GENERATED_SRCS} ${BIN_DIR}/code-from-errno.h)
 
 file(READ ${SRC_DIR}/gpg-error.def.in GPG_ERROR_DEF_TMP)
@@ -164,12 +178,17 @@ set(gpg_error_SRCS
     src/code-to-errno.c
     src/code-from-errno.c
     src/version.c
+    src/estream.c
+    src/estream-printf.c
+    src/visibility.c
+    src/b64dec.c
 )
 
 if(WIN32)
     set(gpg_error_SRCS
         ${gpg_error_SRCS}
         src/w32-gettext.c
+	src/w32-lock.c
     )
     
     if(MSVC OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel"))
@@ -184,6 +203,12 @@ if(WIN32)
 			${gpg_error_SRCS}
 		)
 	endif(WINCE)
+else(WIN32)
+    set(gpg_error_SRCS
+        ${gpg_error_SRCS}
+	src/posix-thread.c
+	src/posix-lock.c
+    )
 endif(WIN32)
 
 #if(BUILD_STATIC)
@@ -194,13 +219,17 @@ endif(WIN32)
 #endif(BUILD_STATIC)
 
 add_library(libgpg-error ${_shared} ${gpg_error_SRCS} ${gpg_error_GENERATED_SRCS})
+if(WIN32)
+else(WIN32)
+target_link_libraries(libgpg-error pthread)
+endif(WIN32)
 set_target_properties(libgpg-error PROPERTIES DEFINE_SYMBOL DLL_EXPORT)
 
 if(BUILD_TOOL)
     set(gpg_error_SRCS
         src/strsource-sym.c
         src/strerror-sym.c
-        src/gpg-error.c 
+        src/gpg-error.c
     )
     add_executable(gpg-error ${gpg_error_SRCS})
 

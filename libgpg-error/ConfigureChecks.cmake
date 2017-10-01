@@ -89,6 +89,8 @@ set(PACKAGE_URL "\"http://windows.kde.org\"")
 #undef const
 
 set(VERSION ${PACKAGE_VERSION})
+set (DATADIR "${CMAKE_INSTALL_PREFIX}/share")
+set (PKGDATADIR "${DATADIR}/project")
 
 #/* For building we need to define this macro.  */
 #define GPG_ERR_ENABLE_GETTEXT_MACROS

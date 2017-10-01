@@ -26,7 +26,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../src/gpg-error.h"
+#include "gpg-error.h"
 
 static const char *logpfx = "";
 static int verbose;
