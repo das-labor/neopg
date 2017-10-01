@@ -434,7 +434,9 @@ gpg_error_from_syserror (void)
 
 /* Lock functions.  */
 
-@include:lock-obj@
+#include <pthread.h>
+#define gpgrt_lock_t pthread_mutex_t
+#define GPGRT_LOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
 #define GPGRT_LOCK_DEFINE(name) \
   static gpgrt_lock_t name  = GPGRT_LOCK_INITIALIZER
