@@ -1,0 +1,30 @@
+             nPth - The New GNU Portable Threads Library
+
+* Overview
+
+  This is a library to provide the GNU Pth API and thus a
+  non-preemptive threads implementation.
+
+  In contrast to GNU Pth is is based on the system's standard threads
+  implementation.  This allows the use of libraries which are not
+  compatible to GNU Pth.  Experience with a Windows Pth emulation
+  showed that this is a solid way to provide a co-routine based
+  framework.
+
+  See the file AUTHORS for contact and copyright information.
+
+* License
+
+  nPth is released under the LGPLv2+ license.
+
+* Porting hints
+
+  Documentation is currently missing.  If you are using GNU Pth you
+  should be able to understand the API.  Given that GNU Pth is rarely
+  used, we hestitate to spend work on a migration guide.  If you have
+  questions, please ask on gnupg-devel.  Here are some hints:
+
+  - Pth mutexes are recursive, that is they will not block if called
+    by the same thread.  In contrast, nPth mutexes are not recursive;
+    it is best to change your code to avoid recursive use of mutexes.
+    nPth uses non-recursive mutexes for performance reasons.

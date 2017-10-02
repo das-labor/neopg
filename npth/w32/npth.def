@@ -1,0 +1,83 @@
+; npth.def - List of symbols to export.
+; Copyright (C) 2011 g10 Code GmbH
+;
+; This file is part of NPTH.
+;
+; NPTH is free software; you can redistribute it and/or modify
+; it under the terms of the GNU Lesser General Public License as
+; published by the Free Software Foundation; either version 2.1 of
+; the License, or (at your option) any later version.
+;
+; NPTH is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+; the GNU Lesser General Public License for more details.
+;
+; You should have received a copy of the GNU Lesser General Public
+; License along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+EXPORTS
+    npth_init				@1
+    npth_attr_init			@2
+    npth_attr_destroy			@3
+    npth_attr_getdetachstate		@4
+    npth_attr_setdetachstate		@5
+    npth_getname_np			@6
+    npth_setname_np			@7
+    npth_create				@8
+    npth_self				@9
+    npth_join				@10
+    npth_detach				@11
+    npth_exit				@12
+    npth_key_create			@13
+    npth_key_delete			@14
+    npth_getspecific			@15
+    npth_setspecific			@16
+    npth_mutexattr_init			@17
+    npth_mutexattr_destroy		@18
+    npth_mutexattr_gettype		@19
+    npth_mutexattr_settype		@20
+    npth_mutex_init			@21
+    npth_mutex_destroy			@22
+    npth_mutex_trylock			@23
+    npth_mutex_lock			@24
+    npth_mutex_timedlock		@25
+    npth_mutex_unlock			@26
+    npth_rwlockattr_init		@27
+    npth_rwlockattr_destroy		@28
+    npth_rwlockattr_gettype_np		@29
+    npth_rwlockattr_settype_np		@30
+    npth_rwlock_init			@31
+    npth_rwlock_destroy			@32
+    npth_rwlock_tryrdlock		@33
+    npth_rwlock_rdlock			@34
+    npth_rwlock_timedrdlock		@35
+    npth_rwlock_trywrlock		@36
+    npth_rwlock_wrlock			@37
+    npth_rwlock_timedwrlock		@38
+    npth_rwlock_unlock			@39
+    npth_cond_init			@40
+    npth_cond_broadcast			@41
+    npth_cond_signal			@42
+    npth_cond_destroy			@43
+    npth_cond_wait			@44
+    npth_cond_timedwait			@45
+    npth_usleep				@46
+    npth_sleep				@47
+    npth_waitpid			@48
+    npth_system				@49
+    npth_connect			@50
+    npth_accept				@51
+    npth_select				@52
+    npth_read				@53
+    npth_write				@54
+    npth_recvmsg			@55
+    npth_sendmsg			@56
+    npth_clock_gettime			@57
+    npth_eselect			@58
+    npth_unprotect			@59
+    npth_protect			@60
+    npth_is_protected                   @61
+
+; END

@@ -1,0 +1,40 @@
+
+2011-11-07  Marcus Brinkmann  <marcus@g10code.com>
+
+	* src/npth.c (leave_npth): Loop over sem_wait on EINTR.
+
+2011-10-26  Marcus Brinkmann  <marcus@g10code.com>
+
+	* src/npth.h (npth_mutex_destroy): Add it.
+	(npth_join): Make it a proper function.
+	(_npth_mutex_lock, _npth_mutex_timedlock, _npth_rwlock_rdlock)
+	(_npth_rwlock_timedrdlock, _npth_rwlock_wrlock)
+	(_npth_rwlock_timedwrlock): Renamed to the variant without the
+	leading underscore.  There was no reason to have the static
+	function wrappers.
+	* src/npth.c: Corresponding changes here.
+	* src/npth.def: Also here.
+	* src/libnpth.vers: Likewise.
+
+2011-10-07  Marcus Brinkmann  <marcus@g10code.com>
+
+	* src/npth.h (npth_mutexattr_t, npth_mutexattr_init)
+	(npth_mutexattr_destroy, npth_mutexattr_settype)
+	(npth_mutexattr_gettype, NPTH_MUTEX_NORMAL, NPTH_MUTEX_RECURSIVE)
+	(NPTH_MUTEX_ERRORCHECK, NPTH_MUTEX_DEFAULT): New.
+	* src/npth.c (npth_mutex_init): Removed.
+	* src/libnpth.vers: Remove npth_mutex_init.
+	* src/npth.def: Likewise.  Add missing numbers.
+	* tests/t-mutex.c: Adjust to new interface.
+
+2011-10-06  Marcus Brinkmann  <marcus@g10code.com>
+
+	* Initial version.
+
+        -----
+	Copyright (C) 2011 g10 Code GmbH
+
+	Copying and distribution of this file and/or the original GIT
+	commit log messages, with or without modification, are
+	permitted provided the copyright notice and this notice are
+	preserved.

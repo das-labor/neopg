@@ -1,0 +1,138 @@
+#!/bin/sh
+# Copyright (C) 1999, 2002, 2003 Free Software Foundation, Inc.
+#
+# This file is free software; as a special exception the author gives
+# unlimited permission to copy and/or distribute it, with or without
+# modifications, as long as this notice is preserved.
+#
+# This file is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+# Make sure that no weird locale setting messes up our sed regexps etc.
+LC_COLLATE=C
+LC_ALL=C
+LANG=C
+
+# NPTH's own cflags and libs
+cflags="-I@includedir@ @NPTH_CONFIG_CFLAGS@"
+libs="-L@libdir@ @NPTH_CONFIG_LIBS@"
+
+output=""
+
+usage()
+{
+    cat <<EOF
+Usage: npth-config [OPTIONS]
+Options:
+	[--thread={${thread_modules}}]
+	[--prefix]
+	[--exec-prefix]
+	[--version]
+        [--api-version]
+        [--host]
+	[--libs]
+	[--cflags]
+EOF
+    exit $1
+}
+
+if test $# -eq 0; then
+    usage 1 1>&2
+fi
+
+while test $# -gt 0; do
+    case "$1" in
+	-*=*)
+	    optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'`
+	    ;;
+	*)
+	    optarg=
+	    ;;
+    esac
+
+    case $1 in
+        --prefix=*)
+            # For compatibility reasons with old M4 macros, we ignore
+            # setting of prefix.
+            ;;
+        --prefix)
+	    output="$output $prefix"
+	    ;;
+        --exec-prefix=*)
+            ;;
+        --exec-prefix)
+	    output="$output $exec_prefix"
+	    ;;
+	--glib)
+	    with_glib=yes
+	    ;;
+        --version)
+            echo "@VERSION@"
+	    exit 0
+	    ;;
+        --api-version)
+	    echo "@NPTH_CONFIG_API_VERSION@"
+	    exit 0
+	    ;;
+        --host)
+	    echo "@NPTH_CONFIG_HOST@"
+	    exit 0
+	    ;;
+        --cflags)
+            result=
+            for i in $cflags ; do
+              skip=no
+              case $i in
+                  -I/usr/include|-I/include)
+                      skip=yes
+                      ;;
+                  -I*)
+                      for j in $result ; do
+                          if test x"$j" = x"$i" ; then
+                              skip=yes
+                              break;
+                          fi
+                      done
+                      ;;
+              esac
+              if test $skip = no ; then
+                  result="$result $i"
+              fi
+            done
+            output="$output $result"
+            ;;
+	--libs)
+            result=
+            for i in $libs ; do
+              skip=no
+              case $i in
+                  -L/usr/lib|-L/lib)
+                      skip=yes
+                      ;;
+                  -L*|-l*)
+                      for j in $result ; do
+                          if test x"$j" = x"$i" ; then
+                              skip=yes
+                              break;
+                          fi
+                      done
+                      ;;
+              esac
+              if test $skip = no ; then
+                  result="$result $i"
+              fi
+            done
+            output="$output $result"
+	    ;;
+	*)
+            usage 1 1>&2
+	    ;;
+    esac
+    shift
+done
+
+echo $output

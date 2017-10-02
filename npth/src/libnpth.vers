@@ -1,0 +1,68 @@
+# libnpth.vers - List of symbols to export.
+# Copyright (C) 2002, 2004, 2005, 2009 g10 Code GmbH
+#
+# This file is part of nPth.
+#
+# nPth is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of the
+# License, or (at your option) any later version.
+#
+# nPth is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General
+# Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+#-------------------------------------------------------
+# Please remember to add new functions also to npth.def
+#-------------------------------------------------------
+
+NPTH_1.0 {
+  global:
+    npth_init;
+    npth_create;
+    npth_join;
+    npth_exit;
+    npth_mutex_lock;
+    npth_mutex_timedlock;
+    npth_rwlock_rdlock;
+    npth_rwlock_timedrdlock;
+    npth_rwlock_wrlock;
+    npth_rwlock_timedwrlock;
+    npth_cond_wait;
+    npth_cond_timedwait;
+    npth_usleep;
+    npth_sleep;
+    npth_waitpid;
+    npth_system;
+    npth_sigmask;
+    npth_sigwait;
+    npth_connect;
+    npth_accept;
+    npth_select;
+    npth_pselect;
+    npth_read;
+    npth_write;
+    npth_recvmsg;
+    npth_sendmsg;
+    npth_unprotect;
+    npth_protect;
+    npth_is_protected;
+    npth_clock_gettime;
+
+    npth_sigev_init;
+    npth_sigev_add;
+    npth_sigev_fini;
+    npth_sigev_sigmask;
+    npth_sigev_get_pending;
+
+    npth_getname_np;
+    npth_setname_np;
+
+  local:
+    *;
+
+};
