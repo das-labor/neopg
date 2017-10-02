@@ -20,8 +20,6 @@
 # include <config.h>
 #endif
 
-#ifndef HAVE_W32CE_SYSTEM
-
 #define setenv _assuan_setenv
 #define unsetenv _assuan_unsetenv
 #define clearenv _assuan_clearenv
@@ -353,5 +351,3 @@ weak_alias (__setenv, setenv)
 weak_alias (__unsetenv, unsetenv)
 weak_alias (__clearenv, clearenv)
 #endif
-
-#endif /*!HAVE_W32CE_SYSTEM*/

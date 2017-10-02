@@ -16,23 +16,34 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
-
-   @configure_input@
  */
 
 #ifndef ASSUAN_H
 #define ASSUAN_H
 
 #include <stdio.h>
-@include:sys/types.h@
-@include:unistd.h@
+#include <sys/types.h>
+#include <unistd.h>
 #include <stdarg.h>
 
 #ifndef _ASSUAN_NO_SOCKET_WRAPPER
-@include:includes@
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#endif
 #endif /*!_ASSUAN_NO_SOCKET_WRAPPER*/
 
-@include:types@
+#ifdef _WIN32
+typedef void *assuan_msghdr_t;
+#ifdef _MSC_VER
+typedef long ssize_t;
+typedef int  pid_t;
+#endif
+#else
+typedef struct msghdr *assuan_msghdr_t;
+#endif
 
 #include <gpg-error.h>
 
@@ -54,11 +65,11 @@ extern "C"
 /* The version of this header should match the one of the library.  Do
    not use this symbol in your application; use assuan_check_version
    instead.  */
-#define ASSUAN_VERSION @version@
+#define ASSUAN_VERSION "2.4.4"
 
 /* The version number of this header.  It may be used to handle minor
    API incompatibilities.  */
-#define ASSUAN_VERSION_NUMBER @version-number@
+#define ASSUAN_VERSION_NUMBER 0x020404
 
 
 /* Check for compiler features.  */
@@ -80,11 +91,78 @@ extern "C"
 
 struct assuan_context_s;
 typedef struct assuan_context_s *assuan_context_t;
-@include:fd-t@
+#ifdef _WIN32
+/* Because we use system handles and not libc low level file
+   descriptors on W32, we need to declare them as HANDLE (which
+   actually is a plain pointer).  This is required to eventually
+   support 64 bit Windows systems.  */
+typedef void *assuan_fd_t;
+#define ASSUAN_INVALID_FD ((void*)(-1))
+#define ASSUAN_INVALID_PID ((pid_t) -1)
+static GPG_ERR_INLINE assuan_fd_t
+assuan_fd_from_posix_fd (int fd)
+{
+  if (fd < 0)
+    return ASSUAN_INVALID_FD;
+  else
+    return (assuan_fd_t) _get_osfhandle (fd);
+}
+#else
+typedef int assuan_fd_t;
+#define ASSUAN_INVALID_FD  (-1)
+#define ASSUAN_INVALID_PID ((pid_t) -1)
+static GPG_ERR_INLINE assuan_fd_t
+assuan_fd_from_posix_fd (int fd)
+{
+  return fd;
+}
+#endif
 
 assuan_fd_t assuan_fdopen (int fd);
 
-@include:sock-nonce@
+#ifdef _WIN32
+/* Assuan features an emulation of Unix domain sockets based on local
+   TCP connections.  To implement access permissions based on file
+   permissions a nonce is used which is expected by the server as the
+   first bytes received.  This structure is used by the server to save
+   the nonce created initially by bind.  */
+struct assuan_sock_nonce_s
+{
+  size_t length;
+  char nonce[16];
+};
+typedef struct assuan_sock_nonce_s assuan_sock_nonce_t;
+
+/* Define the Unix domain socket structure for Windows.  */
+#ifndef _ASSUAN_NO_SOCKET_WRAPPER
+# ifndef AF_LOCAL
+#  define AF_LOCAL AF_UNIX
+# endif
+# ifndef EADDRINUSE
+#  define EADDRINUSE WSAEADDRINUSE
+# endif
+struct sockaddr_un
+{
+  short          sun_family;
+  unsigned short sun_port;
+  struct         in_addr sun_addr;
+  char           sun_path[108-2-4];
+};
+#endif
+
+#else
+
+/* Under Windows Assuan features an emulation of Unix domain sockets
+   based on a local TCP connections.  To implement access permissions
+   based on file permissions a nonce is used which is expected by the
+   server as the first bytes received.  On POSIX systems this is a
+   dummy structure. */  
+struct assuan_sock_nonce_s
+{
+  size_t length;
+};
+typedef struct assuan_sock_nonce_s assuan_sock_nonce_t;
+#endif
 
 
 /* Global interface.  */
@@ -516,7 +594,7 @@ int __assuan_recvmsg (assuan_context_t ctx, assuan_fd_t fd, assuan_msghdr_t msg,
 int __assuan_sendmsg (assuan_context_t ctx, assuan_fd_t fd, const assuan_msghdr_t msg, int flags);
 pid_t __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait, int *status, int options);
 
-
+#ifdef _WIN32
 #define ASSUAN_SYSTEM_PTH_IMPL						\
   static void _assuan_pth_usleep (assuan_context_t ctx, unsigned int usec) \
   { (void) ctx; pth_usleep (usec); }					\
@@ -526,7 +604,104 @@ pid_t __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait, int *status
   static ssize_t _assuan_pth_write (assuan_context_t ctx, assuan_fd_t fd, \
 				 const void *buffer, size_t size)	\
   { (void) ctx; return pth_write (fd, buffer, size); }			\
-@include:sys-pth-impl@
+  static int _assuan_pth_recvmsg (assuan_context_t ctx, assuan_fd_t fd, \
+				  assuan_msghdr_t msg, int flags)	\
+  {									\
+    (void) ctx;								\
+    gpg_err_set_errno (ENOSYS);                                         \
+    return -1;								\
+  }									\
+  static int _assuan_pth_sendmsg (assuan_context_t ctx, assuan_fd_t fd, \
+				  const assuan_msghdr_t msg, int flags) \
+  {									\
+    (void) ctx;								\
+    gpg_err_set_errno (ENOSYS);                                         \
+    return -1;								\
+  }                                                                     \
+  static pid_t _assuan_pth_waitpid (assuan_context_t ctx, pid_t pid,     \
+				   int nowait, int *status, int options) \
+  { (void) ctx;                                                         \
+     if (!nowait) return pth_waitpid (pid, status, options);            \
+      else return 0; }							\
+									\
+  struct assuan_system_hooks _assuan_system_pth =			\
+    { ASSUAN_SYSTEM_HOOKS_VERSION, _assuan_pth_usleep, __assuan_pipe,	\
+      __assuan_close, _assuan_pth_read, _assuan_pth_write,		\
+      _assuan_pth_recvmsg, _assuan_pth_sendmsg,				\
+      __assuan_spawn, _assuan_pth_waitpid, __assuan_socketpair,		\
+      __assuan_socket, __assuan_connect }
+#else
+#define ASSUAN_SYSTEM_PTH_IMPL						\
+  static void _assuan_pth_usleep (assuan_context_t ctx, unsigned int usec) \
+  { (void) ctx; pth_usleep (usec); }					\
+  static ssize_t _assuan_pth_read (assuan_context_t ctx, assuan_fd_t fd, \
+				void *buffer, size_t size)		\
+  { (void) ctx; return pth_read (fd, buffer, size); }			\
+  static ssize_t _assuan_pth_write (assuan_context_t ctx, assuan_fd_t fd, \
+				 const void *buffer, size_t size)	\
+  { (void) ctx; return pth_write (fd, buffer, size); }			\
+  static int _assuan_pth_recvmsg (assuan_context_t ctx, assuan_fd_t fd, \
+				  assuan_msghdr_t msg, int flags)	\
+  {									\
+    /* Pth does not provide a recvmsg function.  We implement it.  */	\
+    int ret;								\
+    int fdmode;								\
+									\
+    (void) ctx;								\
+    fdmode = pth_fdmode (fd, PTH_FDMODE_POLL);				\
+    if (fdmode == PTH_FDMODE_ERROR)					\
+      {									\
+        errno = EBADF;							\
+        return -1;							\
+      }									\
+    if (fdmode == PTH_FDMODE_BLOCK)					\
+      {									\
+        fd_set fds;							\
+									\
+	FD_ZERO (&fds);							\
+	FD_SET (fd, &fds);						\
+	while ((ret = pth_select (fd + 1, &fds, NULL, NULL, NULL)) < 0	\
+	       && errno == EINTR)					\
+	  ;								\
+	if (ret < 0)							\
+	  return -1;							\
+      }									\
+    									\
+    while ((ret = recvmsg (fd, msg, flags)) == -1 && errno == EINTR)	\
+      ;									\
+    return ret;								\
+  }									\
+  static int _assuan_pth_sendmsg (assuan_context_t ctx, assuan_fd_t fd, \
+				  const assuan_msghdr_t msg, int flags) \
+  {									\
+    /* Pth does not provide a sendmsg function.  We implement it.  */	\
+    int ret;								\
+    int fdmode;								\
+									\
+    (void) ctx;								\
+    fdmode = pth_fdmode (fd, PTH_FDMODE_POLL);				\
+    if (fdmode == PTH_FDMODE_ERROR)					\
+      {									\
+        errno = EBADF;							\
+	return -1;							\
+      }									\
+    if (fdmode == PTH_FDMODE_BLOCK)					\
+      {									\
+        fd_set fds;							\
+									\
+	FD_ZERO (&fds);							\
+	FD_SET (fd, &fds);						\
+	while ((ret = pth_select (fd + 1, NULL, &fds, NULL, NULL)) < 0	\
+	       && errno == EINTR)					\
+	  ;								\
+	if (ret < 0)							\
+	  return -1;							\
+	}								\
+									\
+    while ((ret = sendmsg (fd, msg, flags)) == -1 && errno == EINTR)	\
+      ;									\
+    return ret;								\
+  }                                                                     \
   static pid_t _assuan_pth_waitpid (assuan_context_t ctx, pid_t pid,     \
 				   int nowait, int *status, int options) \
   { (void) ctx;                                                         \
@@ -540,6 +715,8 @@ pid_t __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait, int *status
       __assuan_spawn, _assuan_pth_waitpid, __assuan_socketpair,		\
       __assuan_socket, __assuan_connect }
 
+#endif
+    
 extern struct assuan_system_hooks _assuan_system_pth;
 #define ASSUAN_SYSTEM_PTH &_assuan_system_pth
 
@@ -586,8 +763,6 @@ extern struct assuan_system_hooks _assuan_system_pth;
 
 extern struct assuan_system_hooks _assuan_system_npth;
 #define ASSUAN_SYSTEM_NPTH &_assuan_system_npth
-
-@include:w32ce-add@
 
 #ifdef __cplusplus
 }

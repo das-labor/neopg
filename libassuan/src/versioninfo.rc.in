@@ -45,7 +45,6 @@ BEGIN
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Assuan\0"
             VALUE "ProductVersion", "@VERSION@\0"
-            VALUE "SpecialBuild", "@BUILD_TIMESTAMP@\0"
         END
     END
 END

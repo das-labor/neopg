@@ -28,9 +28,7 @@
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <wincrypt.h>
-#ifndef HAVE_W32CE_SYSTEM
 # include <io.h>
-#endif
 #else
 # include <sys/types.h>
 # include <sys/socket.h>
@@ -208,85 +206,6 @@ delete_cygwin_fd (assuan_fd_t sockfd)
   return;
 }
 
-
-#ifdef HAVE_W32CE_SYSTEM
-static wchar_t *
-utf8_to_wchar (const char *string)
-{
-  int n;
-  size_t nbytes;
-  wchar_t *result;
-
-  if (!string)
-    return NULL;
-
-  n = MultiByteToWideChar (CP_UTF8, 0, string, -1, NULL, 0);
-  if (n < 0)
-    return NULL;
-
-  nbytes = (size_t)(n+1) * sizeof(*result);
-  if (nbytes / sizeof(*result) != (n+1))
-    {
-      SetLastError (ERROR_INVALID_PARAMETER);
-      return NULL;
-    }
-  result = malloc (nbytes);
-  if (!result)
-    return NULL;
-
-  n = MultiByteToWideChar (CP_UTF8, 0, string, -1, result, n);
-  if (n < 0)
-    {
-      n = GetLastError ();
-      free (result);
-      result = NULL;
-      SetLastError (n);
-    }
-  return result;
-}
-
-static HANDLE
-MyCreateFile (LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwSharedMode,
-              LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-              DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
-              HANDLE hTemplateFile)
-{
-  wchar_t *filename;
-  HANDLE result;
-  int err;
-
-  filename = utf8_to_wchar (lpFileName);
-  if (!filename)
-    return INVALID_HANDLE_VALUE;
-
-  result = CreateFileW (filename, dwDesiredAccess, dwSharedMode,
-			lpSecurityAttributes, dwCreationDisposition,
-			dwFlagsAndAttributes, hTemplateFile);
-  err = GetLastError ();
-  free (filename);
-  SetLastError (err);
-  return result;
-}
-static int
-MyDeleteFile (LPCSTR lpFileName)
-{
-  wchar_t *filename;
-  int result, err;
-
-  filename = utf8_to_wchar (lpFileName);
-  if (!filename)
-    return 0;
-
-  result = DeleteFileW (filename);
-  err = GetLastError ();
-  free (filename);
-  SetLastError (err);
-  return result;
-}
-#else /*!HAVE_W32CE_SYSTEM*/
-#define MyCreateFile CreateFileA
-#define MyDeleteFile DeleteFileA
-#endif /*!HAVE_W32CE_SYSTEM*/
 
 int
 _assuan_sock_wsa2errno (int err)
@@ -1147,7 +1066,7 @@ _assuan_sock_bind (assuan_context_t ctx, assuan_fd_t sockfd,
       myaddr.sin_family = AF_INET;
       myaddr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
 
-      filehd = MyCreateFile (unaddr->sun_path,
+      filehd = CreateFileA (unaddr->sun_path,
                              GENERIC_WRITE,
                              FILE_SHARE_READ,
                              NULL,
@@ -1169,7 +1088,7 @@ _assuan_sock_bind (assuan_context_t ctx, assuan_fd_t sockfd,
         {
           int save_e = errno;
           CloseHandle (filehd);
-          MyDeleteFile (unaddr->sun_path);
+          DeleteFileA (unaddr->sun_path);
           gpg_err_set_errno (save_e);
           return rc;
         }
@@ -1193,7 +1112,7 @@ _assuan_sock_bind (assuan_context_t ctx, assuan_fd_t sockfd,
       if (!WriteFile (filehd, tmpbuf, len, &nwritten, NULL))
         {
           CloseHandle (filehd);
-          MyDeleteFile (unaddr->sun_path);
+          DeleteFileA (unaddr->sun_path);
           gpg_err_set_errno (EIO);
           return -1;
         }

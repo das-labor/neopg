@@ -24,11 +24,6 @@
 AC_PREREQ(2.61)
 min_automake_version="1.14"
 
-# To build a release you need to create a tag with the version number
-# (git tag -s libassuan-n.m.k) and run "./autogen.sh --force".  Please
-# bump the version number immediately after the release and do another
-# commit and push so that the git magic is able to work.  See below
-# for the LT versions.
 m4_define([mym4_package],[libassuan])
 m4_define([mym4_major], [2])
 m4_define([mym4_minor], [4])
@@ -44,12 +39,9 @@ m4_define([mym4_micro], [4])
 # the decimalized short revision number, a beta version string and a
 # flag indicating a development version (mym4_isbeta).  Note that the
 # m4 processing is done by autoconf and not during the configure run.
-m4_define([mym4_verslist], m4_split(m4_esyscmd([./autogen.sh --find-version] \
-                           mym4_package mym4_major mym4_minor mym4_micro),[:]))
-m4_define([mym4_isbeta],       m4_argn(2, mym4_verslist))
-m4_define([mym4_version],      m4_argn(4, mym4_verslist))
-m4_define([mym4_revision],     m4_argn(7, mym4_verslist))
-m4_define([mym4_revision_dec], m4_argn(8, mym4_verslist))
+m4_define([mym4_version], libassuan-2.4.4)
+m4_define([mym4_revision], 0)
+m4_define([mym4_revision_dec], 0)
 
 AC_INIT([mym4_package],[mym4_version], [http://bugs.gnupg.org])
 
@@ -75,9 +67,9 @@ PACKAGE=$PACKAGE_NAME
 VERSION=$PACKAGE_VERSION
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip])
+AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip foreign])
 AM_MAINTAINER_MODE
-AC_CONFIG_SRCDIR(src/assuan.h.in)
+AC_CONFIG_SRCDIR(src/assuan.h)
 AC_CONFIG_MACRO_DIR(m4)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
@@ -124,9 +116,6 @@ AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$have_ld_version_script" = "yes")
 AH_TOP([
 #ifndef _ASSUAN_CONFIG_H_INCLUDED
 #define _ASSUAN_CONFIG_H_INCLUDED
-
-/* Enable gpg-error's strerror macro under W32CE.  */
-#define GPG_ERR_ENABLE_ERRNO_MACROS 1
 
 /* Provide the es_ macro for estream.  */
 #define GPGRT_ENABLE_ES_MACROS 1
@@ -195,7 +184,6 @@ fi
 have_dosish_system=no
 have_w32_system=no
 have_w64_system=no
-have_w32ce_system=no
 case "${host}" in
     *-linux*)
         if test "$GCC" = yes; then
@@ -206,11 +194,6 @@ case "${host}" in
         have_dosish_system=yes
         have_w32_system=yes
         have_w64_system=yes
-        ;;
-    *-mingw32ce*)
-        have_dosish_system=yes
-        have_w32_system=yes
-        have_w32ce_system=yes
         ;;
     *-mingw32*)
         have_dosish_system=yes
@@ -236,12 +219,8 @@ if test "$have_w32_system" = yes; then
       AC_DEFINE(HAVE_W64_SYSTEM,1,
                 [Defined if we run on a 64 bit W32 API based system])
     fi
-    if test "$have_w32ce_system" = yes; then
-       AC_DEFINE(HAVE_W32CE_SYSTEM,1,[Defined if we run on WindowsCE])
-    fi
 fi
 AM_CONDITIONAL(HAVE_W32_SYSTEM, test "$have_w32_system" = yes)
-AM_CONDITIONAL(HAVE_W32CE_SYSTEM, test "$have_w32ce_system" = yes)
 AM_CONDITIONAL(HAVE_W64_SYSTEM, test "$have_w64_system" = yes)
 
 
@@ -259,21 +238,6 @@ changequote([,])dnl
 BUILD_FILEVERSION="${BUILD_FILEVERSION}mym4_revision_dec"
 AC_SUBST(BUILD_FILEVERSION)
 
-AC_ARG_ENABLE([build-timestamp],
-  AC_HELP_STRING([--enable-build-timestamp],
-                 [set an explicit build timestamp for reproducibility.
-                  (default is the current time in ISO-8601 format)]),
-     [if test "$enableval" = "yes"; then
-        BUILD_TIMESTAMP=`date -u +%Y-%m-%dT%H:%M+0000 2>/dev/null || date`
-      else
-        BUILD_TIMESTAMP="$enableval"
-      fi],
-     [BUILD_TIMESTAMP="<none>"])
-AC_SUBST(BUILD_TIMESTAMP)
-AC_DEFINE_UNQUOTED(BUILD_TIMESTAMP, "$BUILD_TIMESTAMP",
-                   [The time this package was configured for a build])
-
-
 
 #
 # Check for network libraries.  They are needed for tests.
@@ -283,29 +247,9 @@ AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt,
 AC_SUBST(NETLIBS)
 
 if test "$have_w32_system" = yes; then
-   if test "$have_w32ce_system" = yes; then
-     NETLIBS="-lws2 $NETLIBS"
-   else
-     # FIXME: Check why we need to use ws2_32 and document that.
-     NETLIBS="-lws2_32 $NETLIBS"
-   fi
+  # FIXME: Check why we need to use ws2_32 and document that.
+  NETLIBS="-lws2_32 $NETLIBS"
 fi
-
-#
-# Provide info for src/libassuan-config.in
-#
-LIBASSUAN_CONFIG_LIB="-lassuan"
-LIBASSUAN_CONFIG_CFLAGS=""
-LIBASSUAN_CONFIG_HOST="$host"
-LIBASSUAN_CONFIG_EXTRA_LIBS=
-if test x"$NETLIBS" != x; then
-  LIBASSUAN_CONFIG_EXTRA_LIBS="$LIBASSUAN_CONFIG_EXTRA_LIBS $NETLIBS"
-fi
-AC_SUBST(LIBASSUAN_CONFIG_LIB)
-AC_SUBST(LIBASSUAN_CONFIG_CFLAGS)
-AC_SUBST(LIBASSUAN_CONFIG_HOST)
-AC_SUBST(LIBASSUAN_CONFIG_API_VERSION)
-AC_SUBST(LIBASSUAN_CONFIG_EXTRA_LIBS)
 
 #
 # Checks for header files.
@@ -384,28 +328,9 @@ AC_SEARCH_LIBS([nanosleep], [],
 LIBS="$_save_libs"
 
 
-# Check for funopen
-AC_CHECK_FUNCS(funopen)
-if test $ac_cv_func_funopen != yes; then
-    # No funopen but we can implement that in terms of fopencookie.
-    AC_CHECK_FUNCS(fopencookie)
-    if test $ac_cv_func_fopencookie = yes; then
-        AC_LIBOBJ([funopen])
-    else
-        AC_MSG_WARN([
-***
-*** No implementation of fopencookie or funopen available.
-*** The assuan_get_data_fp function won't work; see the
-*** manual for details.  GnuPG does not require this feature.
-***])
-    fi
-fi
-
-
 AC_REPLACE_FUNCS(isascii)
 AC_REPLACE_FUNCS(putc_unlocked)
 AC_REPLACE_FUNCS(memrchr)
-AC_REPLACE_FUNCS(stpcpy)
 AC_CHECK_HEADERS(unistd.h)
 AC_REPLACE_FUNCS(setenv)
 
@@ -454,33 +379,13 @@ else
   fi
 fi
 
-
-#
-# Extra features
-#
-build_doc=yes
-AC_ARG_ENABLE([doc], AC_HELP_STRING([--disable-doc],
-                                    [do not build the documentation]),
-                     build_doc=$enableval, build_doc=yes)
-AM_CONDITIONAL([BUILD_DOC], [test "x$build_doc" != xno])
-
-
 #
 # Create the config files.
 #
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([m4/Makefile])
 AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([doc/Makefile])
 AC_CONFIG_FILES([tests/Makefile])
-AC_CONFIG_FILES([src/libassuan-config], [chmod +x src/libassuan-config])
 AC_CONFIG_FILES([src/versioninfo.rc])
 
 AC_OUTPUT
-
-echo "
-        Libassuan v${VERSION} has been configured as follows:
-
-        Revision: mym4_revision  (mym4_revision_dec)
-        Platform: $host
-"

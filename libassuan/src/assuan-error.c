@@ -53,14 +53,9 @@ _assuan_w32_strerror (assuan_context_t ctx, int ec)
 {
   if (ec == -1)
     ec = (int)GetLastError ();
-#ifdef HAVE_W32CE_SYSTEM
-  snprintf (ctx->w32_strerror, sizeof (ctx->w32_strerror) - 1,
-            "ec=%d", (int)GetLastError ());
-#else
   FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, ec,
                  MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
                  ctx->w32_strerror, sizeof (ctx->w32_strerror) - 1, NULL);
-#endif
   return ctx->w32_strerror;
 }
 #endif

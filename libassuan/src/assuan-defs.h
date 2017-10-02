@@ -356,34 +356,13 @@ int _assuan_sock_check_nonce (assuan_context_t ctx, assuan_fd_t fd,
 int _assuan_sock_wsa2errno (int err);
 #endif
 
-#ifdef HAVE_FOPENCOOKIE
-/* We have to implement funopen in terms of glibc's fopencookie. */
-FILE *_assuan_funopen(void *cookie,
-                      cookie_read_function_t *readfn,
-                      cookie_write_function_t *writefn,
-                      cookie_seek_function_t *seekfn,
-                      cookie_close_function_t *closefn);
-#define funopen(a,r,w,s,c) _assuan_funopen ((a), (r), (w), (s), (c))
-#endif /*HAVE_FOPENCOOKIE*/
-
 /*-- sysutils.c --*/
 const char *_assuan_sysutils_blurb (void);
-
-#ifdef HAVE_W32CE_SYSTEM
-
-#define getpid() GetCurrentProcessId ()
-char *_assuan_getenv (const char *name);
-#define getenv(a) _assuan_getenv ((a))
-
-#endif /*HAVE_W32CE_SYSTEM*/
 
 
 /* Prototypes for replacement functions.  */
 #ifndef HAVE_MEMRCHR
 void *memrchr (const void *block, int c, size_t size);
-#endif
-#ifndef HAVE_STPCPY
-char *stpcpy (char *dest, const char *src);
 #endif
 #ifndef HAVE_SETENV
 #define setenv _assuan_setenv

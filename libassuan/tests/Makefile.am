@@ -27,11 +27,7 @@ CLEANFILES =
 
 testtools = socks5
 
-TESTS = version pipeconnect
-
-if HAVE_W32CE_SYSTEM
-w32cetools = ce-createpipe ce-server
-endif
+TESTS = pipeconnect
 
 if USE_DESCRIPTOR_PASSING
 TESTS += fdpassing

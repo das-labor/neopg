@@ -29,9 +29,6 @@
 #  include <winsock2.h>
 # endif
 # include <windows.h>
-# ifdef HAVE_W32CE_SYSTEM
-# include <winioctl.h>
-# endif /*HAVE_W32CE_SYSTEM*/
 #endif /*HAVE_W32_SYSTEM*/
 
 #include "assuan-defs.h"
@@ -48,91 +45,7 @@ _assuan_sysutils_blurb (void)
     "Copyright 2001-2013 Free Software Foundation, Inc.\n"
     "Copyright 2001-2014 g10 Code GmbH\n"
     "\n"
-    "(" BUILD_REVISION " " BUILD_TIMESTAMP ")\n"
+    "(" BUILD_REVISION ")\n"
     "\n\n";
   return blurb;
 }
-
-
-/* Return a string from the Win32 Registry or NULL in case of error.
-   The returned string is allocated using a plain malloc and thus the
-   caller needs to call the standard free().  The string is looked up
-   under HKEY_LOCAL_MACHINE.  */
-#ifdef HAVE_W32CE_SYSTEM
-static char *
-w32_read_registry (const wchar_t *dir, const wchar_t *name)
-{
-  HKEY handle;
-  DWORD n, nbytes;
-  wchar_t *buffer = NULL;
-  char *result = NULL;
-
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, dir, 0, KEY_READ, &handle))
-    return NULL; /* No need for a RegClose, so return immediately. */
-
-  nbytes = 1;
-  if (RegQueryValueEx (handle, name, 0, NULL, NULL, &nbytes))
-    goto out;
-  buffer = malloc ((n=nbytes+2));
-  if (!buffer)
-    goto out;
-  if (RegQueryValueEx (handle, name, 0, NULL, (PBYTE)buffer, &n))
-    {
-      free (buffer);
-      buffer = NULL;
-      goto out;
-    }
-
-  n = WideCharToMultiByte (CP_UTF8, 0, buffer, nbytes, NULL, 0, NULL, NULL);
-  if (n < 0 || (n+1) <= 0)
-    goto out;
-  result = malloc (n+1);
-  if (!result)
-    goto out;
-  n = WideCharToMultiByte (CP_UTF8, 0, buffer, nbytes, result, n, NULL, NULL);
-  if (n < 0)
-    {
-      free (result);
-      result = NULL;
-      goto out;
-    }
-  result[n] = 0;
-
- out:
-  free (buffer);
-  RegCloseKey (handle);
-  return result;
-}
-#endif /*HAVE_W32CE_SYSTEM*/
-
-
-
-#ifdef HAVE_W32CE_SYSTEM
-/* Replacement for getenv which takes care of the our use of getenv.
-   The code is not thread safe but we expect it to work in all cases
-   because it is called for the first time early enough.  */
-char *
-_assuan_getenv (const char *name)
-{
-  static int initialized;
-  static char *val_debug;
-  static char *val_full_logging;
-
-  if (!initialized)
-    {
-      val_debug = w32_read_registry (L"\\Software\\GNU\\libassuan",
-                                     L"debug");
-      val_full_logging = w32_read_registry (L"\\Software\\GNU\\libassuan",
-                                            L"full_logging");
-      initialized = 1;
-    }
-
-
-  if (!strcmp (name, "ASSUAN_DEBUG"))
-    return val_debug;
-  else if (!strcmp (name, "ASSUAN_FULL_LOGGING"))
-    return val_full_logging;
-  else
-    return NULL;
-}
-#endif /*HAVE_W32CE_SYSTEM*/

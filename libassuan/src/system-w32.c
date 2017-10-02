@@ -63,33 +63,6 @@ __assuan_usleep (assuan_context_t ctx, unsigned int usec)
 
 
 
-/* Three simple wrappers, only used because thes function are named in
-   the def file.  */
-HANDLE
-_assuan_w32ce_prepare_pipe (int *r_rvid, int write_end)
-{
-  (void)r_rvid;
-  (void)write_end;
-  return INVALID_HANDLE_VALUE;
-}
-
-HANDLE
-_assuan_w32ce_finish_pipe (int rvid, int write_end)
-{
-  (void)rvid;
-  (void)write_end;
-  return INVALID_HANDLE_VALUE;
-}
-
-DWORD
-_assuan_w32ce_create_pipe (HANDLE *read_hd, HANDLE *write_hd,
-                           LPSECURITY_ATTRIBUTES sec_attr, DWORD size)
-{
-  return CreatePipe (read_hd, write_hd, sec_attr, size);
-}
-
-
-
 /* Create a pipe with one inheritable end.  Default implementation.  */
 int
 __assuan_pipe (assuan_context_t ctx, assuan_fd_t fd[2], int inherit_idx)

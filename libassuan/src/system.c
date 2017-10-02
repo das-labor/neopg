@@ -183,11 +183,7 @@ _assuan_close_inheritable (assuan_context_t ctx, assuan_fd_t fd)
   TRACE1 (ctx, ASSUAN_LOG_SYSIO, "_assuan_close_inheritable", ctx,
 	  "fd=0x%x", fd);
 
-#ifdef HAVE_W32CE_SYSTEM
-  return 0; /* Nothing to do because it is a rendezvous id.  */
-#else
   return (ctx->system.close) (ctx, fd);
-#endif
 }
 
 
