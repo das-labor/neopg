@@ -20,11 +20,6 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = npth-config.in npth.m4 npth.spec.in autogen.sh autogen.rc HACKING
-bin_SCRIPTS = npth-config
-m4datadir = $(datadir)/aclocal
-m4data_DATA = npth.m4
-
 if RUN_TESTS
 tests = tests
 else
@@ -39,25 +34,3 @@ endif
 
 SUBDIRS = ${npthdir} ${tests}
 
-# Fix the version of the spec file and create a file named VERSION
-# to be used for patch's Prereq: feature.
-dist-hook: gen-ChangeLog
-	@set -e; \
-	sed -e 's/@pkg_version@/$(VERSION)/g' \
-	    $(top_srcdir)/npth.spec.in  > $(distdir)/npth.spec
-	echo "$(VERSION)" > $(distdir)/VERSION
-
-
-gen_start_date = 2011-12-01T00:00:00
-.PHONY: gen-ChangeLog
-gen-ChangeLog:
-	if test -d $(top_srcdir)/.git; then				\
-	  (cd $(top_srcdir) &&                      			\
-	   gitlog-to-changelog						\
-	    --append-dot --tear-off					\
-	    --amend=build-aux/git-log-fix				\
-	    --since=$(gen_start_date) ) > $(distdir)/cl-t;		\
-          cat $(top_srcdir)/build-aux/git-log-footer >> $(distdir)/cl-t;\
-	  rm -f $(distdir)/ChangeLog;					\
-	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
-	fi

@@ -1,3 +1,0 @@
-# autogen.sh configuration for nPth                           -*- sh -*-
-
-final_info="./configure --enable-maintainer-mode && make"

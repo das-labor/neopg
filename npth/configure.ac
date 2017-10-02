@@ -32,17 +32,8 @@ m4_define(my_version, [1.6])
 # the decimalized short revision number, a beta version string and a
 # flag indicating a development version (my_isgit). The latter works
 # by requiring the final tag in the repository.
-m4_define([git_revision],
-          m4_esyscmd([git rev-parse --short HEAD | tr -d '\n\r']))
-m4_define([git_revision_dec],
-          m4_esyscmd_s([echo $((0x$(echo ]git_revision[|head -c 4)))]))
-m4_define([git_betastring],
-          m4_esyscmd_s([git describe --match 'npth-[0-9].*[0-9]' --long|\
-                        awk -F- '$3!=0{print"-beta"$3}']))
-m4_define([my_isgit],m4_if(git_betastring,[],[no],[yes]))
-m4_define([my_full_version],[my_version[]git_betastring])
 
-AC_INIT([npth],[my_full_version],[gnupg-devel@gnupg.org])
+AC_INIT([npth],[my_version],[gnupg-devel@gnupg.org])
 
 # LT Version numbers, remember to change them just *before* a release.
 #   (Code changed:			REVISION++)
@@ -65,7 +56,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/npth.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip])
+AM_INIT_AUTOMAKE([serial-tests dist-bzip2 no-dist-gzip foreign])
 AM_MAINTAINER_MODE
 AC_CANONICAL_HOST
 AM_SILENT_RULES
@@ -134,7 +125,6 @@ fi
 # Set some default values
 config_libs="-lnpth $LIBS"
 have_w32_system=no
-have_w32ce_system=no
 have_w64_system=no
 
 # Define OS macros
@@ -142,12 +132,9 @@ case "${host}" in
     x86_64-*mingw32*)
         have_w64_system=yes
         ;;
-    *-mingw32ce*)
-        have_w32ce_system=yes
-        ;;
 esac
 case "${host}" in
-    *-mingw32ce*|*-mingw32*)
+    *-mingw32*)
         have_w32_system=yes
         ;;
     *)
@@ -302,9 +289,7 @@ LIBS=$gl_saved_libs
 #
 # Set NETLIBS
 #
-if test "$have_w32ce_system" = yes; then
-   NETLIBS="-lws2 $NETLIBS"
-elif test "$have_w32_system" = yes; then
+if test "$have_w32_system" = yes; then
    NETLIBS="-lws2_32 $NETLIBS"
 fi
 AC_SUBST(NETLIBS)
@@ -316,18 +301,6 @@ AC_SUBST(NETLIBS)
 AC_SUBST(emacs_local_vars_begin, [['Local][ ][Variables:']])
 AC_SUBST(emacs_local_vars_read_only, ['buffer-read-only: t'])
 AC_SUBST(emacs_local_vars_end, ['End:'])
-
-
-#
-# Substitution used for npth-config
-#
-NPTH_CONFIG_LIBS="$config_libs"
-NPTH_CONFIG_CFLAGS=""
-NPTH_CONFIG_HOST="$host"
-AC_SUBST(NPTH_CONFIG_API_VERSION)
-AC_SUBST(NPTH_CONFIG_LIBS)
-AC_SUBST(NPTH_CONFIG_CFLAGS)
-AC_SUBST(NPTH_CONFIG_HOST)
 
 #
 # Last check.
@@ -361,12 +334,4 @@ src/npth.h
 src/Makefile
 w32/Makefile
 tests/Makefile])
-AC_CONFIG_FILES(npth-config, chmod +x npth-config)
 AC_OUTPUT
-
-echo "
-        $PACKAGE_NAME-$PACKAGE_VERSION prepared for make
-
-        Revision: git_revision  (git_revision_dec)
-        Platform: $host
-"
