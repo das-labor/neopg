@@ -17,13 +17,7 @@
    License along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef HAVE_W32_SYSTEM
-# error This module may not be build for Windows.
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,13 +25,9 @@
 #include <errno.h>
 #include <unistd.h>  /* Get posix option macros.  */
 
-#if USE_POSIX_THREADS
 # ifdef _POSIX_PRIORITY_SCHEDULING
 #  include <sched.h>
 # endif
-#elif USE_SOLARIS_THREADS
-# include <thread.h>
-#endif
 
 #include "gpg-error.h"
 
@@ -65,7 +55,6 @@ _gpgrt_thread_set_syscall_clamp (void (*pre)(void), void (*post)(void))
 gpg_err_code_t
 _gpgrt_yield (void)
 {
-#if USE_POSIX_THREADS
 # ifdef _POSIX_PRIORITY_SCHEDULING
    if (pre_syscall_func)
      pre_syscall_func ();
@@ -75,15 +64,6 @@ _gpgrt_yield (void)
 # else
    return GPG_ERR_NOT_SUPPORTED;
 # endif
-#elif USE_SOLARIS_THREADS
-  if (pre_syscall_func)
-    pre_syscall_func ();
-  thr_yield ();
-  if (post_syscall_func)
-    post_syscall_func ();
-#else
-  return GPG_ERR_NOT_SUPPORTED;
-#endif
 
   return 0;
 }

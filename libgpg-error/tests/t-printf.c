@@ -21,9 +21,7 @@
    systems expect non matching return codes in some border cases.  */
 
 
-#if HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -412,11 +410,6 @@ main (int argc, char **argv)
     }
 
   setlocale (LC_NUMERIC, "");
-  if (!gpg_error_check_version (GPG_ERROR_VERSION))
-    {
-      die ("gpg_error_check_version returned an error");
-      errorcount++;
-    }
 
   run_tests ();
   check_snprintf ();

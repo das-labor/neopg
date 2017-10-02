@@ -56,15 +56,10 @@
 # include <estream-support.h>
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #if defined(_WIN32) && !defined(HAVE_W32_SYSTEM)
 # define HAVE_W32_SYSTEM 1
-# if defined(__MINGW32CE__) && !defined (HAVE_W32CE_SYSTEM)
-#  define HAVE_W32CE_SYSTEM
-# endif
 #endif
 
 #ifdef HAVE_SYS_SELECT_H
@@ -141,15 +136,7 @@
 # define EAGAIN  EWOULDBLOCK
 #endif
 
-
-#ifdef HAVE_W32CE_SYSTEM
-# define _set_errno(a)  gpg_err_set_errno ((a))
-/* Setmode is missing in cegcc but available since CE 5.0.  */
-int _setmode (int handle, int mode);
-# define setmode(a,b)   _setmode ((a),(b))
-#else
 # define _set_errno(a)  do { errno = (a); } while (0)
-#endif
 
 #ifdef HAVE_W32_SYSTEM
 # define IS_INVALID_FD(a)    ((void*)(a) == (void*)(-1)) /* ?? FIXME.  */
@@ -1335,9 +1322,6 @@ func_w32_seek (void *cookie, gpgrt_off_t *offset, int whence)
       _set_errno (EINVAL);
       return -1;
     }
-#ifdef HAVE_W32CE_SYSTEM
-# warning need to use SetFilePointer
-#else
   if (pre_syscall_func && !w32_cookie->no_syscall_clamp)
     pre_syscall_func ();
   if (!SetFilePointerEx (w32_cookie->hd, distance, &newoff, method))
@@ -1349,7 +1333,7 @@ func_w32_seek (void *cookie, gpgrt_off_t *offset, int whence)
     }
   if (post_syscall_func && !w32_cookie->no_syscall_clamp)
     post_syscall_func ();
-#endif
+
   /* Note that gpgrt_off_t is always 64 bit.  */
   *offset = (gpgrt_off_t)newoff.QuadPart;
   return 0;
@@ -4529,15 +4513,9 @@ tmpfd (void)
 {
 #ifdef HAVE_W32_SYSTEM
   int attempts, n;
-#ifdef HAVE_W32CE_SYSTEM
-  wchar_t buffer[MAX_PATH+9+12+1];
-# define mystrlen(a) wcslen (a)
-  wchar_t *name, *p;
-#else
   char buffer[MAX_PATH+9+12+1];
 # define mystrlen(a) strlen (a)
   char *name, *p;
-#endif
   HANDLE file;
   int pid = GetCurrentProcessId ();
   unsigned int value;
@@ -4550,11 +4528,7 @@ tmpfd (void)
       return -1;
     }
   p = buffer + mystrlen (buffer);
-#ifdef HAVE_W32CE_SYSTEM
-  wcscpy (p, L"_estream");
-#else
   strcpy (p, "_estream");
-#endif
   p += 8;
   /* We try to create the directory but don't care about an error as
      it may already exist and the CreateFile would throw an error
@@ -4571,11 +4545,7 @@ tmpfd (void)
           *p++ = tohex (((value >> 28) & 0x0f));
           value <<= 4;
         }
-#ifdef HAVE_W32CE_SYSTEM
-      wcscpy (p, L".tmp");
-#else
       strcpy (p, ".tmp");
-#endif
       file = CreateFile (buffer,
                          GENERIC_READ | GENERIC_WRITE,
                          0,
@@ -4585,16 +4555,12 @@ tmpfd (void)
                          NULL);
       if (file != INVALID_HANDLE_VALUE)
         {
-#ifdef HAVE_W32CE_SYSTEM
-          int fd = (int)file;
-#else
           int fd = _open_osfhandle ((long)file, 0);
           if (fd == -1)
             {
               CloseHandle (file);
               return -1;
             }
-#endif
           return fd;
         }
       Sleep (1); /* One ms as this is the granularity of GetTickCount.  */

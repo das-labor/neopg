@@ -17,9 +17,7 @@
    License along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +31,7 @@
 
 /* Locale directory support.  */
 
-#if HAVE_W32_SYSTEM
+#if _WIN32
 
 #include <windows.h>
 
@@ -74,9 +72,9 @@ real_init (void)
 
 /* Initialize the library.  This function should be run early.  */
 gpg_error_t
-_gpg_err_init (void)
+gpg_err_init (void)
 {
-#ifdef HAVE_W32_SYSTEM
+#ifdef _WIN32
 # ifdef DLL_EXPORT
   /* We always have a constructor and thus this function is called
      automatically.  Due to the way the C init code of mingw works,
@@ -117,7 +115,7 @@ _gpg_err_init (void)
    this function may be called from the DllMain function of a DLL
    which statically links to libgpg-error.  */
 void
-_gpg_err_deinit (int mode)
+gpg_err_deinit (int mode)
 {
 #if defined (HAVE_W32_SYSTEM) && !defined(DLL_EXPORT)
   struct tls_space_s *tls;
@@ -226,9 +224,7 @@ _gpgrt_internal_trace_begin (const char *module, const char *file, int line,
       trace_fp = fp;
     }
 
-#ifdef HAVE_FLOCKFILE
   flockfile (trace_fp);
-#endif
   trace_save_errno = save_errno;
   trace_with_errno = with_errno;
   trace_arg_module = module;
@@ -292,9 +288,7 @@ _gpgrt_internal_trace_end (void)
 
   if (trace_missing_lf)
     fputc ('\n', trace_fp);
-#ifdef HAVE_FLOCKFILE
   funlockfile (trace_fp);
-#endif
   errno = save_errno;
 }
 

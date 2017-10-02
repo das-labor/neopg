@@ -19,9 +19,7 @@
 
 /* FIXME: We need much better tests that this very basic one.  */
 
-#if HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,9 +32,7 @@
 # include <windows.h>
 # include <time.h>
 #else
-# ifdef USE_POSIX_THREADS
-#  include <pthread.h>
-# endif
+# include <pthread.h>
 #endif
 
 #define PGM "t-poll"
@@ -58,10 +54,10 @@ struct thread_arg
   const char *name;
   estream_t stream;
   volatile int stop_me;
-#ifdef USE_POSIX_THREADS
-  pthread_t thread;
-#elif _WIN32
+#if _WIN32
   HANDLE thread;
+#else
+  pthread_t thread;
 #endif
 };
 
@@ -73,8 +69,6 @@ static struct thread_arg peer_stderr; /* Thread to feed the stderr. */
 static estream_t test_stdin;
 static estream_t test_stdout;
 static estream_t test_stderr;
-
-#if defined(_WIN32) || defined(USE_POSIX_THREADS)
 
 /* This thread feeds data to the given stream.  */
 static THREAD_RET_TYPE
@@ -118,8 +112,6 @@ consumer_thread (void *argaddr)
   return THREAD_RET_VALUE;
 }
 
-#endif /*_WIN32 || USE_POSIX_THREADS */
-
 
 static void
 launch_thread (THREAD_RET_TYPE (*fnc)(void *), struct thread_arg *th)
@@ -135,17 +127,11 @@ launch_thread (THREAD_RET_TYPE (*fnc)(void *), struct thread_arg *th)
     die ("creating thread '%s' failed: rc=%d", th->name, (int)GetLastError ());
   show ("thread '%s' launched (fd=%d)\n", th->name, fd);
 
-#elif USE_POSIX_THREADS
+#else
 
   if (pthread_create (&th->thread, NULL, fnc, th))
     die ("creating thread '%s' failed: %s\n", th->name, strerror (errno));
   show ("thread '%s' launched (fd=%d)\n", th->name, fd);
-
-# else /* no thread support */
-
-  verbose++;
-  show ("no thread support - skipping test\n", PGM);
-  verbose--;
 
 #endif /* no thread support */
 }
@@ -164,7 +150,7 @@ join_thread (struct thread_arg *th)
     fail ("waiting for thread '%s' failed: %d", th->name, (int)GetLastError ());
   CloseHandle (th->thread);
 
-#elif USE_POSIX_THREADS
+#else
 
   pthread_join (th->thread, NULL);
   show ("thread '%s' has terminated\n", th->name);
@@ -399,12 +385,6 @@ main (int argc, char **argv)
           verbose = debug = 1;
           argc--; argv++;
         }
-    }
-
-  if (!gpg_error_check_version (GPG_ERROR_VERSION))
-    {
-      die ("gpg_error_check_version returned an error");
-      errorcount++;
     }
 
   peer_stdin.name  = "stdin producer";

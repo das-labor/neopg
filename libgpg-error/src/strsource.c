@@ -18,9 +18,7 @@
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA.  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <gpg-error.h>
 
@@ -87,7 +85,7 @@ err_source (gpg_err_source_t source)
 /* Return a pointer to a string containing a description of the error
    source in the error value ERR.  */
 const char *
-_gpg_strsource (gpg_error_t err)
+gpg_strsource (gpg_error_t err)
 {
   gpg_err_source_t source = gpg_err_source (err);
   return dgettext (PACKAGE, err_source(source));

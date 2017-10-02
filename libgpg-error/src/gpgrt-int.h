@@ -26,21 +26,13 @@
 /* Local error function prototypes.  */
 const char *_gpg_strerror (gpg_error_t err);
 int _gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen);
-const char *_gpg_strsource (gpg_error_t err);
-gpg_err_code_t _gpg_err_code_from_errno (int err);
-int _gpg_err_code_to_errno (gpg_err_code_t code);
-gpg_err_code_t _gpg_err_code_from_syserror (void);
 void _gpg_err_set_errno (int err);
 
-gpg_error_t _gpg_err_init (void);
-void _gpg_err_deinit (int mode);
 void _gpgrt_set_alloc_func (void *(*f)(void *a, size_t n));
 
 void *_gpgrt_realloc (void *a, size_t n);
 void *_gpgrt_malloc (size_t n);
 void _gpgrt_free (void *a);
-
-const char *_gpg_error_check_version (const char *req_version);
 
 gpg_err_code_t _gpgrt_lock_init (gpgrt_lock_t *lockhd);
 gpg_err_code_t _gpgrt_lock_lock (gpgrt_lock_t *lockhd);
@@ -107,7 +99,7 @@ void _gpgrt_internal_trace_end (void);
 
 /* Local definitions for estream.  */
 
-#if HAVE_W32_SYSTEM
+#if _WIN32
 # ifndef  O_NONBLOCK
 #  define O_NONBLOCK  0x40000000	/* FIXME: Is that safe?  */
 # endif
@@ -371,6 +363,9 @@ gpgrt_b64state_t _gpgrt_b64dec_start (const char *title);
 gpg_error_t _gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer,
                                 size_t length, size_t *r_nbytes);
 gpg_error_t _gpgrt_b64dec_finish (gpgrt_b64state_t state);
+
+void _gpgrt_lock_set_lock_clamp (void (*pre)(void), void (*post)(void));
+void _gpgrt_thread_set_syscall_clamp (void (*pre)(void), void (*post)(void));
 
 
 #endif /*_GPGRT_GPGRT_INT_H*/

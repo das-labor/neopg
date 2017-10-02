@@ -46,15 +46,7 @@
 MARK_VISIBLE (gpg_strerror)
 MARK_VISIBLE (gpg_strerror_r)
 MARK_VISIBLE (gpg_strsource)
-MARK_VISIBLE (gpg_err_code_from_errno)
-MARK_VISIBLE (gpg_err_code_to_errno)
-MARK_VISIBLE (gpg_err_code_from_syserror)
 MARK_VISIBLE (gpg_err_set_errno)
-
-MARK_VISIBLE (gpg_err_init)
-MARK_VISIBLE (gpg_err_deinit)
-MARK_VISIBLE (gpg_error_check_version)
-MARK_VISIBLE (gpgrt_check_version)
 
 MARK_VISIBLE (gpgrt_lock_init)
 MARK_VISIBLE (gpgrt_lock_lock)
@@ -145,10 +137,6 @@ MARK_VISIBLE (gpgrt_set_syscall_clamp)
 MARK_VISIBLE (gpgrt_get_syscall_clamp)
 MARK_VISIBLE (gpgrt_set_alloc_func)
 
-MARK_VISIBLE (gpgrt_b64dec_start)
-MARK_VISIBLE (gpgrt_b64dec_proc)
-MARK_VISIBLE (gpgrt_b64dec_finish)
-
 #undef MARK_VISIBLE
 
 #else /*!_GPGRT_INCL_BY_VISIBILITY_C*/
@@ -159,15 +147,7 @@ MARK_VISIBLE (gpgrt_b64dec_finish)
 #define gpg_strerror                _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpg_strerror_r              _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpg_strsource               _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpg_err_code_from_errno     _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpg_err_code_to_errno       _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpg_err_code_from_syserror  _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpg_err_set_errno           _gpgrt_USE_UNDERSCORED_FUNCTION
-
-#define gpg_err_init                _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpg_err_deinit              _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpg_error_check_version     _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_check_version         _gpgrt_USE_OTHER_FUNCTION
 
 #define gpgrt_lock_init             _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_lock_lock             _gpgrt_USE_UNDERSCORED_FUNCTION
@@ -258,10 +238,6 @@ MARK_VISIBLE (gpgrt_b64dec_finish)
 #define gpgrt_set_syscall_clamp     _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_get_syscall_clamp     _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_set_alloc_func        _gpgrt_USE_UNDERSCORED_FUNCTION
-
-#define gpgrt_b64dec_start          _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_b64dec_proc           _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_b64dec_finish         _gpgrt_USE_UNDERSCORED_FUNCTION
 
 #endif /*!_GPGRT_INCL_BY_VISIBILITY_C*/
 

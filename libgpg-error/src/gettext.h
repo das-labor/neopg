@@ -22,25 +22,15 @@
 /* NLS can be disabled through the configure --disable-nls option.  */
 #if ENABLE_NLS
 
-#if HAVE_W32_SYSTEM
+#if _WIN32
   /* We have a gettext implementation in gpg-error.h which get
      included anyway.  */
-#else /*!HAVE_W32_SYSTEM*/
+#else
   /* Get declarations of GNU message catalog functions.  */
 # include <libintl.h>
-#endif /*!HAVE_W32_SYSTEM*/
+#endif
 
 #else /*!ENABLE_NLS*/
-
-/* Solaris /usr/include/locale.h includes /usr/include/libintl.h, which
-   chokes if dcgettext is defined as a macro.  So include it now, to make
-   later inclusions of <locale.h> a NOP.  We don't include <libintl.h>
-   as well because people using "gettext.h" will not include <libintl.h>,
-   and also including <libintl.h> would fail on SunOS 4, whereas <locale.h>
-   is OK.  */
-#if defined(__sun)
-# include <locale.h>
-#endif
 
 /* Disabled NLS.
    The casts to 'const char *' serve the purpose of producing warnings

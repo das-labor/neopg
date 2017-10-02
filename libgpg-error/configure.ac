@@ -286,110 +286,6 @@ if test "$gcry_cv_gcc_attribute_aligned" = "yes" ; then
      [Defined if a GCC style "__attribute__ ((aligned (n))" is supported])
 fi
 
-#
-# Check for ELF visibility support.
-#
-AC_CACHE_CHECK(whether the visibility attribute is supported,
-       gcry_cv_visibility_attribute,
-       [gcry_cv_visibility_attribute=no
-        AC_LANG_CONFTEST([AC_LANG_SOURCE(
-          [[int foo __attribute__ ((visibility ("hidden"))) = 1;
-            int bar __attribute__ ((visibility ("protected"))) = 1;
-          ]])])
-
-        if ${CC-cc} -Werror -S conftest.c -o conftest.s \
-                  1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD ; then
-            if grep '\.hidden.*foo' conftest.s >/dev/null 2>&1 ; then
-                if grep '\.protected.*bar' conftest.s >/dev/null 2>&1; then
-                    gcry_cv_visibility_attribute=yes
-                fi
-            fi
-        fi
-       ])
-if test "$gcry_cv_visibility_attribute" = "yes"; then
-    AC_CACHE_CHECK(for broken visibility attribute,
-       gcry_cv_broken_visibility_attribute,
-       [gcry_cv_broken_visibility_attribute=yes
-        AC_LANG_CONFTEST([AC_LANG_SOURCE(
-          [[int foo (int x);
-            int bar (int x) __asm__ ("foo")
-                            __attribute__ ((visibility ("hidden")));
-            int bar (int x) { return x; }
-          ]])])
-
-        if ${CC-cc} -Werror -S conftest.c -o conftest.s \
-                  1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD ; then
-           if grep '\.hidden@<:@ 	_@:>@foo' conftest.s >/dev/null 2>&1;
-            then
-               gcry_cv_broken_visibility_attribute=no
-           fi
-        fi
-       ])
-fi
-if test "$gcry_cv_visibility_attribute" = "yes"; then
-    AC_CACHE_CHECK(for broken alias attribute,
-       gcry_cv_broken_alias_attribute,
-       [gcry_cv_broken_alias_attribute=yes
-        AC_LANG_CONFTEST([AC_LANG_SOURCE(
-          [[extern int foo (int x) __asm ("xyzzy");
-            int bar (int x) { return x; }
-            extern __typeof (bar) foo __attribute ((weak, alias ("bar")));
-            extern int dfoo;
-            extern __typeof (dfoo) dfoo __asm ("abccb");
-            int dfoo = 1;
-          ]])])
-
-        if ${CC-cc} -Werror -S conftest.c -o conftest.s \
-                  1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD ; then
-           if grep 'xyzzy' conftest.s >/dev/null 2>&1 && \
-              grep 'abccb' conftest.s >/dev/null 2>&1; then
-              gcry_cv_broken_alias_attribute=no
-           fi
-        fi
-        ])
-fi
-if test "$gcry_cv_visibility_attribute" = "yes"; then
-    AC_CACHE_CHECK(if gcc supports -fvisibility=hidden,
-       gcry_cv_gcc_has_f_visibility,
-       [gcry_cv_gcc_has_f_visibility=no
-        _gcc_cflags_save=$CFLAGS
-        CFLAGS="-fvisibility=hidden"
-        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
-                          gcry_cv_gcc_has_f_visibility=yes)
-        CFLAGS=$_gcc_cflags_save;
-       ])
-fi
-if test "$gcry_cv_visibility_attribute" = "yes" \
-   && test "$gcry_cv_broken_visibility_attribute" != "yes" \
-   && test "$gcry_cv_broken_alias_attribute" != "yes" \
-   && test "$gcry_cv_gcc_has_f_visibility" = "yes"
- then
-   AC_DEFINE(GPGRT_USE_VISIBILITY, 1,
-             [Define to use the GNU C visibility attribute.])
-   CFLAGS="$CFLAGS -fvisibility=hidden"
-fi
-
-#
-# Check whether ld supports a version script.
-# (Actually not a check but a list of systems which are known to support it.)
-#
-have_ld_version_script=no
-case "${host}" in
-    *-*-linux*)
-	have_ld_version_script=yes
-        ;;
-    *-*-gnu*)
-	have_ld_version_script=yes
-        ;;
-esac
-AC_ARG_ENABLE([ld-version-script],
-              AC_HELP_STRING([--enable-ld-version-script],
-                             [enable/disable use of linker version script.
-                              (default is system dependent)]),
-              [have_ld_version_script=$enableval],
-              [ : ] )
-AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$have_ld_version_script" = "yes")
-
 
 #
 # Check for thread library.
@@ -447,33 +343,7 @@ fi
 
 AM_CONDITIONAL(HAVE_W32_SYSTEM, test "$have_w32_system" = yes)
 AM_CONDITIONAL(HAVE_W64_SYSTEM, test "$have_w64_system" = yes)
-AM_CONDITIONAL(CROSS_COMPILING, test x$cross_compiling = xyes)
 
-AC_DEFINE_UNQUOTED(HOST_TRIPLET_STRING, "$host", [The host triplet])
-
-
-#
-# Provide information about the build.
-#
-BUILD_REVISION="mym4_revision"
-AC_SUBST(BUILD_REVISION)
-AC_DEFINE_UNQUOTED(BUILD_REVISION, "$BUILD_REVISION",
-                   [GIT commit id revision used to build this package])
-
-changequote(,)dnl
-BUILD_VERSION=`echo "$PACKAGE_VERSION"|sed 's/\([0-9.]*\).*/\1./'`
-changequote([,])dnl
-BUILD_VERSION="${BUILD_VERSION}0.mym4_revision_dec"
-BUILD_FILEVERSION=`echo "${BUILD_VERSION}" | tr . ,`
-AC_SUBST(BUILD_VERSION)
-AC_SUBST(BUILD_FILEVERSION)
-
-
-build_tests=yes
-AC_ARG_ENABLE([tests], AC_HELP_STRING([--disable-tests],
-                                    [do not build the tests]),
-                     build_tests=$enableval, build_tests=yes)
-AM_CONDITIONAL([BUILD_TESTS], [test "x$build_tests" != xno])
 
 #
 # Substitution
@@ -481,7 +351,7 @@ AM_CONDITIONAL([BUILD_TESTS], [test "x$build_tests" != xno])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([po/Makefile.in m4/Makefile])
 AC_CONFIG_FILES([src/Makefile tests/Makefile])
-AC_CONFIG_FILES([src/versioninfo.rc src/gpg-error.w32-manifest])
+AC_CONFIG_FILES([src/gpg-error.w32-manifest])
 
 AC_OUTPUT
 

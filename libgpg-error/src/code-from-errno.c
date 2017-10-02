@@ -18,15 +18,13 @@
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA.  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <errno.h>
 
 #include <gpg-error.h>
 
-static
+static gpg_err_code_t
 code_from_errno(int err)
 {
   switch (err) {
@@ -609,7 +607,7 @@ code_from_errno(int err)
    GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
    this).  */
 gpg_err_code_t
-_gpg_err_code_from_errno (int err)
+gpg_err_code_from_errno (int err)
 {
   if (!err)
     return GPG_ERR_NO_ERROR;
@@ -622,7 +620,7 @@ _gpg_err_code_from_errno (int err)
    returns GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped
    (report this) and GPG_ERR_MISSING_ERRNO if ERRNO has the value 0. */
 gpg_err_code_t
-_gpg_err_code_from_syserror (void)
+gpg_err_code_from_syserror (void)
 {
   int err = errno;
 

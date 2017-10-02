@@ -18,9 +18,7 @@
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA.  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <gpg-error.h>
 
@@ -1448,7 +1446,7 @@ code_to_errno(gpg_err_code_t code)
 /* Retrieve the system error for the error code CODE.  This returns 0
    if CODE is not a system error code.  */
 int
-_gpg_err_code_to_errno (gpg_err_code_t code)
+gpg_err_code_to_errno (gpg_err_code_t code)
 {
   if (!(code & GPG_ERR_SYSTEM_ERROR))
     return 0;

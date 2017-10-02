@@ -35,30 +35,6 @@ gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen)
   return _gpg_strerror_r (err, buf, buflen);
 }
 
-const char *
-gpg_strsource (gpg_error_t err)
-{
-  return _gpg_strsource (err);
-}
-
-gpg_err_code_t
-gpg_err_code_from_errno (int err)
-{
-  return _gpg_err_code_from_errno (err);
-}
-
-int
-gpg_err_code_to_errno (gpg_err_code_t code)
-{
-  return _gpg_err_code_to_errno (code);
-}
-
-gpg_err_code_t
-gpg_err_code_from_syserror (void)
-{
-  return _gpg_err_code_from_syserror ();
-}
-
 void
 gpg_err_set_errno (int err)
 {
@@ -66,30 +42,6 @@ gpg_err_set_errno (int err)
 }
 
 
-gpg_error_t
-gpg_err_init (void)
-{
-  return _gpg_err_init ();
-}
-
-void
-gpg_err_deinit (int mode)
-{
-  _gpg_err_deinit (mode);
-}
-
-const char *
-gpg_error_check_version (const char *req_version)
-{
-  return _gpg_error_check_version (req_version);
-}
-
-const char *
-gpgrt_check_version (const char *req_version)
-{
-  return _gpg_error_check_version (req_version);
-}
-
 void
 gpgrt_set_syscall_clamp (void (*pre)(void), void (*post)(void))
 {
@@ -710,23 +662,4 @@ gpgrt_vsnprintf (char *buf, size_t bufsize,
                  const char *format, va_list arg_ptr)
 {
   return _gpgrt_estream_vsnprintf (buf, bufsize, format, arg_ptr);
-}
-
-gpgrt_b64state_t
-gpgrt_b64dec_start (const char *title)
-{
-  return _gpgrt_b64dec_start (title);
-}
-
-gpg_error_t
-gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer,
-                   size_t length, size_t *r_nbytes)
-{
-  return _gpgrt_b64dec_proc (state, buffer, length, r_nbytes);
-}
-
-gpg_error_t
-gpgrt_b64dec_finish (gpgrt_b64state_t state)
-{
-  return _gpgrt_b64dec_finish (state);
 }

@@ -18,12 +18,7 @@
    License along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
-#if !defined (_WIN32) && !defined (__CYGWIN32__)
-#  error This module may only be build for Windows or Cygwin32
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,9 +29,7 @@
 #include <sys/types.h>
 #endif
 #include <stdint.h>
-#ifndef HAVE_W32CE_SYSTEM
-# include <locale.h>
-#endif /*HAVE_W32CE_SYSTEM*/
+#include <locale.h>
 #include <windows.h>
 
 #ifdef JNLIB_IN_JNLIB
@@ -52,38 +45,6 @@
 
 #include "init.h"
 #include "gpg-error.h"
-
-#ifdef HAVE_W32CE_SYSTEM
-/* Forward declaration.  */
-static wchar_t *utf8_to_wchar (const char *string, size_t length, size_t *retlen);
-
-static HANDLE
-MyCreateFileA (LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwSharedMode,
-	     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-	     DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
-	     HANDLE hTemplateFile)
-{
-  wchar_t *filename;
-  HANDLE result;
-  int err;
-  size_t size;
-
-  filename = utf8_to_wchar (lpFileName, -1, &size);
-  if (!filename)
-    return INVALID_HANDLE_VALUE;
-
-  result = CreateFileW (filename, dwDesiredAccess, dwSharedMode,
-			lpSecurityAttributes, dwCreationDisposition,
-			dwFlagsAndAttributes, hTemplateFile);
-
-  err = GetLastError ();
-  free (filename);
-  SetLastError (err);
-  return result;
-}
-#undef CreateFileA
-#define CreateFileA MyCreateFileA
-#endif
 
 
 /* localname.c from gettext BEGIN.  */
@@ -644,16 +605,13 @@ MyCreateFileA (LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwSharedMode,
 static const char *
 my_nl_locale_name (const char *categoryname)
 {
-#ifndef HAVE_W32CE_SYSTEM
   const char *retval;
-#endif
   LCID lcid;
   LANGID langid;
   int primary, sub;
 
   /* Let the user override the system settings through environment
      variables, as on POSIX systems.  */
-#ifndef HAVE_W32CE_SYSTEM
   retval = getenv ("LC_ALL");
   if (retval != NULL && retval[0] != '\0')
     return retval;
@@ -663,14 +621,9 @@ my_nl_locale_name (const char *categoryname)
   retval = getenv ("LANG");
   if (retval != NULL && retval[0] != '\0')
     return retval;
-#endif /*!HAVE_W32CE_SYSTEM*/
 
   /* Use native Win32 API locale ID.  */
-#ifdef HAVE_W32CE_SYSTEM
-  lcid = GetSystemDefaultLCID ();
-#else
   lcid = GetThreadLocale ();
-#endif
 
   /* Strip off the sorting rules, keep only the language part.  */
   langid = LANGIDFROMLCID (lcid);

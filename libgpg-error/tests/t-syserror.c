@@ -19,14 +19,10 @@
    02110-1301, USA.  */
 
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdio.h>
-#if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #include <errno.h>
 
 #include <gpg-error.h>

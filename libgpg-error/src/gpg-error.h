@@ -78,9 +78,6 @@ extern "C" {
    internal gettext API to standard names.  This has only an effect on
    Windows platforms.
 
-   GPGRT_ENABLE_ES_MACROS: Define to provide "es_" macros for the
-   estream functions.
-
    In addition to the error codes, Libgpg-error also provides a set of
    functions used by most GnuPG components.  */
 
@@ -971,6 +968,66 @@ const char *gpg_error_check_version (const char *req_version);
 typedef ssize_t gpgrt_ssize_t;
 
 typedef long gpgrt_off_t;
+
+
+#if _WIN32
+/* Decide whether to use the format_arg attribute.  */
+#if _GPG_ERR_GCC_VERSION > 20800
+# define _GPG_ERR_ATTR_FORMAT_ARG(a)  __attribute__ ((__format_arg__ (a)))
+#else
+# define _GPG_ERR_ATTR_FORMAT_ARG(a)
+#endif
+
+/* A lean gettext implementation based on GNU style mo files which are
+   required to be encoded in UTF-8.  There is a limit on 65534 entries
+   to save some RAM.  Only Germanic plural rules are supported.  */
+const char *_gpg_w32_bindtextdomain (const char *domainname,
+                                     const char *dirname);
+const char *_gpg_w32_textdomain (const char *domainname);
+const char *_gpg_w32_gettext (const char *msgid)
+            _GPG_ERR_ATTR_FORMAT_ARG (1);
+const char *_gpg_w32_dgettext (const char *domainname, const char *msgid)
+            _GPG_ERR_ATTR_FORMAT_ARG (2);
+const char *_gpg_w32_dngettext (const char *domainname, const char *msgid1,
+                                const char *msgid2, unsigned long int n)
+            _GPG_ERR_ATTR_FORMAT_ARG (2) _GPG_ERR_ATTR_FORMAT_ARG (3);
+const char *_gpg_w32_gettext_localename (void);
+int _gpg_w32_gettext_use_utf8 (int value);
+
+#ifdef GPG_ERR_ENABLE_GETTEXT_MACROS
+# define bindtextdomain(a,b) _gpg_w32_bindtextdomain ((a), (b))
+# define textdomain(a)       _gpg_w32_textdomain ((a))
+# define gettext(a)          _gpg_w32_gettext ((a))
+# define dgettext(a,b)       _gpg_w32_dgettext ((a), (b))
+# define ngettext(a,b,c)     _gpg_w32_dngettext (NULL, (a), (b), (c))
+# define dngettext(a,b,c,d)  _gpg_w32_dngettext ((a), (b), (c), (d))
+# define gettext_localename() _gpg_w32_gettext_localename ()
+# define gettext_use_utf8(a) _gpg_w32_gettext_use_utf8 (a)
+#endif /*GPG_ERR_ENABLE_GETTEXT_MACROS*/
+
+
+/* A simple iconv implementation w/o the need for an extra DLL.  */
+struct _gpgrt_w32_iconv_s;
+typedef struct _gpgrt_w32_iconv_s *gpgrt_w32_iconv_t;
+
+gpgrt_w32_iconv_t gpgrt_w32_iconv_open (const char *tocode,
+                                        const char *fromcode);
+int     gpgrt_w32_iconv_close (gpgrt_w32_iconv_t cd);
+size_t  gpgrt_w32_iconv (gpgrt_w32_iconv_t cd,
+                         const char **inbuf, size_t *inbytesleft,
+                         char **outbuf, size_t *outbytesleft);
+
+#ifdef GPGRT_ENABLE_W32_ICONV_MACROS
+# define ICONV_CONST const
+# define iconv_t gpgrt_w32_iconv_t
+# define iconv_open(a,b)  gpgrt_w32_iconv_open ((a), (b))
+# define iconv_close(a)   gpgrt_w32_iconv_close ((a))
+# define iconv(a,b,c,d,e) gpgrt_w32_iconv ((a),(b),(c),(d),(e))
+#endif /*GPGRT_ENABLE_W32_ICONV_MACROS*/
+
+#endif /* _WIN32 */
+
+
 
 /* Self-documenting convenience functions.  */
 
@@ -1067,9 +1124,7 @@ struct _gpgrt__stream
 
 /* The opaque type for an estream.  */
 typedef struct _gpgrt__stream *gpgrt_stream_t;
-#ifdef GPGRT_ENABLE_ES_MACROS
 typedef struct _gpgrt__stream *estream_t;
-#endif
 
 typedef ssize_t (*gpgrt_cookie_read_function_t) (void *cookie,
                                                  void *buffer, size_t size);
@@ -1088,13 +1143,11 @@ struct _gpgrt_cookie_io_functions
   gpgrt_cookie_close_function_t func_close;
 };
 typedef struct _gpgrt_cookie_io_functions gpgrt_cookie_io_functions_t;
-#ifdef GPGRT_ENABLE_ES_MACROS
 typedef struct _gpgrt_cookie_io_functions  es_cookie_io_functions_t;
 #define es_cookie_read_function_t  gpgrt_cookie_read_function_t
 #define es_cookie_write_function_t gpgrt_cookie_read_function_t
 #define es_cookie_seek_function_t  gpgrt_cookie_read_function_t
 #define es_cookie_close_function_t gpgrt_cookie_read_function_t
-#endif
 
 enum gpgrt_syshd_types
   {
@@ -1116,14 +1169,12 @@ struct _gpgrt_syshd
   } u;
 };
 typedef struct _gpgrt_syshd gpgrt_syshd_t;
-#ifdef GPGRT_ENABLE_ES_MACROS
 typedef struct _gpgrt_syshd es_syshd_t;
 #define ES_SYSHD_NONE   GPGRT_SYSHD_NONE
 #define ES_SYSHD_FD     GPGRT_SYSHD_FD
 #define ES_SYSHD_SOCK   GPGRT_SYSHD_SOCK
 #define ES_SYSHD_RVID   GPGRT_SYSHD_RVID
 #define ES_SYSHD_HANDLE GPGRT_SYSHD_HANDLE
-#endif
 
 /* The object used with gpgrt_poll.  */
 struct _gpgrt_poll_s
@@ -1147,9 +1198,7 @@ struct _gpgrt_poll_s
   unsigned int user:8;       /* For application use.  */
 };
 typedef struct _gpgrt_poll_s gpgrt_poll_t;
-#ifdef GPGRT_ENABLE_ES_MACROS
 typedef struct _gpgrt_poll_s es_poll_t;
-#endif
 
 gpgrt_stream_t gpgrt_fopen (const char *_GPGRT__RESTRICT path,
                             const char *_GPGRT__RESTRICT mode);
@@ -1339,7 +1388,6 @@ int gpgrt_vsnprintf (char *buf,size_t bufsize,
                      GPGRT_ATTR_PRINTF(3,0);
 
 
-#ifdef GPGRT_ENABLE_ES_MACROS
 # define es_fopen             gpgrt_fopen
 # define es_mopen             gpgrt_mopen
 # define es_fopenmem          gpgrt_fopenmem
@@ -1419,7 +1467,6 @@ int gpgrt_vsnprintf (char *buf,size_t bufsize,
 # define es_vasprintf         gpgrt_vasprintf
 # define es_bsprintf          gpgrt_bsprintf
 # define es_vbsprintf         gpgrt_vbsprintf
-#endif /*GPGRT_ENABLE_ES_MACROS*/
 
 /* Base64 decode functions.  */
 
@@ -1430,6 +1477,7 @@ gpgrt_b64state_t gpgrt_b64dec_start (const char *title);
 gpg_error_t gpgrt_b64dec_proc (gpgrt_b64state_t state,
                                void *buffer, size_t length, size_t *r_nbytes);
 gpg_error_t gpgrt_b64dec_finish (gpgrt_b64state_t state);
+
 
 #ifdef __cplusplus
 }

@@ -21,13 +21,7 @@
    from gettext, written by Bruno Haible <bruno@clisp.org>, 2005.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef HAVE_W32_SYSTEM
-# error This module may not be build for Windows.
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>

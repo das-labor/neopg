@@ -40,18 +40,14 @@ die (const char *format, ...)
   va_list arg_ptr ;
 
   fflush (stdout);
-#ifdef HAVE_FLOCKFILE
   flockfile (stderr);
-#endif
   fprintf (stderr, "%s: ", PGM);
   va_start (arg_ptr, format) ;
   vfprintf (stderr, format, arg_ptr);
   va_end (arg_ptr);
   if (*format && format[strlen(format)-1] != '\n')
     putc ('\n', stderr);
-#ifdef HAVE_FLOCKFILE
   funlockfile (stderr);
-#endif
   exit (1);
 }
 
@@ -62,18 +58,14 @@ fail (const char *format, ...)
   va_list arg_ptr;
 
   fflush (stdout);
-#ifdef HAVE_FLOCKFILE
   flockfile (stderr);
-#endif
   fprintf (stderr, "%s: ", PGM);
   va_start (arg_ptr, format);
   vfprintf (stderr, format, arg_ptr);
   va_end (arg_ptr);
   if (*format && format[strlen(format)-1] != '\n')
     putc ('\n', stderr);
-#ifdef HAVE_FLOCKFILE
   funlockfile (stderr);
-#endif
   errorcount++;
   if (errorcount >= 50)
     die ("stopped after 50 errors.");
@@ -87,16 +79,12 @@ show (const char *format, ...)
 
   if (!verbose)
     return;
-#ifdef HAVE_FLOCKFILE
   flockfile (stderr);
-#endif
   fprintf (stderr, "%s: ", PGM);
   va_start (arg_ptr, format);
   vfprintf (stderr, format, arg_ptr);
   if (*format && format[strlen(format)-1] != '\n')
     putc ('\n', stderr);
   va_end (arg_ptr);
-#ifdef HAVE_FLOCKFILE
   funlockfile (stderr);
-#endif
 }

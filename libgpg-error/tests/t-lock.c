@@ -31,9 +31,7 @@
 # include <windows.h>
 # include <time.h>
 #else
-# ifdef USE_POSIX_THREADS
-#  include <pthread.h>
-# endif
+# include <pthread.h>
 #endif
 
 #define PGM "t-lock"
@@ -107,7 +105,6 @@ print_accounts (void)
 }
 
 
-#if defined(_WIN32) || defined(USE_POSIX_THREADS)
 /* Get a a random integer value in the range 0 to HIGH.  */
 static unsigned int
 get_rand (int high)
@@ -193,7 +190,6 @@ accountant_thread (void *arg)
     }
   return THREAD_RET_VALUE;
 }
-#endif /*_WIN32||USE_POSIX_THREADS*/
 
 
 static void
@@ -238,7 +234,6 @@ run_test (void)
   CloseHandle (rthread);
 
 #else /*!_WIN32*/
-# ifdef USE_POSIX_THREADS
   pthread_t rthread;
   pthread_t athreads[N_ACCOUNTANTS];
   int i;
@@ -258,11 +253,6 @@ run_test (void)
   stop_revision_thread = 1;
   pthread_join (rthread, NULL);
   show ("revision thread has terminated");
-# else /*!USE_POSIX_THREADS*/
-  verbose++;
-  show ("no thread support - skipping test\n", PGM);
-  verbose--;
-# endif /*!USE_POSIX_THREADS*/
 #endif /*!_WIN32*/
 
   gpgrt_lock_destroy (&accounts_lock);
@@ -306,12 +296,6 @@ main (int argc, char **argv)
     }
 
   srand (time(NULL)*getpid());
-
-  if (!gpg_error_check_version (GPG_ERROR_VERSION))
-    {
-      die ("gpg_error_check_version returned an error");
-      errorcount++;
-    }
 
   init_accounts ();
   check_accounts ();

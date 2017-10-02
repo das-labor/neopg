@@ -17,13 +17,7 @@
    License along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifndef HAVE_W32_SYSTEM
-# error This module may only be build for Windows.
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>

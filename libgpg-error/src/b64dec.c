@@ -72,7 +72,7 @@ enum decoder_states
    string the decoder will skip everything until a "-----BEGIN " line
    has been seen, decoding ends at a "----END " line.  */
 gpgrt_b64state_t
-_gpgrt_b64dec_start (const char *title)
+gpgrt_b64dec_start (const char *title)
 {
   gpgrt_b64state_t state;
   char *t = NULL;
@@ -106,8 +106,8 @@ _gpgrt_b64dec_start (const char *title)
 /* Do in-place decoding of base-64 data of LENGTH in BUFFER.  Stores the
    new length of the buffer at R_NBYTES. */
 gpg_error_t
-_gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
-                    size_t *r_nbytes)
+gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
+		   size_t *r_nbytes)
 {
   enum decoder_states ds = state->idx;
   unsigned char val = state->radbuf[0];
@@ -263,7 +263,7 @@ _gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
 /* Return an error code in case an encoding error has been found
    during decoding. */
 gpg_error_t
-_gpgrt_b64dec_finish (gpgrt_b64state_t state)
+gpgrt_b64dec_finish (gpgrt_b64state_t state)
 {
   gpg_error_t err;
 

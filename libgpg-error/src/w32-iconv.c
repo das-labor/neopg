@@ -29,12 +29,7 @@
  *---------------------------------------------------
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
-#if !defined (_WIN32) && !defined (__CYGWIN32__)
-#  error This module may only be build for Windows or Cygwin32
-#endif
 
 /* for WC_NO_BEST_FIT_CHARS */
 #ifndef WINVER
