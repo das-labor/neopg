@@ -1,0 +1,52 @@
+                              Libassuan
+                             ===========
+
+    Copyright (C) 2001-2013 Free Software Foundation, Inc.
+    Copyright (C) 2001-2016 g10 Code GmbH
+
+
+    This is a general purpose IPC library which is for example used
+    GnuPG, GPGME and some other software.
+
+    See COPYING.LIB on how to share, modify and distribute the
+    software itself (LGPLv2.1+) and COPYING for the documentation
+    (GPLv3+).
+
+    Please send bug report to the gnupg-devel mailing list or enter
+    them into the gnupg bug tracker at http://bugs.gnupg.org using the
+    category "libassuan".
+
+    The primary FTP site is ftp://ftp.gnupg.org/gcrypt/libassuan.
+
+
+    Notes for Windows CE:
+    ----------------------
+
+    Libassuan supports WindowsCE (tested with WindowsMobile 6.5).  To
+    install it, copy libassuan-0.dll into a location where DLL are found
+    and install the included gpgcedev driver: First copy "gpgcedev.dll"
+    into the root directory, second run the included program gpgcemgr on
+    the device: "gpgcemgr --register".  This creates the necessary
+    registry keys.  In case the copy step fails, the driver may still be
+    in use: Close all applications using that driver, run "gpgcemgr
+    --deactivate" to deactivate the running driver and try again.
+
+    Registry keys created by "gpgcemgr --register" are:
+
+       Drivers\\GnuPG_Device\dll    -> "gpgcedev.dll"
+       Drivers\\GnuPG_Device\prefix -> "GPG"
+       Drivers\\GnuPG_Device\Index  -> 1      (dword)
+
+
+    Contact
+    -------
+
+    See the file AUTHORS.
+
+    Commercial grade support for Libassuan and GnuPG is available; for
+    a listing of offers see https://www.gnupg.org/service.html .
+    Maintaining and improving this software is costly.  Since 2001,
+    g10 Code GmbH, a German company owned and headed by GnuPG's
+    principal author Werner Koch, is bearing the majority of these
+    costs.  To help them carry on this work, they need your support.
+    See https://gnupg.org/donate/ .

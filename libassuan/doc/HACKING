@@ -1,0 +1,110 @@
+# HACKING                                                       -*- org -*-
+#+TITLE: Hacking notes for Libassuan
+#+STARTUP: showall
+
+* How to contribute
+
+  The following stuff explains some basic procedures you need to
+  follow if you want to contribute code or documentation.
+
+** No more ChangeLog files
+
+  Do not modify any of the ChangeLog files in Libassuan.  Starting
+  on December 1st, 2011 we put change information only in the GIT
+  commit log, and generate a top-level ChangeLog file from logs at
+  "make dist" time.  As such, there are strict requirements on the
+  form of the commit log messages.  The old ChangeLog files have all
+  be renamed to ChangeLog-2011
+
+
+** Coding standards
+
+  Please follow the GNU coding standards.  If you are in doubt consult
+  the existing code as an example.  Do no re-indent code without a
+  need.  If you really need to do it, use a separate commit for such a
+  change.  See below for the required commit log format.
+
+** Commit log requirements
+
+  Your commit log should always start with a one-line summary, the
+  second line should be blank, and the remaining lines are usually
+  ChangeLog-style entries for all affected files.  However, it's fine
+  -- even recommended -- to write a few lines of prose describing the
+  change, when the summary and ChangeLog entries don't give enough of
+  the big picture.  Omit the leading TABs that you're used to seeing
+  in a "real" ChangeLog file, but keep the maximum line length at 72
+  or smaller, so that the generated ChangeLog lines, each with its
+  leading TAB, will not exceed 80 columns.
+
+  Here is an example of a commit message:
+#+begin_example
+Make new functions also visible on non-W32.
+
+* src/system-posix.c (__assuan_read, __assuan_write, __assuan_recvmsg)
+(__assuan_sendmsg, __assuan_waitpid): Make functions global.
+* src/libassuan.vers: Add above functions.
+* configure.ac: Set version to 2.1.0-git.
+--
+Note that everything after the above tear off marker will not be
+copied to the ChangeLog during a "make dist".  You may use this to add
+extra information about this commit which are mostly relevant for your
+co-hackers.  Recall that the ChangeLog itself fulfills requirements of
+the GPL and is useful for quick history checks of a released version.
+Developers will use the git log.
+#+end_example
+
+  If you don't want a ChangeLog entry at all, use this:
+#+begin_example
+Give examples for commit logs.
+
+--
+Because the tear off line is the first line of the body, not even the
+summary line will be copied to the ChangeLog.  Using only the tear off
+line without any text is often useful for commits like "Typo and
+grammar fixes."
+#+end_example
+
+
+** License policy
+
+  Libassuan is currently licensed under the LGPLv2+ with tools and the
+  manual being under the GPLv3+.  We may eventually update to a newer
+  version of the licenses or a combination of them.  It is thus
+  important, that all contributed code allows for an update of the
+  license; in particular we can't accept code under the GPL or LGPL
+  without the "or any later version" term.
+
+  Being developed as part of GnuPG-2, Libassuan used to have a strict
+  policy of requiring copyright assignments to the FSF.  To avoid this
+  major organizational overhead and to allow inclusion of code, not
+  copyrighted by the FSF, this policy has been relaxed.  It is now
+  also possible to contribute code by asserting that the contribution
+  is in accordance to the "Libassuan Developer's Certificate of
+  Origin" as found in the file "DCO".  (Except for a slight wording
+  change, this DCO is identical to the one used by the Linux kernel.)
+
+  If your want to contribute code or documentation to Libassuan and
+  you didn't signed a copyright assignment with the FSF in the past,
+  you need to take these simple steps:
+
+  - Decide which mail address you want to use.  Please have your real
+    name in the address and not a pseudonym.  Anonymous contributions
+    can only be done if you find a proxy who certifies for you.
+
+  - If your employer or school might claim ownership of code written
+    by you; you need to talk to them to make sure that you have the
+    right to contribute under the DCO.
+
+  - Send an OpenPGP signed mail to the gnupg-devel@gnupg.org mailing
+    list from your mail address.  Include a copy of the DCO as found
+    in the official master branch.  Insert your name and email address
+    into the DCO in the same way you want to use it later.  Example:
+
+      Signed-off-by: Joe R. Hacker <joe@example.org>
+
+    (If you really need it, you may perform simple transformations of
+    the mail address: Replacing "@" by " at " or "." by " dot ".)
+
+  - That's it.  From now on you only need to add a "Signed-off-by:"
+    line with your name and mail address to the commit message.  It is
+    recommended to send the patches using a PGP/MIME signed mail.

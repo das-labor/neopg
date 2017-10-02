@@ -1,0 +1,73 @@
+Package: libassuan
+Maintainer: Werner Koch <wk@gnupg.org>
+Bug reports: gnupg-devel@gnupg.org
+Security related bug reports: security@gnupg.org
+License (library): LGPLv2.1+
+License (manual): GPLv3+
+
+Libassuan is free software.  See below for details.  License copyright
+years may be listed using range notation, e.g., 2000-2013, indicating
+that every year in the range, inclusive, is a copyrightable year that
+would otherwise be listed individually.
+
+
+Authors with a FSF copyright assignment
+=======================================
+
+Werner Koch  <wk@gnupg.org>
+ - Initial code.
+
+Neal H. Walfield  <neal@g10code.de>
+ - Code cleanup, descriptor passing and bug fixes.
+
+Marcus Brinkmann  <marcus@g10code.de>
+ - Shared library version, bug fixes.
+
+g10 Code GmbH   <info@g10code.com>
+ - all work indicated by mail addresses in ChangeLogs
+
+Ben Kibbey  <bjk@luxsci.net>  Assigns Past and Future Changes For GnuPG.
+ - Fixes and new features
+
+
+Authors with a DCO
+==================
+
+
+
+Notes:
+======
+
+Libassuan was orginally part of NewPG, a temporary fork of GnuPG, and
+later split of into a separate library.
+
+
+Copyright
+=========
+
+The Libassuan code is distributed under the GNU Lesser General Public
+License, version 2.1 or later.  The manual is distributed under the
+GNU General Public License, Version 3 or later.
+
+List of Copyright holders
+=========================
+
+  Copyright (C) 1992-2013 Free Software Foundation, Inc.
+  Copyright (C) 1994 X Consortium
+  Copyright (C) 2000 Werner Koch (dd9jn)
+  Copyright (C) 2001-2016 g10 Code GmbH
+  Copyright (C) 2004 Simon Josefsson
+
+
+==========
+
+ Copyright 2003-2013 Free Software Foundation, Inc.
+ Copyright (C) 2013-2016  g10 Code GmbH
+
+ This file is free software; as a special exception the author gives
+ unlimited permission to copy and/or distribute it, with or without
+ modifications, as long as this notice is preserved.
+
+ This file is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
