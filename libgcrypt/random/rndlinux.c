@@ -170,19 +170,6 @@ _gcry_rndlinux_gather_random (void (*add)(const void*, size_t,
   if (length > 1)
     length -= n_hw;
 
-  /* When using a blocking random generator try to get some entropy
-   * from the jitter based RNG.  In this case we take up to 50% of the
-   * remaining requested bytes.  */
-  if (level >= GCRY_VERY_STRONG_RANDOM)
-    {
-      n_hw = _gcry_rndjent_poll (add, origin, length/2);
-      if (n_hw > length/2)
-        n_hw = length/2;
-      if (length > 1)
-        length -= n_hw;
-    }
-
-
   /* Open the requested device.  The first time a device is to be
      opened we fail with a fatal error if the device does not exists.
      In case the device has ever been closed, further open requests

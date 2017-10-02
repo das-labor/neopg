@@ -23,11 +23,6 @@ AC_REVISION($Revision$)
 AC_PREREQ(2.60)
 min_automake_version="1.14"
 
-# To build a release you need to create a tag with the version number
-# (git tag -s libgcrypt-n.m.k) and run "./autogen.sh --force".  Please
-# bump the version number immediately after the release and do another
-# commit and push so that the git magic is able to work.  See below
-# for the LT versions.
 m4_define(mym4_version_major, [1])
 m4_define(mym4_version_minor, [8])
 m4_define(mym4_version_micro, [0])
@@ -38,17 +33,8 @@ m4_define(mym4_version_micro, [0])
 # processing is done by autoconf and not during the configure run.
 m4_define(mym4_version,
           [mym4_version_major.mym4_version_minor.mym4_version_micro])
-m4_define([mym4_revision],
-          m4_esyscmd([git rev-parse --short HEAD | tr -d '\n\r']))
-m4_define([mym4_revision_dec],
-          m4_esyscmd_s([echo $((0x$(echo ]mym4_revision[|head -c 4)))]))
-m4_define([mym4_betastring],
-          m4_esyscmd_s([git describe --match 'libgcrypt-[0-9].*[0-9]' --long|\
-                        awk -F- '$3!=0{print"-beta"$3}']))
-m4_define([mym4_isgit],m4_if(mym4_betastring,[],[no],[yes]))
-m4_define([mym4_full_version],[mym4_version[]mym4_betastring])
 
-AC_INIT([libgcrypt],[mym4_full_version],[http://bugs.gnupg.org])
+AC_INIT([libgcrypt],[mym4_version],[http://bugs.gnupg.org])
 
 # LT Version numbers, remember to change them just *before* a release.
 #   (Interfaces removed:    CURRENT++, AGE=0, REVISION=0)
@@ -74,10 +60,9 @@ VERSION=$PACKAGE_VERSION
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/libgcrypt.vers])
-AM_INIT_AUTOMAKE([serial-tests dist-bzip2])
+AM_INIT_AUTOMAKE([serial-tests dist-bzip2 foreign])
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_LIBOBJ_DIR([compat])
 AC_CANONICAL_HOST
 AM_MAINTAINER_MODE
 AM_SILENT_RULES
@@ -88,8 +73,6 @@ AH_TOP([
 #ifndef _GCRYPT_CONFIG_H_INCLUDED
 #define _GCRYPT_CONFIG_H_INCLUDED
 
-/* Enable gpg-error's strerror macro for W32CE.  */
-#define GPG_ERR_ENABLE_ERRNO_MACROS 1
 ])
 
 AH_BOTTOM([
@@ -181,11 +164,6 @@ LT_LANG([Windows Resource])
 ## General definitions. ##
 ##########################
 
-# Used by libgcrypt-config
-LIBGCRYPT_CONFIG_LIBS="-lgcrypt"
-LIBGCRYPT_CONFIG_CFLAGS=""
-LIBGCRYPT_CONFIG_HOST="$host"
-
 # Definitions for symmetric ciphers.
 available_ciphers="arcfour blowfish cast5 des aes twofish serpent rfc2268 seed"
 available_ciphers="$available_ciphers camellia idea salsa20 gost28147 chacha20"
@@ -205,16 +183,11 @@ available_kdfs="s2k pkdf2 scrypt"
 enabled_kdfs=""
 
 # Definitions for random modules.
-available_random_modules="linux egd unix"
+available_random_modules="linux"
 auto_random_modules="$available_random_modules"
 
-# Supported thread backends.
-LIBGCRYPT_THREAD_MODULES=""
-
 # Other definitions.
-print_egd_notice=no
 have_w32_system=no
-have_w32ce_system=no
 have_pthread=no
 
 
@@ -223,15 +196,7 @@ case "${host}" in
     *-*-mingw32*)
       ac_cv_have_dev_random=no
       have_w32_system=yes
-      case "${host}" in
-        *-mingw32ce*)
-            have_w32ce_system=yes
-            available_random_modules="w32ce"
-            ;;
-        *)
-            available_random_modules="w32"
-            ;;
-      esac
+      available_random_modules="w32"
       AC_DEFINE(USE_ONLY_8DOT3,1,
                 [set this to limit filenames to the 8.3 format])
       AC_DEFINE(HAVE_DRIVE_LETTERS,1,
@@ -280,21 +245,13 @@ esac
 
 if test "$have_w32_system" = yes; then
    AC_DEFINE(HAVE_W32_SYSTEM,1, [Defined if we run on a W32 API based system])
-   if test "$have_w32ce_system" = yes; then
-     AC_DEFINE(HAVE_W32CE_SYSTEM,1,[Defined if we run on WindowsCE])
-   fi
 fi
 AM_CONDITIONAL(HAVE_W32_SYSTEM, test "$have_w32_system" = yes)
-AM_CONDITIONAL(HAVE_W32CE_SYSTEM, test "$have_w32ce_system" = yes)
 
 
 
 # A printable OS Name is sometimes useful.
 case "${host}" in
-    *-*-mingw32ce*)
-        PRINTABLE_OS_NAME="W32CE"
-        ;;
-
     *-*-mingw32*)
         PRINTABLE_OS_NAME="W32"
         ;;
@@ -501,29 +458,6 @@ AC_ARG_ENABLE(dev-random,
     try_dev_random=$enableval, try_dev_random=yes)
 AC_MSG_RESULT($try_dev_random)
 
-# Implementation of the --with-egd-socket switch.
-AC_ARG_WITH(egd-socket,
-    [  --with-egd-socket=NAME  Use NAME for the EGD socket)],
-            egd_socket_name="$withval", egd_socket_name="" )
-AC_DEFINE_UNQUOTED(EGD_SOCKET_NAME, "$egd_socket_name",
-                   [Define if you don't want the default EGD socket name.
-                    For details see cipher/rndegd.c])
-
-# Implementation of the --enable-random-daemon
-AC_MSG_CHECKING([whether the experimental random daemon is requested])
-AC_ARG_ENABLE([random-daemon],
-              AC_HELP_STRING([--enable-random-daemon],
-                             [Build and support the experimental gcryptrnd]),
-              [use_random_daemon=$enableval],
-              [use_random_daemon=no])
-AC_MSG_RESULT($use_random_daemon)
-if test x$use_random_daemon = xyes ; then
-    AC_DEFINE(USE_RANDOM_DAEMON,1,
-              [Define to support the experimental random daemon])
-fi
-AM_CONDITIONAL(USE_RANDOM_DAEMON, test x$use_random_daemon = xyes)
-
-
 # Implementation of --disable-asm.
 AC_MSG_CHECKING([whether MPI assembler modules are requested])
 AC_ARG_ENABLE([asm],
@@ -576,14 +510,6 @@ if test "$use_hmac_binary_check" = yes ; then
               [Define to support an HMAC based integrity check])
 fi
 
-
-# Implementation of the --disable-jent-support switch.
-AC_MSG_CHECKING([whether jitter entropy support is requested])
-AC_ARG_ENABLE(jent-support,
-              AC_HELP_STRING([--disable-jent-support],
-                        [Disable support for the Jitter entropy collector]),
-	      jentsupport=$enableval,jentsupport=yes)
-AC_MSG_RESULT($jentsupport)
 
 # Implementation of the --disable-padlock-support switch.
 AC_MSG_CHECKING([whether padlock support is requested])
@@ -1193,7 +1119,6 @@ if test "$mpi_cpu_arch" != "x86" ; then
    avxsupport="n/a"
    avx2support="n/a"
    padlocksupport="n/a"
-   jentsupport="n/a"
    drngsupport="n/a"
 fi
 
@@ -1727,8 +1652,6 @@ fi
 #######################################
 
 AC_FUNC_VPRINTF
-# We have replacements for these in src/missing-string.c
-AC_CHECK_FUNCS(stpcpy strcasecmp)
 # We have replacements for these in src/g10lib.h
 AC_CHECK_FUNCS(strtoul memmove stricmp atexit raise)
 # Other checks
@@ -1737,12 +1660,6 @@ AC_CHECK_FUNCS(gettimeofday getrusage gethrtime clock_gettime syslog)
 AC_CHECK_FUNCS(syscall fcntl ftruncate flockfile)
 
 GNUPG_CHECK_MLOCK
-
-#
-# Replacement functions.
-#
-AC_REPLACE_FUNCS([getpid clock])
-
 
 #
 # Check whether it is necessary to link against libdl.
@@ -1812,10 +1729,6 @@ if test "$random" = "default"; then
         random_modules="linux"
     else
         case "${host}" in
-        *-*-mingw32ce*)
-          # WindowsCE random device.
-          random_modules="w32ce"
-          ;;
         *-*-mingw32*|*-*-cygwin*)
           # Windows random device.
           random_modules="w32"
@@ -1898,22 +1811,6 @@ fi
 CL_AS_NOEXECSTACK
 
 
-AC_SUBST(LIBGCRYPT_CONFIG_API_VERSION)
-AC_SUBST(LIBGCRYPT_CONFIG_LIBS)
-AC_SUBST(LIBGCRYPT_CONFIG_CFLAGS)
-AC_SUBST(LIBGCRYPT_CONFIG_HOST)
-AC_SUBST(LIBGCRYPT_THREAD_MODULES)
-
-AC_CONFIG_COMMANDS([gcrypt-conf],[[
-chmod +x src/libgcrypt-config
-]],[[
-prefix=$prefix
-exec_prefix=$exec_prefix
-libdir=$libdir
-datadir=$datadir
-DATADIRNAME=$DATADIRNAME
-]])
-
 #####################
 #### Conclusion. ####
 #####################
@@ -1988,10 +1885,6 @@ fi
 if test x"$armcryptosupport" = xyes ; then
   AC_DEFINE(ENABLE_ARM_CRYPTO_SUPPORT,1,
             [Enable support for ARMv8 Crypto Extension instructions.])
-fi
-if test x"$jentsupport" = xyes ; then
-  AC_DEFINE(ENABLE_JENT_SUPPORT, 1,
-            [Enable support for the jitter entropy collector.])
 fi
 if test x"$padlocksupport" = xyes ; then
   AC_DEFINE(ENABLE_PADLOCK_SUPPORT, 1,
@@ -2468,31 +2361,11 @@ if test "$found" = "1" ; then
    AC_DEFINE(USE_RNDLINUX, 1, [Defined if the /dev/random RNG should be used.])
 fi
 
-LIST_MEMBER(unix, $random_modules)
-if test "$found" = "1" ; then
-   GCRYPT_RANDOM="$GCRYPT_RANDOM rndunix.lo"
-   AC_DEFINE(USE_RNDUNIX, 1, [Defined if the default Unix RNG should be used.])
-   print_egd_notice=yes
-fi
-
-LIST_MEMBER(egd, $random_modules)
-if test "$found" = "1" ; then
-   GCRYPT_RANDOM="$GCRYPT_RANDOM rndegd.lo"
-   AC_DEFINE(USE_RNDEGD, 1, [Defined if the EGD based RNG should be used.])
-fi
-
 LIST_MEMBER(w32, $random_modules)
 if test "$found" = "1" ; then
    GCRYPT_RANDOM="$GCRYPT_RANDOM rndw32.lo"
    AC_DEFINE(USE_RNDW32, 1,
              [Defined if the Windows specific RNG should be used.])
-fi
-
-LIST_MEMBER(w32ce, $random_modules)
-if test "$found" = "1" ; then
-   GCRYPT_RANDOM="$GCRYPT_RANDOM rndw32ce.lo"
-   AC_DEFINE(USE_RNDW32CE, 1,
-             [Defined if the WindowsCE specific RNG should be used.])
 fi
 
 AC_SUBST([GCRYPT_CIPHERS])
@@ -2560,16 +2433,6 @@ AC_SUBST([GCRYPT_HWF_MODULES])
 
 
 #
-# Option to disable building of doc file
-#
-build_doc=yes
-AC_ARG_ENABLE([doc], AC_HELP_STRING([--disable-doc],
-                                    [do not build the documentation]),
-                     build_doc=$enableval, build_doc=yes)
-AM_CONDITIONAL([BUILD_DOC], [test "x$build_doc" != xno])
-
-
-#
 # Provide information about the build.
 #
 BUILD_REVISION="mym4_revision"
@@ -2583,33 +2446,15 @@ changequote([,])dnl
 BUILD_FILEVERSION="${BUILD_FILEVERSION}mym4_revision_dec"
 AC_SUBST(BUILD_FILEVERSION)
 
-AC_ARG_ENABLE([build-timestamp],
-  AC_HELP_STRING([--enable-build-timestamp],
-                 [set an explicit build timestamp for reproducibility.
-                  (default is the current time in ISO-8601 format)]),
-     [if test "$enableval" = "yes"; then
-        BUILD_TIMESTAMP=`date -u +%Y-%m-%dT%H:%M+0000 2>/dev/null || date`
-      else
-        BUILD_TIMESTAMP="$enableval"
-      fi],
-     [BUILD_TIMESTAMP="<none>"])
-AC_SUBST(BUILD_TIMESTAMP)
-AC_DEFINE_UNQUOTED(BUILD_TIMESTAMP, "$BUILD_TIMESTAMP",
-                   [The time this package was configured for a build])
-
-
 # And create the files.
 AC_CONFIG_FILES([
 Makefile
 m4/Makefile
-compat/Makefile
 mpi/Makefile
 cipher/Makefile
 random/Makefile
-doc/Makefile
 src/Makefile
 src/gcrypt.h
-src/libgcrypt-config
 src/versioninfo.rc
 tests/Makefile
 ])
@@ -2632,7 +2477,6 @@ GCRY_MSG_WRAP([Enabled digest algorithms:],[$enabled_digests])
 GCRY_MSG_WRAP([Enabled kdf algorithms:   ],[$enabled_kdfs])
 GCRY_MSG_WRAP([Enabled pubkey algorithms:],[$enabled_pubkey_ciphers])
 GCRY_MSG_SHOW([Random number generator:  ],[$random])
-GCRY_MSG_SHOW([Try using jitter entropy: ],[$jentsupport])
 GCRY_MSG_SHOW([Using linux capabilities: ],[$use_capabilities])
 GCRY_MSG_SHOW([Try using Padlock crypto: ],[$padlocksupport])
 GCRY_MSG_SHOW([Try using AES-NI crypto:  ],[$aesnisupport])
@@ -2651,23 +2495,6 @@ cat <<G10EOF
         be used libraries have been been detected for:
          ${gpg_config_script_warn}
         Please check above for warning messages.
-
-G10EOF
-fi
-if test "$print_egd_notice" = "yes"; then
-cat <<G10EOF
-   The performance of the Unix random gatherer module (rndunix) is not
-   very good and it does not keep the entropy pool over multiple
-   invocations of Libgcrypt base applications.  The suggested way to
-   overcome this problem is to use the
-
-                 Entropy Gathering Daemon (EGD)
-
-   which provides a entropy source for the whole system.  It is written
-   in Perl and available at the GnuPG FTP servers.  For more information
-   consult the GnuPG site:
-
-          https://gnupg.org/related_software/swlist.html#egd
 
 G10EOF
 fi

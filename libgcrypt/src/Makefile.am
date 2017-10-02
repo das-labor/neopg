@@ -20,29 +20,12 @@
 
 ## Process this file with automake to produce Makefile.in
 
-EXTRA_DIST = libgcrypt-config.in libgcrypt.m4 libgcrypt.vers \
-             gcrypt.h.in libgcrypt.def
+EXTRA_DIST = libgcrypt.vers gcrypt.h.in libgcrypt.def
 
-bin_SCRIPTS = libgcrypt-config
-m4datadir = $(datadir)/aclocal
-m4data_DATA = libgcrypt.m4
 nodist_include_HEADERS = gcrypt.h
 
 lib_LTLIBRARIES = libgcrypt.la
 bin_PROGRAMS = dumpsexp hmac256 mpicalc
-if USE_RANDOM_DAEMON
-sbin_PROGRAMS = gcryptrnd
-bin_PROGRAMS += getrandom
-endif USE_RANDOM_DAEMON
-
-# Depending on the architecture some targets require libgpg-error.
-if HAVE_W32CE_SYSTEM
-arch_gpg_error_cflags = $(GPG_ERROR_CFLAGS)
-arch_gpg_error_libs   = $(GPG_ERROR_LIBS)
-else
-arch_gpg_error_cflags =
-arch_gpg_error_libs   =
-endif
 
 AM_CFLAGS = $(GPG_ERROR_CFLAGS)
 AM_CCASFLAGS = $(NOEXECSTACK_FLAGS)
@@ -59,7 +42,7 @@ libgcrypt_la_SOURCES = \
 	gcrypt-testapi.h cipher.h cipher-proto.h \
 	misc.c global.c sexp.c hwfeatures.c hwf-common.h \
 	stdmem.c stdmem.h secmem.c secmem.h \
-	mpi.h missing-string.c fips.c \
+	mpi.h fips.c \
 	hmac256.c hmac256.h context.c context.h \
 	ec-context.h
 
@@ -115,45 +98,24 @@ libgcrypt_la_DEPENDENCIES = \
 	../cipher/libcipher.la \
 	../random/librandom.la \
 	../mpi/libmpi.la \
-	../compat/libcompat.la \
 	$(srcdir)/libgcrypt.vers $(gcrypt_deps)
 libgcrypt_la_LIBADD = $(gcrypt_res) \
         $(gcrypt_hwf_modules) \
 	../cipher/libcipher.la \
 	../random/librandom.la \
-	../mpi/libmpi.la \
-	../compat/libcompat.la  $(GPG_ERROR_LIBS)
+	../mpi/libmpi.la $(GPG_ERROR_LIBS)
 
 
 dumpsexp_SOURCES = dumpsexp.c
-dumpsexp_CFLAGS = $(arch_gpg_error_cflags)
-dumpsexp_LDADD = $(arch_gpg_error_libs)
 
 mpicalc_SOURCES = mpicalc.c
 mpicalc_CFLAGS = $(GPG_ERROR_CFLAGS)
 mpicalc_LDADD = libgcrypt.la $(DL_LIBS) $(GPG_ERROR_LIBS)
 
 hmac256_SOURCES = hmac256.c
-hmac256_CFLAGS = -DSTANDALONE $(arch_gpg_error_cflags)
-hmac256_LDADD = $(arch_gpg_error_libs)
-
-if USE_RANDOM_DAEMON
-gcryptrnd_SOURCES = gcryptrnd.c
-gcryptrnd_CFLAGS = $(GPG_ERROR_CFLAGS) $(PTH_CFLAGS)
-gcryptrnd_LDADD = libgcrypt.la $(GPG_ERROR_LIBS) $(PTH_LIBS)
-
-getrandom_SOURCES = getrandom.c
-endif USE_RANDOM_DAEMON
+hmac256_CFLAGS = -DSTANDALONE
 
 
 install-data-local: install-def-file
 
 uninstall-local: uninstall-def-file
-
-# FIXME: We need to figure out how to get the actual name (parsing
-# libgcrypt.la?) and how to create the hmac file already at link time
-# so that it can be used without installing libgcrypt first.
-#install-exec-hook:
-#	./hmac256 "What am I, a doctor or a moonshuttle conductor?" \
-#          < $(DESTDIR)$(libdir)/libgcrypt.so.11.5.0 \
-#          > $(DESTDIR)$(libdir)/.libgcrypt.so.11.5.0.hmac

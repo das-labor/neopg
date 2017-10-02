@@ -278,7 +278,6 @@ _gcry_random_dump_stats (void)
     _gcry_rngdrbg_dump_stats ();
   else
     _gcry_rngcsprng_dump_stats ();
-  _gcry_rndjent_dump_stats ();
 }
 
 

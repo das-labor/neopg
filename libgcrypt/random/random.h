@@ -65,16 +65,5 @@ gpg_err_code_t _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector *t);
 /*-- rndegd.c --*/
 gpg_error_t _gcry_rndegd_set_socket_name (const char *name);
 
-/*-- rndjent.c --*/
-unsigned int _gcry_rndjent_get_version (int *r_active);
-
-
-/*-- random-daemon.c (only used from random.c) --*/
-#ifdef USE_RANDOM_DAEMON
-void _gcry_daemon_initialize_basics (void);
-int _gcry_daemon_randomize (const char *socketname,
-                            void *buffer, size_t length,
-                            enum gcry_random_level level);
-#endif /*USE_RANDOM_DAEMON*/
 
 #endif /*G10_RANDOM_H*/

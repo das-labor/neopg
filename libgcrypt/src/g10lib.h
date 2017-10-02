@@ -289,17 +289,6 @@ gpg_err_code_t _gcry_fips186_4_prime_check (const gcry_mpi_t x,
                                             unsigned int bits);
 
 
-/* Replacements of missing functions (missing-string.c).  */
-#ifndef HAVE_STPCPY
-char *stpcpy (char *a, const char *b);
-#endif
-#ifndef HAVE_STRCASECMP
-int strcasecmp (const char *a, const char *b) _GCRY_GCC_ATTR_PURE;
-#endif
-
-#include "../compat/libcompat.h"
-
-
 /* Macros used to rename missing functions.  */
 #ifndef HAVE_STRTOUL
 #define strtoul(a,b,c)  ((unsigned long)strtol((a),(b),(c)))

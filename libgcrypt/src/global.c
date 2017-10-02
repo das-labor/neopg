@@ -238,7 +238,7 @@ _gcry_check_version (const char *req_version)
     const char *my_plvl;
 
     if (req_version && req_version[0] == 1 && req_version[1] == 1)
-        return _gcry_compat_identification ();
+        return "libgcrypt";
 
     /* Initialize library.  */
     global_init ();
@@ -376,10 +376,6 @@ print_config (const char *what, gpgrt_stream_t fp)
 
   if (!what || !strcmp (what, "rng-type"))
     {
-      /* The currently used RNG type.  */
-      unsigned int jver;
-      int active;
-
       i = _gcry_get_rng_type (0);
       switch (i)
         {
@@ -388,8 +384,7 @@ print_config (const char *what, gpgrt_stream_t fp)
         case GCRY_RNG_TYPE_SYSTEM:   s = "system"; break;
         default: BUG ();
         }
-      jver = _gcry_rndjent_get_version (&active);
-      gpgrt_fprintf (fp, "rng-type:%s:%d:%u:%d:\n", s, i, jver, active);
+      gpgrt_fprintf (fp, "rng-type:%s:%d:\n", s, i);
     }
 }
 
