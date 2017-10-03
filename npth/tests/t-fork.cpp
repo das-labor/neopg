@@ -27,7 +27,7 @@
  */
 
 int
-fork_main (int argc, const char *argv[])
+fork_main (int argc, char *argv[])
 {
   int rc;
   pid_t pid;

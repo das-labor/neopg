@@ -145,8 +145,8 @@ add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_outp
 
 add_library(npth
   ../npth/src/npth.h
-  ../npth/src/npth.c
-  ../npth/src/npth-sigev.c
+  ../npth/src/npth.cpp
+  ../npth/src/npth-sigev.cpp
 )
 add_library(neopg::npth ALIAS npth)
 
@@ -156,11 +156,13 @@ target_include_directories(npth PRIVATE
 target_compile_definitions(npth PRIVATE
   HAVE_CONFIG_H=1)
 
+target_compile_options(npth PRIVATE -fpermissive)
+
 add_executable(npth-test
-  ../npth/tests/t-fork.c
-  ../npth/tests/t-mutex.c
+  ../npth/tests/t-fork.cpp
+  ../npth/tests/t-mutex.cpp
   ../npth/tests/t-support.h
-  ../npth/tests/t-thread.c
+  ../npth/tests/t-thread.cpp
   ../npth/tests/npth-test.cpp)
 target_include_directories(npth-test PRIVATE
   ../npth/src
