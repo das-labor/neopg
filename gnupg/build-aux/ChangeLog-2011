@@ -1,0 +1,62 @@
+2011-12-01  Werner Koch  <wk@g10code.com>
+
+	NB: ChangeLog files are no longer manually maintained.  Starting
+	on December 1st, 2011 we put change information only in the GIT
+	commit log, and generate a top-level ChangeLog file from logs at
+	"make dist".  See doc/HACKING for details.
+
+2011-11-29  Werner Koch  <wk@g10code.com>
+
+	* build-all.sh: Make sure HOME has no unsafe characters.
+
+2011-11-28  Werner Koch  <wk@g10code.com>,
+	    Jim Meyering  <jim@meyering.net>
+
+	* build-all.sh: New.
+
+2011-08-10  Werner Koch  <wk@g10code.com>
+
+	* config.guess, config.sub: Update to version 2011-06-03.
+
+2010-10-26  Werner Koch  <wk@g10code.com>
+
+	* config.guess: Update to version 2010-09-24.
+        * config.sub: Update to version 2010-09-11.
+
+2007-12-14  Werner Koch  <wk@g10code.com>
+
+	* config.guess, config.sub: Update to version 2007-11-19.
+
+2007-07-04  Werner Koch  <wk@g10code.com>
+
+	Switched to GPLv3+.
+
+	* config.sub, config.guess: Updated from current Savannah
+	upstream.  Changed to GPLv3+.
+
+2007-05-04  Werner Koch  <wk@g10code.com>
+
+	* texinfo.tex: Updated from gnulib.
+
+2007-04-04  Werner Koch  <wk@g10code.com>
+
+	* mail-to-translators: Copied from 1.4 and adjusted.
+
+2004-09-30  Werner Koch  <wk@g10code.com>
+
+	* config.guess, config.sub: Updated.
+
+
+ Copyright 2004, 2007, 2010 Free Software Foundation, Inc.
+
+ This file is free software; as a special exception the author gives
+ unlimited permission to copy and/or distribute it, with or without
+ modifications, as long as this notice is preserved.
+
+ This file is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Local Variables:
+buffer-read-only: t
+End:

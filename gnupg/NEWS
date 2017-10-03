@@ -1,0 +1,3527 @@
+Noteworthy changes in version 2.1.22 (unreleased)
+-------------------------------------------------
+
+
+Noteworthy changes in version 2.1.21 (2017-05-15)
+-------------------------------------------------
+
+  * gpg,gpgsm: Fix corruption of old style keyring.gpg files.  This
+    bug was introduced with version 2.1.20.  Note that the default
+    pubring.kbx format was not affected.
+
+  * gpg,dirmngr: Removed the skeleton config file support.  The
+    system's standard methods for providing default configuration
+    files should be used instead.
+
+  * w32: The Windows installer now allows installation of GnuPG
+    without Administrator permissions.
+
+  * gpg: Fixed import filter property match bug.
+
+  * scd: Removed Linux support for Cardman 4040 PCMCIA reader.
+
+  * scd: Fixed some corner case bugs in resume/suspend handling.
+
+  * Many minor bug fixes and code cleanup.
+
+
+Noteworthy changes in version 2.1.20 (2017-04-03)
+-------------------------------------------------
+
+  * gpg: New properties 'expired', 'revoked', and 'disabled' for the
+    import and export filters.
+
+  * gpg: New command --quick-set-primary-uid.
+
+  * gpg: New compliance field for the --with-colon key listing.
+
+  * gpg: Changed the key parser to generalize the processing of local
+    meta data packets.
+
+  * gpg: Fixed assertion failure in the TOFU trust model.
+
+  * gpg: Fixed exporting of zero length user ID packets.
+
+  * scd: Improved support for multiple readers.
+
+  * scd: Fixed timeout handling for key generation.
+
+  * agent: New option --enable-extended-key-format.
+
+  * dirmngr: Do not add a keyserver to a new dirmngr.conf.  Dirmngr
+    uses a default keyserver.
+
+  * dimngr: Do not treat TLS warning alerts as severe error when
+    building with GNUTLS.
+
+  * dirmngr: Actually take /etc/hosts in account.
+
+  * wks: Fixed client problems on Windows.  Published keys are now set
+    to world-readable.
+
+  * tests: Fixed creation of temporary directories.
+
+  * A socket directory for a non standard GNUGHOME is now created on
+    the fly under /run/user.  Thus "gpgconf --create-socketdir" is now
+    optional.  The use of "gpgconf --remove-socketdir" to clean up
+    obsolete socket directories is however recommended to avoid
+    cluttering /run/user with useless directories.
+
+  * Fixed build problems on some platforms.
+
+
+
+Noteworthy changes in version 2.1.19 (2017-03-01)
+-------------------------------------------------
+
+  * gpg: Print a warning if Tor mode is requested but the Tor daemon
+    is not running.
+
+  * gpg: New status code DECRYPTION_KEY to print the actual private
+    key used for decryption.
+
+  * gpgv: New options --log-file and --debug.
+
+  * gpg-agent: Revamp the prompts to ask for card PINs.
+
+  * scd: Support for multiple card readers.
+
+  * scd: Removed option --debug-disable-ticker.  Ticker is used
+    only when it is required to watch removal of device/card.
+
+  * scd: Improved detection of card inserting and removal.
+
+  * dirmngr: New option --disable-ipv4.
+
+  * dirmngr: New option --no-use-tor to explicitly disable the use of
+    Tor.
+
+  * dirmngr: The option --allow-version-check is now required even if
+    the option --use-tor is also used.
+
+  * dirmngr: Handle a missing nsswitch.conf gracefully.
+
+  * dirmngr: Avoid PTR lookups for keyserver pools.  The are only done
+    for the debug command "keyserver --hosttable".
+
+  * dirmngr: Rework the internal certificate cache to support classes
+    of certificates.  Load system provided certificates on startup.
+    Add options --tls, --no-crl, and --systrust to the "VALIDATE"
+    command.
+
+  * dirmngr: Add support for the ntbtls library.
+
+  * wks: Create mails with a "WKS-Phase" header.  Fix detection of
+    Draft-2 mode.
+
+  * The Windows installer is now build with limited TLS support.
+
+  * Many other bug fixes and new regression tests.
+
+  See-also: gnupg-announce/2017q1/000402.html
+
+
+Noteworthy changes in version 2.1.18 (2017-01-23)
+-------------------------------------------------
+
+  * gpg: Remove bogus subkey signature while cleaning a key (with
+    export-clean, import-clean, or --edit-key's sub-command clean)
+
+  * gpg: Allow freezing the clock with --faked-system-time.
+
+  * gpg: New --export-option flag "backup", new --import-option flag
+    "restore".
+
+  * gpg-agent: Fixed long delay due to a regression in the progress
+    callback code.
+
+  * scd: Lots of code cleanup and internal changes.
+
+  * scd: Improved the internal CCID driver.
+
+  * dirmngr: Fixed problem with the DNS glue code (removal of the
+    trailing dot in domain names).
+
+  * dirmngr: Make sure that Tor is actually enabled after changing the
+    conf file and sending SIGHUP or "gpgconf --reload dirmngr".
+
+  * dirmngr: Fixed Tor access to IPv6 addresses.  Note that current
+    versions of Tor may require that the flag "IPv6Traffic" is used
+    with the option "SocksPort" in torrc to actually allow IPv6
+    traffic.
+
+  * dirmngr: Fixed HKP for literally given IPv6 addresses.
+
+  * dirmngr: Enabled reverse DNS lookups via Tor.
+
+  * dirmngr: Added experimental SRV record lookup for WKD.
+    See commit 88dc3af3d4ae1afe1d5e136bc4c38bc4e7d4cd10 for details.
+
+  * dirmngr: For HKP use "pgpkey-hkps" and "pgpkey-hkp" in SRV record
+    lookups.  Avoid SRV record lookup when a port is explicitly
+    specified.  This fixes a regression from the 1.4 and 2.0 behavior.
+
+  * dirmngr: Gracefully handle a missing /etc/nsswitch.conf.  Ignore
+    negation terms (e.g. "[!UNAVAIL=return]" instead of bailing out.
+
+  * dirmngr: Better debug output for flags "dns" and "network".
+
+  * dirmngr: On reload mark all known HKP servers alive.
+
+  * gpgconf: Allow keyword "all" for --launch, --kill, and --reload.
+
+  * tools: gpg-wks-client now ignores a missing policy file on the
+    server.
+
+  * Avoid unnecessary ambiguity error message in the option parsing.
+
+  * Further improvements of the regression test suite.
+
+  * Fixed building with --disable-libdns configure option.
+
+  * Fixed a crash running the tests on 32 bit architectures.
+
+  * Fixed spurious failures on BSD system in the spawn functions.
+    This affected for example gpg-wks-client and gpgconf.
+
+  See-also: gnupg-announce/2017q1/000401.html
+
+
+Noteworthy changes in version 2.1.17 (2016-12-20)
+-------------------------------------------------
+
+ * gpg: By default new keys expire after 2 years.
+
+ * gpg: New command --quick-set-expire to conveniently change the
+   expiration date of keys.
+
+ * gpg: Option and command names have been changed for easier
+   comprehension.  The old names are still available as aliases.
+
+ * gpg: Improved the TOFU trust model.
+
+ * gpg: New option --default-new-key-algo.
+
+ * scd: Support OpenPGP card V3 for RSA.
+
+ * dirmngr: Support for the ADNS library has been removed.  Instead
+   William Ahern's Libdns is now source included and used on all
+   platforms.  This enables Tor support on all platforms.  The new
+   option --standard-resolver can be used to disable this code at
+   runtime.  In case of build problems the new configure option
+   --disable-libdns can be used to build without Libdns.
+
+ * dirmngr: Lazily launch ldap reaper thread.
+
+ * tools: New options --check and --status-fd for gpg-wks-client.
+
+ * The UTF-8 byte order mark is now skipped when reading conf files.
+
+ * Fixed many bugs and regressions.
+
+ * Major improvements to the test suite.  For example it is possible
+   to run the external test suite of GPGME.
+
+ See-also: gnupg-announce/2016q4/000400.html
+
+
+Noteworthy changes in version 2.1.16 (2016-11-18)
+-------------------------------------------------
+
+ * gpg: New algorithm for selecting the best ranked public key when
+   using a mail address with -r, -R, or --locate-key.
+
+ * gpg: New option --with-tofu-info to print a new "tfs" record in
+   colon formatted key listings.
+
+ * gpg: New option --compliance as an alternative way to specify
+   options like --rfc2440, --rfc4880, et al.
+
+ * gpg: Many changes to the TOFU implementation.
+
+ * gpg: Improve usability of --quick-gen-key.
+
+ * gpg: In --verbose mode print a diagnostic when a pinentry is
+   launched.
+
+ * gpg: Remove code which warns for old versions of gnome-keyring.
+
+ * gpg: New option --override-session-key-fd.
+
+ * gpg: Option --output does now work with --verify.
+
+ * gpgv: New option --output to allow saving the verified data.
+
+ * gpgv: New option --enable-special-filenames.
+
+ * agent, dirmngr: New --supervised mode for use by systemd and alike.
+
+ * agent: By default listen on all available sockets using standard
+   names.
+
+ * agent: Invoke scdaemon with --homedir.
+
+ * dirmngr: On Linux now detects the removal of its own socket and
+   terminates.
+
+ * scd: Support ECC key generation.
+
+ * scd: Support more card readers.
+
+ * dirmngr: New option --allow-version-check to download a software
+   version database in the background.
+
+ * dirmngr: Use system provided CAs if no --hkp-cacert is given.
+
+ * dirmngr: Use a default keyserver if none is explicitly set
+
+ * gpgconf: New command --query-swdb to check software versions
+   against an copy of an online database.
+
+ * gpgconf: Print the socket directory with --list-dirs.
+
+ * tools: The WKS tools now support draft version -02.
+
+ * tools: Always build gpg-wks-client and install under libexec.
+
+ * tools: New option --supported for gpg-wks-client.
+
+ * The log-file option now accepts a value "socket://" to log to the
+   socket named "S.log" in the standard socket directory.
+
+ * Provide fake pinentries for use by tests cases of downstream
+   developers.
+
+ * Fixed many bugs and regressions.
+
+ * Many changes and improvements for the test suite.
+
+ See-also: gnupg-announce/2016q4/000398.html
+
+
+Noteworthy changes in version 2.1.15 (2016-08-18)
+-------------------------------------------------
+
+ * gpg: Remove the --tofu-db-format option and support for the split
+   TOFU database.
+
+ * gpg: Add option --sender to prepare for coming features.
+
+ * gpg: Add option --input-size-hint to help progress indicators.
+
+ * gpg: Extend the PROGRESS status line with the counted unit.
+
+ * gpg: Avoid publishing the GnuPG version by default with --armor.
+
+ * gpg: Properly ignore legacy keys in the keyring cache.
+
+ * gpg: Always print fingerprint records in --with-colons mode.
+
+ * gpg: Make sure that keygrips are printed for each subkey in
+   --with-colons mode.
+
+ * gpg: New import filter "drop-sig".
+
+ * gpgsm: Fix a bug in the machine-readable key listing.
+
+ * gpg,gpgsm: Block signals during keyring updates to limits the
+   effects of a Ctrl-C at the wrong time.
+
+ * g13: Add command --umount and other fixes for dm-crypt.
+
+ * agent: Fix regression in SIGTERM handling.
+
+ * agent: Cleanup of the ssh-agent code.
+
+ * agent: Allow import of overly long keys.
+
+ * scd: Fix problems with card removal.
+
+ * dirmngr: Remove all code for running as a system service.
+
+ * tools: Make gpg-wks-client conforming to the specs.
+
+ * tests: Improve the output of the new regression test tool.
+
+ * tests: Distribute the standalone test runner.
+
+ * tests: Run each test in a clean environment.
+
+ * Spelling and grammar fixes.
+
+ See-also: gnupg-announce/2016q3/000396.html
+
+
+Noteworthy changes in version 2.1.14 (2016-07-14)
+-------------------------------------------------
+
+ * gpg: Removed options --print-dane-records and --print-pka-records.
+   The new export options "export-pka" and "export-dane" can instead
+   be used with the export command.
+
+ * gpg: New options --import-filter and --export-filter.
+
+ * gpg: New import options "import-show" and "import-export".
+
+ * gpg: New option --no-keyring.
+
+ * gpg: New command --quick-revuid.
+
+ * gpg: New options -f/--recipient-file and -F/--hidden-recipient-file
+   to directly specify encryption keys.
+
+ * gpg: New option --mimemode to indicate that the content is a MIME
+   part.  Does only enable --textmode right now.
+
+ * gpg: New option --rfc4880bis to allow experiments with proposed
+   changes to the current OpenPGP specs.
+
+ * gpg: Fix regression in the "fetch" sub-command of --card-edit.
+
+ * gpg: Fix regression since 2.1 in option --try-all-secrets.
+
+ * gpgv: Change default options for extra security.
+
+ * gpgsm: No more root certificates are installed by default.
+
+ * agent: "updatestartuptty" does now affect more environment
+   variables.
+
+ * scd: The option --homedir does now work with scdaemon.
+
+ * scd: Support some more GEMPlus card readers.
+
+ * gpgtar: Fix handling of '-' as file name.
+
+ * gpgtar: New commands --create and --extract.
+
+ * gpgconf: Tweak for --list-dirs to better support shell scripts.
+
+ * tools: Add programs gpg-wks-client and gpg-wks-server to implement
+   a Web Key Service.  The configure option --enable-wks-tools is
+   required to build them; they should be considered Beta software.
+
+ * tests: Complete rework of the openpgp part of the test suite.  The
+   test scripts have been changed from Bourne shell scripts to Scheme
+   programs.  A customized scheme interpreter (gpgscm) is included.
+   This change was triggered by the need to run the test suite on
+   non-Unix platforms.
+
+ * The rendering of the man pages has been improved.
+
+ See-also: gnupg-announce/2016q3/000393.html
+
+
+Noteworthy changes in version 2.1.13 (2016-06-16)
+-------------------------------------------------
+
+ * gpg: New command --quick-addkey.  Extend the --quick-gen-key
+   command.
+
+ * gpg: New --keyid-format "none" which is now also the default.
+
+ * gpg: New option --with-subkey-fingerprint.
+
+ * gpg: Include Signer's UID subpacket in signatures if the secret key
+   has been specified using a mail address and the new option
+   --disable-signer-uid is not used.
+
+ * gpg: Allow unattended deletion of a secret key.
+
+ * gpg: Allow export of non-passphrase protected secret keys.
+
+ * gpg: New status lines KEY_CONSIDERED and NOTATION_FLAGS.
+
+ * gpg: Change status line TOFU_STATS_LONG to use '~' as
+   a non-breaking-space character.
+
+ * gpg: Speedup key listings in Tofu mode.
+
+ * gpg: Make sure that the current and total values of a PROGRESS
+   status line are small enough.
+
+ * gpgsm: Allow the use of AES192 and SERPENT ciphers.
+
+ * dirmngr: Adjust WKD lookup to current specs.
+
+ * dirmngr: Fallback to LDAP v3 if v2 is is not supported.
+
+ * gpgconf: New commands --create-socketdir and --remove-socketdir,
+   new option --homedir.
+
+ * If a /run/user/$UID directory exists, that directory is now used
+   for IPC sockets instead of the GNUPGHOME directory.  This fixes
+   problems with NFS and too long socket names and thus avoids the
+   need for redirection files.
+
+ * The Speedo build systems now uses the new versions.gnupg.org server
+   to retrieve the default package versions.
+
+ * Fix detection of libusb on FreeBSD.
+
+ * Speedup fd closing after a fork.
+
+ See-also: gnupg-announce/2016q2/000390.html
+
+
+Noteworthy changes in version 2.1.12 (2016-05-04)
+-------------------------------------------------
+
+ * gpg: New --edit-key sub-command "change-usage" for testing
+   purposes.
+
+ * gpg: Out of order key-signatures are now systematically detected
+   and fixed by --edit-key.
+
+ * gpg: Improved detection of non-armored messages.
+
+ * gpg: Removed the extra prompt needed to create Curve25519 keys.
+
+ * gpg: Improved user ID selection for --quick-sign-key.
+
+ * gpg: Use the root CAs provided by the system with --fetch-key.
+
+ * gpg: Add support for the experimental Web Key Directory key
+   location service.
+
+ * gpg: Improve formatting of Tofu messages and emit new Tofu specific
+   status lines.
+
+ * gpgsm: Add option --pinentry-mode to support a loopback pinentry.
+
+ * gpgsm: A new pubring.kbx is now created with the header blob so
+   that gpg can detect that the keybox format needs to be used.
+
+ * agent: Add read support for the new private key protection format
+   openpgp-s2k-ocb-aes.
+
+ * agent: Add read support for the new extended private key format.
+
+ * agent: Default to --allow-loopback-pinentry and add option
+   --no-allow-loopback-pinentry.
+
+ * scd: Changed to use the new libusb 1.0 API for the internal CCID
+   driver.
+
+ * dirmngr: The dirmngr-client does now auto-detect the PEM format.
+
+ * g13: Add experimental support for dm-crypt.
+
+ * w32: Tofu support is now available with the Speedo build method.
+
+ * w32: Removed the need for libiconv.dll.
+
+ * The man pages for gpg and gpgv are now installed under the correct
+   name (gpg2 or gpg - depending on a configure option).
+
+ * Lots of internal cleanups and bug fixes.
+
+ See-also: gnupg-announce/2016q2/000387.html
+
+
+Noteworthy changes in version 2.1.11 (2016-01-26)
+-------------------------------------------------
+
+ * gpg: New command --export-ssh-key to replace the gpgkey2ssh tool.
+
+ * gpg: Allow to generate mail address only keys with --gen-key.
+
+ * gpg: "--list-options show-usage" is now the default.
+
+ * gpg: Make lookup of DNS CERT records holding an URL work.
+
+ * gpg: Emit PROGRESS status lines during key generation.
+
+ * gpg: Don't check for ambigious or non-matching key specification in
+   the config file or given to --encrypt-to.  This feature will return
+   in 2.3.x.
+
+ * gpg: Lock keybox files while updating them.
+
+ * gpg: Solve rare error on Windows during keyring and Keybox updates.
+
+ * gpg: Fix possible keyring corruption. (bug#2193)
+
+ * gpg: Fix regression of "bkuptocard" sub-command in --edit-key and
+   remove "checkbkupkey" sub-command introduced with 2.1.  (bug#2169)
+
+ * gpg: Fix internal error in gpgv when using default keyid-format.
+
+ * gpg: Fix --auto-key-retrieve to work with dirmngr.conf configured
+   keyservers. (bug#2147).
+
+ * agent: New option --pinentry-timeout.
+
+ * scd: Improve unplugging of USB readers under Windows.
+
+ * scd: Fix regression for generating RSA keys on card.
+
+ * dirmmgr: All configured keyservers are now searched.
+
+ * dirmngr: Install CA certificate for hkps.pool.sks-keyservers.net.
+   Use this certiticate even if --hkp-cacert is not used.
+
+ * gpgtar: Add actual encryption code.  gpgtar does now fully replace
+   gpg-zip.
+
+ * gpgtar: Fix filename encoding problem on Windows.
+
+ * Print a warning if a GnuPG component is using an older version of
+   gpg-agent, dirmngr, or scdaemon.
+
+ See-also: gnupg-announce/2016q1/000383.html
+
+
+Noteworthy changes in version 2.1.10 (2015-12-04)
+-------------------------------------------------
+
+ * gpg: New trust models "tofu" and "tofu+pgp".
+
+ * gpg: New command --tofu-policy.  New options --tofu-default-policy
+   and --tofu-db-format.
+
+ * gpg: New option --weak-digest to specify hash algorithms which
+   should be considered weak.
+
+ * gpg: Allow the use of multiple --default-key options; take the last
+   available key.
+
+ * gpg: New option --encrypt-to-default-key.
+
+ * gpg: New option --unwrap to only strip the encryption layer.
+
+ * gpg: New option --only-sign-text-ids to exclude photo IDs from key
+   signing.
+
+ * gpg: Check for ambigious or non-matching key specification in the
+   config file or given to --encrypt-to.
+
+ * gpg: Show the used card reader with --card-status.
+
+ * gpg: Print export statistics and an EXPORTED status line.
+
+ * gpg: Allow selecting subkeys by keyid in --edit-key.
+
+ * gpg: Allow updating the expiration time of multiple subkeys at
+   once.
+
+ * dirmngr: New option --use-tor.  For full support this requires
+   libassuan version 2.4.2 and a patched version of libadns
+   (e.g. adns-1.4-g10-7 as used by the standard Windows installer).
+
+ * dirmngr: New option --nameserver to specify the nameserver used in
+   Tor mode.
+
+ * dirmngr: Keyservers may again be specified by IP address.
+
+ * dirmngr: Fixed problems in resolving keyserver pools.
+
+ * dirmngr: Fixed handling of premature termination of TLS streams so
+   that large numbers of keys can be refreshed via hkps.
+
+ * gpg: Fixed a regression in --locate-key [since 2.1.9].
+
+ * gpg: Fixed another bug for keyrings with legacy keys.
+
+ * gpgsm: Allow combinations of usage flags in --gen-key.
+
+ * Make tilde expansion work with most options.
+
+ * Many other cleanups and bug fixes.
+
+ See-also: gnupg-announce/2015q4/000381.html
+
+
+Noteworthy changes in version 2.1.9 (2015-10-09)
+------------------------------------------------
+
+ * gpg: Allow fetching keys via OpenPGP DANE (--auto-key-locate).  New
+   option --print-dane-records.  [Update: --print-dane-records replaced
+   in 2.1.4.]
+
+ * gpg: Fix for a problem with PGP-2 keys in a keyring.
+
+ * gpg: Fail with an error instead of a warning if a modern cipher
+   algorithm is used without a MDC.
+
+ * agent: New option --pinentry-invisible-char.
+
+ * agent: Always do a RSA signature verification after creation.
+
+ * agent: Fix a regression in ssh-add-ing Ed25519 keys.
+
+ * agent: Fix ssh fingerprint computation for nistp384 and EdDSA.
+
+ * agent: Fix crash during passphrase entry on some platforms.
+
+ * scd: Change timeout to fix problems with some 2.1 cards.
+
+ * dirmngr: Displayed name is now Key Acquirer.
+
+ * dirmngr: Add option --keyserver.  Deprecate that option for gpg.
+   Install a dirmngr.conf file from a skeleton for new installations.
+
+ See-also: gnupg-announce/2015q4/000380.html
+
+
+Noteworthy changes in version 2.1.8 (2015-09-10)
+------------------------------------------------
+
+ * gpg: Sending very large keys to the keyservers works again.
+
+ * gpg: Validity strings in key listings are now again translatable.
+
+ * gpg: Emit FAILURE status lines to help GPGME.
+
+ * gpg: Does not anymore link to Libksba to reduce dependencies.
+
+ * gpgsm: Export of secret keys via Assuan is now possible.
+
+ * agent: Raise the maximum passphrase length from 100 to 255 bytes.
+
+ * agent: Fix regression using EdDSA keys with ssh.
+
+ * Does not anymore use a build timestamp by default.
+
+ * The fallback encoding for broken locale settings changed
+   from Latin-1 to UTF-8.
+
+ * Many code cleanups and improved internal documentation.
+
+ * Various minor bug fixes.
+
+ See-also: gnupg-announce/2015q3/000379.html
+
+
+Noteworthy changes in version 2.1.7 (2015-08-11)
+------------------------------------------------
+
+ * gpg: Support encryption with Curve25519 if Libgcrypt 1.7 is used.
+
+ * gpg: In the --edit-key menu: Removed the need for "toggle", changed
+   how secret keys are indicated, new commands "fpr *" and "grip".
+
+ * gpg: More fixes related to legacy keys in a keyring.
+
+ * gpgv: Does now also work with a "trustedkeys.kbx" file.
+
+ * scd: Support some feature from the OpenPGP card 3.0 specs.
+
+ * scd: Improved ECC support
+
+ * agent: New option --force for the DELETE_KEY command.
+
+ * w32: Look for the Pinentry at more places.
+
+ * Dropped deprecated gpgsm-gencert.sh
+
+ * Various other bug fixes.
+
+ See-also: gnupg-announce/2015q3/000371.html
+
+
+Noteworthy changes in version 2.1.6 (2015-07-01)
+------------------------------------------------
+
+ * agent: New option --verify for the PASSWD command.
+
+ * gpgsm: Add command option "offline" as an alternative to
+   --disable-dirmngr.
+
+ * gpg: Do not prompt multiple times for a password in pinentry
+   loopback mode.
+
+ * Allow the use of debug category names with --debug.
+
+ * Using gpg-agent and gpg/gpgsm with different locales will now show
+   the correct translations in Pinentry.
+
+ * gpg: Improve speed of --list-sigs and --check-sigs.
+
+ * gpg: Make --list-options show-sig-subpackets work again.
+
+ * gpg: Fix an export problem for old keyrings with PGP-2 keys.
+
+ * scd: Support PIN-pads on more readers.
+
+ * dirmngr: Properly cleanup zombie LDAP helper processes and avoid
+   hangs on dirmngr shutdown.
+
+ * Various other bug fixes.
+
+ See-also: gnupg-announce/2015q3/000370.html
+
+
+Noteworthy changes in version 2.1.5 (2015-06-11)
+------------------------------------------------
+
+ * Support for an external passphrase cache.
+
+ * Support for the forthcoming version 3 OpenPGP smartcard.
+
+ * Manuals now show the actual used file names.
+
+ * Prepared for improved integration with Emacs.
+
+ * Code cleanups and minor bug fixes.
+
+ See-also: gnupg-announce/2015q2/000369.html
+
+
+Noteworthy changes in version 2.1.4 (2015-05-12)
+------------------------------------------------
+
+ * gpg: Add command --quick-adduid to non-interactively add a new user
+   id to an existing key.
+
+ * gpg: Do no enable honor-keyserver-url by default.  Make it work if
+   enabled.
+
+ * gpg: Display the serial number in the --card-status output again.
+
+ * agent: Support for external password managers.
+   Add option --no-allow-external-cache.
+
+ * scdaemon: Improved handling of extended APDUs.
+
+ * Make HTTP proxies work again.
+
+ * All network access including DNS as been moved to Dirmngr.
+
+ * Allow building without LDAP support.
+
+ * Fixed lots of smaller bugs.
+
+ See-also: gnupg-announce/2015q2/000366.html
+
+
+Noteworthy changes in version 2.1.3 (2015-04-11)
+------------------------------------------------
+
+ * gpg: LDAP keyservers are now supported by 2.1.
+
+ * gpg: New option --with-icao-spelling.
+
+ * gpg: New option --print-pka-records.  Changed the PKA method to use
+   CERT records and hashed names.  [Update: --print-pka-records
+   replaced in 2.1.14.]
+
+ * gpg: New command --list-gcrypt-config.  New parameter "curve"
+   for --list-config.
+
+ * gpg: Print a NEWSIG status line like gpgsm always did.
+
+ * gpg: Print MPI values with --list-packets and --verbose.
+
+ * gpg: Write correct MPI lengths with ECC keys.
+
+ * gpg: Skip legacy PGP-2 keys while searching.
+
+ * gpg: Improved searching for mail addresses when using a keybox.
+
+ * gpgsm: Changed default algos to AES-128 and SHA-256.
+
+ * gpgtar: Fixed extracting files with sizes of a multiple of 512.
+
+ * dirmngr: Fixed SNI handling for hkps pools.
+
+ * dirmngr: extra-certs and trusted-certs are now always loaded from
+   the sysconfig dir instead of the homedir.
+
+ * Fixed possible problems due to compiler optimization, two minor
+   regressions, and other bugs.
+
+ See-also: gnupg-announce/2015q2/000365.html
+
+
+Noteworthy changes in version 2.1.2 (2015-02-11)
+------------------------------------------------
+
+ * gpg: The parameter 'Passphrase' for batch key generation works
+   again.
+
+ * gpg: Using a passphrase option in batch mode now has the expected
+   effect on --quick-gen-key.
+
+ * gpg: Improved reporting of unsupported PGP-2 keys.
+
+ * gpg: Added support for algo names when generating keys using
+   --command-fd.
+
+ * gpg: Fixed DoS based on bogus and overlong key packets.
+
+ * agent: When setting --default-cache-ttl the value
+   for --max-cache-ttl is adjusted to be not lower than the former.
+
+ * agent: Fixed problems with the new --extra-socket.
+
+ * agent: Made --allow-loopback-pinentry changeable with gpgconf.
+
+ * agent: Fixed importing of unprotected openpgp keys.
+
+ * agent: Now tries to use a fallback pinentry if the standard
+   pinentry is not installed.
+
+ * scd: Added support for ECDH.
+
+ * Fixed several bugs related to bogus keyrings and improved some
+   other code.
+
+ See-also: gnupg-announce/2015q1/000361.html
+
+
+Noteworthy changes in version 2.1.1 (2014-12-16)
+------------------------------------------------
+
+ * gpg: Detect faulty use of --verify on detached signatures.
+
+ * gpg: New import option "keep-ownertrust".
+
+ * gpg: New sub-command "factory-reset" for --card-edit.
+
+ * gpg: A stub key for smartcards is now created by --card-status.
+
+ * gpg: Fixed regression in --refresh-keys.
+
+ * gpg: Fixed regresion in %g and %p codes for --sig-notation.
+
+ * gpg: Fixed best matching hash algo detection for ECDSA and EdDSA.
+
+ * gpg: Improved perceived speed of secret key listisngs.
+
+ * gpg: Print number of skipped PGP-2 keys on import.
+
+ * gpg: Removed the option aliases --throw-keyid and --notation-data;
+   use --throw-keyids and --set-notation instead.
+
+ * gpg: New import option "keep-ownertrust".
+
+ * gpg: Skip too large keys during import.
+
+ * gpg,gpgsm: New option --no-autostart to avoid starting gpg-agent or
+   dirmngr.
+
+ * gpg-agent: New option --extra-socket to provide a restricted
+   command set for use with remote clients.
+
+ * gpgconf --kill does not anymore start a service only to kill it.
+
+ * gpg-pconnect-agent: Add convenience option --uiserver.
+
+ * Fixed keyserver access for Windows.
+
+ * Fixed build problems on Mac OS X
+
+ * The Windows installer does now install development files
+
+ * More translations (but most of them are not complete).
+
+ * To support remotely mounted home directories, the IPC sockets may
+   now be redirected.  This feature requires Libassuan 2.2.0.
+
+ * Improved portability and the usual bunch of bug fixes.
+
+ See-also: gnupg-announce/2014q4/000360.html
+
+
+Noteworthy changes in version 2.1.0 (2014-11-06)
+------------------------------------------------
+
+ This release introduces a lot of changes.  Most of them are internal
+ and thus not user visible.  However, some long standing behavior has
+ slightly changed and it is strongly suggested that an existing
+ "~/.gnupg" directory is backed up before this version is used.
+
+ A verbose description of the major new features and changes can be
+ found in the file doc/whats-new-in-2.1.txt.
+
+ * gpg: All support for v3 (PGP 2) keys has been dropped.  All
+   signatures are now created as v4 signatures.  v3 keys will be
+   removed from the keyring.
+
+ * gpg: With pinentry-0.9.0 the passphrase "enter again" prompt shows
+   up in the same window as the "new passphrase" prompt.
+
+ * gpg: Allow importing keys with duplicated long key ids.
+
+ * dirmngr: May now be build without support for LDAP.
+
+ * For a complete list of changes see the lists of changes for the
+   2.1.0 beta versions below.  Note that all relevant fixes from
+   versions 2.0.14 to 2.0.26 are also applied to this version.
+
+
+ [Noteworthy changes in version 2.1.0-beta864 (2014-10-03)]
+
+ * gpg: Removed the GPG_AGENT_INFO related code.  GnuPG does now
+   always use a fixed socket name in its home directory.
+
+ * gpg: Renamed --gen-key to --full-gen-key and re-added a --gen-key
+   command with less choices.
+
+ * gpg: Use SHA-256 for all signature types also on RSA keys.
+
+ * gpg: Default keyring is now created with a .kbx suffix.
+
+ * gpg: Add a shortcut to the key capabilies menu (e.g. "=e" sets the
+   encryption capabilities).
+
+ * gpg: Fixed obsolete options parsing.
+
+ * Further improvements for the alternative speedo build system.
+
+
+ [Noteworthy changes in version 2.1.0-beta834 (2014-09-18)]
+
+ * gpg: Improved passphrase caching.
+
+ * gpg: Switched to algorithm number 22 for EdDSA.
+
+ * gpg: Removed CAST5 from the default preferences.
+
+ * gpg: Order SHA-1 last in the hash preferences.
+
+ * gpg: Changed default cipher for --symmetric to AES-128.
+
+ * gpg: Fixed export of ECC keys and import of EdDSA keys.
+
+ * dirmngr: Fixed the KS_FETCH command.
+
+ * The speedo build system now downloads related packages and works
+   for non-Windows platforms.
+
+
+ [Noteworthy changes in version 2.1.0-beta783 (2014-08-14)]
+
+ * gpg: Add command --quick-gen-key.
+
+ * gpg: Make --quick-sign-key promote local key signatures.
+
+ * gpg: Added "show-usage" sub-option to --list-options.
+
+ * gpg: Screen keyserver responses to avoid importing unwanted keys
+   from rogue servers.
+
+ * gpg: Removed the option --pgp2 and --rfc1991 and the ability to
+   create PGP-2 compatible messages.
+
+ * gpg: Removed options --compress-keys and --compress-sigs.
+
+ * gpg: Cap attribute packets at 16MB.
+
+ * gpg: Improved output of --list-packets.
+
+ * gpg: Make with-colons output of --search-keys work again.
+
+ * gpgsm: Auto-create the ".gnupg" directory like gpg does.
+
+ * agent: Fold new passphrase warning prompts into one.
+
+ * scdaemon: Add support for the Smartcard-HSM card.
+
+ * scdaemon: Remove the use of the pcsc-wrapper.
+
+
+ [Noteworthy changes in version 2.1.0-beta751 (2014-07-03)]
+
+ * gpg: Create revocation certificates during key generation.
+
+ * gpg: Create exported secret keys and revocation certifciates with
+   mode 0700
+
+ * gpg: The validity of user ids is now shown by default.  To revert
+   this add "list-options no-show-uid-validity" to gpg.conf.
+
+ * gpg: Make export of secret keys work again.
+
+ * gpg: The output of --list-packets does now print the offset of the
+   packet and information about the packet header.
+
+ * gpg: Avoid DoS due to garbled compressed data packets. [CVE-2014-4617]
+
+ * gpg: Print more specific reason codes with the INV_RECP status.
+
+ * gpg: Cap RSA and Elgamal keysize at 4096 bit also for unattended
+   key generation.
+
+ * scdaemon: Support reader Gemalto IDBridge CT30 and pinpad of SCT
+   cyberJack go.
+
+ * The speedo build system has been improved.  It is now also possible
+   to build a partly working installer for Windows.
+
+
+ [Noteworthy changes in version 2.1.0-beta442 (2014-06-05)]
+
+ * gpg: Changed the format of key listings.  To revert to the old
+   format the option --legacy-list-mode is available.
+
+ * gpg: Add experimental signature support using curve Ed25519 and
+   with a patched Libgcrypt also encryption support with Curve25519.
+   [Update: this encryption support has been removed from 2.1.0 until
+   we have agreed on a suitable format.]
+
+ * gpg: Allow use of Brainpool curves.
+
+ * gpg: Accepts a space separated fingerprint as user ID.  This
+   allows to copy and paste the fingerprint from the key listing.
+
+ * gpg: The hash algorithm is now printed for signature records in key
+   listings.
+
+ * gpg: Reject signatures made using the MD5 hash algorithm unless the
+   new option --allow-weak-digest-algos or --pgp2 are given.
+
+ * gpg: Print a warning if the Gnome-Keyring-Daemon intercepts the
+   communication with the gpg-agent.
+
+ * gpg: New option --pinentry-mode.
+
+ * gpg: Fixed decryption using an OpenPGP card.
+
+ * gpg: Fixed bug with deeply nested compressed packets.
+
+ * gpg: Only the major version number is by default included in the
+   armored output.
+
+ * gpg: Do not create a trustdb file if --trust-model=always is used.
+
+ * gpg: Protect against rogue keyservers sending secret keys.
+
+ * gpg: The format of the fallback key listing ("gpg KEYFILE") is now
+   more aligned to the regular key listing ("gpg -k").
+
+ * gpg: The option--show-session-key prints its output now before the
+   decryption of the bulk message starts.
+
+ * gpg: New %U expando for the photo viewer.
+
+ * gpg,gpgsm: New option --with-secret.
+
+ * gpgsm: By default the users are now asked via the Pinentry whether
+   they trust an X.509 root key.  To prohibit interactive marking of
+   such keys, the new option --no-allow-mark-trusted may be used.
+
+ * gpgsm: New commands to export a secret RSA key in PKCS#1 or PKCS#8
+   format.
+
+ * gpgsm: Improved handling of re-issued CA certificates.
+
+ * agent: The included ssh agent does now support ECDSA keys.
+
+ * agent: New option --enable-putty-support to allow gpg-agent on
+   Windows to act as a Pageant replacement with full smartcard support.
+
+ * scdaemon: New option --enable-pinpad-varlen.
+
+ * scdaemon: Various fixes for pinpad equipped card readers.
+
+ * scdaemon: Rename option --disable-pinpad (was --disable-keypad).
+
+ * scdaemon: Better support fo CCID readers.  Now, internal CCID
+   driver supports readers with no auto configuration feature.
+
+ * dirmngr: Removed support for the original HKP keyserver which is
+   not anymore used by any site.
+
+ * dirmngr: Improved support for keyserver pools.
+
+ * tools: New option --dirmngr for gpg-connect-agent.
+
+ * The GNU Pth library has been replaced by the new nPth library.
+
+ * Support installation as portable application under Windows.
+
+ * All kind of other improvements - see the git log.
+
+
+ [Noteworthy changes in version 2.1.0beta3 (2011-12-20)]
+
+ * gpg: Fixed regression in the secret key export function.
+
+ * gpg: Allow generation of card keys up to 4096 bit.
+
+ * gpgsm: Preliminary support for the validation model "steed".
+
+ * gpgsm: Improved certificate creation.
+
+ * agent: Support the SSH confirm flag.
+
+ * agent: New option to select a passphrase mode.  The loopback
+   mode may be used to bypass Pinentry.
+
+ * agent: The Assuan commands KILLAGENT and KILLSCD are working again.
+
+ * scdaemon: Does not anymore block after changing a card (regression
+   fix).
+
+ * tools: gpg-connect-agent does now proberly display the help output
+   for "SCD HELP" commands.
+
+
+ [Noteworthy changes in version 2.1.0beta2 (2011-03-08)]
+
+ * gpg: ECC support as described by draft-jivsov-openpgp-ecc-06.txt
+   [Update: now known as RFC-6637].
+
+ * gpg: Print "AES128" instead of "AES".  This change introduces a
+   little incompatibility for tools using "gpg --list-config".  We
+   hope that these tools are written robust enough to accept this new
+   algorithm name as well.
+
+ * gpgsm: New feature to create certificates from a parameter file.
+   Add prompt to the --gen-key UI to create self-signed certificates.
+
+ * agent: TMPDIR is now also honored when creating a socket using
+   the --no-standard-socket option and with symcryptrun's temp files.
+
+ * scdaemon: Fixed a bug where scdaemon sends a signal to gpg-agent
+   running in non-daemon mode.
+
+ * dirmngr: Fixed CRL loading under W32 (bug#1010).
+
+ * Dirmngr has taken over the function of the keyserver helpers.  Thus
+   we now have a specified direct interface to keyservers via Dirmngr.
+   LDAP, DNS and mail backends are not yet implemented.
+
+ * Fixed TTY management for pinentries and session variable update
+   problem.
+
+
+ [Noteworthy changes in version 2.1.0beta1 (2010-10-26)]
+
+ * gpg: secring.gpg is not anymore used but all secret key operations
+   are delegated to gpg-agent.  The import command moves secret keys
+   to the agent.
+
+ * gpg: The OpenPGP import command is now able to merge secret keys.
+
+ * gpg: Encrypted OpenPGP messages with trailing data (e.g. other
+   OpenPGP packets) are now correctly parsed.
+
+ * gpg: Given sufficient permissions Dirmngr is started automagically.
+
+ * gpg: Fixed output of "gpgconf --check-options".
+
+ * gpg: Removed options --export-options(export-secret-subkey-passwd)
+   and --simple-sk-checksum.
+
+ * gpg: New options --try-secret-key.
+
+ * gpg: Support DNS lookups for SRV, PKA and CERT on W32.
+
+ * gpgsm: The --audit-log feature is now more complete.
+
+ * gpgsm: The default for --include-cert is now to include all
+   certificates in the chain except for the root certificate.
+
+ * gpgsm: New option --ignore-cert-extension.
+
+ * g13: The G13 tool for disk encryption key management has been
+   added.
+
+ * agent: If the agent's --use-standard-socket option is active, all
+   tools try to start and daemonize the agent on the fly.  In the past
+   this was only supported on W32; on non-W32 systems the new
+   configure option --disable-standard-socket may now be used to
+   disable this new default.
+
+ * agent: New and changed passphrases are now created with an
+   iteration count requiring about 100ms of CPU work.
+
+ * dirmngr: Dirmngr is now a part of this package.  It is now also
+   expected to run as a system service and the configuration
+   directories are changed to the GnuPG name space. [Update: 2.1.0
+   starts dirmngr on demand as user daemon.]
+
+ * Support for Windows CE. [Update: This has not been tested for the
+   2.1.0 release]
+
+ * Numerical values may now be used as an alternative to the
+   debug-level keywords.
+
+ See-also: gnupg-announce/2014q4/000358.html
+
+
+Version 2.0.28 (2015-06-02)
+Version 2.0.27 (2015-02-18)
+Version 2.0.26 (2014-08-12)
+Version 2.0.25 (2014-06-30)
+Version 2.0.24 (2014-06-24)
+Version 2.0.23 (2014-06-03)
+Version 2.0.22 (2013-10-04)
+Version 2.0.21 (2013-08-19)
+Version 2.0.20 (2013-05-10)
+Version 2.0.19 (2012-03-27)
+Version 2.0.18 (2011-08-04)
+Version 2.0.17 (2011-01-13)
+Version 2.0.16 (2010-07-19)
+Version 2.0.15 (2010-03-09)
+Version 2.0.14 (2009-12-21)
+
+
+Noteworthy changes in version 2.0.13 (2009-09-04)
+-------------------------------------------------
+
+ * GPG now generates 2048 bit RSA keys by default.  The default hash
+   algorithm preferences has changed to prefer SHA-256 over SHA-1.
+   2048 bit DSA keys are now generated to use a 256 bit hash algorithm
+
+ * The envvars XMODIFIERS, GTK_IM_MODULE and QT_IM_MODULE are now
+   passed to the Pinentry to make SCIM work.
+
+ * The GPGSM command --gen-key features a --batch mode and implements
+   all features of gpgsm-gencert.sh in standard mode.
+
+ * New option --re-import for GPGSM's IMPORT server command.
+
+ * Enhanced writing of existing keys to OpenPGP v2 cards.
+
+ * Add hack to the internal CCID driver to allow the use of some
+   Omnikey based card readers with 2048 bit keys.
+
+ * GPG now repeatly asks the user to insert the requested OpenPGP
+   card.  This can be disabled with --limit-card-insert-tries=1.
+
+ * Minor bug fixes.
+
+ See-also: gnupg-announce/2009q3/000294.html
+
+
+Noteworthy changes in version 2.0.12 (2009-06-17)
+-------------------------------------------------
+
+ * GPGSM now always lists ephemeral certificates if specified by
+   fingerprint or keygrip.
+
+ * New command "KEYINFO" for GPG_AGENT.  GPGSM now also returns
+   information about smartcards.
+
+ * Made sure not to leak file descriptors if running gpg-agent with a
+   command.  Restore the signal mask to solve a problem in Mono.
+
+ * Changed order of the confirmation questions for root certificates
+   and store negative answers in trustlist.txt.
+
+ * Better synchronization of concurrent smartcard sessions.
+
+ * Support 2048 bit OpenPGP cards.
+
+ * Support Telesec Netkey 3 cards.
+
+ * The gpg-protect-tool now uses gpg-agent via libassuan.  Under
+   Windows the Pinentry will now be put into the foreground.
+
+ * Changed code to avoid a possible Mac OS X system freeze.
+
+ See-also: gnupg-announce/2009q2/000288.html
+
+
+Noteworthy changes in version 2.0.11 (2009-03-03)
+-------------------------------------------------
+
+ * Fixed a problem in SCDAEMON which caused unexpected card resets.
+
+ * SCDAEMON is now aware of the Geldkarte.
+
+ * The SCDAEMON option --allow-admin is now used by default.
+
+ * GPGCONF now restarts SCdaemon if necessary.
+
+ * The default cipher algorithm in GPGSM is now again 3DES.  This is
+   due to interoperability problems with Outlook 2003 which still
+   can't cope with AES.
+
+ See-also: gnupg-announce/2009q1/000287.html
+
+
+Noteworthy changes in version 2.0.10 (2009-01-12)
+-------------------------------------------------
+
+ * [gpg] New keyserver helper gpg2keys_kdns as generic DNS CERT
+   lookup.  Run with --help for a short description.  Requires the
+   ADNS library.
+
+ * [gpg] New mechanisms "local" and "nodefault" for --auto-key-locate.
+   Fixed a few problems with this option.
+
+ * [gpg] New command --locate-keys.
+
+ * [gpg] New options --with-sig-list and --with-sig-check.
+
+ * [gpg] The option "-sat" is no longer an alias for --clearsign.
+
+ * [gpg] The option --fixed-list-mode is now implicitly used and obsolete.
+
+ * [gpg] New control statement %ask-passphrase for the unattended key
+   generation.
+
+ * [gpg] The algorithm to compute the SIG_ID status has been changed.
+
+ * [gpgsm] Now uses AES by default.
+
+ * [gpgsm] Made --output option work with --export-secret-key-p12.
+
+ * [gpg-agent] Terminate process if the own listening socket is not
+   anymore served by ourself.
+
+ * [scdaemon] Made it more robust on W32.
+
+ * [gpg-connect-agent] Accept commands given as command line arguments.
+
+ * [w32] Initialized the socket subsystem for all keyserver helpers.
+
+ * [w32] The sysconf directory has been moved from a subdirectory of
+   the installation directory to %CSIDL_COMMON_APPDATA%/GNU/etc/gnupg.
+
+ * [w32] The gnupg2.nls directory is not anymore used.  The standard
+   locale directory is now used.
+
+ * [w32] Fixed a race condition between gpg and gpgsm in the use of
+   temporary file names.
+
+ * The gpg-preset-passphrase mechanism works again.  An arbitrary
+   string may now be used for a custom cache ID.
+
+ * Admin PINs are cached again (bug in 2.0.9).
+
+ * Support for version 2 OpenPGP cards.
+
+ * Libgcrypt 1.4 is now required.
+
+ See-also: gnupg-announce/2009q1/000284.html
+
+
+Noteworthy changes in version 2.0.9 (2008-03-26)
+------------------------------------------------
+
+ * Gpgsm always tries to locate missing certificates from a running
+   Dirmngr's cache.
+
+ * Tweaks for Windows.
+
+ * The Admin PIN for OpenPGP cards may now be entered with the pinpad.
+
+ * Improved certificate chain construction.
+
+ * Extended the PKITS framework.
+
+ * Fixed a bug in the ambigious name detection.
+
+ * Fixed possible memory corruption while importing OpenPGP keys (bug
+   introduced with 2.0.8). [CVE-2008-1530]
+
+ * Minor bug fixes.
+
+
+
+Noteworthy changes in version 2.0.8 (2007-12-20)
+------------------------------------------------
+
+ * Enhanced gpg-connect-agent with a small scripting language.
+
+ * New option --list-config for gpgconf.
+
+ * Fixed a crash in gpgconf.
+
+ * Gpg-agent now supports the passphrase quality bar of the latest
+   Pinentry.
+
+ * The envvars XAUTHORITY and PINENTRY_USER_DATA are now passed to the
+   Pinentry.
+
+ * Fixed the auto creation of the key stub for smartcards.
+
+ * Fixed a rare bug in decryption using the OpenPGP card.
+
+ * Creating DSA2 keys is now possible.
+
+ * New option --extra-digest-algo for gpgsm to allow verification of
+   broken signatures.
+
+ * Allow encryption with legacy Elgamal sign+encrypt keys with option
+   --rfc2440.
+
+ * Windows is now a supported platform.
+
+ * Made sure that under Windows the file permissions of the socket are
+   taken into account.  This required a change of our socket emulation
+   code and changed the IPC protocol under Windows.
+
+ See-also: gnupg-announce/2007q4/000267.html
+
+
+Noteworthy changes in version 2.0.7 (2007-09-10)
+------------------------------------------------
+
+ * Fixed encryption problem if duplicate certificates are in the
+   keybox.
+
+ * Made it work on Windows Vista.  Note that the entire Windows port
+   is still considered Beta.
+
+ * Add new options min-passphrase-nonalpha, check-passphrase-pattern,
+   enforce-passphrase-constraints and max-passphrase-days to
+   gpg-agent.
+
+ * Add command --check-components to gpgconf.  Gpgconf now uses the
+   installed versions of the programs and does not anymore search via
+   PATH for them.
+
+ See-also: gnupg-announce/2007q3/000259.html
+
+
+Noteworthy changes in version 2.0.6 (2007-08-16)
+------------------------------------------------
+
+ * GPGSM does now grok --default-key.
+
+ * GPGCONF is now aware of --default-key and --encrypt-to.
+
+ * GPGSM does again correctly print the serial number as well the the
+   various keyids.  This was broken since 2.0.4.
+
+ * New option --validation-model and support for the chain-model.
+
+ * Improved Windows support.
+
+ See-also: gnupg-announce/2007q3/000258.html
+
+
+Noteworthy changes in version 2.0.5 (2007-07-05)
+------------------------------------------------
+
+ * Switched license to GPLv3.
+
+ * Basic support for Windows.  Run "./autogen.sh --build-w32" to build
+   it.  As usual the mingw cross compiling toolchain is required.
+
+ * Fixed bug when using the --p12-charset without --armor.
+
+ * The command --gen-key may now be used instead of the
+   gpgsm-gencert.sh script.
+
+ * Changed key generation to reveal less information about the
+   machine.  Bug fixes for gpg2's card key generation.
+
+ See-also: gnupg-announce/2007q3/000255.html
+
+
+Noteworthy changes in version 2.0.4 (2007-05-09)
+------------------------------------------------
+
+ * The server mode key listing commands are now also working for
+   systems without the funopen/fopencookie API.
+
+ * PKCS#12 import now tries several encodings in case the passphrase
+   was not utf-8 encoded.  New option --p12-charset for gpgsm.
+
+ * Improved the libgcrypt logging support in all modules.
+
+ See-also: gnupg-announce/2007q2/000254.html
+
+
+Noteworthy changes in version 2.0.3 (2007-03-08)
+------------------------------------------------
+
+ * By default, do not allow processing multiple plaintexts in a single
+   stream.  Many programs that called GnuPG were assuming that GnuPG
+   did not permit this, and were thus not using the plaintext boundary
+   status tags that GnuPG provides.  This change makes GnuPG reject
+   such messages by default which makes those programs safe again.
+   --allow-multiple-messages returns to the old behavior. [CVE-2007-1263].
+
+ * New --verify-option show-primary-uid-only.
+
+ * gpgconf may now reads a global configuration file to select which
+   options are changeable by a frontend.  The new applygnupgdefaults
+   tool may be used by an admin to set default options for all users.
+
+ * The PIN pad of the Cherry XX44 keyboard is now supported.  The
+   DINSIG and the NKS applications are now also aware of PIN pads.
+
+ See-also: gnupg-announce/2007q1/000252.html
+
+
+Noteworthy changes in version 2.0.2 (2007-01-31)
+------------------------------------------------
+
+ * Fixed a serious and exploitable bug in processing encrypted
+   packages. [CVE-2006-6235].
+
+ * Added --passphrase-repeat to set the number of times GPG will
+   prompt for a new passphrase to be repeated.  This is useful to help
+   memorize a new passphrase.  The default is 1 repetition.
+
+ * Using a PIN pad does now also work for the signing key.
+
+ * A warning is displayed by gpg-agent if a new passphrase is too
+   short.  New option --min-passphrase-len defaults to 8.
+
+ * The status code BEGIN_SIGNING now shows the used hash algorithms.
+
+ See-also: gnupg-announce/2007q1/000249.html
+
+
+Noteworthy changes in version 2.0.1 (2006-11-28)
+------------------------------------------------
+
+ * Experimental support for the PIN pads of the SPR 532 and the Kaan
+   Advanced card readers.  Add "disable-keypad" scdaemon.conf if you
+   don't want it.  Does currently only work for the OpenPGP card and
+   its authentication and decrypt keys.
+
+ * Fixed build problems on some some platforms and crashes on amd64.
+
+ * Fixed a buffer overflow in gpg2. [bug#728,CVE-2006-6169]
+
+ See-also: gnupg-announce/2006q4/000242.html
+
+
+Noteworthy changes in version 2.0.0 (2006-11-11)
+------------------------------------------------
+
+ * First stable version of a GnuPG integrating OpenPGP and S/MIME.
+
+ See-also: gnupg-announce/2006q4/000239.html
+
+
+Noteworthy changes in version 1.9.95 (2006-11-06)
+-------------------------------------------------
+
+ * Minor bug fixes.
+
+
+Noteworthy changes in version 1.9.94 (2006-10-24)
+-------------------------------------------------
+
+ * Keys for gpgsm may now be specified using a keygrip.  A keygrip is
+   indicated by a prefixing it with an ampersand.
+
+ * gpgconf now supports switching the CMS cipher algo (e.g. to AES).
+
+ * New command --gpgconf-test for all major tools. This may be used to
+   check whether the configuration file is sane.
+
+
+Noteworthy changes in version 1.9.93 (2006-10-18)
+-------------------------------------------------
+
+ * In --with-validation mode gpgsm will now also ask whether a root
+   certificate should be trusted.
+
+ * Link to Pth only if really necessary.
+
+ * Fixed a pubring corruption bug in gpg2 occurring when importing
+   signatures or keys with insane lengths.
+
+ * Fixed v3 keyID calculation bug in gpg2.
+
+ * More tweaks for certificates without extensions.
+
+
+Noteworthy changes in version 1.9.92 (2006-10-11)
+-------------------------------------------------
+
+ * Bug fixes.
+
+ See-also: gnupg-announce/2006q4/000236.html
+
+
+Noteworthy changes in version 1.9.91 (2006-10-04)
+-------------------------------------------------
+
+ * New "relax" flag for trustlist.txt to allow root CA certificates
+   without BasicContraints.
+
+ * [gpg2] Removed the -k PGP 2 compatibility hack.  -k is now an
+   alias for --list-keys.
+
+ * [gpg2] Print a warning if "-sat" is used instead of "--clearsign".
+
+
+Noteworthy changes in version 1.9.90 (2006-09-25)
+-------------------------------------------------
+
+ * Made readline work for gpg.
+
+ * Cleanups und minor bug fixes.
+
+ * Included translations from gnupg 1.4.5.
+
+
+Noteworthy changes in version 1.9.23 (2006-09-18)
+-------------------------------------------------
+
+ * Regular man pages for most tools are now build directly from the
+   Texinfo source.
+
+ * The gpg code from 1.4.5 has been fully merged into this release.
+   The configure option --enable-gpg is still required to build this
+   gpg part.  For production use of OpenPGP the gpg version 1.4.5 is
+   still recommended.  Note, that gpg will be installed under the name
+   gpg2 to allow coexisting with an 1.4.x gpg.
+
+ * API change in gpg-agent's pkdecrypt command.  Thus an older gpgsm
+   may not be used with the current gpg-agent.
+
+ * The scdaemon will now call a script on reader status changes.
+
+ * gpgsm now allows file descriptor passing for "INPUT", "OUTPUT" and
+   "MESSAGE".
+
+ * The gpgsm server may now output a key listing to the output file
+   handle. This needs to be enabled using "OPTION list-to-output=1".
+
+ * The --output option of gpgsm has now an effect on list-keys.
+
+ * New gpgsm commands --dump-chain and list-chain.
+
+ * gpg-connect-agent has new options to utilize descriptor passing.
+
+ * A global trustlist may now be used.  See doc/examples/trustlist.txt.
+
+ * When creating a new pubring.kbx keybox common certificates are
+   imported.
+
+
+Noteworthy changes in version 1.9.22 (2006-07-27)
+-------------------------------------------------
+
+ * Enhanced pkcs#12 support to allow import from simple keyBags.
+
+ * Exporting to pkcs#12 now create bag attributes so that Mozilla is
+   able to import the files.
+
+ * Fixed uploading of certain keys to the smart card.
+
+
+Noteworthy changes in version 1.9.21 (2006-06-20)
+-------------------------------------------------
+
+ * New command APDU for scdaemon to allow using it for general card
+   access.  Might be used through gpg-connect-agent by using the SCD
+   prefix command.
+
+ * Support for the CardMan 4040 PCMCIA reader (Linux 2.6.15 required).
+
+ * Scdaemon does not anymore reset cards at the end of a connection.
+
+ * Kludge to allow use of Bundesnetzagentur issued X.509 certificates.
+
+ * Added --hash=xxx option to scdaemon's PKSIGN command.
+
+ * Pkcs#12 files are now created with a MAC.  This is for better
+   interoperability.
+
+ * Collected bug fixes and minor other changes.
+
+
+Noteworthy changes in version 1.9.20 (2005-12-20)
+-------------------------------------------------
+
+ * Importing pkcs#12 files created be recent versions of Mozilla works
+   again.
+
+ * Basic support for qualified signatures.
+
+ * New debug tool gpgparsemail.
+
+
+Noteworthy changes in version 1.9.19 (2005-09-12)
+-------------------------------------------------
+
+ * The Belgian eID card is now supported for signatures and ssh.
+   Other pkcs#15 cards should work as well.
+
+ * Fixed bug in --export-secret-key-p12 so that certificates are again
+   included.
+
+
+Noteworthy changes in version 1.9.18 (2005-08-01)
+-------------------------------------------------
+
+ * [gpgsm] Now allows for more than one email address as well as URIs
+   and dnsNames in certificate request generation.  A keygrip may be
+   given to create a request from an existing key.
+
+ * A couple of minor bug fixes.
+
+
+Noteworthy changes in version 1.9.17 (2005-06-20)
+-------------------------------------------------
+
+ * gpg-connect-agent has now features to handle Assuan INQUIRE
+   commands.
+
+ * Internal changes for OpenPGP cards. New Assuan command WRITEKEY.
+
+ * GNU Pth is now a hard requirement.
+
+ * [scdaemon] Support for OpenSC has been removed.  Instead a new and
+   straightforward pkcs#15 modules has been written.  As of now it
+   does allows only signing using TCOS cards but we are going to
+   enhance it to match all the old capabilities.
+
+ * [gpg-agent] New option --write-env-file and Assuan command
+   UPDATESTARTUPTTY.
+
+ * [gpg-agent] New option --default-cache-ttl-ssh to set the TTL for
+   SSH passphrase caching independent from the other passphrases.
+
+
+Noteworthy changes in version 1.9.16 (2005-04-21)
+-------------------------------------------------
+
+ * gpg-agent does now support the ssh-agent protocol and thus allows
+   to use the pinentry as well as the OpenPGP smartcard with ssh.
+
+ * New tool gpg-connect-agent as a general client for the gpg-agent.
+
+ * New tool symcryptrun as a wrapper for certain encryption tools.
+
+ * The gpg tool is not anymore build by default because those gpg
+   versions available in the gnupg 1.4 series are far more matured.
+
+
+Noteworthy changes in version 1.9.15 (2005-01-13)
+-------------------------------------------------
+
+ * Fixed passphrase caching bug.
+
+ * Better support for CCID readers; the reader from Cherry RS 6700 USB
+   does now work.
+
+
+Noteworthy changes in version 1.9.14 (2004-12-22)
+-------------------------------------------------
+
+ * [gpg-agent] New option --use-standard-socket to allow the use of a
+   fixed socket.  gpgsm falls back to this socket if GPG_AGENT_INFO
+   has not been set.
+
+ * Ported to MS Windows with some functional limitations.
+
+ * New tool gpg-preset-passphrase.
+
+
+Noteworthy changes in version 1.9.13 (2004-12-03)
+-------------------------------------------------
+
+ * [gpgsm] New option --prefer-system-dirmngr.
+
+ * Minor cleanups and debugging aids.
+
+
+Noteworthy changes in version 1.9.12 (2004-10-22)
+-------------------------------------------------
+
+ * [scdaemon] Partly rewrote the PC/SC code.
+
+ * Removed the sc-investigate tool.  It is now in a separate package
+   available at ftp://ftp.g10code.com/g10code/gscutils/ .
+
+ * [gpg-agent] Fixed logging problem.
+
+
+Noteworthy changes in version 1.9.11 (2004-10-01)
+-------------------------------------------------
+
+ * When using --import along with --with-validation, the imported
+   certificates are validated and only imported if they are fully
+   valid.
+
+ * [gpg-agent] New option --max-cache-ttl.
+
+ * [gpg-agent] When used without --daemon or --server, gpg-agent now
+   check whether a agent is already running and usable.
+
+ * Fixed some i18n problems.
+
+
+Noteworthy changes in version 1.9.10 (2004-07-22)
+-------------------------------------------------
+
+ * Fixed a serious bug in the checking of trusted root certificates.
+
+ * New configure option --enable-agent-pnly allows to build and
+   install just the agent.
+
+ * Fixed a problem with the log file handling.
+
+
+Noteworthy changes in version 1.9.9 (2004-06-08)
+------------------------------------------------
+
+ * [gpg-agent] The new option --allow-mark-trusted is now required to
+   allow gpg-agent to add a key to the trustlist.txt after user
+   confirmation.
+
+ * Creating PKCS#10 requests does now honor the key usage.
+
+
+Noteworthy changes in version 1.9.8 (2004-04-29)
+------------------------------------------------
+
+ * [scdaemon] Overhauled the internal CCID driver.
+
+ * [scdaemon] Status files named ~/.gnupg/reader_<n>.status are now
+   written when using the internal CCID driver.
+
+ * [gpgsm] New commands --dump-{,secret,external}-keys to show a very
+   detailed view of the certificates.
+
+ * The keybox gets now compressed after 3 hours and ephemeral
+   stored certificates are deleted after about a day.
+
+ * [gpg] Usability fixes for --card-edit.  Note, that this has already
+   been ported back to gnupg-1.3
+
+
+Noteworthy changes in version 1.9.7 (2004-04-06)
+------------------------------------------------
+
+ * Instrumented the modules for gpgconf.
+
+ * Added support for DINSIG card applications.
+
+ * Include the smimeCapabilities attribute with signed messages.
+
+ * Now uses the gettext domain "gnupg2" to avoid conflicts with gnupg
+   versions < 1.9.
+
+
+Noteworthy changes in version 1.9.6 (2004-03-06)
+------------------------------------------------
+
+ * Code cleanups and bug fixes.
+
+
+Noteworthy changes in version 1.9.5 (2004-02-21)
+------------------------------------------------
+
+ * gpg-protect-tool gets now installed into libexec as it ought to be.
+   Cleaned up the build system to better comply with the coding
+   standards.
+
+ * [gpgsm] The --import command is now able to autodetect pkcs#12
+   files and import secret and private keys from this file format.
+   A new command --export-secret-key-p12 is provided to allow
+   exporting of secret keys in PKCS\#12 format.
+
+ * [gpgsm] The pinentry will now present a description of the key for
+   whom the passphrase is requested.
+
+ * [gpgsm] New option --with-validation to check the validity of key
+   while listing it.
+
+ * New option --debug-level={none,basic,advanced,expert,guru} to map
+   the debug flags to sensitive levels on a per program base.
+
+
+Noteworthy changes in version 1.9.4 (2004-01-30)
+------------------------------------------------
+
+ * Added support for the Telesec NKS 2.0 card application.
+
+ * Added simple tool addgnupghome to create .gnupg directories from
+   /etc/skel/.gnupg.
+
+ * Various minor bug fixes and cleanups; mainly gpgsm and gpg-agent
+   related.
+
+
+Noteworthy changes in version 1.9.3 (2003-12-23)
+------------------------------------------------
+
+ * New gpgsm options --{enable,disable}-ocsp to validate keys using
+   OCSP. This option requires a not yet released DirMngr version.
+   Default is disabled.
+
+ * The --log-file option may now be used to print logs to a socket.
+   Prefix the socket name with "socket://" to enable this.  This does
+   not work on all systems and falls back to stderr if there is a
+   problem with the socket.
+
+ * The options --encrypt-to and --no-encrypt-to now work the same in
+   gpgsm as in gpg.  Note, they are also used in server mode.
+
+ * Duplicated recipients are now silently removed in gpgsm.
+
+
+Noteworthy changes in version 1.9.2 (2003-11-17)
+------------------------------------------------
+
+ * On card key generation is no longer done using the --gen-key
+   command but from the menu provided by the new --card-edit command.
+
+ * PINs are now properly cached and there are only 2 PINs visible.
+   The 3rd PIN (CHV2) is internally syncronized with the regular PIN.
+
+ * All kind of other internal stuff.
+
+
+Noteworthy changes in version 1.9.1 (2003-09-06)
+------------------------------------------------
+
+ * Support for OpenSC is back. scdaemon supports a --disable-opensc to
+   disable OpenSC use at runtime, so that PC/SC or ct-API can still be
+   used directly.
+
+ * Rudimentary support for the SCR335 smartcard reader using an
+   internal driver.  Requires current libusb from CVS.
+
+ * Bug fixes.
+
+
+Noteworthy changes in version 1.9.0 (2003-08-05)
+------------------------------------------------
+
+      ====== PLEASE SEE README-alpha =======
+
+ * gpg has been renamed to gpg2 and gpgv to gpgv2.  This is a
+   temporary change to allow co-existing with stable gpg versions.
+
+ * ~/.gnupg/gpg.conf-1.9.0 is fist tried as config file before the
+   usual gpg.conf.
+
+ * Removed the -k, -kv and -kvv commands.  -k is now an alias to
+   --list-keys.  New command -K as alias for --list-secret-keys.
+
+ * Removed --run-as-shm-coprocess feature.
+
+ * gpg does now also use libgcrypt, libgpg-error is required.
+
+ * New gpgsm commands --call-dirmngr and --call-protect-tool.
+
+ * Changing a passphrase is now possible using "gpgsm --passwd"
+
+ * The content-type attribute is now recognized and created.
+
+ * The agent does now reread certain options on receiving a HUP.
+
+ * The pinentry is now forked for each request so that clients with
+   different environments are supported.  When running in daemon mode
+   and --keep-display is not used the DISPLAY variable is ignored.
+
+ * Merged stuff from the newpg branch and started this new
+   development branch.
+
+
+Version 1.4.19 (2015-02-27)
+Version 1.4.18 (2014-06-30)
+Version 1.4.17 (2014-06-23)
+Version 1.4.16 (2013-12-18)
+Version 1.4.15 (2013-10-04)
+Version 1.4.14 (2013-07-25)
+Version 1.4.13 (2012-12-20)
+Version 1.4.12 (2012-01-30)
+Version 1.4.11 (2010-10-18)
+Version 1.4.10 (2009-09-02)
+Version 1.4.9 (2008-03-26)
+Version 1.4.8 (2007-12-20)
+Version 1.4.7 (2007-03-05)
+Version 1.4.6 (2006-12-06)
+Version 1.4.5 (2006-08-01)
+Version 1.4.4 (2006-06-25)
+Version 1.4.3 (2006-04-03)
+Version 1.4.2 (2005-07-26)
+Version 1.4.1 (2005-03-15)
+Version 1.4.0 (2004-12-16)
+
+
+Noteworthy changes in version 1.3.2 (2003-05-27)
+------------------------------------------------
+
+    * New "--gnupg" option (set by default) that disables --openpgp,
+      and the various --pgpX emulation options.  This replaces
+      --no-openpgp, and --no-pgpX, and also means that GnuPG has
+      finally grown a --gnupg option to make GnuPG act like GnuPG.
+
+    * A bug in key validation has been fixed.  This bug only affects
+      keys with more than one user ID (photo IDs do not count here),
+      and results in all user IDs on a given key being treated with
+      the validity of the most-valid user ID on that key.
+
+    * Notation names that do not contain a '@' are no longer allowed
+      unless --expert is set.  This is to help prevent pollution of
+      the (as yet unused) IETF notation namespace.
+
+    * Multiple trust models are now supported via the --trust-model
+      option.  The options are "pgp" (web-of-trust plus trust
+      signatures), "classic" (web-of-trust only), and "always"
+      (identical to the --always-trust option).
+
+    * The --personal-{cipher|digest|compression}-preferences are now
+      consulted to get default algorithms before resorting to the
+      last-ditch defaults of --s2k-cipher-algo, SHA1, and ZIP
+      respectively.  This allows a user to set algorithms to use in a
+      safe manner so they are used when legal to do so, without
+      forcing them on for all messages.
+
+    * New --primary-keyring option to designate the keyring that the
+      user wants new keys imported into.
+
+    * --s2k-digest-algo is now used for all password mangling.
+      Earlier versions used both --s2k-digest-algo and --digest-algo
+      for passphrase mangling.
+
+    * Handling of --hidden-recipient or --throw-keyid messages is now
+      easier - the user only needs to give their passphrase once, and
+      GnuPG will try it against all of the available secret keys.
+
+    * Care is taken to prevent compiler optimization from removing
+      memory wiping code.
+
+    * New option --no-mangle-dos-filenames so that filenames are not
+      truncated in the W32 version.
+
+    * A "convert-from-106" script has been added.  This is a simple
+      script that automates the conversion from a 1.0.6 or earlier
+      version of GnuPG to a 1.0.7 or later version.
+
+    * Disabled keys are now skipped when selecting keys for
+      encryption.  If you are using the --with-colons key listings to
+      detect disabled keys, please see doc/DETAILS for a minor format
+      change in this release.
+
+    * Minor trustdb changes to make the trust calculations match
+      common usage.
+
+    * New command "revuid" in the --edit-key menu to revoke a user ID.
+      This is a simpler interface to the old method (which still
+      works) of revoking the user ID self-signature.
+
+    * Status VALIDSIG does now also print the primary key's
+      fingerprint, as well as the signature version, pubkey algorithm,
+      hash algorithm, and signature class.
+
+    * Add read-only support for the SHA-256 hash, and optional
+      read-only support for the SHA-384 and SHA-512 hashes.
+
+    * New option --enable-progress-filter for use with frontends.
+
+    * DNS SRV records are used in HKP keyserver lookups to allow
+      administrators to load balance and select keyserver ports
+      automatically.  This is as specified in
+      draft-shaw-openpgp-hkp-00.txt.
+
+    * When using the "keyid!" syntax during a key export, only that
+      specified key is exported.  If the key in question is a subkey,
+      the primary key plus only that subkey is exported.
+
+    * configure --disable-xxx options to disable individual algorithms
+      at build time.  This can be used to build a smaller gpg binary
+      for embedded uses where space is tight.  See the README file for
+      the algorithms that can be used with this option, or use
+      --enable-minimal to build the smallest gpg possible (disables
+      all optional algorithms, disables keyserver access, and disables
+      photo IDs).
+
+    * The keyserver no-modify flag on a key can now be displayed and
+      modified.
+
+    * Note that the TIGER/192 digest algorithm is in the process of
+      being dropped from the OpenPGP standard.  While this release of
+      GnuPG still contains it, it is disabled by default.  To ensure
+      you will still be able to use your messages with future versions
+      of GnuPG and other OpenPGP programs, please do not use this
+      algorithm.
+
+    See-also: gnupg-announce/2003q2/000153.html
+
+
+Noteworthy changes in version 1.3.1 (2002-11-12)
+------------------------------------------------
+
+    * Trust signature support.  This is based on the Maurer trust
+      model where a user can specify the trust level along with the
+      signature with multiple levels so users can delegate
+      certification ability to other users, possibly restricted by a
+      regular expression on the user ID.  Note that full trust
+      signature support requires a regular expression parsing library.
+      The regexp code from glibc 2.3.1 is included for those platforms
+      that don't have working regexp functions available.  The
+      configure option --disable-regex may be used to disable any
+      regular expression code, which will make GnuPG ignore any trust
+      signature with a regular expression included.
+
+    * Two new commands --hidden-recipient (-R) and --hidden-encrypt-to
+      encrypt to a user, but hide the identity of that user.  This is
+      the same functionality as --throw-keyid, but can be used on a
+      per-user basis.
+
+    * Full algorithm names (e.g. "3DES", "SHA1", "ZIP") can now be
+      used interchangeably with the short algorithm names (e.g. "S2",
+      "H2", "Z1") anywhere algorithm names are used in GnuPG.
+
+
+Noteworthy changes in version 1.3.0 (2002-10-18)
+------------------------------------------------
+
+    * The last piece of internal keyserver support has been removed,
+      and now all keyserver access is done via the keyserver plugins.
+      There is also a newer keyserver protocol used between GnuPG and
+      the plugins, so plugins from earlier versions of GnuPG may not
+      work properly.
+
+    * The HKP keyserver plugin supports the new machine-readable key
+      listing format for those keyservers that provide it.
+
+    * When using a HKP keyserver with multiple DNS records (such as
+      wwwkeys.pgp.net which has the addresses of multiple servers
+      around the world), try all records until one succeeds.  Note
+      that it depends on the LDAP library used whether the LDAP
+      keyserver plugin does this as well.
+
+    * The library dependencies for OpenLDAP seem to change fairly
+      frequently, and GnuPG's configure script cannot guess all the
+      combinations.  Use ./configure LDAPLIBS="-L libdir -l libs" to
+      override the script and use the libraries selected.
+
+    * Secret keys generated with --export-secret-subkeys are now
+      indicated in key listings with a '#' after the "sec", and in
+      --with-colons listings by showing no capabilities (no lowercase
+      characters).
+
+    * --trusted-key has been un-obsoleted, as it is useful for adding
+      ultimately trusted keys from the config file.  It is identical
+      to using --edit and "trust" to change a key to ultimately
+      trusted.
+
+    * Translations other than de are no longer distributed with the
+      development branch.  This is due to the frequent text changes
+      during development, which cause the translations to rapidly go
+      out of date.
+
+
+Version 1.2.8 (2006-12-07)
+Version 1.2.7 (2004-12-27)
+Version 1.2.6 (2004-08-25)
+Version 1.2.5 (2004-07-26)
+Version 1.2.4 (2003-12-23)
+Version 1.2.3 (2003-08-21)
+Version 1.2.2 (2003-05-01)
+Version 1.2.1 (2002-10-25)
+Version 1.2.0 (2002-09-21)
+
+
+Noteworthy changes in version 1.1.92 (2002-09-11)
+-------------------------------------------------
+
+    * [IMPORTANT] The default configuration file is now
+      ~/.gnupg/gpg.conf.  If an old ~/.gnupg/options is found it will
+      still be used.  This change is required to have a more
+      consistent naming scheme with forthcoming tools.
+
+    * The use of MDCs have increased.  A MDC will be used if the
+      recipients directly request it, if the recipients have AES,
+      AES192, AES256, or TWOFISH in their cipher preferences, or if
+      the chosen cipher has a blocksize not equal to 64 bits
+      (currently this is also AES, AES192, AES256, and TWOFISH).
+
+    * GnuPG will no longer automatically disable compression when
+      processing an already-compressed file unless a MDC is being
+      used.  This is to give the message a certain amount of
+      resistance to the chosen-ciphertext attack while communicating
+      with other programs (most commonly PGP earlier than version 7.x)
+      that do not support MDCs.
+
+    * The option --interactive now has the desired effect when
+      importing keys.
+
+    * The file permission and ownership checks on files have been
+      clarified.  Specifically, the homedir (usually ~/.gnupg) is
+      checked to protect everything within it.  If the user specifies
+      keyrings outside this homedir, they are presumed to be shared
+      keyrings and therefore *not* checked.  Configuration files
+      specified with the --options option and the IDEA cipher
+      extension specified with --load-extension are checked, along
+      with their enclosing directories.
+
+    * The configure option --with-static-rnd=auto allows to build gpg
+      with all available entropy gathering modules included.  At
+      runtime the best usable one will be selected from the list
+      linux, egd, unix.  This is also the default for systems lacking
+      a /dev/random device.
+
+    * The default character set is now taken from the current locale;
+      it can still be overridden by the --charset option.  Using the
+      option -vvv shows the used character set.
+
+    * [REMOVED] --emulate-checksum-bug and --emulate-3des-s2k-bug have
+      been removed.
+
+
+Noteworthy changes in version 1.1.91 (2002-08-04)
+-------------------------------------------------
+
+    * All modules are now linked statically; the --load-extension
+      option is in general not useful anymore.  The only exception is
+      to specify the deprecated idea cipher.
+
+    * The IDEA plugin has changed.  Previous versions of the IDEA
+      plugin will no longer work with GnuPG.  However, the current
+      version of the plugin will work with earlier GnuPG versions.
+
+    * When using --batch with one of the --delete-key commands, the
+      key must be specified by fingerprint.  See the man page for
+      details.
+
+    * There are now various ways to restrict the ability GnuPG has to
+      exec external programs (for the keyserver helpers or photo ID
+      viewers).  Read the README file for the complete list.
+
+    * New export option to leave off attribute packets (photo IDs)
+      during export.  This is useful when exporting to HKP keyservers
+      which do not understand attribute packets.
+
+    * New import option to repair during import the HKP keyserver
+      mangling multiple subkeys bug.  Note that this cannot completely
+      repair the damaged key as some crucial data is removed by the
+      keyserver, but it does at least give you back one subkey.  This
+      is on by default for keyserver --recv-keys, and off by default
+      for regular --import.
+
+    * The keyserver helper programs now live in
+      /usr/[local/]libexec/gnupg by default.  If you are upgrading
+      from 1.0.7, you might want to delete your old copies in
+      /usr/[local/]bin.  If you use an OS that does not use libexec
+      for whatever reason, use configure --libexecdir=/usr/local/lib
+      to place the keyserver helpers there.
+
+    * The LDAP keyserver handler now works properly with very old
+      (version 1) LDAP keyservers.
+
+
+Noteworthy changes in version 1.1.90 (2002-07-01)
+-------------------------------------------------
+
+    * New commands: --personal-cipher-preferences,
+      --personal-digest-preferences, and
+      --personal-compress-preferences allow the user to specify which
+      algorithms are to be preferred.  Note that this does not permit
+      using an algorithm that is not present in the recipient's
+      preferences (which would violate the OpenPGP standard).  This
+      just allows sorting the preferences differently.
+
+    * New "group" command to refer to several keys with one name.
+
+    * A warning is issued if the user forces the use of an algorithm
+      that is not listed in the recipient's preferences.
+
+    * Full revocation key (aka "designated revoker") support.
+
+    * The preferred hash algorithms on a key are consulted when
+      encrypting a signed message to that key.  Note that this is
+      disabled by default by a SHA1 preference in
+      --personal-digest-preferences.
+
+    * --cert-digest-algo allows the user to specify the hash algorithm
+      to use when signing a key rather than the default SHA1 (or MD5
+      for PGP2 keys).  Do not use this feature unless you fully
+      understand the implications of this.
+
+    * --pgp7 mode automatically sets all necessary options to ensure
+      that the resulting message will be usable by a user of PGP 7.x.
+
+    * New --attribute-fd command for frontends and scripts to get the
+      contents of attribute packets (i.e. photos)
+
+    * In expert mode, the user can now re-sign a v3 key with a v4
+      self-signature.  This does not change the v3 key into a v4 key,
+      but it does allow the user to use preferences, primary ID flags,
+      etc.
+
+    * Significantly improved photo ID support on non-unixlike
+      platforms.
+
+    * The version number has jumped ahead to 1.1.90 to skip over the
+      old version 1.1 and to get ready for the upcoming 1.2.
+
+    * ElGamal sign and encrypt is not anymore allowed in the key
+      generation dialog unless in expert mode.  RSA sign and encrypt
+      has been added with the same restrictions.
+
+    * [W32] Keyserver access does work with Windows NT.
+
+
+Noteworthy changes in version 1.0.7 (2002-04-29)
+------------------------------------------------
+
+    * Secret keys are now stored and exported in a new format which
+      uses SHA-1 for integrity checks.  This format renders the
+      Rosa/Klima attack useless.  Other OpenPGP implementations might
+      not yet support this, so the option --simple-sk-checksum creates
+      the old vulnerable format.
+
+    * The default cipher algorithm for encryption is now CAST5,
+      default hash algorithm is SHA-1.  This will give us better
+      interoperability with other OpenPGP implementations.
+
+    * Symmetric encrypted messages now use a fixed file size if
+      possible.  This is a tradeoff: it breaks PGP 5, but fixes PGP 2,
+      6, and 7.  Note this was only an issue with RFC-1991 style
+      symmetric messages.
+
+    * Photographic user ID support.  This uses an external program to
+      view the images.
+
+    * Enhanced keyserver support via keyserver "plugins".  GnuPG comes
+      with plugins for the NAI LDAP keyserver as well as the HKP email
+      keyserver.  It retains internal support for the HKP HTTP
+      keyserver.
+
+    * Nonrevocable signatures are now supported.  If a user signs a
+      key nonrevocably, this signature cannot be taken back so be
+      careful!
+
+    * Multiple signature classes are usable when signing a key to
+      specify how carefully the key information (fingerprint, photo
+      ID, etc) was checked.
+
+    * --pgp2 mode automatically sets all necessary options to ensure
+      that the resulting message will be usable by a user of PGP 2.x.
+
+    * --pgp6 mode automatically sets all necessary options to ensure
+      that the resulting message will be usable by a user of PGP 6.x.
+
+    * Signatures may now be given an expiration date.  When signing a
+      key with an expiration date, the user is prompted whether they
+      want their signature to expire at the same time.
+
+    * Revocation keys (designated revokers) are now supported if
+      present.  There is currently no way to designate new keys as
+      designated revokers.
+
+    * Permissions on the .gnupg directory and its files are checked
+      for safety.
+
+    * --expert mode enables certain silly things such as signing a
+      revoked user id, expired key, or revoked key.
+
+    * Some fixes to build cleanly under Cygwin32.
+
+    * New tool gpgsplit to split OpenPGP data formats into packets.
+
+    * New option --preserve-permissions.
+
+    * Subkeys created in the future are not used for encryption or
+      signing unless the new option --ignore-valid-from is used.
+
+    * Revoked user-IDs are not listed unless signatures are listed too
+      or we are in verbose mode.
+
+    * There is no default comment string with ascii armors anymore
+      except for revocation certificates and --enarmor mode.
+
+    * The command "primary" in the edit menu can be used to change the
+      primary UID, "setpref" and "updpref" can be used to change the
+      preferences.
+
+    * Fixed the preference handling; since 1.0.5 they were erroneously
+      matched against against the latest user ID and not the given one.
+
+    * RSA key generation.
+
+    * Merged Stefan's patches for RISC OS in.  See comments in
+      scripts/build-riscos.
+
+    * It is now possible to sign and conventional encrypt a message (-cs).
+
+    * The MDC feature flag is supported and can be set by using
+      the "updpref" edit command.
+
+    * The status messages GOODSIG and BADSIG are now returning the primary
+      UID, encoded using %XX escaping (but with spaces left as spaces,
+      so that it should not break too much)
+
+    * Support for GDBM based keyrings has been removed.
+
+    * The entire keyring management has been revamped.
+
+    * The way signature stati are store has changed so that v3
+      signatures can be supported. To increase the speed of many
+      operations for existing keyrings you can use the new
+      --rebuild-keydb-caches command.
+
+    * The entire key validation process (trustdb) has been revamped.
+      See the man page entries for --update-trustdb, --check-trustdb
+      and --no-auto-check-trustdb.
+
+    * --trusted-keys is again obsolete, --edit can be used to set the
+      ownertrust of any key to ultimately trusted.
+
+    * A subkey is never used to sign keys.
+
+    * Read only keyrings are now handled as expected.
+
+    See-also: gnupg-announce/2002q2/000135.html
+
+
+Noteworthy changes in version 1.0.6 (2001-05-29)
+------------------------------------------------
+
+    * Security fix for a format string bug in the tty code.
+
+    * Fixed format string bugs in all PO files.
+
+    * Removed Russian translation due to too many bugs.  The FTP
+      server has an unofficial but better translation in the contrib
+      directory.
+
+    * Fixed expire time calculation and keyserver access.
+
+    * The usual set of minor bug fixes and enhancements.
+
+    * non-writable keyrings are now correctly handled.
+
+    See-also: gnupg-announce/2001q2/000123.html
+
+
+Noteworthy changes in version 1.0.5 (2001-04-29)
+------------------------------------------------
+
+    * WARNING: The semantics of --verify have changed to address a
+      problem with detached signature detection. --verify now ignores
+      signed material given on stdin unless this is requested by using
+      a "-" as the name for the file with the signed material.  Please
+      check all your detached signature handling applications and make
+      sure that they don't pipe the signed material to stdin without
+      using a filename together with "-" on the the command line.
+
+    * WARNING: Corrected hash calculation for input data larger than
+      512M - it was just wrong, so you might notice bad signature in
+      some very big files.  It may be wise to keep an old copy of
+      GnuPG around.
+
+    * Secret keys are no longer imported unless you use the new option
+      --allow-secret-key-import.  This is a kludge and future versions will
+      handle it in another way.
+
+    * New command "showpref" in the --edit-key menu to show an easier
+      to understand preference listing.
+
+    * There is now the notation of a primary user ID.  For example, it
+      is printed with a signature verification as the first user ID;
+      revoked user IDs are not printed there anymore.  In general the
+      primary user ID is the one with the latest self-signature.
+
+    * New --charset=utf-8 to bypass all internal conversions.
+
+    * Large File Support (LFS) is now working.
+
+    * New options: --ignore-crc-error, --no-sig-create-check,
+      --no-sig-cache, --fixed-list-mode, --no-expensive-trust-checks,
+      --enable-special-filenames and --use-agent.  See man page.
+
+    * New command --pipemode, which can be used to run gpg as a
+      co-process.  Currently only the verification of detached
+      signatures are working.  See doc/DETAILS.
+
+    * Keyserver support for the W32 version.
+
+    * Rewritten key selection code so that GnuPG can better cope with
+      multiple subkeys, expire dates and so.  The drawback is that it
+      is slower.
+
+    * A whole lot of bug fixes.
+
+    * The verification status of self-signatures are now cached. To
+      increase the speed of key list operations for existing keys you
+      can do the following in your GnuPG homedir (~/.gnupg):
+         cp pubring.gpg pubring.gpg.save && gpg --export-all >x && \
+         rm pubring.gpg && gpg --import x
+      Only v4 keys (i.e not the old RSA keys) benefit from this caching.
+
+    * New translations: Estonian, Turkish.
+
+    See-also: gnupg-announce/2001q2/000122.html
+
+
+Noteworthy changes in version 1.0.4 (2000-10-17)
+------------------------------------------------
+
+    * Fixed a serious bug which could lead to false signature verification
+      results when more than one signature is fed to gpg.  This is the
+      primary reason for releasing this version.
+
+    * New utility gpgv which is a stripped down version of gpg to
+      be used to verify signatures against a list of trusted keys.
+
+    * Rijndael (AES) is now supported and listed with top preference.
+
+    * --with-colons now works with --print-md[s].
+
+    See-also: gnupg-announce/2000q4/000082.html
+
+
+Noteworthy changes in version 1.0.3 (2000-09-18)
+------------------------------------------------
+
+    * Fixed problems with piping to/from other MS-Windows software
+
+    * Expiration time of the primary key can be changed again.
+
+    * Revoked user IDs are now marked in the output of --list-key
+
+    * New options --show-session-key and --override-session-key
+      to help the British folks to somewhat minimize the danger
+      of this Orwellian RIP bill.
+
+    * New options --merge-only and --try-all-secrets.
+
+    * New configuration option --with-egd-socket.
+
+    * The --trusted-key option is back after it left us with 0.9.5
+
+    * RSA is supported. Key generation does not yet work but will come
+      soon.
+
+    * CAST5 and SHA-1 are now the default algorithms to protect the key
+      and for symmetric-only encryption. This should solve a couple
+      of compatibility problems because the old algorithms are optional
+      according to RFC2440
+
+    * Twofish and MDC enhanced encryption is now used.  PGP 7 supports
+      this.  Older versions of GnuPG don't support it, so they should be
+      upgraded to at least 1.0.2
+
+    See-also: gnupg-announce/2000q3/000075.html
+
+
+Noteworthy changes in version 1.0.2 (2000-07-12)
+----------------------------------------------
+
+    * Fixed expiration handling of encryption keys.
+
+    * Add an experimental feature to do unattended key generation.
+
+    * The user is now asked for the reason of revocation as required
+      by the new OpenPGP draft.
+
+    * There is a ~/.gnupg/random_seed file now which saves the
+      state of the internal RNG and increases system performance
+      somewhat.  This way the full entropy source is only used in
+      cases were it is really required.
+      Use the option --no-random-seed-file to disable this feature.
+
+    * New options --ignore-time-conflict and --lock-never.
+
+    * Some fixes for the W32 version.
+
+    * The entropy.dll is not anymore used by the W32 version but replaced
+      by code derived from Cryptlib.
+
+    * Encryption is now much faster: About 2 times for 1k bit keys
+      and 8 times for 4k keys.
+
+    * New encryption keys are generated in a way which allows a much
+      faster decryption.
+
+    * New command --export-secret-subkeys which outputs the
+      the _primary_ key with it's secret parts deleted.  This is
+      useful for automated decryption/signature creation as it
+      allows to keep the real secret primary key offline and
+      thereby protecting the key certificates and allowing to
+      create revocations for the subkeys.  See the FAQ for a
+      procedure to install such secret keys.
+
+    * Keygeneration now writes to the first writeable keyring or
+      as default to the one in the homedirectory.  Prior versions
+      ignored all --keyring options.
+
+    * New option --command-fd to take user input from a file descriptor;
+      to be used with --status-fd by software which uses GnuPG as a backend.
+
+    * There is a new status PROGRESS which is used to show progress during
+      key generation.
+
+    * Support for the new MDC encryption packets.  To create them either
+      --force-mdc must be use or cipher algorithm with a blocksize other
+      than 64 bits is to be used.  --openpgp currently disables MDC packets
+      entirely.  This option should not yet be used.
+
+    * New option --no-auto-key-retrieve to disable retrieving of
+      a missing public key from a keyserver, when a keyserver has been set.
+
+    * Danish translation
+
+    See-also: gnupg-announce/2000q3/000069.html
+
+
+Noteworthy changes in version 1.0.1 (1999-12-16)
+-----------------------------------
+
+    * New command --verify-files.  New option --fast-list-mode.
+
+    * $http_proxy is now used when --honor-http-proxy is set.
+
+    * Fixed some minor bugs and the problem with conventional encrypted
+      packets which did use the gpg v3 partial length headers.
+
+    * Add Indonesian and Portugese translations.
+
+    * Fixed a bug with symmetric-only encryption using the non-default 3DES.
+      The option --emulate-3des-s2k-bug may be used to decrypt documents
+      which have been encrypted this way; this should be done immediately
+      as this workaround will be remove in 1.1
+
+    * Can now handle (but not display) PGP's photo IDs. I don't know the
+      format of that packet but after stripping a few bytes from the start
+      it looks like a JPEG (at least my test data).  Handling of this
+      package is required because otherwise it would mix up the
+      self signatures and you can't import those keys.
+
+    * Passing non-ascii user IDs on the commandline should now work in all
+      cases.
+
+    * New keys are now generated with an additional preference to Blowfish.
+
+    * Removed the GNU Privacy Handbook from the distribution as it will go
+      into a separate one.
+
+    See-also: gnupg-announce/1999q4/000050.html
+
+
+Noteworthy changes in version 1.0.0 (1999-09-07)
+-----------------------------------
+
+    * Add a very preliminary version of the GNU Privacy Handbook to
+      the distribution (lynx doc/gph/index.html).
+
+    * Changed the version number to GnuPG 2001 ;-)
+
+    See-also: gnupg-announce/1999q3/000037.html
+
+
+Noteworthy changes in version 0.9.11 (1999-09-03)
+------------------------------------
+
+    * UTF-8 strings are now correctly printed (if --charset is set correctly).
+      Output of --with-colons remains C-style escaped UTF-8.
+
+    * Workaround for a problem with PGP 5 detached signature in textmode.
+
+    * Fixed a problem when importing new subkeys (duplicated signatures).
+
+    See-also: gnupg-announce/1999q3/000036.html
+
+
+Noteworthy changes in version 0.9.10 (1999-07-23)
+------------------------------------
+
+    * Some strange new options to help pgpgpg
+
+    * Cleaned up the dox a bit.
+
+    See-also: gnupg-announce/1999q3/000034.html
+
+
+Noteworthy changes in version 0.9.9
+-----------------------------------
+
+    * New options --[no-]utf8-strings.
+
+    * New edit-menu commands "enable" and "disable" for entire keys.
+
+    * You will be asked for a filename if gpg cannot deduce one.
+
+    * Changes to support libtool which is needed for the development
+      of libgcrypt.
+
+    * New script tools/lspgpot to help transferring assigned
+      trustvalues from PGP to GnuPG.
+
+    * New commands --lsign-key and made --sign-key a shortcut for --edit
+      and sign.
+
+    * New options (#122--126 ;-) --[no-]default-recipient[-self],
+      --disable-{cipher,pubkey}-algo. See the man page.
+
+    * Enhanced info output in case of multiple recipients and fixed exit code.
+
+    * New option --allow-non-selfsigned-uid to work around a problem with
+      the German IN way of separating signing and encryption keys.
+
+    See-also: gnupg-announce/1999q3/000028.html
+
+
+Noteworthy changes in version 0.9.8 (1999-06-26)
+-----------------------------------
+
+    * New subcommand "delsig" in the edit menu.
+
+    * The name of the output file is not anymore the one which is
+      embedded in the processed message, but the used filename with
+      the extension stripped.  To revert to the old behaviour you can
+      use the option --use-embedded-filename.
+
+    * Another hack to cope with pgp2 generated detached signatures.
+
+    * latin-2 character set works (--charset=iso-8859-2).
+
+    * New option --with-key-data to list the public key parameters.
+      New option -N to insert notations and a --set-policy-url.
+      A couple of other options to allow reseting of options.
+
+    * Better support for HPUX.
+
+    See-also: gnupg-announce/1999q2/000016.html
+
+
+Noteworthy changes in version 0.9.7 (1999-05-23)
+-----------------------------------
+
+    * Add some work arounds for a bugs in pgp 2 which led to bad signatures
+      when used with canonical texts in some cases.
+
+    * Enhanced some status outputs.
+
+    See-also: gnupg-announce/1999q2/000000.html
+
+
+Noteworthy changes in version 0.9.6 (1999-05-06)
+-----------------------------------
+
+    * Twofish is now statically linked by default. The experimental 128 bit
+      version is now disabled.	Full support will be available as soon as
+      the OpenPGP WG has decided on an interpretation of rfc2440.
+
+    * Dropped support for the ancient Blowfish160 which is not OpenPGP.
+
+    * Merged gpgm and gpg into one binary.
+
+    * Add "revsig" and "revkey" commands to the edit menu.  It is now
+      possible to revoke signature and subkeys.
+
+
+Noteworthy changes in version 0.9.5 (1999-03-20)
+-----------------------------------
+
+    * New command "lsign" in the keyedit menu to create non-exportable
+      signatures.  Removed --trusted-keys option.
+
+    * A bunch of changes to the key validation code.
+
+    * --list-trust-path now has an optional --with-colons format.
+
+    * New command --recv-keys to import keys from an keyserver.
+
+
+Noteworthy changes in version 0.9.4 (1999-03-08)
+-----------------------------------
+
+    * New configure option --enable-static-rnd=[egd|linux|unix|none]
+      to select a random gathering module for static linking.
+
+    * The original text is now verbatim copied to a cleartext signed message.
+
+    * Bugfixes but there are still a couple of bugs.
+
+
+Noteworthy changes in version 0.9.3 (1999-02-19)
+-----------------------------------
+
+    * Changed the internal design of getkey which now allows a
+      efficient lookup of multiple keys and add a word match mode.
+
+    * New options --[no-]encrypt-to.
+
+    * Some changes to the configure stuff.  Switched to automake 1.4.
+      Removed intl/ from CVS, autogen.sh now uses gettextize.
+
+    * Preferences now include Twofish. Removed preference to Blowfish with
+      a special hack to suppress the "not listed in preferences" warning;
+      this is to allow us to switch completely to Twofish in the near future.
+
+    * Changed the locking stuff.
+
+    * Print all user ids of a good signature.
+
+
+Noteworthy changes in version 0.9.2 (1999-01-01)
+-----------------------------------
+
+    * add some additional time warp checks.
+
+    * Option --keyserver and command --send-keys to utilize HKP servers.
+
+    * Upgraded to zlib 1.1.3 and fixed an inflate bug
+
+    * More cleanup on the cleartext signatures.
+
+
+Noteworthy changes in version 0.9.1 (1999-01-01)
+-----------------------------------
+
+    * Polish language support.
+
+    * When querying the passphrase, the key ID of the primary key is
+      displayed along with the one of the used secondary key.
+
+    * Fixed a bug occurring when decrypting pgp 5 encrypted messages,
+      fixed an infinite loop bug in the 3DES code and in the code
+      which looks for trusted signatures.
+
+    * Fixed a bug in the mpi library which caused signatures not to
+      compare okay.
+
+    * Rewrote the handling of cleartext signatures; the code is now
+      better maintainable (I hope so).
+
+    * New status output VALIDSIG only for valid signatures together
+      with the fingerprint of the signer's key.
+
+
+Noteworthy changes in version 0.9.0 (1998-12-23)
+-----------------------------------
+
+    * --export does now only exports rfc2440 compatible keys; the
+      old behaviour is available with --export-all.
+      Generation of v3 ElGamal (sign and encrypt) keys is not longer
+      supported.
+
+    * Fixed the uncompress bug.
+
+    * Rewrote the rndunix module. There are two environment variables
+      used for debugging now: GNUPG_RNDUNIX_DBG give the file to write
+      debugging information (use "-" for stdout) and if GNUPG_RNDUNIX_DBGALL
+      is set, all programs which are only tried are also printed.
+
+    * New option --escape-from-lines to "dash-escape" "From " lines to
+      prevent mailers to change them to ">From ".  This is not enabled by
+      default because it is not in compliance with rfc2440 - however, you
+      should turn it on.
+
+
+Noteworthy changes in version 0.4.5 (1998-12-08)
+-----------------------------------
+
+    * The keyrings and the trustdb is now locked, so that
+      other GnuPG processes won't damage these files.  You
+      may want to put the option --lock-once into your options file.
+
+    * The latest self-signatures are now used; this enables --import
+      to see updated preferences etc.
+
+    * Import of subkeys should now work.
+
+    * Random gathering modules may now be loaded as extensions. Add
+      such a module for most Unices but it is very experimental!
+
+    * Brazilian language support.
+
+
+Noteworthy changes in version 0.4.4 (1998-11-20)
+-----------------------------------
+
+    * Fixed the way the key expiration time is stored. If you have
+      an expiration time on your key you should fix it with --edit-key
+      and the command "expire".  I apologize for this inconvenience.
+
+    * Add option --charset to support "koi8-r" encoding of user ids.
+      (Not yet tested).
+
+    * Preferences should now work again. You should run
+      "gpgm --check-trustdb \*" to rebuild all preferences.
+
+    * Checking of certificates should now work but this needs a lot
+      of testing.  Key validation values are now cached in the
+      trustdb; they should be recalculated as needed, but you may
+      use --check-trustdb or --update-trustdb to do this.
+
+    * Spanish translation by Urko Lusa.
+
+    * Patch files are from now on signed.  See the man page
+      for the new option --not-dash-escaped.
+
+    * New syntax: --edit-key <userID> [<commands>]
+      If you run it without --batch the commands are executed and then
+      you are put into normal mode unless you use "quit" or "save" as
+      one of the commands.  When in batch mode, the program quits after
+      the last command, so you have to use "save" if you did some changes.
+      It does not yet work completely, but may be used to list so the
+      keys etc.
+
+
+Noteworthy changes in version 0.4.3 (1998-11-08)
+-----------------------------------
+
+    * Fixed the gettext configure bug.
+
+    * Kludge for RSA keys: keyid and length of a RSA key are
+      correctly reported, but you get an error if you try to use
+      this key (If you do not have the non-US version).
+
+    * Experimental support for keyrings stored in a GDBM database.
+      This is *much* faster than a standard keyring.  You will notice
+      that the import gets slower with time; the reason is that all
+      new keys are used to verify signatures of previous inserted
+      keys.  Use "--keyring gnupg-gdbm:<name-of-gdbm-file>".  This is
+      not (yet) supported for secret keys.
+
+    * A Russian language file in the distribution (alternatives are in
+      the contrib directory of the FTP servers)
+
+    * commandline option processing now works as expected for GNU programs
+      with the exception that you can't mix options and normal arguments.
+
+    * Now --list-key lists all matching keys.  This is needed in some
+      other places too.
+
+
+Noteworthy changes in version 0.4.2 (1998-10-18)
+-----------------------------------
+
+    * This is only a snapshot: There are still a few bugs.
+
+    * Fixed this huge memory leak.
+
+    * Redesigned the trust database:  You should run "gpgm --check-trustdb".
+      New command --update-trustdb, which adds new key from the public
+      keyring into your trustdb
+
+    * Fixed a bug in the armor code, leading to invalid packet errors.
+      (a workaround for this was to use --no-armor).  The shorten line
+      length (64 instead of 72) fixes a problem with pgp5 and keyservers.
+
+    * comment packets are not anymore generated. "--export" filters
+      them out.  One Exception:  The comment packets in a secret keyring
+      are still used because they carry the factorization of the public
+      prime product.
+
+    * --import now only looks for KEYBLOCK headers, so you can now simply
+      remove the "- " in front of such a header if someone accidentally signed
+      such a message or the keyblock is part of a cleartext signed message.
+
+    * --with-colons now lists the key expiration time and not anymore
+      the valid period.
+
+    * Some keyblocks created with old releases have a wrong sequence
+      of packets, so that the keyservers don't accept these keys.
+      Simply using "--edit-key" fixes the problem.
+
+    * New option --force-v3-sigs to generate signed messages which are
+      compatible to PGP 5.
+
+    * Add some code to support DLD (for non ELF systems) - but this is
+      not tested because my BSD box is currently broken.
+
+    * New command "expire" in the edit-key menu.
+
+
+
+Noteworthy changes in version 0.4.1 (1998-10-07)
+-----------------------------------
+
+    * A secondary key is used when the primary key is specified but cannot
+      be used for the operation (if it is a sign-only key).
+
+    * GNUPG can now handle concatenated armored messages:  There is still a
+      bug if different kinds of messages are mixed.
+
+    * Iterated+Salted passphrases now work.  If want to be sure that PGP5
+      is able to handle them you may want to use the options
+	"--s2k-mode 3 --s2k-cipher-algo cast5 --s2k-digest-algo sha1"
+      when changing a passphrase.
+
+    * doc/OpenPGP talks about OpenPGP compliance, doc/HACKING gives
+      a few hints about the internal structure.
+
+    * Checked gnupg against the August 1998 draft (07) and I believe
+      it is in compliance with this document (except for one point).
+
+    * Fixed some bugs in the import merging code and rewrote some
+      code for the trustdb.
+
+
+Noteworthy changes in version 0.4.0 (1998-09-18)
+-----------------------------------
+
+    * Triple DES is now supported.  Michael Roth did this piece of
+      needed work.  We have now all the coded needed to be OpenPGP
+      compliant.
+
+    * Added a simple rpm spec file (see INSTALL).
+
+    * detached and armored signatures are now using "PGP SIGNATURE",
+      except when --rfc1991 is used.
+
+    * All times which are not in the yyyy-mm-dd format are now printed
+      in local time.
+
+
+Noteworthy changes in version 0.3.5 (1998-09-14)
+-----------------------------------
+
+    * New option --throw-keyid to create anonymous enciphered messages.
+      If gpg detects such a message it tires all available secret keys
+      in turn so decode it.  This is a gnupg extension and not in OpenPGP
+      but it has been discussed there and afaik some products use this
+      scheme too (Suggested by Nimrod Zimmerman).
+
+    * Fixed a bug with 5 byte length headers.
+
+    * --delete-[secret-]key is now also available in gpgm.
+
+    * cleartext signatures are not anymore converted to LF only.
+
+    * Fixed a trustdb problem.	Run "gpgm --check-trustdb" to fix old
+      trust dbs.
+
+    * Building in another directory should now work.
+
+    * Weak key detection mechanism (Niklas Hernaeus).
+
+
+Noteworthy changes in version 0.3.4 (1998-08-11)
+-----------------------------------
+
+    * New options --comment and --set-filename; see g10/OPTIONS
+
+    * yes/no, y/n localized.
+
+    * Fixed some bugs.
+
+
+Noteworthy changes in version 0.3.3 (1998-08-08)
+-----------------------------------
+
+    * IMPORTANT: I found yet another bug in the way the secret keys
+      are encrypted - I did it the way pgp 2.x did it, but OpenPGP
+      and pgp 5.x specify another (in some aspects simpler) method.
+      To convert your secret keys you have to do this:
+	1. Build the new release but don't install it and keep
+	   a copy of the old program.
+	2. Disable the network, make sure that you are the only
+	   user, be sure that there are no Trojan horses etc ....
+	3. Use your old gpg (version 0.3.1 or 0.3.2) and set the
+	   passphrases of ALL your secret keys to empty!
+	   (gpg --change-passphrase your-user-id).
+	4. Save your ownertrusts (see the next point)
+	5. rm ~/.gnupg/trustdb.gpg
+	6. install the new version of gpg (0.3.3)
+	7. For every secret key call "gpg --edit-key your-user-id",
+	   enter "passwd" at the prompt, follow the instructions and
+	   change your password back, enter "save" to store it.
+	8. Restore the ownertrust (see next point).
+
+    * The format of the trust database has changed; you must delete
+      the old one, so gnupg can create a new one.
+      IMPORTANT: Use version 0.3.1 or .2 to save your assigned ownertrusts
+      ("gpgm --list-ownertrust >saved-trust"); then build this new version
+      and restore the ownertrust with this new version
+      ("gpgm --import-ownertrust saved-trust").  Please note that
+      --list-ownertrust has been renamed to --export-ownertrust in this
+      release and it does now only export defined ownertrusts.
+
+    * The command --edit-key now provides a commandline driven menu
+      which can be used for various tasks.  --sign-key is only an
+      an alias to --edit-key and maybe removed in future: use the
+      command "sign" of this new menu - you can select which user ids
+      you want to sign.
+
+    * Alternate user ids can now be created an signed.
+
+    * Owner trust values can now be changed with --edit-key (trust)
+
+    * GNUPG can now run as a coprocess; this enables sophisticated
+      frontends.  tools/shmtest.c is a simple sample implementation.
+      This needs some more work: all tty_xxx() are to be replaced
+      by cpr_xxx() and some changes in the display logics is needed.
+
+    * Removed options --gen-prime and --gen-random.
+
+    * Removed option --add-key; use --edit-key instead.
+
+    * Removed option --change-passphrase; use --edit-key instead.
+
+    * Signatures are now checked even if the output file could not
+      be created. Command "--verify" tries to find the detached data.
+
+    * gpg now disables core dumps.
+
+    * compress and symmetric cipher preferences are now used.
+      Because there is no 3DES yet, this is replaced by Blowfish.
+
+    * We have added the Twofish as an experimental cipher algorithm.
+      Many thanks to Matthew Skala for doing this work.
+      Twofish is the AES submission from Schneier et al.; see
+      "www.counterpane.com/twofish.html" for more information.
+
+    * Started with a help system: If you enter a question mark at some
+      prompt; you should get a specific help for this prompt.
+
+    * There is no more backup copy of the secret keyring.
+
+    * A lot of new bugs. I think this release is not as stable as
+      the previous one.
+
+
+Noteworthy changes in version 0.3.2 (1998-07-09)
+-----------------------------------
+
+    * Fixed some bugs when using --textmode (-seat)
+
+    * Now displays the trust status of a positive verified message.
+
+    * Keyrings are now scanned in the sequence they are added with
+      --[secret-]keyring.  Note that the default keyring is implicitly
+      added as the very first one unless --no-default-keyring is used.
+
+    * Fixed setuid and dlopen bug.
+
+
+Noteworthy changes in version 0.3.1 (1998-07-06)
+-----------------------------------
+
+    * Partial headers are now written in the OpenPGP format if
+      a key in a v4 packet is used.
+
+    * Removed some unused options, removed the gnupg.sig stuff.
+
+    * Key lookup by name now returns a key which can be used for
+      the desired action.
+
+    * New options --list-ownertrust (gpgm) to make a backup copy
+      of the ownertrust values you assigned.
+
+    * clear signature headers are now in compliance with OpenPGP.
+
+
+Noteworthy changes in version 0.3.0 (1998-06-25)
+-----------------------------------
+
+    * New option --emulate-checksum-bug.  If your passphrase does not
+      work anymore, use this option and --change-passphrase to rewrite
+      your passphrase.
+
+    * More complete v4 key support: Preferences and expiration time
+      is set into the self signature.
+
+    * Key generation defaults to DSA/ElGamal keys, so that new keys are
+      interoperable with pgp5
+
+    * DSA key generation is faster and key generation does not anymore
+      remove entropy from the random generator (the primes are public
+      parameters, so there is really no need for a cryptographic secure
+      prime number generator which we had used).
+
+    * A complete new structure for representing the key parameters.
+
+    * Removed most public key knowledge into the cipher library.
+
+    * Support for dynamic loading of new algorithms.
+
+    * Moved tiger to an extension module.
+
+
+Noteworthy changes in version 0.2.19 (1998-05-29)
+------------------------------------
+
+    * Replaced /dev/urandom in checks with new tool mk-tdata.
+
+    * Some assembler file cleanups; some more functions for the Alpha.
+
+    * Tiger has now the OpenPGP assigned number 6.  Because the OID has
+      changed, old signatures using this algorithm can't be verified.
+
+    * gnupg now encrypts the compressed packed and not any longer in the
+      reverse order; anyway it can decrypt both versions. Thanks to Tom
+      for telling me this (not security related) bug.
+
+    * --add-key works and you are now able to generate subkeys.
+
+    * It is now possible to generate ElGamal keys in v4 packets to create
+      valid OpenPGP keys.
+
+    * Some new features for better integration into MUAs.
+
+
+Noteworthy changes in version 0.2.18 (1998-05-15)
+------------------------------------
+
+    * Splitted cipher/random.c, add new option "--disable-dev-random"
+      to configure to support the development of a random source for
+      other systems. Prepared sourcefiles rand-unix.c, rand-w32.c
+      and rand-dummy.c (which is used to allow compilation on systems
+      without a random source).
+
+    * Fixed a small bug in the key generation (it was possible that 48 bits
+      of a key were not taken from the random pool)
+
+    * Add key generation for DSA and v4 signatures.
+
+    * Add a function trap_unaligned(), so that a SIGBUS is issued on
+      Alphas and not the slow emulation code is used. And success: rmd160
+      raised a SIGBUS.
+
+    * Enhanced the formatting facility of argparse and changed the use of
+      \r,\v to @ because gettext does not like it.
+
+    * New option "--compress-algo 1" to allow the creation of compressed
+      messages which are readable by PGP and "--print-md" (gpgm) to make
+      speed measurement easier.
+
+
+Noteworthy changes in version 0.2.17 (1998-05-04)
+------------------------------------
+
+    * Comment packets are now of private type 61.
+
+    * Passphrase code still used a 160 bit blowfish key, added a
+      silly workaround. Please change your passphrase again - sorry.
+
+    * Conventional encryption now uses a type 3 packet to describe the
+      used algorithms.
+
+    * The new algorithm number for Blowfish is 20, 16 is still used for
+      encryption only; for signing it is only used when it is in a v3 packet,
+      so that GNUPG keys are still valid.
+
+
+Noteworthy changes in version 0.2.16 (1998-04-28)
+------------------------------------
+
+    * Add experimental support for the TIGER/192 message digest algorithm.
+      (But there is only a dummy ASN OID).
+
+    * Standard cipher is now Blowfish with 128 bit key in OpenPGP's CFB
+      mode. I renamed the old cipher to Blowfish160. Because the OpenPGP
+      group refused to assign me a number for Blowfish160, I have to
+      drop support for this in the future. You should use
+      "--change-passphrase" to recode your current passphrase with 128
+      bit Blowfish.
+
+
+Noteworthy changes in version 0.2.15 (1998-04-09)
+------------------------------------
+
+    * Fixed a bug with the old checksum calculation for secret keys.
+      If you run the program without --batch, a warning does inform
+      you if your secret key needs to be converted; simply use
+      --change-passphrase to recalculate the checksum. Please do this
+      soon, as the compatible mode will be removed sometime in the future.
+
+    * CAST5 works (using the PGP's special CFB mode).
+
+    * Again somewhat more PGP 5 compatible.
+
+    * Some new test cases
+
+Noteworthy changes in version 0.2.14 (1998-04-02)
+------------------------------------
+
+    * Changed the internal handling of keyrings.
+
+    * Add support to list PGP 5 keyrings with subkeys
+
+    * Timestamps of signatures are now verified.
+
+    * A expiration time can now be specified during key generation.
+
+    * Some speedups for Blowfish and SHA-1, rewrote SHA-1 transform.
+      Reduced the amount of random bytes needed for key generation in
+      some cases.
+
+
+Noteworthy changes in version 0.2.13 (1998-03-10)
+------------------------------------
+
+    * Verify of DSA signatures works.
+
+    * Re-implemented the slower random number generator.
+
+
+Noteworthy changes in version 0.2.12 (1998-03-07)
+------------------------------------
+
+    * --delete-key checks that there is no secret key. The new
+      option --delete-secret-key maybe used to delete a secret key.
+
+    * "-kv" now works as expected. Options "--list-{keys,sigs]"
+      and "--check-sigs" are now working.
+
+    * New options "--verify" and "--decrypt" to better support integration
+      into MUAs (partly done for Mutt).
+
+    * New option "--with-colons" to make parsing of key lists easier.
+
+Noteworthy changes in version 0.2.11 (1998-03-02)
+------------------------------------
+
+    * GPG now asks for a recipient's name if option "-r" is not used.
+
+    * If there is no good trust path, the program asks whether to use
+      the public keys anyway.
+
+    * "--delete-key" works for public keys. What semantics shall I use
+      when there is a secret key too? Delete the secret key or leave him
+      and auto-regenerate the public key, next time the secret key is used?
+
+Noteworthy changes in version 0.2.10 (1998-02-27)
+------------------------------------
+
+    * Code for the alpha is much faster (about 20 times); the data
+      was misaligned and the kernel traps this, so nearly all time
+      was used by system to trap the misalignments and to write
+      syslog messages. Shame on me and thanks to Ralph for
+      pointing me at this while drinking some beer yesterday.
+
+    * Changed some configure options and add an option
+      --disable-m-guard to remove the memory checking code
+      and to compile everything with optimization on.
+
+    * New environment variable GNUPGHOME, which can be used to set
+      another homedir than ~/.gnupg.  Changed default homedir for
+      Windoze version to c:/gnupg.
+
+    * Fixed detached signatures; detached PGP signatures caused a SEGV.
+
+    * The Windoze version works (as usual w/o a strong RNG).
+
+
+Noteworthy changes in version 0.2.9 (1998-02-26)
+-----------------------------------
+
+    * Fixed FreeBSD bug.
+
+    * Added a simple man page.
+
+    * Switched to automake1.2f and a newer gettext.
+
+Noteworthy changes in version 0.2.8 (1998-02-24)
+-----------------------------------
+
+    * Changed the name to GNUPG, the binaries are called gpg and gpgm.
+      You must rename rename the directory "~/.g10" to ~/.gnupg/, rename
+      {pub,sec}ring.g10 to {pub,sec}ring.gpg, trustdb.g10 to trustdb.gpg
+      and g10.sig to gnupg.sig.
+
+    * New or changed passphrases are now salted.
+
+
+Noteworthy changes in version 0.2.7 (1998-02-18)
+-----------------------------------
+
+    * New command "gen-revoke" to create a key revocation certificate.
+
+    * New option "homedir" to set the homedir (which defaults to "~/.g10").
+      This directory is created if it does not exists (only the last
+      part of the name and not the complete hierarchy)
+
+    * Command "import" works. (Try: "finger gcrypt@ftp.guug.de|g10 --import")
+
+    * New commands "dearmor/enarmor" for g10maint.  These are mainly
+      used for internal test purposes.
+
+    * Option --version now conforming to the GNU standards and lists
+      the available ciphers, message digests and public key algorithms.
+
+    * Assembler code for m68k (not tested).
+
+    * "make check" works.
+
+Noteworthy changes in version 0.2.6 (1998-02-13)
+-----------------------------------
+
+    * Option "--export" works.
+
+
+Noteworthy changes in version 0.2.5 (1998-02-12)
+-----------------------------------
+
+    * Added zlib for systems which don't have it.
+      Use "./configure --with-zlib" to link with the static version.
+
+    * Generalized some more functions and rewrote the encoding of
+      message digests into MPIs.
+
+    * Enhanced the checkit script
+
+
+Noteworthy changes in version 0.2.4 (1998-02-11)
+-----------------------------------
+
+    * nearly doubled the speed of the ElGamal signature verification.
+
+    * backup copies of keyrings are created.
+
+    * assembler stuff for Pentium; gives about 15% better performance.
+
+    * fixed a lot of bugs.
+
+
+Noteworthy changes in version 0.2.3 (1998-02-09)
+-----------------------------------
+
+    * Found a bug in the calculation of ELG fingerprints. This is now
+      fixed, but all existing fingerprints and keyids for ELG keys
+      are not any more valid.
+
+    * armor should now work; including clear signed text.
+
+    * moved some options to the new program g10maint
+
+    * It's now 64 bit clean and runs fine on an alpha--linux.
+
+    * Key generation is much faster now.  I fixed this by using not
+      so strong random number for the primes (this was a bug because the
+      ElGamal primes are public parameters and it does not make sense
+      to generate them from strong random).  The real secret is the x value
+      which is still generated from strong (okay: /dev/random) random bits.
+
+    * added option "--status-fd": see g10/OPTIONS
+
+    * We have secure memory on systems which support mlock().
+      It is not complete yet, because we do not have signal handler
+      which does a cleanup in very case.
+      We should also check the ulimit for the user in the case
+      that the admin does not have set a limit on locked pages.
+
+    * started with internationalization support.
+
+    * The logic to handle the web of trust is now implemented. It is
+      has some bugs; but I'm going to change the algorithm anyway.
+      It works by calculating the trustlevel on the fly.  It may ask
+      you to provide trust parameters if the calculated trust probability
+      is too low.  I will write a paper which discusses this new approach.
+
+    * a couple of changes to the configure script.
+
+    * New option "--quick-random" which uses a much quicker random
+      number generator.  Keys generated while this option is in effect
+      are flags with "INSECURE!" in the user-id.  This is a development
+      only option.
+
+    * Read support for new version packets (OpenPGP).
+
+    * Comment packets are now of correct OpenPGP type 16. Old comment
+      packets written by G10 are detected because they always start with
+      a hash which is an invalid version byte.
+
+    * The string "(INSECURE!)" is appended to a new user-id if this
+      is generated on a system without a good random number generator.
+
+
+Version 0.2.2 (1998-02-09)
+Version 0.2.1 (1998-01-28)
+Version 0.2.0 (1998-01-25)
+Version 0.1.3 (1998-01-12)
+Version 0.1.2 (1998-01-07)
+Version 0.1.1 (1998-01-07)
+Version 0.1.0 (1998-01-05)
+Version 0.0.0 (1997-12-20)
+
+
+ Copyright (C) 1998-2016 Free Software Foundation, Inc.
+ Copyright (C) 1997-2016 Werner Koch
+
+ This file is free software; as a special exception the author gives
+ unlimited permission to copy and/or distribute it, with or without
+ modifications, as long as this notice is preserved.
+
+ This file is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+ implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

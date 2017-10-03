@@ -1,0 +1,81 @@
+# cmacros.am - C macro definitions
+#     Copyright (C) 2004 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+localedir = $(datadir)/locale
+
+# NB: AM_CFLAGS may also be used by tools running on the build
+# platform to create source files.
+AM_CPPFLAGS += -DLOCALEDIR=\"$(localedir)\"
+
+if ! HAVE_DOSISH_SYSTEM
+AM_CPPFLAGS += -DGNUPG_BINDIR="\"$(bindir)\""            \
+               -DGNUPG_LIBEXECDIR="\"$(libexecdir)\""    \
+               -DGNUPG_LIBDIR="\"$(libdir)/@PACKAGE@\""  \
+               -DGNUPG_DATADIR="\"$(datadir)/@PACKAGE@\"" \
+               -DGNUPG_SYSCONFDIR="\"$(sysconfdir)/@PACKAGE@\"" \
+               -DGNUPG_LOCALSTATEDIR="\"$(localstatedir)\""
+endif
+
+
+# If a specific protect tool program has been defined, pass its name
+# to cc.  Note that these macros should not be used directly but via
+# the gnupg_module_name function.
+if GNUPG_AGENT_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_AGENT="\"@GNUPG_AGENT_PGM@\""
+endif
+if GNUPG_PINENTRY_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_PINENTRY="\"@GNUPG_PINENTRY_PGM@\""
+endif
+if GNUPG_SCDAEMON_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_SCDAEMON="\"@GNUPG_SCDAEMON_PGM@\""
+endif
+if GNUPG_DIRMNGR_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_DIRMNGR="\"@GNUPG_DIRMNGR_PGM@\""
+endif
+if GNUPG_PROTECT_TOOL_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_PROTECT_TOOL="\"@GNUPG_PROTECT_TOOL_PGM@\""
+endif
+if GNUPG_DIRMNGR_LDAP_PGM
+AM_CPPFLAGS += -DGNUPG_DEFAULT_DIRMNGR_LDAP="\"@GNUPG_DIRMNGR_LDAP_PGM@\""
+endif
+
+# Under Windows we use LockFileEx.  WindowsCE provides this only on
+# the WindowsMobile 6 platform and thus we need to use the coredll6
+# import library.  We also want to use a stacksize of 256k instead of
+# the 2MB which is the default with cegcc.  256k is the largest stack
+# we use with pth.
+if HAVE_W32CE_SYSTEM
+extra_sys_libs = -lcoredll6
+extra_bin_ldflags = -Wl,--stack=0x40000
+else
+extra_sys_libs =
+extra_bin_ldflags =
+endif
+
+if HAVE_W32_SYSTEM
+.rc.o:
+	$(WINDRES) $(DEFAULT_INCLUDES) $(INCLUDES) "$<" "$@"
+
+endif
+resource_objs =
+
+# Convenience macros
+libcommon = ../common/libcommon.a
+libcommonpth = ../common/libcommonpth.a
+libcommontls = ../common/libcommontls.a
+libcommontlsnpth = ../common/libcommontlsnpth.a

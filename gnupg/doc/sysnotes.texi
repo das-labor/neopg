@@ -1,0 +1,58 @@
+@c Copyright (C) 2004 Free Software Foundation, Inc.
+@c This is part of the GnuPG manual.
+@c For copying conditions, see the file gnupg.texi.
+
+@node System Notes
+@chapter Notes pertaining to certain OSes
+
+GnuPG has been developed on GNU/Linux systems and is know to work on
+almost all Free OSes.  All modern POSIX systems should be supported
+right now, however there are probably a lot of smaller glitches we need
+to fix first.  The major problem areas are:
+
+@itemize
+@item
+We are planning to use file descriptor passing for interprocess
+communication.  This will allow us save a lot of resources and improve
+performance of certain operations a lot.  Systems not supporting this
+won't gain these benefits but we try to keep them working the standard
+way as it is done today.
+
+@item
+We require more or less full POSIX compatibility.  This has been
+around for 15 years now and thus we don't believe it makes sense to
+support non POSIX systems anymore.  Well, we of course the usual
+workarounds for near POSIX systems well be applied.
+
+There is one exception of this rule: Systems based the Microsoft Windows
+API (called here @emph{W32}) will be supported to some extend.
+
+@end itemize
+
+
+@menu
+* W32 Notes::             Microsoft Windows Notes
+@end menu
+
+
+@node W32 Notes
+@section Microsoft Windows Notes
+
+@noindent
+Current limitations are:
+
+@itemize
+
+@item
+@command{gpgconf} does not create backup files, so in case of trouble
+your configuration file might get lost.
+
+@item
+@command{watchgnupg} is not available.  Logging to sockets is not
+possible.
+
+@item
+The periodical smartcard status checking done by @command{scdaemon} is
+not yet supported.
+
+@end itemize

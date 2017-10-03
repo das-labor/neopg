@@ -1,0 +1,192 @@
+@c Copyright (C) 2004 Free Software Foundation, Inc.
+@c This is part of the GnuPG manual.
+@c For copying conditions, see the file GnuPG.texi.
+
+@c
+@c This is included by tools.texi.
+@c
+
+@include defs.inc
+
+@c Begin standard stuff
+@ifclear gpgtwohack
+@manpage gpgv.1
+@node gpgv
+@section Verify OpenPGP signatures
+@ifset manverb
+.B gpgv
+\- Verify OpenPGP signatures
+@end ifset
+
+@mansect synopsis
+@ifset manverb
+.B  gpgv
+.RI [ options ]
+.I signed_files
+@end ifset
+@end ifclear
+@c End standard stuff
+
+@c Begin gpg2 hack stuff
+@ifset gpgtwohack
+@manpage gpgv2.1
+@node gpgv
+@section Verify OpenPGP signatures
+@ifset manverb
+.B gpgv2
+\- Verify OpenPGP signatures
+@end ifset
+
+@mansect synopsis
+@ifset manverb
+.B  gpgv2
+.RI [ options ]
+.I signed_files
+@end ifset
+@end ifset
+@c End gpg2 hack stuff
+
+@mansect description
+@code{@gpgvname} is an OpenPGP signature verification tool.
+
+This program is actually a stripped-down version of @code{gpg} which is
+only able to check signatures. It is somewhat smaller than the fully-blown
+@code{gpg} and uses a different (and simpler) way to check that
+the public keys used to make the signature are valid. There are
+no configuration files and only a few options are implemented.
+
+@code{@gpgvname} assumes that all keys in the keyring are trustworthy.
+That does also mean that it does not check for expired or revoked
+keys.
+
+By default a keyring named @file{trustedkeys.kbx} is used; if that
+does not exist a keyring named @file{trustedkeys.gpg} is used.  The
+default keyring is assumed to be in the home directory of GnuPG,
+either the default home directory or the one set by an option or an
+environment variable.  The option @code{--keyring} may be used to
+specify a different keyring or even multiple keyrings.
+
+
+@noindent
+@mansect options
+@code{@gpgvname} recognizes these options:
+
+@table @gnupgtabopt
+
+@item --verbose
+@itemx -v
+@opindex verbose
+Gives more information during processing. If used
+twice, the input data is listed in detail.
+
+@item --quiet
+@itemx -q
+@opindex quiet
+Try to be as quiet as possible.
+
+@item --keyring @var{file}
+@opindex keyring
+Add @var{file} to the list of keyrings.
+If @var{file} begins with a tilde and a slash, these
+are replaced by the HOME directory. If the filename
+does not contain a slash, it is assumed to be in the
+home-directory ("~/.gnupg" if --homedir is not used).
+
+@item --output @var{file}
+@itemx -o @var{file}
+@opindex output
+Write output to @var{file}; to write to stdout use @code{-}.  This
+option can be used to get the signed text from a cleartext or binary
+signature; it also works for detached signatures, but in that case
+this option is in general not useful.  Note that an existing file will
+be overwritten.
+
+
+@item --status-fd @var{n}
+@opindex status-fd
+Write special status strings to the file descriptor @var{n}.  See the
+file DETAILS in the documentation for a listing of them.
+
+@item --logger-fd @code{n}
+@opindex logger-fd
+Write log output to file descriptor @code{n} and not to stderr.
+
+@item --log-file @code{file}
+@opindex log-file
+Same as @option{--logger-fd}, except the logger data is written to
+file @code{file}.  Use @file{socket://} to log to socket.
+
+@item --ignore-time-conflict
+@opindex ignore-time-conflict
+GnuPG normally checks that the timestamps associated with keys and
+signatures have plausible values. However, sometimes a signature seems to
+be older than the key due to clock problems. This option turns these
+checks into warnings.
+
+@include opt-homedir.texi
+
+@item --weak-digest @code{name}
+@opindex weak-digest
+Treat the specified digest algorithm as weak.  Signatures made over
+weak digests algorithms are normally rejected. This option can be
+supplied multiple times if multiple algorithms should be considered
+weak.  MD5 is always considered weak, and does not need to be listed
+explicitly.
+
+@item --enable-special-filenames
+@opindex enable-special-filenames
+This option enables a mode in which filenames of the form
+@file{-&n}, where n is a non-negative decimal number,
+refer to the file descriptor n and not to a file with that name.
+
+@end table
+
+@mansect return value
+
+The program returns 0 if everything is fine, 1 if at least
+one signature was bad, and other error codes for fatal errors.
+
+@mansect examples
+@subsection Examples
+
+@table @asis
+
+@item @gpgvname @code{pgpfile}
+@itemx @gpgvname @code{sigfile} [@code{datafile}]
+Verify the signature of the file. The second form is used for detached
+signatures, where @code{sigfile} is the detached signature (either
+ASCII-armored or binary) and @code{datafile} contains the signed data;
+if @code{datafile} is "-" the signed data is expected on
+@code{stdin}; if @code{datafile} is not given the name of the file
+holding the signed data is constructed by cutting off the extension
+(".asc", ".sig" or ".sign") from @code{sigfile}.
+
+@end table
+
+@mansect environment
+@subsection Environment
+
+@table @asis
+
+@item HOME
+Used to locate the default home directory.
+
+@item GNUPGHOME
+If set directory used instead of "~/.gnupg".
+
+@end table
+
+@mansect files
+@subsection FILES
+
+@table @asis
+
+@item ~/.gnupg/trustedkeys.gpg
+The default keyring with the allowed keys.
+
+@end table
+
+@mansect see also
+@command{gpg2}(1)
+@include see-also-note.texi
+
