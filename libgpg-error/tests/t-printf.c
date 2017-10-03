@@ -375,7 +375,7 @@ check_snprintf (void)
 
 
 int
-main (int argc, char **argv)
+printf_main (int argc, char **argv)
 {
   int last_argc = -1;
 

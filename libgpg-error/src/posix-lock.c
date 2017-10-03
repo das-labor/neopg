@@ -32,7 +32,7 @@
 # include <pthread.h>
 
 #include "gpg-error.h"
-#include "lock.h"
+#include "gpgrt-int.h"
 //#include "posix-lock-obj.h"
 
 #define gpgrt_lock_t pthread_mutex_t

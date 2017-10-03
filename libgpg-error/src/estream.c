@@ -92,8 +92,6 @@
 
 #include "gpgrt-int.h"
 #include "estream-printf.h"
-#include "thread.h"
-#include "lock.h"
 
 
 #ifndef O_BINARY

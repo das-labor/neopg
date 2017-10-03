@@ -353,7 +353,7 @@ test_poll (void)
 
 
 int
-main (int argc, char **argv)
+poll_main (int argc, char **argv)
 {
   int last_argc = -1;
 

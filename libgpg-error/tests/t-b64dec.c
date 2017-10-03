@@ -99,7 +99,7 @@ test_b64dec_string (const char *string, const char *expected)
 
 
 int
-main (int argc, char **argv)
+b64dec_main (int argc, char **argv)
 {
   gpg_error_t err;
 

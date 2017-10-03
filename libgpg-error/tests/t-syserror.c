@@ -28,7 +28,7 @@
 #include <gpg-error.h>
 
 int
-main (int argc, char *argv[])
+syserror_main (int argc, char *argv[])
 {
   FILE *fp;
   int save_errno;

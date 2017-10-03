@@ -31,7 +31,7 @@
 
 #include "gpg-error.h"
 
-#include "thread.h"
+#include "gpgrt-int.h"
 
 /*
  * Functions called before and after blocking syscalls.

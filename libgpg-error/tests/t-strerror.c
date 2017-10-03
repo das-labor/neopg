@@ -25,7 +25,7 @@
 #include <gpg-error.h>
 
 int
-main (int argc, char *argv[])
+strerror_main (int argc, char *argv[])
 {
   if (argc > 1)
     {

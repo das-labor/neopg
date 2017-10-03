@@ -260,7 +260,7 @@ run_test (void)
 
 
 int
-main (int argc, char **argv)
+lock_main (int argc, char **argv)
 {
   int last_argc = -1;
   int rc;
