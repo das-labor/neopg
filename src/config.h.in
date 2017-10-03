@@ -2,3 +2,6 @@
 
 /* libassuan */
 #define USE_DESCRIPTOR_PASSING 1
+/* npth */
+#define HAVE_PSELECT 1
+#define HAVE_CLOCK_GETTIME 1

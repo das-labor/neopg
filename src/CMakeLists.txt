@@ -141,6 +141,35 @@ target_link_libraries(assuan-test PRIVATE
   GTest::GTest GTest::Main)
 add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_output=xml:assuan-test.xml)
 
+# npth
+
+add_library(npth
+  ../npth/src/npth.h
+  ../npth/src/npth.c
+  ../npth/src/npth-sigev.c
+)
+
+add_library(neopg::npth ALIAS npth)
+
+target_include_directories(npth PRIVATE
+  ../npth/src
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(npth PRIVATE
+  HAVE_CONFIG_H=1)
+
+add_executable(npth-test
+  ../npth/tests/t-fork.c
+  ../npth/tests/t-mutex.c
+  ../npth/tests/t-support.h
+  ../npth/tests/t-thread.c
+  ../npth/tests/npth-test.cpp)
+target_include_directories(npth-test PRIVATE
+  ../npth/src
+  ${CMAKE_BINARY_DIR}/.)
+target_link_libraries(npth-test PRIVATE
+  npth
+  GTest::GTest GTest::Main)
+add_test(nPthTest npth-test COMMAND npth-test test_xml_output --gtest_output=xml:npth-test.xml)
 
 
 #if(CMAKE_COMPILER_IS_GNUCXX)

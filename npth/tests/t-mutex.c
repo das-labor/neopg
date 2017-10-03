@@ -14,7 +14,7 @@
 
 
 int
-main (int argc, char *argv[])
+mutex_main (int argc, char *argv[])
 {
   int rc;
   npth_mutex_t mutex;

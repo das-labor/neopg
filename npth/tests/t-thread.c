@@ -103,11 +103,8 @@ thread_two (void *arg)
 }
 
 
-
-
-
 int
-main (int argc, char *argv[])
+thread_main (int argc, char *argv[])
 {
   int rc;
   npth_attr_t tattr;

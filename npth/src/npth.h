@@ -1,5 +1,4 @@
 /* npth.h - a lightweight implementation of pth over pthread.
- *          Configured for: @NPTH_CONFIG_HOST@.
  * Copyright (C) 2011, 2012, 2015, 2017 g10 Code GmbH
  *
  * This file is part of nPth.
@@ -42,13 +41,13 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#@INSERT_SYS_TIME_H@
-#@INSERT_TIME_H@
+#include <sys/time.h>
+#include <time.h>
 #include <sys/socket.h>
-#@INSERT_SOCKLEN_T@
-#@INSERT_SYS_SELECT_H@
-#@INSERT_SIGNAL_H@
-
+#include <sys/select.h>
+#include <unistd.h>
+#include <signal.h>
+#define _npth_socklen_t socklen_t
 #include <pthread.h>
 
 #ifdef __ANDROID__
@@ -445,8 +444,3 @@ int npth_sigev_get_pending (int *r_signum);
 }
 #endif
 #endif /*_NPTH_H*/
-/*
-@emacs_local_vars_begin@
-@emacs_local_vars_read_only@
-@emacs_local_vars_end@
-*/
