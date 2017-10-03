@@ -52,6 +52,7 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 #if defined(__WIN32) && defined(STANDALONE)
 # include <fcntl.h> /* We need setmode().  */
 #endif
@@ -69,17 +70,7 @@
 
 
 
-#ifndef HAVE_U32_TYPEDEF
-# undef u32 /* Undef a possible macro with that name.  */
-# if SIZEOF_UNSIGNED_INT == 4
-   typedef unsigned int u32;
-# elif SIZEOF_UNSIGNED_LONG == 4
-   typedef unsigned long u32;
-# else
-#  error no typedef for u32
-# endif
-# define HAVE_U32_TYPEDEF
-#endif
+typedef uint32_t u32;
 
 
 

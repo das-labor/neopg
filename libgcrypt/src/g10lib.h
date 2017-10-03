@@ -29,10 +29,6 @@
 #error  gcrypt.h already included
 #endif
 
-#ifndef _GCRYPT_IN_LIBGCRYPT
-#error something is wrong with config.h
-#endif
-
 #include <stdio.h>
 #include <stdarg.h>
 

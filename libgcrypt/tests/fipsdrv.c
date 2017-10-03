@@ -17,16 +17,14 @@
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <ctype.h>
-#ifdef HAVE_W32_SYSTEM
+#ifdef _WIN32
 # include <fcntl.h> /* We need setmode().  */
 #else
 # include <signal.h>
@@ -34,11 +32,6 @@
 #include <assert.h>
 #include <unistd.h>
 
-#ifndef _GCRYPT_IN_LIBGCRYPT
-# include <gcrypt.h>
-# define PACKAGE_BUGREPORT "devnull@example.org"
-# define PACKAGE_VERSION "[build on " __DATE__ " " __TIME__ "]"
-#endif
 #include "../src/gcrypt-testapi.h"
 
 #define PGM "fipsdrv"

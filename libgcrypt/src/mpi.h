@@ -37,10 +37,6 @@
 
 #include "g10lib.h"
 
-#ifndef _GCRYPT_IN_LIBGCRYPT
-#error this file should only be used inside libgcrypt
-#endif
-
 #ifndef BITS_PER_MPI_LIMB
 #if BYTES_PER_MPI_LIMB == SIZEOF_UNSIGNED_INT
   typedef unsigned int mpi_limb_t;
@@ -82,29 +78,16 @@ struct gcry_mpi
 
 /*-- mpiutil.c --*/
 
-#ifdef M_DEBUG
-# define mpi_alloc(n)	_gcry_mpi_debug_alloc((n), M_DBGINFO( __LINE__ ) )
-# define mpi_alloc_secure(n)  _gcry_mpi_debug_alloc_secure((n), M_DBGINFO( __LINE__ ) )
-# define mpi_free(a)	_gcry_mpi_debug_free((a), M_DBGINFO(__LINE__) )
-# define mpi_resize(a,b) _gcry_mpi_debug_resize((a),(b), M_DBGINFO(__LINE__) )
-# define mpi_copy(a)	  _gcry_mpi_debug_copy((a), M_DBGINFO(__LINE__) )
-  gcry_mpi_t _gcry_mpi_debug_alloc( unsigned nlimbs, const char *info );
-  gcry_mpi_t _gcry_mpi_debug_alloc_secure( unsigned nlimbs, const char *info );
-  void _gcry_mpi_debug_free( gcry_mpi_t a, const char *info );
-  void _gcry_mpi_debug_resize( gcry_mpi_t a, unsigned nlimbs, const char *info );
-  gcry_mpi_t  _gcry_mpi_debug_copy( gcry_mpi_t a, const char *info	);
-#else
-# define mpi_alloc(n)	       _gcry_mpi_alloc((n) )
+# define mpi_alloc(n)         _gcry_mpi_alloc((n) )
 # define mpi_alloc_secure(n)  _gcry_mpi_alloc_secure((n) )
-# define mpi_free(a)	       _gcry_mpi_free((a) )
+# define mpi_free(a)          _gcry_mpi_free((a) )
 # define mpi_resize(a,b)      _gcry_mpi_resize((a),(b))
-# define mpi_copy(a)	       _gcry_mpi_copy((a))
-  gcry_mpi_t  _gcry_mpi_alloc( unsigned nlimbs );
-  gcry_mpi_t  _gcry_mpi_alloc_secure( unsigned nlimbs );
-  void _gcry_mpi_free( gcry_mpi_t a );
-  void _gcry_mpi_resize( gcry_mpi_t a, unsigned nlimbs );
-  gcry_mpi_t  _gcry_mpi_copy( gcry_mpi_t a );
-#endif
+//# define mpi_copy(a)          _gcry_mpi_copy((a))
+gcry_mpi_t  _gcry_mpi_alloc( unsigned nlimbs );
+gcry_mpi_t  _gcry_mpi_alloc_secure( unsigned nlimbs );
+void _gcry_mpi_free( gcry_mpi_t a );
+void _gcry_mpi_resize( gcry_mpi_t a, unsigned nlimbs );
+gcry_mpi_t  _gcry_mpi_copy( gcry_mpi_t a );
 
 void _gcry_mpi_immutable_failed (void);
 #define mpi_immutable_failed() _gcry_mpi_immutable_failed ()

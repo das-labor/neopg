@@ -24,9 +24,6 @@
 #ifndef PGM
 # error Macro PGM not defined.
 #endif
-#ifndef _GCRYPT_CONFIG_H_INCLUDED
-# error config.h not included
-#endif
 
 /* A couple of useful macros.  */
 #ifndef DIM

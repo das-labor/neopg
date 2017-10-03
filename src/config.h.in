@@ -5,3 +5,124 @@
 /* npth */
 #define HAVE_PSELECT 1
 #define HAVE_CLOCK_GETTIME 1
+
+/* libgcrypt */
+
+/* List of available cipher algorithms */
+#define LIBGCRYPT_CIPHERS "arcfour:blowfish:cast5:des:aes:twofish:serpent:rfc2268:seed:camellia:idea:salsa20:gost28147:chacha20"
+
+/* List of available digest algorithms */
+#define LIBGCRYPT_DIGESTS "crc:gostr3411-94::md4:md5:rmd160:sha1:sha256:sha512:sha3:tiger:whirlpool:stribog:blake2"
+
+/* List of available KDF algorithms */
+#define LIBGCRYPT_KDFS "s2k:pkdf2:scrypt"
+
+/* List of available public key cipher algorithms */
+#define LIBGCRYPT_PUBKEY_CIPHERS "dsa:elgamal:rsa:ecc"
+
+/* Defined if this module should be included */
+#define USE_AES 1
+
+/* Defined if this module should be included */
+#define USE_ARCFOUR 1
+
+/* Defined if this module should be included */
+#define USE_BLAKE2 1
+
+/* Defined if this module should be included */
+#define USE_BLOWFISH 1
+
+/* Defined if this module should be included */
+#define USE_CAMELLIA 1
+
+/* Defined if this module should be included */
+#define USE_CAST5 1
+
+/* Defined if this module should be included */
+#define USE_CHACHA20 1
+
+/* Defined if this module should be included */
+#define USE_CRC 1
+
+/* Defined if this module should be included */
+#define USE_DES 1
+
+/* Defined if this module should be included */
+#define USE_DSA 1
+
+/* Defined if this module should be included */
+#define USE_ECC 1
+
+/* Defined if this module should be included */
+#define USE_ELGAMAL 1
+
+/* Defined if this module should be included */
+#define USE_GOST28147 1
+
+/* Defined if this module should be included */
+#define USE_GOST_R_3411_12 1
+
+/* Defined if this module should be included */
+#define USE_GOST_R_3411_94 1
+
+/* Defined if this module should be included */
+#define USE_IDEA 1
+
+/* Defined if this module should be included */
+/* #undef USE_MD2 */
+
+/* Defined if this module should be included */
+#define USE_MD4 1
+
+/* Defined if this module should be included */
+#define USE_MD5 1
+
+
+/* Defined if this module should be included */
+#define USE_RSA 1
+
+/* Defined if this module should be included */
+#define USE_SALSA20 1
+
+/* Defined if this module should be included */
+#define USE_SCRYPT 1
+
+/* Defined if this module should be included */
+#define USE_SEED 1
+
+/* Defined if this module should be included */
+#define USE_SERPENT 1
+
+/* Defined if this module should be included */
+#define USE_SHA1 1
+
+/* Defined if this module should be included */
+#define USE_SHA256 1
+
+/* Defined if this module should be included */
+#define USE_SHA3 1
+
+/* Defined if this module should be included */
+#define USE_SHA512 1
+
+/* Defined if this module should be included */
+#define USE_RFC2268 1
+
+/* Defined if this module should be included */
+#define USE_RMD160 1
+
+
+/* Defined if this module should be included */
+#define USE_TIGER 1
+
+/* Defined if this module should be included */
+#define USE_TWOFISH 1
+
+/* Defined if this module should be included */
+#define USE_WHIRLPOOL 1
+
+#define NAME_OF_DEV_RANDOM "/dev/random"
+#define NAME_OF_DEV_URANDOM "/dev/urandom"
+
+/* USE_CAPABILITIES */
+#define HAVE_MLOCK 1

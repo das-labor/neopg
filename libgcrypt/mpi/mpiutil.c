@@ -26,7 +26,6 @@
 
 #include "g10lib.h"
 #include "mpi-internal.h"
-#include "mod-source-info.h"
 
 /* Constants allocated right away at startup.  */
 static gcry_mpi_t constants[MPI_NUMBER_OF_CONSTANTS];
@@ -36,7 +35,7 @@ static gcry_mpi_t constants[MPI_NUMBER_OF_CONSTANTS];
 const char *
 _gcry_mpi_get_hw_config (void)
 {
-  return mod_source_info + 1;
+  return "";
 }
 
 

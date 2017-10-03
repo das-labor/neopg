@@ -17,20 +17,14 @@
  * License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <time.h>
 
-#ifdef _GCRYPT_IN_LIBGCRYPT
-# include "../src/gcrypt-int.h"
-#else
-# include <gcrypt.h>
-#endif
+#include "../src/gcrypt-int.h"
 
 #ifndef STR
 #define STR(v) #v

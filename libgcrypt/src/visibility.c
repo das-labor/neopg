@@ -63,12 +63,6 @@ gcry_error_from_errno (int err)
   return _gcry_error_from_errno (err);
 }
 
-const char *
-gcry_check_version (const char *req_version)
-{
-  return _gcry_check_version (req_version);
-}
-
 gcry_error_t
 gcry_control (enum gcry_ctl_cmds cmd, ...)
 {

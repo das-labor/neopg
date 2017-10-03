@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
- * File: @configure_input@
  */
 
 #ifndef _GCRYPT_H
@@ -42,10 +41,8 @@
 #else
 # include <sys/socket.h>
 # include <sys/time.h>
-#@INSERT_SYS_SELECT_H@
+# include <sys/select.h>
 #endif /*!_WIN32*/
-
-@FALLBACK_SOCKLEN_T@
 
 /* This is required for error code compatibility. */
 #define _GCRY_ERR_SOURCE_DEFAULT GPG_ERR_SOURCE_GCRYPT
@@ -62,20 +59,12 @@ extern "C" {
    return the same version.  The purpose of this macro is to let
    autoconf (using the AM_PATH_GCRYPT macro) check that this header
    matches the installed library.  */
-#define GCRYPT_VERSION "@VERSION@"
+#define GCRYPT_VERSION "1.7.8"
 
 /* The version number of this header.  It may be used to handle minor
    API incompatibilities.  */
-#define GCRYPT_VERSION_NUMBER @VERSION_NUMBER@
+#define GCRYPT_VERSION_NUMBER 0x010708
 
-
-/* Internal: We can't use the convenience macros for the multi
-   precision integer functions when building this library. */
-#ifdef _GCRYPT_IN_LIBGCRYPT
-#ifndef GCRYPT_NO_MPI_MACROS
-#define GCRYPT_NO_MPI_MACROS 1
-#endif
-#endif
 
 /* We want to use gcc attributes when possible.  Warning: Don't use
    these macros in your programs: As indicated by the leading
@@ -120,14 +109,6 @@ extern "C" {
 #endif
 #ifndef _GCRY_GCC_ATTR_SENTINEL
 #define _GCRY_GCC_ATTR_SENTINEL(a)
-#endif
-
-/* Make up an attribute to mark functions and types as deprecated but
-   allow internal use by Libgcrypt.  */
-#ifdef _GCRYPT_IN_LIBGCRYPT
-#define _GCRY_ATTR_INTERNAL
-#else
-#define _GCRY_ATTR_INTERNAL	_GCRY_GCC_ATTR_DEPRECATED
 #endif
 
 /* Wrappers for the libgpg-error library.  */
@@ -215,7 +196,7 @@ struct gcry_thread_cbs
        Bits  7 - 0  are used for the thread model
        Bits 15 - 8  are used for the version number.  */
   unsigned int option;
-} _GCRY_ATTR_INTERNAL;
+};
 
 #define GCRY_THREAD_OPTION_PTH_IMPL                                     \
   static struct gcry_thread_cbs gcry_threads_pth = {                    \
@@ -1335,7 +1316,7 @@ int gcry_md_is_secure (gcry_md_hd_t a);
 
 /* Deprecated: Use gcry_md_is_enabled or gcry_md_is_secure.  */
 gcry_error_t gcry_md_info (gcry_md_hd_t h, int what, void *buffer,
-                          size_t *nbytes) _GCRY_ATTR_INTERNAL;
+                          size_t *nbytes);
 
 /* Retrieve various information about the algorithm ALGO.  */
 gcry_error_t gcry_md_algo_info (int algo, int what, void *buffer,
@@ -1787,8 +1768,3 @@ int gcry_is_secure (const void *a) _GCRY_GCC_ATTR_PURE;
 }
 #endif
 #endif /* _GCRYPT_H */
-/*
-@emacs_local_vars_begin@
-@emacs_local_vars_read_only@
-@emacs_local_vars_end@
-*/

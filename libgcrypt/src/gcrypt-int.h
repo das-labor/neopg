@@ -444,78 +444,14 @@ int _gcry_mpi_get_flag (gcry_mpi_t a, enum gcry_mpi_flag flag);
 /* gcry_mpi_t _gcry_mpi_get_const (int no); */
 
 /* We need our internal versions of the macros.  */
-#ifndef GCRYPT_NO_MPI_MACROS
-# error GCRYPT_NO_MPI_MACROS is not defined
-#endif
 
-#define mpi_new(n)             _gcry_mpi_new ((n))
-#define mpi_secure_new( n )    _gcry_mpi_snew ((n))
 #define mpi_snew(n)            _gcry_mpi_snew ((n))
 
-#define mpi_release(a)        \
-  do                          \
-    {                         \
-      _gcry_mpi_release ((a));\
-      (a) = NULL;             \
-    }                         \
-  while (0)
 
-#define mpi_snatch( w, u)      _gcry_mpi_snatch( (w), (u) )
-#define mpi_set( w, u)         _gcry_mpi_set( (w), (u) )
-#define mpi_set_ui( w, u)      _gcry_mpi_set_ui( (w), (u) )
 #define mpi_get_ui(a,b)        _gcry_mpi_get_ui( (a), (b) )
 #define mpi_swap(a,b)          _gcry_mpi_swap ((a),(b))
-#define mpi_abs( w )           _gcry_mpi_abs( (w) )
-#define mpi_neg( w, u)         _gcry_mpi_neg( (w), (u) )
-#define mpi_cmp( u, v )        _gcry_mpi_cmp( (u), (v) )
-#define mpi_cmp_ui( u, v )     _gcry_mpi_cmp_ui( (u), (v) )
-#define mpi_is_neg( a )        _gcry_mpi_is_neg ((a))
 
-#define mpi_add_ui(w,u,v)      _gcry_mpi_add_ui((w),(u),(v))
-#define mpi_add(w,u,v)         _gcry_mpi_add ((w),(u),(v))
-#define mpi_addm(w,u,v,m)      _gcry_mpi_addm ((w),(u),(v),(m))
-#define mpi_sub_ui(w,u,v)      _gcry_mpi_sub_ui ((w),(u),(v))
-#define mpi_sub(w,u,v)         _gcry_mpi_sub ((w),(u),(v))
-#define mpi_subm(w,u,v,m)      _gcry_mpi_subm ((w),(u),(v),(m))
-#define mpi_mul_ui(w,u,v)      _gcry_mpi_mul_ui ((w),(u),(v))
-#define mpi_mul_2exp(w,u,v)    _gcry_mpi_mul_2exp ((w),(u),(v))
-#define mpi_mul(w,u,v)         _gcry_mpi_mul ((w),(u),(v))
-#define mpi_mulm(w,u,v,m)      _gcry_mpi_mulm ((w),(u),(v),(m))
-#define mpi_powm(w,b,e,m)      _gcry_mpi_powm ( (w), (b), (e), (m) )
-#define mpi_tdiv(q,r,a,m)      _gcry_mpi_div ( (q), (r), (a), (m), 0)
-#define mpi_fdiv(q,r,a,m)      _gcry_mpi_div ( (q), (r), (a), (m), -1)
-#define mpi_mod(r,a,m)         _gcry_mpi_mod ((r), (a), (m))
-#define mpi_gcd(g,a,b)         _gcry_mpi_gcd ( (g), (a), (b) )
-#define mpi_invm(g,a,b)        _gcry_mpi_invm ( (g), (a), (b) )
 
-#define mpi_point_new(n)       _gcry_mpi_point_new((n))
-
-#define mpi_point_release(p)                     \
-  do                                             \
-    {                                            \
-      _gcry_mpi_point_release ((p));             \
-      (p) = NULL;                                \
-    }                                            \
-  while (0)
-
-#define mpi_point_get(x,y,z,p)        _gcry_mpi_point_get((x),(y),(z),(p))
-#define mpi_point_snatch_get(x,y,z,p) _gcry_mpi_point_snatch_get((x),(y), \
-                                                                 (z),(p))
-#define mpi_point_set(p,x,y,z)        _gcry_mpi_point_set((p),(x),(y),(z))
-#define mpi_point_snatch_set(p,x,y,z) _gcry_mpi_point_snatch_set((p),(x), \
-                                                                 (y),(z))
-
-#define mpi_get_nbits(a)       _gcry_mpi_get_nbits ((a))
-#define mpi_test_bit(a,b)      _gcry_mpi_test_bit ((a),(b))
-#define mpi_set_bit(a,b)       _gcry_mpi_set_bit ((a),(b))
-#define mpi_set_highbit(a,b)   _gcry_mpi_set_highbit ((a),(b))
-#define mpi_clear_bit(a,b)     _gcry_mpi_clear_bit ((a),(b))
-#define mpi_clear_highbit(a,b) _gcry_mpi_clear_highbit ((a),(b))
-#define mpi_rshift(a,b,c)      _gcry_mpi_rshift ((a),(b),(c))
-#define mpi_lshift(a,b,c)      _gcry_mpi_lshift ((a),(b),(c))
-
-#define mpi_set_opaque(a,b,c)  _gcry_mpi_set_opaque ((a), (b), (c))
-#define mpi_get_opaque(a,b)    _gcry_mpi_get_opaque ((a), (b))
 #define mpi_set_flag(a,f)      _gcry_mpi_set_flag ((a), (f))
 #define mpi_set_flag(a,f)      _gcry_mpi_set_flag ((a), (f))
 #define mpi_clear_flag(a,f)    _gcry_mpi_clear_flag ((a), (f))

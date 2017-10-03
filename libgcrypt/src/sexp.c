@@ -29,7 +29,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-#define GCRYPT_NO_MPI_MACROS 1
 #include "g10lib.h"
 
 

@@ -108,7 +108,7 @@ outofcore_handler (void *opaque, size_t req_n, unsigned int flags)
 
 
 int
-main (int argc, char **argv)
+secmem_main (int argc, char **argv)
 {
   int last_argc = -1;
 
@@ -147,9 +147,6 @@ main (int argc, char **argv)
         die ("unknown option '%s'", *argv);
     }
 
-  if (!gcry_check_version (GCRYPT_VERSION))
-    die ("version mismatch; pgm=%s, library=%s\n",
-         GCRYPT_VERSION, gcry_check_version (NULL));
   if (debug)
     xgcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u , 0);
   xgcry_control (GCRYCTL_ENABLE_QUICK_RANDOM, 0);

@@ -182,15 +182,12 @@ check_hmac_multi (void)
 
 
 int
-main (int argc, char **argv)
+hmac_main (int argc, char **argv)
 {
   if (argc > 1 && !strcmp (argv[1], "--verbose"))
     verbose = 1;
   else if (argc > 1 && !strcmp (argv[1], "--debug"))
     verbose = debug = 1;
-
-  if (!gcry_check_version (GCRYPT_VERSION))
-    die ("version mismatch\n");
 
   xgcry_control (GCRYCTL_DISABLE_SECMEM, 0);
   xgcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);

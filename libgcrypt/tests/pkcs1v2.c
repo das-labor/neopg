@@ -17,19 +17,14 @@
  * License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 
-#ifdef _GCRYPT_IN_LIBGCRYPT
 # include "../src/gcrypt-int.h"
-#else
 # include <gcrypt.h>
-#endif
 
 
 #define PGM "pkcs1v2"

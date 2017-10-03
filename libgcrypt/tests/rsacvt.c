@@ -34,9 +34,7 @@ e7a7ca5367c661f8e6[...]71
 */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,13 +49,7 @@ e7a7ca5367c661f8e6[...]71
 #include <assert.h>
 #include <unistd.h>
 
-#ifdef _GCRYPT_IN_LIBGCRYPT
-# include "../src/gcrypt-int.h"
-#else
-# include <gcrypt.h>
-# define PACKAGE_BUGREPORT "devnull@example.org"
-# define PACKAGE_VERSION "[build on " __DATE__ " " __TIME__ "]"
-#endif
+#include "../src/gcrypt-int.h"
 
 
 #define PGM "rsacvt"

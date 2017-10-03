@@ -222,55 +222,6 @@ parse_version_string( const char *s, int *major, int *minor, int *micro )
     return s; /* patchlevel */
 }
 
-/* If REQ_VERSION is non-NULL, check that the version of the library
-   is at minimum the requested one.  Returns the string representation
-   of the library version if the condition is satisfied; return NULL
-   if the requested version is newer than that of the library.
-
-   If a NULL is passed to this function, no check is done, but the
-   string representation of the library is simply returned.  */
-const char *
-_gcry_check_version (const char *req_version)
-{
-    const char *ver = VERSION;
-    int my_major, my_minor, my_micro;
-    int rq_major, rq_minor, rq_micro;
-    const char *my_plvl;
-
-    if (req_version && req_version[0] == 1 && req_version[1] == 1)
-        return "libgcrypt";
-
-    /* Initialize library.  */
-    global_init ();
-
-    if ( !req_version )
-        /* Caller wants our version number.  */
-	return ver;
-
-    /* Parse own version number.  */
-    my_plvl = parse_version_string( ver, &my_major, &my_minor, &my_micro );
-    if ( !my_plvl )
-        /* very strange our own version is bogus.  Shouldn't we use
-	   assert() here and bail out in case this happens?  -mo.  */
-	return NULL;
-
-    /* Parse requested version number.  */
-    if (!parse_version_string (req_version, &rq_major, &rq_minor, &rq_micro))
-      return NULL;  /* req version string is invalid, this can happen.  */
-
-    /* Compare version numbers.  */
-    if ( my_major > rq_major
-	|| (my_major == rq_major && my_minor > rq_minor)
-	|| (my_major == rq_major && my_minor == rq_minor		                           		 && my_micro > rq_micro)
-	|| (my_major == rq_major && my_minor == rq_minor
-                                 && my_micro == rq_micro))
-      {
-	return ver;
-      }
-
-    return NULL;
-}
-
 
 static void
 print_config (const char *what, gpgrt_stream_t fp)
@@ -281,8 +232,7 @@ print_config (const char *what, gpgrt_stream_t fp)
   if (!what || !strcmp (what, "version"))
     {
       gpgrt_fprintf (fp, "version:%s:%x:%s:%x:\n",
-                     VERSION, GCRYPT_VERSION_NUMBER,
-                     GPGRT_VERSION, GPGRT_VERSION_NUMBER);
+                     "", 0, "", 0);
     }
   if (!what || !strcmp (what, "cc"))
     {

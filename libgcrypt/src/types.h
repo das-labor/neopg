@@ -21,10 +21,6 @@
 #ifndef GCRYPT_TYPES_H
 #define GCRYPT_TYPES_H
 
-#ifndef _GCRYPT_CONFIG_H_INCLUDED
-# error config.h must be included before types.h
-#endif
-
 /* The AC_CHECK_SIZEOF() in configure fails for some machines.
  * we provide some fallback values here */
 #if !SIZEOF_UNSIGNED_SHORT
@@ -44,13 +40,8 @@
 #include <sys/types.h>
 
 /* Provide uintptr_t */
-#ifdef HAVE_STDINT_H
-# include <stdint.h> /* uintptr_t */
-#elif defined(HAVE_INTTYPES_H)
-# include <inttypes.h>
-#else
-/* In this case, uintptr_t is provided by config.h. */
-#endif
+#include <stdint.h> /* uintptr_t */
+#include <inttypes.h>
 
 
 
@@ -105,28 +96,9 @@
  * the dummy code in cipher/md.c is not available.  Examples are
  * Solaris and IRIX.
  */
-#ifndef HAVE_U64_TYPEDEF
-# undef u64	/* In case there is a macro with that name.  */
-# if SIZEOF_UNSIGNED_INT == 8
-   typedef unsigned int u64;
-#  define U64_C(c) (c ## U)
-#  define HAVE_U64_TYPEDEF
-# elif SIZEOF_UNSIGNED_LONG == 8
-   typedef unsigned long u64;
-#  define U64_C(c) (c ## UL)
-#  define HAVE_U64_TYPEDEF
-# elif SIZEOF_UNSIGNED_LONG_LONG == 8
-   typedef unsigned long long u64;
-#  define U64_C(c) (c ## ULL)
-#  define HAVE_U64_TYPEDEF
-# elif SIZEOF_UINT64_T == 8
-   typedef uint64_t u64;
-#  define U64_C(c) (UINT64_C(c))
-#  define HAVE_U64_TYPEDEF
-# else
-#  error No way to declare a 64 bit integer type
-# endif
-#endif
+typedef uint64_t u64;
+#define U64_C(c) (UINT64_C(c))
+#define HAVE_U64_TYPEDEF
 
 typedef union
 {
