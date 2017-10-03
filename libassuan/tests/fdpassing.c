@@ -210,7 +210,7 @@ client (assuan_context_t ctx, const char *fname)
 
 */
 int
-main (int argc, char **argv)
+fdpassing_main (int argc, char **argv)
 {
   int last_argc = -1;
   assuan_context_t ctx;
@@ -317,4 +317,3 @@ main (int argc, char **argv)
   xfree (fname);
   return errorcount ? 1 : 0;
 }
-

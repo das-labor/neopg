@@ -23,15 +23,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #ifdef HAVE_W32_SYSTEM
 # ifdef HAVE_WINSOCK2_H
 #  include <winsock2.h>

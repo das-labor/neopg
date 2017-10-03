@@ -54,14 +54,13 @@ endif()
 
 add_library(neopg::gpg-error ALIAS gpg-error)
 
-target_include_directories(gpg-error
-  PRIVATE ../libgpg-error/src
+target_include_directories(gpg-error PRIVATE
+  ../libgpg-error/src
   ${CMAKE_BINARY_DIR}/.)
-target_compile_definitions(gpg-error
-PRIVATE HAVE_CONFIG_H=1)
+target_compile_definitions(gpg-error PRIVATE
+  HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread)
 
-# FIXME tests
 add_executable(gpg-error-test
   ../libgpg-error/tests/t-b64dec.c
   ../libgpg-error/tests/t-lock.c
@@ -79,16 +78,71 @@ target_link_libraries(gpg-error-test PRIVATE
   GTest::GTest GTest::Main)
 add_test(GpgErrorTest gpg-error-test COMMAND gpg-error-test test_xml_output --gtest_output=xml:gpg-error-test.xml)
 
-add_executable(neopg neopg.cxx)
-target_link_libraries(neopg PRIVATE gpg-error)
+# libassuan
 
-target_include_directories(neopg
-PRIVATE ../libgpg-error/src
-${CMAKE_BINARY_DIR}/.)
+add_library(assuan
+  ../libassuan/src/assuan-buffer.c
+  ../libassuan/src/assuan-defs.h
+  ../libassuan/src/assuan-error.c
+  ../libassuan/src/assuan-handler.c
+  ../libassuan/src/assuan-inquire.c
+  ../libassuan/src/assuan-io.c
+  ../libassuan/src/assuan-listen.c
+  ../libassuan/src/assuan-logging.c
+  ../libassuan/src/assuan-pipe-connect.c
+  ../libassuan/src/assuan-pipe-server.c
+  ../libassuan/src/assuan-socket-connect.c
+  ../libassuan/src/assuan-socket-server.c
+  ../libassuan/src/assuan-socket.c
+  ../libassuan/src/assuan-uds.c
+  ../libassuan/src/assuan.c
+  ../libassuan/src/assuan.h
+  ../libassuan/src/client.c
+  ../libassuan/src/context.c
+  ../libassuan/src/conversion.c
+  ../libassuan/src/debug.c
+  ../libassuan/src/debug.h
+  ../libassuan/src/server.c
+  ../libassuan/src/system.c
+  ../libassuan/src/sysutils.c
+)
 
-#target_compile_definitions(neopg
-#    PRIVATE SRC_DIR={${Foo_SOURCE_DIR}
-#    )
+if(WIN32)
+  target_sources(assuan PRIVATE
+    ../libassuan/src/system-w32.c
+  )
+else()
+  target_sources(assuan PRIVATE
+    ../libassuan/src/system-posix.c
+)
+endif()
+
+add_library(neopg::assuan ALIAS assuan)
+
+target_include_directories(assuan PRIVATE
+  ../libgpg-error/src
+  ../libassuan/src
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(assuan PRIVATE
+  HAVE_CONFIG_H=1)
+target_link_libraries(assuan PRIVATE gpg-error)
+
+add_executable(assuan-test
+  ../libassuan/tests/fdpassing.c
+  ../libassuan/tests/assuan-test.cpp)
+target_include_directories(assuan-test PRIVATE
+  ../libgpg-error/src
+  ../libassuan/src
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(assuan-test PRIVATE
+CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/../libassuan/tests")
+target_link_libraries(assuan-test PRIVATE
+  assuan
+  GTest::GTest GTest::Main)
+add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_output=xml:assuan-test.xml)
+
+
+
 #if(CMAKE_COMPILER_IS_GNUCXX)
 #  target_compile_options(foo
 #  PUBLIC -fno-...)

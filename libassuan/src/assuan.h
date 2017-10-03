@@ -189,9 +189,6 @@ typedef struct assuan_malloc_hooks *assuan_malloc_hooks_t;
 typedef int (*assuan_log_cb_t) (assuan_context_t ctx, void *hook,
 				unsigned int cat, const char *msg);
 
-/* Return or check the version number.  */
-const char *assuan_check_version (const char *req_version);
-
 /* Set the default gpg error source.  */
 void assuan_set_gpg_err_source (gpg_err_source_t errsource);
 
@@ -594,132 +591,7 @@ int __assuan_recvmsg (assuan_context_t ctx, assuan_fd_t fd, assuan_msghdr_t msg,
 int __assuan_sendmsg (assuan_context_t ctx, assuan_fd_t fd, const assuan_msghdr_t msg, int flags);
 pid_t __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait, int *status, int options);
 
-#ifdef _WIN32
-#define ASSUAN_SYSTEM_PTH_IMPL						\
-  static void _assuan_pth_usleep (assuan_context_t ctx, unsigned int usec) \
-  { (void) ctx; pth_usleep (usec); }					\
-  static ssize_t _assuan_pth_read (assuan_context_t ctx, assuan_fd_t fd, \
-				void *buffer, size_t size)		\
-  { (void) ctx; return pth_read (fd, buffer, size); }			\
-  static ssize_t _assuan_pth_write (assuan_context_t ctx, assuan_fd_t fd, \
-				 const void *buffer, size_t size)	\
-  { (void) ctx; return pth_write (fd, buffer, size); }			\
-  static int _assuan_pth_recvmsg (assuan_context_t ctx, assuan_fd_t fd, \
-				  assuan_msghdr_t msg, int flags)	\
-  {									\
-    (void) ctx;								\
-    gpg_err_set_errno (ENOSYS);                                         \
-    return -1;								\
-  }									\
-  static int _assuan_pth_sendmsg (assuan_context_t ctx, assuan_fd_t fd, \
-				  const assuan_msghdr_t msg, int flags) \
-  {									\
-    (void) ctx;								\
-    gpg_err_set_errno (ENOSYS);                                         \
-    return -1;								\
-  }                                                                     \
-  static pid_t _assuan_pth_waitpid (assuan_context_t ctx, pid_t pid,     \
-				   int nowait, int *status, int options) \
-  { (void) ctx;                                                         \
-     if (!nowait) return pth_waitpid (pid, status, options);            \
-      else return 0; }							\
-									\
-  struct assuan_system_hooks _assuan_system_pth =			\
-    { ASSUAN_SYSTEM_HOOKS_VERSION, _assuan_pth_usleep, __assuan_pipe,	\
-      __assuan_close, _assuan_pth_read, _assuan_pth_write,		\
-      _assuan_pth_recvmsg, _assuan_pth_sendmsg,				\
-      __assuan_spawn, _assuan_pth_waitpid, __assuan_socketpair,		\
-      __assuan_socket, __assuan_connect }
-#else
-#define ASSUAN_SYSTEM_PTH_IMPL						\
-  static void _assuan_pth_usleep (assuan_context_t ctx, unsigned int usec) \
-  { (void) ctx; pth_usleep (usec); }					\
-  static ssize_t _assuan_pth_read (assuan_context_t ctx, assuan_fd_t fd, \
-				void *buffer, size_t size)		\
-  { (void) ctx; return pth_read (fd, buffer, size); }			\
-  static ssize_t _assuan_pth_write (assuan_context_t ctx, assuan_fd_t fd, \
-				 const void *buffer, size_t size)	\
-  { (void) ctx; return pth_write (fd, buffer, size); }			\
-  static int _assuan_pth_recvmsg (assuan_context_t ctx, assuan_fd_t fd, \
-				  assuan_msghdr_t msg, int flags)	\
-  {									\
-    /* Pth does not provide a recvmsg function.  We implement it.  */	\
-    int ret;								\
-    int fdmode;								\
-									\
-    (void) ctx;								\
-    fdmode = pth_fdmode (fd, PTH_FDMODE_POLL);				\
-    if (fdmode == PTH_FDMODE_ERROR)					\
-      {									\
-        errno = EBADF;							\
-        return -1;							\
-      }									\
-    if (fdmode == PTH_FDMODE_BLOCK)					\
-      {									\
-        fd_set fds;							\
-									\
-	FD_ZERO (&fds);							\
-	FD_SET (fd, &fds);						\
-	while ((ret = pth_select (fd + 1, &fds, NULL, NULL, NULL)) < 0	\
-	       && errno == EINTR)					\
-	  ;								\
-	if (ret < 0)							\
-	  return -1;							\
-      }									\
-    									\
-    while ((ret = recvmsg (fd, msg, flags)) == -1 && errno == EINTR)	\
-      ;									\
-    return ret;								\
-  }									\
-  static int _assuan_pth_sendmsg (assuan_context_t ctx, assuan_fd_t fd, \
-				  const assuan_msghdr_t msg, int flags) \
-  {									\
-    /* Pth does not provide a sendmsg function.  We implement it.  */	\
-    int ret;								\
-    int fdmode;								\
-									\
-    (void) ctx;								\
-    fdmode = pth_fdmode (fd, PTH_FDMODE_POLL);				\
-    if (fdmode == PTH_FDMODE_ERROR)					\
-      {									\
-        errno = EBADF;							\
-	return -1;							\
-      }									\
-    if (fdmode == PTH_FDMODE_BLOCK)					\
-      {									\
-        fd_set fds;							\
-									\
-	FD_ZERO (&fds);							\
-	FD_SET (fd, &fds);						\
-	while ((ret = pth_select (fd + 1, NULL, &fds, NULL, NULL)) < 0	\
-	       && errno == EINTR)					\
-	  ;								\
-	if (ret < 0)							\
-	  return -1;							\
-	}								\
-									\
-    while ((ret = sendmsg (fd, msg, flags)) == -1 && errno == EINTR)	\
-      ;									\
-    return ret;								\
-  }                                                                     \
-  static pid_t _assuan_pth_waitpid (assuan_context_t ctx, pid_t pid,     \
-				   int nowait, int *status, int options) \
-  { (void) ctx;                                                         \
-     if (!nowait) return pth_waitpid (pid, status, options);            \
-      else return 0; }							\
-									\
-  struct assuan_system_hooks _assuan_system_pth =			\
-    { ASSUAN_SYSTEM_HOOKS_VERSION, _assuan_pth_usleep, __assuan_pipe,	\
-      __assuan_close, _assuan_pth_read, _assuan_pth_write,		\
-      _assuan_pth_recvmsg, _assuan_pth_sendmsg,				\
-      __assuan_spawn, _assuan_pth_waitpid, __assuan_socketpair,		\
-      __assuan_socket, __assuan_connect }
-
-#endif
     
-extern struct assuan_system_hooks _assuan_system_pth;
-#define ASSUAN_SYSTEM_PTH &_assuan_system_pth
-
 #define ASSUAN_SYSTEM_NPTH_IMPL						\
   static void _assuan_npth_usleep (assuan_context_t ctx, unsigned int usec) \
   { (void) ctx; npth_usleep (usec); }					\

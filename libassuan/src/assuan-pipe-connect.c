@@ -18,21 +18,13 @@
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-/* On Windows systems signal.h is not needed and even not supported on
-   WindowsCE. */
-#ifndef HAVE_DOSISH_SYSTEM
-# include <signal.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <signal.h>
+#include <unistd.h>
 #include <errno.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -40,7 +32,7 @@
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#ifndef HAVE_W32_SYSTEM
+#ifndef _WIN32
 # include <sys/wait.h>
 #else
 # ifdef HAVE_WINSOCK2_H
@@ -130,7 +122,7 @@ at_pipe_fork_cb (void *opaque, int reserved)
   if (atp->user_atfork)
     atp->user_atfork (atp->user_atforkvalue, reserved);
 
-#ifndef HAVE_W32_SYSTEM
+#ifndef _WIN32
   {
     char mypidstr[50];
 
@@ -228,7 +220,7 @@ pipe_connect (assuan_context_t ctx,
    handler to do the right thing.  Instead of stdin and stdout, we
    extend the fd_child_list by fds[1].  */
 
-#ifndef HAVE_W32_SYSTEM
+#ifndef _WIN32
 struct at_socketpair_fork
 {
   assuan_fd_t peer_fd;
@@ -246,7 +238,7 @@ at_socketpair_fork_cb (void *opaque, int reserved)
   if (atp->user_atfork)
     atp->user_atfork (atp->user_atforkvalue, reserved);
 
-#ifndef HAVE_W32_SYSTEM
+#ifndef _WIN32
   {
     char mypidstr[50];
 
@@ -370,7 +362,7 @@ socketpair_connect (assuan_context_t ctx,
     _assuan_reset (ctx);
   return err;
 }
-#endif /*!HAVE_W32_SYSTEM*/
+#endif /*!_WIN32*/
 
 
 /* Connect to a server over a full-duplex socket (i.e. created by
@@ -414,7 +406,7 @@ assuan_pipe_connect (assuan_context_t ctx,
 
   if (flags & ASSUAN_PIPE_CONNECT_FDPASSING)
     {
-#ifdef HAVE_W32_SYSTEM
+#ifdef _WIN32
       return _assuan_error (ctx, GPG_ERR_NOT_IMPLEMENTED);
 #else
       return socketpair_connect (ctx, name, argv, fd_child_list,

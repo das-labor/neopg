@@ -17,7 +17,7 @@
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-/* 
+/*
    This tests creates a program which starts an assuan server and runs
    some simple tests on it.  The other program is actually the same
    program but called with the option --server.
@@ -86,7 +86,7 @@ cmd_cat (assuan_context_t ctx, char *line)
   nbytes = 0;
   while ( (c=getc (fp)) != -1)
     {
-      putc (c, fpout); 
+      putc (c, fpout);
       nbytes++;
     }
   log_info ("done printing %d bytes to output fd\n", nbytes);
@@ -142,7 +142,7 @@ run_server (int enable_debug)
 
   rc = assuan_init_pipe_server (ctx, filedes);
   if (rc)
-    log_fatal ("assuan_init_pipe_server failed: %s\n", 
+    log_fatal ("assuan_init_pipe_server failed: %s\n",
                gpg_strerror (rc));
 
   rc = server_register_commands (ctx);
@@ -152,7 +152,7 @@ run_server (int enable_debug)
   if (enable_debug)
     assuan_set_log_stream (ctx, stderr);
 
-  for (;;) 
+  for (;;)
     {
       rc = assuan_accept (ctx);
       if (rc)
@@ -161,7 +161,7 @@ run_server (int enable_debug)
             log_error ("assuan_accept failed: %s\n", gpg_strerror (rc));
           break;
         }
-      
+
       log_info ("client connected.  Client's pid is %ld\n",
                 (long)assuan_get_pid (ctx));
 
@@ -169,7 +169,7 @@ run_server (int enable_debug)
       if (rc)
         log_error ("assuan_process failed: %s\n", gpg_strerror (rc));
     }
-  
+
   assuan_release (ctx);
 }
 
@@ -188,7 +188,7 @@ data_cb (void *opaque, const void *buffer, size_t length)
     printf ("Received data `%.*s'\n", (int)length, (char*)buffer);
   return 0;
 }
-  
+
 
 static void
 run_client (const char *servername)
@@ -219,10 +219,10 @@ run_client (const char *servername)
       assuan_release (ctx);
       return;
     }
-      
+
   log_info ("server started; pid is %ld\n",
             (long)assuan_get_pid (ctx));
-  
+
   err = assuan_transact (ctx, "ECHO Your lucky number is 3552664958674928.  "
                          "Watch for it everywhere.",
                          data_cb, NULL, NULL, NULL, NULL, NULL);
@@ -263,7 +263,7 @@ parse_std_file_handles (int *argcp, char ***argvp)
       s = *argv;
       if (*s == '-' && s[1] == '&' && s[2] == 'S'
           && (s[3] == '0' || s[3] == '1' || s[3] == '2')
-          && s[4] == '=' 
+          && s[4] == '='
           && (strchr ("-01234567890", s[5]) || !strcmp (s+5, "null")))
         {
           if (s[5] == 'n')
@@ -305,11 +305,11 @@ parse_std_file_handles (int *argcp, char ***argvp)
 }
 
 
-/* 
+/*
      M A I N
  */
-int 
-main (int argc, char **argv)
+int
+pipeconnect_main (int argc, char **argv)
 {
   gpg_error_t err;
   const char *myname = "no-pgm";
@@ -367,7 +367,7 @@ main (int argc, char **argv)
         log_fatal ("invalid option `%s' (try --help)\n", *argv);
     }
 
-  log_set_prefix (xstrconcat (log_get_prefix (), 
+  log_set_prefix (xstrconcat (log_get_prefix (),
                               server? ".server":".client", NULL));
   assuan_set_assuan_log_prefix (log_get_prefix ());
 
@@ -394,4 +394,3 @@ main (int argc, char **argv)
 
   return errorcount ? 1 : 0;
 }
-

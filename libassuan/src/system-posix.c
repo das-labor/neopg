@@ -18,16 +18,11 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <errno.h>
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-/* Solaris 8 needs sys/types.h before time.h.  */
+#include <stdint.h>
 #include <sys/types.h>
 #include <time.h>
 #include <fcntl.h>

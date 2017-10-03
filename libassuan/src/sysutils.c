@@ -41,11 +41,9 @@ _assuan_sysutils_blurb (void)
 {
   static const char blurb[] =
     "\n\n"
-    "This is Libassuan " PACKAGE_VERSION " - The GnuPG IPC Library\n"
+    "This is Libassuan - The GnuPG IPC Library\n"
     "Copyright 2001-2013 Free Software Foundation, Inc.\n"
     "Copyright 2001-2014 g10 Code GmbH\n"
-    "\n"
-    "(" BUILD_REVISION ")\n"
     "\n\n";
   return blurb;
 }

@@ -22,12 +22,8 @@
 #define DEBUG_H
 
 #include <string.h>
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#endif
 
 #include "assuan-defs.h"
 

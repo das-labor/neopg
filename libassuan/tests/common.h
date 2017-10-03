@@ -19,19 +19,14 @@
 
 #include <stdarg.h>
 
-#if __GNUC__ >= 4 
+#if __GNUC__ >= 4
 # define MY_GCC_A_SENTINEL(a) __attribute__ ((sentinel(a)))
 #else
-# define MY_GCC_A_SENTINEL(a) 
+# define MY_GCC_A_SENTINEL(a)
 #endif
 
 
-#ifdef HAVE_W32CE_SYSTEM
-#define getpid() GetCurrentProcessId ()
-#define getenv(a) (NULL)
-#endif
-
-#if HAVE_W32_SYSTEM
+#if _WIN32
 #define SOCKET2HANDLE(s) ((void *)(s))
 #define HANDLE2SOCKET(h) ((unsigned int)(h))
 CRITICAL_SECTION _log_critsect;
@@ -48,7 +43,7 @@ CRITICAL_SECTION _log_critsect;
 #define DIMof(type,member)   DIM(((type *)0)->member)
 
 
-char *xstrconcat (const char *s1, ...) MY_GCC_A_SENTINEL(0);
+static char *xstrconcat (const char *s1, ...) MY_GCC_A_SENTINEL(0);
 
 
 static const char *log_prefix;
@@ -56,7 +51,7 @@ static int errorcount;
 static int verbose;
 static int debug;
 
-void *
+static void *
 xmalloc (size_t n)
 {
   char *p = malloc (n);
@@ -70,7 +65,7 @@ xmalloc (size_t n)
   return p;
 }
 
-void *
+static void *
 xcalloc (size_t n, size_t m)
 {
   char *p = calloc (n, m);
@@ -86,14 +81,14 @@ xcalloc (size_t n, size_t m)
   return p;
 }
 
-void
+static void
 xfree (void *a)
 {
   if (a)
     free (a);
 }
 
-void *
+static void *
 xstrdup (const char *string)
 {
   char *p = xmalloc (strlen (string) + 1);
@@ -102,15 +97,15 @@ xstrdup (const char *string)
 }
 
 
-void
+static void
 log_set_prefix (const char *s)
 {
 #ifdef HAVE_W32_SYSTEM
   InitializeCriticalSection (&_log_critsect);
   log_prefix = strrchr (s, '\\');
-#else  
+#else
   log_prefix = strrchr (s, '/');
-#endif  
+#endif
   if (log_prefix)
     log_prefix++;
   else
@@ -118,14 +113,14 @@ log_set_prefix (const char *s)
 }
 
 
-const char *
+static const char *
 log_get_prefix (void)
 {
   return log_prefix? log_prefix:"";
 }
 
 
-void
+static void
 log_info (const char *format, ...)
 {
   va_list arg_ptr ;
@@ -143,7 +138,7 @@ log_info (const char *format, ...)
 }
 
 
-void
+static void
 log_error (const char *format, ...)
 {
   va_list arg_ptr ;
@@ -159,7 +154,7 @@ log_error (const char *format, ...)
 }
 
 
-void
+static void
 log_fatal (const char *format, ...)
 {
   va_list arg_ptr ;
@@ -175,7 +170,7 @@ log_fatal (const char *format, ...)
 }
 
 
-void
+static void
 log_printhex (const char *text, const void *buffer, size_t length)
 {
   const unsigned char *s;
@@ -193,47 +188,18 @@ log_printhex (const char *text, const void *buffer, size_t length)
 
 /* Prepend FNAME with the srcdir environment variable's value and
    return an allocated filename. */
-char *
+static char *
 prepend_srcdir (const char *fname)
 {
-  static const char *srcdir;
+  static const char *srcdir = CMAKE_SOURCE_DIR;
   char *result;
 
-  if (!srcdir && !(srcdir = getenv ("srcdir")))
-    srcdir = ".";
-  
   result = xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
   strcpy (result, srcdir);
   strcat (result, "/");
   strcat (result, fname);
   return result;
 }
-
-
-#ifndef HAVE_STPCPY
-#undef __stpcpy
-#undef stpcpy
-#ifndef weak_alias
-# define __stpcpy stpcpy
-#endif
-char *
-__stpcpy (char *a,const char *b)
-{
-  while (*b)
-    *a++ = *b++;
-  *a = 0;
-  return (char*)a;
-}
-#ifdef libc_hidden_def
-libc_hidden_def (__stpcpy)
-#endif
-#ifdef weak_alias
-weak_alias (__stpcpy, stpcpy)
-#endif
-#ifdef libc_hidden_builtin_def
-libc_hidden_builtin_def (stpcpy)
-#endif
-#endif
 
 
 static char *
@@ -270,7 +236,7 @@ do_strconcat (const char *s1, va_list arg_ptr)
 
 /* Concatenate the string S1 with all the following strings up to a
    NULL.  Returns a malloced buffer or dies on malloc error.  */
-char *
+static char *
 xstrconcat (const char *s1, ...)
 {
   va_list arg_ptr;
@@ -286,4 +252,3 @@ xstrconcat (const char *s1, ...)
     }
   return result;
 }
-

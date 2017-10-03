@@ -18,15 +18,15 @@
  */
 
 #include <config.h>
+/* For memrchr */
+#define _GNU_SOURCE 1
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <unistd.h>
 #include <assert.h>
-#ifdef HAVE_W32_SYSTEM
+#ifdef _WIN32
 #include <process.h>
 #endif
 #include "assuan-defs.h"

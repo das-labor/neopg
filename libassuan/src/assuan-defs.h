@@ -21,10 +21,8 @@
 #ifndef ASSUAN_DEFS_H
 #define ASSUAN_DEFS_H
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifndef HAVE_W32_SYSTEM
+#include <sys/types.h>
+#ifndef _WIN32
 # include <sys/socket.h>
 # include <sys/un.h>
 #else
@@ -34,9 +32,7 @@
 # endif
 # include <windows.h>
 #endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <unistd.h>
 
 #include "assuan.h"
 
@@ -72,7 +68,7 @@ struct assuan_context_s
   /* The error source for errors generated from this context.  */
   gpg_err_source_t err_source;
 
-#ifdef HAVE_W32_SYSTEM
+#ifdef _WIN32
   /* The per-context w32 error string.  */
   char w32_strerror[256];
 #endif
@@ -358,21 +354,6 @@ int _assuan_sock_wsa2errno (int err);
 
 /*-- sysutils.c --*/
 const char *_assuan_sysutils_blurb (void);
-
-
-/* Prototypes for replacement functions.  */
-#ifndef HAVE_MEMRCHR
-void *memrchr (const void *block, int c, size_t size);
-#endif
-#ifndef HAVE_SETENV
-#define setenv _assuan_setenv
-#define unsetenv _assuan_unsetenv
-#define clearenv _assuan_clearenv
-int setenv (const char *name, const char *value, int replace);
-#endif
-#ifndef HAVE_PUTC_UNLOCKED
-int putc_unlocked (int c, FILE *stream);
-#endif
 
 
 #define DIM(v)		     (sizeof(v)/sizeof((v)[0]))

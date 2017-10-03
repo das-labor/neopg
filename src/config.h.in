@@ -1,1 +1,4 @@
 #cmakedefine HAVE_MALLOC_H 1
+
+/* libassuan */
+#define USE_DESCRIPTOR_PASSING 1
