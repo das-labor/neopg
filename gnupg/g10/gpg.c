@@ -953,24 +953,6 @@ static void emergency_cleanup (void);
 static void read_sessionkey_from_fd (int fd);
 
 
-static char *
-make_libversion (const char *libname, const char *(*getfnc)(const char*))
-{
-  const char *s;
-  char *result;
-
-  if (maybe_setuid)
-    {
-      gcry_control (GCRYCTL_INIT_SECMEM, 0, 0);  /* Drop setuid. */
-      maybe_setuid = 0;
-    }
-  s = getfnc (NULL);
-  result = xmalloc (strlen (libname) + 1 + strlen (s) + 1);
-  strcpy (stpcpy (stpcpy (result, libname), " "), s);
-  return result;
-}
-
-
 static int
 build_list_pk_test_algo (int algo)
 {
@@ -1029,13 +1011,9 @@ my_strusage( int level )
       case 11: p = "@GPG@ (@GNUPG@)";
 	break;
       case 13: p = VERSION; break;
-      case 17: p = PRINTABLE_OS_NAME; break;
       case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
 
     case 20:
-      if (!ver_gcry)
-        ver_gcry = make_libversion ("libgcrypt", gcry_check_version);
-      p = ver_gcry;
       break;
 
 #ifdef IS_DEVELOPMENT_VERSION

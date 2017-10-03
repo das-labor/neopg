@@ -30,20 +30,6 @@
 #define IMAGELEN_LIMIT (5*1024*1024)
 
 
-#if !defined(HAVE_FTELLO) && !defined(ftello)
-static off_t
-ftello (FILE *stream)
-{
-  long int off;
-
-  off = ftell (stream);
-  if (off == -1)
-    return (off_t)-1;
-  return off;
-}
-#endif /* !defined(HAVE_FTELLO) && !defined(ftello) */
-
-
 
 /* Read a block at the current position and return it in R_BLOB.
    R_BLOB may be NULL to simply skip the current block.  */

@@ -2370,36 +2370,6 @@ iobuf_tell (iobuf_t a)
 }
 
 
-#if !defined(HAVE_FSEEKO) && !defined(fseeko)
-
-#ifdef HAVE_LIMITS_H
-# include <limits.h>
-#endif
-#ifndef LONG_MAX
-# define LONG_MAX ((long) ((unsigned long) -1 >> 1))
-#endif
-#ifndef LONG_MIN
-# define LONG_MIN (-1 - LONG_MAX)
-#endif
-
-/****************
- * A substitute for fseeko, for hosts that don't have it.
- */
-static int
-fseeko (FILE * stream, off_t newpos, int whence)
-{
-  while (newpos != (long) newpos)
-    {
-      long pos = newpos < 0 ? LONG_MIN : LONG_MAX;
-      if (fseek (stream, pos, whence) != 0)
-	return -1;
-      newpos -= pos;
-      whence = SEEK_CUR;
-    }
-  return fseek (stream, (long) newpos, whence);
-}
-#endif
-
 int
 iobuf_seek (iobuf_t a, off_t newpos)
 {

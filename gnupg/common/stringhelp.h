@@ -112,16 +112,6 @@ char *strlwr(char *a);
 void *memrchr (const void *buffer, int c, size_t n);
 #endif
 
-
-#ifndef HAVE_ISASCII
-static inline int
-isascii (int c)
-{
-  return (((c) & ~0x7f) == 0);
-}
-#endif /* !HAVE_ISASCII */
-
-
 #ifndef STR
 #  define STR(v) #v
 #endif

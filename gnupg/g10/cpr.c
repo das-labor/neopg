@@ -24,9 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#ifdef HAVE_SIGNAL_H
-# include <signal.h>
-#endif
+#include <signal.h>
 
 #include "gpg.h"
 #include "../common/util.h"

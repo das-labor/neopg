@@ -31,9 +31,7 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_SIGNAL_H
-# include <signal.h>
-#endif
+#include <signal.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -188,7 +186,6 @@ do_block (int block)
   (void)block;
 #else /*!HAVE_DOSISH_SYSTEM*/
   static int is_blocked;
-#ifdef HAVE_SIGPROCMASK
   static sigset_t oldmask;
 
   if (block)
@@ -208,30 +205,6 @@ do_block (int block)
       sigprocmask (SIG_SETMASK, &oldmask, NULL);
       is_blocked = 0;
     }
-#else /*!HAVE_SIGPROCMASK*/
-  static void (*disposition[MAXSIG])();
-  int sig;
-
-  if (block)
-    {
-      if (is_blocked)
-        log_bug("signals are already blocked\n");
-      for (sig=1; sig < MAXSIG; sig++)
-        {
-          disposition[sig] = sigset (sig, SIG_HOLD);
-        }
-      is_blocked = 1;
-    }
-  else
-    {
-      if (!is_blocked)
-        log_bug ("signals are not blocked\n");
-      for (sig=1; sig < MAXSIG; sig++) {
-        sigset (sig, disposition[sig]);
-      }
-      is_blocked = 0;
-    }
-#endif /*!HAVE_SIGPROCMASK*/
 #endif /*!HAVE_DOSISH_SYSTEM*/
 }
 

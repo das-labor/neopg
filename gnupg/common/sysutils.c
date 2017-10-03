@@ -42,9 +42,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#ifdef HAVE_STAT
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #if defined(__linux__) && defined(__alpha__) && __GLIBC__ < 2
 # include <asm/sysinfo.h>
 # include <asm/unistd.h>
@@ -370,10 +368,7 @@ gnupg_usleep (unsigned int usecs)
 int
 translate_sys2libc_fd (gnupg_fd_t fd, int for_write)
 {
-#if defined(HAVE_W32CE_SYSTEM)
-  (void)for_write;
-  return (int) fd;
-#elif defined(HAVE_W32_SYSTEM)
+#if defined(HAVE_W32_SYSTEM)
   int x;
 
   if (fd == GNUPG_INVALID_FD)
@@ -398,10 +393,7 @@ translate_sys2libc_fd (gnupg_fd_t fd, int for_write)
 int
 translate_sys2libc_fd_int (int fd, int for_write)
 {
-#if HAVE_W32CE_SYSTEM
-  fd = (int) _assuan_w32ce_finish_pipe (fd, for_write);
-  return translate_sys2libc_fd ((void*)fd, for_write);
-#elif HAVE_W32_SYSTEM
+#if HAVE_W32_SYSTEM
   if (fd <= 2)
     return fd;	/* Do not do this for error, stdin, stdout, stderr. */
 
@@ -446,15 +438,9 @@ gnupg_tmpfile (void)
 {
 #ifdef HAVE_W32_SYSTEM
   int attempts, n;
-#ifdef HAVE_W32CE_SYSTEM
-  wchar_t buffer[MAX_PATH+7+12+1];
-# define mystrlen(a) wcslen (a)
-  wchar_t *name, *p;
-#else
   char buffer[MAX_PATH+7+12+1];
 # define mystrlen(a) strlen (a)
   char *name, *p;
-#endif
   HANDLE file;
   int pid = GetCurrentProcessId ();
   unsigned int value;
@@ -472,12 +458,7 @@ gnupg_tmpfile (void)
       return NULL;
     }
   p = buffer + mystrlen (buffer);
-#ifdef HAVE_W32CE_SYSTEM
-  wcscpy (p, L"_gnupg");
-  p += 7;
-#else
   p = stpcpy (p, "_gnupg");
-#endif
   /* We try to create the directory but don't care about an error as
      it may already exist and the CreateFile would throw an error
      anyway.  */
@@ -493,11 +474,7 @@ gnupg_tmpfile (void)
           *p++ = tohex (((value >> 28) & 0x0f));
           value <<= 4;
         }
-#ifdef HAVE_W32CE_SYSTEM
-      wcscpy (p, L".tmp");
-#else
       strcpy (p, ".tmp");
-#endif
       file = CreateFile (buffer,
                          GENERIC_READ | GENERIC_WRITE,
                          0,
@@ -508,10 +485,6 @@ gnupg_tmpfile (void)
       if (file != INVALID_HANDLE_VALUE)
         {
           FILE *fp;
-#ifdef HAVE_W32CE_SYSTEM
-          int fd = (int)file;
-          fp = _wfdopen (fd, L"w+b");
-#else
           int fd = _open_osfhandle ((long)file, 0);
           if (fd == -1)
             {
@@ -519,7 +492,6 @@ gnupg_tmpfile (void)
               return NULL;
             }
           fp = fdopen (fd, "w+b");
-#endif
           if (!fp)
             {
               int save = errno;
@@ -621,7 +593,7 @@ gnupg_allow_set_foregound_window (pid_t pid)
   if (!pid)
     log_info ("%s called with invalid pid %lu\n",
               "gnupg_allow_set_foregound_window", (unsigned long)pid);
-#if defined(HAVE_W32_SYSTEM) && !defined(HAVE_W32CE_SYSTEM)
+#if defined(HAVE_W32_SYSTEM)
   else if (!AllowSetForegroundWindow ((pid_t)pid == (pid_t)(-1)?ASFW_ANY:pid))
     log_info ("AllowSetForegroundWindow(%lu) failed: %s\n",
                (unsigned long)pid, w32_strerror (-1));
@@ -631,24 +603,7 @@ gnupg_allow_set_foregound_window (pid_t pid)
 int
 gnupg_remove (const char *fname)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  int rc;
-  wchar_t *wfname;
-
-  wfname = utf8_to_wchar (fname);
-  if (!wfname)
-    rc = 0;
-  else
-    {
-      rc = DeleteFile (wfname);
-      xfree (wfname);
-    }
-  if (!rc)
-    return -1; /* ERRNO is automagically provided by gpg-error.h.  */
-  return 0;
-#else
   return remove (fname);
-#endif
 }
 
 
@@ -770,21 +725,7 @@ modestr_to_mode (const char *modestr)
 int
 gnupg_mkdir (const char *name, const char *modestr)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  wchar_t *wname;
-  (void)modestr;
-
-  wname = utf8_to_wchar (name);
-  if (!wname)
-    return -1;
-  if (!CreateDirectoryW (wname, NULL))
-    {
-      xfree (wname);
-      return -1;  /* ERRNO is automagically provided by gpg-error.h.  */
-    }
-  xfree (wname);
-  return 0;
-#elif MKDIR_TAKES_ONE_ARG
+#if MKDIR_TAKES_ONE_ARG
   (void)modestr;
   /* Note: In the case of W32 we better use CreateDirectory and try to
      set appropriate permissions.  However using mkdir is easier
@@ -900,12 +841,6 @@ gnupg_mkdtemp (char *tmpl)
 int
 gnupg_setenv (const char *name, const char *value, int overwrite)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  (void)name;
-  (void)value;
-  (void)overwrite;
-  return 0;
-#else /*!W32CE*/
 # ifdef HAVE_W32_SYSTEM
   /*  Windows maintains (at least) two sets of environment variables.
       One set can be accessed by GetEnvironmentVariable and
@@ -926,40 +861,13 @@ gnupg_setenv (const char *name, const char *value, int overwrite)
   }
 # endif /*W32*/
 
-# ifdef HAVE_SETENV
   return setenv (name, value, overwrite);
-# else /*!HAVE_SETENV*/
-  if (! getenv (name) || overwrite)
-    {
-      char *buf;
-
-      (void)overwrite;
-      if (!name || !value)
-        {
-          gpg_err_set_errno (EINVAL);
-          return -1;
-        }
-      buf = strconcat (name, "=", value, NULL);
-      if (!buf)
-        return -1;
-# if __GNUC__
-#  warning no setenv - using putenv but leaking memory.
-# endif
-      return putenv (buf);
-    }
-  return 0;
-# endif /*!HAVE_SETENV*/
-#endif /*!W32CE*/
 }
 
 
 int
 gnupg_unsetenv (const char *name)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  (void)name;
-  return 0;
-#else /*!W32CE*/
 # ifdef HAVE_W32_SYSTEM
   /*  Windows maintains (at least) two sets of environment variables.
       One set can be accessed by GetEnvironmentVariable and
@@ -974,27 +882,7 @@ gnupg_unsetenv (const char *name)
     }
 # endif /*W32*/
 
-# ifdef HAVE_UNSETENV
   return unsetenv (name);
-# else /*!HAVE_UNSETENV*/
-  {
-    char *buf;
-
-    if (!name)
-      {
-        gpg_err_set_errno (EINVAL);
-        return -1;
-      }
-    buf = xtrystrdup (name);
-    if (!buf)
-      return -1;
-#  if __GNUC__
-#   warning no unsetenv - trying putenv but leaking memory.
-#  endif
-    return putenv (buf);
-  }
-# endif /*!HAVE_UNSETENV*/
-#endif /*!W32CE*/
 }
 
 
@@ -1011,59 +899,17 @@ gnupg_getcwd (void)
       buffer = xtrymalloc (size+1);
       if (!buffer)
         return NULL;
-#ifdef HAVE_W32CE_SYSTEM
-      strcpy (buffer, "/");  /* Always "/".  */
-      return buffer;
-#else
       if (getcwd (buffer, size) == buffer)
         return buffer;
       xfree (buffer);
       if (errno != ERANGE)
         return NULL;
       size *= 2;
-#endif
     }
 }
 
 
 
-#ifdef HAVE_W32CE_SYSTEM
-/* There is a isatty function declaration in cegcc but it does not
-   make sense, thus we redefine it.  */
-int
-_gnupg_isatty (int fd)
-{
-  (void)fd;
-  return 0;
-}
-#endif
-
-
-#ifdef HAVE_W32CE_SYSTEM
-/* Replacement for getenv which takes care of the our use of getenv.
-   The code is not thread safe but we expect it to work in all cases
-   because it is called for the first time early enough.  */
-char *
-_gnupg_getenv (const char *name)
-{
-  static int initialized;
-  static char *assuan_debug;
-
-  if (!initialized)
-    {
-      assuan_debug = read_w32_registry_string (NULL,
-                                               "\\Software\\GNU\\libassuan",
-                                               "debug");
-      initialized = 1;
-    }
-
-  if (!strcmp (name, "ASSUAN_DEBUG"))
-    return assuan_debug;
-  else
-    return NULL;
-}
-
-#endif /*HAVE_W32CE_SYSTEM*/
 
 
 #ifdef HAVE_W32_SYSTEM

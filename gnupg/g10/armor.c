@@ -1148,8 +1148,10 @@ armor_filter( void *opaque, int control,
                       {
                         for (; *s && *s != '-' && !spacep (s); s++)
                           iobuf_writebyte (a, *s);
+#if 0
                         if (opt.emit_version > 3)
                           iobuf_writestr (a, " (" PRINTABLE_OS_NAME ")");
+#endif
                       }
                   }
 		iobuf_writestr(a,afx->eol);

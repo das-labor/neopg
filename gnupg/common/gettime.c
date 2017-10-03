@@ -525,20 +525,7 @@ parse_timestamp (const char *timestamp, char **endp)
 #ifdef HAVE_W32_SYSTEM
       return _win32_timegm (&buf);
 #else
-#ifdef HAVE_TIMEGM
       return timegm (&buf);
-#else
-      {
-        time_t tim;
-
-        putenv ("TZ=UTC");
-        tim = mktime (&buf);
-#ifdef __GNUC__
-#warning fixme: we must somehow reset TZ here.  It is not threadsafe anyway.
-#endif
-        return tim;
-      }
-#endif /* !HAVE_TIMEGM */
 #endif /* !HAVE_W32_SYSTEM */
     }
   else

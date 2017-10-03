@@ -192,8 +192,6 @@
      DOTLOCK_EXT_SYM_PREFIX - Prefix all external symbols with the
                               string to which this macro evaluates.
 
-     GNUPG_MAJOR_VERSION - Defined when used by GnuPG.
-
      HAVE_DOSISH_SYSTEM  - Defined for Windows etc.  Will be
                            automatically defined if a the target is
                            Windows.
@@ -309,14 +307,9 @@
 # include <glib.h>
 #endif
 
-#ifdef GNUPG_MAJOR_VERSION
 # include "util.h"
 # include "common-defs.h"
 # include "stringhelp.h"  /* For stpcpy and w32_strerror. */
-#endif
-#ifdef HAVE_W32CE_SYSTEM
-# include "utf8conv.h"  /* WindowsCE requires filename conversion.  */
-#endif
 
 #include "dotlock.h"
 
@@ -353,7 +346,6 @@
 # define _(a) (a)
 #endif
 
-#ifdef GNUPG_MAJOR_VERSION
 # define my_info_0(a)       log_info ((a))
 # define my_info_1(a,b)     log_info ((a), (b))
 # define my_info_2(a,b,c)   log_info ((a), (b), (c))
@@ -363,28 +355,6 @@
 # define my_error_2(a,b,c)  log_error ((a), (b), (c))
 # define my_debug_1(a,b)    log_debug ((a), (b))
 # define my_fatal_0(a)      log_fatal ((a))
-#elif defined (DOTLOCK_GLIB_LOGGING)
-# define my_info_0(a)       g_message ((a))
-# define my_info_1(a,b)     g_message ((a), (b))
-# define my_info_2(a,b,c)   g_message ((a), (b), (c))
-# define my_info_3(a,b,c,d) g_message ((a), (b), (c), (d))
-# define my_error_0(a)      g_warning ((a))
-# define my_error_1(a,b)    g_warning ((a), (b))
-# define my_error_2(a,b,c)  g_warning ((a), (b), (c))
-# define my_debug_1(a,b)    g_debug ((a), (b))
-# define my_fatal_0(a)      g_error ((a))
-#else
-# define my_info_0(a)       fprintf (stderr, (a))
-# define my_info_1(a,b)     fprintf (stderr, (a), (b))
-# define my_info_2(a,b,c)   fprintf (stderr, (a), (b), (c))
-# define my_info_3(a,b,c,d) fprintf (stderr, (a), (b), (c), (d))
-# define my_error_0(a)      fprintf (stderr, (a))
-# define my_error_1(a,b)    fprintf (stderr, (a), (b))
-# define my_error_2(a,b,c)  fprintf (stderr, (a), (b), (c))
-# define my_debug_1(a,b)    fprintf (stderr, (a), (b))
-# define my_fatal_0(a)      do { fprintf (stderr,(a)); fflush (stderr); \
-                                 abort (); } while (0)
-#endif
 
 
 
