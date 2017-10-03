@@ -367,15 +367,15 @@ _assuan_waitpid (assuan_context_t ctx, pid_t pid, int action,
 
 
 int
-_assuan_socketpair (assuan_context_t ctx, int namespace, int style,
+_assuan_socketpair (assuan_context_t ctx, int namespace_x, int style,
 		    int protocol, assuan_fd_t filedes[2])
 {
   int res;
   TRACE_BEG4 (ctx, ASSUAN_LOG_SYSIO, "_assuan_socketpair", ctx,
 	      "namespace=%i,style=%i,protocol=%i,filedes=%p",
-	      namespace, style, protocol, filedes);
+	      namespace_x, style, protocol, filedes);
 
-  res = (ctx->system.socketpair) (ctx, namespace, style, protocol, filedes);
+  res = (ctx->system.socketpair) (ctx, namespace_x, style, protocol, filedes);
   if (res == 0)
     TRACE_LOG2 ("filedes = { 0x%x, 0x%x }", filedes[0], filedes[1]);
 
@@ -385,14 +385,14 @@ _assuan_socketpair (assuan_context_t ctx, int namespace, int style,
 
 
 int
-_assuan_socket (assuan_context_t ctx, int namespace, int style, int protocol)
+_assuan_socket (assuan_context_t ctx, int namespace_x, int style, int protocol)
 {
   int res;
   TRACE_BEG3 (ctx, ASSUAN_LOG_SYSIO, "_assuan_socket", ctx,
 	      "namespace=%i,style=%i,protocol=%i",
-	      namespace, style, protocol);
+	      namespace_x, style, protocol);
 
-  res = (ctx->system.socket) (ctx, namespace, style, protocol);
+  res = (ctx->system.socket) (ctx, namespace_x, style, protocol);
   return TRACE_SYSRES (res);
 }
 
@@ -407,4 +407,3 @@ _assuan_connect (assuan_context_t ctx, int sock, struct sockaddr *addr, socklen_
   res = (ctx->system.connect) (ctx, sock, addr, length);
   return TRACE_SYSRES (res);
 }
-

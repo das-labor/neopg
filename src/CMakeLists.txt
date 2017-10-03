@@ -82,41 +82,43 @@ add_test(GpgErrorTest gpg-error-test COMMAND gpg-error-test test_xml_output --gt
 # libassuan
 
 add_library(assuan
-  ../libassuan/src/assuan-buffer.c
+  ../libassuan/src/assuan-buffer.cpp
   ../libassuan/src/assuan-defs.h
-  ../libassuan/src/assuan-error.c
-  ../libassuan/src/assuan-handler.c
-  ../libassuan/src/assuan-inquire.c
-  ../libassuan/src/assuan-io.c
-  ../libassuan/src/assuan-listen.c
-  ../libassuan/src/assuan-logging.c
-  ../libassuan/src/assuan-pipe-connect.c
-  ../libassuan/src/assuan-pipe-server.c
-  ../libassuan/src/assuan-socket-connect.c
-  ../libassuan/src/assuan-socket-server.c
-  ../libassuan/src/assuan-socket.c
-  ../libassuan/src/assuan-uds.c
-  ../libassuan/src/assuan.c
+  ../libassuan/src/assuan-error.cpp
+  ../libassuan/src/assuan-handler.cpp
+  ../libassuan/src/assuan-inquire.cpp
+  ../libassuan/src/assuan-io.cpp
+  ../libassuan/src/assuan-listen.cpp
+  ../libassuan/src/assuan-logging.cpp
+  ../libassuan/src/assuan-pipe-connect.cpp
+  ../libassuan/src/assuan-pipe-server.cpp
+  ../libassuan/src/assuan-socket-connect.cpp
+  ../libassuan/src/assuan-socket-server.cpp
+  ../libassuan/src/assuan-socket.cpp
+  ../libassuan/src/assuan-uds.cpp
+  ../libassuan/src/assuan.cpp
   ../libassuan/src/assuan.h
-  ../libassuan/src/client.c
-  ../libassuan/src/context.c
-  ../libassuan/src/conversion.c
-  ../libassuan/src/debug.c
+  ../libassuan/src/client.cpp
+  ../libassuan/src/context.cpp
+  ../libassuan/src/conversion.cpp
+  ../libassuan/src/debug.cpp
   ../libassuan/src/debug.h
-  ../libassuan/src/server.c
-  ../libassuan/src/system.c
-  ../libassuan/src/sysutils.c
+  ../libassuan/src/server.cpp
+  ../libassuan/src/system.cpp
+  ../libassuan/src/sysutils.cpp
 )
 
 if(WIN32)
   target_sources(assuan PRIVATE
-    ../libassuan/src/system-w32.c
+    ../libassuan/src/system-w32.cpp
   )
 else()
   target_sources(assuan PRIVATE
-    ../libassuan/src/system-posix.c
+    ../libassuan/src/system-posix.cpp
 )
 endif()
+
+target_compile_options(assuan PUBLIC -fpermissive)
 
 add_library(neopg::assuan ALIAS assuan)
 
@@ -129,7 +131,7 @@ target_compile_definitions(assuan PRIVATE
 target_link_libraries(assuan PRIVATE gpg-error)
 
 add_executable(assuan-test
-  ../libassuan/tests/fdpassing.c
+  ../libassuan/tests/fdpassing.cpp
   ../libassuan/tests/assuan-test.cpp)
 target_include_directories(assuan-test PRIVATE
   ../libgpg-error/src
@@ -137,6 +139,7 @@ target_include_directories(assuan-test PRIVATE
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(assuan-test PRIVATE
 CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/../libassuan/tests")
+target_compile_options(assuan-test PUBLIC -fpermissive)
 target_link_libraries(assuan-test PRIVATE
   assuan
   GTest::GTest GTest::Main)

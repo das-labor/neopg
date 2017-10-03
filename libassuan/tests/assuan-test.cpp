@@ -2,9 +2,7 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
   int fdpassing_main(int argc, char* argv[]);
-}
 
 TEST(AssuanTest, fdpassing) {
     int result = fdpassing_main(0, NULL);

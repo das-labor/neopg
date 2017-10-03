@@ -404,17 +404,17 @@ __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait,
 
 
 int
-__assuan_socketpair (assuan_context_t ctx, int namespace, int style,
+__assuan_socketpair (assuan_context_t ctx, int namespace_x, int style,
 		     int protocol, assuan_fd_t filedes[2])
 {
-  return socketpair (namespace, style, protocol, filedes);
+  return socketpair (namespace_x, style, protocol, filedes);
 }
 
 
 int
-__assuan_socket (assuan_context_t ctx, int namespace, int style, int protocol)
+__assuan_socket (assuan_context_t ctx, int namespace_x, int style, int protocol)
 {
-  return socket (namespace, style, protocol);
+  return socket (namespace_x, style, protocol);
 }
 
 

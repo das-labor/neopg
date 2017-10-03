@@ -516,7 +516,7 @@ __assuan_waitpid (assuan_context_t ctx, pid_t pid, int nowait,
 
 
 int
-__assuan_socketpair (assuan_context_t ctx, int namespace, int style,
+__assuan_socketpair (assuan_context_t ctx, int namespace_x, int style,
 		     int protocol, assuan_fd_t filedes[2])
 {
   gpg_err_set_errno (ENOSYS);
