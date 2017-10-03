@@ -2,14 +2,12 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
   int b64dec_main(int argc, char* argv[]);
   int lock_main(int argc, char* argv[]);
   int poll_main(int argc, char* argv[]);
   int printf_main(int argc, char* argv[]);
   int strerror_main(int argc, char* argv[]);
   int syserror_main(int argc, char* argv[]);
-}
 
 TEST(GpgErrorTest, ErrorType) {
     gpg_error_t err = gpg_err_make(GPG_ERR_SOURCE_USER_1, GPG_ERR_USER_1);

@@ -268,22 +268,6 @@ map_w32_to_errno (DWORD w32_err)
 }
 #endif /*HAVE_W32_SYSTEM*/
 
-/*
- * Replacement for a missing memrchr.
- */
-#ifndef HAVE_MEMRCHR
-static void *
-memrchr (const void *buffer, int c, size_t n)
-{
-  const unsigned char *p = buffer;
-
-  for (p += n; n ; n--)
-    if (*--p == c)
-      return (void *)p;
-  return NULL;
-}
-#endif /*HAVE_MEMRCHR*/
-
 
 
 /*
@@ -2018,11 +2002,11 @@ init_stream_obj (estream_t stream,
   stream->intern->cookie = cookie;
   stream->intern->opaque = NULL;
   stream->intern->offset = 0;
-  stream->intern->func_read = functions.public.func_read;
-  stream->intern->func_write = functions.public.func_write;
-  stream->intern->func_seek = functions.public.func_seek;
+  stream->intern->func_read = functions.public_x.func_read;
+  stream->intern->func_write = functions.public_x.func_write;
+  stream->intern->func_seek = functions.public_x.func_seek;
   stream->intern->func_ioctl = functions.func_ioctl;
-  stream->intern->func_close = functions.public.func_close;
+  stream->intern->func_close = functions.public_x.func_close;
   stream->intern->strategy = _IOFBF;
   stream->intern->syshd = *syshd;
   stream->intern->print_ntotal = 0;
@@ -3153,7 +3137,7 @@ _gpgrt_fopen (const char *_GPGRT__RESTRICT path,
  out:
 
   if (err && create_called)
-    (*estream_functions_fd.public.func_close) (cookie);
+    (*estream_functions_fd.public_x.func_close) (cookie);
 
   return stream;
 }
@@ -3205,7 +3189,7 @@ _gpgrt_mopen (void *_GPGRT__RESTRICT data, size_t data_n, size_t data_len,
  out:
 
   if (err && create_called)
-    (*estream_functions_mem.public.func_close) (cookie);
+    (*estream_functions_mem.public_x.func_close) (cookie);
 
   return stream;
 }
@@ -3235,7 +3219,7 @@ _gpgrt_fopenmem (size_t memlimit, const char *_GPGRT__RESTRICT mode)
   memset (&syshd, 0, sizeof syshd);
   if (create_stream (&stream, cookie, &syshd, BACKEND_MEM,
                      estream_functions_mem, modeflags, xmode, 0))
-    (*estream_functions_mem.public.func_close) (cookie);
+    (*estream_functions_mem.public_x.func_close) (cookie);
 
   return stream;
 }
@@ -3347,7 +3331,7 @@ do_fdopen (int filedes, const char *mode, int no_close, int with_locked_list)
 
  out:
   if (err && create_called)
-    (*estream_functions_fd.public.func_close) (cookie);
+    (*estream_functions_fd.public_x.func_close) (cookie);
 
   return stream;
 }
@@ -3403,7 +3387,7 @@ do_fpopen (FILE *fp, const char *mode, int no_close, int with_locked_list)
 
  out:
   if (err && create_called)
-    (*estream_functions_fp.public.func_close) (cookie);
+    (*estream_functions_fp.public_x.func_close) (cookie);
 
   return stream;
 }
@@ -3467,7 +3451,7 @@ do_w32open (HANDLE hd, const char *mode,
 
  leave:
   if (err && create_called)
-    (*estream_functions_w32.public.func_close) (cookie);
+    (*estream_functions_w32.public_x.func_close) (cookie);
 
   return stream;
 }

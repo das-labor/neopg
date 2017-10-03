@@ -118,7 +118,7 @@ typedef int (*cookie_ioctl_function_t) (void *cookie, int cmd,
    for the ioctl function.  */
 struct cookie_io_functions_s
 {
-  struct _gpgrt_cookie_io_functions public;
+  struct _gpgrt_cookie_io_functions public_x;
   cookie_ioctl_function_t func_ioctl;
 };
 

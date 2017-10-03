@@ -18,37 +18,37 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DI
 
 add_library(gpg-error
   ../libgpg-error/src/gpg-error.h
-  ../libgpg-error/src/b64dec.c
-  ../libgpg-error/src/code-from-errno.c
-  ../libgpg-error/src/code-to-errno.c
-  ../libgpg-error/src/strsource.c
-  ../libgpg-error/src/strerror.c
+  ../libgpg-error/src/b64dec.cpp
+  ../libgpg-error/src/code-from-errno.cpp
+  ../libgpg-error/src/code-to-errno.cpp
+  ../libgpg-error/src/strsource.cpp
+  ../libgpg-error/src/strerror.cpp
   ../libgpg-error/src/estream.h
-  ../libgpg-error/src/estream.c
-  ../libgpg-error/src/estream-printf.c
+  ../libgpg-error/src/estream.cpp
+  ../libgpg-error/src/estream-printf.cpp
   ../libgpg-error/src/gpg-error.h
   ../libgpg-error/src/gpgrt.h
   ../libgpg-error/src/gpgrt-int.h
   ../libgpg-error/src/init.h
-  ../libgpg-error/src/init.c
+  ../libgpg-error/src/init.cpp
   ../libgpg-error/src/visibility.h
-  ../libgpg-error/src/visibility.c
+  ../libgpg-error/src/visibility.cpp
   ../libgpg-error/src/gettext.h
 )
 
 if(WIN32)
   target_sources(gpg-error PRIVATE
     ../libgpg-error/src/w32-add.h
-    ../libgpg-error/src/w32-estream.c
-    ../libgpg-error/src/w32-gettext.c
-    ../libgpg-error/src/w32-iconv.c
-    ../libgpg-error/src/w32-lock.c
-    ../libgpg-error/src/w32-thread.c
+    ../libgpg-error/src/w32-estream.cpp
+    ../libgpg-error/src/w32-gettext.cpp
+    ../libgpg-error/src/w32-iconv.cpp
+    ../libgpg-error/src/w32-lock.cpp
+    ../libgpg-error/src/w32-thread.cpp
   )
 else()
   target_sources(gpg-error PRIVATE
-  ../libgpg-error/src/posix-lock.c
-  ../libgpg-error/src/posix-thread.c
+  ../libgpg-error/src/posix-lock.cpp
+  ../libgpg-error/src/posix-thread.cpp
 )
 endif()
 
@@ -60,14 +60,15 @@ target_include_directories(gpg-error PRIVATE
 target_compile_definitions(gpg-error PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread)
+target_compile_options(gpg-error PUBLIC -fpermissive)
 
 add_executable(gpg-error-test
-  ../libgpg-error/tests/t-b64dec.c
-  ../libgpg-error/tests/t-lock.c
-  ../libgpg-error/tests/t-poll.c
-  ../libgpg-error/tests/t-printf.c
-  ../libgpg-error/tests/t-strerror.c
-  ../libgpg-error/tests/t-syserror.c
+  ../libgpg-error/tests/t-b64dec.cpp
+  ../libgpg-error/tests/t-lock.cpp
+  ../libgpg-error/tests/t-poll.cpp
+  ../libgpg-error/tests/t-printf.cpp
+  ../libgpg-error/tests/t-strerror.cpp
+  ../libgpg-error/tests/t-syserror.cpp
   ../libgpg-error/tests/gpg-error-test.cpp
 )
 target_include_directories(gpg-error-test PRIVATE
@@ -156,7 +157,7 @@ target_include_directories(npth PRIVATE
 target_compile_definitions(npth PRIVATE
   HAVE_CONFIG_H=1)
 
-target_compile_options(npth PRIVATE -fpermissive)
+target_compile_options(npth PUBLIC -fpermissive)
 
 add_executable(npth-test
   ../npth/tests/t-fork.cpp
@@ -490,7 +491,7 @@ target_link_libraries(neopg PRIVATE
     gpg-error
     assuan
   gcrypt)
-
+target_compile_options(neopg PUBLIC -fpermissive)
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
 #  target_compile_options(foo
