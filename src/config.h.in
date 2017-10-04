@@ -40,6 +40,13 @@
 #define HAVE_GETPWUID 1
 #define HAVE_SETRLIMIT 1
 
+/* agent */
+#define GNUPG_PRIVATE_KEYS_DIR  "private-keys-v1.d"
+#define PATHSEP_C ':'
+#define GPG_AGENT_SSH_SOCK_NAME "S.gpg-agent.ssh"
+#define GPG_AGENT_BROWSER_SOCK_NAME "S.gpg-agent.browser"
+#define GPG_AGENT_EXTRA_SOCK_NAME "S.gpg-agent.extra"
+
 #cmakedefine HAVE_MALLOC_H 1
 
 /* libassuan */

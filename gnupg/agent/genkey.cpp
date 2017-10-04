@@ -32,7 +32,7 @@
 #include "../common/sysutils.h"
 
 static int
-store_key (gcry_sexp_t private, const char *passphrase, int force,
+store_key (gcry_sexp_t privater, const char *passphrase, int force,
 	unsigned long s2k_count)
 {
   int rc;
@@ -40,18 +40,18 @@ store_key (gcry_sexp_t private, const char *passphrase, int force,
   size_t len;
   unsigned char grip[20];
 
-  if ( !gcry_pk_get_keygrip (private, grip) )
+  if ( !gcry_pk_get_keygrip (privater, grip) )
     {
       log_error ("can't calculate keygrip\n");
       return gpg_error (GPG_ERR_GENERAL);
     }
 
-  len = gcry_sexp_sprint (private, GCRYSEXP_FMT_CANON, NULL, 0);
+  len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, NULL, 0);
   assert (len);
   buf = gcry_malloc_secure (len);
   if (!buf)
       return out_of_core ();
-  len = gcry_sexp_sprint (private, GCRYSEXP_FMT_CANON, buf, len);
+  len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, buf, len);
   assert (len);
 
   if (passphrase)

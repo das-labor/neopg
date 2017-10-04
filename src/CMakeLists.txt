@@ -489,12 +489,34 @@ add_executable(neopg
   ../gnupg/g10/delkey.cpp
   ../gnupg/g10/dearmor.cpp
   ../gnupg/g10/gpg.cpp
+
+  ../gnupg/agent/command.cpp
+  ../gnupg/agent/gpg-agent.cpp
+  ../gnupg/agent/protect.cpp
+  ../gnupg/agent/call-scd.cpp
+  ../gnupg/agent/findkey.cpp
+  ../gnupg/agent/cvt-openpgp.cpp
+  ../gnupg/agent/cache.cpp
+  ../gnupg/agent/genkey.cpp
+  ../gnupg/agent/call-pinentry.cpp
+  ../gnupg/agent/trustlist.cpp
+  ../gnupg/common/asshelp2.cpp
+  ../gnupg/common/asshelp.h
+  ../gnupg/agent/pkdecrypt.cpp
+  ../gnupg/agent/pksign.cpp
+  ../gnupg/agent/learncard.cpp
+  ../gnupg/agent/divert-scd.cpp
+  ../gnupg/agent/command-ssh.cpp
+  ../gnupg/common/ssh-utils.cpp
+  ../gnupg/common/name-value.cpp
+
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE
   ../libgpg-error/src
   ../libassuan/src
   ../libgcrypt/src
+  ../npth/src
   ${CMAKE_BINARY_DIR}/.
   ${Boost_INCLUDE_DIR}
 )
@@ -504,6 +526,7 @@ target_link_libraries(neopg PRIVATE
     gpg-error
     assuan
   gcrypt
+  npth
 ${Boost_LIBRARIES})
 target_compile_options(neopg PUBLIC
  -fpermissive

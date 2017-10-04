@@ -474,24 +474,17 @@ static const char *
 my_strusage (int level)
 {
   static char *ver_gcry;
-  const char *p;
+  const char *p = NULL;
 
   switch (level)
     {
     case 11: p = "@GPG_AGENT@ (@GNUPG@)";
       break;
     case 13: p = VERSION; break;
-    case 17: p = PRINTABLE_OS_NAME; break;
       /* TRANSLATORS: @EMAIL@ will get replaced by the actual bug
          reporting address.  This is so that we can change the
          reporting address without breaking the translations.  */
     case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
-
-    case 20:
-      if (!ver_gcry)
-        ver_gcry = make_libversion ("libgcrypt", gcry_check_version);
-      p = ver_gcry;
-      break;
 
     case 1:
     case 40: p =  _("Usage: @GPG_AGENT@ [options] (-h for help)");
@@ -937,7 +930,7 @@ initialize_modules (void)
 
 /* The main entry point.  */
 int
-main (int argc, char **argv )
+agent_main (int argc, char **argv )
 {
   ARGPARSE_ARGS pargs;
   int orig_argc;

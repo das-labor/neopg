@@ -575,7 +575,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   size_t n;
   int c, infidx, i;
   char timestamp_exp[35];
-  unsigned char *protected;
+  unsigned char *protecteder;
   size_t protectedlen;
   int depth = 0;
   unsigned char *p;
@@ -687,7 +687,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   rc = do_encryption (hash_begin, hash_end - hash_begin + 1,
                       prot_begin, prot_end - prot_begin + 1,
                       passphrase, timestamp_exp, sizeof (timestamp_exp),
-                      &protected, &protectedlen, s2k_count, use_ocb);
+                      &protecteder, &protectedlen, s2k_count, use_ocb);
   if (rc)
     return rc;
 
@@ -704,14 +704,14 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   if (!p)
     {
       gpg_error_t tmperr = out_of_core ();
-      xfree (protected);
+      xfree (protecteder);
       return tmperr;
     }
   memcpy (p, "(21:protected-", 14);
   p += 14;
   memcpy (p, plainkey+4, prot_begin - plainkey - 4);
   p += prot_begin - plainkey - 4;
-  memcpy (p, protected, protectedlen);
+  memcpy (p, protecteder, protectedlen);
   p += protectedlen;
 
   memcpy (p, timestamp_exp, 35);
@@ -720,7 +720,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   memcpy (p, prot_end+1, real_end - prot_end);
   p += real_end - prot_end;
   assert ( p - *result == *resultlen);
-  xfree (protected);
+  xfree (protecteder);
 
   return 0;
 }
@@ -731,7 +731,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
 static int
 do_decryption (const unsigned char *aad_begin, size_t aad_len,
                const unsigned char *aadhole_begin, size_t aadhole_len,
-               const unsigned char *protected, size_t protectedlen,
+               const unsigned char *protecteder, size_t protectedlen,
                const char *passphrase,
                const unsigned char *s2ksalt, unsigned long s2kcount,
                const unsigned char *iv, size_t ivlen,
@@ -810,15 +810,15 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
             {
               gcry_cipher_final (hd);
               rc = gcry_cipher_decrypt (hd, outbuf, protectedlen - 16,
-                                        protected, protectedlen - 16);
+                                        protecteder, protectedlen - 16);
             }
           if (!rc)
-            rc = gcry_cipher_checktag (hd, protected + protectedlen - 16, 16);
+            rc = gcry_cipher_checktag (hd, protecteder + protectedlen - 16, 16);
         }
       else
         {
           rc = gcry_cipher_decrypt (hd, outbuf, protectedlen,
-                                    protected, protectedlen);
+                                    protecteder, protectedlen);
         }
     }
 

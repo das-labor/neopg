@@ -254,7 +254,7 @@ get_fingerprint (gcry_sexp_t key, int algo,
       if (algo == GCRY_MD_MD5)
         {
           bin2hexcolon (gcry_md_read (md, algo), gcry_md_get_algo_dlen (algo), fpr);
-          strlwr (fpr);
+          ascii_strlwr (fpr);
         }
       else
         {

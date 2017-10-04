@@ -1,3 +1,5 @@
+#define HAVE_STRUCT_UCRED_PID 1
+
 /* command-ssh.c - gpg-agent's implementation of the ssh-agent protocol.
  * Copyright (C) 2004-2006, 2009, 2012 Free Software Foundation, Inc.
  * Copyright (C) 2004-2006, 2009, 2012-2014 Werner Koch
@@ -1770,7 +1772,7 @@ sexp_key_construct (gcry_sexp_t *r_sexp,
           err = gpg_error_from_syserror ();
           goto out;
         }
-      strlwr (algo_name);
+      ascii_strlwr (algo_name);
       arg_list[arg_idx++] = &algo_name;
       if (curve_name)
         {

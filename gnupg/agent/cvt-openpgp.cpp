@@ -1240,7 +1240,7 @@ extract_private_key (gcry_sexp_t s_key, int req_private_key_data,
   /* Map NAME to a name as used by Libgcrypt.  We do not use the
      Libgcrypt function here because we need a lowercase name and
      require special treatment for some algorithms.  */
-  strlwr (name);
+  ascii_strlwr (name);
   if (!strcmp (name, "rsa"))
     {
       algoname = "rsa";
