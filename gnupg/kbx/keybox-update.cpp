@@ -39,12 +39,12 @@
 
 
 static int
-create_tmp_file (const char *template,
+create_tmp_file (const char *tempel,
                  char **r_bakfname, char **r_tmpfname, FILE **r_fp)
 {
   gpg_error_t err;
 
-  err = keybox_tmp_names (template, 0, r_bakfname, r_tmpfname);
+  err = keybox_tmp_names (tempel, 0, r_bakfname, r_tmpfname);
   if (!err)
     {
       *r_fp = fopen (*r_tmpfname, "wb");

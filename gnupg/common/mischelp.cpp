@@ -47,7 +47,7 @@
 #include "stringhelp.h"
 #include "utf8conv.h"
 #include "mischelp.h"
-
+#include "sysutils.h"
 
 /* Check whether the files NAME1 and NAME2 are identical.  This is for
    example achieved by comparing the inode numbers of the files.  */

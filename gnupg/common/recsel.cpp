@@ -61,7 +61,7 @@ struct recsel_expr_s
 {
   recsel_expr_t next;
   select_op_t op;       /* Operation code.  */
-  unsigned int not:1;   /* Negate operators. */
+  unsigned int nonono:1;   /* Negate operators. */
   unsigned int disjun:1;/* Start of a disjunction.  */
   unsigned int xcase:1; /* String match is case sensitive.  */
   const char *value;    /* (Points into NAME.)  */
@@ -252,7 +252,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
     return my_error_from_syserror ();
   strcpy (se->name, expr);
   se->next = NULL;
-  se->not = 0;
+  se->nonono = 0;
   se->disjun = disjun;
   se->xcase = xcase;
 
@@ -284,13 +284,13 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   else if (!strncmp (s, "!~", 2))
     {
       se->op = SELECT_SUB;
-      se->not = 1;
+      se->nonono = 1;
       s += 2;
     }
   else if (!strncmp (s, "<>", 2))
     {
       se->op = SELECT_SAME;
-      se->not = 1;
+      se->nonono = 1;
       s += 2;
     }
   else if (!strncmp (s, "==", 2))
@@ -301,7 +301,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   else if (!strncmp (s, "!=", 2))
     {
       se->op = SELECT_EQ;
-      se->not = 1;
+      se->nonono = 1;
       s += 2;
     }
   else if (!strncmp (s, "<=", 2))
@@ -332,7 +332,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   else if (!strncmp (s, "-z", 2))
     {
       se->op = SELECT_NONEMPTY;
-      se->not = 1;
+      se->nonono = 1;
       s += 2;
     }
   else if (!strncmp (s, "-n", 2))
@@ -343,7 +343,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   else if (!strncmp (s, "-f", 2))
     {
       se->op = SELECT_ISTRUE;
-      se->not = 1;
+      se->nonono = 1;
       s += 2;
     }
   else if (!strncmp (s, "-t", 2))
@@ -483,11 +483,11 @@ recsel_dump (recsel_expr_t selector)
                  se==selector? "  ": (se->disjun? "||":"&&"),
                  se->xcase?  "-c":"  ",
                  se->name,
-                 se->op == SELECT_SAME?    (se->not? "<>":"= "):
-                 se->op == SELECT_SUB?     (se->not? "!~":"=~"):
-                 se->op == SELECT_NONEMPTY?(se->not? "-z":"-n"):
-                 se->op == SELECT_ISTRUE?  (se->not? "-f":"-t"):
-                 se->op == SELECT_EQ?      (se->not? "!=":"=="):
+                 se->op == SELECT_SAME?    (se->nonono? "<>":"= "):
+                 se->op == SELECT_SUB?     (se->nonono? "!~":"=~"):
+                 se->op == SELECT_NONEMPTY?(se->nonono? "-z":"-n"):
+                 se->op == SELECT_ISTRUE?  (se->nonono? "-f":"-t"):
+                 se->op == SELECT_EQ?      (se->nonono? "!=":"=="):
                  se->op == SELECT_LT?      "< ":
                  se->op == SELECT_LE?      "<=":
                  se->op == SELECT_GT?      "> ":
@@ -541,7 +541,7 @@ recsel_select (recsel_expr_t selector,
               if (se->xcase)
                 result = (valuelen==selen && !memcmp (value,se->value,selen));
               else
-                result = (valuelen==selen && !memicmp (value,se->value,selen));
+                result = (valuelen==selen && !strncasecmp (value,se->value,selen));
               break;
             case SELECT_SUB:
               if (se->xcase)
@@ -597,7 +597,7 @@ recsel_select (recsel_expr_t selector,
             }
         }
 
-      if (se->not)
+      if (se->nonono)
         result = !result;
 
       if (result)

@@ -29,7 +29,6 @@
 #include "keybox-defs.h"
 #include "../common/utilproto.h"
 
-
 static void *(*alloc_func)(size_t n) = malloc;
 static void *(*realloc_func)(void *p, size_t n) = realloc;
 static void (*free_func)(void*) = free;

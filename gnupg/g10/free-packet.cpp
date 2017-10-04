@@ -169,22 +169,22 @@ prefitem_t *
 copy_prefs (const prefitem_t *prefs)
 {
     size_t n;
-    prefitem_t *new;
+    prefitem_t *neu;
 
     if (!prefs)
         return NULL;
 
     for (n=0; prefs[n].type; n++)
         ;
-    new = xmalloc ( sizeof (*new) * (n+1));
+    neu = xmalloc ( sizeof (*neu) * (n+1));
     for (n=0; prefs[n].type; n++) {
-        new[n].type = prefs[n].type;
-        new[n].value = prefs[n].value;
+        neu[n].type = prefs[n].type;
+        neu[n].value = prefs[n].value;
     }
-    new[n].type = PREFTYPE_NONE;
-    new[n].value = 0;
+    neu[n].type = PREFTYPE_NONE;
+    neu[n].value = 0;
 
-    return new;
+    return neu;
 }
 
 

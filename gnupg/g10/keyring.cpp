@@ -1291,13 +1291,13 @@ keyring_search (KEYRING_HANDLE hd, KEYDB_SEARCH_DESC *desc,
 
 
 static int
-create_tmp_file (const char *template,
+create_tmp_file (const char *tempel,
                  char **r_bakfname, char **r_tmpfname, IOBUF *r_fp)
 {
   gpg_error_t err;
   mode_t oldmask;
 
-  err = keybox_tmp_names (template, 1, r_bakfname, r_tmpfname);
+  err = keybox_tmp_names (tempel, 1, r_bakfname, r_tmpfname);
   if (err)
     return err;
 

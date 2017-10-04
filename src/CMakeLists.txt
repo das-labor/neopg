@@ -360,132 +360,132 @@ target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive)
 
 add_executable(neopg
   ../gnupg/common/logging.h
-  ../gnupg/common/logging.c
+  ../gnupg/common/logging.cpp
   ../gnupg/common/sysutils.h
-  ../gnupg/common/sysutils.c
+  ../gnupg/common/sysutils.cpp
   ../gnupg/common/utf8conv.h
-  ../gnupg/common/utf8conv.c
+  ../gnupg/common/utf8conv.cpp
   ../gnupg/common/stringhelp.h
-  ../gnupg/common/stringhelp.c
+  ../gnupg/common/stringhelp.cpp
   ../gnupg/common/server-help.h
-  ../gnupg/common/server-help.c
+  ../gnupg/common/server-help.cpp
   ../gnupg/common/argparse.h
-  ../gnupg/common/argparse.c
+  ../gnupg/common/argparse.cpp
   ../gnupg/common/strlist.h
-  ../gnupg/common/strlist.c
+  ../gnupg/common/strlist.cpp
   ../gnupg/common/membuf.h
-  ../gnupg/common/membuf.c
+  ../gnupg/common/membuf.cpp
   ../gnupg/common/status.h
-  ../gnupg/common/status.c
+  ../gnupg/common/status.cpp
   ../gnupg/common/iobuf.h
-  ../gnupg/common/iobuf.c
+  ../gnupg/common/iobuf.cpp
   ../gnupg/common/i18n.h
-  ../gnupg/common/i18n.c
+  ../gnupg/common/i18n.cpp
   ../gnupg/common/session-env.h
-  ../gnupg/common/session-env.c
+  ../gnupg/common/session-env.cpp
   ../gnupg/common/gettime.h
-  ../gnupg/common/gettime.c
+  ../gnupg/common/gettime.cpp
   ../gnupg/common/asshelp.h
-  ../gnupg/common/asshelp.c
+  ../gnupg/common/asshelp.cpp
   ../gnupg/common/dotlock.h
-  ../gnupg/common/dotlock.c
+  ../gnupg/common/dotlock.cpp
   ../gnupg/common/mischelp.h
-  ../gnupg/common/mischelp.c
+  ../gnupg/common/mischelp.cpp
   ../gnupg/common/compliance.h
-  ../gnupg/common/compliance.c
+  ../gnupg/common/compliance.cpp
   ../gnupg/common/exechelp.h
-  ../gnupg/common/exechelp-posix.c
+  ../gnupg/common/exechelp-posix.cpp
   ../gnupg/common/userids.h
-  ../gnupg/common/userids.c
+  ../gnupg/common/userids.cpp
   ../gnupg/common/mbox-util.h
-  ../gnupg/common/mbox-util.c
+  ../gnupg/common/mbox-util.cpp
   ../gnupg/common/recsel.h
-  ../gnupg/common/recsel.c
-  ../gnupg/common/gpgrlhelp.c
-  ../gnupg/common/homedir.c
-  ../gnupg/common/mapstrings.c
-  ../gnupg/common/miscellaneous.c
-  ../gnupg/common/init.c
-  ../gnupg/common/percent.c
-  ../gnupg/common/signal.c
-  ../gnupg/common/zb32.c
-  ../gnupg/common/openpgp-oid.c
-  ../gnupg/common/ttyio.c
-  ../gnupg/common/xasprintf.c
-  ../gnupg/common/yesno.c
-  ../gnupg/common/sexputil.c
-  ../gnupg/common/tlv.c
-  ../gnupg/common/helpfile.c
+  ../gnupg/common/recsel.cpp
+  ../gnupg/common/gpgrlhelp.cpp
+  ../gnupg/common/homedir.cpp
+  ../gnupg/common/mapstrings.cpp
+  ../gnupg/common/miscellaneous.cpp
+  ../gnupg/common/init.cpp
+  ../gnupg/common/percent.cpp
+  ../gnupg/common/signal.cpp
+  ../gnupg/common/zb32.cpp
+  ../gnupg/common/openpgp-oid.cpp
+  ../gnupg/common/ttyio.cpp
+  ../gnupg/common/xasprintf.cpp
+  ../gnupg/common/yesno.cpp
+  ../gnupg/common/sexputil.cpp
+  ../gnupg/common/tlv.cpp
+  ../gnupg/common/helpfile.cpp
   ../gnupg/common/util.h
-  ../gnupg/common/localename.c
-  ../gnupg/common/convert.c
-  ../gnupg/common/b64enc.c
-  ../gnupg/common/agent-opt.c
-  ../gnupg/kbx/keybox-init.c
-  ../gnupg/kbx/keybox-util.c
-  ../gnupg/kbx/keybox-blob.c
-  ../gnupg/kbx/keybox-file.c
-  ../gnupg/kbx/keybox-openpgp.c
-  ../gnupg/kbx/keybox-update.c
-  ../gnupg/kbx/keybox-search.c
-  ../gnupg/g10/misc.c
-  ../gnupg/g10/photoid.c
-  ../gnupg/g10/keyid.c
-  ../gnupg/g10/keyserver.c
-  ../gnupg/g10/keyring.c
-  ../gnupg/g10/pubkey-enc.c
-  ../gnupg/g10/pkclist.c
-  ../gnupg/g10/ecdh.c
-  ../gnupg/g10/kbnode.c
-  ../gnupg/g10/compress.c
+  ../gnupg/common/localename.cpp
+  ../gnupg/common/convert.cpp
+  ../gnupg/common/b64enc.cpp
+  ../gnupg/common/agent-opt.cpp
+  ../gnupg/kbx/keybox-init.cpp
+  ../gnupg/kbx/keybox-util.cpp
+  ../gnupg/kbx/keybox-blob.cpp
+  ../gnupg/kbx/keybox-file.cpp
+  ../gnupg/kbx/keybox-openpgp.cpp
+  ../gnupg/kbx/keybox-update.cpp
+  ../gnupg/kbx/keybox-search.cpp
+  ../gnupg/g10/misc.cpp
+  ../gnupg/g10/photoid.cpp
+  ../gnupg/g10/keyid.cpp
+  ../gnupg/g10/keyserver.cpp
+  ../gnupg/g10/keyring.cpp
+  ../gnupg/g10/pubkey-enc.cpp
+  ../gnupg/g10/pkclist.cpp
+  ../gnupg/g10/ecdh.cpp
+  ../gnupg/g10/kbnode.cpp
+  ../gnupg/g10/compress.cpp
   ../gnupg/g10/filter.h
-  ../gnupg/g10/passphrase.c
-  ../gnupg/g10/import.c
-  ../gnupg/g10/export.c
-  ../gnupg/g10/decrypt-data.c
-  ../gnupg/g10/plaintext.c
-  ../gnupg/g10/textfilter.c
-  ../gnupg/g10/progress.c
-  ../gnupg/g10/mdfilter.c
-  ../gnupg/g10/seskey.c
-  ../gnupg/g10/pkglue.c
-  ../gnupg/g10/revoke.c
-  ../gnupg/g10/sign.c
-  ../gnupg/g10/encrypt.c
-  ../gnupg/g10/decrypt.c
-  ../gnupg/g10/cipher.c
-  ../gnupg/g10/verify.c
-  ../gnupg/g10/skclist.c
-  ../gnupg/g10/keygen.c
-  ../gnupg/g10/helptext.c
-  ../gnupg/g10/call-dirmngr.c
-  ../gnupg/g10/call-agent.c
-  ../gnupg/g10/getkey.c
-  ../gnupg/g10/keydb.c
+  ../gnupg/g10/passphrase.cpp
+  ../gnupg/g10/import.cpp
+  ../gnupg/g10/export.cpp
+  ../gnupg/g10/decrypt-data.cpp
+  ../gnupg/g10/plaintext.cpp
+  ../gnupg/g10/textfilter.cpp
+  ../gnupg/g10/progress.cpp
+  ../gnupg/g10/mdfilter.cpp
+  ../gnupg/g10/seskey.cpp
+  ../gnupg/g10/pkglue.cpp
+  ../gnupg/g10/revoke.cpp
+  ../gnupg/g10/sign.cpp
+  ../gnupg/g10/encrypt.cpp
+  ../gnupg/g10/decrypt.cpp
+  ../gnupg/g10/cipher.cpp
+  ../gnupg/g10/verify.cpp
+  ../gnupg/g10/skclist.cpp
+  ../gnupg/g10/keygen.cpp
+  ../gnupg/g10/helptext.cpp
+  ../gnupg/g10/call-dirmngr.cpp
+  ../gnupg/g10/call-agent.cpp
+  ../gnupg/g10/getkey.cpp
+  ../gnupg/g10/keydb.cpp
   ../gnupg/g10/packet.h
-  ../gnupg/g10/build-packet.c
-  ../gnupg/g10/parse-packet.c
-  ../gnupg/g10/mainproc.c
-  ../gnupg/g10/free-packet.c
-  ../gnupg/g10/sig-check.c
-  ../gnupg/g10/keyedit.c
+  ../gnupg/g10/build-packet.cpp
+  ../gnupg/g10/parse-packet.cpp
+  ../gnupg/g10/mainproc.cpp
+  ../gnupg/g10/free-packet.cpp
+  ../gnupg/g10/sig-check.cpp
+  ../gnupg/g10/keyedit.cpp
   ../gnupg/g10/rmd160.h
-  ../gnupg/g10/rmd160.c
-  ../gnupg/g10/trust.c
-  ../gnupg/g10/cpr.c
-  ../gnupg/g10/keylist.c
-  ../gnupg/g10/openfile.c
-  ../gnupg/g10/key-check.c
-  ../gnupg/g10/armor.c
-  ../gnupg/g10/trustdb.c
-  ../gnupg/g10/tdbio.c
-  ../gnupg/g10/tdbdump.c
-  ../gnupg/g10/exec.c
-  ../gnupg/g10/server.c
-  ../gnupg/g10/migrate.c
-  ../gnupg/g10/delkey.c
-  ../gnupg/g10/dearmor.c
-  ../gnupg/g10/gpg.c)
+  ../gnupg/g10/rmd160.cpp
+  ../gnupg/g10/trust.cpp
+  ../gnupg/g10/cpr.cpp
+  ../gnupg/g10/keylist.cpp
+  ../gnupg/g10/openfile.cpp
+  ../gnupg/g10/key-check.cpp
+  ../gnupg/g10/armor.cpp
+  ../gnupg/g10/trustdb.cpp
+  ../gnupg/g10/tdbio.cpp
+  ../gnupg/g10/tdbdump.cpp
+  ../gnupg/g10/exec.cpp
+  ../gnupg/g10/server.cpp
+  ../gnupg/g10/migrate.cpp
+  ../gnupg/g10/delkey.cpp
+  ../gnupg/g10/dearmor.cpp
+  ../gnupg/g10/gpg.cpp)
 target_include_directories(neopg PRIVATE
   ../libgpg-error/src
   ../libassuan/src

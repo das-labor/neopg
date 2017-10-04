@@ -1164,8 +1164,8 @@ print_revokers (estream_t fp, PKT_public_key * pk)
 	  for (j = 0; j < 20; j++, p++)
 	    es_fprintf (fp, "%02X", *p);
 	  es_fprintf (fp, ":%02x%s:\n",
-                      pk->revkey[i].class,
-                      (pk->revkey[i].class & 0x40) ? "s" : "");
+                      pk->revkey[i].klasse,
+                      (pk->revkey[i].klasse & 0x40) ? "s" : "");
 	}
     }
 }

@@ -1507,7 +1507,7 @@ sanitize_regexp(const char *old)
 {
   size_t start=0,len=strlen(old),idx=0;
   int escaped=0,standard_bracket=0;
-  char *new=xmalloc((len*2)+1); /* enough to \-escape everything if we
+  char *neu=xmalloc((len*2)+1); /* enough to \-escape everything if we
 				   have to */
 
   /* There are basically two commonly-used regexps here.  GPG and most
@@ -1528,8 +1528,8 @@ sanitize_regexp(const char *old)
   if(len>=12 && strncmp(old,"<[^>]+[@.]",10)==0
      && old[len-2]=='>' && old[len-1]=='$')
     {
-      strcpy(new,"<[^>]+[@.]");
-      idx=strlen(new);
+      strcpy(neu,"<[^>]+[@.]");
+      idx=strlen(neu);
       standard_bracket=1;
       start+=10;
       len-=2;
@@ -1542,14 +1542,14 @@ sanitize_regexp(const char *old)
       if(!escaped && old[start]=='\\')
 	escaped=1;
       else if(!escaped && old[start]!='.')
-	new[idx++]='\\';
+	neu[idx++]='\\';
       else
 	escaped=0;
 
-      new[idx++]=old[start];
+      neu[idx++]=old[start];
     }
 
-  new[idx]='\0';
+  neu[idx]='\0';
 
   /* Note that the (sub)string we look at might end with a bare "\".
      If it does, leave it that way.  If the regexp actually ended with
@@ -1558,9 +1558,9 @@ sanitize_regexp(const char *old)
      regcomp should kick it out. */
 
   if(standard_bracket)
-    strcat(new,">$");
+    strcat(neu,">$");
 
-  return new;
+  return neu;
 }
 #endif /*!DISABLE_REGEX*/
 

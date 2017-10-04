@@ -501,7 +501,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
     {
       u32 sk_keyid[2], pk_keyid[2];
       char *p, *trust_regexp = NULL;
-      int class = 0, selfsig = 0;
+      int klasse = 0, selfsig = 0;
       u32 duration = 0, timestamp = 0;
       byte trust_depth = 0, trust_value = 0;
 
@@ -853,7 +853,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
       else
 	{
 	  if (opt.batch || !opt.ask_cert_level || quick)
-	    class = 0x10 + opt.def_cert_level;
+	    klasse = 0x10 + opt.def_cert_level;
 	  else
 	    {
 	      char *answer;
@@ -875,21 +875,21 @@ sign_uids (ctrl_t ctrl, estream_t fp,
 			  opt.def_cert_level == 3 ? " (default)" : "");
 	      tty_fprintf (fp, "\n");
 
-	      while (class == 0)
+	      while (klasse == 0)
 		{
 		  answer = cpr_get ("sign_uid.class",
                                     _("Your selection? "
                                       "(enter '?' for more information): "));
 		  if (answer[0] == '\0')
-		    class = 0x10 + opt.def_cert_level;	/* Default */
+		    klasse = 0x10 + opt.def_cert_level;	/* Default */
 		  else if (ascii_strcasecmp (answer, "0") == 0)
-		    class = 0x10;	/* Generic */
+		    klasse = 0x10;	/* Generic */
 		  else if (ascii_strcasecmp (answer, "1") == 0)
-		    class = 0x11;	/* Persona */
+		    klasse = 0x11;	/* Persona */
 		  else if (ascii_strcasecmp (answer, "2") == 0)
-		    class = 0x12;	/* Casual */
+		    klasse = 0x12;	/* Casual */
 		  else if (ascii_strcasecmp (answer, "3") == 0)
-		    class = 0x13;	/* Positive */
+		    klasse = 0x13;	/* Positive */
 		  else
 		    tty_fprintf (fp, _("Invalid selection.\n"));
 
@@ -945,7 +945,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
                  _("The signature will be marked as non-revocable.\n"));
 	    }
 
-	  switch (class)
+	  switch (klasse)
 	    {
 	    case 0x11:
 	      tty_fprintf (fp, "\n");
@@ -1015,7 +1015,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
 					 node->pkt->pkt.user_id,
 					 NULL,
 					 pk,
-					 class, 0,
+					 klasse, 0,
 					 timestamp, duration,
 					 sign_mk_attrib, &attrib,
                                          NULL);
@@ -3406,7 +3406,7 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
                                  _("This key may be revoked by %s key %s"),
                                  algo ? algo : "?", user);
 
-		    if (pk->revkey[i].class & 0x40)
+		    if (pk->revkey[i].klasse & 0x40)
 		      {
 			tty_fprintf (fp, " ");
 			tty_fprintf (fp, _("(sensitive)"));
@@ -4191,9 +4191,9 @@ menu_addrevoker (ctrl_t ctrl, kbnode_t pub_keyblock, int sensitive)
 	  continue;
 	}
 
-      revkey.class = 0x80;
+      revkey.klasse = 0x80;
       if (sensitive)
-	revkey.class |= 0x40;
+	revkey.klasse |= 0x40;
       revkey.algid = revoker_pk->pubkey_algo;
 
       if (cmp_public_keys (revoker_pk, pk) == 0)

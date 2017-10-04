@@ -309,19 +309,19 @@ pk_encrypt (pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
     ;
   else if (algo == PUBKEY_ALGO_ECDH)
     {
-      gcry_mpi_t shared, public, result;
+      gcry_mpi_t shared, public_x, result;
       byte fp[MAX_FINGERPRINT_LEN];
       size_t fpn;
 
       /* Get the shared point and the ephemeral public key.  */
       shared = get_mpi_from_sexp (s_ciph, "s", GCRYMPI_FMT_USG);
-      public = get_mpi_from_sexp (s_ciph, "e", GCRYMPI_FMT_USG);
+      public_x = get_mpi_from_sexp (s_ciph, "e", GCRYMPI_FMT_USG);
       gcry_sexp_release (s_ciph);
       s_ciph = NULL;
       if (DBG_CRYPTO)
         {
           log_debug ("ECDH ephemeral key:");
-          gcry_mpi_dump (public);
+          gcry_mpi_dump (public_x);
           log_printf ("\n");
         }
 
@@ -335,12 +335,12 @@ pk_encrypt (pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
       gcry_mpi_release (shared);
       if (!rc)
         {
-          resarr[0] = public;
+          resarr[0] = public_x;
           resarr[1] = result;
         }
       else
         {
-          gcry_mpi_release (public);
+          gcry_mpi_release (public_x);
           gcry_mpi_release (result);
         }
     }

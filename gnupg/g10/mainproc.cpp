@@ -2397,7 +2397,7 @@ proc_tree (CTX c, kbnode_t node)
       n1 = find_next_kbnode (node, PKT_SIGNATURE);
       if (n1)
         {
-          byte class = sig->sig_class;
+          byte klasse = sig->sig_class;
           byte hash  = sig->digest_algo;
 
           for (; n1; (n1 = find_next_kbnode(n1, PKT_SIGNATURE)))
@@ -2410,7 +2410,7 @@ proc_tree (CTX c, kbnode_t node)
                * multiple signatures if the digest algorithms are
                * different.  We softened this restriction only for
                * detached signatures, to be on the safe side. */
-              if (n1->pkt->pkt.signature->sig_class != class
+              if (n1->pkt->pkt.signature->sig_class != klasse
                   || (c->any.data
                       && n1->pkt->pkt.signature->digest_algo != hash))
                 {

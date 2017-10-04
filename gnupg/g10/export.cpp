@@ -1635,7 +1635,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               int i;
 
               for (i = 0; i < node->pkt->pkt.signature->numrevkeys; i++)
-                if ((node->pkt->pkt.signature->revkey[i].class & 0x40))
+                if ((node->pkt->pkt.signature->revkey[i].klasse & 0x40))
                   break;
               if (i < node->pkt->pkt.signature->numrevkeys)
                 continue;

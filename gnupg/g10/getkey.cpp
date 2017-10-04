@@ -1524,11 +1524,11 @@ subkey_is_ok (const PKT_public_key *sub)
  * better, == 0 if it is a tie.  */
 static int
 pubkey_cmp (ctrl_t ctrl, const char *name, struct pubkey_cmp_cookie *old,
-            struct pubkey_cmp_cookie *new, KBNODE new_keyblock)
+            struct pubkey_cmp_cookie *neu, KBNODE new_keyblock)
 {
   kbnode_t n;
 
-  new->creation_time = 0;
+  neu->creation_time = 0;
   for (n = find_next_kbnode (new_keyblock, PKT_PUBLIC_SUBKEY);
        n; n = find_next_kbnode (n, PKT_PUBLIC_SUBKEY))
     {
@@ -1540,8 +1540,8 @@ pubkey_cmp (ctrl_t ctrl, const char *name, struct pubkey_cmp_cookie *old,
       if (! subkey_is_ok (sub))
         continue;
 
-      if (sub->timestamp > new->creation_time)
-        new->creation_time = sub->timestamp;
+      if (sub->timestamp > neu->creation_time)
+        neu->creation_time = sub->timestamp;
     }
 
   for (n = find_next_kbnode (new_keyblock, PKT_USER_ID);
@@ -1555,22 +1555,22 @@ pubkey_cmp (ctrl_t ctrl, const char *name, struct pubkey_cmp_cookie *old,
       if (! match)
         continue;
 
-      new->uid = scopy_user_id (uid);
-      new->validity =
-        get_validity (ctrl, new_keyblock, &new->key, uid, NULL, 0) & TRUST_MASK;
-      new->valid = 1;
+      neu->uid = scopy_user_id (uid);
+      neu->validity =
+        get_validity (ctrl, new_keyblock, &neu->key, uid, NULL, 0) & TRUST_MASK;
+      neu->valid = 1;
 
       if (! old->valid)
         return -1;	/* No OLD key.  */
 
-      if (! uid_is_ok (&old->key, old->uid) && uid_is_ok (&new->key, uid))
+      if (! uid_is_ok (&old->key, old->uid) && uid_is_ok (&neu->key, uid))
         return -1;	/* Validity of the NEW key is better.  */
 
-      if (old->validity < new->validity)
+      if (old->validity < neu->validity)
         return -1;	/* Validity of the NEW key is better.  */
 
-      if (old->validity == new->validity && uid_is_ok (&new->key, uid)
-          && old->creation_time < new->creation_time)
+      if (old->validity == neu->validity && uid_is_ok (&neu->key, uid)
+          && old->creation_time < neu->creation_time)
         return -1;	/* Both keys are of the same validity, but the
                            NEW key is newer.  */
     }
@@ -1607,33 +1607,33 @@ get_best_pubkey_byname (ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
     {
       /* Rank results and return only the most relevant key.  */
       struct pubkey_cmp_cookie best = { 0 };
-      struct pubkey_cmp_cookie new;
+      struct pubkey_cmp_cookie neu;
       kbnode_t new_keyblock;
 
-      while (getkey_next (ctrl, ctx, &new.key, &new_keyblock) == 0)
+      while (getkey_next (ctrl, ctx, &neu.key, &new_keyblock) == 0)
         {
-          int diff = pubkey_cmp (ctrl, name, &best, &new, new_keyblock);
+          int diff = pubkey_cmp (ctrl, name, &best, &neu, new_keyblock);
           release_kbnode (new_keyblock);
           if (diff < 0)
             {
               /* New key is better.  */
               release_public_key_parts (&best.key);
               free_user_id (best.uid);
-              best = new;
+              best = neu;
             }
           else if (diff > 0)
             {
               /* Old key is better.  */
-              release_public_key_parts (&new.key);
-              free_user_id (new.uid);
-              new.uid = NULL;
+              release_public_key_parts (&neu.key);
+              free_user_id (neu.uid);
+              neu.uid = NULL;
             }
           else
             {
               /* A tie.  Keep the old key.  */
-              release_public_key_parts (&new.key);
-              free_user_id (new.uid);
-              new.uid = NULL;
+              release_public_key_parts (&neu.key);
+              free_user_id (neu.uid);
+              neu.uid = NULL;
             }
         }
       getkey_end (ctrl, ctx);

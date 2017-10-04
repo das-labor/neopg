@@ -64,11 +64,11 @@ static struct {
 
 
 /* The OID for Curve Ed25519 in OpenPGP format.  */
-static const char oid_ed25519[] =
+static const unsigned char oid_ed25519[] =
   { 0x09, 0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01 };
 
 /* The OID for Curve25519 in OpenPGP format.  */
-static const char oid_cv25519[] =
+static const unsigned char oid_cv25519[] =
   { 0x0a, 0x2b, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 };
 
 

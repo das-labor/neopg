@@ -822,7 +822,7 @@ keygen_add_revkey (PKT_signature *sig, void *opaque)
   struct revocation_key *revkey = opaque;
   byte buf[2+MAX_FINGERPRINT_LEN];
 
-  buf[0] = revkey->class;
+  buf[0] = revkey->klasse;
   buf[1] = revkey->algid;
   memcpy (&buf[2], revkey->fpr, MAX_FINGERPRINT_LEN);
 
@@ -1272,14 +1272,14 @@ do_create_from_keygrip (ctrl_t ctrl, int algo, const char *hexkeygrip,
 
   /* Ask the agent for the public key matching HEXKEYGRIP.  */
   {
-    unsigned char *public;
+    unsigned char *public_x;
 
-    err = agent_readkey (ctrl, 0, hexkeygrip, &public);
+    err = agent_readkey (ctrl, 0, hexkeygrip, &public_x);
     if (err)
       return err;
     err = gcry_sexp_sscan (&s_key, NULL,
-                           public, gcry_sexp_canon_len (public, 0, NULL, NULL));
-    xfree (public);
+                           public_x, gcry_sexp_canon_len (public_x, 0, NULL, NULL));
+    xfree (public_x);
     if (err)
       return err;
   }
@@ -1839,20 +1839,20 @@ static int
 check_keygrip (ctrl_t ctrl, const char *hexgrip)
 {
   gpg_error_t err;
-  unsigned char *public;
+  unsigned char *public_x;
   size_t publiclen;
   int algo;
 
   if (hexgrip[0] == '&')
     hexgrip++;
 
-  err = agent_readkey (ctrl, 0, hexgrip, &public);
+  err = agent_readkey (ctrl, 0, hexgrip, &public_x);
   if (err)
     return 0;
-  publiclen = gcry_sexp_canon_len (public, 0, NULL, NULL);
+  publiclen = gcry_sexp_canon_len (public_x, 0, NULL, NULL);
 
-  algo = get_pk_algo_from_canon_sexp (public, publiclen);
-  xfree (public);
+  algo = get_pk_algo_from_canon_sexp (public_x, publiclen);
+  xfree (public_x);
 
   return map_pk_gcry_to_openpgp (algo);
 }
@@ -2309,9 +2309,9 @@ ask_curve (int *algo, int *subkey_algo)
             {
               if (!opt.expert && curves[idx].expert_only)
                 continue;
-              if (!stricmp (curves[idx].name, answer)
+              if (!strcasecmp (curves[idx].name, answer)
                   || (curves[idx].pretty_name
-                      && !stricmp (curves[idx].pretty_name, answer)))
+                      && !strcasecmp (curves[idx].pretty_name, answer)))
                 break;
             }
           if (idx == DIM(curves))
@@ -3349,7 +3349,7 @@ parse_revocation_key (const char *fname,
 
   pn = r->u.value;
 
-  revkey.class=0x80;
+  revkey.klasse=0x80;
   revkey.algid=atoi(pn);
   if(!revkey.algid)
     goto fail;
@@ -3377,7 +3377,7 @@ parse_revocation_key (const char *fname,
     pn++;
 
   if(ascii_strcasecmp(pn,"sensitive")==0)
-    revkey.class|=0x40;
+    revkey.klasse|=0x40;
 
   memcpy(&r->u.revkey,&revkey,sizeof(struct revocation_key));
 

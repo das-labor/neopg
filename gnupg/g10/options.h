@@ -44,6 +44,35 @@
 struct keyserver_spec;
 typedef struct keyserver_spec *keyserver_spec_t;
 
+enum
+{
+ KF_DEFAULT, KF_NONE, KF_SHORT, KF_LONG, KF_0xSHORT, KF_0xLONG
+};
+
+enum
+{
+ TM_CLASSIC=0, TM_PGP=1, TM_EXTERNAL=2,
+ TM_ALWAYS, TM_DIRECT, TM_AUTO, TM_TOFU, TM_TOFU_PGP
+};
+
+enum {
+    AKL_NODEFAULT,
+    AKL_LOCAL,
+    AKL_CERT,
+    AKL_PKA,
+    AKL_DANE,
+    AKL_WKD,
+    AKL_LDAP,
+    AKL_KEYSERVER,
+    AKL_SPEC
+};
+
+struct akl
+{
+  int type;
+  keyserver_spec_t spec;
+  struct akl *next;
+};
 
 /* Global options for GPG.  */
 EXTERN_UNLESS_MAIN_MODULE
@@ -133,18 +162,11 @@ struct
 
   /* TM_CLASSIC must be zero to accommodate trustdbsg generated before
      we started storing the trust model inside the trustdb. */
-  enum
-    {
-      TM_CLASSIC=0, TM_PGP=1, TM_EXTERNAL=2,
-      TM_ALWAYS, TM_DIRECT, TM_AUTO, TM_TOFU, TM_TOFU_PGP
-    } trust_model;
+  int trust_model;
   enum tofu_policy tofu_default_policy;
   int force_ownertrust;
   enum gnupg_compliance_mode compliance;
-  enum
-    {
-      KF_DEFAULT, KF_NONE, KF_SHORT, KF_LONG, KF_0xSHORT, KF_0xLONG
-    } keyid_format;
+  int keyid_format;
   const char *set_filename;
   strlist_t comments;
   int throw_keyids;
@@ -246,22 +268,7 @@ struct
 
   /* Linked list of ways to find a key if the key isn't on the local
      keyring. */
-  struct akl
-  {
-    enum {
-      AKL_NODEFAULT,
-      AKL_LOCAL,
-      AKL_CERT,
-      AKL_PKA,
-      AKL_DANE,
-      AKL_WKD,
-      AKL_LDAP,
-      AKL_KEYSERVER,
-      AKL_SPEC
-    } type;
-    keyserver_spec_t spec;
-    struct akl *next;
-  } *auto_key_locate;
+  struct akl *auto_key_locate;
 
   /* The value of --key-origin.  See parse_key_origin().  */
   int key_origin;
@@ -321,8 +328,8 @@ struct {
 #define DBG_MEMORY    memory_debug_mode
 #define DBG_MEMSTAT   memory_stat_debug_mode
 
-EXTERN_UNLESS_MAIN_MODULE int memory_debug_mode;
-EXTERN_UNLESS_MAIN_MODULE int memory_stat_debug_mode;
+extern int memory_debug_mode;
+extern int memory_stat_debug_mode;
 
 
 /* Compatibility flags.  */

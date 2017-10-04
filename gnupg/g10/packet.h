@@ -163,7 +163,7 @@ struct revocation_key {
   /* A bit field.  0x80 must be set.  0x40 means this information is
      sensitive (and should not be uploaded to a keyserver by
      default).  */
-  byte class;
+  byte klasse;
   /* The public-key algorithm ID.  */
   byte algid;
   /* The fingerprint of the authorized key.  */

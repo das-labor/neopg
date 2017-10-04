@@ -296,9 +296,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#ifdef HAVE_SIGNAL_H
 # include <signal.h>
-#endif
 #ifdef DOTLOCK_USE_PTHREAD
 # include <pthread.h>
 #endif

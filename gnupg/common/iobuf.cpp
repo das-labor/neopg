@@ -85,6 +85,8 @@
 #endif /*!HAVE_W32_SYSTEM*/
 
 
+int iobuf_debug_mode;
+
 /* The context used by the file filter.  */
 typedef struct
 {

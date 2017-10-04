@@ -311,7 +311,7 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 	    tty_printf (_("To be revoked by:\n"));
             print_seckey_info (ctrl, pk2);
 
-	    if(pk->revkey[i].class&0x40)
+	    if(pk->revkey[i].klasse & 0x40)
 	      tty_printf(_("(This is a sensitive revocation key)\n"));
 	    tty_printf("\n");
 
@@ -388,8 +388,8 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 
 		    for(j=0;j<signode->pkt->pkt.signature->numrevkeys;j++)
 		      {
-			if(pk->revkey[i].class==
-			   signode->pkt->pkt.signature->revkey[j].class &&
+			if(pk->revkey[i].klasse==
+			   signode->pkt->pkt.signature->revkey[j].klasse &&
 			   pk->revkey[i].algid==
 			   signode->pkt->pkt.signature->revkey[j].algid &&
 			   memcmp(pk->revkey[i].fpr,

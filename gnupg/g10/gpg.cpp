@@ -78,6 +78,9 @@
 int _dowildcard = -1;
 #endif
 
+int memory_debug_mode;
+int memory_stat_debug_mode;
+
 enum cmd_and_opt_values
   {
     aNull = 0,

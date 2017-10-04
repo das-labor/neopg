@@ -84,34 +84,6 @@ void *ascii_memcasemem (const void *haystack, size_t nhaystack,
                         const void *needle, size_t nneedle);
 
 
-#ifndef HAVE_MEMICMP
-int memicmp( const char *a, const char *b, size_t n );
-#endif
-#ifndef HAVE_STPCPY
-char *stpcpy(char *a,const char *b);
-#endif
-#ifndef HAVE_STRPBRK
-char *strpbrk (const char *s, const char *accept);
-#endif
-#ifndef HAVE_STRSEP
-char *strsep (char **stringp, const char *delim);
-#endif
-#ifndef HAVE_STRLWR
-char *strlwr(char *a);
-#endif
-#ifndef HAVE_STRTOUL
-#  define strtoul(a,b,c)  ((unsigned long)strtol((a),(b),(c)))
-#endif
-#ifndef HAVE_MEMMOVE
-#  define memmove(d, s, n) bcopy((s), (d), (n))
-#endif
-#ifndef HAVE_STRICMP
-#  define stricmp(a,b)	 strcasecmp( (a), (b) )
-#endif
-#ifndef HAVE_MEMRCHR
-void *memrchr (const void *buffer, int c, size_t n);
-#endif
-
 #ifndef STR
 #  define STR(v) #v
 #endif

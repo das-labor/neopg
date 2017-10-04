@@ -1824,7 +1824,7 @@ parse_revkeys (PKT_signature * sig)
 				  (sig->numrevkeys + 1));
 
 	  /* Copy the individual fields.  */
-	  sig->revkey[sig->numrevkeys].class = revkey[0];
+	  sig->revkey[sig->numrevkeys].klasse = revkey[0];
 	  sig->revkey[sig->numrevkeys].algid = revkey[1];
 	  memcpy (sig->revkey[sig->numrevkeys].fpr, &revkey[2], 20);
 

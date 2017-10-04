@@ -383,7 +383,7 @@ is_armor_header( byte *line, unsigned len )
 	return -1; /* too short */
     if( memcmp( line, "-----", 5 ) )
 	return -1; /* no */
-    p = strstr( line+5, "-----");
+    p = strstr( (char*)line+5, "-----");
     if( !p )
 	return -1;
     save_p = p;
@@ -455,7 +455,7 @@ parse_header_line( armor_filter_context_t *afx, byte *line, unsigned int len )
       makes this strict and enforces the colon-space pair. -dms
     */
 
-    p = strchr( line, ':');
+    p = strchr( (char*)line, ':');
     if( !p || (RFC2440 && p[1]!=' ')
 	|| (!RFC2440 && p[1]!=' ' && p[1]!='\n' && p[1]!='\r'))
       {
