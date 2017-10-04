@@ -389,7 +389,7 @@ _gcry_get_config (int mode, const char *what)
     }
 
   /* Strip trailing LF.  */
-  if (what && (p = strchr (data, '\n')))
+  if (what && (p = strchr ((char*)data, '\n')))
     *p = 0;
 
   return data;

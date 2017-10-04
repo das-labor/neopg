@@ -20,7 +20,7 @@
 #ifndef G10_RAND_INTERNAL_H
 #define G10_RAND_INTERNAL_H
 
-#include "../src/cipher-proto.h"
+#include "../src/cipher.h"
 
 /* Constants used to define the origin of random added to the pool.
    The code is sensitive to the order of the values.  */

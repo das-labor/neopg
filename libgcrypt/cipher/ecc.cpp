@@ -530,7 +530,7 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
   gcry_sexp_t curve_info = NULL;
   gcry_sexp_t curve_flags = NULL;
   gcry_mpi_t base = NULL;
-  gcry_mpi_t public = NULL;
+  gcry_mpi_t public_x = NULL;
   gcry_mpi_t secret = NULL;
   int flags = 0;
 
@@ -637,8 +637,8 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
         }
       if (rc)
         goto leave;
-      public = mpi_new (0);
-      mpi_set_opaque (public, encpk, encpklen*8);
+      public_x = mpi_new (0);
+      mpi_set_opaque (public_x, encpk, encpklen*8);
     }
   else
     {
@@ -651,7 +651,7 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
           if (_gcry_mpi_ec_get_affine (Qx, Qy, &sk.Q, ctx))
             log_fatal ("ecgen: Failed to get affine coordinates for %s\n", "Q");
         }
-      public = _gcry_ecc_ec2os (Qx, Qy, sk.E.p);
+      public_x = _gcry_ecc_ec2os (Qx, Qy, sk.E.p);
     }
   secret = sk.d; sk.d = NULL;
   if (E.name)
@@ -686,9 +686,9 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
                      "  (ecc%S%S(p%m)(a%m)(b%m)(g%m)(n%m)(h%m)(q%m)(d%m)))"
                      " )",
                      curve_info, curve_flags,
-                     sk.E.p, sk.E.a, sk.E.b, base, sk.E.n, sk.E.h, public,
+                     sk.E.p, sk.E.a, sk.E.b, base, sk.E.n, sk.E.h, public_x,
                      curve_info, curve_flags,
-                     sk.E.p, sk.E.a, sk.E.b, base, sk.E.n, sk.E.h, public,
+                     sk.E.p, sk.E.a, sk.E.b, base, sk.E.n, sk.E.h, public_x,
                                                                    secret);
   else
     rc = sexp_build (r_skey, NULL,
@@ -699,9 +699,9 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
                      "  (ecc%S%S(q%m)(d%m)))"
                      " )",
                      curve_info, curve_flags,
-                     public,
+                     public_x,
                      curve_info, curve_flags,
-                     public, secret);
+                     public_x, secret);
   if (rc)
     goto leave;
 
@@ -713,7 +713,7 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
       log_printmpi ("ecgen result  G", base);
       log_printmpi ("ecgen result  n", sk.E.n);
       log_printmpi ("ecgen result  h", sk.E.h);
-      log_printmpi ("ecgen result  Q", public);
+      log_printmpi ("ecgen result  Q", public_x);
       log_printmpi ("ecgen result  d", secret);
       if ((flags & PUBKEY_FLAG_EDDSA))
         log_debug ("ecgen result  using Ed25519+EdDSA\n");
@@ -721,7 +721,7 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 
  leave:
   mpi_free (secret);
-  mpi_free (public);
+  mpi_free (public_x);
   mpi_free (base);
   {
     _gcry_ecc_curve_free (&sk.E);

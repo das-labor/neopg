@@ -23,7 +23,7 @@
 
 #define _GCRY_INCLUDED_BY_VISIBILITY_C
 #include "g10lib.h"
-#include "cipher-proto.h"
+#include "cipher.h"
 #include "context.h"
 #include "mpi.h"
 

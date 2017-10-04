@@ -181,141 +181,140 @@ add_test(nPthTest npth-test COMMAND npth-test test_xml_output --gtest_output=xml
 add_library(gcrypt
   ../libgcrypt/src/cipher-proto.h
   ../libgcrypt/src/cipher.h
-  ../libgcrypt/src/context.c
+  ../libgcrypt/src/context.cpp
   ../libgcrypt/src/context.h
   ../libgcrypt/src/ec-context.h
-  ../libgcrypt/src/fips.c
+  ../libgcrypt/src/fips.cpp
   ../libgcrypt/src/g10lib.h
   ../libgcrypt/src/gcrypt-int.h
   ../libgcrypt/src/gcrypt-testapi.h
   ../libgcrypt/src/gcrypt.h
-  ../libgcrypt/src/global.c
-  ../libgcrypt/src/hmac256.c
+  ../libgcrypt/src/global.cpp
+  ../libgcrypt/src/hmac256.cpp
   ../libgcrypt/src/hmac256.h
   ../libgcrypt/src/hwf-common.h
-  ../libgcrypt/src/hwf-x86.c
-  ../libgcrypt/src/hwfeatures.c
-  ../libgcrypt/src/misc.c
+  ../libgcrypt/src/hwf-x86.cpp
+  ../libgcrypt/src/hwfeatures.cpp
+  ../libgcrypt/src/misc.cpp
   ../libgcrypt/src/mpi.h
-  ../libgcrypt/src/secmem.c
+  ../libgcrypt/src/secmem.cpp
   ../libgcrypt/src/secmem.h
-  ../libgcrypt/src/sexp.c
-  ../libgcrypt/src/stdmem.c
+  ../libgcrypt/src/sexp.cpp
+  ../libgcrypt/src/stdmem.cpp
   ../libgcrypt/src/stdmem.h
   ../libgcrypt/src/types.h
-  ../libgcrypt/src/visibility.c
+  ../libgcrypt/src/visibility.cpp
   ../libgcrypt/src/visibility.h
-  ../libgcrypt/cipher/blake2.c
-  ../libgcrypt/cipher/crc.c
-  ../libgcrypt/cipher/ecc.c
-  ../libgcrypt/cipher/ecc-curves.c
-  ../libgcrypt/cipher/ecc-eddsa.c
-  ../libgcrypt/cipher/ecc-gost.c
-  ../libgcrypt/cipher/ecc-misc.c
-  ../libgcrypt/cipher/ecc-ecdsa.c
-  ../libgcrypt/cipher/elgamal.c
-  ../libgcrypt/cipher/dsa.c
-  ../libgcrypt/cipher/rsa.c
-  ../libgcrypt/cipher/sha1.c
-  ../libgcrypt/cipher/sha256.c
-  ../libgcrypt/cipher/sha512.c
-  ../libgcrypt/cipher/keccak.c
-  ../libgcrypt/cipher/whirlpool.c
-  ../libgcrypt/cipher/md4.c
-  ../libgcrypt/cipher/md5.c
-  ../libgcrypt/cipher/tiger.c
-  ../libgcrypt/cipher/gostr3411-94.c
-  ../libgcrypt/cipher/gost28147.c
-  ../libgcrypt/cipher/stribog.c
-  ../libgcrypt/cipher/rmd160.c
-  ../libgcrypt/cipher/blowfish.c
-  ../libgcrypt/cipher/camellia.c
-  ../libgcrypt/cipher/camellia-glue.c
-  ../libgcrypt/cipher/salsa20.c
-  ../libgcrypt/cipher/rijndael.c
-  ../libgcrypt/cipher/idea.c
-  ../libgcrypt/cipher/des.c
-  ../libgcrypt/cipher/arcfour.c
-  ../libgcrypt/cipher/cast5.c
-  ../libgcrypt/cipher/twofish.c
-  ../libgcrypt/cipher/rfc2268.c
-  ../libgcrypt/cipher/seed.c
-  ../libgcrypt/cipher/chacha20.c
-  ../libgcrypt/cipher/mac-cmac.c
-  ../libgcrypt/cipher/serpent.c
-  ../libgcrypt/cipher/cipher.c
+  ../libgcrypt/cipher/blake2.cpp
+  ../libgcrypt/cipher/crc.cpp
+  ../libgcrypt/cipher/ecc.cpp
+  ../libgcrypt/cipher/ecc-curves.cpp
+  ../libgcrypt/cipher/ecc-eddsa.cpp
+  ../libgcrypt/cipher/ecc-gost.cpp
+  ../libgcrypt/cipher/ecc-misc.cpp
+  ../libgcrypt/cipher/ecc-ecdsa.cpp
+  ../libgcrypt/cipher/elgamal.cpp
+  ../libgcrypt/cipher/dsa.cpp
+  ../libgcrypt/cipher/rsa.cpp
+  ../libgcrypt/cipher/sha1.cpp
+  ../libgcrypt/cipher/sha256.cpp
+  ../libgcrypt/cipher/sha512.cpp
+  ../libgcrypt/cipher/keccak.cpp
+  ../libgcrypt/cipher/whirlpool.cpp
+  ../libgcrypt/cipher/md4.cpp
+  ../libgcrypt/cipher/md5.cpp
+  ../libgcrypt/cipher/tiger.cpp
+  ../libgcrypt/cipher/gostr3411-94.cpp
+  ../libgcrypt/cipher/gost28147.cpp
+  ../libgcrypt/cipher/stribog.cpp
+  ../libgcrypt/cipher/rmd160.cpp
+  ../libgcrypt/cipher/blowfish.cpp
+  ../libgcrypt/cipher/camellia.cpp
+  ../libgcrypt/cipher/camellia-glue.cpp
+  ../libgcrypt/cipher/salsa20.cpp
+  ../libgcrypt/cipher/rijndael.cpp
+  ../libgcrypt/cipher/idea.cpp
+  ../libgcrypt/cipher/des.cpp
+  ../libgcrypt/cipher/arcfour.cpp
+  ../libgcrypt/cipher/cast5.cpp
+  ../libgcrypt/cipher/twofish.cpp
+  ../libgcrypt/cipher/rfc2268.cpp
+  ../libgcrypt/cipher/seed.cpp
+  ../libgcrypt/cipher/chacha20.cpp
+  ../libgcrypt/cipher/mac-cmac.cpp
+  ../libgcrypt/cipher/serpent.cpp
+  ../libgcrypt/cipher/cipher.cpp
   ../libgcrypt/cipher/cipher-internal.h
-  ../libgcrypt/cipher/cipher-cbc.c
-  ../libgcrypt/cipher/cipher-cfb.c
-  ../libgcrypt/cipher/cipher-ofb.c
-  ../libgcrypt/cipher/cipher-ctr.c
-  ../libgcrypt/cipher/cipher-aeswrap.c
-  ../libgcrypt/cipher/cipher-ccm.c
-  ../libgcrypt/cipher/cipher-cmac.c
-  ../libgcrypt/cipher/cipher-gcm.c
-  ../libgcrypt/cipher/cipher-poly1305.c
-  ../libgcrypt/cipher/cipher-ocb.c
-  ../libgcrypt/cipher/cipher-xts.c
-  ../libgcrypt/cipher/cipher-selftest.c
+  ../libgcrypt/cipher/cipher-cbc.cpp
+  ../libgcrypt/cipher/cipher-cfb.cpp
+  ../libgcrypt/cipher/cipher-ofb.cpp
+  ../libgcrypt/cipher/cipher-ctr.cpp
+  ../libgcrypt/cipher/cipher-aeswrap.cpp
+  ../libgcrypt/cipher/cipher-ccm.cpp
+  ../libgcrypt/cipher/cipher-cmac.cpp
+  ../libgcrypt/cipher/cipher-gcm.cpp
+  ../libgcrypt/cipher/cipher-poly1305.cpp
+  ../libgcrypt/cipher/cipher-ocb.cpp
+  ../libgcrypt/cipher/cipher-xts.cpp
+  ../libgcrypt/cipher/cipher-selftest.cpp
   ../libgcrypt/cipher/cipher-selftest.h
-  ../libgcrypt/cipher/pubkey.c
+  ../libgcrypt/cipher/pubkey.cpp
   ../libgcrypt/cipher/pubkey-internal.h
-  ../libgcrypt/cipher/pubkey-util.c
-  ../libgcrypt/cipher/md.c
-  ../libgcrypt/cipher/mac.c
+  ../libgcrypt/cipher/pubkey-util.cpp
+  ../libgcrypt/cipher/md.cpp
+  ../libgcrypt/cipher/mac.cpp
   ../libgcrypt/cipher/mac-internal.h
-  ../libgcrypt/cipher/mac-hmac.c
-  ../libgcrypt/cipher/mac-cmac.c
-  ../libgcrypt/cipher/mac-gmac.c
-  ../libgcrypt/cipher/mac-poly1305.c
-  ../libgcrypt/cipher/poly1305.c
+  ../libgcrypt/cipher/mac-hmac.cpp
+  ../libgcrypt/cipher/mac-cmac.cpp
+  ../libgcrypt/cipher/mac-gmac.cpp
+  ../libgcrypt/cipher/mac-poly1305.cpp
+  ../libgcrypt/cipher/poly1305.cpp
   ../libgcrypt/cipher/poly1305-internal.h
-  ../libgcrypt/cipher/kdf.c
-  ../libgcrypt/cipher/scrypt.c
+  ../libgcrypt/cipher/kdf.cpp
+  ../libgcrypt/cipher/scrypt.cpp
   ../libgcrypt/cipher/kdf-internal.h
-  ../libgcrypt/cipher/hmac-tests.c
   ../libgcrypt/cipher/bithelp.h
   ../libgcrypt/cipher/bufhelp.h
-  ../libgcrypt/cipher/primegen.c
-  ../libgcrypt/cipher/hash-common.c
+  ../libgcrypt/cipher/primegen.cpp
+  ../libgcrypt/cipher/hash-common.cpp
   ../libgcrypt/cipher/hash-common.h
-  ../libgcrypt/cipher/dsa-common.c
-  ../libgcrypt/cipher/rsa-common.c
+  ../libgcrypt/cipher/dsa-common.cpp
+  ../libgcrypt/cipher/rsa-common.cpp
   ../libgcrypt/cipher/sha1.h
-  ../libgcrypt/mpi/ec.c
-  ../libgcrypt/mpi/mpi-add.c
-  ../libgcrypt/mpi/mpi-bit.c
-  ../libgcrypt/mpi/mpi-cmp.c
-  ../libgcrypt/mpi/mpicoder.c
-  ../libgcrypt/mpi/mpi-div.c
-  ../libgcrypt/mpi/mpi-gcd.c
-  ../libgcrypt/mpi/mpih-div.c
-  ../libgcrypt/mpi/mpih-mul.c
-  ../libgcrypt/mpi/mpi-inline.c
-  ../libgcrypt/mpi/mpi-inv.c
-  ../libgcrypt/mpi/mpi-mod.c
-  ../libgcrypt/mpi/mpi-mpow.c
-  ../libgcrypt/mpi/mpi-mul.c
-  ../libgcrypt/mpi/mpi-pow.c
-  ../libgcrypt/mpi/mpi-scan.c
-  ../libgcrypt/mpi/mpiutil.c
-  ../libgcrypt/mpi/mpih-add1.c
-  ../libgcrypt/mpi/generic/mpih-lshift.c
-  ../libgcrypt/mpi/generic/mpih-mul1.c
-  ../libgcrypt/mpi/generic/mpih-mul2.c
-  ../libgcrypt/mpi/generic/mpih-mul3.c
-  ../libgcrypt/mpi/generic/mpih-rshift.c
-  ../libgcrypt/mpi/generic/mpih-sub1.c
-  ../libgcrypt/mpi/generic/udiv-w-sdiv.c
+  ../libgcrypt/mpi/ec.cpp
+  ../libgcrypt/mpi/mpi-add.cpp
+  ../libgcrypt/mpi/mpi-bit.cpp
+  ../libgcrypt/mpi/mpi-cmp.cpp
+  ../libgcrypt/mpi/mpicoder.cpp
+  ../libgcrypt/mpi/mpi-div.cpp
+  ../libgcrypt/mpi/mpi-gcd.cpp
+  ../libgcrypt/mpi/mpih-div.cpp
+  ../libgcrypt/mpi/mpih-mul.cpp
+  ../libgcrypt/mpi/mpi-inline.cpp
+  ../libgcrypt/mpi/mpi-inv.cpp
+  ../libgcrypt/mpi/mpi-mod.cpp
+  ../libgcrypt/mpi/mpi-mpow.cpp
+  ../libgcrypt/mpi/mpi-mul.cpp
+  ../libgcrypt/mpi/mpi-pow.cpp
+  ../libgcrypt/mpi/mpi-scan.cpp
+  ../libgcrypt/mpi/mpiutil.cpp
+  ../libgcrypt/mpi/mpih-add1.cpp
+  ../libgcrypt/mpi/generic/mpih-lshift.cpp
+  ../libgcrypt/mpi/generic/mpih-mul1.cpp
+  ../libgcrypt/mpi/generic/mpih-mul2.cpp
+  ../libgcrypt/mpi/generic/mpih-mul3.cpp
+  ../libgcrypt/mpi/generic/mpih-rshift.cpp
+  ../libgcrypt/mpi/generic/mpih-sub1.cpp
+  ../libgcrypt/mpi/generic/udiv-w-sdiv.cpp
   ../libgcrypt/random/rand-internal.h
-  ../libgcrypt/random/random.c
-  ../libgcrypt/random/random-csprng.c
-  ../libgcrypt/random/random-drbg.c
-  ../libgcrypt/random/random-fips.c
+  ../libgcrypt/random/random.cpp
+  ../libgcrypt/random/random-csprng.cpp
+  ../libgcrypt/random/random-drbg.cpp
+  ../libgcrypt/random/random-fips.cpp
   ../libgcrypt/random/random.h
-  ../libgcrypt/random/random-system.c
-  ../libgcrypt/random/rndhw.c
-  ../libgcrypt/random/rndlinux.c
+  ../libgcrypt/random/random-system.cpp
+  ../libgcrypt/random/rndhw.cpp
+  ../libgcrypt/random/rndlinux.cpp
 )
 add_library(neopg::gcrypt ALIAS gcrypt)
 
@@ -327,13 +326,16 @@ target_include_directories(gcrypt PRIVATE
 target_compile_definitions(gcrypt PRIVATE
   HAVE_CONFIG_H=1)
 
+target_compile_options(gcrypt PUBLIC -fpermissive)
+
 add_executable(gcrypt-test
-  ../libgcrypt/tests/hmac.c
+  ../libgcrypt/tests/hmac.cpp
   ../libgcrypt/tests/gcrypt-test.cpp)
 target_include_directories(gcrypt-test PRIVATE
   ../libgpg-error/src
   ../libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
+target_compile_options(gcrypt-test PUBLIC -fpermissive -Wnarrowing)
 target_link_libraries(gcrypt-test PRIVATE
   gcrypt
   gpg-error
@@ -341,12 +343,13 @@ target_link_libraries(gcrypt-test PRIVATE
 add_test(GcryptTest gcrypt-test COMMAND gcrypt-test test_xml_output --gtest_output=xml:gcrypt-test.xml)
 
 add_executable(gcrypt-secmem-test
-  ../libgcrypt/tests/t-secmem.c
+  ../libgcrypt/tests/t-secmem.cpp
 ../libgcrypt/tests/gcrypt-secmem-test.cpp)
-  target_include_directories(gcrypt-secmem-test PRIVATE
+target_include_directories(gcrypt-secmem-test PRIVATE
     ../libgpg-error/src
     ../libgcrypt/src
     ${CMAKE_BINARY_DIR}/.)
+target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive)
   target_link_libraries(gcrypt-secmem-test PRIVATE
     gcrypt
     gpg-error

@@ -31,7 +31,7 @@
 #endif /*HAVE_SYSLOG*/
 
 #include "g10lib.h"
-#include "cipher-proto.h"
+#include "cipher.h"
 #include "hmac256.h"
 
 
@@ -511,32 +511,7 @@ run_digest_selftests (int extended)
 static int
 run_hmac_selftests (int extended)
 {
-  static int algos[] =
-    {
-      GCRY_MD_SHA1,
-      GCRY_MD_SHA224,
-      GCRY_MD_SHA256,
-      GCRY_MD_SHA384,
-      GCRY_MD_SHA512,
-      GCRY_MD_SHA3_224,
-      GCRY_MD_SHA3_256,
-      GCRY_MD_SHA3_384,
-      GCRY_MD_SHA3_512,
-      0
-    };
-  int idx;
-  gpg_error_t err;
-  int anyerr = 0;
-
-  for (idx=0; algos[idx]; idx++)
-    {
-      err = _gcry_hmac_selftest (algos[idx], extended, reporter);
-      reporter ("hmac", algos[idx], NULL,
-                err? gpg_strerror (err):NULL);
-      if (err)
-        anyerr = 1;
-    }
-  return anyerr;
+  return 0;
 }
 
 

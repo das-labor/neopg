@@ -2,9 +2,7 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
   int hmac_main(int argc, char* argv[]);
-}
 
 TEST(GcryptTest, hmac) {
     int result = hmac_main(0, NULL);

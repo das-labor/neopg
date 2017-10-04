@@ -113,7 +113,7 @@ static const char sample_public_key[] =
 
 static int test_keys (RSA_secret_key *sk, unsigned nbits);
 static int  check_secret_key (RSA_secret_key *sk);
-static void public (gcry_mpi_t output, gcry_mpi_t input, RSA_public_key *skey);
+static void public_x (gcry_mpi_t output, gcry_mpi_t input, RSA_public_key *skey);
 static void secret (gcry_mpi_t output, gcry_mpi_t input, RSA_secret_key *skey);
 static unsigned int rsa_get_nbits (gcry_sexp_t parms);
 
@@ -137,7 +137,7 @@ test_keys (RSA_secret_key *sk, unsigned int nbits)
   _gcry_mpi_randomize (plaintext, nbits, GCRY_WEAK_RANDOM);
 
   /* Encrypt using the public key.  */
-  public (ciphertext, plaintext, &pk);
+  public_x (ciphertext, plaintext, &pk);
 
   /* Check that the cipher text does not match the plaintext.  */
   if (!mpi_cmp (ciphertext, plaintext))
@@ -157,13 +157,13 @@ test_keys (RSA_secret_key *sk, unsigned int nbits)
   secret (signature, plaintext, sk);
 
   /* Use the RSA public function to verify this signature.  */
-  public (decr_plaintext, signature, &pk);
+  public_x (decr_plaintext, signature, &pk);
   if (mpi_cmp (decr_plaintext, plaintext))
     goto leave; /* Signature does not match.  */
 
   /* Modify the signature and check that the signing fails.  */
   mpi_add_ui (signature, signature, 1);
-  public (decr_plaintext, signature, &pk);
+  public_x (decr_plaintext, signature, &pk);
   if (!mpi_cmp (decr_plaintext, plaintext))
     goto leave; /* Signature matches but should not.  */
 
@@ -914,7 +914,7 @@ check_secret_key( RSA_secret_key *sk )
  * Where c is OUTPUT, m is INPUT and e,n are elements of PKEY.
  */
 static void
-public(gcry_mpi_t output, gcry_mpi_t input, RSA_public_key *pkey )
+public_x(gcry_mpi_t output, gcry_mpi_t input, RSA_public_key *pkey )
 {
   if( output == input )  /* powm doesn't like output and input the same */
     {
@@ -1310,7 +1310,7 @@ rsa_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 
   /* Do RSA computation and build result.  */
   ciph = mpi_new (0);
-  public (ciph, data, &pk);
+  public_x (ciph, data, &pk);
   if (DBG_CIPHER)
     log_mpidump ("rsa_encrypt  res", ciph);
   if ((ctx.flags & PUBKEY_FLAG_FIXEDLEN))
@@ -1519,7 +1519,7 @@ rsa_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
   result = mpi_new (0);
   pk.n = sk.n;
   pk.e = sk.e;
-  public (result, sig, &pk);
+  public_x (result, sig, &pk);
   if (mpi_cmp (result, data))
     {
       rc = GPG_ERR_BAD_SIGNATURE;
@@ -1610,7 +1610,7 @@ rsa_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 
   /* Do RSA computation and compare.  */
   result = mpi_new (0);
-  public (result, sig, &pk);
+  public_x (result, sig, &pk);
   if (DBG_CIPHER)
     log_printmpi ("rsa_verify  cmp", result);
   if (ctx.verify_cmp)
