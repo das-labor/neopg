@@ -535,11 +535,14 @@ context<T&, Ts...> build_context(T& cmd)
 {
     context<T&, Ts...> ctx;
     args::assign_subcommands(rank<1>{}, ctx, cmd);
-    ctx.parse(nullptr, "-h", "--help", args::help("Show help"),
-        args::eager_callback([](std::nullptr_t, const auto& c, const argument&)
+    if (! T::no_help)
     {
-        c.show_help(get_name<T>(), get_help<T>(), get_options_metavar<T>());
-    }));
+      ctx.parse(nullptr, "-h", "--help", args::help("Show help"),
+          args::eager_callback([](std::nullptr_t, const auto& c, const argument&)
+      {
+          c.show_help(get_name<T>(), get_help<T>(), get_options_metavar<T>());
+      }));
+    }
     args::try_parse(rank<1>{}, cmd, [&](auto&&... xs)
     {
         ctx.parse(std::forward<decltype(xs)>(xs)...);
@@ -728,10 +731,21 @@ struct group
 
     template<class D>
     struct command : auto_register<D, auto_register_command>
-    {};
+    {
+      static bool no_help;
+    };
+
+    static bool no_help;
 
     void run() {}
 };
+
+template<class Derived>
+template<class D>
+bool group<Derived>::command<D>::no_help = false;
+
+template<class Derived>
+bool group<Derived>::no_help = false;
 
 } // namespace args
 

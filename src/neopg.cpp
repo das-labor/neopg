@@ -4,42 +4,35 @@
 
 int gpg_main(int argc, char **argv);
 
+
 struct cli : args::group<cli>
 {
     static const char* help()
     {
-        return "Command-line interface to manage a database";
+        return "NeoPG implements the OpenPGP standard.";
     }
 };
 
-struct initdb : cli::command<initdb>
-{
-    initdb() {}
 
-    int count;
-    std::string name;
+struct version : cli::command<version>
+{
+    version() {}
 
     static const char* help()
     {
-        return "Initialize database";
+        return "output version information and exit";
     }
 
-    template<class F>
-    void parse(F f)
-    {
-        f(count, "--count", "-C", args::help("Number of greetings."), args::show("xxXz"));
-        f(name, "--name", "-N", args::help("The person to greet."), args::required());
-    }
     void run()
     {
-        printf("Initialize database\n");
+        printf("NeoPG 0.0\n");
     }
 };
 
 struct gpg2 : cli::command<gpg2>
 {
     gpg2() {}
-
+    static bool no_help;
     std::vector<std::string> gpg2args;
     template<class F>
     void parse(F f)
@@ -62,6 +55,8 @@ struct gpg2 : cli::command<gpg2>
         gpg_main(argc, argv.data());
     }
 };
+/* Suppress help output.  */
+bool gpg2::no_help = true;
 
 int main(int argc, char const *argv[])
 {
