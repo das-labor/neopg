@@ -19,12 +19,6 @@
 
 #ifndef KEYBOX_H
 #define KEYBOX_H 1
-#ifdef __cplusplus
-extern "C" {
-#if 0
- }
-#endif
-#endif
 
 #include "../common/iobuf.h"
 #include "keybox-search-desc.h"
@@ -135,7 +129,4 @@ gpg_error_t keybox_tmp_names (const char *filename, int for_keyring,
                               char **r_bakname, char **r_tmpname);
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif /*KEYBOX_H*/
