@@ -78,8 +78,8 @@ struct overload_set<F1, F2, Fs...> : F1, overload_set<F2, Fs...>
 {
     using F1::operator();
     using overload_set<F2, Fs...>::operator();
-    overload_set(F1 f1, F2 f2, Fs... fs) 
-    : F1(std::move(f1)), overload_set<F2, Fs...>(std::move(f2), std::move(fs)...) 
+    overload_set(F1 f1, F2 f2, Fs... fs)
+    : F1(std::move(f1)), overload_set<F2, Fs...>(std::move(f2), std::move(fs)...)
     {}
 };
 
@@ -87,12 +87,12 @@ template<class F1>
 struct overload_set<F1> : F1
 {
     using F1::operator();
-    overload_set(F1 f1) : F1(std::move(f1)) 
+    overload_set(F1 f1) : F1(std::move(f1))
     {}
 };
 
 template<class... Fs>
-overload_set<Fs...> overload(Fs... fs) 
+overload_set<Fs...> overload(Fs... fs)
 {
     return {std::move(fs)...};
 }
@@ -111,7 +111,7 @@ void each_arg(F f, T&& x, Ts&&... xs)
 template<class F, class... Ts>
 void each_arg(F f, Ts&&... xs)
 {
-    (void)std::initializer_list<int>{((void)(f(std::forward<Ts>(xs))), 0)...};     
+    (void)std::initializer_list<int>{((void)(f(std::forward<Ts>(xs))), 0)...};
 }
 #endif
 
@@ -283,6 +283,8 @@ struct argument
 
     int count = 0;
     bool required = false;
+    // Add unknown options (starting with "-") to positional arguments.
+    bool take_unknown = false;
     std::function<void(const std::string&)> write_value;
     std::vector<std::function<void(const argument&)>> callbacks;
     std::vector<std::function<void(const argument&)>> eager_callbacks;
@@ -390,7 +392,7 @@ struct context
 
         if (subcommands.size() > 0) std::cout << " [command]";
         if (lookup.count("") > 0) std::cout << " " << (*this)[""].metavar;
-        
+
         std::cout << std::endl;
         std::cout << std::endl;
         for(auto line:args::wrap(description, total_width-2)) std::cout << "  " << line << std::endl;
@@ -471,6 +473,14 @@ auto required()
     };
 }
 
+auto take_unknown()
+{
+    return [](auto&&, auto&, argument& a)
+    {
+        a.take_unknown = true;
+    };
+}
+
 template<class T>
 auto set(T value)
 {
@@ -525,7 +535,7 @@ context<T&, Ts...> build_context(T& cmd)
 {
     context<T&, Ts...> ctx;
     args::assign_subcommands(rank<1>{}, ctx, cmd);
-    ctx.parse(nullptr, "-h", "--help", args::help("Show help"), 
+    ctx.parse(nullptr, "-h", "--help", args::help("Show help"),
         args::eager_callback([](std::nullptr_t, const auto& c, const argument&)
     {
         c.show_help(get_name<T>(), get_help<T>(), get_options_metavar<T>());
@@ -587,13 +597,24 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
     {
         if (x[0] == '-')
         {
-            // TODO: Check if flag exists
             std::string value;
             std::tie(core, value) = args::parse_attached_value(x);
-            if (ctx[core].type == argument_type::none)
+
+            // TODO: Allow to push unrecognized options to positional args.
+            if (ctx.lookup.count(core) == 0)
+            {
+              if (ctx.lookup.count("") > 0 && ctx[""].take_unknown)
+              {
+                if (ctx[""].write(x)) return;
+              }
+              else
+                throw std::runtime_error("unknown argument: " + core);
+            }
+            else if (ctx[core].type == argument_type::none)
             {
                 capture = false;
                 if (ctx[core].write("")) return;
+                // ???
                 for(auto&& c:value) if (ctx[std::string("-") + c].write("")) return;
             }
             else if (not value.empty())
@@ -618,7 +639,14 @@ void parse(T& cmd, std::deque<std::string> a, Ts&&... xs)
                 ctx.subcommands[x].run(drop(a), cmd, xs...);
                 break;
             }
-            else if (ctx[""].write(x)) return;
+            else
+            {
+              if (ctx.lookup.count("") == 0)
+              {
+                throw std::runtime_error("no positional arguments allowed: " + core);
+              }
+              if (ctx[""].write(x)) return;
+            }
         }
     }
     ctx.post_process();
@@ -679,7 +707,7 @@ struct group
         static subcommand_map subcommands_;
         return subcommands_;
     }
-    
+
     template<class T>
     static void add_command()
     {

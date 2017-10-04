@@ -358,6 +358,9 @@ target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive)
 
 # gpg
 
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+
+
 add_executable(neopg
   ../gnupg/common/logging.h
   ../gnupg/common/logging.cpp
@@ -485,19 +488,27 @@ add_executable(neopg
   ../gnupg/g10/migrate.cpp
   ../gnupg/g10/delkey.cpp
   ../gnupg/g10/dearmor.cpp
-  ../gnupg/g10/gpg.cpp)
+  ../gnupg/g10/gpg.cpp
+  neopg.cpp
+)
 target_include_directories(neopg PRIVATE
   ../libgpg-error/src
   ../libassuan/src
   ../libgcrypt/src
-  ${CMAKE_BINARY_DIR}/.)
+  ${CMAKE_BINARY_DIR}/.
+  ${Boost_INCLUDE_DIR}
+)
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(neopg PRIVATE
     gpg-error
     assuan
-  gcrypt)
-target_compile_options(neopg PUBLIC -fpermissive)
+  gcrypt
+${Boost_LIBRARIES})
+target_compile_options(neopg PUBLIC
+ -fpermissive
+-std=c++14)
+
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
 #  target_compile_options(foo

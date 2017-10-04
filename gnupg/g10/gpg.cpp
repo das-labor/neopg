@@ -2223,7 +2223,7 @@ get_default_configname (void)
 }
 
 int
-main (int argc, char **argv)
+gpg_main (int argc, char **argv)
 {
     ARGPARSE_ARGS pargs;
     IOBUF a;
