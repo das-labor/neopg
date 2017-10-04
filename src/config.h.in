@@ -34,6 +34,11 @@
 #define PACKAGE_NAME "neopg"
 #define PK_UID_CACHE_SIZE 4096
 #define GPG_USE_EDDSA 1
+/* stringhelp.cpp */
+#define HAVE_PWD_H 1
+#define HAVE_GETPWNAM 1
+#define HAVE_GETPWUID 1
+#define HAVE_SETRLIMIT 1
 
 #cmakedefine HAVE_MALLOC_H 1
 

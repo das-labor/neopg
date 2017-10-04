@@ -1008,7 +1008,7 @@ static const char *
 my_strusage( int level )
 {
   static char *digests, *pubkeys, *ciphers, *zips, *ver_gcry;
-  const char *p;
+  const char *p = NULL;
 
     switch( level ) {
       case 11: p = "@GPG@ (@GNUPG@)";
