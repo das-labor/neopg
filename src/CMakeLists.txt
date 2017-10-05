@@ -6,8 +6,7 @@ find_package(GTest REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
-
-
+pkg_check_modules(BOTAN2 REQUIRED botan-2)
 
 include(CheckIncludeFiles)
 check_include_files(malloc.h HAVE_MALLOC_H)
@@ -527,6 +526,7 @@ target_include_directories(neopg PRIVATE
   ${CMAKE_BINARY_DIR}/.
   ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}
+  ${BOTAN2_INCLUDE_DIRS}
 )
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
@@ -537,11 +537,13 @@ target_link_libraries(neopg PRIVATE
   npth
 ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
+${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 )
 target_compile_options(neopg PUBLIC
  -fpermissive
 -std=c++14
-${SQLITE3_CFLAGS_OTHER})
+${SQLITE3_CFLAGS_OTHER}
+${BOTAN2_CFLAGS_OTHER})
 
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
