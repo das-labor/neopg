@@ -4,6 +4,10 @@ project(NeoPG VERSION 0.0 LANGUAGES C CXX)
 enable_testing()
 find_package(GTest REQUIRED)
 
+find_package(PkgConfig)
+pkg_check_modules(SQLITE3 REQUIRED sqlite3)
+
+
 
 include(CheckIncludeFiles)
 check_include_files(malloc.h HAVE_MALLOC_H)
@@ -488,6 +492,9 @@ add_executable(neopg
   ../gnupg/g10/migrate.cpp
   ../gnupg/g10/delkey.cpp
   ../gnupg/g10/dearmor.cpp
+  ../gnupg/g10/tofu.cpp
+  ../gnupg/g10/card-util.cpp
+  ../gnupg/g10/gpgsql.cpp
   ../gnupg/g10/gpg.cpp
 
   ../gnupg/agent/command.cpp
@@ -519,6 +526,7 @@ target_include_directories(neopg PRIVATE
   ../npth/src
   ${CMAKE_BINARY_DIR}/.
   ${Boost_INCLUDE_DIR}
+  ${SQLITE3_INCLUDE_DIRS}
 )
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
@@ -527,10 +535,13 @@ target_link_libraries(neopg PRIVATE
     assuan
   gcrypt
   npth
-${Boost_LIBRARIES})
+${Boost_LIBRARIES}
+${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
+)
 target_compile_options(neopg PUBLIC
  -fpermissive
--std=c++14)
+-std=c++14
+${SQLITE3_CFLAGS_OTHER})
 
 
 #if(CMAKE_COMPILER_IS_GNUCXX)

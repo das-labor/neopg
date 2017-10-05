@@ -905,20 +905,6 @@ if test x"$use_tofu" = xyes ; then
 fi
 
 
-# Checks for g13
-
-AC_PATH_PROG(ENCFS, encfs, /usr/bin/encfs)
-AC_DEFINE_UNQUOTED(ENCFS,
-	"${ENCFS}", [defines the filename of the encfs program])
-
-AC_PATH_PROG(FUSERMOUNT, fusermount, /usr/bin/fusermount)
-AC_DEFINE_UNQUOTED(FUSERMOUNT,
-	"${FUSERMOUNT}", [defines the filename of the fusermount program])
-
-
-# Checks for dirmngr
-
-
 #
 # Checks for symcryptrun:
 #

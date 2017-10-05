@@ -5240,7 +5240,7 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
   PACKET *pkt;
   PKT_public_key *pk;
   char keyid[10];
-  unsigned char *public;
+  unsigned char *public_x;
   gcry_sexp_t s_key;
 
   snprintf (keyid, DIM(keyid), "OPENPGP.%d", keyno);
@@ -5280,12 +5280,12 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
   /* Send the READKEY command so that the agent creates a shadow key for
      card key.  We need to do that now so that we are able to create
      the self-signatures. */
-  err = agent_readkey (NULL, 1, keyid, &public);
+  err = agent_readkey (NULL, 1, keyid, &public_x);
   if (err)
     return err;
-  err = gcry_sexp_sscan (&s_key, NULL, public,
-                         gcry_sexp_canon_len (public, 0, NULL, NULL));
-  xfree (public);
+  err = gcry_sexp_sscan (&s_key, NULL, public_x,
+                         gcry_sexp_canon_len (public_x, 0, NULL, NULL));
+  xfree (public_x);
   if (err)
     return err;
 

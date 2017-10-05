@@ -1,3 +1,6 @@
+#define PACKAGE "neopg"
+#define PACKAGE_GT PACKAGE
+
 #define VERSION "0.0"
 #define GPG_NAME "neopg"
 #define GNUPG_NAME "neopg"
@@ -175,3 +178,554 @@
 
 /* USE_CAPABILITIES */
 #define HAVE_MLOCK 1
+
+
+
+
+
+
+
+
+
+
+
+
+/* libgpg-error */
+
+#define ENABLE_NLS 1
+#define GPGRT_USE_VISIBILITY 1
+#define HAVE_DCGETTEXT 1
+#define HAVE_DECL_STRERROR_R 1
+#define HAVE_DLFCN_H 1
+#define HAVE_FLOCKFILE 1
+#define HAVE_GCC_ATTRIBUTE_ALIGNED 1
+#define HAVE_GETTEXT 1
+#define HAVE_INTMAX_T 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_LANGINFO_THOUSANDS_SEP 1
+#define HAVE_LOCALE_H 1
+#define HAVE_LONG_DOUBLE 1
+/* #undef HAVE_CFLOCALECOPYCURRENT */
+/* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
+/* #undef HAVE_ICONV */
+#define HAVE_LONG_LONG_INT 1
+#define HAVE_MEMORY_H 1
+#define HAVE_MEMRCHR 1
+#define HAVE_PTHREAD_MUTEX_RECURSIVE 1
+#define HAVE_PTHREAD_RWLOCK 1
+#define HAVE_PTRDIFF_T 1
+#define HAVE_STDINT_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STRERROR_R 1
+#define HAVE_STRINGS_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_SELECT_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_UINTMAX_T 1
+#define HAVE_UNISTD_H 1
+#define HAVE_UNSIGNED_LONG_LONG_INT 1
+#define HAVE_VASPRINTF 1
+#define REPLACEMENT_FOR_OFF_T "long"
+/* #undef HAVE_W32_SYSTEM */
+/* #undef HAVE_W64_SYSTEM */
+/* #undef PTHREAD_IN_USE_DETECTION_HARD */
+#define SIZEOF_INT 4
+#define SIZEOF_LONG 8
+#define SIZEOF_LONG_LONG 8
+#define SIZEOF_PTHREAD_MUTEX_T 40
+#define SIZEOF_TIME_T 8
+#define SIZEOF_UNSIGNED_LONG 8
+#define SIZEOF_VOID_P 8
+#define STDC_HEADERS 1
+#define STRERROR_R_CHAR_P 1
+#define TIME_WITH_SYS_TIME 1
+#define USE_POSIX_THREADS 1
+#define USE_POSIX_THREADS_WEAK 1
+/* #undef USE_PTH_THREADS */
+/* #undef USE_PTH_THREADS_WEAK */
+/* #undef USE_SOLARIS_THREADS */
+/* #undef USE_SOLARIS_THREADS_WEAK */
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# define _ALL_SOURCE 1
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# define _POSIX_PTHREAD_SEMANTICS 1
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# define _TANDEM_SOURCE 1
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# define __EXTENSIONS__ 1
+#endif
+
+/* #undef USE_WINDOWS_THREADS */
+/* #undef _DARWIN_C_SOURCE */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+/* #undef _FILE_OFFSET_BITS */
+/* #undef _LARGE_FILES */
+/* #undef _MINIX */
+/* #undef _POSIX_1_SOURCE */
+/* #undef _POSIX_SOURCE */
+/* #undef const */
+/* #undef intmax_t */
+/* #undef uintmax_t */
+#if defined(HAVE_W32_SYSTEM) && !defined(ENABLE_NLS)
+#define ENABLE_NLS 1
+#endif
+#define _ESTREAM_PRINTF_REALLOC _gpgrt_realloc
+#define _ESTREAM_PRINTF_EXTRA_INCLUDE "gpgrt-int.h"
+#define GPG_ERR_ENABLE_GETTEXT_MACROS 1
+#define GPG_ERR_ENABLE_ERRNO_MACROS 1
+#define GPGRT_ENABLE_ES_MACROS 1
+
+/* libassuan */
+
+#define GPG_ERR_ENABLE_ERRNO_MACROS 1
+#define GPGRT_ENABLE_ES_MACROS 1
+#define HAVE_DECL_SYS_SIGLIST 1
+#define HAVE_DLFCN_H 1
+/* #undef HAVE_DOSISH_SYSTEM */
+#define HAVE_FCNTL_H 1
+#define HAVE_FLOCKFILE 1
+#define HAVE_FOPENCOOKIE 1
+#define HAVE_FUNLOCKFILE 1
+/* #undef HAVE_FUNOPEN */
+#define HAVE_GETADDRINFO 1
+/* #undef HAVE_GETPEEREID */
+/* #undef HAVE_GETPEERUCRED */
+#define HAVE_GETRLIMIT 1
+#define HAVE_INET_PTON 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_ISASCII 1
+#define HAVE_LOCALE_H 1
+/* #undef HAVE_LOCAL_PEEREID */
+#define HAVE_MEMORY_H 1
+#define HAVE_MEMRCHR 1
+#define HAVE_NANOSLEEP 1
+#define HAVE_PUTC_UNLOCKED 1
+#define HAVE_SETENV 1
+#define HAVE_SO_PEERCRED 1
+#define HAVE_STAT 1
+#define HAVE_STDINT_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STPCPY 1
+#define HAVE_STRINGS_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_SELECT_H 1
+#define HAVE_SYS_SOCKET_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_SYS_UIO_H 1
+/* #undef HAVE_UCRED_H */
+#define HAVE_UINTPTR_T 1
+#define HAVE_UNISTD_H 1
+/* #undef HAVE_W32_SYSTEM */
+/* #undef HAVE_W64_SYSTEM */
+/* #undef HAVE_WINSOCK2_H */
+/* #undef HAVE_WS2TCPIP_H */
+#define RETSIGTYPE void
+#define STDC_HEADERS 1
+#define USE_DESCRIPTOR_PASSING 1
+/* #undef _DARWIN_C_SOURCE */
+/* #undef _MINIX */
+/* #undef _POSIX_1_SOURCE */
+/* #undef _POSIX_SOURCE */
+/* #undef _XOPEN_SOURCE */
+/* #undef _XOPEN_SOURCE_EXTENDED */
+#define __EXTENSIONS__ 1
+
+/* npth */
+
+#define HAVE_CLOCK_GETTIME 1
+#define HAVE_DLFCN_H 1
+#define HAVE_GETTIMEOFDAY 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_MEMORY_H 1
+#define HAVE_PSELECT 1
+#define HAVE_PTHREAD 1
+#define HAVE_PTHREAD_ATFORK 1
+#define HAVE_PTHREAD_GETNAME_NP 1
+#define HAVE_PTHREAD_MUTEX_TIMEDLOCK 1
+#define HAVE_PTHREAD_RWLOCK_RDLOCK 1
+#define HAVE_PTHREAD_RWLOCK_TIMEDRDLOCK 1
+#define HAVE_PTHREAD_RWLOCK_TIMEDWRLOCK 1
+#define HAVE_PTHREAD_RWLOCK_TRYRDLOCK 1
+#define HAVE_PTHREAD_RWLOCK_TRYWRLOCK 1
+#define HAVE_PTHREAD_RWLOCK_WRLOCK 1
+#define HAVE_PTHREAD_SETNAME_NP 1
+#define HAVE_PTHREAD_TRYJOIN_NP 1
+#define HAVE_SELECT 1
+#define HAVE_SIGNAL_H 1
+#define HAVE_STDINT_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STRINGS_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_SELECT_H 1
+#define HAVE_SYS_SOCKET_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_TIME_H 1
+#define HAVE_UNISTD_H 1
+/* #undef HAVE_W32_SYSTEM */
+/* #undef HAVE_W64_SYSTEM */
+/* #undef HAVE_WINSOCK2_H */
+/* #undef HAVE_WS2TCPIP_H */
+#define STDC_HEADERS 1
+/* #undef _MINIX */
+/* #undef _POSIX_1_SOURCE */
+/* #undef _POSIX_SOURCE */
+#ifndef _REENTRANT
+# define _REENTRANT 1
+#endif
+
+
+/* gnupg */
+
+/* #undef BIG_ENDIAN_HOST */
+/* #undef BIND_8_COMPAT */
+/* #undef DEFAULT_TRUST_STORE_FILE */
+#define DIRMNGR_DEFAULT_KEYSERVER "hkps://hkps.pool.sks-keyservers.net"
+#define DIRMNGR_DISP_NAME "DirMngr"
+#define DIRMNGR_INFO_NAME "DIRMNGR_INFO"
+#define DIRMNGR_NAME "dirmngr"
+#define DIRMNGR_SOCK_NAME "S.dirmngr"
+/* define to disable photo viewing */
+/* #undef DISABLE_PHOTO_VIEWER */
+/* Define to disable regular expression support */
+/* #undef DISABLE_REGEX */
+/* Define to include smartcard support */
+#define ENABLE_CARD_SUPPORT 1
+/* Define to 1 if translation of program messages to the user's native
+   language is requested. */
+#define ENABLE_NLS 1
+/* Define to enable SELinux support */
+/* #undef ENABLE_SELINUX_HACKS */
+/* The executable file extension, if any */
+#define EXEEXT ""
+/* if set, restrict photo-viewer to this */
+/* #undef FIXED_PHOTO_VIEWER */
+#define GNUPG_NAME "GnuPG"
+/* #undef GNUPG_REGISTRY_DIR */
+#define GPGCONF_DISP_NAME "GPGConf"
+#define GPGCONF_NAME "gpgconf"
+#define GPGEXT_GPG "gpg"
+#define GPGSM_DISP_NAME "GPGSM"
+#define GPGSM_NAME "gpgsm"
+#define GPGTAR_NAME "gpgtar"
+#define GPG_AGENT_BROWSER_SOCK_NAME "S.gpg-agent.browser"
+#define GPG_AGENT_DISP_NAME "GPG Agent"
+#define GPG_AGENT_EXTRA_SOCK_NAME "S.gpg-agent.extra"
+#define GPG_AGENT_NAME "gpg-agent"
+#define GPG_AGENT_SOCK_NAME "S.gpg-agent"
+#define GPG_AGENT_SSH_SOCK_NAME "S.gpg-agent.ssh"
+#define GPG_DISP_NAME "GnuPG"
+#define GPG_NAME "gpg"
+#define GPG_USE_AES128 1
+#define GPG_USE_AES192 1
+#define GPG_USE_AES256 1
+#define GPG_USE_BLOWFISH 1
+#define GPG_USE_CAMELLIA128 1
+#define GPG_USE_CAMELLIA192 1
+#define GPG_USE_CAMELLIA256 1
+#define GPG_USE_CAST5 1
+#define GPG_USE_ECDH 1
+#define GPG_USE_EDDSA 1
+#define GPG_USE_IDEA 1
+#define GPG_USE_MD5 1
+#define GPG_USE_RMD160 1
+#define GPG_USE_RSA 1
+#define GPG_USE_SHA224 1
+#define GPG_USE_SHA384 1
+#define GPG_USE_SHA512 1
+#define GPG_USE_TWOFISH 1
+/* #undef HAVE_ANDROID_SYSTEM */
+#define HAVE_ATEXIT 1
+/* #undef HAVE_BROKEN_TTYNAME */
+/* #undef HAVE_BYTE_TYPEDEF */
+/* #undef HAVE_BZIP2 */
+#define HAVE_CANONICALIZE_FILE_NAME 1
+#define HAVE_CLOCK_GETTIME 1
+#define HAVE_CTERMID 1
+#define HAVE_DCGETTEXT 1
+#define HAVE_DECL_GETPAGESIZE 1
+#define HAVE_DECL_SYS_SIGLIST 1
+/* #undef HAVE_DIRECT_H */
+/* #undef HAVE_DOPRNT */
+/* #undef HAVE_DOSISH_SYSTEM */
+/* #undef HAVE_DRIVE_LETTERS */
+#define HAVE_FCNTL 1
+#define HAVE_FLOCKFILE 1
+#define HAVE_FORK 1
+#define HAVE_FSEEKO 1
+#define HAVE_FSYNC 1
+#define HAVE_FTELLO 1
+#define HAVE_FTRUNCATE 1
+#define HAVE_FUNLOCKFILE 1
+#define HAVE_GETADDRINFO 1
+#define HAVE_GETENV 1
+#define HAVE_GETOPT_H 1
+#define HAVE_GETPAGESIZE 1
+/* #undef HAVE_GETPEERUCRED */
+#define HAVE_GETPWNAM 1
+#define HAVE_GETPWUID 1
+#define HAVE_GETRLIMIT 1
+#define HAVE_GETRUSAGE 1
+#define HAVE_GETTEXT 1
+#define HAVE_GETTIMEOFDAY 1
+#define HAVE_GMTIME_R 1
+#define HAVE_ICONV 1
+#define HAVE_INET_NTOP 1
+#define HAVE_INET_PTON 1
+#define HAVE_INOTIFY_INIT 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_ISASCII 1
+#define HAVE_LANGINFO_CODESET 1
+#define HAVE_LANGINFO_H 1
+/* #undef HAVE_LBER */
+#define HAVE_LC_MESSAGES 1
+/* #undef HAVE_LDAP_GET_OPTION */
+/* #undef HAVE_LDAP_LD_ERRNO */
+/* #undef HAVE_LDAP_SET_OPTION */
+/* #undef HAVE_LDAP_START_TLS_S */
+/* #undef HAVE_LDAP_START_TLS_SA */
+/* #undef HAVE_LIBREADLINE */
+/* #undef HAVE_LIBUSB */
+#define HAVE_LIBUTIL 1
+/* #undef HAVE_LIBUTIL_H */
+#define HAVE_LOCALE_H 1
+#define HAVE_LSTAT 1
+/* #undef HAVE_MEMICMP */
+#define HAVE_MEMMOVE 1
+#define HAVE_MEMORY_H 1
+#define HAVE_MEMRCHR 1
+#define HAVE_MMAP 1
+#define HAVE_NANOSLEEP 1
+#define HAVE_NL_LANGINFO 1
+#define HAVE_NPTH 1
+#define HAVE_PIPE 1
+#define HAVE_PTY_H 1
+#define HAVE_PWD_H 1
+#define HAVE_RAISE 1
+#define HAVE_RAND 1
+#define HAVE_SETENV 1
+#define HAVE_SETLOCALE 1
+#define HAVE_SETRLIMIT 1
+#define HAVE_SIGACTION 1
+#define HAVE_SIGNAL_H 1
+#define HAVE_SIGPROCMASK 1
+#define HAVE_SIGSET_T 1
+#define HAVE_STAT 1
+#define HAVE_STDINT_H 1
+#define HAVE_STDLIB_H 1
+#define HAVE_STPCPY 1
+#define HAVE_STRCASECMP 1
+#define HAVE_STRCHR 1
+#define HAVE_STRERROR 1
+#define HAVE_STRFTIME 1
+/* #undef HAVE_STRICMP */
+#define HAVE_STRINGS_H 1
+#define HAVE_STRING_H 1
+/* #undef HAVE_STRLWR */
+#define HAVE_STRNCASECMP 1
+#define HAVE_STRPBRK 1
+#define HAVE_STRSEP 1
+#define HAVE_STRTOL 1
+#define HAVE_STRTOUL 1
+#define HAVE_STRTOULL 1
+#define HAVE_STRUCT_SIGACTION 1
+/* #undef HAVE_STRUCT_SOCKPEERCRED_PID */
+/* #undef HAVE_STRUCT_UCRED_CR_PID */
+#define HAVE_STRUCT_UCRED_PID 1
+#define HAVE_SYSTEM_RESOLVER 1
+/* #undef HAVE_SYS_MKDEV_H */
+#define HAVE_SYS_SELECT_H 1
+#define HAVE_SYS_SOCKET_H 1
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_SYSMACROS_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_TCGETATTR 1
+#define HAVE_TERMIOS_H 1
+#define HAVE_TERMIO_H 1
+#define HAVE_TIMEGM 1
+#define HAVE_TIMES 1
+#define HAVE_TTYNAME 1
+/* #undef HAVE_U16_TYPEDEF */
+/* #undef HAVE_U32_TYPEDEF */
+/* #undef HAVE_UCRED_H */
+#define HAVE_ULONG_TYPEDEF 1
+#define HAVE_UNISTD_H 1
+#define HAVE_UNSETENV 1
+/* #undef HAVE_UNSIGNED_TIME_T */
+#define HAVE_USHORT_TYPEDEF 1
+/* #undef HAVE_UTIL_H */
+#define HAVE_UTMP_H 1
+#define HAVE_VFORK 1
+/* #undef HAVE_VFORK_H */
+#define HAVE_VPRINTF 1
+/* Defined if we run on a W32 API based system */
+/* #undef HAVE_W32_SYSTEM */
+#define HAVE_WAIT4 1
+#define HAVE_WAITPID 1
+/* #undef HAVE_WINSOCK2_H */
+#define HAVE_WORKING_FORK 1
+#define HAVE_WORKING_VFORK 1
+/* #undef HAVE_WS2TCPIP_H */
+/* #undef HAVE_ZIP */
+/* #undef HTTP_USE_GNUTLS */
+/* #undef HTTP_USE_NTBTLS */
+#define ICONV_CONST 
+#define IS_DEVELOPMENT_VERSION 1
+#define LITTLE_ENDIAN_HOST 1
+/* #undef MKDIR_TAKES_ONE_ARG */
+/* #undef NEED_LBER_H */
+#define NEED_LIBGCRYPT_VERSION "1.7.0"
+#define NEED_NTBTLS_VERSION "0.1.0"
+/* #undef NO_EXEC */
+/* #undef NO_TRUST_MODELS */
+#define PK_UID_CACHE_SIZE 4096
+#define RETSIGTYPE void
+#define SCDAEMON_DISP_NAME "SCDaemon"
+#define SCDAEMON_NAME "scdaemon"
+#define SCDAEMON_SOCK_NAME "S.scdaemon"
+#define SECMEM_BUFFER_SIZE 32768
+#define SIZEOF_TIME_T 8
+#define SIZEOF_UNSIGNED_INT 4
+#define SIZEOF_UNSIGNED_LONG 8
+#define SIZEOF_UNSIGNED_LONG_LONG 8
+#define SIZEOF_UNSIGNED_SHORT 2
+#define STDC_HEADERS 1
+#define TIME_WITH_SYS_TIME 1
+#define USE_DIRMNGR_AUTO_START 1
+#define USE_GPG2_HACK 1
+/* #undef USE_LDAP */
+/* #undef USE_LDAPWRAPPER */
+#define USE_LIBDNS 1
+#define USE_NPTH 1
+/* #undef USE_ONLY_8DOT3 */
+/* #undef USE_SIMPLE_GETTEXT */
+#define USE_TOFU 1
+/* #undef _DARWIN_C_SOURCE */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+/* #undef _FILE_OFFSET_BITS */
+/* #undef _LARGEFILE_SOURCE */
+/* #undef _LARGE_FILES */
+/* #undef _MINIX */
+/* #undef _POSIX_1_SOURCE */
+/* #undef _POSIX_SOURCE */
+
+/* Now to separate file name parts.
+   Please note that the string version must not contain more
+   than one character because the code assumes strlen()==1 */
+#ifdef HAVE_DOSISH_SYSTEM
+#define DIRSEP_C '\\'
+#define DIRSEP_S "\\"
+#define EXTSEP_C '.'
+#define EXTSEP_S "."
+#define PATHSEP_C ';'
+#define PATHSEP_S ";"
+#define EXEEXT_S ".exe"
+#else
+#define DIRSEP_C '/'
+#define DIRSEP_S "/"
+#define EXTSEP_C '.'
+#define EXTSEP_S "."
+#define PATHSEP_C ':'
+#define PATHSEP_S ":"
+#define EXEEXT_S ""
+#endif
+
+#define SAFE_VERSION VERSION
+#define SAFE_VERSION_DOT  '.'
+#define SAFE_VERSION_DASH '-'
+
+/* Some global constants. */
+#ifdef HAVE_DOSISH_SYSTEM
+# ifdef HAVE_DRIVE_LETTERS
+#  define GNUPG_DEFAULT_HOMEDIR "c:/gnupg"
+# else
+#  define GNUPG_DEFAULT_HOMEDIR "/gnupg"
+# endif
+#elif defined(__VMS)
+#define GNUPG_DEFAULT_HOMEDIR "/SYS$LOGIN/gnupg"
+#else
+#define GNUPG_DEFAULT_HOMEDIR "~/.gnupg"
+#endif
+#define GNUPG_PRIVATE_KEYS_DIR  "private-keys-v1.d"
+#define GNUPG_OPENPGP_REVOC_DIR "openpgp-revocs.d"
+
+/* For some systems (DOS currently), we hardcode the path here.  For
+   POSIX systems the values are constructed by the Makefiles, so that
+   the values may be overridden by the make invocations; this is to
+   comply with the GNU coding standards.  Note that these values are
+   only defaults.  */
+#ifdef HAVE_DOSISH_SYSTEM
+# ifdef HAVE_DRIVE_LETTERS
+#  define GNUPG_BINDIR      "c:\\gnupg"
+#  define GNUPG_LIBEXECDIR  "c:\\gnupg"
+#  define GNUPG_LIBDIR      "c:\\gnupg"
+#  define GNUPG_DATADIR     "c:\\gnupg"
+#  define GNUPG_SYSCONFDIR  "c:\\gnupg"
+# else
+#  define GNUPG_BINDIR      "\\gnupg"
+#  define GNUPG_LIBEXECDIR  "\\gnupg"
+#  define GNUPG_LIBDIR      "\\gnupg"
+#  define GNUPG_DATADIR     "\\gnupg"
+#  define GNUPG_SYSCONFDIR  "\\gnupg"
+# endif
+#endif
+
+/* Derive some other constants. */
+#if !(defined(HAVE_FORK) && defined(HAVE_PIPE) && defined(HAVE_WAITPID))
+#define EXEC_TEMPFILE_ONLY
+#endif
+
+
+/* We didn't define endianness above, so get it from OS macros.  This
+   is intended for making fat binary builds on OS X. */
+#if !defined(BIG_ENDIAN_HOST) && !defined(LITTLE_ENDIAN_HOST)
+#if defined(__BIG_ENDIAN__)
+#define BIG_ENDIAN_HOST 1
+#elif defined(__LITTLE_ENDIAN__)
+#define LITTLE_ENDIAN_HOST 1
+#else
+#error "No endianness found"
+#endif
+#endif
+
+
+/* Hack used for W32: ldap.m4 also tests for the ASCII version of
+   ldap_start_tls_s because that is the actual symbol used in the
+   library.  winldap.h redefines it to our commonly used value,
+   thus we define our usual macro here.  */
+#ifdef HAVE_LDAP_START_TLS_SA
+# ifndef HAVE_LDAP_START_TLS_S
+#  define HAVE_LDAP_START_TLS_S 1
+# endif
+#endif
+
+#define GPGRT_ENABLE_ES_MACROS 1
+#define USE_LIBGPG_ERROR 1
+#define GCRYPT_NO_DEPRECATED 1
+#define HTTP_USE_ESTREAM 1
+#define HTTP_NO_WSASTARTUP
+#define GPG_ERR_ENABLE_GETTEXT_MACROS
+#define GPG_ERR_ENABLE_ERRNO_MACROS
+
+#define USE_RNDLINUX 1

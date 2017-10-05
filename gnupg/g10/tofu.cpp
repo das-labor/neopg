@@ -1647,7 +1647,7 @@ ask_about_binding (ctrl_t ctrl,
          "select fingerprint, policy, time_ago, count(*)\n" \
          " from\n" \
          "  (select bindings.*,\n" \
-         "     "sign" case\n" \
+         "     " sign " case\n" \
          "       when delta ISNULL then 1\n" \
          /* From the future (but if its just a couple of hours in the \
           * future don't turn it into a warning)?  Or should we use \
