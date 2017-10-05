@@ -33,7 +33,6 @@
 #include <readline/readline.h>
 #endif
 
-#define INCLUDED_BY_MAIN_MODULE 1
 #include "gpg.h"
 #include "../common/util.h"
 #include "packet.h"

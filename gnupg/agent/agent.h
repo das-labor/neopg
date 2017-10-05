@@ -55,7 +55,7 @@
 
 
 /* A large struct name "opt" to keep global flags */
-struct
+struct options
 {
   unsigned int debug;  /* Debug flags (DBG_foo_VALUE) */
   int verbose;         /* Verbosity level */
@@ -171,8 +171,9 @@ struct
   /* The digest algorithm to use for ssh fingerprints when
    * communicating with the user.  */
   int ssh_fingerprint_digest;
-} opt;
-
+};
+extern struct options agent_opt;
+#define opt agent_opt
 
 /* Bit values for the --debug option.  */
 #define DBG_MPI_VALUE	  2	/* debug mpi details */

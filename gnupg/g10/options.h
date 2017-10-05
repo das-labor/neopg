@@ -30,15 +30,6 @@
 #include "../common/session-env.h"
 #include "../common/compliance.h"
 
-#ifndef EXTERN_UNLESS_MAIN_MODULE
-/* Norcraft can't cope with common symbols */
-#if defined (__riscos__) && !defined (INCLUDED_BY_MAIN_MODULE)
-#define EXTERN_UNLESS_MAIN_MODULE extern
-#else
-#define EXTERN_UNLESS_MAIN_MODULE
-#endif
-#endif
-
 /* Declaration of a keyserver spec type.  The definition is found in
    ../common/keyserver.h.  */
 struct keyserver_spec;
@@ -75,8 +66,7 @@ struct akl
 };
 
 /* Global options for GPG.  */
-EXTERN_UNLESS_MAIN_MODULE
-struct
+struct options
 {
   int verbose;
   int quiet;
@@ -278,13 +268,14 @@ struct
 
   int unwrap_encryption;
   int only_sign_text_ids;
-} opt;
+};
+extern struct options gpg2_opt;
+#define opt gpg2_opt
 
 /* CTRL is used to keep some global variables we currently can't
    avoid.  Future concurrent versions of gpg will put it into a per
    request structure CTRL. */
-EXTERN_UNLESS_MAIN_MODULE
-struct {
+struct glo_ctrl {
   int in_auto_key_retrieve; /* True if we are doing an
                                auto_key_retrieve. */
   /* Hack to store the last error.  We currently need it because the
@@ -292,7 +283,8 @@ struct {
      codes.  Thus for the --server purposes we store some of the error
      codes here.  FIXME! */
   gpg_error_t lasterr;
-} glo_ctrl;
+};
+extern struct glo_ctrl glo_ctrl;
 
 #define DBG_PACKET_VALUE  1	/* debug packet reading/writing */
 #define DBG_MPI_VALUE	  2	/* debug mpi details */

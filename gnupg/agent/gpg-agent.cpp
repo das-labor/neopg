@@ -60,6 +60,7 @@
 #include "../common/asshelp.h"
 #include "../common/init.h"
 
+struct options opt;
 
 enum cmd_and_opt_values
 { aNull = 0,

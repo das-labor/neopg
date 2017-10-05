@@ -37,7 +37,6 @@
 # include <windows.h>
 #endif
 
-#define INCLUDED_BY_MAIN_MODULE 1
 #include "gpg.h"
 #include <assuan.h>
 #include "../common/iobuf.h"
@@ -77,6 +76,9 @@
 #ifdef __MINGW32__
 int _dowildcard = -1;
 #endif
+
+struct options opt;
+struct glo_ctrl glo_ctrl;
 
 int memory_debug_mode;
 int memory_stat_debug_mode;
