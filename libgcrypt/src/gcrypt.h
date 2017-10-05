@@ -75,10 +75,6 @@ extern "C" {
                              + __GNUC_MINOR__ * 100 \
                              + __GNUC_PATCHLEVEL__)
 
-#if _GCRY_GCC_VERSION >= 30100
-#define _GCRY_GCC_ATTR_DEPRECATED __attribute__ ((__deprecated__))
-#endif
-
 #if _GCRY_GCC_VERSION >= 29600
 #define _GCRY_GCC_ATTR_PURE  __attribute__ ((__pure__))
 #endif
@@ -95,9 +91,6 @@ extern "C" {
 
 #endif /*__GNUC__*/
 
-#ifndef _GCRY_GCC_ATTR_DEPRECATED
-#define _GCRY_GCC_ATTR_DEPRECATED
-#endif
 #ifndef _GCRY_GCC_ATTR_PURE
 #define _GCRY_GCC_ATTR_PURE
 #endif
@@ -218,10 +211,6 @@ typedef struct gcry_mpi *gcry_mpi_t;
 struct gcry_mpi_point;
 typedef struct gcry_mpi_point *gcry_mpi_point_t;
 
-#ifndef GCRYPT_NO_DEPRECATED
-typedef struct gcry_mpi *GCRY_MPI _GCRY_GCC_ATTR_DEPRECATED;
-typedef struct gcry_mpi *GcryMPI _GCRY_GCC_ATTR_DEPRECATED;
-#endif
 
 /* A structure used for scatter gather hashing.  */
 typedef struct
@@ -326,11 +315,6 @@ gcry_error_t gcry_control (enum gcry_ctl_cmds CMD, ...);
    functions.  */
 struct gcry_sexp;
 typedef struct gcry_sexp *gcry_sexp_t;
-
-#ifndef GCRYPT_NO_DEPRECATED
-typedef struct gcry_sexp *GCRY_SEXP _GCRY_GCC_ATTR_DEPRECATED;
-typedef struct gcry_sexp *GcrySexp _GCRY_GCC_ATTR_DEPRECATED;
-#endif
 
 /* The possible values for the S-expression format. */
 enum gcry_sexp_format
@@ -879,11 +863,6 @@ gcry_mpi_t _gcry_mpi_get_const (int no);
 struct gcry_cipher_handle;
 typedef struct gcry_cipher_handle *gcry_cipher_hd_t;
 
-#ifndef GCRYPT_NO_DEPRECATED
-typedef struct gcry_cipher_handle *GCRY_CIPHER_HD _GCRY_GCC_ATTR_DEPRECATED;
-typedef struct gcry_cipher_handle *GcryCipherHd _GCRY_GCC_ATTR_DEPRECATED;
-#endif
-
 /* All symmetric encryption algorithms are identified by their IDs.
    More IDs may be registered at runtime. */
 enum gcry_cipher_algos
@@ -1245,11 +1224,6 @@ typedef struct gcry_md_handle
   unsigned char buf[1];
 } *gcry_md_hd_t;
 
-/* Compatibility types, do not use them.  */
-#ifndef GCRYPT_NO_DEPRECATED
-typedef struct gcry_md_handle *GCRY_MD_HD _GCRY_GCC_ATTR_DEPRECATED;
-typedef struct gcry_md_handle *GcryMDHd _GCRY_GCC_ATTR_DEPRECATED;
-#endif
 
 /* Create a message digest object for algorithm ALGO.  FLAGS may be
    given as an bitwise OR of the gcry_md_flags values.  ALGO may be

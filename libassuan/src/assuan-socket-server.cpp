@@ -17,19 +17,13 @@
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include <unistd.h>
+#include <sys/types.h>
 #ifdef HAVE_UCRED_H
 #include <ucred.h>
 #endif

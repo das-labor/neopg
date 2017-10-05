@@ -95,10 +95,10 @@ spec_from_name (const char *name)
 
   for (idx=0; (spec = pubkey_list[idx]); idx++)
     {
-      if (!stricmp (name, spec->name))
+      if (!strcasecmp (name, spec->name))
         return spec;
       for (aliases = spec->aliases; *aliases; aliases++)
-        if (!stricmp (name, *aliases))
+        if (!strcasecmp (name, *aliases))
           return spec;
     }
 

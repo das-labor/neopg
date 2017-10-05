@@ -157,18 +157,6 @@ main (int argc, char **argv)
   (void)argc;
   (void)argv;
 
-  /* If we do not have timegm, we use mktime.  However, we need to use
-     UTC in this case so that the 20380118T235959 test does not fail
-     for other timezones.  */
-#ifndef HAVE_TIMEGM
-# ifdef HAVE_SETENV
-  setenv ("TZ", "UTC", 1);
-#else
-  putenv (xstrdup ("TZ=UTC"));
-#endif
-  tzset ();
-#endif
-
   test_timegm ();
 
   return 0;

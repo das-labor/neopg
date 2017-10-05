@@ -43,10 +43,6 @@
   - With HTTP_USE_NTBTLS or HTTP_USE_GNUTLS support for https is
     provided (this also requires estream).
 
-  - With HTTP_NO_WSASTARTUP the socket initialization is not done
-    under Windows.  This is useful if the socket layer has already
-    been initialized elsewhere.  This also avoids the installation of
-    an exit handler to cleanup the socket layer.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -320,54 +316,6 @@ static strlist_t tls_ca_certlist;
 
 /* The global callback for net activity.  */
 static void (*netactivity_cb)(void);
-
-
-
-#if defined(HAVE_W32_SYSTEM) && !defined(HTTP_NO_WSASTARTUP)
-
-#if GNUPG_MAJOR_VERSION == 1
-#define REQ_WINSOCK_MAJOR  1
-#define REQ_WINSOCK_MINOR  1
-#else
-#define REQ_WINSOCK_MAJOR  2
-#define REQ_WINSOCK_MINOR  2
-#endif
-
-
-static void
-deinit_sockets (void)
-{
-  WSACleanup();
-}
-
-static void
-init_sockets (void)
-{
-  static int initialized;
-  static WSADATA wsdata;
-
-  if (initialized)
-    return;
-
-  if ( WSAStartup( MAKEWORD (REQ_WINSOCK_MINOR, REQ_WINSOCK_MAJOR), &wsdata ) )
-    {
-      log_error ("error initializing socket library: ec=%d\n",
-                 (int)WSAGetLastError () );
-      return;
-    }
-  if ( LOBYTE(wsdata.wVersion) != REQ_WINSOCK_MAJOR
-       || HIBYTE(wsdata.wVersion) != REQ_WINSOCK_MINOR )
-    {
-      log_error ("socket library version is %x.%x - but %d.%d needed\n",
-                 LOBYTE(wsdata.wVersion), HIBYTE(wsdata.wVersion),
-                 REQ_WINSOCK_MAJOR, REQ_WINSOCK_MINOR);
-      WSACleanup();
-      return;
-    }
-  atexit ( deinit_sockets );
-  initialized = 1;
-}
-#endif /*HAVE_W32_SYSTEM && !HTTP_NO_WSASTARTUP*/
 
 
 /* Create a new socket object.  Returns NULL and closes FD if not
@@ -2711,10 +2659,6 @@ connect_server (const char *server, unsigned short port,
   struct srventry *serverlist = NULL;
 
   *r_sock = ASSUAN_INVALID_FD;
-
-#if defined(HAVE_W32_SYSTEM) && !defined(HTTP_NO_WSASTARTUP)
-  init_sockets ();
-#endif /*Windows*/
 
   /* Onion addresses require special treatment.  */
   if (is_onion_address (server))

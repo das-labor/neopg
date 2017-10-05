@@ -27,9 +27,6 @@
 /* Include the main header here so that public symbols are mapped to
    the internal underscored ones.  */
 #ifdef _GCRY_INCLUDED_BY_VISIBILITY_C
-  /* We need to redeclare the deprecated functions without the
-     deprecated attribute.  */
-# define GCRYPT_NO_DEPRECATED
 # include "gcrypt-int.h"
   /* None in this version.  */
 #else

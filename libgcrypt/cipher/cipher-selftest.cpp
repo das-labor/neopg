@@ -28,13 +28,7 @@
 #include "bufhelp.h"
 #include "cipher-selftest.h"
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h> /* uintptr_t */
-#elif defined(HAVE_INTTYPES_H)
-# include <inttypes.h>
-#else
-/* In this case, uintptr_t is provided by config.h. */
-#endif
+#include <inttypes.h>
 
 /* Helper macro to force alignment to 16 bytes.  */
 #ifdef HAVE_GCC_ATTRIBUTE_ALIGNED

@@ -171,7 +171,7 @@ spec_from_name (const char *name)
 
   for (idx=0; (spec = digest_list[idx]); idx++)
     {
-      if (!stricmp (name, spec->name))
+      if (!strcasecmp (name, spec->name))
         return spec;
     }
 
@@ -193,7 +193,7 @@ spec_from_oid (const char *oid)
       if (oid_specs)
         {
           for (j = 0; oid_specs[j].oidstring; j++)
-            if (!stricmp (oid, oid_specs[j].oidstring))
+            if (!strcasecmp (oid, oid_specs[j].oidstring))
               return spec;
         }
     }
@@ -218,7 +218,7 @@ search_oid (const char *oid, gcry_md_oid_spec_t *oid_spec)
   if (spec && spec->oids)
     {
       for (i = 0; spec->oids[i].oidstring; i++)
-	if (!stricmp (oid, spec->oids[i].oidstring))
+	if (!strcasecmp (oid, spec->oids[i].oidstring))
 	  {
 	    if (oid_spec)
 	      *oid_spec = spec->oids[i];

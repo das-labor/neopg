@@ -127,12 +127,12 @@ spec_from_name (const char *name)
 
   for (idx=0; (spec = cipher_list[idx]); idx++)
     {
-      if (!stricmp (name, spec->name))
+      if (!strcasecmp (name, spec->name))
         return spec;
       if (spec->aliases)
         {
           for (aliases = spec->aliases; *aliases; aliases++)
-            if (!stricmp (name, *aliases))
+            if (!strcasecmp (name, *aliases))
               return spec;
         }
     }
@@ -155,7 +155,7 @@ spec_from_oid (const char *oid)
       if (oid_specs)
         {
           for (j = 0; oid_specs[j].oid; j++)
-            if (!stricmp (oid, oid_specs[j].oid))
+            if (!strcasecmp (oid, oid_specs[j].oid))
               return spec;
         }
     }
@@ -185,7 +185,7 @@ search_oid (const char *oid, gcry_cipher_oid_spec_t *oid_spec)
   if (spec && spec->oids)
     {
       for (i = 0; spec->oids[i].oid; i++)
-	if (!stricmp (oid, spec->oids[i].oid))
+	if (!strcasecmp (oid, spec->oids[i].oid))
 	  {
 	    if (oid_spec)
 	      *oid_spec = spec->oids[i];

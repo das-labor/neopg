@@ -17,17 +17,13 @@
    License along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include <sys/types.h>
 #ifndef HAVE_W32_SYSTEM
 # include <sys/socket.h>
 # include <sys/un.h>
@@ -40,12 +36,8 @@
 #if HAVE_SYS_UIO_H
 #include <sys/uio.h>
 #endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_FCNTL_H
+#include <unistd.h>
 #include <fcntl.h>
-#endif
 #include <string.h>
 #include <assert.h>
 

@@ -62,9 +62,7 @@ sem_wait (sem_t *sem)
 #else
 # include <semaphore.h>
 #endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <unistd.h>
 #ifndef HAVE_PSELECT
 # include <signal.h>
 #endif

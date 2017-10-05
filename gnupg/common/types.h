@@ -31,9 +31,7 @@
 #ifndef GNUPG_COMMON_TYPES_H
 #define GNUPG_COMMON_TYPES_H
 
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <inttypes.h>
 
 /* The AC_CHECK_SIZEOF() in configure fails for some machines.
  * we provide some fallback values here */

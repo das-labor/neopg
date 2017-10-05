@@ -158,7 +158,7 @@ spec_from_name (const char *name)
   int idx;
 
   for (idx = 0; (spec = mac_list[idx]); idx++)
-    if (!stricmp (name, spec->name))
+    if (!strcasecmp (name, spec->name))
       return spec;
 
   return NULL;

@@ -530,7 +530,6 @@ start_new_dirmngr (assuan_context_t *r_ctx,
   sockname = dirmngr_socket_name ();
   err = assuan_socket_connect (ctx, sockname, 0, 0);
 
-#ifdef USE_DIRMNGR_AUTO_START
   if (err && autostart)
     {
       lock_spawn_t lock;
@@ -612,12 +611,6 @@ start_new_dirmngr (assuan_context_t *r_ctx,
       unlock_spawning (&lock, "dirmngr");
       xfree (abs_homedir);
     }
-#else
-  (void)dirmngr_program;
-  (void)verbose;
-  (void)status_cb;
-  (void)status_cb_arg;
-#endif /*USE_DIRMNGR_AUTO_START*/
 
   if (err)
     {

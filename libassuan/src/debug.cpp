@@ -19,16 +19,12 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
 #ifndef HAVE_DOSISH_SYSTEM

@@ -285,23 +285,6 @@ gpg_err_code_t _gcry_fips186_4_prime_check (const gcry_mpi_t x,
                                             unsigned int bits);
 
 
-/* Macros used to rename missing functions.  */
-#ifndef HAVE_STRTOUL
-#define strtoul(a,b,c)  ((unsigned long)strtol((a),(b),(c)))
-#endif
-#ifndef HAVE_MEMMOVE
-#define memmove(d, s, n) bcopy((s), (d), (n))
-#endif
-#ifndef HAVE_STRICMP
-#define stricmp(a,b)	 strcasecmp( (a), (b) )
-#endif
-#ifndef HAVE_ATEXIT
-#define atexit(a)    (on_exit((a),0))
-#endif
-#ifndef HAVE_RAISE
-#define raise(a) kill(getpid(), (a))
-#endif
-
 
 /* Stack burning.  */
 
