@@ -1,4 +1,18 @@
-# Notes
+# NeoPG implements the OpenPGP standard.
+
+## Dependencies
+
+Aside from a working C++ toolchain you'll need the following libraries.
+
+1. SQLite >= 3.0
+1. Botan >= 2.0
+1. CMake >= 3.2
+1. Google Test (GTest) >= 1.8
+1. Boost >= 1.64.0
+
+## Install
+
+With all dependencies installed NeoPG can be build with CMake.
 
 $ mkdir build
 $ cd build
@@ -6,8 +20,7 @@ $ cmake ../src
 $ make
 $ make test # or ./gpg-error-test
 
-
-# Things accomplished
+## Things accomplished
 
 * libgpg-error
 ** No dynamic code generation (except preprocessor).
