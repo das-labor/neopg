@@ -86,7 +86,7 @@ extern "C" {
 
 /* Only use free slots, never change or reorder the existing
    entries.  */
-typedef enum
+enum
   {
     GPG_ERR_SOURCE_UNKNOWN = 0,
     GPG_ERR_SOURCE_GCRYPT = 1,
@@ -113,14 +113,15 @@ typedef enum
 
     /* This is one more than the largest allowed entry.  */
     GPG_ERR_SOURCE_DIM = 128
-  } gpg_err_source_t;
+  };
+  typedef int gpg_err_source_t;
 
 
 /* The error code type gpg_err_code_t.  */
 
 /* Only use free slots, never change or reorder the existing
    entries.  */
-typedef enum
+enum
   {
     GPG_ERR_NO_ERROR = 0,
     GPG_ERR_GENERAL = 1,
@@ -670,7 +671,8 @@ typedef enum
 
     /* This is one more than the largest allowed entry.  */
     GPG_ERR_CODE_DIM = 65536
-  } gpg_err_code_t;
+  };
+  typedef int gpg_err_code_t;
 
 
 /* The error value type gpg_error_t.  */

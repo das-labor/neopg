@@ -84,7 +84,7 @@ gpgrt_b64dec_start (const char *title)
         return NULL;
     }
 
-  state = calloc (1, sizeof (struct _gpgrt_b64state));
+  state = (gpgrt_b64state_t) calloc (1, sizeof (struct _gpgrt_b64state));
   if (!state)
     {
       free (t);
@@ -109,7 +109,7 @@ gpg_error_t
 gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
 		   size_t *r_nbytes)
 {
-  enum decoder_states ds = state->idx;
+  enum decoder_states ds = (enum decoder_states) state->idx;
   unsigned char val = state->radbuf[0];
   int pos = state->quad_count;
   char *d, *s;
@@ -126,7 +126,7 @@ gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
       return state->lasterr;
     }
 
-  for (s=d=buffer; length && !state->stop_seen; length--, s++)
+  for (s=d=(char *)buffer; length && !state->stop_seen; length--, s++)
     {
     again:
       switch (ds)

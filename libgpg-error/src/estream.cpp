@@ -406,7 +406,7 @@ do_list_add (estream_t stream, int with_locked_list)
     ;
   if (!item)
     {
-      item = mem_alloc (sizeof *item);
+      item = (estream_list_t) mem_alloc (sizeof *item);
       if (item)
         {
           item->next = estream_list;
@@ -595,7 +595,7 @@ func_mem_create (void *_GPGRT__RESTRICT *_GPGRT__RESTRICT cookie,
       memory_limit *= block_size;
     }
 
-  mem_cookie = mem_alloc (sizeof (*mem_cookie));
+  mem_cookie = (estream_cookie_mem_t) mem_alloc (sizeof (*mem_cookie));
   if (!mem_cookie)
     err = -1;
   else
@@ -625,7 +625,7 @@ func_mem_create (void *_GPGRT__RESTRICT *_GPGRT__RESTRICT cookie,
 static gpgrt_ssize_t
 func_mem_read (void *cookie, void *buffer, size_t size)
 {
-  estream_cookie_mem_t mem_cookie = cookie;
+  estream_cookie_mem_t mem_cookie = (estream_cookie_mem_t) cookie;
   gpgrt_ssize_t ret;
 
   if (!size)  /* Just the pending data check.  */
@@ -651,7 +651,7 @@ func_mem_read (void *cookie, void *buffer, size_t size)
 static gpgrt_ssize_t
 func_mem_write (void *cookie, const void *buffer, size_t size)
 {
-  estream_cookie_mem_t mem_cookie = cookie;
+  estream_cookie_mem_t mem_cookie = (estream_cookie_mem_t) cookie;
   gpgrt_ssize_t ret;
   size_t nleft;
 
@@ -710,7 +710,7 @@ func_mem_write (void *cookie, const void *buffer, size_t size)
         }
 
       assert (mem_cookie->func_realloc);
-      newbuf = mem_cookie->func_realloc (mem_cookie->memory, newsize);
+      newbuf = (unsigned char *) mem_cookie->func_realloc (mem_cookie->memory, newsize);
       if (!newbuf)
         return -1;
 
@@ -739,7 +739,7 @@ func_mem_write (void *cookie, const void *buffer, size_t size)
 static int
 func_mem_seek (void *cookie, gpgrt_off_t *offset, int whence)
 {
-  estream_cookie_mem_t mem_cookie = cookie;
+  estream_cookie_mem_t mem_cookie = (estream_cookie_mem_t) cookie;
   gpgrt_off_t pos_new;
 
   switch (whence)
@@ -792,7 +792,7 @@ func_mem_seek (void *cookie, gpgrt_off_t *offset, int whence)
       if (!newbuf)
         return -1;
 
-      mem_cookie->memory = newbuf;
+      mem_cookie->memory = (unsigned char *) newbuf;
       mem_cookie->memory_size = newsize;
     }
 
@@ -817,7 +817,7 @@ func_mem_seek (void *cookie, gpgrt_off_t *offset, int whence)
 static int
 func_mem_ioctl (void *cookie, int cmd, void *ptr, size_t *len)
 {
-  estream_cookie_mem_t mem_cookie = cookie;
+  estream_cookie_mem_t mem_cookie = (estream_cookie_mem_t) cookie;
   int ret;
 
   if (cmd == COOKIE_IOCTL_SNATCH_BUFFER)
@@ -847,7 +847,7 @@ func_mem_ioctl (void *cookie, int cmd, void *ptr, size_t *len)
 static int
 func_mem_destroy (void *cookie)
 {
-  estream_cookie_mem_t mem_cookie = cookie;
+  estream_cookie_mem_t mem_cookie = (estream_cookie_mem_t) cookie;
 
   if (cookie)
     {
@@ -897,7 +897,7 @@ func_fd_create (void **cookie, int fd, unsigned int modeflags, int no_close)
 
   trace (("enter: fd=%d mf=%x nc=%d", fd, modeflags, no_close));
 
-  fd_cookie = mem_alloc (sizeof (*fd_cookie));
+  fd_cookie = (estream_cookie_fd_t) mem_alloc (sizeof (*fd_cookie));
   if (! fd_cookie)
     err = -1;
   else
@@ -926,7 +926,7 @@ static gpgrt_ssize_t
 func_fd_read (void *cookie, void *buffer, size_t size)
 
 {
-  estream_cookie_fd_t file_cookie = cookie;
+  estream_cookie_fd_t file_cookie = (estream_cookie_fd_t) cookie;
   gpgrt_ssize_t bytes_read;
 
   trace (("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
@@ -962,7 +962,7 @@ func_fd_read (void *cookie, void *buffer, size_t size)
 static gpgrt_ssize_t
 func_fd_write (void *cookie, const void *buffer, size_t size)
 {
-  estream_cookie_fd_t file_cookie = cookie;
+  estream_cookie_fd_t file_cookie = (estream_cookie_fd_t) cookie;
   gpgrt_ssize_t bytes_written;
 
   trace (("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
@@ -999,7 +999,7 @@ func_fd_write (void *cookie, const void *buffer, size_t size)
 static int
 func_fd_seek (void *cookie, gpgrt_off_t *offset, int whence)
 {
-  estream_cookie_fd_t file_cookie = cookie;
+  estream_cookie_fd_t file_cookie = (estream_cookie_fd_t) cookie;
   gpgrt_off_t offset_new;
   int err;
 
@@ -1034,7 +1034,7 @@ func_fd_seek (void *cookie, gpgrt_off_t *offset, int whence)
 static int
 func_fd_ioctl (void *cookie, int cmd, void *ptr, size_t *len)
 {
-  estream_cookie_fd_t fd_cookie = cookie;
+  estream_cookie_fd_t fd_cookie = (estream_cookie_fd_t) cookie;
   int ret;
 
   if (cmd == COOKIE_IOCTL_NONBLOCK && !len)
@@ -1077,7 +1077,7 @@ func_fd_ioctl (void *cookie, int cmd, void *ptr, size_t *len)
 static int
 func_fd_destroy (void *cookie)
 {
-  estream_cookie_fd_t fd_cookie = cookie;
+  estream_cookie_fd_t fd_cookie = (estream_cookie_fd_t) cookie;
   int err;
 
   trace (("enter: cookie=%p", cookie));
@@ -1171,7 +1171,7 @@ func_w32_create (void **cookie, HANDLE hd,
 static gpgrt_ssize_t
 func_w32_read (void *cookie, void *buffer, size_t size)
 {
-  estream_cookie_w32_t w32_cookie = cookie;
+  estream_cookie_w32_t w32_cookie = (estream_cookie_w32_t) cookie;
   gpgrt_ssize_t bytes_read;
 
   trace (("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
@@ -1226,7 +1226,7 @@ func_w32_read (void *cookie, void *buffer, size_t size)
 static gpgrt_ssize_t
 func_w32_write (void *cookie, const void *buffer, size_t size)
 {
-  estream_cookie_w32_t w32_cookie = cookie;
+  estream_cookie_w32_t w32_cookie = (estream_cookie_w32_t) cookie;
   gpgrt_ssize_t bytes_written;
 
   trace (("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
@@ -1274,7 +1274,7 @@ func_w32_write (void *cookie, const void *buffer, size_t size)
 static int
 func_w32_seek (void *cookie, gpgrt_off_t *offset, int whence)
 {
-  estream_cookie_w32_t w32_cookie = cookie;
+  estream_cookie_w32_t w32_cookie = (estream_cookie_w32_t) cookie;
   DWORD method;
   LARGE_INTEGER distance, newoff;
 
@@ -1328,7 +1328,7 @@ func_w32_seek (void *cookie, gpgrt_off_t *offset, int whence)
 static int
 func_w32_destroy (void *cookie)
 {
-  estream_cookie_w32_t w32_cookie = cookie;
+  estream_cookie_w32_t w32_cookie = (estream_cookie_w32_t) cookie;
   int err;
 
   trace (("enter: cookie=%p", cookie));
@@ -1402,7 +1402,7 @@ func_fp_create (void **cookie, FILE *fp,
   estream_cookie_fp_t fp_cookie;
   int err;
 
-  fp_cookie = mem_alloc (sizeof *fp_cookie);
+  fp_cookie = (estream_cookie_fp_t) mem_alloc (sizeof *fp_cookie);
   if (!fp_cookie)
     err = -1;
   else
@@ -1431,7 +1431,7 @@ static gpgrt_ssize_t
 func_fp_read (void *cookie, void *buffer, size_t size)
 
 {
-  estream_cookie_fp_t file_cookie = cookie;
+  estream_cookie_fp_t file_cookie = (estream_cookie_fp_t) cookie;
   gpgrt_ssize_t bytes_read;
 
   if (!size)
@@ -1459,7 +1459,7 @@ func_fp_read (void *cookie, void *buffer, size_t size)
 static gpgrt_ssize_t
 func_fp_write (void *cookie, const void *buffer, size_t size)
 {
-  estream_cookie_fp_t file_cookie = cookie;
+  estream_cookie_fp_t file_cookie = (estream_cookie_fp_t) cookie;
   size_t bytes_written;
 
   if (file_cookie->fp)
@@ -1511,7 +1511,7 @@ func_fp_write (void *cookie, const void *buffer, size_t size)
 static int
 func_fp_seek (void *cookie, gpgrt_off_t *offset, int whence)
 {
-  estream_cookie_fp_t file_cookie = cookie;
+  estream_cookie_fp_t file_cookie = (estream_cookie_fp_t) cookie;
   long int offset_new;
 
   if (!file_cookie->fp)
@@ -1551,7 +1551,7 @@ func_fp_seek (void *cookie, gpgrt_off_t *offset, int whence)
 static int
 func_fp_destroy (void *cookie)
 {
-  estream_cookie_fp_t fp_cookie = cookie;
+  estream_cookie_fp_t fp_cookie = (estream_cookie_fp_t) cookie;
   int err;
 
   if (fp_cookie)
@@ -1611,7 +1611,7 @@ func_file_create (void **cookie, int *filedes,
 
   err = 0;
 
-  file_cookie = mem_alloc (sizeof (*file_cookie));
+  file_cookie = (estream_cookie_fd_t) mem_alloc (sizeof (*file_cookie));
   if (! file_cookie)
     {
       err = -1;
@@ -2114,14 +2114,14 @@ create_stream (estream_t *r_stream, void *cookie, es_syshd_t *syshd,
     }
 #endif /*HAVE_W32_SYSTEM*/
 
-  stream_new = mem_alloc (sizeof (*stream_new));
+  stream_new = (estream_t) mem_alloc (sizeof (*stream_new));
   if (! stream_new)
     {
       err = -1;
       goto out;
     }
 
-  stream_internal_new = mem_alloc (sizeof (*stream_internal_new));
+  stream_internal_new = (estream_internal_t) mem_alloc (sizeof (*stream_internal_new));
   if (! stream_internal_new)
     {
       err = -1;
@@ -2243,7 +2243,7 @@ do_onclose (estream_t stream, int mode,
     }
   else
     {
-      item = mem_alloc (sizeof *item);
+      item = (notify_list_t) mem_alloc (sizeof *item);
       if (!item)
         return -1;
       item->fnc = fnc;
@@ -2711,7 +2711,7 @@ es_write_lbf (estream_t _GPGRT__RESTRICT stream,
   unsigned char *nlp;
   int err = 0;
 
-  nlp = memrchr (buffer, '\n', bytes_to_write);
+  nlp = (unsigned char *) memrchr (buffer, '\n', bytes_to_write);
   if (nlp)
     {
       /* Found a newline, directly write up to (including) this
@@ -2896,7 +2896,7 @@ doreadline (estream_t _GPGRT__RESTRICT stream, size_t max_length,
         if (data_len > (space_left - 1))
           data_len = space_left - 1;
 
-        newline = memchr (data, '\n', data_len);
+        newline = (char *) memchr (data, '\n', data_len);
         if (newline)
           {
             data_len = (newline - (char *) data) + 1;
@@ -2940,7 +2940,7 @@ doreadline (estream_t _GPGRT__RESTRICT stream, size_t max_length,
 
   if (! *line)
     {
-      line_new = mem_alloc (line_size + 1);
+      line_new = (char *) mem_alloc (line_size + 1);
       if (! line_new)
 	{
 	  err = -1;
@@ -2983,7 +2983,7 @@ doreadline (estream_t _GPGRT__RESTRICT stream, size_t max_length,
 static int
 print_writer (void *outfncarg, const char *buf, size_t buflen)
 {
-  estream_t stream = outfncarg;
+  estream_t stream = (estream_t) outfncarg;
   size_t nwritten;
   int rc;
 
@@ -3055,7 +3055,7 @@ es_set_buffering (estream_t _GPGRT__RESTRICT stream,
 	    }
 	}
 
-      stream->buffer = buffer_new;
+      stream->buffer = (unsigned char *) buffer_new;
       stream->buffer_size = size;
       if (! buffer)
 	stream->intern->deallocate_buffer = 1;
@@ -4283,7 +4283,7 @@ _gpgrt_getline (char *_GPGRT__RESTRICT *_GPGRT__RESTRICT lineptr,
 	  else
 	    {
 	      if (*lineptr != p)
-		*lineptr = p;
+		*lineptr = (char *__restrict) p;
 	    }
 	}
 
@@ -4353,7 +4353,7 @@ _gpgrt_read_line (estream_t stream,
     {
       /* No buffer given - allocate a new one. */
       length = 256;
-      buffer = mem_alloc (length);
+      buffer = (char *) mem_alloc (length);
       *addr_of_buffer = buffer;
       if (!buffer)
         {
@@ -4394,7 +4394,7 @@ _gpgrt_read_line (estream_t stream,
             }
           length += 3; /* Adjust for the reserved bytes. */
           length += length < 1024? 256 : 1024;
-          *addr_of_buffer = mem_realloc (buffer, length);
+          *addr_of_buffer = (char *) mem_realloc (buffer, length);
           if (!*addr_of_buffer)
             {
               int save_errno = errno;
@@ -4996,7 +4996,7 @@ fname_set_internal (estream_t stream, const char *fname, int quote)
   else
     quote = !!quote;
 
-  stream->intern->printable_fname = mem_alloc (strlen (fname) + quote + 1);
+  stream->intern->printable_fname = (char *) mem_alloc (strlen (fname) + quote + 1);
   if (quote)
     stream->intern->printable_fname[0] = '\\';
   strcpy (stream->intern->printable_fname+quote, fname);
@@ -5049,7 +5049,7 @@ _gpgrt_write_sanitized (estream_t _GPGRT__RESTRICT stream,
                         const char * delimiters,
                         size_t * _GPGRT__RESTRICT bytes_written)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char *) buffer;
   size_t count = 0;
   int ret;
 
@@ -5137,7 +5137,7 @@ _gpgrt_write_hexstring (estream_t _GPGRT__RESTRICT stream,
 
   lock_stream (stream);
 
-  for (s = buffer; length; s++, length--)
+  for (s = (const unsigned char *) buffer; length; s++, length--)
     {
       _gpgrt_putc_unlocked ( tohex ((*s>>4)&15), stream);
       _gpgrt_putc_unlocked ( tohex (*s&15), stream);
