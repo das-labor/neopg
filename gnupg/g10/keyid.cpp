@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <botan/hash.h>
+
 #include "gpg.h"
 #include "../common/util.h"
 #include "main.h"
@@ -34,7 +36,6 @@
 #include "options.h"
 #include "keydb.h"
 #include "../common/i18n.h"
-#include "rmd160.h"
 #include "../common/host2net.h"
 
 
@@ -585,18 +586,21 @@ keyid_from_sig (PKT_signature *sig, u32 *keyid)
   return sig->keyid[1];
 }
 
-
 byte *
 namehash_from_uid (PKT_user_id *uid)
 {
   if (!uid->namehash)
     {
-      uid->namehash = xmalloc (20);
+      std::unique_ptr<Botan::HashFunction> rmd160(Botan::HashFunction::create_or_throw("RIPEMD-160"));
 
-      if (uid->attrib_data)
-	rmd160_hash_buffer (uid->namehash, uid->attrib_data, uid->attrib_len);
-      else
-	rmd160_hash_buffer (uid->namehash, uid->name, uid->len);
+      if (uid->attrib_data) {
+        rmd160->update(uid->attrib_data, uid->attrib_len);
+      } else {
+        rmd160->update(uid->name, uid->len);
+      }
+
+      uid->namehash = xmalloc (rmd160->output_length());
+      rmd160->final(uid->namehash);
     }
 
   return uid->namehash;

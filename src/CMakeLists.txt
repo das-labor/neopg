@@ -475,8 +475,6 @@ add_executable(neopg
   ../gnupg/g10/free-packet.cpp
   ../gnupg/g10/sig-check.cpp
   ../gnupg/g10/keyedit.cpp
-  ../gnupg/g10/rmd160.h
-  ../gnupg/g10/rmd160.cpp
   ../gnupg/g10/trust.cpp
   ../gnupg/g10/cpr.cpp
   ../gnupg/g10/keylist.cpp
