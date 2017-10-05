@@ -15,7 +15,6 @@ Aside from a working C++ toolchain you'll need the following libraries.
 With all dependencies installed NeoPG can be build with CMake.
 
 ```bash
-$ mkdir build
 $ cd build
 $ cmake ../src
 $ make
