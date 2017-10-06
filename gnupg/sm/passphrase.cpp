@@ -29,7 +29,7 @@
 static char *fd_passwd = NULL;
 
 int
-have_static_passphrase ()
+sm_have_static_passphrase ()
 {
   return (!!fd_passwd
           && (opt.batch || opt.pinentry_mode == PINENTRY_MODE_LOOPBACK));
@@ -40,13 +40,13 @@ have_static_passphrase ()
    be returned if no passphrase has been set; better use
    have_static_passphrase first.  */
 const char *
-get_static_passphrase (void)
+sm_get_static_passphrase (void)
 {
   return fd_passwd;
 }
 
 void
-read_passphrase_from_fd (int fd)
+sm_read_passphrase_from_fd (int fd)
 {
   int i, len;
   char *pw;

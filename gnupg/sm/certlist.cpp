@@ -319,7 +319,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
   rc = classify_user_id (name, &desc, 0);
   if (!rc)
     {
-      kh = keydb_new ();
+      kh = sm_keydb_new ();
       if (!kh)
         rc = gpg_error (GPG_ERR_ENOMEM);
       else
@@ -329,9 +329,9 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
           char *first_issuer = NULL;
 
         get_next:
-          rc = keydb_search (ctrl, kh, &desc, 1);
+          rc = sm_keydb_search (ctrl, kh, &desc, 1);
           if (!rc)
-            rc = keydb_get_cert (kh, &cert);
+            rc = sm_keydb_get_cert (kh, &cert);
           if (!rc)
             {
               if (!first_subject)
@@ -376,7 +376,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
               certlist_t dup_certs = NULL;
 
             next_ambigious:
-              rc = keydb_search (ctrl, kh, &desc, 1);
+              rc = sm_keydb_search (ctrl, kh, &desc, 1);
               if (rc == -1)
                 rc = 0;
               else if (!rc)
@@ -397,7 +397,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                      identical certificate (which may happen if a
                      certificate is accidential duplicated in the
                      keybox).  */
-                  if (!keydb_get_cert (kh, &cert2))
+                  if (!sm_keydb_get_cert (kh, &cert2))
                     {
                       int tmp = (same_subject_issuer (first_subject,
                                                       first_issuer,
@@ -464,7 +464,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
         }
     }
 
-  keydb_release (kh);
+  sm_keydb_release (kh);
   ksba_cert_release (cert);
   return rc == -1? gpg_error (GPG_ERR_NO_PUBKEY): rc;
 }
@@ -499,16 +499,16 @@ gpgsm_find_cert (ctrl_t ctrl,
   rc = classify_user_id (name, &desc, 0);
   if (!rc)
     {
-      kh = keydb_new ();
+      kh = sm_keydb_new ();
       if (!kh)
         rc = gpg_error (GPG_ERR_ENOMEM);
       else
         {
         nextone:
-          rc = keydb_search (ctrl, kh, &desc, 1);
+          rc = sm_keydb_search (ctrl, kh, &desc, 1);
           if (!rc)
             {
-              rc = keydb_get_cert (kh, r_cert);
+              rc = sm_keydb_get_cert (kh, r_cert);
               if (!rc && keyid)
                 {
                   ksba_sexp_t subj;
@@ -538,7 +538,7 @@ gpgsm_find_cert (ctrl_t ctrl,
           if (!rc && !keyid)
             {
             next_ambiguous:
-              rc = keydb_search (ctrl, kh, &desc, 1);
+              rc = sm_keydb_search (ctrl, kh, &desc, 1);
               if (rc == -1)
                 rc = 0;
               else
@@ -547,7 +547,7 @@ gpgsm_find_cert (ctrl_t ctrl,
                     {
                       ksba_cert_t cert2 = NULL;
 
-                      if (!keydb_get_cert (kh, &cert2))
+                      if (!sm_keydb_get_cert (kh, &cert2))
                         {
                           if (gpgsm_certs_identical_p (*r_cert, cert2))
                             {
@@ -565,6 +565,6 @@ gpgsm_find_cert (ctrl_t ctrl,
         }
     }
 
-  keydb_release (kh);
+  sm_keydb_release (kh);
   return rc == -1? gpg_error (GPG_ERR_NO_PUBKEY): rc;
 }

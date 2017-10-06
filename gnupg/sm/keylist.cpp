@@ -629,13 +629,13 @@ print_utf8_extn_raw (estream_t fp, int indent,
                      const unsigned char *der, size_t derlen)
 {
   gpg_error_t err;
-  int class, tag, constructed, ndef;
+  int klasse, tag, constructed, ndef;
   size_t objlen, hdrlen;
 
   if (indent < 0)
     indent = - indent;
 
-  err = parse_ber_header (&der, &derlen, &class, &tag, &constructed,
+  err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_UTF8_STRING))
     err = gpg_error (GPG_ERR_INV_OBJ);
@@ -653,14 +653,14 @@ print_utf8_extn (estream_t fp, int indent,
                  const unsigned char *der, size_t derlen)
 {
   gpg_error_t err;
-  int class, tag, constructed, ndef;
+  int klasse, tag, constructed, ndef;
   size_t objlen, hdrlen;
   int indent_all;
 
   if ((indent_all = (indent < 0)))
     indent = - indent;
 
-  err = parse_ber_header (&der, &derlen, &class, &tag, &constructed,
+  err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_UTF8_STRING))
     err = gpg_error (GPG_ERR_INV_OBJ);
@@ -1040,7 +1040,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
     {
       unsigned int blobflags;
 
-      err = keydb_get_flags (hd, KEYBOX_FLAG_BLOB, 0, &blobflags);
+      err = sm_keydb_get_flags (hd, KEYBOX_FLAG_BLOB, 0, &blobflags);
       if (err)
         es_fprintf (fp, "  [error getting keyflags: %s]\n",gpg_strerror (err));
       else if ((blobflags & KEYBOX_FLAG_BLOB_EPHEMERAL))
@@ -1342,10 +1342,10 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
   int have_secret;
   int want_ephemeral = ctrl->with_ephemeral_keys;
 
-  hd = keydb_new ();
+  hd = sm_keydb_new ();
   if (!hd)
     {
-      log_error ("keydb_new failed\n");
+      log_error ("sm_keydb_new failed\n");
       rc = gpg_error (GPG_ERR_GENERAL);
       goto leave;
     }
@@ -1403,7 +1403,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
     }
 
   if (want_ephemeral)
-    keydb_set_ephemeral (hd, 1);
+    sm_keydb_set_ephemeral (hd, 1);
 
   /* It would be nice to see which of the given users did actually
      match one in the keyring.  To implement this we need to have a
@@ -1414,20 +1414,20 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
 
   /* Suppress duplicates at least when they follow each other.  */
   lastresname = NULL;
-  while (!(rc = keydb_search (ctrl, hd, desc, ndesc)))
+  while (!(rc = sm_keydb_search (ctrl, hd, desc, ndesc)))
     {
       unsigned int validity;
 
       if (!names)
         desc[0].mode = KEYDB_SEARCH_MODE_NEXT;
 
-      rc = keydb_get_flags (hd, KEYBOX_FLAG_VALIDITY, 0, &validity);
+      rc = sm_keydb_get_flags (hd, KEYBOX_FLAG_VALIDITY, 0, &validity);
       if (rc)
         {
           log_error ("keydb_get_flags failed: %s\n", gpg_strerror (rc));
           goto leave;
         }
-      rc = keydb_get_cert (hd, &cert);
+      rc = sm_keydb_get_cert (hd, &cert);
       if (rc)
         {
           log_error ("keydb_get_cert failed: %s\n", gpg_strerror (rc));
@@ -1443,7 +1443,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
 	  continue;
 	}
 
-      resname = keydb_get_resource_name (hd);
+      resname = sm_keydb_get_resource_name (hd);
 
       if (lastresname != resname )
         {
@@ -1508,7 +1508,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
   ksba_cert_release (cert);
   ksba_cert_release (lastcert);
   xfree (desc);
-  keydb_release (hd);
+  sm_keydb_release (hd);
   return rc;
 }
 
@@ -1519,7 +1519,7 @@ list_external_cb (void *cb_value, ksba_cert_t cert)
 {
   struct list_external_parm_s *parm = cb_value;
 
-  if (keydb_store_cert (parm->ctrl, cert, 1, NULL))
+  if (sm_keydb_store_cert (parm->ctrl, cert, 1, NULL))
     log_error ("error storing certificate as ephemeral\n");
 
   if (parm->print_header)

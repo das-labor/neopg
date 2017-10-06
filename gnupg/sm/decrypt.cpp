@@ -259,7 +259,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
 
   audit_set_type (ctrl->audit, AUDIT_TYPE_DECRYPT);
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -424,8 +424,8 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                       xfree (tmpstr);
                     }
 
-                  keydb_search_reset (kh);
-                  rc = keydb_search_issuer_sn (ctrl, kh, issuer, serial);
+                  sm_keydb_search_reset (kh);
+                  rc = sm_keydb_search_issuer_sn (ctrl, kh, issuer, serial);
                   if (rc)
                     {
                       log_error ("failed to find the certificate: %s\n",
@@ -433,7 +433,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                       goto oops;
                     }
 
-                  rc = keydb_get_cert (kh, &cert);
+                  rc = sm_keydb_get_cert (kh, &cert);
                   if (rc)
                     {
                       log_error ("failed to get cert: %s\n", gpg_strerror (rc));
@@ -633,7 +633,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   ksba_cms_release (cms);
   gnupg_ksba_destroy_reader (b64reader);
   gnupg_ksba_destroy_writer (b64writer);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   es_fclose (in_fp);
   if (dfparm.hd)
     gcry_cipher_close (dfparm.hd);

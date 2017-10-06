@@ -90,7 +90,7 @@ enum cmd_and_opt_values {
   aDumpChain,
   aDumpSecretKeys,
   aDumpExternalKeys,
-  aKeydbClearSomeCertFlags,
+  aSm_KeydbClearSomeCertFlags,
   aFingerprint,
 
   oOptions,
@@ -242,7 +242,7 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aDumpChain, "dump-chain", "@"),
   ARGPARSE_c (aDumpExternalKeys, "dump-external-keys", "@"),
   ARGPARSE_c (aDumpSecretKeys, "dump-secret-keys", "@"),
-  ARGPARSE_c (aKeydbClearSomeCertFlags, "keydb-clear-some-cert-flags", "@"),
+  ARGPARSE_c (aSm_KeydbClearSomeCertFlags, "sm_keydb-clear-some-cert-flags", "@"),
 
   ARGPARSE_group (301, N_("@\nOptions:\n ")),
 
@@ -546,14 +546,13 @@ my_strusage( int level )
 {
   static char *digests, *pubkeys, *ciphers;
   static char *ver_gcry, *ver_ksba;
-  const char *p;
+  const char *p = NULL;
 
   switch (level)
     {
     case 11: p = "@GPGSM@ (@GNUPG@)";
       break;
     case 13: p = VERSION; break;
-    case 17: p = PRINTABLE_OS_NAME; break;
     case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
 
     case 1:
@@ -563,17 +562,6 @@ my_strusage( int level )
       p = _("Syntax: @GPGSM@ [options] [files]\n"
             "Sign, check, encrypt or decrypt using the S/MIME protocol\n"
             "Default operation depends on the input data\n");
-      break;
-
-    case 20:
-      if (!ver_gcry)
-        ver_gcry = make_libversion ("libgcrypt", gcry_check_version);
-      p = ver_gcry;
-      break;
-    case 21:
-      if (!ver_ksba)
-        ver_ksba = make_libversion ("libksba", ksba_check_version);
-      p = ver_ksba;
       break;
 
     case 31: p = "\nHome: "; break;
@@ -876,7 +864,7 @@ parse_keyserver_line (char *line,
 
 
 int
-main ( int argc, char **argv)
+gpgsm_main ( int argc, char **argv)
 {
   ARGPARSE_ARGS pargs;
   int orig_argc;
@@ -931,13 +919,6 @@ main ( int argc, char **argv)
   /* Make sure that our subsystems are ready.  */
   i18n_init ();
   init_common_subsystems (&argc, &argv);
-
-  /* Check that the libraries are suitable.  Do it here because the
-     option parse may need services of the library */
-  if (!ksba_check_version (NEED_KSBA_VERSION) )
-    log_fatal (_("%s is too old (need %s, have %s)\n"), "libksba",
-               NEED_KSBA_VERSION, ksba_check_version (NULL) );
-
 
   gcry_control (GCRYCTL_USE_SECURE_RNDPOOL);
 
@@ -1117,7 +1098,7 @@ main ( int argc, char **argv)
         case aListChain:
         case aLearnCard:
         case aPasswd:
-        case aKeydbClearSomeCertFlags:
+        case aSm_KeydbClearSomeCertFlags:
           do_not_setup_keys = 1;
           set_cmd (&cmd, pargs.r_opt);
           break;
@@ -1489,7 +1470,7 @@ main ( int argc, char **argv)
     gpgsm_exit(2);
 
   if (pwfd != -1)	/* Read the passphrase now.  */
-    read_passphrase_from_fd (pwfd);
+    sm_read_passphrase_from_fd (pwfd);
 
   /* Now that we have the options parsed we need to update the default
      control structure.  */
@@ -1666,7 +1647,7 @@ main ( int argc, char **argv)
     {
       int created;
 
-      keydb_add_resource (&ctrl, "pubring.kbx", 0, &created);
+      sm_keydb_add_resource (&ctrl, "pubring.kbx", 0, &created);
       if (created && !no_common_certs_import)
         {
           /* Import the standard certificates for a new default keybox. */
@@ -1684,7 +1665,7 @@ main ( int argc, char **argv)
         }
     }
   for (sl = nrings; sl; sl = sl->next)
-    keydb_add_resource (&ctrl, sl->d, 0, NULL);
+    sm_keydb_add_resource (&ctrl, sl->d, 0, NULL);
   FREE_STRLIST(nrings);
 
 
@@ -2065,10 +2046,10 @@ main ( int argc, char **argv)
         }
       break;
 
-    case aKeydbClearSomeCertFlags:
+    case aSm_KeydbClearSomeCertFlags:
       for (sl=NULL; argc; argc--, argv++)
         add_to_strlist (&sl, *argv);
-      keydb_clear_some_cert_flags (&ctrl, sl);
+      sm_keydb_clear_some_cert_flags (&ctrl, sl);
       free_strlist(sl);
       break;
 

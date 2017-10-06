@@ -20,8 +20,8 @@
 #ifndef	GPGSM_PASSPHRASE_H
 #define	GPGSM_PASSPHRASE_H
 
-int have_static_passphrase (void);
-const char *get_static_passphrase (void);
-void read_passphrase_from_fd (int fd);
+int sm_have_static_passphrase (void);
+const char *sm_get_static_passphrase (void);
+void sm_read_passphrase_from_fd (int fd);
 
 #endif	/* GPGSM_PASSPHRASE_H */

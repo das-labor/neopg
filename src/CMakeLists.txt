@@ -602,6 +602,33 @@ add_executable(neopg
   ../gnupg/common/ksba-io-support.cpp
   ../gnupg/common/exectool.cpp
 
+  ../gnupg/sm/call-agent.cpp
+  ../gnupg/sm/certcheck.cpp
+  ../gnupg/sm/certreqgen.cpp
+  ../gnupg/sm/delete.cpp
+  ../gnupg/sm/fingerprint.cpp
+  ../gnupg/sm/sign.cpp
+  ../gnupg/sm/call-dirmngr.cpp
+  ../gnupg/sm/certdump.cpp
+  ../gnupg/sm/certreqgen-ui.cpp
+  ../gnupg/sm/encrypt.cpp
+  ../gnupg/sm/gpgsm.cpp
+  ../gnupg/sm/import.cpp
+  ../gnupg/sm/keylist.cpp
+  ../gnupg/sm/misc.cpp
+  ../gnupg/sm/qualified.cpp
+  ../gnupg/sm/verify.cpp
+  ../gnupg/sm/certchain.cpp
+  ../gnupg/sm/certlist.cpp
+  ../gnupg/sm/decrypt.cpp
+  ../gnupg/sm/export.cpp
+  ../gnupg/sm/keydb.cpp
+  ../gnupg/sm/minip12.cpp
+  ../gnupg/sm/passphrase.cpp
+  ../gnupg/sm/server.cpp
+  ../gnupg/common/audit.cpp
+  ../gnupg/sm/gpgsm.cpp
+  
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE

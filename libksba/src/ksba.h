@@ -86,7 +86,7 @@ typedef enum
 ksba_stop_reason_t;
 typedef ksba_stop_reason_t KsbaStopReason _KSBA_DEPRECATED;
 
-typedef enum
+ enum
   {
     KSBA_CRLREASON_UNSPECIFIED = 1,
     KSBA_CRLREASON_KEY_COMPROMISE = 2,
@@ -99,8 +99,9 @@ typedef enum
     KSBA_CRLREASON_PRIVILEGE_WITHDRAWN = 512,
     KSBA_CRLREASON_AA_COMPROMISE = 1024,
     KSBA_CRLREASON_OTHER = 32768
-  }
-ksba_crl_reason_t;
+  };
+
+typedef int ksba_crl_reason_t;
 typedef ksba_crl_reason_t KsbaCRLReason _KSBA_DEPRECATED;
 
 typedef enum

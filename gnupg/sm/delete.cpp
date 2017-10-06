@@ -54,7 +54,7 @@ delete_one (ctrl_t ctrl, const char *username)
       goto leave;
     }
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error ("keydb_new failed\n");
@@ -69,12 +69,12 @@ delete_one (ctrl_t ctrl, const char *username)
        || desc.mode == KEYDB_SEARCH_MODE_KEYGRIP )
     {
       is_ephem = 1;
-      keydb_set_ephemeral (kh, 1);
+      sm_keydb_set_ephemeral (kh, 1);
     }
 
-  rc = keydb_search (ctrl, kh, &desc, 1);
+  rc = sm_keydb_search (ctrl, kh, &desc, 1);
   if (!rc)
-    rc = keydb_get_cert (kh, &cert);
+    rc = sm_keydb_get_cert (kh, &cert);
   if (!rc && !is_ephem)
     {
       unsigned char fpr[20];
@@ -82,7 +82,7 @@ delete_one (ctrl_t ctrl, const char *username)
       gpgsm_get_fingerprint (cert, 0, fpr, NULL);
 
     next_ambigious:
-      rc = keydb_search (ctrl, kh, &desc, 1);
+      rc = sm_keydb_search (ctrl, kh, &desc, 1);
       if (rc == -1)
         rc = 0;
       else if (!rc)
@@ -92,7 +92,7 @@ delete_one (ctrl_t ctrl, const char *username)
 
           /* We ignore all duplicated certificates which might have
              been inserted due to program bugs. */
-          if (!keydb_get_cert (kh, &cert2))
+          if (!sm_keydb_get_cert (kh, &cert2))
             {
               gpgsm_get_fingerprint (cert2, 0, fpr2, NULL);
               ksba_cert_release (cert2);
@@ -116,7 +116,7 @@ delete_one (ctrl_t ctrl, const char *username)
     }
 
   /* We need to search again to get back to the right position. */
-  rc = keydb_lock (kh);
+  rc = sm_keydb_lock (kh);
   if (rc)
     {
       log_error (_("error locking keybox: %s\n"), gpg_strerror (rc));
@@ -125,8 +125,8 @@ delete_one (ctrl_t ctrl, const char *username)
 
   do
     {
-      keydb_search_reset (kh);
-      rc = keydb_search (ctrl, kh, &desc, 1);
+      sm_keydb_search_reset (kh);
+      rc = sm_keydb_search (ctrl, kh, &desc, 1);
       if (rc)
         {
           log_error ("problem re-searching certificate: %s\n",
@@ -134,7 +134,7 @@ delete_one (ctrl_t ctrl, const char *username)
           goto leave;
         }
 
-      rc = keydb_delete (kh, duplicates ? 0 : 1);
+      rc = sm_keydb_delete (kh, duplicates ? 0 : 1);
       if (rc)
         goto leave;
       if (opt.verbose)
@@ -148,7 +148,7 @@ delete_one (ctrl_t ctrl, const char *username)
   while (duplicates--);
 
  leave:
-  keydb_release (kh);
+  sm_keydb_release (kh);
   ksba_cert_release (cert);
   return rc;
 }

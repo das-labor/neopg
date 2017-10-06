@@ -122,7 +122,7 @@ static int proc_parameters (ctrl_t ctrl,
 static int create_request (ctrl_t ctrl,
                            struct para_data_s *para,
                            const char *carddirect,
-                           ksba_const_sexp_t public,
+                           ksba_const_sexp_t public_x,
                            ksba_const_sexp_t sigkey,
                            ksba_writer_t writer);
 
@@ -437,7 +437,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
   char numbuf[20];
   unsigned char keyparms[100];
   int rc = 0;
-  ksba_sexp_t public = NULL;
+  ksba_sexp_t public_x = NULL;
   ksba_sexp_t sigkey = NULL;
   int seq;
   size_t erroff, errlen;
@@ -692,7 +692,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
   /* Create or retrieve the public key.  */
   if (cardkeyid) /* Take the key from the current smart card. */
     {
-      rc = gpgsm_agent_readkey (ctrl, 1, cardkeyid, &public);
+      rc = gpgsm_agent_readkey (ctrl, 1, cardkeyid, &public_x);
       if (rc)
         {
           r = get_parameter (para, pKEYTYPE, 0);
@@ -705,7 +705,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
     }
   else if ((s=get_parameter_value (para, pKEYGRIP, 0))) /* Use existing key.*/
     {
-      rc = gpgsm_agent_readkey (ctrl, 0, s, &public);
+      rc = gpgsm_agent_readkey (ctrl, 0, s, &public_x);
       if (rc)
         {
           r = get_parameter (para, pKEYTYPE, 0);
@@ -722,7 +722,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       snprintf ((char*)keyparms, DIM (keyparms),
                 "(6:genkey(3:rsa(5:nbits%d:%s)))",
                 (int)strlen (numbuf), numbuf);
-      rc = gpgsm_agent_genkey (ctrl, keyparms, &public);
+      rc = gpgsm_agent_genkey (ctrl, keyparms, &public_x);
       if (rc)
         {
           r = get_parameter (para, pKEYTYPE, 0);
@@ -753,7 +753,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
         log_error ("can't create writer: %s\n", gpg_strerror (rc));
       else
         {
-          rc = create_request (ctrl, para, cardkeyid, public, sigkey, writer);
+          rc = create_request (ctrl, para, cardkeyid, public_x, sigkey, writer);
           if (!rc)
             {
               rc = gnupg_ksba_finish_writer (b64writer);
@@ -771,7 +771,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
     }
 
   xfree (sigkey);
-  xfree (public);
+  xfree (public_x);
   xfree (cardkeyid);
 
   return rc;
@@ -784,7 +784,7 @@ static int
 create_request (ctrl_t ctrl,
                 struct para_data_s *para,
                 const char *carddirect,
-                ksba_const_sexp_t public,
+                ksba_const_sexp_t public_x,
                 ksba_const_sexp_t sigkey,
                 ksba_writer_t writer)
 {
@@ -910,7 +910,7 @@ create_request (ctrl_t ctrl,
     }
 
 
-  err = ksba_certreq_set_public_key (cr, public);
+  err = ksba_certreq_set_public_key (cr, public_x);
   if (err)
     {
       log_error ("error setting the public key: %s\n",
@@ -1110,7 +1110,7 @@ create_request (ctrl_t ctrl,
          given we set it to the public key to create a self-signed
          certificate. */
       if (!sigkey)
-        sigkey = public;
+        sigkey = public_x;
 
       {
         unsigned char *siginfo;
@@ -1266,7 +1266,7 @@ create_request (ctrl_t ctrl,
         }
     }
   else
-    sigkey = public;
+    sigkey = public_x;
 
   do
     {

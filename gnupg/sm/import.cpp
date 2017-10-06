@@ -199,7 +199,7 @@ check_and_store (ctrl_t ctrl, struct stats_s *stats,
     {
       int existed;
 
-      if (!keydb_store_cert (ctrl, cert, 0, &existed))
+      if (!sm_keydb_store_cert (ctrl, cert, 0, &existed))
         {
           ksba_cert_t next = NULL;
 
@@ -408,14 +408,14 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
   ksba_cert_t cert = NULL;
   unsigned int flags;
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       err = gpg_error (GPG_ERR_ENOMEM);;
       log_error (_("failed to allocate keyDB handle\n"));
       goto leave;
     }
-  keydb_set_ephemeral (kh, 1);
+  sm_keydb_set_ephemeral (kh, 1);
 
   fp = es_fdopen_nc (in_fd, "r");
   if (!fp)
@@ -446,8 +446,8 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
           continue;
         }
 
-      keydb_search_reset (kh);
-      err = keydb_search (ctrl, kh, &desc, 1);
+      sm_keydb_search_reset (kh);
+      err = sm_keydb_search (ctrl, kh, &desc, 1);
       if (err)
         {
           print_import_problem (ctrl, NULL, 0);
@@ -457,7 +457,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
 
       ksba_cert_release (cert);
       cert = NULL;
-      err = keydb_get_cert (kh, &cert);
+      err = sm_keydb_get_cert (kh, &cert);
       if (err)
         {
           log_error ("keydb_get_cert() failed: %s\n", gpg_strerror (err));
@@ -466,7 +466,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
           continue;
         }
 
-      err = keydb_get_flags (kh, KEYBOX_FLAG_BLOB, 0, &flags);
+      err = sm_keydb_get_flags (kh, KEYBOX_FLAG_BLOB, 0, &flags);
       if (err)
         {
           log_error (_("error getting stored flags: %s\n"), gpg_strerror (err));
@@ -481,7 +481,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
           continue;
         }
 
-      err = keydb_set_cert_flags (ctrl, cert, 1, KEYBOX_FLAG_BLOB, 0,
+      err = sm_keydb_set_cert_flags (ctrl, cert, 1, KEYBOX_FLAG_BLOB, 0,
                                   KEYBOX_FLAG_BLOB_EPHEMERAL, 0);
       if (err)
         {
@@ -505,7 +505,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
 
  leave:
   ksba_cert_release (cert);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   es_fclose (fp);
   return err;
 }

@@ -577,20 +577,20 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
                  from the dirmngr.  Try our own cert store now.  */
               KEYDB_HANDLE kh;
 
-              kh = keydb_new ();
+              kh = sm_keydb_new ();
               if (!kh)
                 rc = gpg_error (GPG_ERR_ENOMEM);
               if (!rc)
-                rc = keydb_search_fpr (ctrl, kh, stparm.fpr);
+                rc = sm_keydb_search_fpr (ctrl, kh, stparm.fpr);
               if (!rc)
-                rc = keydb_get_cert (kh, &rspcert);
+                rc = sm_keydb_get_cert (kh, &rspcert);
               if (rc)
                 {
                   log_error ("unable to find the certificate used "
                              "by the dirmngr: %s\n", gpg_strerror (rc));
                   rc = gpg_error (GPG_ERR_INV_CRL);
                 }
-              keydb_release (kh);
+              sm_keydb_release (kh);
             }
 
           if (!rc)

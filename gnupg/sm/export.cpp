@@ -150,7 +150,7 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
       goto leave;
     }
 
-  hd = keydb_new ();
+  hd = sm_keydb_new ();
   if (!hd)
     {
       log_error ("keydb_new failed\n");
@@ -203,10 +203,10 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
                      || desc[i].mode == KEYDB_SEARCH_MODE_KEYGRIP)); i++)
         ;
       if (i == ndesc)
-        keydb_set_ephemeral (hd, 1);
+        sm_keydb_set_ephemeral (hd, 1);
     }
 
-  while (!(rc = keydb_search (ctrl, hd, desc, ndesc)))
+  while (!(rc = sm_keydb_search (ctrl, hd, desc, ndesc)))
     {
       unsigned char fpr[20];
       int exists;
@@ -214,7 +214,7 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
       if (!names)
         desc[0].mode = KEYDB_SEARCH_MODE_NEXT;
 
-      rc = keydb_get_cert (hd, &cert);
+      rc = sm_keydb_get_cert (hd, &cert);
       if (rc)
         {
           log_error ("keydb_get_cert failed: %s\n", gpg_strerror (rc));
@@ -314,7 +314,7 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
   gnupg_ksba_destroy_writer (b64writer);
   ksba_cert_release (cert);
   xfree (desc);
-  keydb_release (hd);
+  sm_keydb_release (hd);
   destroy_duptable (dtable);
 }
 
@@ -341,7 +341,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
   void *data;
   size_t datalen;
 
-  hd = keydb_new ();
+  hd = sm_keydb_new ();
   if (!hd)
     {
       log_error ("keydb_new failed\n");
@@ -365,10 +365,10 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
     }
 
   /* Lookup the certificate and make sure that it is unique. */
-  err = keydb_search (ctrl, hd, desc, 1);
+  err = sm_keydb_search (ctrl, hd, desc, 1);
   if (!err)
     {
-      err = keydb_get_cert (hd, &cert);
+      err = sm_keydb_get_cert (hd, &cert);
       if (err)
         {
           log_error ("keydb_get_cert failed: %s\n", gpg_strerror (err));
@@ -376,12 +376,12 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
         }
 
     next_ambiguous:
-      err = keydb_search (ctrl, hd, desc, 1);
+      err = sm_keydb_search (ctrl, hd, desc, 1);
       if (!err)
         {
           ksba_cert_t cert2 = NULL;
 
-          if (!keydb_get_cert (hd, &cert2))
+          if (!sm_keydb_get_cert (hd, &cert2))
             {
               if (gpgsm_certs_identical_p (cert, cert2))
                 {
@@ -480,7 +480,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
   gnupg_ksba_destroy_writer (b64writer);
   ksba_cert_release (cert);
   xfree (desc);
-  keydb_release (hd);
+  sm_keydb_release (hd);
 }
 
 

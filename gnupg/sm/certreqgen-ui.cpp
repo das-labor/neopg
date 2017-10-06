@@ -93,20 +93,20 @@ static const char *
 check_keygrip (ctrl_t ctrl, const char *hexgrip)
 {
   gpg_error_t err;
-  ksba_sexp_t public;
+  ksba_sexp_t public_x;
   size_t publiclen;
   int algo;
 
   if (hexgrip[0] == '&')
     hexgrip++;
 
-  err = gpgsm_agent_readkey (ctrl, 0, hexgrip, &public);
+  err = gpgsm_agent_readkey (ctrl, 0, hexgrip, &public_x);
   if (err)
     return NULL;
-  publiclen = gcry_sexp_canon_len (public, 0, NULL, NULL);
+  publiclen = gcry_sexp_canon_len (public_x, 0, NULL, NULL);
 
-  algo = get_pk_algo_from_canon_sexp (public, publiclen);
-  xfree (public);
+  algo = get_pk_algo_from_canon_sexp (public_x, publiclen);
+  xfree (public_x);
 
   switch (algo)
     {

@@ -5,6 +5,7 @@
 int gpg_main(int argc, char **argv);
 int agent_main(int argc, char **argv);
 int dirmngr_main(int argc, char **argv);
+int gpgsm_main(int argc, char **argv);
 
 
 struct cli : args::group<cli>
@@ -117,6 +118,35 @@ struct dirmngr : cli::command<dirmngr>
 };
 /* Suppress help output.  */
 bool dirmngr::no_help = true;
+
+struct gpgsm : cli::command<gpgsm>
+{
+    gpgsm() {}
+    static bool no_help;
+    std::vector<std::string> gpgsm_args;
+    template<class F>
+    void parse(F f)
+    {
+        f(gpgsm_args, args::help("arguments"), args::take_unknown());
+    }
+
+    static const char* help()
+    {
+        return "Invoke gpgsm";
+    }
+
+    void run()
+    {
+        gpgsm_args.insert(gpgsm_args.begin(), std::string("gpgsm"));
+        int argc = gpgsm_args.size();
+        std::vector<char*> argv;
+        for(auto&& value:gpgsm_args) argv.push_back((char*)value.data());
+        // Return value
+        gpgsm_main(argc, argv.data());
+    }
+};
+/* Suppress help output.  */
+bool gpgsm::no_help = true;
 
 char *neopg_program;
 #define GPGRT_ATTR_SENTINEL(a)

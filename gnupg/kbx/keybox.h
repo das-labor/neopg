@@ -23,9 +23,7 @@
 #include "../common/iobuf.h"
 #include "keybox-search-desc.h"
 
-#ifdef KEYBOX_WITH_X509
 # include <ksba.h>
-#endif
 
 typedef struct keybox_handle *KEYBOX_HANDLE;
 
@@ -80,9 +78,7 @@ int _keybox_write_header_blob (FILE *fp, int openpgp_flag);
 /*-- keybox-search.c --*/
 gpg_error_t keybox_get_keyblock (KEYBOX_HANDLE hd, iobuf_t *r_iobuf,
                                  int *r_uid_no, int *r_pk_no);
-#ifdef KEYBOX_WITH_X509
 int keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *ret_cert);
-#endif /*KEYBOX_WITH_X509*/
 int keybox_get_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int *value);
 
 gpg_error_t keybox_search_reset (KEYBOX_HANDLE hd);
@@ -100,12 +96,11 @@ gpg_error_t keybox_insert_keyblock (KEYBOX_HANDLE hd,
 gpg_error_t keybox_update_keyblock (KEYBOX_HANDLE hd,
                                     const void *image, size_t imagelen);
 
-#ifdef KEYBOX_WITH_X509
 int keybox_insert_cert (KEYBOX_HANDLE hd, ksba_cert_t cert,
                         unsigned char *sha1_digest);
 int keybox_update_cert (KEYBOX_HANDLE hd, ksba_cert_t cert,
                         unsigned char *sha1_digest);
-#endif /*KEYBOX_WITH_X509*/
+
 int keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value);
 
 int keybox_delete (KEYBOX_HANDLE hd);

@@ -203,9 +203,9 @@ default_inq_cb (void *opaque, const char *line)
   else if ((has_leading_keyword (line, "PASSPHRASE")
             || has_leading_keyword (line, "NEW_PASSPHRASE"))
            && opt.pinentry_mode == PINENTRY_MODE_LOOPBACK
-           && have_static_passphrase ())
+           && sm_have_static_passphrase ())
     {
-      const char *s = get_static_passphrase ();
+      const char *s = sm_get_static_passphrase ();
       err = assuan_send_data (parm->ctx, s, strlen (s));
     }
   else
@@ -970,7 +970,7 @@ learn_cb (void *opaque, const void *buffer, size_t length)
     {
       int existed;
 
-      if (!keydb_store_cert (parm->ctrl, cert, 0, &existed))
+      if (!sm_keydb_store_cert (parm->ctrl, cert, 0, &existed))
         {
           if (opt.verbose > 1 && existed)
             log_info ("certificate already in DB\n");

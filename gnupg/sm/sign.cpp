@@ -141,23 +141,23 @@ gpgsm_get_default_cert (ctrl_t ctrl, ksba_cert_t *r_cert)
   int rc;
   char *p;
 
-  hd = keydb_new ();
+  hd = sm_keydb_new ();
   if (!hd)
     return gpg_error (GPG_ERR_GENERAL);
-  rc = keydb_search_first (ctrl, hd);
+  rc = sm_keydb_search_first (ctrl, hd);
   if (rc)
     {
-      keydb_release (hd);
+      sm_keydb_release (hd);
       return rc;
     }
 
   do
     {
-      rc = keydb_get_cert (hd, &cert);
+      rc = sm_keydb_get_cert (hd, &cert);
       if (rc)
         {
-          log_error ("keydb_get_cert failed: %s\n", gpg_strerror (rc));
-          keydb_release (hd);
+          log_error ("sm_keydb_get_cert failed: %s\n", gpg_strerror (rc));
+          sm_keydb_release (hd);
           return rc;
         }
 
@@ -169,7 +169,7 @@ gpgsm_get_default_cert (ctrl_t ctrl, ksba_cert_t *r_cert)
               if (!gpgsm_agent_havekey (ctrl, p))
                 {
                   xfree (p);
-                  keydb_release (hd);
+                  sm_keydb_release (hd);
                   *r_cert = cert;
                   return 0; /* got it */
                 }
@@ -180,12 +180,12 @@ gpgsm_get_default_cert (ctrl_t ctrl, ksba_cert_t *r_cert)
       ksba_cert_release (cert);
       cert = NULL;
     }
-  while (!(rc = keydb_search_next (ctrl, hd)));
+  while (!(rc = sm_keydb_search_next (ctrl, hd)));
   if (rc && rc != -1)
-    log_error ("keydb_search_next failed: %s\n", gpg_strerror (rc));
+    log_error ("sm_keydb_search_next failed: %s\n", gpg_strerror (rc));
 
   ksba_cert_release (cert);
-  keydb_release (hd);
+  sm_keydb_release (hd);
   return rc;
 }
 
@@ -218,25 +218,25 @@ get_default_signer (ctrl_t ctrl)
       return NULL;
     }
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     return NULL;
 
-  rc = keydb_search (ctrl, kh, &desc, 1);
+  rc = sm_keydb_search (ctrl, kh, &desc, 1);
   if (rc)
     {
       log_debug ("failed to find default certificate: rc=%d\n", rc);
     }
   else
     {
-      rc = keydb_get_cert (kh, &cert);
+      rc = sm_keydb_get_cert (kh, &cert);
       if (rc)
         {
           log_debug ("failed to get cert: rc=%d\n", rc);
         }
     }
 
-  keydb_release (kh);
+  sm_keydb_release (kh);
   return cert;
 }
 
@@ -331,7 +331,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
 
   audit_set_type (ctrl->audit, AUDIT_TYPE_SIGN);
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -809,7 +809,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
     gpgsm_release_certlist (signerlist);
   ksba_cms_release (cms);
   gnupg_ksba_destroy_writer (b64writer);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   gcry_md_close (data_md);
   return rc;
 }

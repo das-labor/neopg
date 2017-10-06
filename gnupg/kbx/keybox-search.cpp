@@ -497,7 +497,6 @@ blob_cmp_mail (KEYBOXBLOB blob, const char *name, size_t namelen, int substr,
 }
 
 
-#ifdef KEYBOX_WITH_X509
 /* Return true if the key in BLOB matches the 20 bytes keygrip GRIP.
    We don't have the keygrips as meta data, thus we need to parse the
    certificate. Fixme: We might want to return proper error codes
@@ -564,7 +563,6 @@ blob_x509_has_grip (KEYBOXBLOB blob, const unsigned char *grip)
   ksba_reader_release (reader);
   return 0;
 }
-#endif /*KEYBOX_WITH_X509*/
 
 
 
@@ -606,13 +604,8 @@ has_fingerprint (KEYBOXBLOB blob, const unsigned char *fpr)
 static inline int
 has_keygrip (KEYBOXBLOB blob, const unsigned char *grip)
 {
-#ifdef KEYBOX_WITH_X509
   if (blob_get_type (blob) == KEYBOX_BLOBTYPE_X509)
     return blob_x509_has_grip (blob, grip);
-#else
-  (void)blob;
-  (void)grip;
-#endif
   return 0;
 }
 
@@ -1112,7 +1105,6 @@ keybox_get_keyblock (KEYBOX_HANDLE hd, iobuf_t *r_iobuf,
 }
 
 
-#ifdef KEYBOX_WITH_X509
 /*
   Return the last found cert.  Caller must free it.
  */
@@ -1173,8 +1165,6 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
   ksba_reader_release (reader);
   return 0;
 }
-
-#endif /*KEYBOX_WITH_X509*/
 
 /* Return the flags named WHAT at the address of VALUE. IDX is used
    only for certain flags and should be 0 if not required. */

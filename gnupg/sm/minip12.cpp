@@ -167,7 +167,7 @@ struct buffer_s
 
 struct tag_info
 {
-  int class;
+  int klasse;
   int is_constructed;
   unsigned long tag;
   unsigned long length;  /* length part of the TLV */
@@ -198,7 +198,7 @@ parse_tag (unsigned char const **buffer, size_t *size, struct tag_info *ti)
   c = *buf++; length--;
   ti->nhdr++;
 
-  ti->class = (c & 0xc0) >> 6;
+  ti->klasse = (c & 0xc0) >> 6;
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
@@ -247,7 +247,7 @@ parse_tag (unsigned char const **buffer, size_t *size, struct tag_info *ti)
       ti->length = len;
     }
 
-  if (ti->class == UNIVERSAL && !ti->tag)
+  if (ti->klasse == UNIVERSAL && !ti->tag)
     ti->length = 0;
 
   if (ti->length > length)
@@ -298,7 +298,7 @@ cram_octet_string (const unsigned char *input, size_t *length,
     {
       if (parse_tag (&s, &n, &ti))
         goto bailout;
-      if (ti.class == UNIVERSAL && ti.tag == TAG_OCTET_STRING
+      if (ti.klasse == UNIVERSAL && ti.tag == TAG_OCTET_STRING
           && !ti.ndef && !ti.is_constructed)
         {
           memcpy (d, s, ti.length);
@@ -306,7 +306,7 @@ cram_octet_string (const unsigned char *input, size_t *length,
           d += ti.length;
           n -= ti.length;
         }
-      else if (ti.class == UNIVERSAL && !ti.tag && !ti.is_constructed)
+      else if (ti.klasse == UNIVERSAL && !ti.tag && !ti.is_constructed)
         break; /* Ready */
       else
         goto bailout;
@@ -650,7 +650,7 @@ bag_decrypted_data_p (const void *plaintext, size_t length)
 
   if (parse_tag (&p, &n, &ti))
     return 0;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     return 0;
   if (parse_tag (&p, &n, &ti))
     return 0;
@@ -690,7 +690,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
   where = "start";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != ASNCONTEXT || ti.tag)
+  if (ti.klasse != ASNCONTEXT || ti.tag)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
@@ -720,11 +720,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
   where = "bag.encryptedData.keyinfo";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (!ti.class && ti.tag == TAG_OBJECT_ID
+  if (!ti.klasse && ti.tag == TAG_OBJECT_ID
       && ti.length == DIM(oid_pbeWithSHAAnd40BitRC2_CBC)
       && !memcmp (p, oid_pbeWithSHAAnd40BitRC2_CBC,
                   DIM(oid_pbeWithSHAAnd40BitRC2_CBC)))
@@ -732,7 +732,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       p += DIM(oid_pbeWithSHAAnd40BitRC2_CBC);
       n -= DIM(oid_pbeWithSHAAnd40BitRC2_CBC);
     }
-  else if (!ti.class && ti.tag == TAG_OBJECT_ID
+  else if (!ti.klasse && ti.tag == TAG_OBJECT_ID
       && ti.length == DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC)
       && !memcmp (p, oid_pbeWithSHAAnd3_KeyTripleDES_CBC,
                   DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC)))
@@ -741,7 +741,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       n -= DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC);
       is_3des = 1;
     }
-  else if (!ti.class && ti.tag == TAG_OBJECT_ID
+  else if (!ti.klasse && ti.tag == TAG_OBJECT_ID
            && ti.length == DIM(oid_pkcs5PBES2)
            && !memcmp (p, oid_pkcs5PBES2, ti.length))
     {
@@ -757,15 +757,15 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       where = "pkcs5PBES2-params";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OBJECT_ID
+      if (!(!ti.klasse && ti.tag == TAG_OBJECT_ID
             && ti.length == DIM(oid_pkcs5PBKDF2)
             && !memcmp (p, oid_pkcs5PBKDF2, ti.length)))
         goto bailout; /* Not PBKDF2.  */
@@ -773,11 +773,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       n -= ti.length;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OCTET_STRING
+      if (!(!ti.klasse && ti.tag == TAG_OCTET_STRING
             && ti.length >= 8 && ti.length < sizeof salt))
         goto bailout;  /* No salt or unsupported length.  */
       saltlen = ti.length;
@@ -787,7 +787,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
 
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_INTEGER && ti.length))
+      if (!(!ti.klasse && ti.tag == TAG_INTEGER && ti.length))
         goto bailout;  /* No valid iteration count.  */
       for (iter=0; ti.length; ti.length--)
         {
@@ -799,11 +799,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
          that the algorithmIdentifier follows. */
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OBJECT_ID
+      if (!(!ti.klasse && ti.tag == TAG_OBJECT_ID
             && ti.length == DIM(oid_aes128_CBC)
             && !memcmp (p, oid_aes128_CBC, ti.length)))
         goto bailout; /* Not AES-128.  */
@@ -811,7 +811,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       n -= ti.length;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OCTET_STRING && ti.length == sizeof iv))
+      if (!(!ti.klasse && ti.tag == TAG_OCTET_STRING && ti.length == sizeof iv))
         goto bailout; /* Bad IV.  */
       memcpy (iv, p, sizeof iv);
       p += sizeof iv;
@@ -822,11 +822,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       where = "rc2or3des-params";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_OCTET_STRING
+      if (ti.klasse || ti.tag != TAG_OCTET_STRING
           || ti.length < 8 || ti.length > 20 )
         goto bailout;
       saltlen = ti.length;
@@ -835,7 +835,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       n -= saltlen;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_INTEGER || !ti.length )
+      if (ti.klasse || ti.tag != TAG_INTEGER || !ti.length )
         goto bailout;
       for (iter=0; ti.length; ti.length--)
         {
@@ -850,7 +850,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
     goto bailout;
 
   consumed = p - p_start;
-  if (ti.class == ASNCONTEXT && ti.tag == 0 && ti.is_constructed && ti.ndef)
+  if (ti.klasse == ASNCONTEXT && ti.tag == 0 && ti.is_constructed && ti.ndef)
     {
       /* Mozilla exported certs now come with single byte chunks of
          octect strings.  (Mozilla Firefox 1.0.4).  Arghh. */
@@ -864,7 +864,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       r_consumed = NULL; /* Ugly hack to not update that value any further. */
       ti.length = n;
     }
-  else if (ti.class == ASNCONTEXT && ti.tag == 0 && ti.length )
+  else if (ti.klasse == ASNCONTEXT && ti.tag == 0 && ti.length )
     ;
   else
     goto bailout;
@@ -893,7 +893,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       bad_pass = 1;
       goto bailout;
     }
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     {
       bad_pass = 1;
       goto bailout;
@@ -912,13 +912,13 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       int iskeybag = 0;
 
       where = "certbag.nextcert";
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
 
       where = "certbag.objectidentifier";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_OBJECT_ID)
+      if (ti.klasse || ti.tag != TAG_OBJECT_ID)
         goto bailout;
       if ( ti.length == DIM(oid_pkcs_12_CertBag)
            && !memcmp (p, oid_pkcs_12_CertBag, DIM(oid_pkcs_12_CertBag)))
@@ -949,7 +949,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
       where = "certbag.before.certheader";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class != ASNCONTEXT || ti.tag)
+      if (ti.klasse != ASNCONTEXT || ti.tag)
         goto bailout;
       if (iscrlbag)
         {
@@ -970,13 +970,13 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           log_info ("processing simple keyBag\n");
 
           /* Fixme: This code is duplicated from parse_bag_data.  */
-          if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+          if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
             goto bailout;
-          if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_INTEGER
+          if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_INTEGER
               || ti.length != 1 || *p)
             goto bailout;
           p++; n--;
-          if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+          if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
             goto bailout;
           len = ti.length;
           if (parse_tag (&p, &n, &ti))
@@ -984,7 +984,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           if (len < ti.nhdr)
             goto bailout;
           len -= ti.nhdr;
-          if (ti.class || ti.tag != TAG_OBJECT_ID
+          if (ti.klasse || ti.tag != TAG_OBJECT_ID
               || ti.length != DIM(oid_rsaEncryption)
               || memcmp (p, oid_rsaEncryption,
                          DIM(oid_rsaEncryption)))
@@ -999,10 +999,10 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           p += len;
           n -= len;
           if ( parse_tag (&p, &n, &ti)
-               || ti.class || ti.tag != TAG_OCTET_STRING)
+               || ti.klasse || ti.tag != TAG_OCTET_STRING)
             goto bailout;
           if ( parse_tag (&p, &n, &ti)
-               || ti.class || ti.tag != TAG_SEQUENCE)
+               || ti.klasse || ti.tag != TAG_SEQUENCE)
             goto bailout;
           len = ti.length;
 
@@ -1018,7 +1018,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           for (result_count = 0; len && result_count < 9;)
             {
               if ( parse_tag (&p, &n, &ti)
-                   || ti.class || ti.tag != TAG_INTEGER)
+                   || ti.klasse || ti.tag != TAG_INTEGER)
                 goto bailout;
               if (len < ti.nhdr)
                 goto bailout;
@@ -1053,11 +1053,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           log_info ("processing certBag\n");
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (ti.class || ti.tag != TAG_SEQUENCE)
+          if (ti.klasse || ti.tag != TAG_SEQUENCE)
             goto bailout;
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (ti.class || ti.tag != TAG_OBJECT_ID
+          if (ti.klasse || ti.tag != TAG_OBJECT_ID
               || ti.length != DIM(oid_x509Certificate_for_pkcs_12)
               || memcmp (p, oid_x509Certificate_for_pkcs_12,
                          DIM(oid_x509Certificate_for_pkcs_12)))
@@ -1068,11 +1068,11 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           where = "certbag.before.octetstring";
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (ti.class != ASNCONTEXT || ti.tag)
+          if (ti.klasse != ASNCONTEXT || ti.tag)
             goto bailout;
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (ti.class || ti.tag != TAG_OCTET_STRING || ti.ndef)
+          if (ti.klasse || ti.tag != TAG_OCTET_STRING || ti.ndef)
             goto bailout;
 
           /* Return the certificate. */
@@ -1096,9 +1096,9 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
           where = "bag.attributes";
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (!ti.class && ti.tag == TAG_SEQUENCE)
+          if (!ti.klasse && ti.tag == TAG_SEQUENCE)
             ; /* No attributes. */
-          else if (!ti.class && ti.tag == TAG_SET && !ti.ndef)
+          else if (!ti.klasse && ti.tag == TAG_SET && !ti.ndef)
             { /* The optional SET. */
               p += ti.length;
               n -= ti.length;
@@ -1164,9 +1164,9 @@ bag_data_p (const void *plaintext, size_t length)
 /*     fclose (fp); */
 /*   } */
 
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
     return 0;
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_INTEGER
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_INTEGER
       || ti.length != 1 || *p)
     return 0;
 
@@ -1199,11 +1199,11 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   where = "start";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != ASNCONTEXT || ti.tag)
+  if (ti.klasse != ASNCONTEXT || ti.tag)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_OCTET_STRING)
+  if (ti.klasse || ti.tag != TAG_OCTET_STRING)
     goto bailout;
 
   consumed = p - p_start;
@@ -1225,17 +1225,17 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   where = "data.outerseqs";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
 
   where = "data.objectidentifier";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_OBJECT_ID
+  if (ti.klasse || ti.tag != TAG_OBJECT_ID
       || ti.length != DIM(oid_pkcs_12_pkcs_8ShroudedKeyBag)
       || memcmp (p, oid_pkcs_12_pkcs_8ShroudedKeyBag,
                  DIM(oid_pkcs_12_pkcs_8ShroudedKeyBag)))
@@ -1246,19 +1246,19 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   where = "shrouded,outerseqs";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != ASNCONTEXT || ti.tag)
+  if (ti.klasse != ASNCONTEXT || ti.tag)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class == 0 && ti.tag == TAG_OBJECT_ID
+  if (ti.klasse == 0 && ti.tag == TAG_OBJECT_ID
       && ti.length == DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC)
       && !memcmp (p, oid_pbeWithSHAAnd3_KeyTripleDES_CBC,
                   DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC)))
@@ -1266,7 +1266,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       p += DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC);
       n -= DIM(oid_pbeWithSHAAnd3_KeyTripleDES_CBC);
     }
-  else if (ti.class == 0 && ti.tag == TAG_OBJECT_ID
+  else if (ti.klasse == 0 && ti.tag == TAG_OBJECT_ID
            && ti.length == DIM(oid_pkcs5PBES2)
            && !memcmp (p, oid_pkcs5PBES2, DIM(oid_pkcs5PBES2)))
     {
@@ -1282,15 +1282,15 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       where = "pkcs5PBES2-params";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OBJECT_ID
+      if (!(!ti.klasse && ti.tag == TAG_OBJECT_ID
             && ti.length == DIM(oid_pkcs5PBKDF2)
             && !memcmp (p, oid_pkcs5PBKDF2, ti.length)))
         goto bailout; /* Not PBKDF2.  */
@@ -1298,11 +1298,11 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       n -= ti.length;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OCTET_STRING
+      if (!(!ti.klasse && ti.tag == TAG_OCTET_STRING
             && ti.length >= 8 && ti.length < sizeof salt))
         goto bailout;  /* No salt or unsupported length.  */
       saltlen = ti.length;
@@ -1312,7 +1312,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
 
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_INTEGER && ti.length))
+      if (!(!ti.klasse && ti.tag == TAG_INTEGER && ti.length))
         goto bailout;  /* No valid iteration count.  */
       for (iter=0; ti.length; ti.length--)
         {
@@ -1324,11 +1324,11 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
          that the algorithmIdentifier follows. */
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OBJECT_ID
+      if (!(!ti.klasse && ti.tag == TAG_OBJECT_ID
             && ti.length == DIM(oid_aes128_CBC)
             && !memcmp (p, oid_aes128_CBC, ti.length)))
         goto bailout; /* Not AES-128.  */
@@ -1336,7 +1336,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       n -= ti.length;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (!(!ti.class && ti.tag == TAG_OCTET_STRING && ti.length == sizeof iv))
+      if (!(!ti.klasse && ti.tag == TAG_OCTET_STRING && ti.length == sizeof iv))
         goto bailout; /* Bad IV.  */
       memcpy (iv, p, sizeof iv);
       p += sizeof iv;
@@ -1347,11 +1347,11 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       where = "3des-params";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse || ti.tag != TAG_SEQUENCE)
         goto bailout;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_OCTET_STRING
+      if (ti.klasse || ti.tag != TAG_OCTET_STRING
           || ti.length < 8 || ti.length > 20)
         goto bailout;
       saltlen = ti.length;
@@ -1360,7 +1360,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
       n -= saltlen;
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (ti.class || ti.tag != TAG_INTEGER || !ti.length )
+      if (ti.klasse || ti.tag != TAG_INTEGER || !ti.length )
         goto bailout;
       for (iter=0; ti.length; ti.length--)
         {
@@ -1373,7 +1373,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   where = "3desoraes-ciphertext";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class || ti.tag != TAG_OCTET_STRING || !ti.length )
+  if (ti.klasse || ti.tag != TAG_OCTET_STRING || !ti.length )
     goto bailout;
 
   log_info ("%lu bytes of %s encrypted text\n",
@@ -1395,13 +1395,13 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   p_start = p = plain;
 
   where = "decrypted-text";
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_INTEGER
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_INTEGER
       || ti.length != 1 || *p)
     goto bailout;
   p++; n--;
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   len = ti.length;
   if (parse_tag (&p, &n, &ti))
@@ -1409,7 +1409,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   if (len < ti.nhdr)
     goto bailout;
   len -= ti.nhdr;
-  if (ti.class || ti.tag != TAG_OBJECT_ID
+  if (ti.klasse || ti.tag != TAG_OBJECT_ID
       || ti.length != DIM(oid_rsaEncryption)
       || memcmp (p, oid_rsaEncryption,
                  DIM(oid_rsaEncryption)))
@@ -1423,9 +1423,9 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
     goto bailout;
   p += len;
   n -= len;
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_OCTET_STRING)
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_OCTET_STRING)
     goto bailout;
-  if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_SEQUENCE)
+  if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_SEQUENCE)
     goto bailout;
   len = ti.length;
 
@@ -1440,7 +1440,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   where = "reading.key-parameters";
   for (result_count=0; len && result_count < 9;)
     {
-      if (parse_tag (&p, &n, &ti) || ti.class || ti.tag != TAG_INTEGER)
+      if (parse_tag (&p, &n, &ti) || ti.klasse || ti.tag != TAG_INTEGER)
         goto bailout;
       if (len < ti.nhdr)
         goto bailout;
@@ -1540,11 +1540,11 @@ p12_parse (const unsigned char *buffer, size_t length, const char *pw,
 
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != ASNCONTEXT || ti.tag)
+  if (ti.klasse != ASNCONTEXT || ti.tag)
     goto bailout;
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != UNIVERSAL || ti.tag != TAG_OCTET_STRING)
+  if (ti.klasse != UNIVERSAL || ti.tag != TAG_OCTET_STRING)
     goto bailout;
 
   if (ti.is_constructed && ti.ndef)
@@ -1561,7 +1561,7 @@ p12_parse (const unsigned char *buffer, size_t length, const char *pw,
   where = "bags";
   if (parse_tag (&p, &n, &ti))
     goto bailout;
-  if (ti.class != UNIVERSAL || ti.tag != TAG_SEQUENCE)
+  if (ti.klasse != UNIVERSAL || ti.tag != TAG_SEQUENCE)
     goto bailout;
   bagseqndef = ti.ndef;
   bagseqlength = ti.length;
@@ -1571,9 +1571,9 @@ p12_parse (const unsigned char *buffer, size_t length, const char *pw,
       where = "bag-sequence";
       if (parse_tag (&p, &n, &ti))
         goto bailout;
-      if (bagseqndef && ti.class == UNIVERSAL && !ti.tag && !ti.is_constructed)
+      if (bagseqndef && ti.klasse == UNIVERSAL && !ti.tag && !ti.is_constructed)
         break; /* Ready */
-      if (ti.class != UNIVERSAL || ti.tag != TAG_SEQUENCE)
+      if (ti.klasse != UNIVERSAL || ti.tag != TAG_SEQUENCE)
         goto bailout;
 
       if (!bagseqndef)
@@ -1652,7 +1652,7 @@ p12_parse (const unsigned char *buffer, size_t length, const char *pw,
           /* Need to skip the Null Tag. */
           if (parse_tag (&p, &n, &ti))
             goto bailout;
-          if (!(ti.class == UNIVERSAL && !ti.tag && !ti.is_constructed))
+          if (!(ti.klasse == UNIVERSAL && !ti.tag && !ti.is_constructed))
             goto bailout;
         }
     }

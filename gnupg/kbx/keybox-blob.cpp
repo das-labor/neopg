@@ -149,9 +149,7 @@
 #include "keybox-defs.h"
 #include <gcrypt.h>
 
-#ifdef KEYBOX_WITH_X509
 #include <ksba.h>
-#endif
 
 
 #include "../common/gettime.h"
@@ -474,7 +472,6 @@ pgp_create_blob_keyblock (KEYBOXBLOB blob,
 
 
 
-#ifdef KEYBOX_WITH_X509
 /*
    X.509 specific stuff
  */
@@ -500,7 +497,6 @@ x509_create_blob_cert (KEYBOXBLOB blob, ksba_cert_t cert)
   return 0;
 }
 
-#endif /*KEYBOX_WITH_X509*/
 
 /* Write a stored keyID out to the buffer */
 static void
@@ -780,7 +776,6 @@ _keybox_create_openpgp_blob (KEYBOXBLOB *r_blob,
 }
 
 
-#ifdef KEYBOX_WITH_X509
 
 /* Return an allocated string with the email address extracted from a
    DN.  Note hat we use this code also in ../sm/keylist.c.  */
@@ -977,7 +972,6 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
     }
   return rc;
 }
-#endif /*KEYBOX_WITH_X509*/
 
 
 

@@ -109,7 +109,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
 
   audit_set_type (ctrl->audit, AUDIT_TYPE_VERIFY);
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -278,7 +278,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
          we would avoid cluttering the DB with invalid
          certificates. */
       audit_log_cert (ctrl->audit, AUDIT_SAVE_CERT, cert,
-                      keydb_store_cert (ctrl, cert, 0, NULL));
+                      sm_keydb_store_cert (ctrl, cert, 0, NULL));
       ksba_cert_release (cert);
     }
 
@@ -419,8 +419,8 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         sigval_hash_algo = algo; /* Fallback used e.g. with old libksba. */
 
       /* Find the certificate of the signer */
-      keydb_search_reset (kh);
-      rc = keydb_search_issuer_sn (ctrl, kh, issuer, serial);
+      sm_keydb_search_reset (kh);
+      rc = sm_keydb_search_issuer_sn (ctrl, kh, issuer, serial);
       if (rc)
         {
           if (rc == -1)
@@ -442,7 +442,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           goto next_signer;
         }
 
-      rc = keydb_get_cert (kh, &cert);
+      rc = sm_keydb_get_cert (kh, &cert);
       if (rc)
         {
           log_error ("failed to get cert: %s\n", gpg_strerror (rc));
@@ -678,7 +678,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   ksba_cms_release (cms);
   gnupg_ksba_destroy_reader (b64reader);
   gnupg_ksba_destroy_writer (b64writer);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   gcry_md_close (data_md);
   es_fclose (in_fp);
 

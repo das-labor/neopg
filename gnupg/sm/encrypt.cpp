@@ -338,7 +338,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
     count++;
   audit_log_i (ctrl->audit, AUDIT_GOT_RECIPIENTS, count);
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -558,7 +558,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   ksba_cms_release (cms);
   gnupg_ksba_destroy_writer (b64writer);
   ksba_reader_release (reader);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   xfree (dek);
   es_fclose (data_fp);
   xfree (encparm.buffer);

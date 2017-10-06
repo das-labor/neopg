@@ -152,7 +152,7 @@ has_validation_model_chain (ksba_cert_t cert, int listmode, estream_t listfp)
   const char *oid;
   size_t off, derlen, objlen, hdrlen;
   const unsigned char *der;
-  int class, tag, constructed, ndef;
+  int klasse, tag, constructed, ndef;
   char *oidbuf;
 
   for (idx=0; !(err=ksba_cert_get_extension (cert, idx,
@@ -169,14 +169,14 @@ has_validation_model_chain (ksba_cert_t cert, int listmode, estream_t listfp)
     }
   der += off;
 
-  err = parse_ber_header (&der, &derlen, &class, &tag, &constructed,
+  err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_SEQUENCE))
     err = gpg_error (GPG_ERR_INV_OBJ);
   if (err)
     goto leave;
   derlen = objlen;
-  err = parse_ber_header (&der, &derlen, &class, &tag, &constructed,
+  err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_OBJECT_ID))
     err = gpg_error (GPG_ERR_INV_OBJ);
@@ -447,11 +447,11 @@ find_up_search_by_keyid (ctrl_t ctrl, KEYDB_HANDLE kh,
   int anyfound = 0;
   ksba_isotime_t not_before, last_not_before;
 
-  keydb_search_reset (kh);
-  while (!(rc = keydb_search_subject (ctrl, kh, issuer)))
+  sm_keydb_search_reset (kh);
+  while (!(rc = sm_keydb_search_subject (ctrl, kh, issuer)))
     {
       ksba_cert_release (cert); cert = NULL;
-      rc = keydb_get_cert (kh, &cert);
+      rc = sm_keydb_get_cert (kh, &cert);
       if (rc)
         {
           log_error ("keydb_get_cert() failed: rc=%d\n", rc);
@@ -480,7 +480,7 @@ find_up_search_by_keyid (ctrl_t ctrl, KEYDB_HANDLE kh,
                      key information.  */
                   anyfound = 1;
                   gnupg_copy_time (last_not_before, not_before);
-                  keydb_push_found_state (kh);
+                  sm_keydb_push_found_state (kh);
                 }
             }
         }
@@ -489,7 +489,7 @@ find_up_search_by_keyid (ctrl_t ctrl, KEYDB_HANDLE kh,
   if (anyfound)
     {
       /* Take the last saved one.  */
-      keydb_pop_found_state (kh);
+      sm_keydb_pop_found_state (kh);
       rc = 0;  /* Ignore EOF or other error after the first cert.  */
     }
 
@@ -510,7 +510,7 @@ find_up_store_certs_cb (void *cb_value, ksba_cert_t cert)
 {
   struct find_up_store_certs_s *parm = cb_value;
 
-  if (keydb_store_cert (parm->ctrl, cert, 1, NULL))
+  if (sm_keydb_store_cert (parm->ctrl, cert, 1, NULL))
     log_error ("error storing issuer certificate as ephemeral\n");
   parm->count++;
 }
@@ -569,15 +569,15 @@ find_up_external (ctrl_t ctrl, KEYDB_HANDLE kh,
       int old;
       /* The issuers are currently stored in the ephemeral key DB, so
          we temporary switch to ephemeral mode. */
-      old = keydb_set_ephemeral (kh, 1);
+      old = sm_keydb_set_ephemeral (kh, 1);
       if (keyid)
         rc = find_up_search_by_keyid (ctrl, kh, issuer, keyid);
       else
         {
-          keydb_search_reset (kh);
-          rc = keydb_search_subject (ctrl, kh, issuer);
+          sm_keydb_search_reset (kh);
+          rc = sm_keydb_search_subject (ctrl, kh, issuer);
         }
-      keydb_set_ephemeral (kh, old);
+      sm_keydb_set_ephemeral (kh, old);
     }
   return rc;
 }
@@ -660,9 +660,9 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
       const char *s = ksba_name_enum (authid, 0);
       if (s && *authidno)
         {
-          rc = keydb_search_issuer_sn (ctrl, kh, s, authidno);
+          rc = sm_keydb_search_issuer_sn (ctrl, kh, s, authidno);
           if (rc)
-            keydb_search_reset (kh);
+            sm_keydb_search_reset (kh);
 
           if (!rc && DBG_X509)
             log_debug ("  found via authid and sn+issuer\n");
@@ -680,17 +680,17 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
              state then. */
           if (rc == -1 && !find_next)
             {
-              int old = keydb_set_ephemeral (kh, 1);
+              int old = sm_keydb_set_ephemeral (kh, 1);
               if (!old)
                 {
-                  rc = keydb_search_issuer_sn (ctrl, kh, s, authidno);
+                  rc = sm_keydb_search_issuer_sn (ctrl, kh, s, authidno);
                   if (rc)
-                    keydb_search_reset (kh);
+                    sm_keydb_search_reset (kh);
 
                   if (!rc && DBG_X509)
                     log_debug ("  found via authid and sn+issuer (ephem)\n");
                 }
-              keydb_set_ephemeral (kh, old);
+              sm_keydb_set_ephemeral (kh, old);
             }
           if (rc)
             rc = -1; /* Need to make sure to have this error code. */
@@ -708,12 +708,12 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
             log_debug ("  found via authid and keyid\n");
           if (rc)
             {
-              int old = keydb_set_ephemeral (kh, 1);
+              int old = sm_keydb_set_ephemeral (kh, 1);
               if (!old)
                 rc = find_up_search_by_keyid (ctrl, kh, issuer, keyid);
               if (!rc && DBG_X509)
                 log_debug ("  found via authid and keyid (ephem)\n");
-              keydb_set_ephemeral (kh, old);
+              sm_keydb_set_ephemeral (kh, old);
             }
           if (rc)
             rc = -1; /* Need to make sure to have this error code. */
@@ -725,15 +725,15 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
         {
           if (!find_up_dirmngr (ctrl, kh, NULL, issuer, 1))
             {
-              int old = keydb_set_ephemeral (kh, 1);
+              int old = sm_keydb_set_ephemeral (kh, 1);
               if (keyid)
                 rc = find_up_search_by_keyid (ctrl, kh, issuer, keyid);
               else
                 {
-                  keydb_search_reset (kh);
-                  rc = keydb_search_subject (ctrl, kh, issuer);
+                  sm_keydb_search_reset (kh);
+                  rc = sm_keydb_search_subject (ctrl, kh, issuer);
                 }
-              keydb_set_ephemeral (kh, old);
+              sm_keydb_set_ephemeral (kh, old);
             }
           if (rc)
             rc = -1; /* Need to make sure to have this error code. */
@@ -783,7 +783,7 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
     }
 
   if (rc) /* Not found via authorithyKeyIdentifier, try regular issuer name. */
-    rc = keydb_search_subject (ctrl, kh, issuer);
+    rc = sm_keydb_search_subject (ctrl, kh, issuer);
   if (rc == -1 && !find_next)
     {
       int old;
@@ -793,13 +793,13 @@ find_up (ctrl_t ctrl, KEYDB_HANDLE kh,
       find_up_dirmngr (ctrl, kh, NULL, issuer, 0);
 
       /* Not found, let us see whether we have one in the ephemeral key DB. */
-      old = keydb_set_ephemeral (kh, 1);
+      old = sm_keydb_set_ephemeral (kh, 1);
       if (!old)
         {
-          keydb_search_reset (kh);
-          rc = keydb_search_subject (ctrl, kh, issuer);
+          sm_keydb_search_reset (kh);
+          rc = sm_keydb_search_subject (ctrl, kh, issuer);
         }
-      keydb_set_ephemeral (kh, old);
+      sm_keydb_set_ephemeral (kh, old);
 
       if (!rc && DBG_X509)
         log_debug ("  found via issuer\n");
@@ -825,7 +825,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
   int rc = 0;
   char *issuer = NULL;
   char *subject = NULL;
-  KEYDB_HANDLE kh = keydb_new ();
+  KEYDB_HANDLE kh = sm_keydb_new ();
 
   *r_next = NULL;
   if (!kh)
@@ -867,7 +867,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
       goto leave;
     }
 
-  rc = keydb_get_cert (kh, r_next);
+  rc = sm_keydb_get_cert (kh, r_next);
   if (rc)
     {
       log_error ("keydb_get_cert() failed: rc=%d\n", rc);
@@ -877,7 +877,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
  leave:
   xfree (issuer);
   xfree (subject);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   return rc;
 }
 
@@ -1001,7 +1001,7 @@ is_cert_still_valid (ctrl_t ctrl, int force_ocsp, int lm, estream_t fp,
           /* Store that in the keybox so that key listings are able to
              return the revoked flag.  We don't care about error,
              though. */
-          keydb_set_cert_flags (ctrl, subject_cert, 1, KEYBOX_FLAG_VALIDITY, 0,
+          sm_keydb_set_cert_flags (ctrl, subject_cert, 1, KEYBOX_FLAG_VALIDITY, 0,
                                 ~0, VALIDITY_REVOKED);
           break;
 
@@ -1321,7 +1321,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
       return 0;
     }
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -1565,7 +1565,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
         }
 
       /* Find the next cert up the tree. */
-      keydb_search_reset (kh);
+      sm_keydb_search_reset (kh);
       rc = find_up (ctrl, kh, subject_cert, issuer, 0);
       if (rc)
         {
@@ -1586,10 +1586,10 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
         }
 
       ksba_cert_release (issuer_cert); issuer_cert = NULL;
-      rc = keydb_get_cert (kh, &issuer_cert);
+      rc = sm_keydb_get_cert (kh, &issuer_cert);
       if (rc)
         {
-          log_error ("keydb_get_cert() failed: rc=%d\n", rc);
+          log_error ("sm_keydb_get_cert() failed: rc=%d\n", rc);
           rc = gpg_error (GPG_ERR_GENERAL);
           goto leave;
         }
@@ -1623,7 +1623,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
                 {
                   ksba_cert_t tmp_cert;
 
-                  rc = keydb_get_cert (kh, &tmp_cert);
+                  rc = sm_keydb_get_cert (kh, &tmp_cert);
                   if (rc || !compare_certs (issuer_cert, tmp_cert))
                     {
                       /* The find next did not work or returned an
@@ -1755,7 +1755,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
         }
 
       /* For the next round the current issuer becomes the new subject.  */
-      keydb_search_reset (kh);
+      sm_keydb_search_reset (kh);
       ksba_cert_release (subject_cert);
       subject_cert = issuer_cert;
       issuer_cert = NULL;
@@ -1804,7 +1804,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
              been stored in the keybox and thus the flag can't be set.
              We ignore this error because it will later be stored
              anyway.  */
-          err = keydb_set_cert_flags (ctrl, ci->cert, 1, KEYBOX_FLAG_BLOB, 0,
+          err = sm_keydb_set_cert_flags (ctrl, ci->cert, 1, KEYBOX_FLAG_BLOB, 0,
                                       KEYBOX_FLAG_BLOB_EPHEMERAL, 0);
           if (!ci->next && gpg_err_code (err) == GPG_ERR_NOT_FOUND)
             ;
@@ -1858,7 +1858,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
     gnupg_copy_time (r_exptime, exptime);
   xfree (issuer);
   xfree (subject);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   while (chain)
     {
       chain_item_t ci_next = chain->next;
@@ -1959,7 +1959,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
       return 0;
     }
 
-  kh = keydb_new ();
+  kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
@@ -1994,7 +1994,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
   else
     {
       /* Find the next cert up the tree. */
-      keydb_search_reset (kh);
+      sm_keydb_search_reset (kh);
       rc = find_up (ctrl, kh, cert, issuer, 0);
       if (rc)
         {
@@ -2011,7 +2011,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
         }
 
       ksba_cert_release (issuer_cert); issuer_cert = NULL;
-      rc = keydb_get_cert (kh, &issuer_cert);
+      rc = sm_keydb_get_cert (kh, &issuer_cert);
       if (rc)
         {
           log_error ("keydb_get_cert() failed: rc=%d\n", rc);
@@ -2039,7 +2039,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
  leave:
   xfree (issuer);
   xfree (subject);
-  keydb_release (kh);
+  sm_keydb_release (kh);
   ksba_cert_release (issuer_cert);
   return rc;
 }
