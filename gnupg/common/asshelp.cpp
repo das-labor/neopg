@@ -508,16 +508,12 @@ start_new_dirmngr (assuan_context_t *r_ctx,
   if (err && autostart)
     {
       lock_spawn_t lock;
-      const char *argv[4];
+      const char *argv[5];
       char *abs_homedir;
-
-      /* No connection: Try start a new Dirmngr.  */
-      if (!dirmngr_program || !*dirmngr_program)
-        dirmngr_program = gnupg_module_name (GNUPG_MODULE_NAME_DIRMNGR);
 
       if (verbose)
         log_info (_("no running Dirmngr - starting '%s'\n"),
-                  dirmngr_program);
+                  neopg_program);
 
       if (status_cb)
         status_cb (status_cb_arg, STATUS_PROGRESS,
@@ -543,20 +539,21 @@ start_new_dirmngr (assuan_context_t *r_ctx,
           return tmperr;
         }
 
-      argv[0] = "--daemon";
+      argv[0] = "dirmngr";
+      argv[1] = "--daemon";
       /* Try starting the daemon.  Versions of dirmngr < 2.1.15 do
        * this only if the home directory is given on the command line.  */
-      argv[1] = "--homedir";
-      argv[2] = abs_homedir;
-      argv[3] = NULL;
+      argv[2] = "--homedir";
+      argv[3] = abs_homedir;
+      argv[4] = NULL;
 
       if (!(err = lock_spawning (&lock, gnupg_homedir (), "dirmngr", verbose))
           && assuan_socket_connect (ctx, sockname, 0, 0))
         {
-          err = gnupg_spawn_process_detached (dirmngr_program, argv, NULL);
+          err = gnupg_spawn_process_detached (neopg_program, argv, NULL);
           if (err)
             log_error ("failed to start the dirmngr '%s': %s\n",
-                       dirmngr_program, gpg_strerror (err));
+                       neopg_program, gpg_strerror (err));
           else
             {
               int i;

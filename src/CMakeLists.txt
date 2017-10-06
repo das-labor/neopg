@@ -417,7 +417,7 @@ add_test(KsbaTest ksba-test COMMAND ksba-test test_xml_output --gtest_output=xml
 
 # gpg
 
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+# FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 
 
 add_executable(neopg
@@ -638,7 +638,7 @@ target_include_directories(neopg PRIVATE
   ../npth/src
   ../libksba/src
   ${CMAKE_BINARY_DIR}/.
-  ${Boost_INCLUDE_DIR}
+#  ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}
   ${BOTAN2_INCLUDE_DIRS}
 )
@@ -650,10 +650,10 @@ target_link_libraries(neopg PRIVATE
   gcrypt
   npth
   ksba
-${Boost_LIBRARIES}
+# ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
- -lldap -lz -lbz2
+ -lldap -lz -lbz2 -lgnutls
 )
 target_compile_options(neopg PUBLIC
  -fpermissive

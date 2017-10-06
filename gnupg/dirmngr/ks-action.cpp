@@ -235,6 +235,7 @@ ks_action_get (ctrl_t ctrl, uri_item_t keyservers,
       int is_http = uri->parsed_uri->is_http;
       int is_ldap = 0;
 
+      printf("considering %s %i\n", uri->uri, is_http);
 #if USE_LDAP
       is_ldap = (strcmp (uri->parsed_uri->scheme, "ldap") == 0
 		 || strcmp (uri->parsed_uri->scheme, "ldaps") == 0

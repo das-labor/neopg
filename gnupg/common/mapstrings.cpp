@@ -51,7 +51,6 @@ static struct {
   { "GPG_AGENT", GPG_AGENT_NAME },
   { "SCDAEMON",  SCDAEMON_NAME },
   { "DIRMNGR",   DIRMNGR_NAME },
-  { "G13",       G13_NAME },
   { "GPGCONF",   GPGCONF_NAME },
   { "GPGTAR",    GPGTAR_NAME }
 };

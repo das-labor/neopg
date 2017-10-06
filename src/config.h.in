@@ -1,56 +1,22 @@
+#define LOCALEDIR "/tmp/neopg"
+#define GNUPG_LOCALSTATEDIR "/tmp/neopg"
+
+#define GNUPG_BINDIR      "/usr/bin"
+#define GNUPG_LIBEXECDIR  "/usr/libexec"
+#define GNUPG_LIBDIR      "/usr/lib"
+#define GNUPG_DATADIR     "/usr/share/gnupg"
+#define GNUPG_SYSCONFDIR  "/etc/gnupg"
+
+#cmakedefine HAVE_MALLOC_H 1
+
 #define PACKAGE "neopg"
 #define PACKAGE_GT PACKAGE
 
 #define VERSION "0.0"
-#define GPG_NAME "neopg"
-#define GNUPG_NAME "neopg"
-#define GPGSM_NAME "neosm"
-#define GPG_AGENT_NAME "gpg-agent"
-#define SCDAEMON_NAME "scdaemon"
-#define DIRMNGR_NAME "dirmngr"
-#define G13_NAME "g13"
-#define GPGTAR_NAME "gpgtar"
-#define GPGCONF_NAME "gpgconf"
-#define EXTSEP_S "."
-#define SAFE_VERSION_DOT  '.'
-#define SAFE_VERSION VERSION
-#define SAFE_VERSION_DASH '-'
-#define SECMEM_BUFFER_SIZE 32768
-#define GPGEXT_GPG "gpg"
-#define RETSIGTYPE void
-#define ICONV_CONST
-#define GNUPG_DEFAULT_HOMEDIR "~/.gnupg"
-#define GNUPG_SYSCONFDIR "/tmp/neopg"
-#define GNUPG_BINDIR "/tmp/neopg"
-#define GNUPG_LIBEXECDIR "/tmp/neopg"
-#define GNUPG_LIBDIR "/tmp/neopg"
-#define GNUPG_DATADIR "/tmp/neopg"
-#define LOCALEDIR "/tmp/neopg"
-#define GNUPG_LOCALSTATEDIR "/tmp/neopg"
-#define GNUPG_OPENPGP_REVOC_DIR "/tmp/neopg"
-#define GPG_AGENT_SOCK_NAME "S.gpg-agent"
-#define DIRMNGR_SOCK_NAME "S.dirmngr"
-#define DIRSEP_S "/"
-#define DIRSEP_C '/'
-#define PATHSEP_S ":"
-#define EXEEXT_S ""
 #define PACKAGE_NAME "neopg"
-#define PK_UID_CACHE_SIZE 4096
-#define GPG_USE_EDDSA 1
 /* stringhelp.cpp */
-#define HAVE_PWD_H 1
-#define HAVE_GETPWNAM 1
-#define HAVE_GETPWUID 1
-#define HAVE_SETRLIMIT 1
 
 /* agent */
-#define GNUPG_PRIVATE_KEYS_DIR  "private-keys-v1.d"
-#define PATHSEP_C ':'
-#define GPG_AGENT_SSH_SOCK_NAME "S.gpg-agent.ssh"
-#define GPG_AGENT_BROWSER_SOCK_NAME "S.gpg-agent.browser"
-#define GPG_AGENT_EXTRA_SOCK_NAME "S.gpg-agent.extra"
-
-#cmakedefine HAVE_MALLOC_H 1
 
 /* libassuan */
 #define USE_DESCRIPTOR_PASSING 1
@@ -178,17 +144,6 @@
 
 /* USE_CAPABILITIES */
 #define HAVE_MLOCK 1
-
-
-
-
-
-
-
-
-
-
-
 
 /* libgpg-error */
 
@@ -550,7 +505,7 @@
 #define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
 #define HAVE_ZIP 1
-/* #undef HTTP_USE_GNUTLS */
+#define HTTP_USE_GNUTLS 1
 /* #undef HTTP_USE_NTBTLS */
 #define ICONV_CONST 
 #define LITTLE_ENDIAN_HOST 1

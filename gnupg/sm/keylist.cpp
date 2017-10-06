@@ -88,8 +88,8 @@ struct
 /* A table mapping OIDs to a descriptive string. */
 static struct
 {
-  char *oid;
-  char *name;
+  const char *oid;
+  const char *name;
   unsigned int flag; /* A flag as described above.  */
 } oidtranstbl[] = {
 
