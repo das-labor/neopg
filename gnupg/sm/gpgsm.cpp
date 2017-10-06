@@ -1504,14 +1504,6 @@ main ( int argc, char **argv)
                   strusage(11), strusage(13), strusage(14) );
       es_fprintf (es_stderr, "%s\n", strusage(15) );
     }
-#  ifdef IS_DEVELOPMENT_VERSION
-  if (!opt.batch)
-    {
-      log_info ("NOTE: THIS IS A DEVELOPMENT VERSION!\n");
-      log_info ("It is only intended for test purposes and should NOT be\n");
-      log_info ("used in a production environment or with production keys!\n");
-    }
-#  endif
 
   if (may_coredump && !opt.quiet)
     log_info (_("WARNING: program may create a core file!\n"));

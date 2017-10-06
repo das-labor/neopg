@@ -32,9 +32,7 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
-#ifndef USE_LDAPWRAPPER
-# include <npth.h>
-#endif
+#include <npth.h>
 
 #ifdef HAVE_W32_SYSTEM
 # include <winsock2.h>
@@ -60,48 +58,14 @@
 #include "../common/util.h"
 #include "../common/init.h"
 
-/* With the ldap wrapper, there is no need for the npth_unprotect and leave
-   functions; thus we redefine them to nops.  If we are not using the
-   ldap wrapper process we need to include the prototype for our
-   module's main function.  */
-#ifdef USE_LDAPWRAPPER
-static void npth_unprotect (void) { }
-static void npth_protect (void) { }
-#else
-# include "./ldap-wrapper.h"
-#endif
+#include "./ldap-wrapper.h"
 
-#ifdef HAVE_W32CE_SYSTEM
-# include "w32-ldap-help.h"
-# define my_ldap_init(a,b)                      \
-  _dirmngr_ldap_init ((a), (b))
-# define my_ldap_simple_bind_s(a,b,c)           \
-  _dirmngr_ldap_simple_bind_s ((a),(b),(c))
-# define my_ldap_search_st(a,b,c,d,e,f,g,h)     \
-  _dirmngr_ldap_search_st ((a), (b), (c), (d), (e), (f), (g), (h))
-# define my_ldap_first_attribute(a,b,c)         \
-  _dirmngr_ldap_first_attribute ((a),(b),(c))
-# define my_ldap_next_attribute(a,b,c)          \
-  _dirmngr_ldap_next_attribute ((a),(b),(c))
-# define my_ldap_get_values_len(a,b,c)          \
-  _dirmngr_ldap_get_values_len ((a),(b),(c))
-# define my_ldap_free_attr(a)                   \
-  xfree ((a))
-#else
-# define my_ldap_init(a,b)              ldap_init ((a), (b))
-# define my_ldap_simple_bind_s(a,b,c)   ldap_simple_bind_s ((a), (b), (c))
-# define my_ldap_search_st(a,b,c,d,e,f,g,h)     \
-  ldap_search_st ((a), (b), (c), (d), (e), (f), (g), (h))
-# define my_ldap_first_attribute(a,b,c) ldap_first_attribute ((a),(b),(c))
-# define my_ldap_next_attribute(a,b,c)  ldap_next_attribute ((a),(b),(c))
-# define my_ldap_get_values_len(a,b,c)  ldap_get_values_len ((a),(b),(c))
-# define my_ldap_free_attr(a)           ldap_memfree ((a))
-#endif
+# define ldap_free_attr(a)           ldap_memfree ((a))
 
 #ifdef HAVE_W32_SYSTEM
- typedef LDAP_TIMEVAL  my_ldap_timeval_t;
+ typedef LDAP_TIMEVAL  ldap_timeval_t;
 #else
- typedef struct timeval my_ldap_timeval_t;
+ typedef struct timeval ldap_timeval_t;
 #endif
 
 #define DEFAULT_LDAP_TIMEOUT 100 /* Arbitrary long timeout. */
@@ -161,7 +125,7 @@ struct my_opt_s
 {
   int quiet;
   int verbose;
-  my_ldap_timeval_t timeout;/* Timeout for the LDAP search functions.  */
+  ldap_timeval_t timeout;/* Timeout for the LDAP search functions.  */
   unsigned int alarm_timeout; /* And for the alarm based timeout.  */
   int multi;
 
@@ -189,48 +153,12 @@ static int process_url (my_opt_t myopt, const char *url);
 
 
 
-/* Function called by argparse.c to display information.  */
-#ifdef USE_LDAPWRAPPER
-static const char *
-my_strusage (int level)
-{
-  const char *p;
-
-  switch(level)
-    {
-    case 11: p = "dirmngr_ldap (@GNUPG@)";
-      break;
-    case 13: p = VERSION; break;
-    case 17: p = PRINTABLE_OS_NAME; break;
-    case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
-    case 49: p = PACKAGE_BUGREPORT; break;
-    case 1:
-    case 40: p =
-               _("Usage: dirmngr_ldap [options] [URL] (-h for help)\n");
-      break;
-    case 41: p =
-          _("Syntax: dirmngr_ldap [options] [URL]\n"
-            "Internal LDAP helper for Dirmngr\n"
-            "Interface and options may change without notice\n");
-      break;
-
-    default: p = NULL;
-    }
-  return p;
-}
-#endif /*!USE_LDAPWRAPPER*/
 
 
 int
-#ifdef USE_LDAPWRAPPER
-main (int argc, char **argv)
-#else
 ldap_wrapper_main (char **argv, estream_t outstream)
-#endif
 {
-#ifndef USE_LDAPWRAPPER
   int argc;
-#endif
   ARGPARSE_ARGS pargs;
   int any_err = 0;
   char *p;
@@ -243,22 +171,9 @@ ldap_wrapper_main (char **argv, estream_t outstream)
 
   early_system_init ();
 
-#ifdef USE_LDAPWRAPPER
-  set_strusage (my_strusage);
-  log_set_prefix ("dirmngr_ldap", GPGRT_LOG_WITH_PREFIX);
-
-  /* Setup I18N and common subsystems. */
-  i18n_init();
-
-  init_common_subsystems (&argc, &argv);
-
-  es_set_binary (es_stdout);
-  myopt->outstream = es_stdout;
-#else /*!USE_LDAPWRAPPER*/
   myopt->outstream = outstream;
   for (argc=0; argv[argc]; argc++)
     ;
-#endif /*!USE_LDAPWRAPPER*/
 
   /* LDAP defaults */
   myopt->timeout.tv_sec = DEFAULT_LDAP_TIMEOUT;
@@ -302,11 +217,7 @@ ldap_wrapper_main (char **argv, estream_t outstream)
           break;
 
         default :
-#ifdef USE_LDAPWRAPPER
-          pargs.err = ARGPARSE_PRINT_ERROR;
-#else
           pargs.err = ARGPARSE_PRINT_WARNING;  /* No exit() please.  */
-#endif
           break;
 	}
     }
@@ -336,34 +247,8 @@ ldap_wrapper_main (char **argv, estream_t outstream)
   if (myopt->port < 0 || myopt->port > 65535)
     log_error (_("invalid port number %d\n"), myopt->port);
 
-#ifdef USE_LDAPWRAPPER
-  if (log_get_errorcount (0))
-    exit (2);
-  if (argc < 1)
-    usage (1);
-#else
   /* All passed arguments should be fine in this case.  */
   assert (argc);
-#endif
-
-#ifdef USE_LDAPWRAPPER
-  if (myopt->alarm_timeout)
-    {
-#ifndef HAVE_W32_SYSTEM
-# if defined(HAVE_SIGACTION) && defined(HAVE_STRUCT_SIGACTION)
-      struct sigaction act;
-
-      act.sa_handler = catch_alarm;
-      sigemptyset (&act.sa_mask);
-      act.sa_flags = 0;
-      if (sigaction (SIGALRM,&act,NULL))
-# else
-      if (signal (SIGALRM, catch_alarm) == SIG_ERR)
-# endif
-          log_fatal ("unable to register timeout handler\n");
-#endif
-    }
-#endif /*USE_LDAPWRAPPER*/
 
   for (; argc; argc--, argv++)
     if (process_url (myopt, *argv))
@@ -424,10 +309,10 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
         }
 
 
-      for (npth_unprotect (), attr = my_ldap_first_attribute (ld, item, &berctx),
+      for (npth_unprotect (), attr = ldap_first_attribute (ld, item, &berctx),
              npth_protect ();
            attr;
-           npth_unprotect (), attr = my_ldap_next_attribute (ld, item, berctx),
+           npth_unprotect (), attr = ldap_next_attribute (ld, item, berctx),
              npth_protect ())
         {
           struct berval **values;
@@ -460,20 +345,20 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
                 *cp2 = ';';
               if (cmpres)
                 {
-                  my_ldap_free_attr (attr);
+                  ldap_free_attr (attr);
                   continue; /* Not found:  Try next attribute.  */
                 }
             }
 
           npth_unprotect ();
-          values = my_ldap_get_values_len (ld, item, attr);
+          values = ldap_get_values_len (ld, item, attr);
           npth_protect ();
 
           if (!values)
             {
               if (myopt->verbose)
                 log_info (_("attribute '%s' not found\n"), attr);
-              my_ldap_free_attr (attr);
+              ldap_free_attr (attr);
               continue;
             }
 
@@ -503,7 +388,7 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
                   log_error (_("error writing to stdout: %s\n"),
                              strerror (errno));
                   ldap_value_free_len (values);
-                  my_ldap_free_attr (attr);
+                  ldap_free_attr (attr);
                   ber_free (berctx, 0);
                   return -1;
                 }
@@ -527,7 +412,7 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
                       log_error (_("error writing to stdout: %s\n"),
                                  strerror (errno));
                       ldap_value_free_len (values);
-                      my_ldap_free_attr (attr);
+                      ldap_free_attr (attr);
                       ber_free (berctx, 0);
                       return -1;
                     }
@@ -539,7 +424,7 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
                   log_error (_("error writing to stdout: %s\n"),
                              strerror (errno));
                   ldap_value_free_len (values);
-                  my_ldap_free_attr (attr);
+                  ldap_free_attr (attr);
                   ber_free (berctx, 0);
                   return -1;
                 }
@@ -549,7 +434,7 @@ print_ldap_entries (my_opt_t myopt, LDAP *ld, LDAPMessage *msg, char *want_attr)
                 break; /* Print only the first value.  */
             }
           ldap_value_free_len (values);
-          my_ldap_free_attr (attr);
+          ldap_free_attr (attr);
           if (want_attr || !myopt->multi)
             break; /* We only want to return the first attribute.  */
         }
@@ -629,7 +514,7 @@ fetch_ldap (my_opt_t myopt, const char *url, const LDAPURLDesc *ludp)
 
   set_timeout (myopt);
   npth_unprotect ();
-  ld = my_ldap_init (host, port);
+  ld = ldap_init (host, port);
   npth_protect ();
   if (!ld)
     {
@@ -639,7 +524,7 @@ fetch_ldap (my_opt_t myopt, const char *url, const LDAPURLDesc *ludp)
     }
   npth_unprotect ();
   /* Fixme:  Can we use MYOPT->user or is it shared with other theeads?.  */
-  ret = my_ldap_simple_bind_s (ld, myopt->user, myopt->pass);
+  ret = ldap_simple_bind_s (ld, myopt->user, myopt->pass);
   npth_protect ();
 #ifdef LDAP_VERSION3
   if (ret == LDAP_PROTOCOL_ERROR)
@@ -650,7 +535,7 @@ fetch_ldap (my_opt_t myopt, const char *url, const LDAPURLDesc *ludp)
         log_info ("protocol error; retrying bind with v3 protocol\n");
       npth_unprotect ();
       ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-      ret = my_ldap_simple_bind_s (ld, myopt->user, myopt->pass);
+      ret = ldap_simple_bind_s (ld, myopt->user, myopt->pass);
       npth_protect ();
     }
 #endif
@@ -664,7 +549,7 @@ fetch_ldap (my_opt_t myopt, const char *url, const LDAPURLDesc *ludp)
 
   set_timeout (myopt);
   npth_unprotect ();
-  rc = my_ldap_search_st (ld, dn, ludp->lud_scope, filter,
+  rc = ldap_search_st (ld, dn, ludp->lud_scope, filter,
                           myopt->multi && !myopt->attr && ludp->lud_attrs?
                           ludp->lud_attrs:attrs,
                           0,

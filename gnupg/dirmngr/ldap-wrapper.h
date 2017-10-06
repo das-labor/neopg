@@ -32,9 +32,6 @@ gpg_error_t ldap_wrapper (ctrl_t ctrl, ksba_reader_t *reader,
 
 
 /* dirmngr_ldap.c  */
-#ifndef USE_LDAPWRAPPER
 int ldap_wrapper_main (char **argv, estream_t outstream);
-#endif
-
 
 #endif /*LDAP_WRAPPER_H*/

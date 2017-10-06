@@ -553,7 +553,6 @@
 /* #undef HTTP_USE_GNUTLS */
 /* #undef HTTP_USE_NTBTLS */
 #define ICONV_CONST 
-#define IS_DEVELOPMENT_VERSION 1
 #define LITTLE_ENDIAN_HOST 1
 /* #undef MKDIR_TAKES_ONE_ARG */
 /* #undef NEED_LBER_H */
@@ -573,7 +572,6 @@
 #define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
 #define USE_LDAP 1
-/* #define USE_LDAPWRAPPER */
 #define USE_NPTH 1
 /* #undef USE_ONLY_8DOT3 */
 /* #undef USE_SIMPLE_GETTEXT */

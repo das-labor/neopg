@@ -1026,10 +1026,6 @@ dirmngr_main (int argc, char **argv)
       es_fprintf (es_stderr, "%s\n", strusage(15) );
     }
 
-#ifdef IS_DEVELOPMENT_VERSION
-  log_info ("NOTE: this is a development version!\n");
-#endif
-
   /* Print a warning if an argument looks like an option.  */
   if (!opt.quiet && !(pargs.flags & ARGPARSE_FLAG_STOP_SEEN))
     {

@@ -42,12 +42,6 @@
 #include "misc.h"
 #include "ldap-wrapper.h"
 
-#ifdef USE_LDAPWRAPPER
-# error This module is not expected to be build.
-#endif
-
-
-
 /* Read a fixed amount of data from READER into BUFFER.  */
 static gpg_error_t
 read_buffer (ksba_reader_t reader, unsigned char *buffer, size_t count)

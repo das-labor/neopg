@@ -621,9 +621,6 @@ main (int argc, char **argv )
                   strusage(11), strusage(13), strusage(14) );
       es_fprintf (es_stderr, "%s\n", strusage(15) );
     }
-#ifdef IS_DEVELOPMENT_VERSION
-  log_info ("NOTE: this is a development version!\n");
-#endif
 
   /* Print a warning if an argument looks like an option.  */
   if (!opt.quiet && !(pargs.flags & ARGPARSE_FLAG_STOP_SEEN))

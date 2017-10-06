@@ -1021,18 +1021,6 @@ my_strusage( int level )
     case 20:
       break;
 
-#ifdef IS_DEVELOPMENT_VERSION
-      case 25:
-	p="NOTE: THIS IS A DEVELOPMENT VERSION!";
-	break;
-      case 26:
-	p="It is only intended for test purposes and should NOT be";
-	break;
-      case 27:
-	p="used in a production environment or with production keys!";
-	break;
-#endif
-
       case 1:
       case 40:	p =
 	    _("Usage: @GPG@ [options] [files] (-h for help)");
@@ -3566,20 +3554,6 @@ gpg_main (int argc, char **argv)
                     strusage(11), strusage(13), strusage(14) );
 	es_fprintf (es_stderr, "%s\n", strusage(15) );
       }
-#ifdef IS_DEVELOPMENT_VERSION
-    if (!opt.batch)
-      {
-	const char *s;
-
-	if((s=strusage(25)))
-	  log_info("%s\n",s);
-	if((s=strusage(26)))
-	  log_info("%s\n",s);
-	if((s=strusage(27)))
-	  log_info("%s\n",s);
-      }
-#endif
-
     /* FIXME: We should use logging to a file only in server mode;
        however we have not yet implemetyed that.  Thus we try to get
        away with --batch as indication for logging to file

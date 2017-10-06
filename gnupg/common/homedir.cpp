@@ -897,43 +897,8 @@ get_default_pinentry_name (int reset)
 }
 
 
-/* If set, 'gnupg_module_name' returns modules from that build
- * directory.  */
-static char *gnupg_build_directory;
-
 /* For sanity checks.  */
 static int gnupg_module_name_called;
-
-
-/* Set NEWDIR as the new build directory.  This will make
- * 'gnupg_module_name' return modules from that build directory.  Must
- * be called before any invocation of 'gnupg_module_name', and must
- * not be called twice.  It can be used by test suites to make sure
- * the components from the build directory are used instead of
- * potentially outdated installed ones.  */
-void
-gnupg_set_builddir (const char *newdir)
-{
-  log_assert (! gnupg_module_name_called);
-  log_assert (! gnupg_build_directory);
-  gnupg_build_directory = xtrystrdup (newdir);
-}
-
-
-/* If no build directory has been configured, try to set it from the
- * environment.  We only do this in development builds to avoid
- * increasing the set of influential environment variables and hence
- * the attack surface of production builds.  */
-static void
-gnupg_set_builddir_from_env (void)
-{
-#if defined(IS_DEVELOPMENT_VERSION) || defined(ENABLE_GNUPG_BUILDDIR_ENVVAR)
-  if (gnupg_build_directory)
-    return;
-
-  gnupg_build_directory = getenv ("GNUPG_BUILDDIR");
-#endif
-}
 
 
 /* Return the file name of a helper tool.  WHICH is one of the
@@ -941,16 +906,12 @@ gnupg_set_builddir_from_env (void)
 const char *
 gnupg_module_name (int which)
 {
-  gnupg_set_builddir_from_env ();
   gnupg_module_name_called = 1;
 
 #define X(a,b,c) do {                                                   \
     static char *name;                                                  \
     if (!name)                                                          \
-      name = gnupg_build_directory                                      \
-        ? xstrconcat (gnupg_build_directory,                            \
-                      DIRSEP_S b DIRSEP_S c EXEEXT_S, NULL)             \
-        : xstrconcat (gnupg_ ## a (), DIRSEP_S c EXEEXT_S, NULL);       \
+      name = xstrconcat (gnupg_ ## a (), DIRSEP_S c EXEEXT_S, NULL);    \
     return name;                                                        \
   } while (0)
 
@@ -1005,16 +966,10 @@ gnupg_module_name (int which)
       X(bindir, "sm", "gpgsm");
 
     case GNUPG_MODULE_NAME_GPG:
-      if (! gnupg_build_directory)
-        X(bindir, "g10", GPG_NAME "2");
-      else
-        X(bindir, "g10", GPG_NAME);
+      X(bindir, "g10", GPG_NAME "2");
 
     case GNUPG_MODULE_NAME_GPGV:
-      if (! gnupg_build_directory)
-        X(bindir, "g10", GPG_NAME "v2");
-      else
-        X(bindir, "g10", GPG_NAME "v");
+      X(bindir, "g10", GPG_NAME "v2");
 
     case GNUPG_MODULE_NAME_CONNECT_AGENT:
       X(bindir, "tools", "gpg-connect-agent");
