@@ -2367,6 +2367,7 @@ gpg_main (int argc, char **argv)
     opt.emit_version = 0;
     opt.weak_digests = NULL;
     additional_weak_digest("MD5");
+    opt.pinentry_mode = PINENTRY_MODE_LOOPBACK;
 
     /* Check whether we have a config file on the command line.  */
     orig_argc = argc;
