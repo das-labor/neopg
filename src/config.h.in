@@ -436,7 +436,7 @@
 #define HAVE_ATEXIT 1
 /* #undef HAVE_BROKEN_TTYNAME */
 /* #undef HAVE_BYTE_TYPEDEF */
-/* #undef HAVE_BZIP2 */
+#define HAVE_BZIP2 1
 #define HAVE_CANONICALIZE_FILE_NAME 1
 #define HAVE_CLOCK_GETTIME 1
 #define HAVE_CTERMID 1
@@ -549,7 +549,7 @@
 #define HAVE_WORKING_FORK 1
 #define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
-/* #undef HAVE_ZIP */
+#define HAVE_ZIP 1
 /* #undef HTTP_USE_GNUTLS */
 /* #undef HTTP_USE_NTBTLS */
 #define ICONV_CONST 

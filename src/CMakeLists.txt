@@ -548,6 +548,7 @@ add_executable(neopg
   ../gnupg/g10/tofu.cpp
   ../gnupg/g10/card-util.cpp
   ../gnupg/g10/gpgsql.cpp
+  ../gnupg/g10/compress-bz2.cpp
   ../gnupg/g10/gpg.cpp
 
   ../gnupg/agent/command.cpp
@@ -625,7 +626,7 @@ target_link_libraries(neopg PRIVATE
 ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
- -lldap
+ -lldap -lz -lbz2
 )
 target_compile_options(neopg PUBLIC
  -fpermissive

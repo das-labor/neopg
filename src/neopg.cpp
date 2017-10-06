@@ -118,8 +118,13 @@ struct dirmngr : cli::command<dirmngr>
 /* Suppress help output.  */
 bool dirmngr::no_help = true;
 
+char *neopg_program;
+#define GPGRT_ATTR_SENTINEL(a)
+#include "../gnupg/common/stringhelp.h"
+
 int
 main(int argc, char const *argv[])
 {
+    neopg_program = make_absfilename(argv[0], NULL);
     args::parse<cli>(argc, argv);
 }

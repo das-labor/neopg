@@ -307,6 +307,8 @@ unlock_spawning (lock_spawn_t *lock, const char *name)
     }
 }
 
+extern char *neopg_program;
+
 /* Try to connect to the agent via socket or start it if it is not
    running and AUTOSTART is set.  Handle the server's initial
    greeting.  Returns a new assuan context at R_CTX or an error
@@ -350,35 +352,13 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
     {
       char *abs_homedir;
       lock_spawn_t lock;
-      char *program = NULL;
-      const char *program_arg = NULL;
       char *p;
       const char *s;
       int i;
 
-      /* With no success start a new server.  */
-      if (!agent_program || !*agent_program)
-        agent_program = gnupg_module_name (GNUPG_MODULE_NAME_AGENT);
-      else if ((s=strchr (agent_program, '|')) && s[1] == '-' && s[2]=='-')
-        {
-          /* Hack to insert an additional option on the command line.  */
-          program = xtrystrdup (agent_program);
-          if (!program)
-            {
-              gpg_error_t tmperr = gpg_err_make (errsource,
-                                                 gpg_err_code_from_syserror ());
-              xfree (sockname);
-              assuan_release (ctx);
-              return tmperr;
-            }
-          p = strchr (program, '|');
-          *p++ = 0;
-          program_arg = p;
-        }
-
       if (verbose)
         log_info (_("no running gpg-agent - starting '%s'\n"),
-                  agent_program);
+                  neopg_program);
 
       if (status_cb)
         status_cb (status_cb_arg, STATUS_PROGRESS,
@@ -395,7 +375,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
           log_error ("error building filename: %s\n",gpg_strerror (tmperr));
           xfree (sockname);
           assuan_release (ctx);
-          xfree (program);
           return tmperr;
         }
 
@@ -408,7 +387,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
           xfree (sockname);
           assuan_release (ctx);
           xfree (abs_homedir);
-          xfree (program);
           return tmperr;
         }
 
@@ -416,22 +394,20 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
          socket, an environment variable is not required and thus
          we can safely start the agent here.  */
       i = 0;
+      argv[i++] = "agent";
       argv[i++] = "--homedir";
       argv[i++] = abs_homedir;
       argv[i++] = "--use-standard-socket";
-      if (program_arg)
-        argv[i++] = program_arg;
       argv[i++] = "--daemon";
       argv[i++] = NULL;
 
       if (!(err = lock_spawning (&lock, gnupg_homedir (), "agent", verbose))
           && assuan_socket_connect (ctx, sockname, 0, 0))
         {
-          err = gnupg_spawn_process_detached (program? program : agent_program,
-                                              argv, NULL);
+          err = gnupg_spawn_process_detached (neopg_program, argv, NULL);
           if (err)
             log_error ("failed to start agent '%s': %s\n",
-                       agent_program, gpg_strerror (err));
+                       neopg_program, gpg_strerror (err));
           else
             {
               for (i=0; i < SECS_TO_WAIT_FOR_AGENT; i++)
@@ -456,7 +432,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
 
       unlock_spawning (&lock, "agent");
       xfree (abs_homedir);
-      xfree (program);
     }
   xfree (sockname);
   if (err)
