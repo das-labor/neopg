@@ -34,13 +34,6 @@
 #define _KSBA_INCLUDED_BY_VISIBILITY_C
 #include "util.h"
 
-/*--version.c --*/
-const char *
-ksba_check_version (const char *req_version)
-{
-  return _ksba_check_version (req_version);
-}
-
 
 /*-- util.c --*/
 void

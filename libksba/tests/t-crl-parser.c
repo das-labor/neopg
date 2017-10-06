@@ -303,12 +303,12 @@ one_file (const char *fname)
 
 
 int
-main (int argc, char **argv)
+crl_parser_main (int argc, char **argv)
 {
   const char *srcdir = getenv ("srcdir");
 
   if (!srcdir)
-    srcdir = ".";
+    srcdir = CMAKE_SOURCE_DIR;
 
   if (argc > 1)
     {

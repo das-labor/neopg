@@ -149,7 +149,7 @@ test_oid_to_str (void)
 
 
 int
-main (int argc, char **argv)
+oid_main (int argc, char **argv)
 {
   gpg_error_t err;
 

@@ -359,6 +359,63 @@ target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive)
     GTest::GTest GTest::Main)
   add_test(GcryptSecmemTest gcrypt-secmem-test COMMAND gcrypt-secmem-test test_xml_output --gtest_output=xml:gcrypt-secmem-test.xml)
 
+# libksba
+
+add_library(ksba
+  ../libksba/src/ksba.h
+  ../libksba/src/ksba.h
+  ../libksba/src/visibility.c
+  ../libksba/src/reader.c
+  ../libksba/src/writer.c
+  ../libksba/src/asn1-parse.c
+  ../libksba/src/asn1-func.c
+  ../libksba/src/asn1-func2.c
+  ../libksba/src/ber-help.c
+  ../libksba/src/ber-decoder.c
+  ../libksba/src/der-encoder.c
+  ../libksba/src/cert.c
+  ../libksba/src/cms.c
+  ../libksba/src/cms-parser.c
+  ../libksba/src/crl.c
+  ../libksba/src/certreq.c
+  ../libksba/src/ocsp.c
+  ../libksba/src/keyinfo.c
+  ../libksba/src/oid.c
+  ../libksba/src/name.c
+  ../libksba/src/dn.c
+  ../libksba/src/time.c
+  ../libksba/src/util.c
+  ../libksba/src/asn1-tables.c
+)
+add_library(neopg::ksba ALIAS ksba)
+
+target_include_directories(ksba PRIVATE
+  ../libgpg-error/src
+  ../libksba/src
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(ksba PRIVATE
+  HAVE_CONFIG_H=1)
+
+target_compile_options(ksba PUBLIC -fpermissive)
+
+add_executable(ksba-test
+  ../libksba/tests/ksba-test.cpp
+  ../libksba/tests/t-oid.c
+  ../libksba/tests/t-crl-parser.c
+  ../libksba/tests/t-dnparser.c
+  )
+target_include_directories(ksba-test PRIVATE
+  ../libgpg-error/src
+  ../libksba/src
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(ksba-test PRIVATE
+  CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/../libksba/tests")
+target_link_libraries(ksba-test PRIVATE
+  gpg-error
+  ksba
+  GTest::GTest GTest::Main)
+add_test(KsbaTest ksba-test COMMAND ksba-test test_xml_output --gtest_output=xml:ksba-test.xml)
+
 # gpg
 
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
@@ -513,6 +570,8 @@ add_executable(neopg
   ../gnupg/agent/command-ssh.cpp
   ../gnupg/common/ssh-utils.cpp
   ../gnupg/common/name-value.cpp
+
+#  ../gnupg/dirmngr/dirmngr.cpp
 
   neopg.cpp
 )

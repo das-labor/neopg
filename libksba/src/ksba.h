@@ -544,9 +544,6 @@ void *ksba_realloc (void *p, size_t n);
 char *ksba_strdup (const char *p);
 void  ksba_free ( void *a );
 
-/*--version.c --*/
-const char *ksba_check_version (const char *req_version);
-
 #ifdef __cplusplus
 }
 #endif

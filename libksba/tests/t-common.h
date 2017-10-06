@@ -43,7 +43,7 @@ void sha1_hash_buffer (char *outbuf, const char *buffer, size_t length);
 #define xfree(a)  ksba_free (a)
 
 
-void *
+static void *
 xmalloc (size_t n)
 {
   char *p = ksba_malloc (n);
@@ -58,7 +58,7 @@ xmalloc (size_t n)
 
 /* Prepend FNAME with the srcdir environment variable's value and
    retrun an allocated filename. */
-char *
+static char *
 prepend_srcdir (const char *fname)
 {
   static const char *srcdir;
@@ -77,7 +77,7 @@ prepend_srcdir (const char *fname)
 
 
 
-void
+static void
 print_hex (const unsigned char *p, size_t n)
 {
   if (!p)
@@ -90,7 +90,7 @@ print_hex (const unsigned char *p, size_t n)
 }
 
 
-void
+static void
 print_sexp (ksba_const_sexp_t p)
 {
   int level = 0;
@@ -157,7 +157,7 @@ print_sexp (ksba_const_sexp_t p)
 }
 
 /* Variant of print_sexp which forces printing the values in hex.  */
-void
+static void
 print_sexp_hex (ksba_const_sexp_t p)
 {
   int level = 0;
@@ -209,7 +209,7 @@ print_sexp_hex (ksba_const_sexp_t p)
 }
 
 
-void
+static void
 print_dn (char *p)
 {
   if (!p)
@@ -219,7 +219,7 @@ print_dn (char *p)
 }
 
 
-void
+static void
 print_time (ksba_isotime_t t)
 {
   if (!t || !*t)

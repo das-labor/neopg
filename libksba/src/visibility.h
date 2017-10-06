@@ -32,7 +32,6 @@
 #define VISIBILITY_H
 
 /* Redefine all public symbols.  */
-#define ksba_check_version                 _ksba_check_version
 #define ksba_set_hash_buffer_function      _ksba_set_hash_buffer_function
 #define ksba_set_malloc_hooks              _ksba_set_malloc_hooks
 #define ksba_free                          _ksba_free
@@ -227,7 +226,6 @@ int ksba_asn_delete_structure (void *dummy);
 
 /* Undef all redefined symbols so that we set the attribute on the
    exported name of the symbol.  */
-#undef ksba_check_version
 #undef ksba_set_hash_buffer_function
 #undef ksba_set_malloc_hooks
 #undef ksba_free
@@ -389,7 +387,6 @@ int ksba_asn_delete_structure (void *dummy);
 
 
 /* Mark all symbols.  */
-MARK_VISIBLE (ksba_check_version)
 MARK_VISIBLE (ksba_set_hash_buffer_function)
 MARK_VISIBLE (ksba_set_malloc_hooks)
 MARK_VISIBLE (ksba_free)

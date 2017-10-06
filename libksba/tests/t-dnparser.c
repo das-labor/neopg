@@ -130,7 +130,7 @@ test_2 (void)
 
 
 int
-main (int argc, char **argv)
+dnparser_main (int argc, char **argv)
 {
   char inputbuf[4096];
   unsigned char *buf;
@@ -156,7 +156,7 @@ main (int argc, char **argv)
       fail_if_err (err);
       fwrite (buf, len, 1, stdout);
     }
-  else if (argc == 1)
+  else if (argc <= 1)
     {
       test_0 ();
       test_1 ();
