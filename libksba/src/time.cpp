@@ -153,13 +153,9 @@ _ksba_current_time (ksba_isotime_t timebuf)
 {
   time_t epoch = time (NULL);
   struct tm *tp;
-#ifdef HAVE_GMTIME_R
   struct tm tmbuf;
 
   tp = gmtime_r ( &epoch, &tmbuf);
-#else
-  tp = gmtime ( &epoch );
-#endif
   sprintf (timebuf,"%04d%02d%02dT%02d%02d%02d",
            1900 + tp->tm_year, tp->tm_mon+1, tp->tm_mday,
            tp->tm_hour, tp->tm_min, tp->tm_sec);

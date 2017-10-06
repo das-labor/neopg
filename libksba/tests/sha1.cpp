@@ -29,18 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <inttypes.h>
 
-#ifndef HAVE_U32_TYPEDEF
-#undef u32	    /* maybe there is a macro with this name */
-#if SIZEOF_UNSIGNED_INT == 4
-    typedef unsigned int u32;
-#elif SIZEOF_UNSIGNED_LONG == 4
-    typedef unsigned long u32;
-#else
-#error no typedef for u32
-#endif
-#define HAVE_U32_TYPEDEF
-#endif
+typedef uint32_t u32;
 
 typedef struct
 {

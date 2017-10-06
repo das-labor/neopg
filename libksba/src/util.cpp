@@ -221,19 +221,6 @@ _ksba_xstrdup (const char *str)
 }
 
 
-#ifndef HAVE_STPCPY
-char *
-_ksba_stpcpy (char *a,const char *b)
-{
-  while (*b)
-    *a++ = *b++;
-  *a = 0;
-
-  return a;
-}
-#endif
-
-
 static inline int
 ascii_toupper (int c)
 {

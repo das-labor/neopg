@@ -95,11 +95,6 @@ char *_ksba_xstrdup (const char *p);
     } while (0)
 
 
-#ifndef HAVE_STPCPY
-char *_ksba_stpcpy (char *a, const char *b);
-#define stpcpy(a,b) _ksba_stpcpy ((a), (b))
-#endif
-
 int _ksba_ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n);
 #define ascii_memcasecmp(a,b,n) _ksba_ascii_memcasecmp ((a),(b),(n))
 
