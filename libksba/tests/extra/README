@@ -1,0 +1,10 @@
+These are extra tests we don't want to distribute or even put into the
+CVS for confidentiality reasons.
+
+dsig-with-id-aa-encrypKeyPref-1.cms  
+
+  Detached signature with a signedAttribute that starts with a conetxt
+  tag.  This is to check for the bug fixed 2002-12-03.
+
+
+

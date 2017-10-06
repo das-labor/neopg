@@ -1,0 +1,29 @@
+# autogen.sh configuration for GnuPG                           -*- sh -*-
+
+case "$myhost:$myhostsub" in
+  w32:ce)
+    extraoptions=
+    ;;
+  w32:)
+    extraoptions=
+    ;;
+esac
+
+case "$myhost" in
+  w32)
+    configure_opts="
+      --with-gpg-error-prefix=@SYSROOT@
+      "
+    ;;
+
+  amd64)
+    configure_opts="
+      --with-gpg-error-prefix=@SYSROOT@
+     "
+    ;;
+esac
+
+
+extra_aclocal_flags="-I gl/m4"
+
+final_info="./configure --enable-maintainer-mode && make"
