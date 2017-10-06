@@ -9,6 +9,9 @@ Aside from a working C++ toolchain you'll need the following libraries.
 1. CMake >= 3.2
 1. Google Test (GTest) >= 1.8
 1. Boost >= 1.64.0
+1. openldap
+1. zlib
+1. bzip2
 
 ## Install
 
@@ -31,6 +34,8 @@ $ make test # or ./gpg-error-test
 ** No dynamic code generation
 * libgcrypt
 ** No dynamic code generation
+
+TOOD:
 
 * format strings for list-keys etc
 
