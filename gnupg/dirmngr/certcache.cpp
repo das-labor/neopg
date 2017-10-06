@@ -1221,7 +1221,7 @@ get_certs_bypattern (const char *pattern,
                      void *retfnc_data)
 {
   gpg_error_t err = GPG_ERR_BUG;
-  enum pattern_class class;
+  enum pattern_class klasse;
   size_t offset, sn_offset;
   const char *hexserialno;
   ksba_sexp_t serialno = NULL;
@@ -1231,10 +1231,10 @@ get_certs_bypattern (const char *pattern,
   if (!pattern || !retfnc)
     return gpg_error (GPG_ERR_INV_ARG);
 
-  class = classify_pattern (pattern, &offset, &sn_offset);
+  klasse = classify_pattern (pattern, &offset, &sn_offset);
   hexserialno = pattern + sn_offset;
   pattern += offset;
-  switch (class)
+  switch (klasse)
     {
     case PATTERN_UNKNOWN:
       err = gpg_error (GPG_ERR_INV_NAME);

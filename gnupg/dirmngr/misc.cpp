@@ -477,6 +477,14 @@ remove_percent_escapes (unsigned char *string)
   return n;
 }
 
+#include <ctype.h>
+x_strlwr(char *s)
+{
+    char *p;
+    for(p=s; *p; p++ )
+       *p = tolower(*p);
+    return s;
+}
 
 /* Return the host name and the port (0 if none was given) from the
    URL.  Return NULL on error or if host is not included in the
@@ -514,7 +522,7 @@ host_and_port_from_url (const char *url, int *port)
     }
   if ((p = strchr (buf, '/')))
     *p++ = 0;
-  strlwr (buf);
+  x_strlwr (buf);
   if ((p = strchr (p, ':')))
     {
       *p++ = 0;

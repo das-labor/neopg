@@ -73,7 +73,7 @@ struct fingerprint_list_s
 
 
 /* A large struct named "opt" to keep global flags.  */
-struct
+struct options
 {
   unsigned int debug; /* debug flags (DBG_foo_VALUE) */
   int verbose;        /* verbosity level */
@@ -136,8 +136,9 @@ struct
                                        current after nextUpdate. */
 
   strlist_t keyserver;              /* List of default keyservers.  */
-} opt;
-
+};
+extern struct options dirmngr_opt;
+#define opt dirmngr_opt
 
 #define DBG_X509_VALUE    1	/* debug x.509 parsing */
 #define DBG_CRYPTO_VALUE  4	/* debug low level crypto */

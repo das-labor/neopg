@@ -570,7 +570,36 @@ add_executable(neopg
   ../gnupg/common/ssh-utils.cpp
   ../gnupg/common/name-value.cpp
 
-#  ../gnupg/dirmngr/dirmngr.cpp
+  ../gnupg/dirmngr/dirmngr.cpp
+  ../gnupg/dirmngr/crlfetch.cpp
+  ../gnupg/dirmngr/dirmngr-client.cpp
+  ../gnupg/dirmngr/dirmngr.cpp
+  ../gnupg/dirmngr/dirmngr_ldap.cpp
+  ../gnupg/dirmngr/dns-stuff.cpp
+  ../gnupg/dirmngr/http-common.cpp
+  ../gnupg/dirmngr/http-ntbtls.cpp
+  ../gnupg/dirmngr/http.cpp
+  ../gnupg/dirmngr/ks-action.cpp
+  ../gnupg/dirmngr/ks-engine-finger.cpp
+  ../gnupg/dirmngr/ks-engine-hkp.cpp
+  ../gnupg/dirmngr/ks-engine-http.cpp
+  ../gnupg/dirmngr/ks-engine-kdns.cpp
+  ../gnupg/dirmngr/ks-engine-ldap.cpp
+  ../gnupg/dirmngr/ldap-parse-uri.cpp
+  ../gnupg/dirmngr/ldap.cpp
+  ../gnupg/dirmngr/ldap-wrapper-ce.cpp
+  ../gnupg/dirmngr/ldapserver.cpp
+  ../gnupg/dirmngr/loadswdb.cpp
+  ../gnupg/dirmngr/misc.cpp
+  ../gnupg/dirmngr/ocsp.cpp
+  ../gnupg/dirmngr/server.cpp
+  ../gnupg/dirmngr/validate.cpp
+  ../gnupg/dirmngr/crlcache.cpp
+  ../gnupg/dirmngr/certcache.cpp
+  ../gnupg/dirmngr/cdblib.cpp
+  ../gnupg/common/ccparray.cpp
+  ../gnupg/common/ksba-io-support.cpp
+  ../gnupg/common/exectool.cpp
 
   neopg.cpp
 )
@@ -579,6 +608,7 @@ target_include_directories(neopg PRIVATE
   ../libassuan/src
   ../libgcrypt/src
   ../npth/src
+  ../libksba/src
   ${CMAKE_BINARY_DIR}/.
   ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}
@@ -587,13 +617,15 @@ target_include_directories(neopg PRIVATE
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(neopg PRIVATE
-    gpg-error
-    assuan
+  gpg-error
+  assuan
   gcrypt
   npth
+  ksba
 ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
+ -lldap
 )
 target_compile_options(neopg PUBLIC
  -fpermissive

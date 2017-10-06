@@ -1613,7 +1613,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
 
       while (count-- > 0 && pt < emsg)
         {
-          u16 type, class, dlen, ctype;
+          u16 type, klasse, dlen, ctype;
 
           rc = dn_skipname (pt, emsg);  /* the name we just queried for */
           if (rc == -1)
@@ -1632,10 +1632,10 @@ get_dns_cert_standard (const char *name, int want_certtype,
           type = buf16_to_u16 (pt);
           pt += 2;
 
-          class = buf16_to_u16 (pt);
+          klasse = buf16_to_u16 (pt);
           pt += 2;
 
-          if (class != C_IN)
+          if (klasse != C_IN)
             break;
 
           /* ttl */
@@ -1972,7 +1972,7 @@ getsrv_standard (const char *name,
   while (count-- > 0 && pt < emsg)
     {
       struct srventry *srv;
-      u16 type, class;
+      u16 type, klasse;
       struct srventry *newlist;
 
       newlist = xtryrealloc (*list, (srvcount+1)*sizeof(struct srventry));
@@ -1998,10 +1998,10 @@ getsrv_standard (const char *name,
       if (type != T_SRV)
         goto fail;
 
-      class = buf16_to_u16 (pt);
+      klasse = buf16_to_u16 (pt);
       pt += 2;
       /* We asked for IN and got something else !? */
-      if (class != C_IN)
+      if (klasse != C_IN)
         goto fail;
 
       pt += 4; /* ttl */

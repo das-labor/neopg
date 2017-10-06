@@ -44,10 +44,12 @@ ldap_server_t ldapserver_parse_one (char *line,
 
 /* Iterate over all servers.  */
 
+enum { LDAPSERVER_SESSION, LDAPSERVER_OPT };
+
 struct ldapserver_iter
 {
   ctrl_t ctrl;
-  enum { LDAPSERVER_SESSION, LDAPSERVER_OPT } group;
+  int group;
   ldap_server_t server;
 };
 

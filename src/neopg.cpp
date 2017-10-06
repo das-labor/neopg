@@ -4,6 +4,7 @@
 
 int gpg_main(int argc, char **argv);
 int agent_main(int argc, char **argv);
+int dirmngr_main(int argc, char **argv);
 
 
 struct cli : args::group<cli>
@@ -87,6 +88,35 @@ struct agent : cli::command<agent>
 };
 /* Suppress help output.  */
 bool agent::no_help = true;
+
+struct dirmngr : cli::command<dirmngr>
+{
+    dirmngr() {}
+    static bool no_help;
+    std::vector<std::string> dirmngr_args;
+    template<class F>
+    void parse(F f)
+    {
+        f(dirmngr_args, args::help("arguments"), args::take_unknown());
+    }
+
+    static const char* help()
+    {
+        return "Invoke dirmngr";
+    }
+
+    void run()
+    {
+        dirmngr_args.insert(dirmngr_args.begin(), std::string("dirmngr"));
+        int argc = dirmngr_args.size();
+        std::vector<char*> argv;
+        for(auto&& value:dirmngr_args) argv.push_back((char*)value.data());
+        // Return value
+        dirmngr_main(argc, argv.data());
+    }
+};
+/* Suppress help output.  */
+bool dirmngr::no_help = true;
 
 int
 main(int argc, char const *argv[])

@@ -154,16 +154,15 @@ static gpg_error_t squid_loop_body (assuan_context_t ctx);
 static const char *
 my_strusage (int level)
 {
-  const char *p;
+  const char *p = NULL;
 
   switch(level)
     {
     case 11: p = "dirmngr-client (@GNUPG@)";
       break;
     case 13: p = VERSION; break;
-    case 17: p = PRINTABLE_OS_NAME; break;
     case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
-    case 49: p = PACKAGE_BUGREPORT; break;
+    case 49: p = PACKAGE; break;
     case 1:
     case 40: p =
                  _("Usage: dirmngr-client [options] "
@@ -184,7 +183,7 @@ my_strusage (int level)
 
 
 int
-main (int argc, char **argv )
+dirmngr_client_main (int argc, char **argv )
 {
   ARGPARSE_ARGS pargs;
   assuan_context_t ctx;

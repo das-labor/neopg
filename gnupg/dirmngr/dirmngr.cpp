@@ -78,6 +78,7 @@
 # define ENAMETOOLONG EINVAL
 #endif
 
+struct options dirmngr_opt;
 
 enum cmd_and_opt_values {
   aNull = 0,
@@ -369,24 +370,20 @@ static fingerprint_list_t parse_ocsp_signer (const char *string);
 static void netactivity_action (void);
 static void handle_connections (assuan_fd_t listen_fd);
 
-/* NPth wrapper function definitions. */
-ASSUAN_SYSTEM_NPTH_IMPL;
-
 static const char *
 my_strusage( int level )
 {
-  const char *p;
+  const char *p = NULL;
   switch ( level )
     {
     case 11: p = "@DIRMNGR@ (@GNUPG@)";
       break;
     case 13: p = VERSION; break;
-    case 17: p = PRINTABLE_OS_NAME; break;
       /* TRANSLATORS: @EMAIL@ will get replaced by the actual bug
          reporting address.  This is so that we can change the
          reporting address without breaking the translations.  */
     case 19: p = _("Please report bugs to <@EMAIL@>.\n"); break;
-    case 49: p = PACKAGE_BUGREPORT; break;
+    case 49: p = PACKAGE; break;
     case 1:
     case 40: p = _("Usage: @DIRMNGR@ [options] (-h for help)");
       break;
@@ -797,7 +794,7 @@ thread_init (void)
 
 
 int
-main (int argc, char **argv)
+dirmngr_main (int argc, char **argv)
 {
   enum cmd_and_opt_values cmd = 0;
   ARGPARSE_ARGS pargs;
@@ -830,12 +827,6 @@ main (int argc, char **argv)
   init_common_subsystems (&argc, &argv);
 
   gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
-
- /* Check that the libraries are suitable.  Do it here because
-    the option parsing may need services of the libraries. */
-  if (!ksba_check_version (NEED_KSBA_VERSION) )
-    log_fatal( _("%s is too old (need %s, have %s)\n"), "libksba",
-               NEED_KSBA_VERSION, ksba_check_version (NULL) );
 
   ksba_set_malloc_hooks (gcry_malloc, gcry_realloc, gcry_free );
   ksba_set_hash_buffer_function (my_ksba_hash_buffer, NULL);

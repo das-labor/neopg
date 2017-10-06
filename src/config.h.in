@@ -572,9 +572,8 @@
 #define SIZEOF_UNSIGNED_SHORT 2
 #define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
-/* #undef USE_LDAP */
-/* #undef USE_LDAPWRAPPER */
-#define USE_LIBDNS 1
+#define USE_LDAP 1
+/* #define USE_LDAPWRAPPER */
 #define USE_NPTH 1
 /* #undef USE_ONLY_8DOT3 */
 /* #undef USE_SIMPLE_GETTEXT */

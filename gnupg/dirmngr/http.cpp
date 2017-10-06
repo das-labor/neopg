@@ -153,7 +153,7 @@ static gpg_error_t send_request (http_t hd, const char *httphost,
 				 const char *srvtag, unsigned int timeout,
                                  strlist_t headers);
 static char *build_rel_path (parsed_uri_t uri);
-static gpg_error_t parse_response (http_t hd);
+static gpg_err_code_t parse_response (http_t hd);
 
 static gpg_error_t connect_server (const char *server, unsigned short port,
                                    unsigned int flags, const char *srvtag,
