@@ -157,7 +157,7 @@ parse_content_info (ksba_reader_t reader,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   content_len = ti.length;
@@ -169,7 +169,7 @@ parse_content_info (ksba_reader_t reader,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
          && !ti.is_constructed && ti.length) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   if (!content_ndef)
@@ -204,11 +204,11 @@ parse_content_info (ksba_reader_t reader,
           return err;
         }
 
-      if ( ti.class == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed )
+      if ( ti.klasse == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed )
         {
           *has_content = 1;
         }
-      else if ( ti.class == CLASS_UNIVERSAL && ti.tag == 0 && !ti.is_constructed )
+      else if ( ti.klasse == CLASS_UNIVERSAL && ti.tag == 0 && !ti.is_constructed )
         {
           *has_content = 0; /* this is optional - allow NUL tag */
         }
@@ -269,7 +269,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   content_len = ti.length;
@@ -281,7 +281,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
          && !ti.is_constructed && ti.length) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   if (!content_ndef)
@@ -306,7 +306,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   if (!content_ndef)
@@ -350,7 +350,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
       /* Note: the tag may either denote a constructed or a primitve
          object.  Actually this should match the use of NDEF header
          but we don't ceck that */
-      if ( ti.class == CLASS_CONTEXT && ti.tag == 0 )
+      if ( ti.klasse == CLASS_CONTEXT && ti.tag == 0 )
         {
           *has_content = 1;
           if (!content_ndef)
@@ -442,7 +442,7 @@ parse_cms_version (ksba_reader_t reader, int *r_version,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   data_len = ti.length;
@@ -454,7 +454,7 @@ parse_cms_version (ksba_reader_t reader, int *r_version,
   err = _ksba_ber_read_tl (reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
          && !ti.is_constructed && ti.length) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
   if (!data_ndef)
@@ -525,7 +525,7 @@ _ksba_cms_parse_signed_data_part_1 (ksba_cms_t cms)
   err = _ksba_ber_read_tl (cms->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SET
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SET
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CMS_OBJ);  /* not the expected SET tag */
   if (!signed_data_ndef)
@@ -620,7 +620,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
   err = _ksba_ber_read_tl (cms->reader, &ti);
   if (err)
     return err;
-  if (ti.class == CLASS_UNIVERSAL && !ti.tag && !ti.is_constructed)
+  if (ti.klasse == CLASS_UNIVERSAL && !ti.tag && !ti.is_constructed)
     {
       /* well, there might be still an end tag pending; eat it -
          fixme: we should keep track of this to catch invalid
@@ -630,7 +630,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
         return err;
     }
 
-  if (ti.class == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed)
+  if (ti.klasse == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed)
     {  /* Implicit SET OF certificateSet with elements of CHOICE, but
           we assume the first choice which is a Certificate; all other
           choices are obsolete.  We are now parsing a set of
@@ -648,7 +648,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
           err = _ksba_ber_read_tl (cms->reader, &ti);
           if (err)
             return err;
-          if (expect_endtag && !ti.class && ti.tag == TYPE_NULL )
+          if (expect_endtag && !ti.klasse && ti.tag == TYPE_NULL )
             {
               /* This is an end tag.  Read the next tag but don't fail
                  if this is just an EOF.  */
@@ -661,7 +661,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
                 }
               break;
             }
-          if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                 && ti.is_constructed))
             break; /* not a sequence, so we are ready with the set */
 
@@ -691,7 +691,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
         }
     }
 
-  if (ti.class == CLASS_CONTEXT && ti.tag == 1 && ti.is_constructed)
+  if (ti.klasse == CLASS_CONTEXT && ti.tag == 1 && ti.is_constructed)
     {  /* implicit SET OF certificateList.  We should delegate the
           parsing to a - not yet existing - ksba_crl module.  CRLs are
           quite important for other applications too so we should
@@ -709,7 +709,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
           err = _ksba_ber_read_tl (cms->reader, &ti);
           if (err)
             return err;
-          if (expect_endtag && !ti.class && ti.tag == TYPE_NULL )
+          if (expect_endtag && !ti.klasse && ti.tag == TYPE_NULL )
             {
               /* This is an end tag.  Read the next tag but don't fail
                  if this is just an EOF.  */
@@ -722,7 +722,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
                 }
               break;
             }
-          if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                  && ti.is_constructed))
             break; /* not a sequence, so we are ready with the set */
 
@@ -741,7 +741,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
     }
 
   /* expect a SET OF signerInfo */
-  if ( !(ti.class == CLASS_UNIVERSAL
+  if ( !(ti.klasse == CLASS_UNIVERSAL
          && ti.tag == TYPE_SET && ti.is_constructed))
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
 
@@ -845,14 +845,14 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
   if (err)
     return err;
 
-  if (ti.class == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed)
+  if (ti.klasse == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed)
     { /* originatorInfo - but we skip it for now */
       /* well, raise an error */
       return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
     }
 
   /* Next one is the SET OF recipientInfos */
-  if ( !(ti.class == CLASS_UNIVERSAL
+  if ( !(ti.klasse == CLASS_UNIVERSAL
          && ti.tag == TYPE_SET && ti.is_constructed))
     return gpg_error (GPG_ERR_INV_CMS_OBJ);
 
@@ -867,7 +867,7 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
           if (err)
             return err;
 
-          if (!ti2.class && !ti2.tag)
+          if (!ti2.klasse && !ti2.tag)
             break; /* End tag found: ready.  */
 
           /* Not an end tag:  Push it back and run the decoder.  */

@@ -98,7 +98,7 @@ parse_sequence (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
              && ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (ti->length > *len)
@@ -114,7 +114,7 @@ parse_integer (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
      ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -133,7 +133,7 @@ parse_octet_string (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err= _ksba_ber_parse_tl (buf, len, ti);
   if (err)
     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -154,7 +154,7 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
   err = _ksba_ber_parse_tl (buf, len, &ti);
   if (err)
     ;
-  else if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+  else if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
                 && !ti.is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti.length)
@@ -403,7 +403,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   if (ti.ndef)
@@ -414,7 +414,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if (ti.class != CLASS_CONTEXT)
+  if (ti.klasse != CLASS_CONTEXT)
     return gpg_error (GPG_ERR_INV_CRL_OBJ); /* We expected a tag. */
   if (ti.ndef)
     return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -438,7 +438,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CRL_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -460,7 +460,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if (ti.class != CLASS_CONTEXT)
+  if (ti.klasse != CLASS_CONTEXT)
     return gpg_error (GPG_ERR_INV_CRL_OBJ); /* we expected a tag */
   if (ti.ndef)
     return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -564,19 +564,19 @@ ksba_crl_get_crl_number (ksba_crl_t crl, ksba_sexp_t *number)
  **/
 gpg_error_t
 ksba_crl_get_update_times (ksba_crl_t crl,
-                           ksba_isotime_t this,
+                           ksba_isotime_t this_x,
                            ksba_isotime_t next)
 {
-  if (this)
-    *this = 0;
+  if (this_x)
+    *this_x = 0;
   if (next)
     *next = 0;
   if (!crl)
     return gpg_error (GPG_ERR_INV_VALUE);
   if (!*crl->this_update)
     return gpg_error (GPG_ERR_INV_TIME);
-  if (this)
-    _ksba_copy_time (this, crl->this_update);
+  if (this_x)
+    _ksba_copy_time (this_x, crl->this_update);
   if (next)
     _ksba_copy_time (next, crl->next_update);
   return 0;
@@ -767,7 +767,7 @@ parse_one_extension (const unsigned char *der, size_t derlen,
     goto failure;
   if (ti.length > derlen)
     return gpg_error (GPG_ERR_BAD_BER);
-  if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
+  if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
            && !ti.is_constructed)
     {
       if (ti.length != 1)
@@ -848,7 +848,7 @@ parse_to_next_update (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   outer_len = ti.length;
@@ -860,7 +860,7 @@ parse_to_next_update (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   HASH (ti.buf, ti.nhdr);
@@ -885,7 +885,7 @@ parse_to_next_update (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER)
+  if ( ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER)
     {
       if ( ti.is_constructed || !ti.length )
         return gpg_error (GPG_ERR_INV_CRL_OBJ);
@@ -922,7 +922,7 @@ parse_to_next_update (ksba_crl_t crl)
     }
 
   /* read the algorithm identifier */
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   if (!tbs_ndef)
@@ -986,7 +986,7 @@ parse_to_next_update (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL
+  if ( !(ti.klasse == CLASS_UNIVERSAL
          && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
@@ -1013,7 +1013,7 @@ parse_to_next_update (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( ti.class == CLASS_UNIVERSAL
+  if ( ti.klasse == CLASS_UNIVERSAL
        && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
          && !ti.is_constructed )
     {
@@ -1043,7 +1043,7 @@ parse_to_next_update (ksba_crl_t crl)
   /* Read the first sequence tag of the optional SEQ of SEQ. */
   if (tbs_ndef || tbs_len)
     {
-      if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+      if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
           && ti.is_constructed )
         { /* yes, there is one */
           HASH (ti.buf, ti.nhdr);
@@ -1088,7 +1088,7 @@ parse_enumerated (unsigned char const **buf, size_t *len, struct tag_info *ti,
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
      ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -1179,7 +1179,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
     return 0; /* ready */
 
   /* if this is not a SEQUENCE the CRL is invalid */
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   HASH (ti.buf, ti.nhdr);
@@ -1199,7 +1199,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   if (!ndef)
@@ -1235,7 +1235,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL
+  if ( !(ti.klasse == CLASS_UNIVERSAL
          && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
@@ -1268,7 +1268,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
       err = _ksba_ber_read_tl (crl->reader, &ti);
       if (err)
         return err;
-      if ( !(ti.class == CLASS_UNIVERSAL
+      if ( !(ti.klasse == CLASS_UNIVERSAL
              && ti.tag == TYPE_SEQUENCE && ti.is_constructed) )
         return gpg_error (GPG_ERR_INV_CRL_OBJ);
       if (ti.ndef)
@@ -1286,7 +1286,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
           err = _ksba_ber_read_tl (crl->reader, &ti);
           if (err)
             return err;
-          if ( !(ti.class == CLASS_UNIVERSAL
+          if ( !(ti.klasse == CLASS_UNIVERSAL
                  && ti.tag == TYPE_SEQUENCE && ti.is_constructed) )
             return gpg_error (GPG_ERR_INV_CRL_OBJ);
           if (ti.ndef)
@@ -1337,7 +1337,7 @@ parse_crl_extensions (ksba_crl_t crl)
   unsigned char tmpbuf[4096]; /* for extensions */
 
   /* if we do not have a tag [0] we are done with this */
-  if (!(ti.class == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed))
+  if (!(ti.klasse == CLASS_CONTEXT && ti.tag == 0 && ti.is_constructed))
     return 0;
   if (ti.ndef)
     return gpg_error (GPG_ERR_UNSUPPORTED_ENCODING);
@@ -1348,7 +1348,7 @@ parse_crl_extensions (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL
+  if ( !(ti.klasse == CLASS_UNIVERSAL
          && ti.tag == TYPE_SEQUENCE && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   if (ti.ndef)
@@ -1367,7 +1367,7 @@ parse_crl_extensions (ksba_crl_t crl)
       err = _ksba_ber_read_tl (crl->reader, &ti);
       if (err)
         return err;
-      if ( !(ti.class == CLASS_UNIVERSAL
+      if ( !(ti.klasse == CLASS_UNIVERSAL
              && ti.tag == TYPE_SEQUENCE && ti.is_constructed) )
         return gpg_error (GPG_ERR_INV_CRL_OBJ);
       if (ti.ndef)
@@ -1413,7 +1413,7 @@ parse_signature (ksba_crl_t crl)
      our parsing function for this structure */
 
   /* read the algorithmIdentifier sequence */
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   if (ti.ndef)
@@ -1430,7 +1430,7 @@ parse_signature (ksba_crl_t crl)
   err = _ksba_ber_read_tl (crl->reader, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CRL_OBJ);
   n2 = ti.nhdr + ti.length;

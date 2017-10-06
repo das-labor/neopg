@@ -632,7 +632,7 @@ get_name (ksba_cert_t cert, int idx, int use_subject, char **result)
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
   if (ti.ndef)
@@ -648,7 +648,7 @@ get_name (ksba_cert_t cert, int idx, int use_subject, char **result)
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1073,7 +1073,7 @@ ksba_cert_is_ca (ksba_cert_t cert, int *r_ca, int *r_pathlen)
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
   if (ti.ndef)
@@ -1095,7 +1095,7 @@ ksba_cert_is_ca (ksba_cert_t cert, int *r_ca, int *r_pathlen)
     return gpg_error (GPG_ERR_BAD_BER);
   seqlen -= ti.length;
 
-  if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN)
+  if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN)
     {
       if (ti.length != 1)
         return gpg_error (GPG_ERR_ENCODING_PROBLEM);
@@ -1116,7 +1116,7 @@ ksba_cert_is_ca (ksba_cert_t cert, int *r_ca, int *r_pathlen)
       seqlen -= ti.length;
     }
 
-  if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER))
+  if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER))
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
 
   for (value=0; ti.length; ti.length--)
@@ -1180,7 +1180,7 @@ ksba_cert_get_key_usage (ksba_cert_t cert, unsigned int *r_flags)
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
   if (ti.ndef)
@@ -1303,7 +1303,7 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
           err = _ksba_ber_parse_tl (&der, &derlen, &ti);
           if (err)
             goto leave;
-          if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                  && ti.is_constructed) )
             {
               err = gpg_error (GPG_ERR_INV_CERT_OBJ);
@@ -1327,7 +1327,7 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
               err = _ksba_ber_parse_tl (&der, &derlen, &ti);
               if (err)
                 goto leave;
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                      && ti.is_constructed) )
                 {
                   err = gpg_error (GPG_ERR_INV_CERT_OBJ);
@@ -1360,7 +1360,7 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
               err = _ksba_ber_parse_tl (&der, &derlen, &ti);
               if (err)
                 goto leave;
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
                 {
                   err = gpg_error (GPG_ERR_INV_CERT_OBJ);
                   goto leave;
@@ -1446,7 +1446,7 @@ ksba_cert_get_ext_key_usages (ksba_cert_t cert, char **result)
           err = _ksba_ber_parse_tl (&der, &derlen, &ti);
           if (err)
             goto leave;
-          if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                  && ti.is_constructed) )
             {
               err = gpg_error (GPG_ERR_INV_CERT_OBJ);
@@ -1467,7 +1467,7 @@ ksba_cert_get_ext_key_usages (ksba_cert_t cert, char **result)
               err = _ksba_ber_parse_tl (&der, &derlen, &ti);
               if (err)
                 goto leave;
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID))
                 {
                   err = gpg_error (GPG_ERR_INV_CERT_OBJ);
                   goto leave;
@@ -1529,7 +1529,7 @@ parse_distribution_point (const unsigned char *der, size_t derlen,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if (ti.class != CLASS_CONTEXT)
+  if (ti.klasse != CLASS_CONTEXT)
     return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
   if (ti.ndef)
     return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1541,7 +1541,7 @@ parse_distribution_point (const unsigned char *der, size_t derlen,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1573,7 +1573,7 @@ parse_distribution_point (const unsigned char *der, size_t derlen,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1636,7 +1636,7 @@ parse_distribution_point (const unsigned char *der, size_t derlen,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1710,7 +1710,7 @@ ksba_cert_get_crl_dist_point (ksba_cert_t cert, int idx,
           err = _ksba_ber_parse_tl (&der, &derlen, &ti);
           if (err)
             return err;
-          if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                  && ti.is_constructed) )
             return gpg_error (GPG_ERR_INV_CERT_OBJ);
           if (ti.ndef)
@@ -1727,7 +1727,7 @@ ksba_cert_get_crl_dist_point (ksba_cert_t cert, int idx,
               err = _ksba_ber_parse_tl (&der, &derlen, &ti);
               if (err)
                 return err;
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                      && ti.is_constructed) )
                 return gpg_error (GPG_ERR_INV_CERT_OBJ);
               if (derlen < ti.length)
@@ -1827,7 +1827,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
   if (ti.ndef)
@@ -1838,7 +1838,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if (ti.class != CLASS_CONTEXT)
+  if (ti.klasse != CLASS_CONTEXT)
     return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
   if (ti.ndef)
     return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1861,7 +1861,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1883,7 +1883,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if (ti.class != CLASS_CONTEXT)
+  if (ti.klasse != CLASS_CONTEXT)
     return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
   if (ti.ndef)
     return gpg_error (GPG_ERR_NOT_DER_ENCODED);
@@ -1971,7 +1971,7 @@ get_simple_octet_string_ext (ksba_cert_t cert, const char *oid,
   err = _ksba_ber_parse_tl (&der, &derlen, &ti);
   if (err)
     return err;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
          && !ti.is_constructed) )
     return gpg_error (GPG_ERR_INV_CERT_OBJ);
   if (ti.ndef)
@@ -2057,7 +2057,7 @@ get_info_access (ksba_cert_t cert, int idx, int mode,
           err = _ksba_ber_parse_tl (&der, &derlen, &ti);
           if (err)
             return err;
-          if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+          if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                  && ti.is_constructed) )
             return gpg_error (GPG_ERR_INV_CERT_OBJ);
           if (ti.ndef)
@@ -2074,7 +2074,7 @@ get_info_access (ksba_cert_t cert, int idx, int mode,
               err = _ksba_ber_parse_tl (&der, &derlen, &ti);
               if (err)
                 return err;
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
                      && ti.is_constructed) )
                 return gpg_error (GPG_ERR_INV_CERT_OBJ);
               if (derlen < ti.length)
@@ -2104,7 +2104,7 @@ get_info_access (ksba_cert_t cert, int idx, int mode,
               if (err)
                 return err;
 
-              if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+              if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
                      && !ti.is_constructed))
                 return gpg_error (GPG_ERR_INV_CERT_OBJ);
               if (ti.ndef)

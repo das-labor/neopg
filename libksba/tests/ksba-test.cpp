@@ -2,11 +2,9 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
   int oid_main(int argc, char* argv[]);
   int crl_parser_main(int argc, char* argv[]);
   int dnparser_main(int argc, char* argv[]);
-}
 
 TEST(KsbaTest, oid) {
     int result = oid_main(0, NULL);

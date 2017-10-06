@@ -35,14 +35,6 @@
 #include <gpg-error.h>
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
- }
-#endif
-#endif
-
-
 /* Check for compiler features.  */
 #ifdef __GNUC__
 #define _KSBA_GCC_VERSION (__GNUC__ * 10000 \
@@ -544,7 +536,4 @@ void *ksba_realloc (void *p, size_t n);
 char *ksba_strdup (const char *p);
 void  ksba_free ( void *a );
 
-#ifdef __cplusplus
-}
-#endif
 #endif /*KSBA_H*/

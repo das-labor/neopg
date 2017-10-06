@@ -33,7 +33,7 @@
 
 
 struct tag_info {
-  enum tag_class class;
+  enum tag_class klasse;
   int is_constructed;
   unsigned long tag;
   unsigned long length;  /* length part of the TLV */
@@ -50,16 +50,16 @@ gpg_error_t _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
                                 struct tag_info *ti);
 gpg_error_t _ksba_ber_write_tl (ksba_writer_t writer,
                                 unsigned long tag,
-                                enum tag_class class,
+                                enum tag_class klasse,
                                 int constructed,
                                 unsigned long length);
 size_t _ksba_ber_encode_tl (unsigned char *buffer,
                             unsigned long tag,
-                            enum tag_class class,
+                            enum tag_class klasse,
                             int constructed,
                             unsigned long length);
 size_t _ksba_ber_count_tl (unsigned long tag,
-                           enum tag_class class,
+                           enum tag_class klasse,
                            int constructed,
                            unsigned long length);
 

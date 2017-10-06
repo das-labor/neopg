@@ -133,7 +133,7 @@ read_and_hash_cont (ksba_cms_t cms)
           if (err)
             return err;
 
-          if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+          if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
               && !ti.is_constructed)
             { /* next chunk */
               nleft = ti.length;
@@ -141,7 +141,7 @@ read_and_hash_cont (ksba_cms_t cms)
               if (err)
                 return err;
             }
-          else if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+          else if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
                    && ti.is_constructed)
             { /* next chunk is constructed */
               for (;;)
@@ -149,7 +149,7 @@ read_and_hash_cont (ksba_cms_t cms)
                   err = _ksba_ber_read_tl (cms->reader, &ti);
                   if (err)
                     return err;
-                  if (ti.class == CLASS_UNIVERSAL
+                  if (ti.klasse == CLASS_UNIVERSAL
                       && ti.tag == TYPE_OCTET_STRING
                       && !ti.is_constructed)
                     {
@@ -158,14 +158,14 @@ read_and_hash_cont (ksba_cms_t cms)
                       if (err)
                         return err;
                     }
-                  else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+                  else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                            && !ti.is_constructed)
                     break; /* ready with this chunk */
                   else
                     return gpg_error (GPG_ERR_ENCODING_PROBLEM);
                 }
             }
-          else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+          else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                    && !ti.is_constructed)
             return 0; /* ready */
           else
@@ -191,7 +191,7 @@ read_and_hash_cont (ksba_cms_t cms)
         return gpg_error (GPG_ERR_ENCODING_PROBLEM);
       nleft -= ti.nhdr;
 
-      if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+      if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
           && ti.is_constructed)
         { /* Next chunk is constructed */
           for (;;)
@@ -199,7 +199,7 @@ read_and_hash_cont (ksba_cms_t cms)
               err = _ksba_ber_read_tl (cms->reader, &ti);
               if (err)
                 return err;
-              if (ti.class == CLASS_UNIVERSAL
+              if (ti.klasse == CLASS_UNIVERSAL
                   && ti.tag == TYPE_OCTET_STRING
                   && !ti.is_constructed)
                 {
@@ -208,14 +208,14 @@ read_and_hash_cont (ksba_cms_t cms)
                   if (err)
                     return err;
                 }
-              else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+              else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                        && !ti.is_constructed)
                 break; /* Ready with this chunk */
               else
                 return gpg_error (GPG_ERR_ENCODING_PROBLEM);
             }
         }
-      else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+      else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                && !ti.is_constructed)
         return 0; /* ready */
       else
@@ -252,7 +252,7 @@ read_encrypted_cont (ksba_cms_t cms)
           if (err)
             return err;
 
-          if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+          if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
               && !ti.is_constructed)
             { /* next chunk */
               nleft = ti.length;
@@ -268,7 +268,7 @@ read_encrypted_cont (ksba_cms_t cms)
                     return err;
                 }
             }
-          else if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
+          else if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
                    && ti.is_constructed)
             { /* next chunk is constructed */
               for (;;)
@@ -276,7 +276,7 @@ read_encrypted_cont (ksba_cms_t cms)
                   err = _ksba_ber_read_tl (cms->reader, &ti);
                   if (err)
                     return err;
-                  if (ti.class == CLASS_UNIVERSAL
+                  if (ti.klasse == CLASS_UNIVERSAL
                       && ti.tag == TYPE_OCTET_STRING
                       && !ti.is_constructed)
                     {
@@ -294,14 +294,14 @@ read_encrypted_cont (ksba_cms_t cms)
                             return err;
                         }
                     }
-                  else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+                  else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                            && !ti.is_constructed)
                     break; /* ready with this chunk */
                   else
                     return gpg_error (GPG_ERR_ENCODING_PROBLEM);
                 }
             }
-          else if (ti.class == CLASS_UNIVERSAL && !ti.tag
+          else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                    && !ti.is_constructed)
             return 0; /* ready */
           else
@@ -405,12 +405,12 @@ ksba_cms_identify (ksba_reader_t reader)
   p = buffer;
   if (_ksba_ber_parse_tl (&p, &n, &ti))
     return KSBA_CT_NONE;
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
          && ti.is_constructed) )
     return KSBA_CT_NONE;
   if (_ksba_ber_parse_tl (&p, &n, &ti))
     return KSBA_CT_NONE;
-  if ( ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
+  if ( ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_INTEGER
        && !ti.is_constructed && ti.length == 1 && n && *p == 3)
     {
       maybe_p12 = 1;
@@ -418,13 +418,13 @@ ksba_cms_identify (ksba_reader_t reader)
       n--;
       if (_ksba_ber_parse_tl (&p, &n, &ti))
         return KSBA_CT_NONE;
-      if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
+      if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_SEQUENCE
              && ti.is_constructed) )
         return KSBA_CT_NONE;
       if (_ksba_ber_parse_tl (&p, &n, &ti))
         return KSBA_CT_NONE;
     }
-  if ( !(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+  if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
          && !ti.is_constructed && ti.length) || ti.length > n)
     return KSBA_CT_NONE;
   oid = ksba_oid_to_str (p, ti.length);

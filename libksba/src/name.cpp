@@ -123,7 +123,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
       err = _ksba_ber_parse_tl (&der, &derlen, &ti);
       if (err)
         return err;
-      if (ti.class != CLASS_CONTEXT)
+      if (ti.klasse != CLASS_CONTEXT)
         return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
       if (ti.ndef)
         return gpg_error (GPG_ERR_NOT_DER_ENCODED);

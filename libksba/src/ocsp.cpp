@@ -83,7 +83,7 @@ parse_sequence (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
              && ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (ti->length > *len)
@@ -100,7 +100,7 @@ parse_enumerated (unsigned char const **buf, size_t *len, struct tag_info *ti,
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
      ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -121,7 +121,7 @@ parse_integer (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
      ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -140,7 +140,7 @@ parse_octet_string (unsigned char const **buf, size_t *len, struct tag_info *ti)
   err= _ksba_ber_parse_tl (buf, len, ti);
   if (err)
     ;
-  else if (!(ti->class == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
+  else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
              && !ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti->length)
@@ -169,7 +169,7 @@ parse_optional_boolean (unsigned char const **buf, size_t *len, int *r_bool)
     err = gpg_error (GPG_ERR_TOO_SHORT);
   else if (ti.length > *len)
     err = gpg_error (GPG_ERR_BAD_BER);
-  else if (ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
+  else if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
            && !ti.is_constructed)
     {
       if (ti.length != 1)
@@ -198,7 +198,7 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
   err = _ksba_ber_parse_tl (buf, len, &ti);
   if (err)
     ;
-  else if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
+  else if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
                 && !ti.is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti.length)
@@ -226,7 +226,7 @@ parse_asntime_into_isotime (unsigned char const **buf, size_t *len,
   err = _ksba_ber_parse_tl (buf, len, &ti);
   if (err)
     ;
-  else if ( !(ti.class == CLASS_UNIVERSAL
+  else if ( !(ti.klasse == CLASS_UNIVERSAL
               && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
               && !ti.is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
@@ -249,7 +249,7 @@ parse_context_tag (unsigned char const **buf, size_t *len, struct tag_info *ti,
   err = _ksba_ber_parse_tl (buf, len, ti);
   if (err)
     ;
-  else if (!(ti->class == CLASS_CONTEXT && ti->tag == tag
+  else if (!(ti->klasse == CLASS_CONTEXT && ti->tag == tag
 	     && ti->is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (ti->length > *len)
@@ -1211,7 +1211,7 @@ parse_single_response (ksba_ocsp_t ocsp,
     return err;
   if (ti.length > *datalen)
     return gpg_error (GPG_ERR_BAD_BER);
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 0  && !ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 0  && !ti.is_constructed)
     { /* good */
       if (!ti.length)
         ; /* Cope with zero length objects. */
@@ -1226,7 +1226,7 @@ parse_single_response (ksba_ocsp_t ocsp,
       if (request_item)
         request_item->status = KSBA_STATUS_GOOD;
     }
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     { /* revoked */
       ksba_crl_reason_t reason = KSBA_CRLREASON_UNSPECIFIED;
 
@@ -1271,7 +1271,7 @@ parse_single_response (ksba_ocsp_t ocsp,
           request_item->revocation_reason = reason;
         }
     }
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 2 && !ti.is_constructed
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 2 && !ti.is_constructed
            && *datalen)
     { /* unknown */
       if (!ti.length)
@@ -1314,7 +1314,7 @@ parse_single_response (ksba_ocsp_t ocsp,
     return err;
   if (ti.length > *datalen)
     return gpg_error (GPG_ERR_BAD_BER);
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 0  && ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 0  && ti.is_constructed)
     { /* have nextUpdate */
       err = parse_asntime_into_isotime (data, datalen, next_update);
       if (err)
@@ -1323,7 +1323,7 @@ parse_single_response (ksba_ocsp_t ocsp,
       if (request_item)
         _ksba_copy_time (request_item->next_update, next_update);
     }
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     { /* Undo that read. */
       *data -= ti.nhdr;
       *datalen += ti.nhdr;
@@ -1339,7 +1339,7 @@ parse_single_response (ksba_ocsp_t ocsp,
     return err;
   if (ti.length > *datalen)
     return gpg_error (GPG_ERR_BAD_BER);
-  if (ti.class == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
+  if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     {
       if (request_item)
         {
@@ -1408,14 +1408,14 @@ parse_response_data (ksba_ocsp_t ocsp,
     return err;
   if (ti.length > *datalen)
     return gpg_error (GPG_ERR_BAD_BER);
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     { /* byName. */
       err = _ksba_derdn_to_str (*data, ti.length, &ocsp->responder_id.name);
       if (err)
         return err;
       parse_skip (data, datalen, &ti);
     }
-  else if (ti.class == CLASS_CONTEXT && ti.tag == 2  && ti.is_constructed)
+  else if (ti.klasse == CLASS_CONTEXT && ti.tag == 2  && ti.is_constructed)
     { /* byKey. */
       err = parse_octet_string (data, datalen, &ti);
       if (err)
@@ -1532,7 +1532,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
   err= _ksba_ber_parse_tl (&msg, &msglen, &ti);
   if (err)
     return err;
-  if (!(ti.class == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
+  if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
         && !ti.is_constructed) )
     err = gpg_error (GPG_ERR_INV_OBJ);
   else if (!ti.length)

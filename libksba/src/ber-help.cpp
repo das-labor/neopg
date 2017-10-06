@@ -106,7 +106,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
     return eof_or_error (reader, ti, 0);
 
   ti->buf[ti->nhdr++] = c;
-  ti->class = (c & 0xc0) >> 6;
+  ti->klasse = (c & 0xc0) >> 6;
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
@@ -182,7 +182,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
     }
 
   /* Without this kludge some example certs can't be parsed */
-  if (ti->class == CLASS_UNIVERSAL && !ti->tag)
+  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag)
     ti->length = 0;
 
   return 0;
@@ -213,7 +213,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   c = *buf++; length--;
 
   ti->buf[ti->nhdr++] = c;
-  ti->class = (c & 0xc0) >> 6;
+  ti->klasse = (c & 0xc0) >> 6;
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
@@ -295,7 +295,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
 
 
   /* Without this kludge some example certs can't be parsed */
-  if (ti->class == CLASS_UNIVERSAL && !ti->tag)
+  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag)
     ti->length = 0;
 
   *buffer = buf;
@@ -311,7 +311,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
 gpg_error_t
 _ksba_ber_write_tl (ksba_writer_t writer,
                     unsigned long tag,
-                    enum tag_class class,
+                    enum tag_class klasse,
                     int constructed,
                     unsigned long length)
 {
@@ -320,7 +320,7 @@ _ksba_ber_write_tl (ksba_writer_t writer,
 
   if (tag < 0x1f)
     {
-      *buf = (class << 6) | tag;
+      *buf = (klasse << 6) | tag;
       if (constructed)
         *buf |= 0x20;
       buflen++;
@@ -330,9 +330,9 @@ _ksba_ber_write_tl (ksba_writer_t writer,
       return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
     }
 
-  if (!tag && !class)
+  if (!tag && !klasse)
     buf[buflen++] = 0; /* end tag */
-  else if (tag == TYPE_NULL && !class)
+  else if (tag == TYPE_NULL && !klasse)
     buf[buflen++] = 0; /* NULL tag */
   else if (!length)
     buf[buflen++] = 0x80; /* indefinite length */
@@ -371,7 +371,7 @@ _ksba_ber_write_tl (ksba_writer_t writer,
 size_t
 _ksba_ber_encode_tl (unsigned char *buffer,
                      unsigned long tag,
-                     enum tag_class class,
+                     enum tag_class klasse,
                      int constructed,
                      unsigned long length)
 {
@@ -379,7 +379,7 @@ _ksba_ber_encode_tl (unsigned char *buffer,
 
   if (tag < 0x1f)
     {
-      *buf = (class << 6) | tag;
+      *buf = (klasse << 6) | tag;
       if (constructed)
         *buf |= 0x20;
       buf++;
@@ -389,9 +389,9 @@ _ksba_ber_encode_tl (unsigned char *buffer,
       return 0; /*Not implemented*/
     }
 
-  if (!tag && !class)
+  if (!tag && !klasse)
     *buf++ = 0; /* end tag */
-  else if (tag == TYPE_NULL && !class)
+  else if (tag == TYPE_NULL && !klasse)
     *buf++ = 0; /* NULL tag */
   else if (!length)
     *buf++ = 0x80; /* indefinite length */
@@ -428,7 +428,7 @@ _ksba_ber_encode_tl (unsigned char *buffer,
    tag. */
 size_t
 _ksba_ber_count_tl (unsigned long tag,
-                    enum tag_class class,
+                    enum tag_class klasse,
                     int constructed,
                     unsigned long length)
 {
@@ -445,9 +445,9 @@ _ksba_ber_count_tl (unsigned long tag,
       buflen++; /* assume one and let the actual write function bail out */
     }
 
-  if (!tag && !class)
+  if (!tag && !klasse)
     buflen++; /* end tag */
-  else if (tag == TYPE_NULL && !class)
+  else if (tag == TYPE_NULL && !klasse)
     buflen++; /* NULL tag */
   else if (!length)
     buflen++; /* indefinite length */

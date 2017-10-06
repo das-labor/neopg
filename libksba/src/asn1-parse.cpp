@@ -1643,7 +1643,7 @@ yyreduce:
 #line 276 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_TAG);
-                  (yyval.node)->flags.class = CLASS_CONTEXT;
+                  (yyval.node)->flags.klasse = CLASS_CONTEXT;
                   set_ulong_value ((yyval.node), (yyvsp[-1].str));
                 }
 #line 1650 "asn1-parse.c" /* yacc.c:1646  */
@@ -1653,7 +1653,7 @@ yyreduce:
 #line 282 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_TAG);
-                  (yyval.node)->flags.class = (yyvsp[-2].constant);
+                  (yyval.node)->flags.klasse = (yyvsp[-2].constant);
                   set_ulong_value ((yyval.node), (yyvsp[-1].str));
                 }
 #line 1660 "asn1-parse.c" /* yacc.c:1646  */
@@ -1669,7 +1669,7 @@ yyreduce:
 #line 292 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
            (yyval.node) = (yyvsp[-1].node);
-           (yyval.node)->flags.explicit = 1;
+           (yyval.node)->flags.explicit_x = 1;
          }
 #line 1675 "asn1-parse.c" /* yacc.c:1646  */
     break;
@@ -2373,7 +2373,7 @@ yyreduce:
                  (yyval.node) = node = NEW_NODE (TYPE_DEFINITIONS);
 
                  if ((yyvsp[-6].constant) == CONST_EXPLICIT)
-                   node->flags.explicit = 1;
+                   node->flags.explicit_x = 1;
                  else if ((yyvsp[-6].constant) == CONST_IMPLICIT)
                    node->flags.implicit = 1;
 

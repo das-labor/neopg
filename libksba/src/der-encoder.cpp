@@ -451,11 +451,11 @@ static size_t
 copy_nhdr_and_len (unsigned char *buffer, AsnNode node)
 {
   unsigned char *p = buffer;
-  int tag, class;
+  int tag, klasse;
   unsigned long length;
 
   tag = node->type;
-  class = CLASS_UNIVERSAL;
+  klasse = CLASS_UNIVERSAL;
   length = node->len;
 
   if (tag == TYPE_SET_OF)
@@ -466,12 +466,12 @@ copy_nhdr_and_len (unsigned char *buffer, AsnNode node)
     tag = TYPE_SEQUENCE;
   else if (tag == TYPE_TAG)
     {
-      class = CLASS_CONTEXT;  /* Hmmm: we no way to handle other classes */
+      klasse = CLASS_CONTEXT;  /* Hmmm: we no way to handle other classes */
       tag = node->value.v_ulong;
     }
   if (tag < 0x1f)
     {
-      *p = (class << 6) | tag;
+      *p = (klasse << 6) | tag;
       if (!_ksba_asn_is_primitive (tag))
         *p |= 0x20;
       p++;
@@ -481,9 +481,9 @@ copy_nhdr_and_len (unsigned char *buffer, AsnNode node)
       /* fixme: Not_Implemented*/
     }
 
-  if (!tag && !class)
+  if (!tag && !klasse)
     *p++ = 0; /* end tag */
-  else if (tag == TYPE_NULL && !class)
+  else if (tag == TYPE_NULL && !klasse)
     *p++ = 0; /* NULL tag */
   else if (!length)
     *p++ = 0x80; /* indefinite length - can't happen! */

@@ -88,8 +88,8 @@ enum tag_class {
 
 /* Important: this must match the code in asn1-gentables.c */
 struct node_flag_s {
-  enum tag_class class;
-  int explicit:1;
+  enum tag_class klasse;
+  int explicit_x:1;
   int implicit:1;
   int has_imports:1;
   int assignment:1;  /* node is an assignment */

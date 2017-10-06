@@ -472,7 +472,7 @@ _ksba_asn_node_dump (AsnNode p, FILE *fp)
     fprintf (fp, " `%s'", p->name);
   print_value (p, fp);
   fputs ("  ", fp);
-  switch (p->flags.class)
+  switch (p->flags.klasse)
     {
     case CLASS_UNIVERSAL:   fputs ("U", fp); break;
     case CLASS_PRIVATE:     fputs ("P", fp); break;
@@ -480,7 +480,7 @@ _ksba_asn_node_dump (AsnNode p, FILE *fp)
     case CLASS_CONTEXT:     fputs ("C", fp); break;
     }
 
-  if (p->flags.explicit)
+  if (p->flags.explicit_x)
     fputs (",explicit", fp);
   if (p->flags.implicit)
     fputs (",implicit", fp);
@@ -943,10 +943,10 @@ _ksba_asn_set_default_tag (AsnNode node)
   for (p = node; p; p = _ksba_asn_walk_tree (node, p))
     {
       if ( p->type == TYPE_TAG
-           && !p->flags.explicit && !p->flags.implicit)
+           && !p->flags.explicit_x && !p->flags.implicit)
 	{
-	  if (node->flags.explicit)
-	    p->flags.explicit = 1;
+	  if (node->flags.explicit_x)
+	    p->flags.explicit_x = 1;
 	  else
 	    p->flags.implicit = 1;
 	}

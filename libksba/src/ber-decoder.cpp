@@ -278,16 +278,16 @@ dump_tlv (const struct tag_info *ti, FILE *fp)
 {
   const char *tagname = NULL;
 
-  if (ti->class == CLASS_UNIVERSAL)
+  if (ti->klasse == CLASS_UNIVERSAL)
     tagname = universal_tag_name (ti->tag);
 
   if (tagname)
     fputs (tagname, fp);
   else
     fprintf (fp, "[%s %lu]",
-             ti->class == CLASS_UNIVERSAL? "UNIVERSAL" :
-             ti->class == CLASS_APPLICATION? "APPLICATION" :
-             ti->class == CLASS_CONTEXT? "CONTEXT-SPECIFIC" : "PRIVATE",
+             ti->klasse == CLASS_UNIVERSAL? "UNIVERSAL" :
+             ti->klasse == CLASS_APPLICATION? "APPLICATION" :
+             ti->klasse == CLASS_CONTEXT? "CONTEXT-SPECIFIC" : "PRIVATE",
              ti->tag);
   fprintf (fp, " %c hdr=%lu len=",
            ti->is_constructed? 'c':'p',
@@ -451,9 +451,9 @@ read_buffer (ksba_reader_t reader, char *buffer, size_t count)
 static int
 cmp_tag (AsnNode node, const struct tag_info *ti)
 {
-  if (node->flags.class != ti->class)
+  if (node->flags.klasse != ti->klasse)
     {
-      if (node->flags.class == CLASS_UNIVERSAL && node->type == TYPE_ANY)
+      if (node->flags.klasse == CLASS_UNIVERSAL && node->type == TYPE_ANY)
         return ti->is_constructed? 2:1;
       return 0;
     }
@@ -464,7 +464,7 @@ cmp_tag (AsnNode node, const struct tag_info *ti)
     }
   if (node->type == ti->tag)
     return 1;
-  if (ti->class == CLASS_UNIVERSAL)
+  if (ti->klasse == CLASS_UNIVERSAL)
     {
       if (node->type == TYPE_SEQUENCE_OF && ti->tag == TYPE_SEQUENCE)
         return 1;
@@ -895,7 +895,7 @@ decoder_next (BerDecoder d)
         {
           again = endtag = 0;
           switch ( ds->cur.in_any? 4
-                   : (ti.class == CLASS_UNIVERSAL && !ti.tag)? (endtag=1,5)
+                   : (ti.klasse == CLASS_UNIVERSAL && !ti.tag)? (endtag=1,5)
                    : match_der (d->root, &ti, ds, &node, debug))
             {
             case -1:
@@ -1024,7 +1024,7 @@ decoder_next (BerDecoder d)
   d->val.length = ti.length;
   d->val.nhdr = ti.nhdr;
   d->val.tag  = ti.tag; /* kludge to fix TYPE_ANY probs */
-  d->val.is_endtag = (ti.class == CLASS_UNIVERSAL && !ti.tag);
+  d->val.is_endtag = (ti.klasse == CLASS_UNIVERSAL && !ti.tag);
   d->val.node = d->bypass? NULL : node;
   if (debug)
     dump_decoder_state (ds);

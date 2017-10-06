@@ -147,7 +147,7 @@ one_file (const char *fname)
           {
             const char *algoid;
             char *issuer;
-            ksba_isotime_t this, next;
+            ksba_isotime_t this_x, next;
 
             algoid = ksba_crl_get_digest_algo (crl);
             printf ("digest algo: %s\n", algoid? algoid : "[none]");
@@ -158,11 +158,11 @@ one_file (const char *fname)
             print_dn (issuer);
             xfree (issuer);
             putchar ('\n');
-            err = ksba_crl_get_update_times (crl, this, next);
+            err = ksba_crl_get_update_times (crl, this_x, next);
             if (gpg_err_code (err) != GPG_ERR_INV_TIME)
               fail_if_err2 (fname, err);
             printf ("thisUpdate: ");
-            print_time (this);
+            print_time (this_x);
             putchar ('\n');
             printf ("nextUpdate: ");
             print_time (next);
