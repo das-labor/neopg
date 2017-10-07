@@ -656,9 +656,6 @@ gnupg_rename_file (const char *oldname, const char *newname, int *block_signals)
   }
 #else /* Unix */
   {
-#ifdef __riscos__
-    gnupg_remove (newname);
-#endif
     if (rename (oldname, newname) )
       err = my_error_from_syserror ();
   }

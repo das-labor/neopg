@@ -145,9 +145,6 @@ got_fatal_signal (int sig)
   /* Reset action to default action and raise signal again */
   init_one_signal (sig, SIG_DFL, 0);
   /* Fixme: remove_lockfiles ();*/
-#ifdef __riscos__
-  close_fds ();
-#endif /* __riscos__ */
   raise( sig );
 }
 #endif /*!HAVE_DOSISH_SYSTEM*/

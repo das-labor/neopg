@@ -274,14 +274,14 @@ sm_keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_create
           rt = KEYDB_RESOURCE_TYPE_KEYBOX;
           resname += 10;
 	}
-#if !defined(HAVE_DRIVE_LETTERS) && !defined(__riscos__)
+#if !defined(HAVE_DRIVE_LETTERS)
       else if (strchr (resname, ':'))
         {
           log_error ("invalid key resource URL '%s'\n", url );
           err = gpg_error (GPG_ERR_GENERAL);
           goto leave;
 	}
-#endif /* !HAVE_DRIVE_LETTERS && !__riscos__ */
+#endif /* !HAVE_DRIVE_LETTERS */
     }
 
   if (*resname != DIRSEP_C )

@@ -67,9 +67,7 @@
  */
 #ifndef HAVE_BYTE_TYPEDEF
 #  undef byte	    /* There might be a macro with this name.  */
-#  ifdef __riscos__
-     typedef char byte;
-#  elif !(defined(_WIN32) && defined(cbNDRContext))
+#  if !(defined(_WIN32) && defined(cbNDRContext))
      typedef unsigned char byte;
 #  endif
 #  define HAVE_BYTE_TYPEDEF

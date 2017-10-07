@@ -306,14 +306,9 @@ length_sans_trailing_ws (const unsigned char *line, size_t len)
  * terminates the process on memory shortage.
  */
 char *
-make_basename(const char *filepath, const char *inputpath)
+make_basename(const char *filepath)
 {
-#ifdef __riscos__
-    return riscos_make_basename(filepath, inputpath);
-#else
     char *p;
-
-    (void)inputpath; /* Only required for riscos.  */
 
     if ( !(p=strrchr(filepath, '/')) )
 #ifdef HAVE_DOSISH_SYSTEM
@@ -327,7 +322,6 @@ make_basename(const char *filepath, const char *inputpath)
 	      }
 
     return xstrdup(p+1);
-#endif
 }
 
 

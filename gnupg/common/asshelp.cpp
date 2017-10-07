@@ -260,53 +260,6 @@ send_pinentry_environment (assuan_context_t ctx,
 }
 
 
-/* Lock a spawning process.  The caller needs to provide the address
-   of a variable to store the lock information and the name or the
-   process.  */
-static gpg_error_t
-lock_spawning (lock_spawn_t *lock, const char *homedir, const char *name,
-               int verbose)
-{
-  char *fname;
-  (void)verbose;
-
-  *lock = NULL;
-
-  fname = make_absfilename_try
-    (homedir,
-     !strcmp (name, "agent")?   "gnupg_spawn_agent_sentinel":
-     !strcmp (name, "dirmngr")? "gnupg_spawn_dirmngr_sentinel":
-     /*                    */   "gnupg_spawn_unknown_sentinel",
-     NULL);
-  if (!fname)
-    return gpg_error_from_syserror ();
-
-  *lock = dotlock_create (fname, 0);
-  xfree (fname);
-  if (!*lock)
-    return gpg_error_from_syserror ();
-
-  /* FIXME: We should use a timeout of 5000 here - however
-     make_dotlock does not yet support values other than -1 and 0.  */
-  if (dotlock_take (*lock, -1))
-    return gpg_error_from_syserror ();
-
-  return 0;
-}
-
-
-/* Unlock the spawning process.  */
-static void
-unlock_spawning (lock_spawn_t *lock, const char *name)
-{
-  if (*lock)
-    {
-      (void)name;
-      dotlock_destroy (*lock);
-      *lock = NULL;
-    }
-}
-
 extern char *neopg_program;
 
 /* Try to connect to the agent via socket or start it if it is not

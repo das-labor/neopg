@@ -1582,9 +1582,6 @@ check_regexp(const char *expr,const char *string)
 
   regexp=sanitize_regexp(expr);
 
-#ifdef __riscos__
-  ret=riscos_check_regexp(expr, string, DBG_TRUST);
-#else
   {
     regex_t pat;
 
@@ -1596,7 +1593,6 @@ check_regexp(const char *expr,const char *string)
       }
     ret=(ret==0);
   }
-#endif
 
   if(DBG_TRUST)
     log_debug("regexp '%s' ('%s') on '%s': %s\n",

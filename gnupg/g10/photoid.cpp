@@ -278,8 +278,6 @@ static const char *get_default_photo_command(void)
 #elif defined(__APPLE__)
   /* OS X.  This really needs more than just __APPLE__. */
   return "open %I";
-#elif defined(__riscos__)
-  return "Filer_Run %I";
 #else
   return "xloadimage -fork -quiet -title 'KeyID 0x%k' stdin";
 #endif
@@ -354,11 +352,6 @@ show_photos (ctrl_t ctrl, const struct user_attribute *attrs, int count,
 	    xfree(name);
 	    goto fail;
 	  }
-
-#ifdef __riscos__
-        riscos_set_filetype_by_mimetype(spawn->tempfile_in,
-                                        image_type_to_string(args.imagetype,2));
-#endif
 
 	xfree(name);
 

@@ -309,24 +309,6 @@ copy_and_escape (char *buffer, const char *text)
 }
 
 
-/* Set the name of the default socket to NAME.  */
-int
-simple_pw_set_socket (const char *name)
-{
-  spwq_free (default_gpg_agent_info);
-  default_gpg_agent_info = NULL;
-  if (name)
-    {
-      default_gpg_agent_info = spwq_malloc (strlen (name) + 1);
-      if (!default_gpg_agent_info)
-        return SPWQ_OUT_OF_CORE;
-      strcpy (default_gpg_agent_info, name);
-    }
-
-  return 0;
-}
-
-
 /* This is the default inquiry callback.  It merely handles the
    Pinentry notification.  */
 static gpg_error_t

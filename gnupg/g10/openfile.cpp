@@ -43,7 +43,7 @@
 #endif
 
 
-#if defined (HAVE_DRIVE_LETTERS) || defined (__riscos__)
+#if defined (HAVE_DRIVE_LETTERS)
 #define CMP_FILENAME(a,b) ascii_strcasecmp( (a), (b) )
 #else
 #define CMP_FILENAME(a,b) strcmp( (a), (b) )

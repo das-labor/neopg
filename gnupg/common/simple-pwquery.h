@@ -62,9 +62,4 @@ int simple_pwclear (const char *cacheid);
    terminated) and return the error code.  */
 int simple_query (const char *query);
 
-/* Set the name of the standard socket to be used if GPG_AGENT_INFO is
-   not defined.  The use of this function is optional but if it needs
-   to be called before any other function.  Returns 0 on success.  */
-int simple_pw_set_socket (const char *name);
-
 #endif /*SIMPLE_PWQUERY_H*/

@@ -1032,11 +1032,7 @@ my_strusage( int level )
 	break;
 
       case 31: p = "\nHome: "; break;
-#ifndef __riscos__
       case 32: p = gnupg_homedir (); break;
-#else /* __riscos__ */
-      case 32: p = make_filename(gnupg_homedir (), NULL); break;
-#endif /* __riscos__ */
       case 33: p = _("\nSupported algorithms:\n"); break;
       case 34:
 	if (!pubkeys)
@@ -1246,9 +1242,7 @@ set_screen_dimensions(void)
 static int
 open_info_file (const char *fname, int for_write, int binary)
 {
-#ifdef __riscos__
-  return riscos_fdopenfile (fname, for_write);
-#elif defined (ENABLE_SELINUX_HACKS)
+#if defined (ENABLE_SELINUX_HACKS)
   /* We can't allow these even when testing for a secured filename
      because files to be secured might not yet been secured.  This is
      similar to the option file but in that case it is unlikely that
@@ -2270,10 +2264,6 @@ gpg_main (int argc, char **argv)
     static int print_pka_records;
 
 
-#ifdef __riscos__
-    opt.lock_once = 1;
-#endif /* __riscos__ */
-
     /* Please note that we may running SUID(ROOT), so be very CAREFUL
        when adding any stuff between here and the call to
        secmem_init() somewhere after the option parsing. */
@@ -3115,11 +3105,7 @@ gpg_main (int argc, char **argv)
             dotlock_disable ();
             break;
 	  case oLockMultiple:
-#ifndef __riscos__
 	    opt.lock_once = 0;
-#else /* __riscos__ */
-            riscos_not_implemented("lock-multiple");
-#endif /* __riscos__ */
             break;
 	  case oKeyServer:
 	    {

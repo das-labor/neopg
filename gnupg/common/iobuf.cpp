@@ -46,10 +46,6 @@
 # endif
 # include <windows.h>
 #endif
-#ifdef __riscos__
-# include <kernel.h>
-# include <swis.h>
-#endif /* __riscos__ */
 
 #include <assuan.h>
 
@@ -72,13 +68,8 @@
 
 
 #ifdef HAVE_W32_SYSTEM
-# ifdef HAVE_W32CE_SYSTEM
-#  define FD_FOR_STDIN  (es_fileno (es_stdin))
-#  define FD_FOR_STDOUT (es_fileno (es_stdout))
-# else
 #  define FD_FOR_STDIN  (GetStdHandle (STD_INPUT_HANDLE))
 #  define FD_FOR_STDOUT (GetStdHandle (STD_OUTPUT_HANDLE))
-# endif
 #else /*!HAVE_W32_SYSTEM*/
 # define FD_FOR_STDIN  (0)
 # define FD_FOR_STDOUT (1)
@@ -295,21 +286,7 @@ direct_open (const char *fname, const char *mode, int mode700)
       sm = FILE_SHARE_READ;
     }
 
-#ifdef HAVE_W32CE_SYSTEM
-  {
-    wchar_t *wfname = utf8_to_wchar (fname);
-    if (wfname)
-      {
-        hfile = CreateFile (wfname, da, sm, NULL, cd,
-                            FILE_ATTRIBUTE_NORMAL, NULL);
-        xfree (wfname);
-      }
-    else
-      hfile = INVALID_HANDLE_VALUE;
-  }
-#else
   hfile = CreateFile (fname, da, sm, NULL, cd, FILE_ATTRIBUTE_NORMAL, NULL);
-#endif
   return hfile;
 
 #else /*!HAVE_W32_SYSTEM*/
@@ -342,15 +319,6 @@ direct_open (const char *fname, const char *mode, int mode700)
     oflag |= O_BINARY;
 #endif
 
-#ifdef __riscos__
-  {
-    struct stat buf;
-
-    /* Don't allow iobufs on directories */
-    if (!stat (fname, &buf) && S_ISDIR (buf.st_mode) && !S_ISREG (buf.st_mode))
-      return __set_errno (EISDIR);
-  }
-#endif
   return open (fname, oflag, cflag);
 
 #endif /*!HAVE_W32_SYSTEM*/
@@ -1166,7 +1134,7 @@ iobuf_cancel (iobuf_t a)
   const char *s;
   iobuf_t a2;
   int rc;
-#if defined(HAVE_W32_SYSTEM) || defined(__riscos__)
+#if defined(HAVE_W32_SYSTEM)
   char *remove_name = NULL;
 #endif
 
@@ -1175,7 +1143,7 @@ iobuf_cancel (iobuf_t a)
       s = iobuf_get_real_fname (a);
       if (s && *s)
 	{
-#if defined(HAVE_W32_SYSTEM) || defined(__riscos__)
+#if defined(HAVE_W32_SYSTEM)
 	  remove_name = xstrdup (s);
 #else
 	  remove (s);
@@ -1192,19 +1160,12 @@ iobuf_cancel (iobuf_t a)
     }
 
   rc = iobuf_close (a);
-#if defined(HAVE_W32_SYSTEM) || defined(__riscos__)
+#if defined(HAVE_W32_SYSTEM)
   if (remove_name)
     {
       /* Argg, MSDOS does not allow removing open files.  So
        * we have to do it here */
-#ifdef HAVE_W32CE_SYSTEM
-      wchar_t *wtmp = utf8_to_wchar (remove_name);
-      if (wtmp)
-        DeleteFile (wtmp);
-      xfree (wtmp);
-#else
       remove (remove_name);
-#endif
       xfree (remove_name);
     }
 #endif
@@ -2586,12 +2547,7 @@ iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
 static int
 translate_file_handle (int fd, int for_write)
 {
-#if defined(HAVE_W32CE_SYSTEM)
-  /* This is called only with one of the special filenames.  Under
-     W32CE the FD here is not a file descriptor but a rendezvous id,
-     thus we need to finish the pipe first.  */
-  fd = _assuan_w32ce_finish_pipe (fd, for_write);
-#elif defined(HAVE_W32_SYSTEM)
+#if defined(HAVE_W32_SYSTEM)
   {
     int x;
 

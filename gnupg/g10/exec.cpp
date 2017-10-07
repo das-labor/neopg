@@ -176,12 +176,7 @@ make_tempdir(struct exec_info *info)
 	  tmp=getenv("TMP");
 	  if(tmp==NULL)
 	    {
-#ifdef __riscos__
-	      tmp="<Wimp$ScrapDir>.GnuPG";
-	      mkdir(tmp,0700); /* Error checks occur later on */
-#else
 	      tmp="/tmp";
-#endif
 	    }
 	}
 #endif
