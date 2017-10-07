@@ -85,10 +85,6 @@ struct options
 
   int no_grab;         /* Don't let the pinentry grab the keyboard */
 
-  /* The name of the file pinentry shall touch before exiting.  If
-     this is not set the file name of the standard socket is used. */
-  const char *pinentry_touch_file;
-
   /* A string where the first character is used by the pinentry as a
      custom invisible character.  */
   char *pinentry_invisible_char;
@@ -100,9 +96,7 @@ struct options
 
   /* The default and maximum TTL of cache entries. */
   unsigned long def_cache_ttl;     /* Default. */
-  unsigned long def_cache_ttl_ssh; /* for SSH. */
   unsigned long max_cache_ttl;     /* Default. */
-  unsigned long max_cache_ttl_ssh; /* for SSH. */
 
   /* Flag disallowing bypassing of the warning.  */
   int enforce_passphrase_constraints;
@@ -141,36 +135,13 @@ struct options
      PRESET_PASSPHRASE is allowed.  */
   int allow_preset_passphrase;
 
-  /* If this global option is true, the Assuan option
-     pinentry-mode=loopback is allowed.  */
-  int allow_loopback_pinentry;
-
   /* Allow the use of an external password cache.  If this option is
      enabled (which is the default) we send an option to Pinentry
      to allow it to enable such a cache.  */
   int allow_external_cache;
 
-  /* If this global option is true, the Assuan option of Pinentry
-     allow-emacs-prompt is allowed.  */
-  int allow_emacs_pinentry;
-
   int keep_tty;      /* Don't switch the TTY (for pinentry) on request */
   int keep_display;  /* Don't switch the DISPLAY (for pinentry) on request */
-
-  /* This global option indicates the use of an extra socket. Note
-     that we use a hack for cleanup handling in gpg-agent.c: If the
-     value is less than 2 the name has not yet been malloced. */
-  int extra_socket;
-
-  /* This global option indicates the use of an extra socket for web
-     browsers. Note that we use a hack for cleanup handling in
-     gpg-agent.c: If the value is less than 2 the name has not yet
-     been malloced. */
-  int browser_socket;
-
-  /* The digest algorithm to use for ssh fingerprints when
-   * communicating with the user.  */
-  int ssh_fingerprint_digest;
 };
 extern struct options agent_opt;
 #define opt agent_opt

@@ -39,7 +39,6 @@
 #include <assuan.h>
 #include "../common/i18n.h"
 #include "cvt-openpgp.h"
-#include "../common/ssh-utils.h"
 #include "../common/asshelp.h"
 #include "../common/server-help.h"
 
@@ -1078,14 +1077,12 @@ cmd_readkey (assuan_context_t ctx, char *line)
 
 
 static const char hlp_keyinfo[] =
-  "KEYINFO [--[ssh-]list] [--data] [--ssh-fpr] [--with-ssh] <keygrip>\n"
+  "KEYINFO [--list] [--data] <keygrip>\n"
   "\n"
   "Return information about the key specified by the KEYGRIP.  If the\n"
   "key is not available GPG_ERR_NOT_FOUND is returned.  If the option\n"
   "--list is given the keygrip is ignored and information about all\n"
-  "available keys are returned.  If --ssh-list is given information\n"
-  "about all keys listed in the sshcontrol are returned.  With --with-ssh\n"
-  "information from sshcontrol is always added to the info. Unless --data\n"
+  "available keys are returned.  Unless --data\n"
   "is given, the information is returned as a status line using the format:\n"
   "\n"
   "  KEYINFO <keygrip> <type> <serialno> <idstr> <cached> <protection> <fpr>\n"
@@ -1113,21 +1110,17 @@ static const char hlp_keyinfo[] =
   "    'C' - The key is not protected,\n"
   "    '-' - Unknown protection.\n"
   "\n"
-  "FPR returns the formatted ssh-style fingerprint of the key.  It is only\n"
-  "    printed if the option --ssh-fpr has been used.  It defaults to '-'.\n"
-  "\n"
   "TTL is the TTL in seconds for that key or '-' if n/a.\n"
   "\n"
   "FLAGS is a word consisting of one-letter flags:\n"
   "      'D' - The key has been disabled,\n"
-  "      'S' - The key is listed in sshcontrol (requires --with-ssh),\n"
   "      'c' - Use of the key needs to be confirmed,\n"
   "      '-' - No flags given.\n"
   "\n"
   "More information may be added in the future.";
 static gpg_error_t
 do_one_keyinfo (ctrl_t ctrl, const unsigned char *grip, assuan_context_t ctx,
-                int data, int with_ssh_fpr, int in_ssh,
+                int data,
                 int ttl, int disabled, int confirm)
 {
   gpg_error_t err;
@@ -1147,12 +1140,7 @@ do_one_keyinfo (ctrl_t ctrl, const unsigned char *grip, assuan_context_t ctx,
 
   err = agent_key_info_from_file (ctrl, grip, &keytype, &shadow_info);
   if (err)
-    {
-      if (in_ssh && gpg_err_code (err) == GPG_ERR_NOT_FOUND)
-        missing_key = 1;
-      else
-        goto leave;
-    }
+    goto leave;
 
   /* Reformat the grip so that we use uppercase as good style. */
   bin2hex (grip, 20, hexgrip);
@@ -1165,8 +1153,6 @@ do_one_keyinfo (ctrl_t ctrl, const unsigned char *grip, assuan_context_t ctx,
   *flagsbuf = 0;
   if (disabled)
     strcat (flagsbuf, "D");
-  if (in_ssh)
-    strcat (flagsbuf, "S");
   if (confirm)
     strcat (flagsbuf, "c");
   if (!*flagsbuf)
@@ -1191,18 +1177,6 @@ do_one_keyinfo (ctrl_t ctrl, const unsigned char *grip, assuan_context_t ctx,
           break;
         default: protectionstr = "-"; keytypestr = "X";
           break;
-        }
-    }
-
-  /* Compute the ssh fingerprint if requested.  */
-  if (with_ssh_fpr)
-    {
-      gcry_sexp_t key;
-
-      if (!agent_raw_key_from_file (ctrl, grip, &key))
-        {
-          ssh_get_fingerprint_string (key, GCRY_MD_MD5, &fpr);
-          gcry_sexp_release (key);
         }
     }
 
@@ -1269,44 +1243,18 @@ cmd_keyinfo (assuan_context_t ctx, char *line)
   unsigned char grip[20];
   DIR *dir = NULL;
   int list_mode;
-  int opt_data, opt_ssh_fpr, opt_with_ssh;
-  ssh_control_file_t cf = NULL;
+  int opt_data;
   char hexgrip[41];
-  int disabled, ttl, confirm, is_ssh;
+  int disabled, ttl, confirm;
 
   if (ctrl->restricted)
     return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
-  if (has_option (line, "--ssh-list"))
-    list_mode = 2;
-  else
-    list_mode = has_option (line, "--list");
+  list_mode = has_option (line, "--list");
   opt_data = has_option (line, "--data");
-  opt_ssh_fpr = has_option (line, "--ssh-fpr");
-  opt_with_ssh = has_option (line, "--with-ssh");
   line = skip_options (line);
 
-  if (opt_with_ssh || list_mode == 2)
-    cf = ssh_open_control_file ();
-
-  if (list_mode == 2)
-    {
-      if (cf)
-        {
-          while (!ssh_read_control_file (cf, hexgrip,
-                                         &disabled, &ttl, &confirm))
-            {
-              if (hex2bin (hexgrip, grip, 20) < 0 )
-                continue; /* Bad hex string.  */
-              err = do_one_keyinfo (ctrl, grip, ctx, opt_data, opt_ssh_fpr, 1,
-                                    ttl, disabled, confirm);
-              if (err)
-                goto leave;
-            }
-        }
-      err = 0;
-    }
-  else if (list_mode)
+  if (list_mode)
     {
       char *dirname;
       struct dirent *dir_entry;
@@ -1338,18 +1286,9 @@ cmd_keyinfo (assuan_context_t ctx, char *line)
           if ( hex2bin (hexgrip, grip, 20) < 0 )
             continue; /* Bad hex string.  */
 
-          disabled = ttl = confirm = is_ssh = 0;
-          if (opt_with_ssh)
-            {
-              err = ssh_search_control_file (cf, hexgrip,
-                                             &disabled, &ttl, &confirm);
-              if (!err)
-                is_ssh = 1;
-              else if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
-                goto leave;
-            }
+          disabled = ttl = confirm = 0;
 
-          err = do_one_keyinfo (ctrl, grip, ctx, opt_data, opt_ssh_fpr, is_ssh,
+          err = do_one_keyinfo (ctrl, grip, ctx, opt_data,
                                 ttl, disabled, confirm);
           if (err)
             goto leave;
@@ -1361,23 +1300,13 @@ cmd_keyinfo (assuan_context_t ctx, char *line)
       err = parse_keygrip (ctx, line, grip);
       if (err)
         goto leave;
-      disabled = ttl = confirm = is_ssh = 0;
-      if (opt_with_ssh)
-        {
-          err = ssh_search_control_file (cf, line,
-                                         &disabled, &ttl, &confirm);
-          if (!err)
-            is_ssh = 1;
-          else if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
-            goto leave;
-        }
+      disabled = ttl = confirm = 0;
 
-      err = do_one_keyinfo (ctrl, grip, ctx, opt_data, opt_ssh_fpr, is_ssh,
+      err = do_one_keyinfo (ctrl, grip, ctx, opt_data,
                             ttl, disabled, confirm);
     }
 
  leave:
-  ssh_close_control_file (cf);
   if (dir)
     closedir (dir);
   if (err && gpg_err_code (err) != GPG_ERR_NOT_FOUND)
@@ -2451,11 +2380,6 @@ cmd_delete_key (assuan_context_t ctx, char *line)
   stub_only = has_option (line, "--stub-only");
   line = skip_options (line);
 
-  /* If the use of a loopback pinentry has been disabled, we assume
-   * that a silent deletion of keys shall also not be allowed.  */
-  if (!opt.allow_loopback_pinentry)
-    force = 0;
-
   err = parse_keygrip (ctx, line, grip);
   if (err)
     goto leave;
@@ -2726,72 +2650,6 @@ cmd_putval (assuan_context_t ctx, char *line)
   return leave_cmd (ctx, rc);
 }
 
-
-
-
-static const char hlp_updatestartuptty[] =
-  "UPDATESTARTUPTTY\n"
-  "\n"
-  "Set startup TTY and X11 DISPLAY variables to the values of this\n"
-  "session.  This command is useful to pull future pinentries to\n"
-  "another screen.  It is only required because there is no way in the\n"
-  "ssh-agent protocol to convey this information.";
-static gpg_error_t
-cmd_updatestartuptty (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = assuan_get_pointer (ctx);
-  gpg_error_t err = 0;
-  session_env_t se;
-  char *lc_ctype = NULL;
-  char *lc_messages = NULL;
-  int iterator;
-  const char *name;
-
-  (void)line;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
-  se = session_env_new ();
-  if (!se)
-    err = gpg_error_from_syserror ();
-
-  iterator = 0;
-  while (!err && (name = session_env_list_stdenvnames (&iterator, NULL)))
-    {
-      const char *value = session_env_getenv (ctrl->session_env, name);
-      if (value)
-        err = session_env_setenv (se, name, value);
-    }
-
-  if (!err && ctrl->lc_ctype)
-    if (!(lc_ctype = xtrystrdup (ctrl->lc_ctype)))
-      err = gpg_error_from_syserror ();
-
-  if (!err && ctrl->lc_messages)
-    if (!(lc_messages = xtrystrdup (ctrl->lc_messages)))
-      err = gpg_error_from_syserror ();
-
-  if (err)
-    {
-      session_env_release (se);
-      xfree (lc_ctype);
-      xfree (lc_messages);
-    }
-  else
-    {
-      session_env_release (opt.startup_env);
-      opt.startup_env = se;
-      xfree (opt.startup_lc_ctype);
-      opt.startup_lc_ctype = lc_ctype;
-      xfree (opt.startup_lc_messages);
-      opt.startup_lc_messages = lc_messages;
-    }
-
-  return err;
-}
-
-
 
 static const char hlp_killagent[] =
   "KILLAGENT\n"
@@ -3036,8 +2894,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       int tmp = parse_pinentry_mode (value);
       if (tmp == -1)
         err = gpg_error (GPG_ERR_INV_VALUE);
-      else if (tmp == PINENTRY_MODE_LOOPBACK && !opt.allow_loopback_pinentry)
-        err = gpg_error (GPG_ERR_NOT_SUPPORTED);
       else
         ctrl->pinentry_mode = tmp;
     }
@@ -3179,7 +3035,6 @@ register_commands (assuan_context_t ctx)
     { "DELETE_KEY",     cmd_delete_key, hlp_delete_key },
     { "GETVAL",         cmd_getval,    hlp_getval },
     { "PUTVAL",         cmd_putval,    hlp_putval },
-    { "UPDATESTARTUPTTY",  cmd_updatestartuptty, hlp_updatestartuptty },
     { "KILLAGENT",      cmd_killagent,  hlp_killagent },
     { "GETINFO",        cmd_getinfo,   hlp_getinfo },
     { "KEYTOCARD",      cmd_keytocard, hlp_keytocard },

@@ -216,11 +216,7 @@ housekeeping (void)
     {
       unsigned long maxttl;
 
-      switch (r->cache_mode)
-        {
-        case CACHE_MODE_SSH: maxttl = opt.max_cache_ttl_ssh; break;
-        default: maxttl = opt.max_cache_ttl; break;
-        }
+      maxttl = opt.max_cache_ttl;
       if (r->pw && r->created + maxttl < current)
         {
           if (DBG_CACHE)
@@ -323,13 +319,7 @@ agent_put_cache (const char *key, cache_mode_t cache_mode,
   housekeeping ();
 
   if (!ttl)
-    {
-      switch(cache_mode)
-        {
-        case CACHE_MODE_SSH: ttl = opt.def_cache_ttl_ssh; break;
-        default: ttl = opt.def_cache_ttl; break;
-        }
-    }
+    ttl = opt.def_cache_ttl;
   if ((!ttl && data) || cache_mode == CACHE_MODE_IGNORE)
     goto out;
 

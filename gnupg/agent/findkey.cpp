@@ -34,7 +34,6 @@
 
 #include "agent.h"
 #include "../common/i18n.h"
-#include "../common/ssh-utils.h"
 #include "../common/name-value.h"
 
 #ifndef O_BINARY
@@ -338,7 +337,6 @@ try_unprotect_cb (struct pin_entry_info_s *pi)
    %% - Replaced by a single %
    %c - Replaced by the content of COMMENT.
    %C - Same as %c but put into parentheses.
-   %F - Replaced by an ssh style fingerprint computed from KEY.
 
    The functions returns 0 on success or an error code.  On success a
    newly allocated string is stored at the address of RESULT.
@@ -353,7 +351,6 @@ agent_modify_description (const char *in, const char *comment,
   char *out;
   size_t i;
   int special, pass;
-  char *ssh_fpr = NULL;
   char *p;
 
   *result = NULL;
@@ -410,19 +407,6 @@ agent_modify_description (const char *in, const char *comment,
                     out_len += comment_length + 2;
                   break;
 
-                case 'F': /* SSH style fingerprint.  */
-                  if (!ssh_fpr && key)
-                    ssh_get_fingerprint_string (key, opt.ssh_fingerprint_digest,
-                                                &ssh_fpr);
-                  if (ssh_fpr)
-                    {
-                      if (out)
-                        out = stpcpy (out, ssh_fpr);
-                      else
-                        out_len += strlen (ssh_fpr);
-                    }
-                  break;
-
                 default: /* Invalid special sequences are kept as they are. */
                   if (out)
                     {
@@ -450,7 +434,6 @@ agent_modify_description (const char *in, const char *comment,
           *result = out = xtrymalloc (out_len + 1);
           if (!out)
             {
-              xfree (ssh_fpr);
               return gpg_error_from_syserror ();
             }
         }
@@ -458,21 +441,7 @@ agent_modify_description (const char *in, const char *comment,
 
   *out = 0;
   log_assert (*result + out_len == out);
-  xfree (ssh_fpr);
 
-  /* The ssh prompt may sometimes end in
-   *    "...%0A  ()"
-   * The empty parentheses doesn't look very good.  We use this hack
-   * here to remove them as well as the indentation spaces. */
-  p = *result;
-  i = strlen (p);
-  if (i > 2 && !strcmp (p + i - 2, "()"))
-    {
-      p += i - 2;
-      *p-- = 0;
-      while (p > *result && spacep (p))
-        *p-- = 0;
-    }
 
   return 0;
 }
@@ -839,7 +808,7 @@ remove_key_file (const unsigned char *grip)
    is an optional function to convey a TTL to the cache manager; we do
    not simply pass the TTL value because the value is only needed if
    an unprotect action was needed and looking up the TTL may have some
-   overhead (e.g. scanning the sshcontrol file).  If a CACHE_NONCE is
+   overhead.  If a CACHE_NONCE is
    given that cache item is first tried to get a passphrase.  If
    R_PASSPHRASE is not NULL, the function succeeded and the key was
    protected the used passphrase (entered or from the cache) is stored
@@ -1455,7 +1424,6 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
   size_t len;
   char *desc_text_final = NULL;
   char *comment = NULL;
-  ssh_control_file_t cf = NULL;
   char hexgrip[40+4+1];
   char *default_desc = NULL;
   int key_type;
@@ -1516,21 +1484,6 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
           if (err)
             goto leave;
 
-          cf = ssh_open_control_file ();
-          if (cf)
-            {
-              if (!ssh_search_control_file (cf, hexgrip, NULL, NULL, NULL))
-                {
-                  err = agent_get_confirmation
-                    (ctrl,
-                     L_("Warning: This key is also listed for use with SSH!\n"
-                        "Deleting the key might remove your ability to "
-                        "access remote machines."),
-                     L_("Delete key"), L_("No"), 0);
-                  if (err)
-                    goto leave;
-                }
-            }
         }
       err = remove_key_file (grip);
       break;
@@ -1546,7 +1499,6 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
     }
 
  leave:
-  ssh_close_control_file (cf);
   gcry_free (comment);
   xfree (desc_text_final);
   xfree (default_desc);

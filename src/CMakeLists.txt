@@ -567,8 +567,6 @@ add_executable(neopg
   ../gnupg/agent/pksign.cpp
   ../gnupg/agent/learncard.cpp
   ../gnupg/agent/divert-scd.cpp
-  ../gnupg/agent/command-ssh.cpp
-  ../gnupg/common/ssh-utils.cpp
   ../gnupg/common/name-value.cpp
 
   ../gnupg/dirmngr/dirmngr.cpp
