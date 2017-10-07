@@ -103,7 +103,7 @@ app_help_read_length_of_cert (int slot, int fid, size_t *r_certoff)
   unsigned char *buffer;
   const unsigned char *p;
   size_t buflen, n;
-  int class, tag, constructed, ndef;
+  int klasse, tag, constructed, ndef;
   size_t resultlen, objlen, hdrlen;
 
   err = iso7816_select_file (slot, fid, 0);
@@ -130,7 +130,7 @@ app_help_read_length_of_cert (int slot, int fid, size_t *r_certoff)
 
   p = buffer;
   n = buflen;
-  err = parse_ber_header (&p, &n, &class, &tag, &constructed,
+  err = parse_ber_header (&p, &n, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (err)
     {
@@ -142,7 +142,7 @@ app_help_read_length_of_cert (int slot, int fid, size_t *r_certoff)
 
   /* All certificates should commence with a SEQUENCE except for the
      special ROOT CA which are enclosed in a SET. */
-  if ( !(class == CLASS_UNIVERSAL &&  constructed
+  if ( !(klasse == CLASS_UNIVERSAL &&  constructed
          && (tag == TAG_SEQUENCE || tag == TAG_SET)))
     {
       log_info ("data at FID 0x%04X does not look like a certificate\n", fid);
@@ -155,12 +155,12 @@ app_help_read_length_of_cert (int slot, int fid, size_t *r_certoff)
       /* The callers want the offset to the actual certificate. */
       *r_certoff = hdrlen;
 
-      err = parse_ber_header (&p, &n, &class, &tag, &constructed,
+      err = parse_ber_header (&p, &n, &klasse, &tag, &constructed,
                               &ndef, &objlen, &hdrlen);
       if (err)
         return 0;
 
-      if (class == CLASS_UNIVERSAL && tag == TAG_OBJECT_ID && !constructed)
+      if (klasse == CLASS_UNIVERSAL && tag == TAG_OBJECT_ID && !constructed)
         {
           /* The certificate seems to be contained in a
              userCertificate container.  Assume the following sequence

@@ -347,9 +347,9 @@ static int reset_pcsc_reader (int slot);
 static int apdu_get_status_internal (int slot, int hang, unsigned int *status,
                                      int on_wire);
 static int check_pcsc_pinpad (int slot, int command, pininfo_t *pininfo);
-static int pcsc_pinpad_verify (int slot, int class, int ins, int p0, int p1,
+static int pcsc_pinpad_verify (int slot, int klasse, int ins, int p0, int p1,
                                pininfo_t *pininfo);
-static int pcsc_pinpad_modify (int slot, int class, int ins, int p0, int p1,
+static int pcsc_pinpad_modify (int slot, int klasse, int ins, int p0, int p1,
                                pininfo_t *pininfo);
 
 
@@ -995,7 +995,7 @@ pcsc_vendor_specific_init (int slot)
        * Please read the comment of ccid_vendor_specific_init in
        * ccid-driver.c.
        */
-      const unsigned char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
+      const char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
       sw = control_pcsc (slot, CM_IOCTL_VENDOR_IFD_EXCHANGE,
                          cmd, sizeof (cmd), NULL, 0);
       if (sw)
@@ -1167,7 +1167,7 @@ check_pcsc_pinpad (int slot, int command, pininfo_t *pininfo)
 
 #define PIN_VERIFY_STRUCTURE_SIZE 24
 static int
-pcsc_pinpad_verify (int slot, int class, int ins, int p0, int p1,
+pcsc_pinpad_verify (int slot, int klasse, int ins, int p0, int p1,
                     pininfo_t *pininfo)
 {
   int sw;
@@ -1219,7 +1219,7 @@ pcsc_pinpad_verify (int slot, int class, int ins, int p0, int p1,
   pin_verify[16] = 0x00; /* ulDataLength */
   pin_verify[17] = 0x00; /* ulDataLength */
   pin_verify[18] = 0x00; /* ulDataLength */
-  pin_verify[19] = class; /* abData[0] */
+  pin_verify[19] = klasse; /* abData[0] */
   pin_verify[20] = ins; /* abData[1] */
   pin_verify[21] = p0; /* abData[2] */
   pin_verify[22] = p1; /* abData[3] */
@@ -1231,7 +1231,7 @@ pcsc_pinpad_verify (int slot, int class, int ins, int p0, int p1,
 
   if (DBG_CARD_IO)
     log_debug ("send secure: c=%02X i=%02X p1=%02X p2=%02X len=%d pinmax=%d\n",
-               class, ins, p0, p1, len, pininfo->maxlen);
+               klasse, ins, p0, p1, len, pininfo->maxlen);
 
   sw = control_pcsc (slot, reader_table[slot].pcsc.verify_ioctl,
                      pin_verify, len, result, &resultlen);
@@ -1250,7 +1250,7 @@ pcsc_pinpad_verify (int slot, int class, int ins, int p0, int p1,
 
 #define PIN_MODIFY_STRUCTURE_SIZE 29
 static int
-pcsc_pinpad_modify (int slot, int class, int ins, int p0, int p1,
+pcsc_pinpad_modify (int slot, int klasse, int ins, int p0, int p1,
                     pininfo_t *pininfo)
 {
   int sw;
@@ -1305,7 +1305,7 @@ pcsc_pinpad_modify (int slot, int class, int ins, int p0, int p1,
   pin_modify[21] = 0x00; /* ulDataLength */
   pin_modify[22] = 0x00; /* ulDataLength */
   pin_modify[23] = 0x00; /* ulDataLength */
-  pin_modify[24] = class; /* abData[0] */
+  pin_modify[24] = klasse; /* abData[0] */
   pin_modify[25] = ins; /* abData[1] */
   pin_modify[26] = p0; /* abData[2] */
   pin_modify[27] = p1; /* abData[3] */
@@ -1317,7 +1317,7 @@ pcsc_pinpad_modify (int slot, int class, int ins, int p0, int p1,
 
   if (DBG_CARD_IO)
     log_debug ("send secure: c=%02X i=%02X p1=%02X p2=%02X len=%d pinmax=%d\n",
-               class, ins, p0, p1, len, (int)pininfo->maxlen);
+               klasse, ins, p0, p1, len, (int)pininfo->maxlen);
 
   sw = control_pcsc (slot, reader_table[slot].pcsc.modify_ioctl,
                      pin_modify, len, result, &resultlen);
@@ -1454,7 +1454,7 @@ check_ccid_pinpad (int slot, int command, pininfo_t *pininfo)
 
 
 static int
-ccid_pinpad_operation (int slot, int class, int ins, int p0, int p1,
+ccid_pinpad_operation (int slot, int klasse, int ins, int p0, int p1,
                        pininfo_t *pininfo)
 {
   unsigned char apdu[4];
@@ -1462,7 +1462,7 @@ ccid_pinpad_operation (int slot, int class, int ins, int p0, int p1,
   unsigned char result[2];
   size_t resultlen = 2;
 
-  apdu[0] = class;
+  apdu[0] = klasse;
   apdu[1] = ins;
   apdu[2] = p0;
   apdu[3] = p1;
@@ -2518,7 +2518,7 @@ apdu_check_pinpad (int slot, int command, pininfo_t *pininfo)
 
 
 int
-apdu_pinpad_verify (int slot, int class, int ins, int p0, int p1,
+apdu_pinpad_verify (int slot, int klasse, int ins, int p0, int p1,
                     pininfo_t *pininfo)
 {
   if (slot < 0 || slot >= MAX_READER || !reader_table[slot].used )
@@ -2531,7 +2531,7 @@ apdu_pinpad_verify (int slot, int class, int ins, int p0, int p1,
       if ((sw = lock_slot (slot)))
         return sw;
 
-      sw = reader_table[slot].pinpad_verify (slot, class, ins, p0, p1,
+      sw = reader_table[slot].pinpad_verify (slot, klasse, ins, p0, p1,
                                              pininfo);
       unlock_slot (slot);
       return sw;
@@ -2542,7 +2542,7 @@ apdu_pinpad_verify (int slot, int class, int ins, int p0, int p1,
 
 
 int
-apdu_pinpad_modify (int slot, int class, int ins, int p0, int p1,
+apdu_pinpad_modify (int slot, int klasse, int ins, int p0, int p1,
                     pininfo_t *pininfo)
 {
   if (slot < 0 || slot >= MAX_READER || !reader_table[slot].used )
@@ -2555,7 +2555,7 @@ apdu_pinpad_modify (int slot, int class, int ins, int p0, int p1,
       if ((sw = lock_slot (slot)))
         return sw;
 
-      sw = reader_table[slot].pinpad_modify (slot, class, ins, p0, p1,
+      sw = reader_table[slot].pinpad_modify (slot, klasse, ins, p0, p1,
                                              pininfo);
       unlock_slot (slot);
       return sw;
@@ -2598,7 +2598,7 @@ send_apdu (int slot, unsigned char *apdu, size_t apdulen,
 
 */
 static int
-send_le (int slot, int class, int ins, int p0, int p1,
+send_le (int slot, int klasse, int ins, int p0, int p1,
          int lc, const char *data, int le,
          unsigned char **retbuf, size_t *retbuflen,
          pininfo_t *pininfo, int extended_mode)
@@ -2627,7 +2627,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
 
   if (DBG_CARD_IO)
     log_debug ("send apdu: c=%02X i=%02X p1=%02X p2=%02X lc=%d le=%d em=%d\n",
-               class, ins, p0, p1, lc, le, extended_mode);
+               klasse, ins, p0, p1, lc, le, extended_mode);
 
   if (lc != -1 && (lc > 255 || lc < 0))
     {
@@ -2642,7 +2642,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
           /* Send APDU using chaining mode.  */
           if (lc > 16384)
             return SW_WRONG_LENGTH;   /* Sanity check.  */
-          if ((class&0xf0) != 0)
+          if ((klasse&0xf0) != 0)
             return SW_HOST_INV_VALUE; /* Upper 4 bits need to be 0.  */
           use_chaining = extended_mode == -1? 255 : -extended_mode;
           use_chaining &= 0xff;
@@ -2722,7 +2722,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
         {
           use_chaining = 0;
           apdulen = 0;
-          apdu[apdulen++] = class;
+          apdu[apdulen++] = klasse;
           apdu[apdulen++] = ins;
           apdu[apdulen++] = p0;
           apdu[apdulen++] = p1;
@@ -2746,7 +2746,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
       else
         {
           apdulen = 0;
-          apdu[apdulen] = class;
+          apdu[apdulen] = klasse;
           if (use_chaining && lc > 255)
             {
               apdu[apdulen] |= 0x10;
@@ -2866,7 +2866,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
           apdu_buffer_size = sizeof short_apdu_buffer;
           apdu = short_apdu_buffer;
           apdulen = 0;
-          apdu[apdulen++] = class;
+          apdu[apdulen++] = klasse;
           apdu[apdulen++] = 0xC0;
           apdu[apdulen++] = 0;
           apdu[apdulen++] = 0;
@@ -2942,7 +2942,7 @@ send_le (int slot, int class, int ins, int p0, int p1,
 }
 
 /* Send an APDU to the card in SLOT.  The APDU is created from all
-   given parameters: CLASS, INS, P0, P1, LC, DATA, LE.  A value of -1
+   given parameters: KLASSE, INS, P0, P1, LC, DATA, LE.  A value of -1
    for LC won't sent this field and the data field; in this case DATA
    must also be passed as NULL.  If EXTENDED_MODE is not 0 command
    chaining or extended length will be used; see send_le for details.
@@ -2953,11 +2953,11 @@ send_le (int slot, int class, int ins, int p0, int p1,
    for releasing the buffer even in case of errors.  */
 int
 apdu_send_le(int slot, int extended_mode,
-             int class, int ins, int p0, int p1,
+             int klasse, int ins, int p0, int p1,
              int lc, const char *data, int le,
              unsigned char **retbuf, size_t *retbuflen)
 {
-  return send_le (slot, class, ins, p0, p1,
+  return send_le (slot, klasse, ins, p0, p1,
                   lc, data, le,
                   retbuf, retbuflen,
                   NULL, extended_mode);
@@ -2965,7 +2965,7 @@ apdu_send_le(int slot, int extended_mode,
 
 
 /* Send an APDU to the card in SLOT.  The APDU is created from all
-   given parameters: CLASS, INS, P0, P1, LC, DATA.  A value of -1 for
+   given parameters: KLASSE, INS, P0, P1, LC, DATA.  A value of -1 for
    LC won't sent this field and the data field; in this case DATA must
    also be passed as NULL.  If EXTENDED_MODE is not 0 command chaining
    or extended length will be used; see send_le for details.  The
@@ -2976,15 +2976,15 @@ apdu_send_le(int slot, int extended_mode,
    releasing the buffer even in case of errors.  */
 int
 apdu_send (int slot, int extended_mode,
-           int class, int ins, int p0, int p1,
+           int klasse, int ins, int p0, int p1,
            int lc, const char *data, unsigned char **retbuf, size_t *retbuflen)
 {
-  return send_le (slot, class, ins, p0, p1, lc, data, 256,
+  return send_le (slot, klasse, ins, p0, p1, lc, data, 256,
                   retbuf, retbuflen, NULL, extended_mode);
 }
 
 /* Send an APDU to the card in SLOT.  The APDU is created from all
-   given parameters: CLASS, INS, P0, P1, LC, DATA.  A value of -1 for
+   given parameters: KLASSE, INS, P0, P1, LC, DATA.  A value of -1 for
    LC won't sent this field and the data field; in this case DATA must
    also be passed as NULL.  If EXTENDED_MODE is not 0 command chaining
    or extended length will be used; see send_le for details.  The
@@ -2992,10 +2992,10 @@ apdu_send (int slot, int extended_mode,
    non card related error.  No data will be returned.  */
 int
 apdu_send_simple (int slot, int extended_mode,
-                  int class, int ins, int p0, int p1,
+                  int klasse, int ins, int p0, int p1,
                   int lc, const char *data)
 {
-  return send_le (slot, class, ins, p0, p1, lc, data, -1, NULL, NULL, NULL,
+  return send_le (slot, klasse, ins, p0, p1, lc, data, -1, NULL, NULL, NULL,
                   extended_mode);
 }
 
@@ -3028,7 +3028,7 @@ apdu_send_direct (int slot, size_t extended_length,
   size_t apdulen;
   int sw;
   long rc; /* we need a long here due to PC/SC. */
-  int class;
+  int klasse;
 
   if (slot < 0 || slot >= MAX_READER || !reader_table[slot].used )
     return SW_HOST_NO_DRIVER;
@@ -3049,7 +3049,7 @@ apdu_send_direct (int slot, size_t extended_length,
     }
   apdulen = apdudatalen;
   memcpy (apdu, apdudata, apdudatalen);
-  class = apdulen? *apdu : 0;
+  klasse = apdulen? *apdu : 0;
 
   if (extended_length >= 256 && extended_length <= 65536)
     {
@@ -3129,7 +3129,7 @@ apdu_send_direct (int slot, size_t extended_length,
                        slot, len);
           apdu = short_apdu_buffer;
           apdulen = 0;
-          apdu[apdulen++] = class;
+          apdu[apdulen++] = klasse;
           apdu[apdulen++] = 0xC0;
           apdu[apdulen++] = 0;
           apdu[apdulen++] = 0;

@@ -437,7 +437,7 @@
 /* #undef HAVE_LDAP_START_TLS_S */
 /* #undef HAVE_LDAP_START_TLS_SA */
 /* #undef HAVE_LIBREADLINE */
-/* #undef HAVE_LIBUSB */
+#define HAVE_LIBUSB 1
 #define HAVE_LIBUTIL 1
 /* #undef HAVE_LIBUTIL_H */
 #define HAVE_LOCALE_H 1

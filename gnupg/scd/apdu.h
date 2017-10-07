@@ -120,18 +120,18 @@ int apdu_set_progress_cb (int slot, gcry_handler_progress_t cb, void *cb_arg);
 int apdu_reset (int slot);
 int apdu_get_status (int slot, int hang, unsigned int *status);
 int apdu_check_pinpad (int slot, int command, pininfo_t *pininfo);
-int apdu_pinpad_verify (int slot, int class, int ins, int p0, int p1,
+int apdu_pinpad_verify (int slot, int klasse, int ins, int p0, int p1,
                         pininfo_t *pininfo);
-int apdu_pinpad_modify (int slot, int class, int ins, int p0, int p1,
+int apdu_pinpad_modify (int slot, int klasse, int ins, int p0, int p1,
                         pininfo_t *pininfo);
 int apdu_send_simple (int slot, int extended_mode,
-                      int class, int ins, int p0, int p1,
+                      int klasse, int ins, int p0, int p1,
                       int lc, const char *data);
 int apdu_send (int slot, int extended_mode,
-               int class, int ins, int p0, int p1, int lc, const char *data,
+               int klasse, int ins, int p0, int p1, int lc, const char *data,
                unsigned char **retbuf, size_t *retbuflen);
 int apdu_send_le (int slot, int extended_mode,
-                  int class, int ins, int p0, int p1,
+                  int klasse, int ins, int p0, int p1,
                   int lc, const char *data, int le,
                   unsigned char **retbuf, size_t *retbuflen);
 int apdu_send_direct (int slot, size_t extended_length,

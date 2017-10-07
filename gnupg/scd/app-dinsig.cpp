@@ -173,7 +173,7 @@ do_readcert (app_t app, const char *certid,
   unsigned char *buffer;
   const unsigned char *p;
   size_t buflen, n;
-  int class, tag, constructed, ndef;
+  int klasse, tag, constructed, ndef;
   size_t totobjlen, objlen, hdrlen;
   int rootca = 0;
 
@@ -218,27 +218,27 @@ do_readcert (app_t app, const char *certid,
   /* Now figure something out about the object. */
   p = buffer;
   n = buflen;
-  err = parse_ber_header (&p, &n, &class, &tag, &constructed,
+  err = parse_ber_header (&p, &n, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (err)
     goto leave;
-  if ( class == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed )
+  if ( klasse == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed )
     ;
-  else if ( class == CLASS_UNIVERSAL && tag == TAG_SET && constructed )
+  else if ( klasse == CLASS_UNIVERSAL && tag == TAG_SET && constructed )
     rootca = 1;
   else
     return gpg_error (GPG_ERR_INV_OBJ);
   totobjlen = objlen + hdrlen;
   assert (totobjlen <= buflen);
 
-  err = parse_ber_header (&p, &n, &class, &tag, &constructed,
+  err = parse_ber_header (&p, &n, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (err)
     goto leave;
 
   if (rootca)
     ;
-  else if (class == CLASS_UNIVERSAL && tag == TAG_OBJECT_ID && !constructed)
+  else if (klasse == CLASS_UNIVERSAL && tag == TAG_OBJECT_ID && !constructed)
     {
       const unsigned char *save_p;
 
@@ -253,11 +253,11 @@ do_readcert (app_t app, const char *certid,
       p += objlen;
       n -= objlen;
       save_p = p;
-      err = parse_ber_header (&p, &n, &class, &tag, &constructed,
+      err = parse_ber_header (&p, &n, &klasse, &tag, &constructed,
                               &ndef, &objlen, &hdrlen);
       if (err)
         goto leave;
-      if ( !(class == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed) )
+      if ( !(klasse == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed) )
         return gpg_error (GPG_ERR_INV_OBJ);
       totobjlen = objlen + hdrlen;
       assert (save_p + totobjlen <= buffer + buflen);
@@ -546,7 +546,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
 gpg_error_t
 app_select_dinsig (app_t app)
 {
-  static char const aid[] = { 0xD2, 0x76, 0x00, 0x00, 0x66, 0x01 };
+  static unsigned char const aid[] = { 0xD2, 0x76, 0x00, 0x00, 0x66, 0x01 };
   int slot = app->slot;
   int rc;
 

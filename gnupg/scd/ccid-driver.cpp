@@ -1258,7 +1258,7 @@ ccid_vendor_specific_init (ccid_driver_t handle)
        * VERIFY command with empty data.  This vendor specific command
        * sequence is to disable the feature.
        */
-      const unsigned char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
+      const char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
 
       r = send_escape_cmd (handle, cmd, sizeof (cmd), NULL, 0, NULL);
       if (r != 0 && r != CCID_DRIVER_ERR_CARD_INACTIVE

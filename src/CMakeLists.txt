@@ -7,6 +7,7 @@ find_package(GTest REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
 pkg_check_modules(BOTAN2 REQUIRED botan-2)
+pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
 include(CheckIncludeFiles)
 check_include_files(malloc.h HAVE_MALLOC_H)
@@ -625,6 +626,21 @@ add_executable(neopg
   ../gnupg/sm/server.cpp
   ../gnupg/common/audit.cpp
   ../gnupg/sm/gpgsm.cpp
+
+  ../gnupg/scd/scdaemon.cpp
+  ../gnupg/scd/apdu.cpp
+  ../gnupg/scd/app.cpp
+  ../gnupg/scd/app-dinsig.cpp
+  ../gnupg/scd/app-geldkarte.cpp
+  ../gnupg/scd/app-help.cpp
+  ../gnupg/scd/app-nks.cpp
+  ../gnupg/scd/app-p15.cpp
+  ../gnupg/scd/app-sc-hsm.cpp
+  ../gnupg/scd/app-openpgp.cpp
+  ../gnupg/scd/atr.cpp
+  ../gnupg/scd/ccid-driver.cpp
+  ../gnupg/scd/command.cpp
+  ../gnupg/scd/iso7816.cpp
   
   neopg.cpp
 )
@@ -638,6 +654,7 @@ target_include_directories(neopg PRIVATE
 #  ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}
   ${BOTAN2_INCLUDE_DIRS}
+  ${LIBUSB_INCLUDE_DIRS}
 )
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
@@ -650,6 +667,7 @@ target_link_libraries(neopg PRIVATE
 # ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
+${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
  -lldap -lz -lbz2 -lgnutls
 )
 target_compile_options(neopg PUBLIC

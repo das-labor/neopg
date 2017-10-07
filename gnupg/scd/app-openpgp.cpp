@@ -2857,7 +2857,7 @@ build_privkey_template (app_t app, int keyno,
   size_t suffix_len;
   unsigned char *tp;
   size_t datalen;
-  unsigned char *template;
+  unsigned char *template_x;
   size_t template_size;
 
   *result = NULL;
@@ -2929,8 +2929,8 @@ build_privkey_template (app_t app, int keyno,
                    + privkey_len
                    + suffix_len
                    + datalen);
-  tp = template = xtrymalloc_secure (template_size);
-  if (!template)
+  tp = template_x = xtrymalloc_secure (template_size);
+  if (!template_x)
     return gpg_error_from_syserror ();
 
   tp += add_tlv (tp, 0x4d, exthdr_len + privkey_len + suffix_len + datalen);
@@ -2976,10 +2976,10 @@ build_privkey_template (app_t app, int keyno,
 
   /* Sanity check.  We don't know the exact length because we
      allocated 3 bytes for the first length header.  */
-  assert (tp - template <= template_size);
+  assert (tp - template_x <= template_size);
 
-  *result = template;
-  *resultlen = tp - template;
+  *result = template_x;
+  *resultlen = tp - template_x;
   return 0;
 }
 
@@ -2997,7 +2997,7 @@ build_ecc_privkey_template (app_t app, int keyno,
   size_t suffix_len;
   unsigned char *tp;
   size_t datalen;
-  unsigned char *template;
+  unsigned char *template_x;
   size_t template_size;
   int pubkey_required;
 
@@ -3043,8 +3043,8 @@ build_ecc_privkey_template (app_t app, int keyno,
                    + datalen);
   if (exthdr_len + privkey_len + suffix_len + datalen >= 128)
     template_size++;
-  tp = template = xtrymalloc_secure (template_size);
-  if (!template)
+  tp = template_x = xtrymalloc_secure (template_size);
+  if (!template_x)
     return gpg_error_from_syserror ();
 
   tp += add_tlv (tp, 0x4d, exthdr_len + privkey_len + suffix_len + datalen);
@@ -3064,10 +3064,10 @@ build_ecc_privkey_template (app_t app, int keyno,
       tp += ecc_q_len;
     }
 
-  assert (tp - template == template_size);
+  assert (tp - template_x == template_size);
 
-  *result = template;
-  *resultlen = tp - template;
+  *result = template_x;
+  *resultlen = tp - template_x;
   return 0;
 }
 
@@ -3245,7 +3245,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   size_t rsa_n_len, rsa_e_len, rsa_p_len, rsa_q_len;
   unsigned int nbits;
   unsigned int maxbits;
-  unsigned char *template = NULL;
+  unsigned char *template_x = NULL;
   unsigned char *tp;
   size_t template_len;
   unsigned char fprbuf[20];
@@ -3449,7 +3449,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
                                     rsa_u, rsa_u_len,
                                     rsa_dp, rsa_dp_len,
                                     rsa_dq, rsa_dq_len,
-                                    &template, &template_len);
+                                    &template_x, &template_len);
       xfree(rsa_u);
       xfree(rsa_dp);
       xfree(rsa_dq);
@@ -3470,7 +3470,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       else
         exmode = 0;
       err = iso7816_put_data_odd (app->slot, exmode, 0x3fff,
-                                  template, template_len);
+                                  template_x, template_len);
     }
   else
     {
@@ -3484,8 +3484,8 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       template_len = (1 + 1 + 4
                       + 1 + 1 + rsa_p_len
                       + 1 + 1 + rsa_q_len);
-      template = tp = xtrymalloc_secure (template_len);
-      if (!template)
+      template_x = tp = xtrymalloc_secure (template_len);
+      if (!template_x)
         {
           err = gpg_error_from_syserror ();
           goto leave;
@@ -3511,7 +3511,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       memcpy (tp, rsa_q, rsa_q_len);
       tp += rsa_q_len;
 
-      assert (tp - template == template_len);
+      assert (tp - template_x == template_len);
 
       /* Prepare for storing the key.  */
       err = verify_chv3 (app, pincb, pincb_arg);
@@ -3521,7 +3521,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       /* Store the key. */
       err = iso7816_put_data (app->slot, 0,
                               (app->card_version > 0x0007? 0xE0:0xE9)+keyno,
-                              template, template_len);
+                              template_x, template_len);
     }
   if (err)
     {
@@ -3536,7 +3536,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
 
 
  leave:
-  xfree (template);
+  xfree (template_x);
   return err;
 }
 
@@ -3765,14 +3765,14 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       /* Build the private key template as described in section 4.3.3.7 of
          the OpenPGP card specs version 2.0.  */
-      unsigned char *template;
+      unsigned char *template_x;
       size_t template_len;
       int exmode;
 
       err = build_ecc_privkey_template (app, keyno,
                                         ecc_d, ecc_d_len,
                                         ecc_q, ecc_q_len,
-                                        &template, &template_len);
+                                        &template_x, &template_len);
       if (err)
         goto leave;
 
@@ -3780,7 +3780,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       err = verify_chv3 (app, pincb, pincb_arg);
       if (err)
         {
-          xfree (template);
+          xfree (template_x);
           goto leave;
         }
 
@@ -3792,8 +3792,8 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       else
         exmode = 0;
       err = iso7816_put_data_odd (app->slot, exmode, 0x3fff,
-                                  template, template_len);
-      xfree (template);
+                                  template_x, template_len);
+      xfree (template_x);
     }
   else
     err = gpg_error (GPG_ERR_NOT_SUPPORTED);
@@ -4951,7 +4951,7 @@ parse_algorithm_attribute (app_t app, int keyno)
 gpg_error_t
 app_select_openpgp (app_t app)
 {
-  static char const aid[] = { 0xD2, 0x76, 0x00, 0x01, 0x24, 0x01 };
+  static unsigned char const aid[] = { 0xD2, 0x76, 0x00, 0x01, 0x24, 0x01 };
   int slot = app->slot;
   int rc;
   unsigned char *buffer;
