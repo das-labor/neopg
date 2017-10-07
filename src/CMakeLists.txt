@@ -1,8 +1,33 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(NeoPG VERSION 0.0 LANGUAGES C CXX)
+project(NeoPG VERSION 0.1 LANGUAGES C CXX)
+
 
 enable_testing()
 find_package(GTest REQUIRED)
+
+find_package(Doxygen)
+option(BUILD_DOC "Create and install documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+
+if(BUILD_DOC)
+    if(NOT DOXYGEN_FOUND)
+        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    endif()
+
+    set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+    set(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+    configure_file(${DOXYFILE_IN} ${DOXYFILE} @ONLY)
+    message("Doxygen build started")
+
+    add_custom_target(doc
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating documentation with Doxygen"
+        VERBATIM)
+
+    # install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+endif()
+
 
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
@@ -415,9 +440,24 @@ target_link_libraries(ksba-test PRIVATE
   GTest::GTest GTest::Main)
 add_test(KsbaTest ksba-test COMMAND ksba-test test_xml_output --gtest_output=xml:ksba-test.xml)
 
-# gpg
 
 # FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+
+# libneopg
+
+# add_library(libneopg
+#   lib/codec/radix64.h
+#   lib/codec/radix64.cpp
+# )
+# target_compile_options(libneopg
+#   PRIVATE
+#   -fvisibility=hidden
+# )
+# target_compile_definitions(gpg-error
+#    PRIVATE
+#   NEOPG_DLL=__attribute__((visibility("default")))
+# )
+
 
 
 add_executable(neopg
@@ -674,6 +714,7 @@ target_compile_options(neopg PUBLIC
 -std=c++14
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER})
+
 
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
