@@ -104,11 +104,6 @@ static struct scd_local_s *scd_local_list;
 /* A Mutex used inside the start_scd function. */
 static npth_mutex_t start_scd_lock;
 
-/* A malloced string with the name of the socket to be used for
-   additional connections.  May be NULL if not provided by
-   SCdaemon. */
-static char *socket_name;
-
 /* The context of the primary connection.  This is also used as a flag
    to indicate whether the scdaemon has been started. */
 static assuan_context_t primary_scd_ctx;
@@ -154,8 +149,6 @@ agent_scd_dump_state (void)
             primary_scd_ctx,
             (long)assuan_get_pid (primary_scd_ctx),
             primary_scd_ctx_reusable);
-  if (socket_name)
-    log_info ("agent_scd_dump_state: socket='%s'\n", socket_name);
 }
 
 
@@ -191,6 +184,7 @@ atfork_cb (void *opaque, int where)
     gcry_control (GCRYCTL_TERM_SECMEM);
 }
 
+extern const char* neopg_program;
 
 /* Fork off the SCdaemon if this has not already been done.  Lock the
    daemon and make sure that a proper context has been setup in CTRL.
@@ -203,11 +197,12 @@ start_scd (ctrl_t ctrl)
   gpg_error_t err = 0;
   const char *pgmname;
   assuan_context_t ctx = NULL;
-  const char *argv[5];
+  const char *argv[6];
   assuan_fd_t no_close_list[3];
   int i;
   int rc;
   char *abs_homedir = NULL;
+  int j;
 
   if (opt.disable_scdaemon)
     return gpg_error (GPG_ERR_NOT_SUPPORTED);
@@ -216,7 +211,7 @@ start_scd (ctrl_t ctrl)
      structure. */
   if (!ctrl->scd_local)
     {
-      ctrl->scd_local = xtrycalloc (1, sizeof *ctrl->scd_local);
+      ctrl->scd_local = (struct scd_local_s*)xtrycalloc (1, sizeof *ctrl->scd_local);
       if (!ctrl->scd_local)
         return gpg_error_from_syserror ();
       ctrl->scd_local->ctrl_backlink = ctrl;
@@ -271,22 +266,6 @@ start_scd (ctrl_t ctrl)
       goto leave;
     }
 
-  if (socket_name)
-    {
-      rc = assuan_socket_connect (ctx, socket_name, 0, 0);
-      if (rc)
-        {
-          log_error ("can't connect to socket '%s': %s\n",
-                     socket_name, gpg_strerror (rc));
-          err = gpg_error (GPG_ERR_NO_SCDAEMON);
-          goto leave;
-        }
-
-      if (opt.verbose)
-        log_info ("new connection to SCdaemon established\n");
-      goto leave;
-    }
-
   if (primary_scd_ctx)
     {
       log_info ("SCdaemon is running but won't accept further connections\n");
@@ -298,32 +277,12 @@ start_scd (ctrl_t ctrl)
   if (opt.verbose)
     log_info ("no running SCdaemon - starting it\n");
 
-  if (fflush (NULL))
-    {
-#ifndef HAVE_W32_SYSTEM
-      err = gpg_error_from_syserror ();
-#endif
-      log_error ("error flushing pending output: %s\n", strerror (errno));
-      /* At least Windows XP fails here with EBADF.  According to docs
-         and Wine an fflush(NULL) is the same as _flushall.  However
-         the Wime implementation does not flush stdin,stdout and stderr
-         - see above.  Lets try to ignore the error. */
-#ifndef HAVE_W32_SYSTEM
-      goto leave;
-#endif
-    }
-
-  if (!opt.scdaemon_program || !*opt.scdaemon_program)
-    opt.scdaemon_program = gnupg_module_name (GNUPG_MODULE_NAME_SCDAEMON);
-  if ( !(pgmname = strrchr (opt.scdaemon_program, '/')))
-    pgmname = opt.scdaemon_program;
-  else
-    pgmname++;
-
-  argv[0] = pgmname;
-  argv[1] = "--multi-server";
+  j = 0;
+  argv[j++] = neopg_program;
+  argv[j++] = "scd";
+  argv[j++] = "--server";
   if (gnupg_default_homedir_p ())
-    argv[2] = NULL;
+    argv[j++] = NULL;
   else
     {
       abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
@@ -334,9 +293,9 @@ start_scd (ctrl_t ctrl)
           goto leave;
         }
 
-      argv[2] = "--homedir";
-      argv[3] = abs_homedir;
-      argv[4] = NULL;
+      argv[j++] = "--homedir";
+      argv[j++] = abs_homedir;
+      argv[j++] = NULL;
     }
 
   i=0;
@@ -351,7 +310,7 @@ start_scd (ctrl_t ctrl)
   /* Connect to the scdaemon and perform initial handshaking.  Use
      detached flag so that under Windows SCDAEMON does not show up a
      new window.  */
-  rc = assuan_pipe_connect (ctx, opt.scdaemon_program, argv,
+  rc = assuan_pipe_connect (ctx, neopg_program, argv,
 			    no_close_list, atfork_cb, NULL,
                             ASSUAN_PIPE_CONNECT_DETACHED);
   if (rc)
@@ -364,54 +323,6 @@ start_scd (ctrl_t ctrl)
 
   if (opt.verbose)
     log_debug ("first connection to SCdaemon established\n");
-
-
-  /* Get the name of the additional socket opened by scdaemon. */
-  {
-    membuf_t data;
-    unsigned char *databuf;
-    size_t datalen;
-
-    xfree (socket_name);
-    socket_name = NULL;
-    init_membuf (&data, 256);
-    assuan_transact (ctx, "GETINFO socket_name",
-                     put_membuf_cb, &data, NULL, NULL, NULL, NULL);
-
-    databuf = get_membuf (&data, &datalen);
-    if (databuf && datalen)
-      {
-        socket_name = xtrymalloc (datalen + 1);
-        if (!socket_name)
-          log_error ("warning: can't store socket name: %s\n",
-                     strerror (errno));
-        else
-          {
-            memcpy (socket_name, databuf, datalen);
-            socket_name[datalen] = 0;
-            if (DBG_IPC)
-              log_debug ("additional connections at '%s'\n", socket_name);
-          }
-      }
-    xfree (databuf);
-  }
-
-  /* Tell the scdaemon we want him to send us an event signal.  We
-     don't support this for W32CE.  */
-#ifndef HAVE_W32CE_SYSTEM
-  if (opt.sigusr2_enabled)
-    {
-      char buf[100];
-
-#ifdef HAVE_W32_SYSTEM
-      snprintf (buf, sizeof buf, "OPTION event-signal=%lx",
-                (unsigned long)get_agent_scd_notify_event ());
-#else
-      snprintf (buf, sizeof buf, "OPTION event-signal=%d", SIGUSR2);
-#endif
-      assuan_transact (ctx, buf, NULL, NULL, NULL, NULL, NULL, NULL);
-    }
-#endif /*HAVE_W32CE_SYSTEM*/
 
   primary_scd_ctx = ctx;
   primary_scd_ctx_reusable = 0;
@@ -517,9 +428,6 @@ agent_scd_check_aliveness (void)
 
           primary_scd_ctx = NULL;
           primary_scd_ctx_reusable = 0;
-
-          xfree (socket_name);
-          socket_name = NULL;
         }
     }
 
@@ -593,7 +501,7 @@ agent_reset_scd (ctrl_t ctrl)
 static gpg_error_t
 learn_status_cb (void *opaque, const char *line)
 {
-  struct learn_parm_s *parm = opaque;
+  struct learn_parm_s *parm = (struct learn_parm_s*) opaque;
   const char *keyword = line;
   int keywordlen;
 
@@ -656,7 +564,7 @@ agent_card_learn (ctrl_t ctrl,
 static gpg_error_t
 get_serialno_cb (void *opaque, const char *line)
 {
-  char **serialno = opaque;
+  char **serialno = (char **) opaque;
   const char *keyword = line;
   const char *s;
   int keywordlen, n;
@@ -674,7 +582,7 @@ get_serialno_cb (void *opaque, const char *line)
         ;
       if (!n || (n&1)|| !(spacep (s) || !*s) )
         return gpg_error (GPG_ERR_ASS_PARAMETER);
-      *serialno = xtrymalloc (n+1);
+      *serialno = (char*) xtrymalloc (n+1);
       if (!*serialno)
         return out_of_core ();
       memcpy (*serialno, line, n);
@@ -721,7 +629,7 @@ agent_card_serialno (ctrl_t ctrl, char **r_serialno, const char *demand)
 static gpg_error_t
 inq_needpin (void *opaque, const char *line)
 {
-  struct inq_needpin_parm_s *parm = opaque;
+  struct inq_needpin_parm_s *parm = (struct inq_needpin_parm_s*) opaque;
   const char *s;
   char *pin;
   size_t pinlen;

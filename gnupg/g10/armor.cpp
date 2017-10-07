@@ -1136,7 +1136,7 @@ armor_filter( void *opaque, int control,
 	    iobuf_writestr(a,afx->eol);
 	    if (opt.emit_version)
 	      {
-		iobuf_writestr (a, "Version: "GNUPG_NAME" v");
+		iobuf_writestr (a, "Version: " GNUPG_NAME " v");
                 for (s=VERSION; *s && *s != '.'; s++)
                   iobuf_writebyte (a, *s);
                 if (opt.emit_version > 1 && *s)

@@ -442,15 +442,6 @@ gpg_error_t assuan_pipe_connect (assuan_context_t ctx,
 				 void *atforkvalue,
 				 unsigned int flags);
 
-/*-- assuan-socket-connect.c --*/
-#define ASSUAN_SOCKET_CONNECT_FDPASSING 1
-gpg_error_t assuan_socket_connect (assuan_context_t ctx, const char *name,
-				   pid_t server_pid, unsigned int flags);
-
-/*-- assuan-socket-connect.c --*/
-gpg_error_t assuan_socket_connect_fd (assuan_context_t ctx, int fd,
-				   unsigned int flags);
-
 /*-- context.c --*/
 pid_t assuan_get_pid (assuan_context_t ctx);
 struct _assuan_peercred
