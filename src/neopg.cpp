@@ -1,3 +1,9 @@
+/* NeoPG
+   Copyright 2017 Marcus Brinkmann
+
+   NeoPG is released under the Simplified BSD License (see license.txt)
+*/
+
 #include <iostream>
 
 #include "args.hpp"

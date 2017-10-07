@@ -1,5 +1,17 @@
 # NeoPG implements the OpenPGP standard.
 
+NeoPG is written in C++11 and released under the permissive
+`Simplified BSD` license (the same license as Botan, the cryptography
+library).
+
+Some (many) parts of NeoPG are currently under a more restrictive
+license, because they are derived from other projects (in particular
+GnuPG).  Please refer to the copyright notice at the top of every
+file.
+
+The dependencies are also released under their respective various
+licenses.
+
 ## Dependencies
 
 Aside from a working C++ toolchain you'll need the following libraries.
