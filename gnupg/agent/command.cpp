@@ -2853,13 +2853,11 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     }
   else if (!strcmp (key, "ttyname"))
     {
-      if (!opt.keep_tty)
-        err = session_env_setenv (ctrl->session_env, "GPG_TTY", value);
+      err = session_env_setenv (ctrl->session_env, "GPG_TTY", value);
     }
   else if (!strcmp (key, "ttytype"))
     {
-      if (!opt.keep_tty)
-        err = session_env_setenv (ctrl->session_env, "TERM", value);
+      err = session_env_setenv (ctrl->session_env, "TERM", value);
     }
   else if (!strcmp (key, "lc-ctype"))
     {

@@ -110,9 +110,6 @@ enum cmd_and_opt_values
   oNoAllowMarkTrusted,
   oAllowPresetPassphrase,
   oNoAllowExternalCache,
-  oKeepTTY,
-  oKeepDISPLAY,
-  oPuttySupport,
   oDisableScdaemon,
   oWriteEnvFile
 };
@@ -166,10 +163,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oLCctype,    "lc-ctype",    "@"),
   ARGPARSE_s_s (oLCmessages, "lc-messages", "@"),
   ARGPARSE_s_s (oXauthority, "xauthority",  "@"),
-  ARGPARSE_s_n (oKeepTTY,    "keep-tty",
-                /* */        N_("ignore requests to change the TTY")),
-  ARGPARSE_s_n (oKeepDISPLAY, "keep-display",
-                /* */        N_("ignore requests to change the X display")),
 
   ARGPARSE_s_u (oDefCacheTTL,    "default-cache-ttl",
                                  N_("|N|expire cached PINs after N seconds")),
@@ -827,9 +820,6 @@ agent_main (int argc, char **argv )
             gnupg_set_time (faked_time, 0);
           }
           break;
-
-        case oKeepTTY: opt.keep_tty = 1; break;
-        case oKeepDISPLAY: opt.keep_display = 1; break;
 
         case oWriteEnvFile:
           obsolete_option (configname, configlineno, "write-env-file");

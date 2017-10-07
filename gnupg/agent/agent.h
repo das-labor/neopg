@@ -139,9 +139,6 @@ struct options
      enabled (which is the default) we send an option to Pinentry
      to allow it to enable such a cache.  */
   int allow_external_cache;
-
-  int keep_tty;      /* Don't switch the TTY (for pinentry) on request */
-  int keep_display;  /* Don't switch the DISPLAY (for pinentry) on request */
 };
 extern struct options agent_opt;
 #define opt agent_opt
