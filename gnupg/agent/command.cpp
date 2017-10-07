@@ -2813,26 +2813,6 @@ cmd_killagent (assuan_context_t ctx, char *line)
 }
 
 
-static const char hlp_reloadagent[] =
-  "RELOADAGENT\n"
-  "\n"
-  "This command is an alternative to SIGHUP\n"
-  "to reload the configuration.";
-static gpg_error_t
-cmd_reloadagent (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = assuan_get_pointer (ctx);
-
-  (void)line;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
-  agent_sighup_action ();
-  return 0;
-}
-
-
 
 static const char hlp_getinfo[] =
   "GETINFO <what>\n"
@@ -2842,8 +2822,6 @@ static const char hlp_getinfo[] =
   "\n"
   "  version     - Return the version of the program.\n"
   "  pid         - Return the process id of the server.\n"
-  "  socket_name - Return the name of the socket.\n"
-  "  ssh_socket_name - Return the name of the ssh socket.\n"
   "  scd_running - Return OK if the SCdaemon is already running.\n"
   "  s2k_count   - Return the calibrated S2K count.\n"
   "  std_env_names   - List the names of the standard environment.\n"
@@ -2918,24 +2896,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "socket_name"))
-    {
-      const char *s = get_agent_socket_name ();
-
-      if (s)
-        rc = assuan_send_data (ctx, s, strlen (s));
-      else
-        rc = gpg_error (GPG_ERR_NO_DATA);
-    }
-  else if (!strcmp (line, "ssh_socket_name"))
-    {
-      const char *s = get_agent_ssh_socket_name ();
-
-      if (s)
-        rc = assuan_send_data (ctx, s, strlen (s));
-      else
-        rc = gpg_error (GPG_ERR_NO_DATA);
     }
   else if (!strcmp (line, "scd_running"))
     {
@@ -3221,7 +3181,6 @@ register_commands (assuan_context_t ctx)
     { "PUTVAL",         cmd_putval,    hlp_putval },
     { "UPDATESTARTUPTTY",  cmd_updatestartuptty, hlp_updatestartuptty },
     { "KILLAGENT",      cmd_killagent,  hlp_killagent },
-    { "RELOADAGENT",    cmd_reloadagent,hlp_reloadagent },
     { "GETINFO",        cmd_getinfo,   hlp_getinfo },
     { "KEYTOCARD",      cmd_keytocard, hlp_keytocard },
     { NULL }

@@ -555,28 +555,6 @@ start_pinentry (ctrl_t ctrl)
         }
     }
 
-  /* Tell the pinentry the name of a file it shall touch after having
-     messed with the tty.  This is optional and only supported by
-     newer pinentries and thus we do no error checking. */
-  tmpstr = opt.pinentry_touch_file;
-  if (tmpstr && !strcmp (tmpstr, "/dev/null"))
-    tmpstr = NULL;
-  else if (!tmpstr)
-    tmpstr = get_agent_socket_name ();
-  if (tmpstr)
-    {
-      char *optstr;
-
-      if (asprintf (&optstr, "OPTION touch-file=%s", tmpstr ) < 0 )
-        ;
-      else
-        {
-          assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-                           NULL);
-          xfree (optstr);
-        }
-    }
-
   /* Tell Pinentry about our client.  */
   if (ctrl->client_pid)
     {
