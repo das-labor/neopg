@@ -578,7 +578,6 @@ add_executable(neopg
   ../gnupg/dirmngr/dirmngr_ldap.cpp
   ../gnupg/dirmngr/dns-stuff.cpp
   ../gnupg/dirmngr/http-common.cpp
-  ../gnupg/dirmngr/http-ntbtls.cpp
   ../gnupg/dirmngr/http.cpp
   ../gnupg/dirmngr/ks-action.cpp
   ../gnupg/dirmngr/ks-engine-finger.cpp

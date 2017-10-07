@@ -326,8 +326,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
 {
   gpg_error_t err;
   assuan_context_t ctx;
-  int did_success_msg = 0;
-  char *sockname;
   const char *argv[6];
 
   *r_ctx = NULL;
@@ -339,110 +337,55 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
       return err;
     }
 
-  sockname = make_filename_try (gnupg_socketdir (), GPG_AGENT_SOCK_NAME, NULL);
-  if (!sockname)
-    {
-      err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
-      assuan_release (ctx);
-      return err;
-    }
+  {
+    char *abs_homedir;
+    int i;
 
-  err = assuan_socket_connect (ctx, sockname, 0, 0);
-  if (err && autostart)
-    {
-      char *abs_homedir;
-      lock_spawn_t lock;
-      char *p;
-      const char *s;
-      int i;
+    if (verbose)
+        log_info (_("starting agent'%s'\n"), neopg_program);
+    if (status_cb)
+      status_cb (status_cb_arg, STATUS_PROGRESS,
+		 "starting_agent ? 0 0", NULL);
 
-      if (verbose)
-        log_info (_("no running gpg-agent - starting '%s'\n"),
-                  neopg_program);
+      /* We better pass an absolute home directory to the agent just in
+       case gpg-agent does not convert the passed name to an absolute
+       one (which it should do).  */
+    abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
+    if (!abs_homedir)
+      {
+	gpg_error_t tmperr = gpg_err_make (errsource,
+					   gpg_err_code_from_syserror ());
+	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
+	assuan_release (ctx);
+	return tmperr;
+      }
+    
+    i = 0;
+    argv[i++] = neopg_program;
+    argv[i++] = "agent";
+    argv[i++] = "--homedir";
+    argv[i++] = abs_homedir;
+    argv[i++] = "--server";
+    argv[i++] = NULL;
+    
+    err = assuan_pipe_connect (ctx, neopg_program, argv,
+			       NULL, NULL, NULL,
+			       ASSUAN_PIPE_CONNECT_FDPASSING
+			       | ASSUAN_PIPE_CONNECT_DETACHED);
+    if (err)
+      {
+	gpg_error_t tmperr = gpg_err_make (errsource,
+					   gpg_err_code_from_syserror ());
+	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
+	assuan_release (ctx);
+	xfree (abs_homedir);
+	return tmperr;
+      }
 
-      if (status_cb)
-        status_cb (status_cb_arg, STATUS_PROGRESS,
-                   "starting_agent ? 0 0", NULL);
-
-      /* We better pass an absolute home directory to the agent just
-         in case gpg-agent does not convert the passed name to an
-         absolute one (which it should do).  */
-      abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
-      if (!abs_homedir)
-        {
-          gpg_error_t tmperr = gpg_err_make (errsource,
-                                             gpg_err_code_from_syserror ());
-          log_error ("error building filename: %s\n",gpg_strerror (tmperr));
-          xfree (sockname);
-          assuan_release (ctx);
-          return tmperr;
-        }
-
-      if (fflush (NULL))
-        {
-          gpg_error_t tmperr = gpg_err_make (errsource,
-                                             gpg_err_code_from_syserror ());
-          log_error ("error flushing pending output: %s\n",
-                     strerror (errno));
-          xfree (sockname);
-          assuan_release (ctx);
-          xfree (abs_homedir);
-          return tmperr;
-        }
-
-      /* If the agent has been configured for use with a standard
-         socket, an environment variable is not required and thus
-         we can safely start the agent here.  */
-      i = 0;
-      argv[i++] = "agent";
-      argv[i++] = "--homedir";
-      argv[i++] = abs_homedir;
-      argv[i++] = "--use-standard-socket";
-      argv[i++] = "--daemon";
-      argv[i++] = NULL;
-
-      if (!(err = lock_spawning (&lock, gnupg_homedir (), "agent", verbose))
-          && assuan_socket_connect (ctx, sockname, 0, 0))
-        {
-          err = gnupg_spawn_process_detached (neopg_program, argv, NULL);
-          if (err)
-            log_error ("failed to start agent '%s': %s\n",
-                       neopg_program, gpg_strerror (err));
-          else
-            {
-              for (i=0; i < SECS_TO_WAIT_FOR_AGENT; i++)
-                {
-                  if (verbose)
-                    log_info (_("waiting for the agent to come up ... (%ds)\n"),
-                              SECS_TO_WAIT_FOR_AGENT - i);
-                  gnupg_sleep (1);
-                  err = assuan_socket_connect (ctx, sockname, 0, 0);
-                  if (!err)
-                    {
-                      if (verbose)
-                        {
-                          log_info (_("connection to agent established\n"));
-                          did_success_msg = 1;
-                        }
-                      break;
-                    }
-                }
-            }
-        }
-
-      unlock_spawning (&lock, "agent");
-      xfree (abs_homedir);
-    }
-  xfree (sockname);
-  if (err)
-    {
-      if (autostart || gpg_err_code (err) != GPG_ERR_ASS_CONNECT_FAILED)
-        log_error ("can't connect to the agent: %s\n", gpg_strerror (err));
-      assuan_release (ctx);
-      return gpg_err_make (errsource, GPG_ERR_NO_AGENT);
-    }
-
-  if (debug && !did_success_msg)
+    xfree (abs_homedir);
+  }
+  
+  if (debug)
     log_debug ("connection to agent established\n");
 
   err = assuan_transact (ctx, "RESET",
@@ -490,8 +433,6 @@ start_new_dirmngr (assuan_context_t *r_ctx,
 {
   gpg_error_t err;
   assuan_context_t ctx;
-  const char *sockname;
-  int did_success_msg = 0;
 
   *r_ctx = NULL;
 
@@ -502,98 +443,55 @@ start_new_dirmngr (assuan_context_t *r_ctx,
       return err;
     }
 
-  sockname = dirmngr_socket_name ();
-  err = assuan_socket_connect (ctx, sockname, 0, 0);
+  {
+    lock_spawn_t lock;
+    const char *argv[6];
+    char *abs_homedir;
+    int i;
+    
+    if (verbose)
+      log_info (_("starting dirmngr '%s'\n"), neopg_program);
 
-  if (err && autostart)
-    {
-      lock_spawn_t lock;
-      const char *argv[5];
-      char *abs_homedir;
+    if (status_cb)
+      status_cb (status_cb_arg, STATUS_PROGRESS,
+		 "starting_dirmngr ? 0 0", NULL);
 
-      if (verbose)
-        log_info (_("no running Dirmngr - starting '%s'\n"),
-                  neopg_program);
+    abs_homedir = make_absfilename (gnupg_homedir (), NULL);
+    if (!abs_homedir)
+      {
+	gpg_error_t tmperr = gpg_err_make (errsource,
+					   gpg_err_code_from_syserror ());
+	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
+	assuan_release (ctx);
+	return tmperr;
+      }
 
-      if (status_cb)
-        status_cb (status_cb_arg, STATUS_PROGRESS,
-                   "starting_dirmngr ? 0 0", NULL);
+    i = 0;
+    argv[i++] = neopg_program;
+    argv[i++] = "dirmngr";
+    argv[i++] = "--homedir";
+    argv[i++] = abs_homedir;
+    argv[i++] = "--server";
+    argv[i++] = NULL;
 
-      abs_homedir = make_absfilename (gnupg_homedir (), NULL);
-      if (!abs_homedir)
-        {
-          gpg_error_t tmperr = gpg_err_make (errsource,
-                                             gpg_err_code_from_syserror ());
-          log_error ("error building filename: %s\n",gpg_strerror (tmperr));
-          assuan_release (ctx);
-          return tmperr;
-        }
+    err = assuan_pipe_connect (ctx, neopg_program, argv,
+			       NULL, NULL, NULL,
+			       ASSUAN_PIPE_CONNECT_FDPASSING
+			       | ASSUAN_PIPE_CONNECT_DETACHED);
+    if (err)
+      {
+	gpg_error_t tmperr = gpg_err_make (errsource,
+					   gpg_err_code_from_syserror ());
+	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
+	assuan_release (ctx);
+	xfree (abs_homedir);
+	return tmperr;
+      }
+    
+    xfree (abs_homedir);
+  }
 
-      if (fflush (NULL))
-        {
-          gpg_error_t tmperr = gpg_err_make (errsource,
-                                             gpg_err_code_from_syserror ());
-          log_error ("error flushing pending output: %s\n",
-                     strerror (errno));
-          assuan_release (ctx);
-          return tmperr;
-        }
-
-      argv[0] = "dirmngr";
-      argv[1] = "--daemon";
-      /* Try starting the daemon.  Versions of dirmngr < 2.1.15 do
-       * this only if the home directory is given on the command line.  */
-      argv[2] = "--homedir";
-      argv[3] = abs_homedir;
-      argv[4] = NULL;
-
-      if (!(err = lock_spawning (&lock, gnupg_homedir (), "dirmngr", verbose))
-          && assuan_socket_connect (ctx, sockname, 0, 0))
-        {
-          err = gnupg_spawn_process_detached (neopg_program, argv, NULL);
-          if (err)
-            log_error ("failed to start the dirmngr '%s': %s\n",
-                       neopg_program, gpg_strerror (err));
-          else
-            {
-              int i;
-
-              for (i=0; i < SECS_TO_WAIT_FOR_DIRMNGR; i++)
-                {
-                  if (verbose)
-                    log_info (_("waiting for the dirmngr "
-                                "to come up ... (%ds)\n"),
-                              SECS_TO_WAIT_FOR_DIRMNGR - i);
-                  gnupg_sleep (1);
-                  err = assuan_socket_connect (ctx, sockname, 0, 0);
-                  if (!err)
-                    {
-                      if (verbose)
-                        {
-                          log_info (_("connection to the dirmngr"
-                                      " established\n"));
-                          did_success_msg = 1;
-                        }
-                      break;
-                    }
-                }
-            }
-        }
-
-      unlock_spawning (&lock, "dirmngr");
-      xfree (abs_homedir);
-    }
-
-  if (err)
-    {
-      if (autostart || gpg_err_code (err) != GPG_ERR_ASS_CONNECT_FAILED)
-        log_error ("connecting dirmngr at '%s' failed: %s\n",
-                   sockname, gpg_strerror (err));
-      assuan_release (ctx);
-      return gpg_err_make (errsource, GPG_ERR_NO_DIRMNGR);
-    }
-
-  if (debug && !did_success_msg)
+  if (debug)
     log_debug ("connection to the dirmngr established\n");
 
   *r_ctx = ctx;
@@ -630,7 +528,7 @@ get_assuan_server_version (assuan_context_t ctx, int mode, char **r_version)
   else
     {
       put_membuf (&data, "", 1);
-      *r_version = get_membuf (&data, NULL);
+      *r_version = (char*) get_membuf (&data, NULL);
       if (!*r_version)
         err = gpg_error_from_syserror ();
     }

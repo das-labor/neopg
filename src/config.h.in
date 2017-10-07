@@ -505,8 +505,6 @@
 #define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
 #define HAVE_ZIP 1
-#define HTTP_USE_GNUTLS 1
-/* #undef HTTP_USE_NTBTLS */
 #define ICONV_CONST 
 #define LITTLE_ENDIAN_HOST 1
 /* #undef MKDIR_TAKES_ONE_ARG */

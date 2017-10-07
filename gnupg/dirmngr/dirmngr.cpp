@@ -46,11 +46,7 @@
 
 #include "dirmngr-err.h"
 
-#if  HTTP_USE_NTBTLS
-# include <ntbtls.h>
-#elif HTTP_USE_GNUTLS
 # include <gnutls/gnutls.h>
-#endif /*HTTP_USE_GNUTLS*/
 
 
 #define GNUPG_COMMON_NEED_AFLOCAL
@@ -305,7 +301,7 @@ static char *current_logfile;
 /* Helper to implement --debug-level. */
 static const char *debug_level;
 
-/* Helper to set the NTBTLS or GNUTLS log level.  */
+/* Helper to set the GNUTLS log level.  */
 static int opt_gnutls_debug = -1;
 
 /* Flag indicating that a shutdown has been requested.  */
@@ -419,7 +415,6 @@ my_ksba_hash_buffer (void *arg, const char *oid,
 
 
 /* GNUTLS log function callback.  */
-#ifdef HTTP_USE_GNUTLS
 static void
 my_gnutls_log (int level, const char *text)
 {
@@ -431,7 +426,6 @@ my_gnutls_log (int level, const char *text)
 
   log_debug ("gnutls:L%d: %.*s\n", level, n, text);
 }
-#endif /*HTTP_USE_GNUTLS*/
 
 /* Setup the debugging.  With a LEVEL of NULL only the active debug
    flags are propagated to the subsystems.  With LEVEL set, a specific
@@ -485,18 +479,11 @@ set_debug (void)
   if (opt.debug & DBG_CRYPTO_VALUE )
     gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1);
 
-#if HTTP_USE_NTBTLS
-  if (opt_gnutls_debug >= 0)
-    {
-      ntbtls_set_debug (opt_gnutls_debug, NULL, NULL);
-    }
-#elif HTTP_USE_GNUTLS
   if (opt_gnutls_debug >= 0)
     {
       gnutls_global_set_log_function (my_gnutls_log);
       gnutls_global_set_log_level (opt_gnutls_debug);
     }
-#endif /*HTTP_USE_GNUTLS*/
 
   if (opt.debug)
     parse_debug_flag (NULL, &opt.debug, debug_flags);
@@ -758,23 +745,6 @@ pid_suffix_callback (unsigned long *r_suffix)
 }
 #endif /*!HAVE_W32_SYSTEM*/
 
-#if HTTP_USE_NTBTLS
-static void
-my_ntbtls_log_handler (void *opaque, int level, const char *fmt, va_list argv)
-{
-  (void)opaque;
-
-  if (level == -1)
-    log_logv_with_prefix (GPGRT_LOG_INFO, "ntbtls: ", fmt, argv);
-  else
-    {
-      char prefix[10+20];
-      snprintf (prefix, sizeof prefix, "ntbtls(%d): ", level);
-      log_logv_with_prefix (GPGRT_LOG_DEBUG, prefix, fmt, argv);
-    }
-}
-#endif
-
 
 static void
 thread_init (void)
@@ -832,15 +802,9 @@ dirmngr_main (int argc, char **argv)
   ksba_set_hash_buffer_function (my_ksba_hash_buffer, NULL);
 
   /* Init TLS library.  */
-#if HTTP_USE_NTBTLS
-  if (!ntbtls_check_version (NEED_NTBTLS_VERSION) )
-    log_fatal( _("%s is too old (need %s, have %s)\n"), "ntbtls",
-               NEED_NTBTLS_VERSION, ntbtls_check_version (NULL) );
-#elif HTTP_USE_GNUTLS
   rc = gnutls_global_init ();
   if (rc)
     log_fatal ("gnutls_global_init failed: %s\n", gnutls_strerror (rc));
-#endif /*HTTP_USE_GNUTLS*/
 
   /* Init Assuan. */
   malloc_hooks.malloc = gcry_malloc;
@@ -854,10 +818,6 @@ dirmngr_main (int argc, char **argv)
   setup_libassuan_logging (&opt.debug, dirmngr_assuan_log_monitor);
 
   setup_libgcrypt_logging ();
-
-#if HTTP_USE_NTBTLS
-  ntbtls_set_log_handler (my_ntbtls_log_handler, NULL);
-#endif
 
   /* Setup defaults. */
   shell = getenv ("SHELL");

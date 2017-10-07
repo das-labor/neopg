@@ -98,13 +98,6 @@ typedef struct http_session_s *http_session_t;
 struct http_context_s;
 typedef struct http_context_s *http_t;
 
-/* A TLS verify callback function.  */
-typedef gpg_error_t (*http_verify_cb_t) (void *opaque,
-                                         http_t http,
-                                         http_session_t session,
-                                         unsigned int flags,
-                                         void *tls_context);
-
 void http_set_verbose (int verbose, int debug);
 
 void http_register_tls_callback (gpg_error_t (*cb)(http_t,http_session_t,int));
@@ -114,9 +107,7 @@ void http_register_netactivity_cb (void (*cb)(void));
 
 gpg_error_t http_session_new (http_session_t *r_session,
                               const char *intended_hostname,
-                              unsigned int flags,
-                              http_verify_cb_t cb,
-                              void *cb_value);
+                              unsigned int flags);
 http_session_t http_session_ref (http_session_t sess);
 void http_session_release (http_session_t sess);
 

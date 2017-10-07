@@ -38,17 +38,11 @@ ks_http_help (ctrl_t ctrl, parsed_uri_t uri)
   const char data[] =
     "Handler for HTTP URLs:\n"
     "  http://\n"
-#if  HTTP_USE_GNUTLS || HTTP_USE_NTBTLS
     "  https://\n"
-#endif
     "Supported methods: fetch\n";
   gpg_error_t err;
 
-#if  HTTP_USE_GNUTLS || HTTP_USE_NTBTLS
   const char data2[] = "  http\n  https";
-#else
-  const char data2[] = "  http";
-#endif
 
   if (!uri)
     err = ks_print_help (ctrl, data2);
@@ -78,8 +72,7 @@ ks_http_fetch (ctrl_t ctrl, const char *url, estream_t *r_fp)
    * fetch command.  */
   err = http_session_new (&session, NULL,
                           ((ctrl->http_no_crl? HTTP_FLAG_NO_CRL : 0)
-                           | HTTP_FLAG_TRUST_SYS),
-                          gnupg_http_tls_verify_cb, ctrl);
+                           | HTTP_FLAG_TRUST_SYS));
   if (err)
     goto leave;
   http_session_set_log_cb (session, cert_log_cb);

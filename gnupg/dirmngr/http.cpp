@@ -40,9 +40,6 @@
   - fixme: list other requirements.
 
 
-  - With HTTP_USE_NTBTLS or HTTP_USE_GNUTLS support for https is
-    provided (this also requires estream).
-
 */
 
 #ifdef HAVE_CONFIG_H
@@ -80,16 +77,8 @@
 # include <npth.h>
 #endif
 
-#if defined (HTTP_USE_GNUTLS) && defined (HTTP_USE_NTBTLS)
-# error Both, HTTP_USE_GNUTLS and HTTP_USE_NTBTLS, are defined.
-#endif
-
-#ifdef HTTP_USE_NTBTLS
-# include <ntbtls.h>
-#elif HTTP_USE_GNUTLS
 # include <gnutls/gnutls.h>
 # include <gnutls/x509.h>
-#endif /*HTTP_USE_GNUTLS*/
 
 #include <assuan.h>  /* We need the socket wrapper.  */
 
@@ -129,16 +118,7 @@
                         "01234567890@"                 \
                         "!\"#$%&'()*+,-./:;<=>?[\\]^_{|}~"
 
-#if HTTP_USE_NTBTLS
-typedef ntbtls_t         tls_session_t;
-# define USE_TLS 1
-#elif HTTP_USE_GNUTLS
 typedef gnutls_session_t tls_session_t;
-# define USE_TLS 1
-#else
-typedef void *tls_session_t;
-# undef USE_TLS
-#endif
 
 static gpg_err_code_t do_parse_uri (parsed_uri_t uri, int only_local_part,
                                     int no_scheme_check, int force_tls);
@@ -165,12 +145,6 @@ static gpgrt_ssize_t cookie_read (void *cookie, void *buffer, size_t size);
 static gpgrt_ssize_t cookie_write (void *cookie,
                                    const void *buffer, size_t size);
 static int cookie_close (void *cookie);
-#if defined(HAVE_W32_SYSTEM) && defined(HTTP_USE_NTBTLS)
-static gpgrt_ssize_t simple_cookie_read (void *cookie,
-                                         void *buffer, size_t size);
-static gpgrt_ssize_t simple_cookie_write (void *cookie,
-                                          const void *buffer, size_t size);
-#endif
 
 /* A socket object used to a allow ref counting of sockets.  */
 struct my_socket_s
@@ -210,19 +184,6 @@ struct cookie_s
 typedef struct cookie_s *cookie_t;
 
 
-/* Simple cookie functions.  Here the cookie is an int with the
- * socket. */
-#if defined(HAVE_W32_SYSTEM) && defined(HTTP_USE_NTBTLS)
-static es_cookie_io_functions_t simple_cookie_functions =
-  {
-    simple_cookie_read,
-    simple_cookie_write,
-    NULL,
-    NULL
-  };
-#endif
-
-
 #if SIZEOF_UNSIGNED_LONG == 8
 # define HTTP_SESSION_MAGIC 0x0068545470534553 /* "hTTpSES" */
 #else
@@ -235,10 +196,7 @@ struct http_session_s
   unsigned long magic;
 
   int refcount;    /* Number of references to this object.  */
-#ifdef HTTP_USE_GNUTLS
   gnutls_certificate_credentials_t certcred;
-#endif /*HTTP_USE_GNUTLS*/
-#ifdef USE_TLS
   tls_session_t tls_session;
   struct {
     int done;      /* Verifciation has been done.  */
@@ -246,17 +204,12 @@ struct http_session_s
     unsigned int status; /* Verification status.  */
   } verify;
   char *servername; /* Malloced server name.  */
-#endif /*USE_TLS*/
   /* A callback function to log details of TLS certifciates.  */
   void (*cert_log_cb) (http_session_t, gpg_error_t, const char *,
                        const void **, size_t *);
 
   /* The flags passed to the session object.  */
   unsigned int flags;
-
-  /* A per-session TLS verification callback.  */
-  http_verify_cb_t verify_cb;
-  void *verify_cb_value;
 
   /* The connect timeout */
   unsigned int connect_timeout;
@@ -381,49 +334,19 @@ _my_socket_unref (int lnr, my_socket_t so,
 #define my_socket_unref(a,b,c) _my_socket_unref (__LINE__,(a),(b),(c))
 
 
-#ifdef HTTP_USE_GNUTLS
 static ssize_t
 my_gnutls_read (gnutls_transport_ptr_t ptr, void *buffer, size_t size)
 {
   my_socket_t sock = ptr;
-#if USE_NPTH
   return npth_read (sock->fd, buffer, size);
-#else
-  return read (sock->fd, buffer, size);
-#endif
 }
 static ssize_t
 my_gnutls_write (gnutls_transport_ptr_t ptr, const void *buffer, size_t size)
 {
   my_socket_t sock = ptr;
-#if USE_NPTH
   return npth_write (sock->fd, buffer, size);
-#else
-  return write (sock->fd, buffer, size);
-#endif
 }
-#endif /*HTTP_USE_GNUTLS*/
 
-
-#ifdef HTTP_USE_NTBTLS
-/* Connect the ntbls callback to our generic callback.  */
-static gpg_error_t
-my_ntbtls_verify_cb (void *opaque, ntbtls_t tls, unsigned int verify_flags)
-{
-  http_t hd = opaque;
-
-  (void)verify_flags;
-
-  log_assert (hd && hd->session && hd->session->verify_cb);
-  log_assert (hd->magic == HTTP_CONTEXT_MAGIC);
-  log_assert (hd->session->magic == HTTP_SESSION_MAGIC);
-
-  return hd->session->verify_cb (hd->session->verify_cb_value,
-                                 hd, hd->session,
-                                 (hd->flags | hd->session->flags),
-                                 tls);
-}
-#endif /*HTTP_USE_NTBTLS*/
 
 
 
@@ -563,31 +486,21 @@ notify_netactivity (void)
 
 
 
-#ifdef USE_TLS
 /* Free the TLS session associated with SESS, if any.  */
 static void
 close_tls_session (http_session_t sess)
 {
   if (sess->tls_session)
     {
-# if HTTP_USE_NTBTLS
-      /* FIXME!!
-         Possibly, ntbtls_get_transport and close those streams.
-         Somehow get SOCK to call my_socket_unref.
-      */
-      ntbtls_release (sess->tls_session);
-# elif HTTP_USE_GNUTLS
       my_socket_t sock = gnutls_transport_get_ptr (sess->tls_session);
       my_socket_unref (sock, NULL, NULL);
       gnutls_deinit (sess->tls_session);
       if (sess->certcred)
         gnutls_certificate_free_credentials (sess->certcred);
-# endif /*HTTP_USE_GNUTLS*/
       xfree (sess->servername);
       sess->tls_session = NULL;
     }
 }
-#endif /*USE_TLS*/
 
 
 /* Release a session.  Take care not to release it while it is being
@@ -607,9 +520,7 @@ session_unref (int lnr, http_session_t sess)
   if (sess->refcount)
     return;
 
-#ifdef USE_TLS
   close_tls_session (sess);
-#endif /*USE_TLS*/
 
   sess->magic = 0xdeadbeef;
   xfree (sess);
@@ -632,8 +543,7 @@ http_session_release (http_session_t sess)
  */
 gpg_error_t
 http_session_new (http_session_t *r_session,
-                  const char *intended_hostname, unsigned int flags,
-                  http_verify_cb_t verify_cb, void *verify_cb_value)
+                  const char *intended_hostname, unsigned int flags)
 {
   gpg_error_t err;
   http_session_t sess;
@@ -646,24 +556,8 @@ http_session_new (http_session_t *r_session,
   sess->magic = HTTP_SESSION_MAGIC;
   sess->refcount = 1;
   sess->flags = flags;
-  sess->verify_cb = verify_cb;
-  sess->verify_cb_value = verify_cb_value;
   sess->connect_timeout = 0;
 
-#if HTTP_USE_NTBTLS
-  {
-    (void)intended_hostname; /* Not needed because we do not preload
-                              * certificates.  */
-
-    err = ntbtls_new (&sess->tls_session, NTBTLS_CLIENT);
-    if (err)
-      {
-        log_error ("ntbtls_new failed: %s\n", gpg_strerror (err));
-        goto leave;
-      }
-
-  }
-#elif HTTP_USE_GNUTLS
   {
     const char *errpos;
     int rc;
@@ -772,20 +666,12 @@ http_session_new (http_session_t *r_session,
         goto leave;
       }
   }
-#else /*!HTTP_USE_GNUTLS && !HTTP_USE_NTBTLS*/
-  {
-    (void)intended_hostname;
-    (void)flags;
-  }
-#endif /*!HTTP_USE_GNUTLS && !HTTP_USE_NTBTLS*/
 
   if (opt_debug > 1)
     log_debug ("http.c:session_new: sess %p created\n", sess);
   err = 0;
 
-#if USE_TLS
  leave:
-#endif /*USE_TLS*/
   if (err)
     http_session_unref (sess);
   else
@@ -1258,7 +1144,6 @@ do_parse_uri (parsed_uri_t uri, int only_local_part,
           uri->port = 11371;
           uri->is_http = 1;
         }
-#ifdef USE_TLS
       else if (!strcmp (uri->scheme, "https") || !strcmp (uri->scheme,"hkps")
                || (force_tls && (!strcmp (uri->scheme, "http")
                                  || !strcmp (uri->scheme,"hkp"))))
@@ -1267,7 +1152,6 @@ do_parse_uri (parsed_uri_t uri, int only_local_part,
           uri->is_http = 1;
           uri->use_tls = 1;
         }
-#endif /*USE_TLS*/
       else if (!no_scheme_check)
 	return GPG_ERR_INV_URI; /* Unsupported scheme */
 
@@ -1617,13 +1501,11 @@ send_request (http_t hd, const char *httphost, const char *auth,
       log_error ("TLS requested but no session object provided\n");
       return gpg_err_make (default_errsource, GPG_ERR_INTERNAL);
     }
-#ifdef USE_TLS
   if (hd->uri->use_tls && !hd->session->tls_session)
     {
       log_error ("TLS requested but no GNUTLS context available\n");
       return gpg_err_make (default_errsource, GPG_ERR_INTERNAL);
     }
-#endif /*USE_TLS*/
 
   if ((hd->flags & HTTP_FLAG_FORCE_TOR))
     {
@@ -1640,12 +1522,9 @@ send_request (http_t hd, const char *httphost, const char *auth,
   port = hd->uri->port ? hd->uri->port : 80;
 
   /* Try to use SNI.  */
-#ifdef USE_TLS
   if (hd->uri->use_tls)
     {
-# if HTTP_USE_GNUTLS
       int rc;
-# endif
 
       xfree (hd->session->servername);
       hd->session->servername = xtrystrdup (httphost? httphost : server);
@@ -1655,24 +1534,13 @@ send_request (http_t hd, const char *httphost, const char *auth,
           return err;
         }
 
-# if HTTP_USE_NTBTLS
-      err = ntbtls_set_hostname (hd->session->tls_session,
-                                 hd->session->servername);
-      if (err)
-        {
-          log_info ("ntbtls_set_hostname failed: %s\n", gpg_strerror (err));
-          return err;
-        }
-# elif HTTP_USE_GNUTLS
       rc = gnutls_server_name_set (hd->session->tls_session,
                                    GNUTLS_NAME_DNS,
                                    hd->session->servername,
                                    strlen (hd->session->servername));
       if (rc < 0)
         log_info ("gnutls_server_name_set failed: %s\n", gnutls_strerror (rc));
-# endif /*HTTP_USE_GNUTLS*/
     }
-#endif /*USE_TLS*/
 
   if ( (proxy && *proxy)
        || ( (hd->flags & HTTP_FLAG_TRY_PROXY)
@@ -1749,116 +1617,6 @@ send_request (http_t hd, const char *httphost, const char *auth,
     }
 
 
-#if HTTP_USE_NTBTLS
-  if (hd->uri->use_tls)
-    {
-      estream_t in, out;
-
-      my_socket_ref (hd->sock);
-
-      /* Until we support send/recv in estream under Windows we need
-       * to use es_fopencookie.  */
-#ifdef HAVE_W32_SYSTEM
-      in = es_fopencookie ((void*)(unsigned int)hd->sock->fd, "rb",
-                           simple_cookie_functions);
-#else
-      in = es_fdopen_nc (hd->sock->fd, "rb");
-#endif
-      if (!in)
-        {
-          err = gpg_error_from_syserror ();
-          xfree (proxy_authstr);
-          return err;
-        }
-
-#ifdef HAVE_W32_SYSTEM
-      out = es_fopencookie ((void*)(unsigned int)hd->sock->fd, "wb",
-                            simple_cookie_functions);
-#else
-      out = es_fdopen_nc (hd->sock->fd, "wb");
-#endif
-      if (!out)
-        {
-          err = gpg_error_from_syserror ();
-          es_fclose (in);
-          xfree (proxy_authstr);
-          return err;
-        }
-
-      err = ntbtls_set_transport (hd->session->tls_session, in, out);
-      if (err)
-        {
-          log_info ("TLS set_transport failed: %s <%s>\n",
-                    gpg_strerror (err), gpg_strsource (err));
-          xfree (proxy_authstr);
-          return err;
-        }
-
-#ifdef HTTP_USE_NTBTLS
-      if (hd->session->verify_cb)
-        {
-          err = ntbtls_set_verify_cb (hd->session->tls_session,
-                                      my_ntbtls_verify_cb, hd);
-          if (err)
-            {
-              log_error ("ntbtls_set_verify_cb failed: %s\n",
-                         gpg_strerror (err));
-              xfree (proxy_authstr);
-              return err;
-            }
-        }
-#endif /*HTTP_USE_NTBTLS*/
-
-      while ((err = ntbtls_handshake (hd->session->tls_session)))
-        {
-          switch (err)
-            {
-            default:
-              log_info ("TLS handshake failed: %s <%s>\n",
-                        gpg_strerror (err), gpg_strsource (err));
-              xfree (proxy_authstr);
-              return err;
-            }
-        }
-
-      hd->session->verify.done = 0;
-
-      /* Try the available verify callbacks until one returns success
-       * or a real error.  Note that NTBTLS does the verification
-       * during the handshake via   */
-#ifdef HTTP_USE_NTBTLS
-      err = 0; /* Fixme check that the CB has been called.  */
-#else
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
-#endif
-
-      if (hd->session->verify_cb
-          && gpg_err_source (err) == GPG_ERR_SOURCE_DIRMNGR
-          && gpg_err_code (err) == GPG_ERR_NOT_IMPLEMENTED)
-        err = hd->session->verify_cb (hd->session->verify_cb_value,
-                                      hd, hd->session,
-                                      (hd->flags | hd->session->flags),
-                                      hd->session->tls_session);
-
-      if (tls_callback
-          && gpg_err_source (err) == GPG_ERR_SOURCE_DIRMNGR
-          && gpg_err_code (err) == GPG_ERR_NOT_IMPLEMENTED)
-        err = tls_callback (hd, hd->session, 0);
-
-      if (gpg_err_source (err) == GPG_ERR_SOURCE_DIRMNGR
-          && gpg_err_code (err) == GPG_ERR_NOT_IMPLEMENTED)
-        err = http_verify_server_credentials (hd->session);
-
-      if (err)
-        {
-          log_info ("TLS connection authentication failed: %s <%s>\n",
-                    gpg_strerror (err), gpg_strsource (err));
-          xfree (proxy_authstr);
-          return err;
-        }
-
-    }
-#elif HTTP_USE_GNUTLS
   if (hd->uri->use_tls)
     {
       int rc;
@@ -1915,7 +1673,6 @@ send_request (http_t hd, const char *httphost, const char *auth,
           return err;
         }
     }
-#endif /*HTTP_USE_GNUTLS*/
 
   if (auth || hd->uri->auth)
     {
@@ -2907,18 +2664,6 @@ cookie_read (void *cookie, void *buffer, size_t size)
         size = c->content_length;
     }
 
-#if HTTP_USE_NTBTLS
-  if (c->use_tls && c->session && c->session->tls_session)
-    {
-      estream_t in, out;
-
-      ntbtls_get_stream (c->session->tls_session, &in, &out);
-      nread = es_fread (buffer, 1, size, in);
-      if (opt_debug)
-        log_debug ("TLS network read: %d/%zu\n", nread, size);
-    }
-  else
-#elif HTTP_USE_GNUTLS
   if (c->use_tls && c->session && c->session->tls_session)
     {
     again:
@@ -2951,7 +2696,6 @@ cookie_read (void *cookie, void *buffer, size_t size)
         }
     }
   else
-#endif /*HTTP_USE_GNUTLS*/
     {
       nread = read_server (c->sock->fd, buffer, size);
     }
@@ -2975,21 +2719,6 @@ cookie_write (void *cookie, const void *buffer_arg, size_t size)
   cookie_t c = cookie;
   int nwritten = 0;
 
-#if HTTP_USE_NTBTLS
-  if (c->use_tls && c->session && c->session->tls_session)
-    {
-      estream_t in, out;
-
-      ntbtls_get_stream (c->session->tls_session, &in, &out);
-      if (size == 0)
-        es_fflush (out);
-      else
-        nwritten = es_fwrite (buffer, 1, size, out);
-      if (opt_debug)
-        log_debug ("TLS network write: %d/%zu\n", nwritten, size);
-    }
-  else
-#elif HTTP_USE_GNUTLS
   if (c->use_tls && c->session && c->session->tls_session)
     {
       int nleft = size;
@@ -3020,7 +2749,6 @@ cookie_write (void *cookie, const void *buffer_arg, size_t size)
         }
     }
   else
-#endif /*HTTP_USE_GNUTLS*/
     {
       if ( write_server (c->sock->fd, buffer, size) )
         {
@@ -3035,35 +2763,7 @@ cookie_write (void *cookie, const void *buffer_arg, size_t size)
 }
 
 
-#if defined(HAVE_W32_SYSTEM) && defined(HTTP_USE_NTBTLS)
-static gpgrt_ssize_t
-simple_cookie_read (void *cookie, void *buffer, size_t size)
-{
-  assuan_fd_t sock = (assuan_fd_t)cookie;
-  return read_server (sock, buffer, size);
-}
 
-static gpgrt_ssize_t
-simple_cookie_write (void *cookie, const void *buffer_arg, size_t size)
-{
-  assuan_fd_t sock = (assuan_fd_t)cookie;
-  const char *buffer = buffer_arg;
-  int nwritten;
-
-  if (write_server (sock, buffer, size))
-    {
-      gpg_err_set_errno (EIO);
-      nwritten = -1;
-    }
-  else
-    nwritten = size;
-
-  return (gpgrt_ssize_t)nwritten;
-}
-#endif /*HAVE_W32_SYSTEM*/
-
-
-#ifdef HTTP_USE_GNUTLS
 /* Wrapper for gnutls_bye used by my_socket_unref.  */
 static void
 send_gnutls_bye (void *opaque)
@@ -3085,7 +2785,6 @@ send_gnutls_bye (void *opaque)
       goto again;
     }
 }
-#endif /*HTTP_USE_GNUTLS*/
 
 /* Close handler for estream.  */
 static int
@@ -3096,19 +2795,9 @@ cookie_close (void *cookie)
   if (!c)
     return 0;
 
-#if HTTP_USE_NTBTLS
-  if (c->use_tls && c->session && c->session->tls_session)
-    {
-      /* FIXME!! Possibly call ntbtls_close_notify for close
-         of write stream.  */
-      my_socket_unref (c->sock, NULL, NULL);
-    }
-  else
-#elif HTTP_USE_GNUTLS
   if (c->use_tls && c->session && c->session->tls_session)
     my_socket_unref (c->sock, send_gnutls_bye, c->session->tls_session);
   else
-#endif /*HTTP_USE_GNUTLS*/
     if (c->sock)
       my_socket_unref (c->sock, NULL, NULL);
 
@@ -3126,7 +2815,6 @@ cookie_close (void *cookie)
 gpg_error_t
 http_verify_server_credentials (http_session_t sess)
 {
-#if HTTP_USE_GNUTLS
   static const char errprefix[] = "TLS verification of peer failed";
   int rc;
   unsigned int status;
@@ -3242,10 +2930,6 @@ http_verify_server_credentials (http_session_t sess)
     }
 
   return err;
-#else /*!HTTP_USE_GNUTLS*/
-  (void)sess;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
-#endif
 }
 
 /* Return the first query variable with the specified key.  If there

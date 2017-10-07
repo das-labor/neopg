@@ -43,11 +43,7 @@
 #include "http.h"
 
 #include <ksba.h>
-#if HTTP_USE_NTBTLS
-# include <ntbtls.h>
-#elif HTTP_USE_GNUTLS
 # include <gnutls/gnutls.h>  /* For init, logging, and deinit.  */
-#endif /*HTTP_USE_GNUTLS*/
 
 #define PGM "t-http"
 
@@ -100,7 +96,6 @@ static int no_verify;
 
 
 
-#if HTTP_USE_GNUTLS
 static gpg_error_t
 verify_callback (http_t hd, http_session_t session, int reserved)
 {
@@ -108,65 +103,12 @@ verify_callback (http_t hd, http_session_t session, int reserved)
   (void)reserved;
   return no_verify? 0 : http_verify_server_credentials (session);
 }
-#endif
 
-#if HTTP_USE_GNUTLS
 static void
 my_gnutls_log (int level, const char *text)
 {
   fprintf (stderr, "gnutls:L%d: %s", level, text);
 }
-#endif
-
-#if HTTP_USE_NTBTLS
-static gpg_error_t
-my_http_tls_verify_cb (void *opaque,
-                       http_t http,
-                       http_session_t session,
-                       unsigned int http_flags,
-                       void *tls_context)
-{
-  gpg_error_t err;
-  int idx;
-  ksba_cert_t cert;
-  ksba_cert_t hostcert = NULL;
-
-  (void)opaque;
-  (void)http;
-  (void)session;
-  (void)http_flags;
-
-  /* Get the peer's certs fron ntbtls.  */
-  for (idx = 0;
-       (cert = ntbtls_x509_get_peer_cert (tls_context, idx)); idx++)
-    {
-      if (!idx)
-        {
-          log_info ("Received host certificate\n");
-          hostcert = cert;
-        }
-      else
-        {
-
-          log_info ("Received additional certificate\n");
-          ksba_cert_release (cert);
-        }
-    }
-  if (!idx)
-    {
-      err  = gpg_error (GPG_ERR_MISSING_CERT);
-      goto leave;
-    }
-
-  err = 0;
-
- leave:
-  ksba_cert_release (hostcert);
-  log_info ("my_http_tls_verify_cb returns: %s\n", gpg_strerror (err));
-  return err;
-}
-#endif /*HTTP_USE_NTBTLS*/
-
 
 
 /* Prepend FNAME with the srcdir environment variable's value and
@@ -315,18 +257,6 @@ main (int argc, char **argv)
   /* http.c makes use of the assuan socket wrapper.  */
   assuan_sock_init ();
 
-#if HTTP_USE_NTBTLS
-  log_info ("new session.\n");
-  err = http_session_new (&session, NULL,
-                          ((no_crl? HTTP_FLAG_NO_CRL : 0)
-                           | HTTP_FLAG_TRUST_DEF),
-                          my_http_tls_verify_cb, NULL);
-  if (err)
-    log_error ("http_session_new failed: %s\n", gpg_strerror (err));
-  ntbtls_set_debug (tls_dbg, NULL, NULL);
-
-#elif HTTP_USE_GNUTLS
-
   rc = gnutls_global_init ();
   if (rc)
     log_error ("gnutls_global_init failed: %s\n", gnutls_strerror (rc));
@@ -358,11 +288,6 @@ main (int argc, char **argv)
   if (tls_dbg)
     gnutls_global_set_log_level (tls_dbg);
 
-#else
-  (void)err;
-  (void)tls_dbg;
-  (void)no_crl;
-#endif /*HTTP_USE_GNUTLS*/
 
   rc = http_parse_uri (&uri, *argv, 1);
   if (rc)
@@ -472,9 +397,7 @@ main (int argc, char **argv)
   http_close (hd, 0);
 
   http_session_release (session);
-#ifdef HTTP_USE_GNUTLS
   gnutls_global_deinit ();
-#endif /*HTTP_USE_GNUTLS*/
 
   return 0;
 }

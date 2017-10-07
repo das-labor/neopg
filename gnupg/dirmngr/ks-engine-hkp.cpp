@@ -968,17 +968,11 @@ ks_hkp_help (ctrl_t ctrl, parsed_uri_t uri)
   const char data[] =
     "Handler for HKP URLs:\n"
     "  hkp://\n"
-#if  HTTP_USE_GNUTLS || HTTP_USE_NTBTLS
     "  hkps://\n"
-#endif
     "Supported methods: search, get, put\n";
   gpg_error_t err;
 
-#if  HTTP_USE_GNUTLS || HTTP_USE_NTBTLS
   const char data2[] = "  hkp\n  hkps";
-#else
-  const char data2[] = "  hkp";
-#endif
 
   if (!uri)
     err = ks_print_help (ctrl, data2);
@@ -1167,8 +1161,7 @@ send_request (ctrl_t ctrl, const char *request, const char *hostportstr,
 
   err = http_session_new (&session, httphost,
                           ((ctrl->http_no_crl? HTTP_FLAG_NO_CRL : 0)
-                           | HTTP_FLAG_TRUST_DEF),
-                          gnupg_http_tls_verify_cb, ctrl);
+                           | HTTP_FLAG_TRUST_DEF));
   if (err)
     goto leave;
   http_session_set_log_cb (session, cert_log_cb);
