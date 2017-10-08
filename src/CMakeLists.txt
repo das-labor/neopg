@@ -120,7 +120,6 @@ add_library(assuan
   ../libassuan/src/assuan-logging.cpp
   ../libassuan/src/assuan-pipe-connect.cpp
   ../libassuan/src/assuan-pipe-server.cpp
-  ../libassuan/src/assuan-socket-server.cpp
   ../libassuan/src/assuan-socket.cpp
   ../libassuan/src/assuan-uds.cpp
   ../libassuan/src/assuan.cpp

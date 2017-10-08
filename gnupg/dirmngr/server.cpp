@@ -2377,8 +2377,7 @@ static const char hlp_getinfo[] =
   "version     - Return the version of the program.\n"
   "pid         - Return the process id of the server.\n"
   "tor         - Return OK if running in Tor mode\n"
-  "dnsinfo     - Return info about the DNS resolver\n"
-  "socket_name - Return the name of the socket.\n";
+  "dnsinfo     - Return info about the DNS resolver\n";
 static gpg_error_t
 cmd_getinfo (assuan_context_t ctx, char *line)
 {
@@ -2396,11 +2395,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
       err = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "socket_name"))
-    {
-      const char *s = dirmngr_get_current_socket_name ();
-      err = assuan_send_data (ctx, s, strlen (s));
     }
   else if (!strcmp (line, "tor"))
     {
@@ -2566,13 +2560,14 @@ dirmngr_assuan_log_monitor (assuan_context_t ctx, unsigned int cat,
 /* Startup the server and run the main command loop.  With FD = -1,
    use stdin/stdout. */
 void
-start_command_handler (assuan_fd_t fd)
+start_command_handler ()
 {
   static const char hello[] = "Dirmngr " VERSION " at your service";
   static char *hello_line;
   int rc;
   assuan_context_t ctx;
   ctrl_t ctrl;
+  assuan_fd_t filedes[2];
 
   ctrl = xtrycalloc (1, sizeof *ctrl);
   if (ctrl)
@@ -2595,19 +2590,9 @@ start_command_handler (assuan_fd_t fd)
       dirmngr_exit (2);
     }
 
-  if (fd == ASSUAN_INVALID_FD)
-    {
-      assuan_fd_t filedes[2];
-
-      filedes[0] = assuan_fdopen (0);
-      filedes[1] = assuan_fdopen (1);
-      rc = assuan_init_pipe_server (ctx, filedes);
-    }
-  else
-    {
-      rc = assuan_init_socket_server (ctx, fd, ASSUAN_SOCKET_SERVER_ACCEPTED);
-    }
-
+  filedes[0] = assuan_fdopen (0);
+  filedes[1] = assuan_fdopen (1);
+  rc = assuan_init_pipe_server (ctx, filedes);
   if (rc)
     {
       assuan_release (ctx);

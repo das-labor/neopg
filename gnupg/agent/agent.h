@@ -322,7 +322,7 @@ gpg_error_t agent_print_status (ctrl_t ctrl, const char *keyword,
      GPGRT_ATTR_PRINTF(3,4);
 void bump_key_eventcounter (void);
 void bump_card_eventcounter (void);
-void start_command_handler (ctrl_t, gnupg_fd_t, gnupg_fd_t);
+void start_command_handler (ctrl_t);
 gpg_error_t pinentry_loopback (ctrl_t, const char *keyword,
 	                       unsigned char **buffer, size_t *size,
 			       size_t max_length);

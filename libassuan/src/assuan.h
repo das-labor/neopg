@@ -47,13 +47,6 @@ typedef struct msghdr *assuan_msghdr_t;
 
 #include <gpg-error.h>
 
-/* Compile time configuration:
-
-   #define _ASSUAN_NO_SOCKET_WRAPPER
-
-   Do not include the definitions for the socket wrapper feature.  */
-
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -415,14 +408,6 @@ gpg_error_t assuan_close_output_fd (assuan_context_t ctx);
 /*-- assuan-pipe-server.c --*/
 gpg_error_t assuan_init_pipe_server (assuan_context_t ctx,
 				     assuan_fd_t filedes[2]);
-
-/*-- assuan-socket-server.c --*/
-#define ASSUAN_SOCKET_SERVER_FDPASSING 1
-#define ASSUAN_SOCKET_SERVER_ACCEPTED 2
-gpg_error_t assuan_init_socket_server (assuan_context_t ctx,
-				       assuan_fd_t listen_fd,
-				       unsigned int flags);
-void assuan_set_sock_nonce (assuan_context_t ctx, assuan_sock_nonce_t *nonce);
 
 /*-- assuan-pipe-connect.c --*/
 #define ASSUAN_PIPE_CONNECT_FDPASSING 1

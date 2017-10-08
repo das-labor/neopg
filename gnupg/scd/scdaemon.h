@@ -84,12 +84,6 @@ struct app_ctx_s;
 
 struct server_control_s
 {
-  /* Private data used to fire up the connection thread.  We use this
-     structure do avoid an extra allocation for just a few bytes. */
-  struct {
-    gnupg_fd_t fd;
-  } thread_startup;
-
   /* Local data of the server; used only in command.c. */
   struct server_local_s *server_local;
 
@@ -111,11 +105,10 @@ typedef struct app_ctx_s *app_t;
 
 /*-- scdaemon.c --*/
 void scd_exit (int rc);
-const char *scd_get_socket_name (void);
 
 /*-- command.c --*/
 gpg_error_t initialize_module_command (void);
-int  scd_command_handler (ctrl_t, int);
+int  scd_command_handler (ctrl_t);
 void send_status_info (ctrl_t ctrl, const char *keyword, ...)
      GPGRT_ATTR_SENTINEL(1);
 void send_status_direct (ctrl_t ctrl, const char *keyword, const char *args);

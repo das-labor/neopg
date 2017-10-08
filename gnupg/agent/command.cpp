@@ -2959,16 +2959,15 @@ register_commands (assuan_context_t ctx)
 }
 
 
-/* Startup the server.  If LISTEN_FD and FD is given as -1, this is a
-   simple piper server, otherwise it is a regular server.  CTRL is the
-   control structure for this connection; it has only the basic
-   initialization. */
+/* Startup the server.  CTRL is the control structure for this
+   connection; it has only the basic initialization. */
 void
-start_command_handler (ctrl_t ctrl, gnupg_fd_t listen_fd, gnupg_fd_t fd)
+start_command_handler (ctrl_t ctrl)
 {
   int rc;
   assuan_context_t ctx = NULL;
-
+  assuan_fd_t filedes[2];
+    
   rc = assuan_new (&ctx);
   if (rc)
     {
@@ -2976,24 +2975,9 @@ start_command_handler (ctrl_t ctrl, gnupg_fd_t listen_fd, gnupg_fd_t fd)
       agent_exit (2);
     }
 
-  if (listen_fd == GNUPG_INVALID_FD && fd == GNUPG_INVALID_FD)
-    {
-      assuan_fd_t filedes[2];
-
-      filedes[0] = assuan_fdopen (0);
-      filedes[1] = assuan_fdopen (1);
-      rc = assuan_init_pipe_server (ctx, filedes);
-    }
-  else if (listen_fd != GNUPG_INVALID_FD)
-    {
-      rc = assuan_init_socket_server (ctx, listen_fd, 0);
-      /* FIXME: Need to call assuan_sock_set_nonce for Windows.  But
-	 this branch is currently not used.  */
-    }
-  else
-    {
-      rc = assuan_init_socket_server (ctx, fd, ASSUAN_SOCKET_SERVER_ACCEPTED);
-    }
+  filedes[0] = assuan_fdopen (0);
+  filedes[1] = assuan_fdopen (1);
+  rc = assuan_init_pipe_server (ctx, filedes);
   if (rc)
     {
       log_error ("failed to initialize the server: %s\n",

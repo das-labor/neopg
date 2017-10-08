@@ -1010,7 +1010,7 @@ agent_main (int argc, char **argv )
           agent_exit (1);
         }
       agent_init_default_ctrl (ctrl);
-      start_command_handler (ctrl, GNUPG_INVALID_FD, GNUPG_INVALID_FD);
+      start_command_handler (ctrl);
       agent_deinit_default_ctrl (ctrl);
       xfree (ctrl);
     }

@@ -85,8 +85,6 @@ enum cmd_and_opt_values {
   oNoVerbose = 500,
 
   aServer,
-  aDaemon,
-  aSupervised,
   aListCRLs,
   aLoadCRL,
   aFetchCRL,
@@ -132,7 +130,6 @@ enum cmd_and_opt_values {
   oForce,
   oAllowOCSP,
   oAllowVersionCheck,
-  oSocketName,
   oLDAPWrapperProgram,
   oHTTPWrapperProgram,
   oIgnoreCertExtension,
@@ -140,7 +137,6 @@ enum cmd_and_opt_values {
   oNoUseTor,
   oKeyServer,
   oNameServer,
-  oDisableCheckOwnSocket,
   oStandardResolver,
   oRecursiveResolver,
   oResolverTimeout,
@@ -156,10 +152,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_group (300, N_("@Commands:\n ")),
 
   ARGPARSE_c (aServer,   "server",  N_("run in server mode (foreground)") ),
-  ARGPARSE_c (aDaemon,   "daemon",  N_("run in daemon mode (background)") ),
-#ifndef HAVE_W32_SYSTEM
-  ARGPARSE_c (aSupervised,  "supervised", N_("run in supervised mode")),
-#endif
   ARGPARSE_c (aListCRLs, "list-crls", N_("list the contents of the CRL cache")),
   ARGPARSE_c (aLoadCRL,  "load-crl",  N_("|FILE|load CRL from FILE into cache")),
   ARGPARSE_c (aFetchCRL, "fetch-crl", N_("|URL|fetch a CRL from URL")),
@@ -231,15 +223,12 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oDisableIPv4, "disable-ipv4", "@"),
   ARGPARSE_s_n (oDisableIPv6, "disable-ipv6", "@"),
 
-  ARGPARSE_s_s (oSocketName, "socket-name", "@"),  /* Only for debugging.  */
-
   ARGPARSE_s_u (oFakedSystemTime, "faked-system-time", "@"), /*(epoch time)*/
   ARGPARSE_s_s (oDebug,    "debug", "@"),
   ARGPARSE_s_n (oDebugAll, "debug-all", "@"),
   ARGPARSE_s_i (oGnutlsDebug, "gnutls-debug", "@"),
   ARGPARSE_s_i (oGnutlsDebug, "tls-debug", "@"),
   ARGPARSE_s_i (oDebugWait, "debug-wait", "@"),
-  ARGPARSE_s_n (oDisableCheckOwnSocket, "disable-check-own-socket", "@"),
   ARGPARSE_s_n (oNoGreeting, "no-greeting", "@"),
   ARGPARSE_s_s (oHomedir, "homedir", "@"),
   ARGPARSE_s_s (oLDAPWrapperProgram, "ldap-wrapper-program", "@"),
@@ -281,19 +270,6 @@ static struct debug_flags_s debug_flags [] =
 #define DEFAULT_CONNECT_TIMEOUT       (15*1000)  /* 15 seconds */
 #define DEFAULT_CONNECT_QUICK_TIMEOUT ( 2*1000)  /*  2 seconds */
 
-/* For the cleanup handler we need to keep track of the socket's name.  */
-static const char *socket_name;
-/* If the socket has been redirected, this is the name of the
-   redirected socket..  */
-static const char *redir_socket_name;
-
-/* We need to keep track of the server's nonces (these are dummies for
-   POSIX systems). */
-static assuan_sock_nonce_t socket_nonce;
-
-/* Only if this flag has been set will we remove the socket file.  */
-static int cleanup_socket;
-
 /* Keep track of the current log file so that we can avoid updating
    the log file after a SIGHUP if it didn't changed. Malloced. */
 static char *current_logfile;
@@ -303,12 +279,6 @@ static const char *debug_level;
 
 /* Helper to set the GNUTLS log level.  */
 static int opt_gnutls_debug = -1;
-
-/* Flag indicating that a shutdown has been requested.  */
-static volatile int shutdown_pending;
-
-/* Flags to indicate that we shall not watch our own socket. */
-static int disable_check_own_socket;
 
 /* Flag to control the Tor mode.  */
 static enum
@@ -364,7 +334,6 @@ static ldap_server_t parse_ldapserver_file (const char* filename);
 #endif /*USE_LDAP*/
 static fingerprint_list_t parse_ocsp_signer (const char *string);
 static void netactivity_action (void);
-static void handle_connections (assuan_fd_t listen_fd);
 
 static const char *
 my_strusage( int level )
@@ -590,7 +559,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       /* Note: We do not allow resetting of TOR_MODE_FORCE at runtime.  */
       if (tor_mode != TOR_MODE_FORCE)
         tor_mode = TOR_MODE_AUTO;
-      disable_check_own_socket = 0;
       enable_standard_resolver (0);
       set_dns_timeout (0);
       opt.connect_timeout = 0;
@@ -620,8 +588,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
           current_logfile = xtrystrdup (pargs->r.ret_str);
         }
       break;
-
-    case oDisableCheckOwnSocket: disable_check_own_socket = 1; break;
 
     case oLDAPWrapperProgram:
       opt.ldap_wrapper_program = pargs->r.ret_str;
@@ -860,7 +826,6 @@ dirmngr_main (int argc, char **argv)
         }
     }
 
-  socket_name = dirmngr_socket_name ();
   if (default_config)
     configname = make_filename (gnupg_homedir (), DIRMNGR_NAME".conf", NULL );
 
@@ -903,8 +868,6 @@ dirmngr_main (int argc, char **argv)
       switch (pargs.r_opt)
         {
         case aServer:
-        case aDaemon:
-        case aSupervised:
         case aShutdown:
         case aFlush:
 	case aListCRLs:
@@ -953,8 +916,6 @@ dirmngr_main (int argc, char **argv)
           break;
 
         case oForce: opt.force = 1; break;
-
-        case oSocketName: socket_name = pargs.r.ret_str; break;
 
         default : pargs.err = configfp? 1:2; break;
 	}
@@ -1067,249 +1028,7 @@ dirmngr_main (int argc, char **argv)
       cert_cache_init (hkp_cacert_filenames);
       crl_cache_init ();
       http_register_netactivity_cb (netactivity_action);
-      start_command_handler (ASSUAN_INVALID_FD);
-      shutdown_reaper ();
-    }
-#ifndef HAVE_W32_SYSTEM
-  else if (cmd == aSupervised)
-    {
-      /* In supervised mode, we expect file descriptor 3 to be an
-         already opened, listening socket.
-
-         We will also not detach from the controlling process or close
-         stderr; the supervisor should handle all of that.  */
-      struct stat statbuf;
-      if (fstat (3, &statbuf) == -1 && errno == EBADF)
-        {
-          log_error ("file descriptor 3 must be validin --supervised mode\n");
-          dirmngr_exit (1);
-        }
-      socket_name = gnupg_get_socket_name (3);
-
-      /* Now start with logging to a file if this is desired. */
-      if (logfile)
-        {
-          log_set_file (logfile);
-          log_set_prefix (NULL, (GPGRT_LOG_WITH_PREFIX
-                                 |GPGRT_LOG_WITH_TIME
-                                 |GPGRT_LOG_WITH_PID));
-          current_logfile = xstrdup (logfile);
-        }
-      else
-        log_set_prefix (NULL, 0);
-
-      thread_init ();
-      cert_cache_init (hkp_cacert_filenames);
-      crl_cache_init ();
-      http_register_netactivity_cb (netactivity_action);
-      handle_connections (3);
-      shutdown_reaper ();
-    }
-#endif /*HAVE_W32_SYSTEM*/
-  else if (cmd == aDaemon)
-    {
-      assuan_fd_t fd;
-      pid_t pid;
-      int len;
-      struct sockaddr_un serv_addr;
-
-      if (argc)
-        wrong_args ("--daemon");
-
-      /* Now start with logging to a file if this is desired. */
-      if (logfile)
-        {
-          log_set_file (logfile);
-          log_set_prefix (NULL, (GPGRT_LOG_WITH_PREFIX
-                                 |GPGRT_LOG_WITH_TIME
-                                 |GPGRT_LOG_WITH_PID));
-          current_logfile = xstrdup (logfile);
-        }
-
-#ifndef HAVE_W32_SYSTEM
-      if (strchr (socket_name, ':'))
-        {
-          log_error (_("colons are not allowed in the socket name\n"));
-          dirmngr_exit (1);
-        }
-#endif
-      fd = assuan_sock_new (AF_UNIX, SOCK_STREAM, 0);
-      if (fd == ASSUAN_INVALID_FD)
-        {
-          log_error (_("can't create socket: %s\n"), strerror (errno));
-          cleanup ();
-          dirmngr_exit (1);
-        }
-
-      {
-        int redirected;
-
-        if (assuan_sock_set_sockaddr_un (socket_name,
-                                         (struct sockaddr*)&serv_addr,
-                                         &redirected))
-          {
-            if (errno == ENAMETOOLONG)
-              log_error (_("socket name '%s' is too long\n"), socket_name);
-            else
-              log_error ("error preparing socket '%s': %s\n",
-                         socket_name,
-                         gpg_strerror (gpg_error_from_syserror ()));
-            dirmngr_exit (1);
-          }
-        if (redirected)
-          {
-            redir_socket_name = xstrdup (serv_addr.sun_path);
-            if (opt.verbose)
-              log_info ("redirecting socket '%s' to '%s'\n",
-                        socket_name, redir_socket_name);
-          }
-      }
-
-      len = SUN_LEN (&serv_addr);
-
-      rc = assuan_sock_bind (fd, (struct sockaddr*) &serv_addr, len);
-      if (rc == -1
-          && (errno == EADDRINUSE
-#ifdef HAVE_W32_SYSTEM
-              || errno == EEXIST
-#endif
-              ))
-	{
-          /* Fixme: We should test whether a dirmngr is already running. */
-	  gnupg_remove (redir_socket_name? redir_socket_name : socket_name);
-	  rc = assuan_sock_bind (fd, (struct sockaddr*) &serv_addr, len);
-	}
-      if (rc != -1
-	  && (rc = assuan_sock_get_nonce ((struct sockaddr*) &serv_addr, len, &socket_nonce)))
-	log_error (_("error getting nonce for the socket\n"));
-      if (rc == -1)
-        {
-          log_error (_("error binding socket to '%s': %s\n"),
-                     serv_addr.sun_path,
-                     gpg_strerror (gpg_error_from_errno (errno)));
-          assuan_sock_close (fd);
-          dirmngr_exit (1);
-        }
-      cleanup_socket = 1;
-
-      if (gnupg_chmod (serv_addr.sun_path, "-rwx"))
-        log_error (_("can't set permissions of '%s': %s\n"),
-                   serv_addr.sun_path, strerror (errno));
-
-      if (listen (FD2INT (fd), 5) == -1)
-        {
-          log_error (_("listen() failed: %s\n"), strerror (errno));
-          assuan_sock_close (fd);
-          dirmngr_exit (1);
-        }
-
-      if (opt.verbose)
-        log_info (_("listening on socket '%s'\n"), serv_addr.sun_path);
-
-      es_fflush (NULL);
-
-      /* Note: We keep the dirmngr_info output only for the sake of
-         existing scripts which might use this to detect a successful
-         start of the dirmngr.  */
-#ifdef HAVE_W32_SYSTEM
-      (void)csh_style;
-      (void)nodetach;
-
-      pid = getpid ();
-      es_printf ("set %s=%s;%lu;1\n",
-                 DIRMNGR_INFO_NAME, socket_name, (unsigned long) pid);
-#else
-      pid = fork();
-      if (pid == (pid_t)-1)
-        {
-          log_fatal (_("error forking process: %s\n"), strerror (errno));
-          dirmngr_exit (1);
-        }
-
-      if (pid)
-        { /* We are the parent */
-          char *infostr;
-
-          /* Don't let cleanup() remove the socket - the child is
-             responsible for doing that.  */
-          cleanup_socket = 0;
-
-          close (fd);
-
-          /* Create the info string: <name>:<pid>:<protocol_version> */
-          if (asprintf (&infostr, "%s=%s:%lu:1",
-                        DIRMNGR_INFO_NAME, serv_addr.sun_path, (unsigned long)pid ) < 0)
-            {
-              log_error (_("out of core\n"));
-              kill (pid, SIGTERM);
-              dirmngr_exit (1);
-            }
-          /* Print the environment string, so that the caller can use
-             shell's eval to set it.  But see above.  */
-          if (csh_style)
-            {
-              *strchr (infostr, '=') = ' ';
-              es_printf ( "setenv %s;\n", infostr);
-            }
-          else
-            {
-              es_printf ( "%s; export %s;\n", infostr, DIRMNGR_INFO_NAME);
-            }
-          free (infostr);
-          exit (0);
-          /*NEVER REACHED*/
-        } /* end parent */
-
-
-      /*
-         This is the child
-       */
-
-      /* Detach from tty and put process into a new session */
-      if (!nodetach )
-        {
-          int i;
-          unsigned int oldflags;
-
-          /* Close stdin, stdout and stderr unless it is the log stream */
-          for (i=0; i <= 2; i++)
-            {
-              if (!log_test_fd (i) && i != fd )
-                {
-                  if ( !close (i)
-                       && open ("/dev/null", i? O_WRONLY : O_RDONLY) == -1)
-                    {
-                      log_error ("failed to open '%s': %s\n",
-                                 "/dev/null", strerror (errno));
-                      cleanup ();
-                      dirmngr_exit (1);
-                    }
-                }
-            }
-
-          if (setsid() == -1)
-            {
-              log_error ("setsid() failed: %s\n", strerror(errno) );
-              dirmngr_exit (1);
-            }
-
-          log_get_prefix (&oldflags);
-          log_set_prefix (NULL, oldflags | GPGRT_LOG_RUN_DETACHED);
-          opt.running_detached = 1;
-
-          if (chdir("/"))
-            {
-              log_error ("chdir to / failed: %s\n", strerror (errno));
-              dirmngr_exit (1);
-            }
-        }
-#endif
-
-      thread_init ();
-      cert_cache_init (hkp_cacert_filenames);
-      crl_cache_init ();
-      http_register_netactivity_cb (netactivity_action);
-      handle_connections (fd);
+      start_command_handler ();
       shutdown_reaper ();
     }
   else if (cmd == aListCRLs)
@@ -1468,14 +1187,6 @@ cleanup (void)
 #endif /*USE_LDAP*/
   opt.ldapservers = NULL;
 
-  if (cleanup_socket)
-    {
-      cleanup_socket = 0;
-      if (redir_socket_name)
-        gnupg_remove (redir_socket_name);
-      else if (socket_name && *socket_name)
-        gnupg_remove (socket_name);
-    }
 }
 
 
@@ -1713,53 +1424,6 @@ parse_ocsp_signer (const char *string)
 
 
 
-/* Reread parts of the configuration.  Note, that this function is
-   obviously not thread-safe and should only be called from the NPTH
-   signal handler.
-
-   Fixme: Due to the way the argument parsing works, we create a
-   memory leak here for all string type arguments.  There is currently
-   no clean way to tell whether the memory for the argument has been
-   allocated or points into the process' original arguments.  Unless
-   we have a mechanism to tell this, we need to live on with this. */
-static void
-reread_configuration (void)
-{
-  ARGPARSE_ARGS pargs;
-  FILE *fp;
-  unsigned int configlineno = 0;
-  int dummy;
-
-  if (!opt.config_filename)
-    return; /* No config file. */
-
-  fp = fopen (opt.config_filename, "r");
-  if (!fp)
-    {
-      log_error (_("option file '%s': %s\n"),
-                 opt.config_filename, strerror(errno) );
-      return;
-    }
-
-  parse_rereadable_options (NULL, 1); /* Start from the default values. */
-
-  memset (&pargs, 0, sizeof pargs);
-  dummy = 0;
-  pargs.argc = &dummy;
-  pargs.flags = 1;  /* do not remove the args */
-  while (optfile_parse (fp, opt.config_filename, &configlineno, &pargs, opts) )
-    {
-      if (pargs.r_opt < -1)
-        pargs.err = 1; /* Print a warning. */
-      else /* Try to parse this option - ignore unchangeable ones. */
-        parse_rereadable_options (&pargs, 1);
-    }
-  fclose (fp);
-
-  post_option_parsing ();
-}
-
-
 /* A global function which allows us to trigger the reload stuff from
    other places.  */
 void
@@ -1767,7 +1431,6 @@ dirmngr_sighup_action (void)
 {
   log_info (_("SIGHUP received - "
               "re-reading configuration and flushing caches\n"));
-  reread_configuration ();
   cert_cache_deinit (0);
   crl_cache_deinit ();
   cert_cache_init (hkp_cacert_filenames);
@@ -1785,205 +1448,6 @@ static void
 netactivity_action (void)
 {
   network_activity_seen = 1;
-}
-
-
-/* The signal handler. */
-#ifndef HAVE_W32_SYSTEM
-static void
-handle_signal (int signo)
-{
-  switch (signo)
-    {
-    case SIGHUP:
-      dirmngr_sighup_action ();
-      break;
-
-    case SIGUSR1:
-      cert_cache_print_stats ();
-      break;
-
-    case SIGUSR2:
-      log_info (_("SIGUSR2 received - no action defined\n"));
-      break;
-
-    case SIGTERM:
-      if (!shutdown_pending)
-        log_info (_("SIGTERM received - shutting down ...\n"));
-      else
-        log_info (_("SIGTERM received - still %d active connections\n"),
-                  active_connections);
-      shutdown_pending++;
-      if (shutdown_pending > 2)
-        {
-          log_info (_("shutdown forced\n"));
-          log_info ("%s %s stopped\n", strusage(11), strusage(13) );
-          cleanup ();
-          dirmngr_exit (0);
-	}
-      break;
-
-    case SIGINT:
-      log_info (_("SIGINT received - immediate shutdown\n"));
-      log_info( "%s %s stopped\n", strusage(11), strusage(13));
-      cleanup ();
-      dirmngr_exit (0);
-      break;
-
-    default:
-      log_info (_("signal %d received - no action defined\n"), signo);
-    }
-}
-#endif /*!HAVE_W32_SYSTEM*/
-
-
-/* Thread to do the housekeeping.  */
-static void *
-housekeeping_thread (void *arg)
-{
-  static int sentinel;
-  time_t curtime;
-  struct server_control_s ctrlbuf;
-
-  (void)arg;
-
-  curtime = gnupg_get_time ();
-  if (sentinel)
-    {
-      log_info ("housekeeping is already going on\n");
-      return NULL;
-    }
-  sentinel++;
-  if (opt.verbose > 1)
-    log_info ("starting housekeeping\n");
-
-  memset (&ctrlbuf, 0, sizeof ctrlbuf);
-  dirmngr_init_default_ctrl (&ctrlbuf);
-
-  ks_hkp_housekeeping (curtime);
-  if (network_activity_seen)
-    {
-      network_activity_seen = 0;
-      if (opt.allow_version_check)
-        dirmngr_load_swdb (&ctrlbuf, 0);
-    }
-
-  dirmngr_deinit_default_ctrl (&ctrlbuf);
-
-  if (opt.verbose > 1)
-    log_info ("ready with housekeeping\n");
-  sentinel--;
-  return NULL;
-
-}
-
-
-#if GPGRT_GCC_HAVE_PUSH_PRAGMA
-# pragma GCC push_options
-# pragma GCC optimize ("no-strict-overflow")
-#endif
-static int
-time_for_housekeeping_p (time_t curtime)
-{
-  static time_t last_housekeeping;
-
-  if (!last_housekeeping)
-    last_housekeeping = curtime;
-
-  if (last_housekeeping + HOUSEKEEPING_INTERVAL <= curtime
-      || last_housekeeping > curtime /*(be prepared for y2038)*/)
-    {
-      last_housekeeping = curtime;
-      return 1;
-    }
-  return 0;
-}
-#if GPGRT_GCC_HAVE_PUSH_PRAGMA
-# pragma GCC pop_options
-#endif
-
-
-/* This is the worker for the ticker.  It is called every few seconds
-   and may only do fast operations. */
-static void
-handle_tick (void)
-{
-  if (time_for_housekeeping_p (gnupg_get_time ()))
-    {
-      npth_t thread;
-      npth_attr_t tattr;
-      int err;
-
-      err = npth_attr_init (&tattr);
-      if (err)
-        log_error ("error preparing housekeeping thread: %s\n", strerror (err));
-      else
-        {
-          npth_attr_setdetachstate (&tattr, NPTH_CREATE_DETACHED);
-          err = npth_create (&thread, &tattr, housekeeping_thread, NULL);
-          if (err)
-            log_error ("error spawning housekeeping thread: %s\n",
-                       strerror (err));
-          npth_attr_destroy (&tattr);
-        }
-    }
-}
-
-
-/* Check the nonce on a new connection.  This is a NOP unless we are
-   using our Unix domain socket emulation under Windows.  */
-static int
-check_nonce (assuan_fd_t fd, assuan_sock_nonce_t *nonce)
-{
-  if (assuan_sock_check_nonce (fd, nonce))
-    {
-      log_info (_("error reading nonce on fd %d: %s\n"),
-                FD2INT (fd), strerror (errno));
-      assuan_sock_close (fd);
-      return -1;
-    }
-  else
-    return 0;
-}
-
-
-/* Helper to call a connection's main function. */
-static void *
-start_connection_thread (void *arg)
-{
-  union int_and_ptr_u argval;
-  gnupg_fd_t fd;
-
-  memset (&argval, 0, sizeof argval);
-  argval.aptr = arg;
-  fd = argval.afd;
-
-  if (check_nonce (fd, &socket_nonce))
-    {
-      log_error ("handler nonce check FAILED\n");
-      return NULL;
-    }
-
-#ifndef HAVE_W32_SYSTEM
-  npth_setspecific (my_tlskey_current_fd, argval.aptr);
-#endif
-
-  active_connections++;
-  if (opt.verbose)
-    log_info (_("handler for fd %d started\n"), FD2INT (fd));
-
-  start_command_handler (fd);
-
-  if (opt.verbose)
-    log_info (_("handler for fd %d terminated\n"), FD2INT (fd));
-  active_connections--;
-
-#ifndef HAVE_W32_SYSTEM
-  argval.afd = ASSUAN_INVALID_FD;
-  npth_setspecific (my_tlskey_current_fd, argval.aptr);
-#endif
-
-  return NULL;
 }
 
 
@@ -2015,210 +1479,3 @@ my_inotify_is_name (int fd, const char *name)
 }
 #endif /*HAVE_INOTIFY_INIT*/
 
-
-/* Main loop in daemon mode.  Note that LISTEN_FD will be owned by
- * this function. */
-static void
-handle_connections (assuan_fd_t listen_fd)
-{
-  npth_attr_t tattr;
-#ifndef HAVE_W32_SYSTEM
-  int signo;
-#endif
-  struct sockaddr_un paddr;
-  socklen_t plen = sizeof( paddr );
-  int nfd, ret;
-  fd_set fdset, read_fdset;
-  struct timespec abstime;
-  struct timespec curtime;
-  struct timespec timeout;
-  int saved_errno;
-  int my_inotify_fd = -1;
-
-  npth_attr_init (&tattr);
-  npth_attr_setdetachstate (&tattr, NPTH_CREATE_DETACHED);
-
-#ifndef HAVE_W32_SYSTEM /* FIXME */
-  npth_sigev_init ();
-  npth_sigev_add (SIGHUP);
-  npth_sigev_add (SIGUSR1);
-  npth_sigev_add (SIGUSR2);
-  npth_sigev_add (SIGINT);
-  npth_sigev_add (SIGTERM);
-  npth_sigev_fini ();
-#endif
-
-#ifdef HAVE_INOTIFY_INIT
-  if (disable_check_own_socket)
-    my_inotify_fd = -1;
-  else if ((my_inotify_fd = inotify_init ()) == -1)
-    log_info ("error enabling fast daemon termination: %s\n",
-              strerror (errno));
-  else
-    {
-      /* We need to watch the directory for the file because there
-       * won't be an IN_DELETE_SELF for a socket file.  */
-      char *slash = strrchr (socket_name, '/');
-      log_assert (slash && slash[1]);
-      *slash = 0;
-      if (inotify_add_watch (my_inotify_fd, socket_name, IN_DELETE) == -1)
-        {
-          close (my_inotify_fd);
-          my_inotify_fd = -1;
-        }
-      *slash = '/';
-    }
-#endif /*HAVE_INOTIFY_INIT*/
-
-
-  /* Setup the fdset.  It has only one member.  This is because we use
-     pth_select instead of pth_accept to properly sync timeouts with
-     to full second.  */
-  FD_ZERO (&fdset);
-  FD_SET (FD2INT (listen_fd), &fdset);
-  nfd = FD2INT (listen_fd);
-  if (my_inotify_fd != -1)
-    {
-      FD_SET (my_inotify_fd, &fdset);
-      if (my_inotify_fd > nfd)
-        nfd = my_inotify_fd;
-    }
-
-  npth_clock_gettime (&abstime);
-  abstime.tv_sec += TIMERTICK_INTERVAL;
-
-  /* Main loop.  */
-  for (;;)
-    {
-      /* Shutdown test.  */
-      if (shutdown_pending)
-        {
-          if (!active_connections)
-            break; /* ready */
-
-          /* Do not accept new connections but keep on running the
-           * loop to cope with the timer events.
-           *
-           * Note that we do not close the listening socket because a
-           * client trying to connect to that socket would instead
-           * restart a new dirmngr instance - which is unlikely the
-           * intention of a shutdown. */
-          /* assuan_sock_close (listen_fd); */
-          /* listen_fd = -1; */
-          FD_ZERO (&fdset);
-          nfd = -1;
-          if (my_inotify_fd != -1)
-            {
-              FD_SET (my_inotify_fd, &fdset);
-              nfd = my_inotify_fd;
-            }
-	}
-
-      /* Take a copy of the fdset.  */
-      read_fdset = fdset;
-
-      npth_clock_gettime (&curtime);
-      if (!(npth_timercmp (&curtime, &abstime, <)))
-	{
-	  /* Timeout.  */
-	  handle_tick ();
-	  npth_clock_gettime (&abstime);
-	  abstime.tv_sec += TIMERTICK_INTERVAL;
-	}
-      npth_timersub (&abstime, &curtime, &timeout);
-
-#ifndef HAVE_W32_SYSTEM
-      ret = npth_pselect (nfd+1, &read_fdset, NULL, NULL, &timeout, npth_sigev_sigmask());
-      saved_errno = errno;
-
-      while (npth_sigev_get_pending(&signo))
-	handle_signal (signo);
-#else
-      ret = npth_eselect (nfd+1, &read_fdset, NULL, NULL, &timeout, NULL, NULL);
-      saved_errno = errno;
-#endif
-
-      if (ret == -1 && saved_errno != EINTR)
-	{
-          log_error (_("npth_pselect failed: %s - waiting 1s\n"),
-                     strerror (saved_errno));
-          npth_sleep (1);
-          continue;
-	}
-
-      if (ret <= 0)
-        {
-          /* Interrupt or timeout.  Will be handled when calculating the
-             next timeout.  */
-          continue;
-        }
-
-      if (shutdown_pending)
-        {
-          /* Do not anymore accept connections.  */
-          continue;
-        }
-
-#ifdef HAVE_INOTIFY_INIT
-      if (my_inotify_fd != -1 && FD_ISSET (my_inotify_fd, &read_fdset)
-          && my_inotify_is_name (my_inotify_fd, socket_name))
-        {
-          shutdown_pending = 1;
-          log_info ("socket file has been removed - shutting down\n");
-        }
-#endif /*HAVE_INOTIFY_INIT*/
-
-      if (FD_ISSET (FD2INT (listen_fd), &read_fdset))
-	{
-          gnupg_fd_t fd;
-
-          plen = sizeof paddr;
-	  fd = INT2FD (npth_accept (FD2INT(listen_fd),
-				    (struct sockaddr *)&paddr, &plen));
-	  if (fd == GNUPG_INVALID_FD)
-	    {
-	      log_error ("accept failed: %s\n", strerror (errno));
-	    }
-          else
-            {
-              char threadname[50];
-              union int_and_ptr_u argval;
-	      npth_t thread;
-
-              memset (&argval, 0, sizeof argval);
-              argval.afd = fd;
-              snprintf (threadname, sizeof threadname,
-                        "conn fd=%d", FD2INT(fd));
-
-              ret = npth_create (&thread, &tattr,
-                                 start_connection_thread, argval.aptr);
-	      if (ret)
-                {
-                  log_error ("error spawning connection handler: %s\n",
-                             strerror (ret) );
-                  assuan_sock_close (fd);
-                }
-	      npth_setname_np (thread, threadname);
-            }
-	}
-    }
-
-#ifdef HAVE_INOTIFY_INIT
-  if (my_inotify_fd != -1)
-    close (my_inotify_fd);
-#endif /*HAVE_INOTIFY_INIT*/
-  npth_attr_destroy (&tattr);
-  if (listen_fd != GNUPG_INVALID_FD)
-    assuan_sock_close (listen_fd);
-  cleanup ();
-  log_info ("%s %s stopped\n", strusage(11), strusage(13));
-}
-
-const char*
-dirmngr_get_current_socket_name (void)
-{
-  if (socket_name)
-    return socket_name;
-  else
-    return dirmngr_socket_name ();
-}

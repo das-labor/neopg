@@ -1374,7 +1374,6 @@ static const char hlp_getinfo[] =
   "\n"
   "  version     - Return the version of the program.\n"
   "  pid         - Return the process id of the server.\n"
-  "  socket_name - Return the name of the socket.\n"
   "  connections - Return number of active connections.\n"
   "  status      - Return the status of the current reader (in the future,\n"
   "                may also return the status of all readers).  The status\n"
@@ -1407,22 +1406,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       char numbuf[50];
 
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
-      rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "socket_name"))
-    {
-      const char *s = scd_get_socket_name ();
-
-      if (s)
-        rc = assuan_send_data (ctx, s, strlen (s));
-      else
-        rc = GPG_ERR_NO_DATA;
-    }
-  else if (!strcmp (line, "connections"))
-    {
-      char numbuf[20];
-
-      snprintf (numbuf, sizeof numbuf, "%d", get_active_connection_count ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
     }
   else if (!strcmp (line, "status"))
@@ -1727,11 +1710,12 @@ register_commands (assuan_context_t ctx)
    server, otherwise it is a regular server.  Returns true if there
    are no more active asessions.  */
 int
-scd_command_handler (ctrl_t ctrl, int fd)
+scd_command_handler (ctrl_t ctrl)
 {
   int rc;
   assuan_context_t ctx = NULL;
   int stopme;
+  assuan_fd_t filedes[2];
 
   rc = assuan_new (&ctx);
   if (rc)
@@ -1741,19 +1725,10 @@ scd_command_handler (ctrl_t ctrl, int fd)
       scd_exit (2);
     }
 
-  if (fd == -1)
-    {
-      assuan_fd_t filedes[2];
 
-      filedes[0] = assuan_fdopen (0);
-      filedes[1] = assuan_fdopen (1);
-      rc = assuan_init_pipe_server (ctx, filedes);
-    }
-  else
-    {
-      rc = assuan_init_socket_server (ctx, INT2FD(fd),
-                                      ASSUAN_SOCKET_SERVER_ACCEPTED);
-    }
+  filedes[0] = assuan_fdopen (0);
+  filedes[1] = assuan_fdopen (1);
+  rc = assuan_init_pipe_server (ctx, filedes);
   if (rc)
     {
       log_error ("failed to initialize the server: %s\n",

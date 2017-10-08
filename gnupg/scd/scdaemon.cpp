@@ -85,8 +85,6 @@ enum cmd_and_opt_values
   oNoGrab,
   oLogFile,
   oServer,
-  oMultiServer,
-  oDaemon,
   oBatch,
   oReaderPort,
   oCardTimeout,
@@ -110,9 +108,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_group (301, N_("@Options:\n ")),
 
   ARGPARSE_s_n (oServer,"server", N_("run in server mode (foreground)")),
-  ARGPARSE_s_n (oMultiServer, "multi-server",
-                N_("run in multi server mode (foreground)")),
-  ARGPARSE_s_n (oDaemon, "daemon", N_("run in daemon mode (background)")),
   ARGPARSE_s_n (oVerbose, "verbose", N_("verbose")),
   ARGPARSE_s_n (oQuiet, "quiet", N_("be somewhat more quiet")),
   ARGPARSE_s_n (oSh,    "sh", N_("sh-style command output")),
@@ -212,18 +207,6 @@ static int shutdown_pending;
 /* It is possible that we are currently running under setuid permissions */
 static int maybe_setuid = 1;
 
-/* Flag telling whether we are running as a pipe server.  */
-static int pipe_server;
-
-/* Name of the communication socket */
-static char *socket_name;
-/* Name of the redirected socket or NULL.  */
-static char *redir_socket_name;
-
-/* We need to keep track of the server's nonces (these are dummies for
-   POSIX systems). */
-static assuan_sock_nonce_t socket_nonce;
-
 #ifdef HAVE_W32_SYSTEM
 static HANDLE the_event;
 #else
@@ -231,17 +214,7 @@ static HANDLE the_event;
 static pid_t main_thread_pid;
 #endif
 
-static char *create_socket_name (char *standard_name);
-static gnupg_fd_t create_server_socket (const char *name,
-                                        char **r_redir_name,
-                                        assuan_sock_nonce_t *nonce);
 
-static void *start_connection_thread (void *arg);
-static void handle_connections (int listen_fd);
-
-static int active_connections;
-
-
 static char *
 make_libversion (const char *libname, const char *(*getfnc)(const char*))
 {
@@ -353,22 +326,21 @@ set_debug (const char *level)
     parse_debug_flag (NULL, &opt.debug, debug_flags);
 }
 
-
-
 static void
-cleanup (void)
+scd_init_default_ctrl (ctrl_t ctrl)
 {
-  if (socket_name && *socket_name)
-    {
-      char *name;
-
-      name = redir_socket_name? redir_socket_name : socket_name;
-
-      gnupg_remove (name);
-      *socket_name = 0;
-    }
+  (void)ctrl;
 }
 
+static void
+scd_deinit_default_ctrl (ctrl_t ctrl)
+{
+  if (!ctrl)
+    return;
+  xfree (ctrl->in_data.value);
+  ctrl->in_data.value = NULL;
+  ctrl->in_data.valuelen = 0;
+}
 
 
 int
@@ -386,7 +358,6 @@ scd_main (int argc, char **argv )
   int default_config =1;
   int greeting = 0;
   int nogreeting = 0;
-  int multi_server = 0;
   int is_daemon = 0;
   int nodetach = 0;
   int csh_style = 0;
@@ -555,9 +526,7 @@ scd_main (int argc, char **argv )
         case oLogFile: logfile = pargs.r.ret_str; break;
         case oCsh: csh_style = 1; break;
         case oSh: csh_style = 0; break;
-        case oServer: pipe_server = 1; break;
-        case oMultiServer: pipe_server = 1; multi_server = 1; break;
-        case oDaemon: is_daemon = 1; break;
+        case oServer: /* Default */ break;
 
         case oReaderPort: opt.reader_port = pargs.r.ret_str; break;
         case octapiDriver: opt.ctapi_driver = pargs.r.ret_str; break;
@@ -617,19 +586,11 @@ scd_main (int argc, char **argv )
           log_info (_("Note: '%s' is not considered an option\n"), argv[i]);
     }
 
-  if (atexit (cleanup))
-    {
-      log_error ("atexit failed\n");
-      cleanup ();
-      exit (1);
-    }
-
   set_debug (debug_level);
 
   if (initialize_module_command ())
     {
       log_error ("initialization failed\n");
-      cleanup ();
       exit (1);
     }
 
@@ -685,7 +646,7 @@ scd_main (int argc, char **argv )
       log_set_prefix (NULL, GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_TIME | GPGRT_LOG_WITH_PID);
     }
 
-  if (debug_wait && pipe_server)
+  if (debug_wait)
     {
       log_debug ("waiting for debugger - my pid is %u .....\n",
                  (unsigned int)getpid());
@@ -693,7 +654,6 @@ scd_main (int argc, char **argv )
       log_debug ("... okay\n");
     }
 
-  if (pipe_server)
     {
       /* This is the simple pipe based server */
       ctrl_t ctrl;
@@ -725,17 +685,6 @@ scd_main (int argc, char **argv )
             log_debug ("changed working directory to '/tmp'\n");
         }
 
-      /* In multi server mode we need to listen on an additional
-         socket.  Create that socket now before starting the handler
-         for the pipe connection.  This allows that handler to send
-         back the name of that socket. */
-      if (multi_server)
-        {
-          socket_name = create_socket_name (SCDAEMON_SOCK_NAME);
-          fd = FD2INT(create_server_socket (socket_name,
-                                            &redir_socket_name, &socket_nonce));
-        }
-
       res = npth_attr_init (&tattr);
       if (res)
         {
@@ -752,155 +701,13 @@ scd_main (int argc, char **argv )
                      strerror (errno) );
           scd_exit (2);
         }
-      ctrl->thread_startup.fd = GNUPG_INVALID_FD;
-      res = npth_create (&pipecon_handler, &tattr, start_connection_thread, ctrl);
-      if (res)
-        {
-          log_error ("error spawning pipe connection handler: %s\n",
-                     strerror (res) );
-          xfree (ctrl);
-          scd_exit (2);
-        }
-      npth_setname_np (pipecon_handler, "pipe-connection");
-      npth_attr_destroy (&tattr);
 
-      /* We run handle_connection to wait for the shutdown signal and
-         to run the ticker stuff.  */
-      handle_connections (fd);
-      if (fd != -1)
-        close (fd);
-    }
-  else if (!is_daemon)
-    {
-      log_info (_("please use the option '--daemon'"
-                  " to run the program in the background\n"));
-    }
-  else
-    { /* Regular server mode */
-      int fd;
-#ifndef HAVE_W32_SYSTEM
-      pid_t pid;
-      int i;
-#endif
-
-      /* Create the socket.  */
-      socket_name = create_socket_name (SCDAEMON_SOCK_NAME);
-      fd = FD2INT (create_server_socket (socket_name,
-                                         &redir_socket_name, &socket_nonce));
-
-
-      fflush (NULL);
-#ifdef HAVE_W32_SYSTEM
-      (void)csh_style;
-      (void)nodetach;
-#else
-      pid = fork ();
-      if (pid == (pid_t)-1)
-        {
-          log_fatal ("fork failed: %s\n", strerror (errno) );
-          exit (1);
-        }
-      else if (pid)
-        { /* we are the parent */
-          char *infostr;
-
-          close (fd);
-
-          /* create the info string: <name>:<pid>:<protocol_version> */
-          if (gpgrt_asprintf (&infostr, "SCDAEMON_INFO=%s:%lu:1",
-                              socket_name, (unsigned long) pid) < 0)
-            {
-              log_error ("out of core\n");
-              kill (pid, SIGTERM);
-              exit (1);
-            }
-          *socket_name = 0; /* don't let cleanup() remove the socket -
-                               the child should do this from now on */
-          if (argc)
-            { /* run the program given on the commandline */
-              if (putenv (infostr))
-                {
-                  log_error ("failed to set environment: %s\n",
-                             strerror (errno) );
-                  kill (pid, SIGTERM );
-                  exit (1);
-                }
-              execvp (argv[0], argv);
-              log_error ("failed to run the command: %s\n", strerror (errno));
-              kill (pid, SIGTERM);
-              exit (1);
-            }
-          else
-            {
-              /* Print the environment string, so that the caller can use
-                 shell's eval to set it */
-              if (csh_style)
-                {
-                  *strchr (infostr, '=') = ' ';
-                  es_printf ( "setenv %s;\n", infostr);
-                }
-              else
-                {
-                  es_printf ( "%s; export SCDAEMON_INFO;\n", infostr);
-                }
-              xfree (infostr);
-              exit (0);
-            }
-          /* NOTREACHED */
-        } /* end parent */
-
-      /* This is the child. */
-
-      npth_init ();
-      gpgrt_set_syscall_clamp (npth_unprotect, npth_protect);
-
-      /* Detach from tty and put process into a new session. */
-      if (!nodetach )
-        {
-          /* Close stdin, stdout and stderr unless it is the log stream. */
-          for (i=0; i <= 2; i++)
-            {
-              if (!log_test_fd (i) && i != fd )
-                {
-                  if ( !close (i)
-                       && open ("/dev/null", i? O_WRONLY : O_RDONLY) == -1)
-                    {
-                      log_error ("failed to open '%s': %s\n",
-                                 "/dev/null", strerror (errno));
-                      cleanup ();
-                      exit (1);
-                    }
-                }
-            }
-
-          if (setsid() == -1)
-            {
-              log_error ("setsid() failed: %s\n", strerror(errno) );
-              cleanup ();
-              exit (1);
-            }
-        }
-
-      {
-        struct sigaction sa;
-
-        sa.sa_handler = SIG_IGN;
-        sigemptyset (&sa.sa_mask);
-        sa.sa_flags = 0;
-        sigaction (SIGPIPE, &sa, NULL);
-      }
-
-      if (chdir("/"))
-        {
-          log_error ("chdir to / failed: %s\n", strerror (errno));
-          exit (1);
-        }
-
-#endif /*!HAVE_W32_SYSTEM*/
-
-      handle_connections (fd);
-
-      close (fd);
+      scd_init_default_ctrl (ctrl);
+      if (scd_command_handler (ctrl))
+	shutdown_pending = 1;
+      
+      scd_deinit_default_ctrl (ctrl);
+      xfree (ctrl);
     }
 
   return 0;
@@ -927,34 +734,6 @@ scd_exit (int rc)
   gcry_control (GCRYCTL_TERM_SECMEM );
   rc = rc? rc : log_get_errorcount(0)? 2 : 0;
   exit (rc);
-}
-
-
-static void
-scd_init_default_ctrl (ctrl_t ctrl)
-{
-  (void)ctrl;
-}
-
-static void
-scd_deinit_default_ctrl (ctrl_t ctrl)
-{
-  if (!ctrl)
-    return;
-  xfree (ctrl->in_data.value);
-  ctrl->in_data.value = NULL;
-  ctrl->in_data.valuelen = 0;
-}
-
-
-/* Return the name of the socket to be used to connect to this
-   process.  If no socket is available, return NULL. */
-const char *
-scd_get_socket_name ()
-{
-  if (socket_name && *socket_name)
-    return socket_name;
-  return NULL;
 }
 
 
@@ -987,17 +766,11 @@ handle_signal (int signo)
       break;
 
     case SIGTERM:
-      if (!shutdown_pending)
-        log_info ("SIGTERM received - shutting down ...\n");
-      else
-        log_info ("SIGTERM received - still %i running threads\n",
-                  active_connections);
       shutdown_pending++;
       if (shutdown_pending > 2)
         {
           log_info ("shutdown forced\n");
           log_info ("%s %s stopped\n", strusage(11), strusage(13) );
-          cleanup ();
           scd_exit (0);
         }
       break;
@@ -1005,7 +778,6 @@ handle_signal (int signo)
     case SIGINT:
       log_info ("SIGINT received - immediate shutdown\n");
       log_info( "%s %s stopped\n", strusage(11), strusage(13));
-      cleanup ();
       scd_exit (0);
       break;
 
@@ -1014,159 +786,6 @@ handle_signal (int signo)
     }
 }
 #endif /*!HAVE_W32_SYSTEM*/
-
-
-/* Create a name for the socket.  We check for valid characters as
-   well as against a maximum allowed length for a unix domain socket
-   is done.  The function terminates the process in case of an error.
-   Retunrs: Pointer to an allcoated string with the absolute name of
-   the socket used.  */
-static char *
-create_socket_name (char *standard_name)
-{
-  char *name;
-
-  name = make_filename (gnupg_socketdir (), standard_name, NULL);
-  if (strchr (name, PATHSEP_C))
-    {
-      log_error (("'%s' are not allowed in the socket name\n"), PATHSEP_S);
-      scd_exit (2);
-    }
-  return name;
-}
-
-
-
-/* Create a Unix domain socket with NAME.  Returns the file descriptor
-   or terminates the process in case of an error.  If the socket has
-   been redirected the name of the real socket is stored as a malloced
-   string at R_REDIR_NAME. */
-static gnupg_fd_t
-create_server_socket (const char *name, char **r_redir_name,
-                      assuan_sock_nonce_t *nonce)
-{
-  struct sockaddr *addr;
-  struct sockaddr_un *unaddr;
-  socklen_t len;
-  gnupg_fd_t fd;
-  int rc;
-
-  xfree (*r_redir_name);
-  *r_redir_name = NULL;
-
-  fd = assuan_sock_new (AF_UNIX, SOCK_STREAM, 0);
-  if (fd == GNUPG_INVALID_FD)
-    {
-      log_error (_("can't create socket: %s\n"), strerror (errno));
-      scd_exit (2);
-    }
-
-  unaddr = xmalloc (sizeof (*unaddr));
-  addr = (struct sockaddr*)unaddr;
-
-  {
-    int redirected;
-
-    if (assuan_sock_set_sockaddr_un (name, addr, &redirected))
-      {
-        if (errno == ENAMETOOLONG)
-          log_error (_("socket name '%s' is too long\n"), name);
-        else
-          log_error ("error preparing socket '%s': %s\n",
-                     name, gpg_strerror (gpg_error_from_syserror ()));
-        scd_exit (2);
-      }
-    if (redirected)
-      {
-        *r_redir_name = xstrdup (unaddr->sun_path);
-        if (opt.verbose)
-          log_info ("redirecting socket '%s' to '%s'\n", name, *r_redir_name);
-      }
-  }
-
-  len = SUN_LEN (unaddr);
-
-  rc = assuan_sock_bind (fd, addr, len);
-  if (rc == -1 && errno == EADDRINUSE)
-    {
-      gnupg_remove (unaddr->sun_path);
-      rc = assuan_sock_bind (fd, addr, len);
-    }
-  if (rc != -1
-      && (rc=assuan_sock_get_nonce (addr, len, nonce)))
-    log_error (_("error getting nonce for the socket\n"));
- if (rc == -1)
-    {
-      log_error (_("error binding socket to '%s': %s\n"),
-                 unaddr->sun_path,
-                 gpg_strerror (gpg_error_from_syserror ()));
-      assuan_sock_close (fd);
-      scd_exit (2);
-    }
-
-  if (gnupg_chmod (unaddr->sun_path, "-rwx"))
-    log_error (_("can't set permissions of '%s': %s\n"),
-               unaddr->sun_path, strerror (errno));
-
-  if (listen (FD2INT(fd), 5 ) == -1)
-    {
-      log_error (_("listen() failed: %s\n"),
-                 gpg_strerror (gpg_error_from_syserror ()));
-      assuan_sock_close (fd);
-      scd_exit (2);
-    }
-
-  if (opt.verbose)
-    log_info (_("listening on socket '%s'\n"), unaddr->sun_path);
-
-  return fd;
-}
-
-
-
-/* This is the standard connection thread's main function.  */
-static void *
-start_connection_thread (void *arg)
-{
-  ctrl_t ctrl = arg;
-
-  if (ctrl->thread_startup.fd != GNUPG_INVALID_FD
-      && assuan_sock_check_nonce (ctrl->thread_startup.fd, &socket_nonce))
-    {
-      log_info (_("error reading nonce on fd %d: %s\n"),
-                FD2INT(ctrl->thread_startup.fd), strerror (errno));
-      assuan_sock_close (ctrl->thread_startup.fd);
-      xfree (ctrl);
-      return NULL;
-    }
-
-  active_connections++;
-
-  scd_init_default_ctrl (ctrl);
-  if (opt.verbose)
-    log_info (_("handler for fd %d started\n"),
-              FD2INT(ctrl->thread_startup.fd));
-
-  /* If this is a pipe server, we request a shutdown if the command
-     handler asked for it.  With the next ticker event and given that
-     no other connections are running the shutdown will then
-     happen.  */
-  if (scd_command_handler (ctrl, FD2INT(ctrl->thread_startup.fd))
-      && pipe_server)
-    shutdown_pending = 1;
-
-  if (opt.verbose)
-    log_info (_("handler for fd %d terminated\n"),
-              FD2INT (ctrl->thread_startup.fd));
-
-  scd_deinit_default_ctrl (ctrl);
-  xfree (ctrl);
-
-  if (--active_connections == 0)
-    scd_kick_the_loop ();
-
-  return NULL;
-}
 
 
 void
@@ -1188,190 +807,3 @@ scd_kick_the_loop (void)
 #endif
 }
 
-/* Connection handler loop.  Wait for connection requests and spawn a
-   thread after accepting a connection.  LISTEN_FD is allowed to be -1
-   in which case this code will only do regular timeouts and handle
-   signals. */
-static void
-handle_connections (int listen_fd)
-{
-  npth_attr_t tattr;
-  struct sockaddr_un paddr;
-  socklen_t plen;
-  fd_set fdset, read_fdset;
-  int nfd;
-  int ret;
-  int fd;
-  struct timespec timeout;
-  struct timespec *t;
-  int saved_errno;
-#ifdef HAVE_W32_SYSTEM
-  HANDLE events[2];
-  unsigned int events_set;
-#else
-  int signo;
-#endif
-
-  ret = npth_attr_init(&tattr);
-  if (ret)
-    {
-      log_error ("npth_attr_init failed: %s\n", strerror (ret));
-      return;
-    }
-
-  npth_attr_setdetachstate (&tattr, NPTH_CREATE_DETACHED);
-
-#ifdef HAVE_W32_SYSTEM
-  {
-    HANDLE h, h2;
-    SECURITY_ATTRIBUTES sa = { sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
-
-    events[0] = the_event = INVALID_HANDLE_VALUE;
-    events[1] = INVALID_HANDLE_VALUE;
-    h = CreateEvent (&sa, TRUE, FALSE, NULL);
-    if (!h)
-      log_error ("can't create scd event: %s\n", w32_strerror (-1) );
-    else if (!DuplicateHandle (GetCurrentProcess(), h,
-                               GetCurrentProcess(), &h2,
-                               EVENT_MODIFY_STATE|SYNCHRONIZE, TRUE, 0))
-      {
-        log_error ("setting synchronize for scd_kick_the_loop failed: %s\n",
-                   w32_strerror (-1) );
-        CloseHandle (h);
-      }
-    else
-      {
-        CloseHandle (h);
-        events[0] = the_event = h2;
-      }
-  }
-#else
-  npth_sigev_init ();
-  npth_sigev_add (SIGHUP);
-  npth_sigev_add (SIGUSR1);
-  npth_sigev_add (SIGUSR2);
-  npth_sigev_add (SIGINT);
-  npth_sigev_add (SIGCONT);
-  npth_sigev_add (SIGTERM);
-  npth_sigev_fini ();
-  main_thread_pid = getpid ();
-#endif
-
-  FD_ZERO (&fdset);
-  nfd = 0;
-  if (listen_fd != -1)
-    {
-      FD_SET (listen_fd, &fdset);
-      nfd = listen_fd;
-    }
-
-  for (;;)
-    {
-      int periodical_check;
-
-      if (shutdown_pending)
-        {
-          if (active_connections == 0)
-            break; /* ready */
-
-          /* Do not accept anymore connections but wait for existing
-             connections to terminate. We do this by clearing out all
-             file descriptors to wait for, so that the select will be
-             used to just wait on a signal or timeout event. */
-          FD_ZERO (&fdset);
-          listen_fd = -1;
-        }
-
-      periodical_check = scd_update_reader_status_file ();
-
-      timeout.tv_sec = TIMERTICK_INTERVAL_SEC;
-      timeout.tv_nsec = TIMERTICK_INTERVAL_USEC * 1000;
-
-      if (shutdown_pending || periodical_check)
-        t = &timeout;
-      else
-        t = NULL;
-
-      /* POSIX says that fd_set should be implemented as a structure,
-         thus a simple assignment is fine to copy the entire set.  */
-      read_fdset = fdset;
-
-#ifndef HAVE_W32_SYSTEM
-      ret = npth_pselect (nfd+1, &read_fdset, NULL, NULL, t,
-                          npth_sigev_sigmask ());
-      saved_errno = errno;
-
-      while (npth_sigev_get_pending(&signo))
-        handle_signal (signo);
-#else
-      ret = npth_eselect (nfd+1, &read_fdset, NULL, NULL, t,
-                          events, &events_set);
-      saved_errno = errno;
-      if (events_set & 1)
-        continue;
-#endif
-
-      if (ret == -1 && saved_errno != EINTR)
-        {
-          log_error (_("npth_pselect failed: %s - waiting 1s\n"),
-                     strerror (saved_errno));
-          npth_sleep (1);
-          continue;
-        }
-
-      if (ret <= 0)
-        /* Timeout.  Will be handled when calculating the next timeout.  */
-        continue;
-
-      if (listen_fd != -1 && FD_ISSET (listen_fd, &read_fdset))
-        {
-          ctrl_t ctrl;
-
-          plen = sizeof paddr;
-          fd = npth_accept (listen_fd, (struct sockaddr *)&paddr, &plen);
-          if (fd == -1)
-            {
-              log_error ("accept failed: %s\n", strerror (errno));
-            }
-          else if ( !(ctrl = xtrycalloc (1, sizeof *ctrl)) )
-            {
-              log_error ("error allocating connection control data: %s\n",
-                         strerror (errno) );
-              close (fd);
-            }
-          else
-            {
-              char threadname[50];
-              npth_t thread;
-
-              snprintf (threadname, sizeof threadname, "conn fd=%d", fd);
-              ctrl->thread_startup.fd = INT2FD (fd);
-              ret = npth_create (&thread, &tattr, start_connection_thread, ctrl);
-              if (ret)
-                {
-                  log_error ("error spawning connection handler: %s\n",
-                             strerror (ret));
-                  xfree (ctrl);
-                  close (fd);
-                }
-              else
-                npth_setname_np (thread, threadname);
-            }
-        }
-    }
-
-#ifdef HAVE_W32_SYSTEM
-  if (the_event != INVALID_HANDLE_VALUE)
-    CloseHandle (the_event);
-#endif
-  cleanup ();
-  log_info (_("%s %s stopped\n"), strusage(11), strusage(13));
-  npth_attr_destroy (&tattr);
-}
-
-/* Return the number of active connections. */
-int
-get_active_connection_count (void)
-{
-  return active_connections;
-}
