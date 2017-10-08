@@ -45,7 +45,6 @@
 static assuan_context_t agent_ctx;
 static struct
 {
-  gpg_err_source_t errsource;
   int verbosity;
   const char *agent_program;
   const char *lc_ctype;
@@ -59,14 +58,12 @@ static struct
    that the strings are just pointers and should not anymore be
    modified by the caller. */
 void
-gnupg_prepare_get_passphrase (gpg_err_source_t errsource,
-                              int verbosity,
+gnupg_prepare_get_passphrase (int verbosity,
                               const char *agent_program,
                               const char *opt_lc_ctype,
                               const char *opt_lc_messages,
                               session_env_t session_env)
 {
-  agentargs.errsource          = errsource;
   agentargs.verbosity          = verbosity;
   agentargs.agent_program      = agent_program;
   agentargs.lc_ctype           = opt_lc_ctype;
@@ -89,7 +86,6 @@ start_agent (void)
     return 0;
 
   err = start_new_gpg_agent (&agent_ctx,
-                             agentargs.errsource,
                              agentargs.agent_program,
                              agentargs.lc_ctype,
                              agentargs.lc_messages,
@@ -204,9 +200,8 @@ gnupg_get_passphrase (const char *cache_id,
   /* Older Pinentries return the old assuan error code for canceled
      which gets translated by libassuan to GPG_ERR_ASS_CANCELED and
      not to the code for a user cancel.  Fix this here. */
-  if (err && gpg_err_source (err)
-      && gpg_err_code (err) == GPG_ERR_ASS_CANCELED)
-    err = gpg_err_make (gpg_err_source (err), GPG_ERR_CANCELED);
+  if (gpg_err_code (err) == GPG_ERR_ASS_CANCELED)
+    err = gpg_error (GPG_ERR_CANCELED);
 
   if (err)
     {

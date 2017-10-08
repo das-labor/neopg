@@ -148,29 +148,8 @@ unlock_pinentry (gpg_error_t rc)
   if (rc)
     {
       if (DBG_IPC)
-        log_debug ("error calling pinentry: %s <%s>\n",
-                   gpg_strerror (rc), gpg_strsource (rc));
-
-      /* Change the source of the error to pinentry so that the final
-         consumer of the error code knows that the problem is with
-         pinentry.  For backward compatibility we do not do that for
-         some common error codes.  */
-      switch (gpg_err_code (rc))
-        {
-        case GPG_ERR_NO_PIN_ENTRY:
-        case GPG_ERR_CANCELED:
-        case GPG_ERR_FULLY_CANCELED:
-        case GPG_ERR_ASS_UNKNOWN_INQUIRE:
-        case GPG_ERR_ASS_TOO_MUCH_DATA:
-        case GPG_ERR_NO_PASSPHRASE:
-        case GPG_ERR_BAD_PASSPHRASE:
-        case GPG_ERR_BAD_PIN:
-          break;
-
-        default:
-          rc = gpg_err_make (GPG_ERR_SOURCE_PINENTRY, gpg_err_code (rc));
-          break;
-        }
+        log_debug ("error calling pinentry: %s\n",
+                   gpg_strerror (rc));
     }
 
   entry_ctx = NULL;
@@ -614,8 +593,7 @@ start_pinentry (ctrl_t ctrl)
       rc = agent_inq_pinentry_launched (ctrl, pinentry_pid, flavor_version);
       if (gpg_err_code (rc) == GPG_ERR_CANCELED
           || gpg_err_code (rc) == GPG_ERR_FULLY_CANCELED)
-        return unlock_pinentry (gpg_err_make (GPG_ERR_SOURCE_DEFAULT,
-                                              gpg_err_code (rc)));
+        return unlock_pinentry (gpg_error (gpg_err_code (rc)));
       rc = 0;
     }
 
@@ -1068,16 +1046,15 @@ agent_askpin (ctrl_t ctrl,
       /* Most pinentries out in the wild return the old Assuan error code
          for canceled which gets translated to an assuan Cancel error and
          not to the code for a user cancel.  Fix this here. */
-      if (rc && gpg_err_source (rc)
-          && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-        rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+      if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+        rc = gpg_error (GPG_ERR_CANCELED);
 
 
       /* Change error code in case the window close button was clicked
          to cancel the operation.  */
       if ((pinentry_status & PINENTRY_STATUS_CLOSE_BUTTON)
 	  && gpg_err_code (rc) == GPG_ERR_CANCELED)
-        rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_FULLY_CANCELED);
+        rc = gpg_error (GPG_ERR_FULLY_CANCELED);
 
       if (gpg_err_code (rc) == GPG_ERR_ASS_TOO_MUCH_DATA)
         errtext = is_pin? L_("PIN too long")
@@ -1239,13 +1216,13 @@ agent_get_passphrase (ctrl_t ctrl,
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (rc && gpg_err_source (rc) && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+    rc = gpg_error (GPG_ERR_CANCELED);
   /* Change error code in case the window close button was clicked
      to cancel the operation.  */
   if ((pinentry_status & PINENTRY_STATUS_CLOSE_BUTTON)
       && gpg_err_code (rc) == GPG_ERR_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_FULLY_CANCELED);
+    rc = gpg_error (GPG_ERR_FULLY_CANCELED);
 
   if (rc)
     xfree (parm.buffer);
@@ -1291,8 +1268,8 @@ agent_get_confirmation (ctrl_t ctrl,
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (rc && gpg_err_source (rc) && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+  if (rc && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+    rc = gpg_error (GPG_ERR_CANCELED);
 
   if (rc)
     return unlock_pinentry (rc);
@@ -1331,8 +1308,8 @@ agent_get_confirmation (ctrl_t ctrl,
 
   rc = assuan_transact (entry_ctx, "CONFIRM",
                         NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc && gpg_err_source (rc) && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+    rc = gpg_error (GPG_ERR_CANCELED);
 
   return unlock_pinentry (rc);
 }
@@ -1364,8 +1341,8 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (rc && gpg_err_source (rc) && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+    rc = gpg_error (GPG_ERR_CANCELED);
 
   if (rc)
     return unlock_pinentry (rc);
@@ -1381,8 +1358,8 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
 
   rc = assuan_transact (entry_ctx, "CONFIRM --one-button", NULL, NULL, NULL,
                         NULL, NULL, NULL);
-  if (rc && gpg_err_source (rc) && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_err_make (gpg_err_source (rc), GPG_ERR_CANCELED);
+  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
+    rc = gpg_error (GPG_ERR_CANCELED);
 
   return unlock_pinentry (rc);
 }

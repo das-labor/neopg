@@ -909,8 +909,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
 
       _keybox_release_blob (blob); blob = NULL;
       rc = _keybox_read_blob (&blob, hd->fp, NULL);
-      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE
-          && gpg_err_source (rc) == GPG_ERR_SOURCE_KEYBOX)
+      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE)
         {
           ++*r_skipped;
           continue; /* Skip too large records.  */

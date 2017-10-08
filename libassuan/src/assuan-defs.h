@@ -65,9 +65,6 @@ struct assuan_context_s
 {
   /* Members managed by the generic routines in assuan.c.  */
 
-  /* The error source for errors generated from this context.  */
-  gpg_err_source_t err_source;
-
 #ifdef _WIN32
   /* The per-context w32 error string.  */
   char w32_strerror[256];
@@ -224,7 +221,7 @@ struct assuan_context_s
 static GPG_ERR_INLINE gpg_error_t
 _assuan_error (assuan_context_t ctx, gpg_err_code_t errcode)
 {
-  return gpg_err_make (ctx?ctx->err_source: GPG_ERR_SOURCE_ASSUAN, errcode);
+  return errcode;
 }
 
 /* Release all resources associated with an engine operation.  */

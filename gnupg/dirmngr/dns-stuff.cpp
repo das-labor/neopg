@@ -65,7 +65,7 @@
 # include <npth.h>
 #endif
 
-#include "./dirmngr-err.h"
+#include <gpg-error.h>
 #include "../common/util.h"
 #include "../common/host2net.h"
 #include "dns-stuff.h"

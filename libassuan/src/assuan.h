@@ -189,13 +189,6 @@ typedef struct assuan_malloc_hooks *assuan_malloc_hooks_t;
 typedef int (*assuan_log_cb_t) (assuan_context_t ctx, void *hook,
 				unsigned int cat, const char *msg);
 
-/* Set the default gpg error source.  */
-void assuan_set_gpg_err_source (gpg_err_source_t errsource);
-
-/* Get the default gpg error source.  */
-gpg_err_source_t assuan_get_gpg_err_source (void);
-
-
 /* Set the default malloc hooks.  */
 void assuan_set_malloc_hooks (assuan_malloc_hooks_t malloc_hooks);
 
@@ -212,7 +205,7 @@ void assuan_get_log_cb (assuan_log_cb_t *log_cb, void **log_cb_data);
 
 /* Create a new Assuan context.  The initial parameters are all needed
    in the creation of the context.  */
-gpg_error_t assuan_new_ext (assuan_context_t *ctx, gpg_err_source_t errsource,
+gpg_error_t assuan_new_ext (assuan_context_t *ctx,
 			    assuan_malloc_hooks_t malloc_hooks,
 			    assuan_log_cb_t log_cb, void *log_cb_data);
 

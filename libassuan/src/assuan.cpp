@@ -32,11 +32,7 @@
 #define digitp(a) ((a) >= '0' && (a) <= '9')
 
 
-
 /* Global default state.  */
-
-/* The default error source gor generated error codes.  */
-static gpg_err_source_t _assuan_default_err_source = GPG_ERR_SOURCE_USER_1;
 
 /* The default memory management functions.  */
 static struct assuan_malloc_hooks _assuan_default_malloc_hooks =
@@ -46,23 +42,6 @@ static struct assuan_malloc_hooks _assuan_default_malloc_hooks =
 static assuan_log_cb_t _assuan_default_log_cb = _assuan_log_handler;
 static void *_assuan_default_log_cb_data = NULL;
 
-
-/* Set the default gpg error source.  */
-void
-assuan_set_gpg_err_source (gpg_err_source_t errsource)
-{
-  _assuan_default_err_source = errsource;
-}
-
-
-/* Get the default gpg error source.  */
-gpg_err_source_t
-assuan_get_gpg_err_source (void)
-{
-  return _assuan_default_err_source;
-}
-
-
 /* Set the default malloc hooks.  */
 void
 assuan_set_malloc_hooks (assuan_malloc_hooks_t malloc_hooks)
@@ -78,7 +57,6 @@ assuan_get_malloc_hooks (void)
   return &_assuan_default_malloc_hooks;
 }
 
-
 /* Set the default log callback handler.  */
 void
 assuan_set_log_cb (assuan_log_cb_t log_cb, void *log_cb_data)
@@ -97,7 +75,6 @@ assuan_get_log_cb (assuan_log_cb_t *log_cb, void **log_cb_data)
   *log_cb_data = _assuan_default_log_cb_data;
 }
 
-
 void
 assuan_set_system_hooks (assuan_system_hooks_t system_hooks)
 {
@@ -108,7 +85,7 @@ assuan_set_system_hooks (assuan_system_hooks_t system_hooks)
 /* Create a new Assuan context.  The initial parameters are all needed
    in the creation of the context.  */
 gpg_error_t
-assuan_new_ext (assuan_context_t *r_ctx, gpg_err_source_t err_source,
+assuan_new_ext (assuan_context_t *r_ctx,
 		assuan_malloc_hooks_t malloc_hooks, assuan_log_cb_t log_cb,
 		void *log_cb_data)
 {
@@ -117,21 +94,20 @@ assuan_new_ext (assuan_context_t *r_ctx, gpg_err_source_t err_source,
 
   /* Set up a working context so we can use standard functions.  */
   memset (&wctx, 0, sizeof (wctx));
-  wctx.err_source = err_source;
   wctx.malloc_hooks = *malloc_hooks;
   wctx.log_cb = log_cb;
   wctx.log_cb_data = log_cb_data;
 
   /* Need a new block for the trace macros to work.  */
   {
-    TRACE_BEG8 (&wctx, ASSUAN_LOG_CTX, "assuan_new_ext", r_ctx,
-		"err_source = %i (%s), malloc_hooks = %p (%p, %p, %p), "
-		"log_cb = %p, log_cb_data = %p", err_source,
-		gpg_strsource (err_source), malloc_hooks, malloc_hooks->malloc,
+    TRACE_BEG6 (&wctx, ASSUAN_LOG_CTX, "assuan_new_ext", r_ctx,
+		"malloc_hooks = %p (%p, %p, %p), "
+		"log_cb = %p, log_cb_data = %p", 
+		malloc_hooks, malloc_hooks->malloc,
 		malloc_hooks->realloc, malloc_hooks->free, log_cb, log_cb_data);
 
     *r_ctx = NULL;
-    ctx = _assuan_malloc (&wctx, sizeof (*ctx));
+    ctx = (assuan_context_t) _assuan_malloc (&wctx, sizeof (*ctx));
     if (!ctx)
       return TRACE_ERR (gpg_err_code_from_syserror ());
 
@@ -157,7 +133,7 @@ assuan_new_ext (assuan_context_t *r_ctx, gpg_err_source_t err_source,
 gpg_error_t
 assuan_new (assuan_context_t *r_ctx)
 {
-  return assuan_new_ext (r_ctx, _assuan_default_err_source,
+  return assuan_new_ext (r_ctx,
 			 &_assuan_default_malloc_hooks,
 			 _assuan_default_log_cb,
 			 _assuan_default_log_cb_data);

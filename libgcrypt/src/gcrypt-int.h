@@ -243,14 +243,6 @@ _gcry_strerror (gcry_error_t err)
   return gpg_strerror (err);
 }
 
-/* Return a pointer to a string containing a description of the error
-   source in the error value ERR.  */
-static inline const char *
-_gcry_strsource (gcry_error_t err)
-{
-  return gpg_strsource (err);
-}
-
 /* Retrieve the error code for the system error ERR.  This returns
    GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
    this).  */
@@ -267,15 +259,6 @@ _gcry_err_code_to_errno (gcry_err_code_t code)
 {
   return gpg_err_code_from_errno (code);
 }
-
-/* Return an error value with the error source SOURCE and the system
-   error ERR.  */
-static inline gcry_error_t
-_gcry_err_make_from_errno (gpg_err_source_t source, int err)
-{
-  return gpg_err_make_from_errno (source, err);
-}
-
 
 /* Return an error value with the system error ERR.  */
 static inline gcry_error_t

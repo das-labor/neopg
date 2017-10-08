@@ -371,13 +371,9 @@ print_reported_error (gpg_error_t err, gpg_err_code_t ignore_ec)
     ;
   else if (gpg_err_code (err) == ignore_ec)
     ;
-  else if (gpg_err_source (err) == GPG_ERR_SOURCE_DEFAULT)
+  else
     log_info (_("(reported error: %s)\n"),
               gpg_strerror (err));
-  else
-    log_info (_("(reported error: %s <%s>)\n"),
-              gpg_strerror (err), gpg_strsource (err));
-
 }
 
 

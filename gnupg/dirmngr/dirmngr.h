@@ -22,9 +22,7 @@
 #ifndef DIRMNGR_H
 #define DIRMNGR_H
 
-#include "./dirmngr-err.h"
-#define map_assuan_err(a) \
-        map_assuan_err_with_source (GPG_ERR_SOURCE_DEFAULT, (a))
+#include <gpg-error.h>
 #include <errno.h>
 #include <gcrypt.h>
 #include <ksba.h>

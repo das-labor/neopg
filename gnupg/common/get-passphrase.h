@@ -32,8 +32,7 @@
 
 #include "session-env.h"
 
-void gnupg_prepare_get_passphrase (gpg_err_source_t errsource,
-                                   int verbosity,
+void gnupg_prepare_get_passphrase (int verbosity,
                                    const char *agent_program,
                                    const char *opt_lc_ctype,
                                    const char *opt_lc_messages,

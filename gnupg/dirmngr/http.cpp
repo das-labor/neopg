@@ -734,7 +734,7 @@ http_open (http_t *r_hd, http_req_t reqtype, const char *url,
   *r_hd = NULL;
 
   if (!(reqtype == HTTP_REQ_GET || reqtype == HTTP_REQ_POST))
-    return gpg_err_make (default_errsource, GPG_ERR_INV_ARG);
+    return gpg_error(GPG_ERR_INV_ARG);
 
   /* Create the handle. */
   hd = xtrycalloc (1, sizeof *hd);
@@ -787,7 +787,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
       if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
         {
           log_error ("Tor support is not available\n");
-          return gpg_err_make (default_errsource, GPG_ERR_NOT_IMPLEMENTED);
+          return gpg_error(GPG_ERR_NOT_IMPLEMENTED);
         }
     }
 
@@ -812,7 +812,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
     hd->sock = my_socket_new (sock);
     if (!hd->sock)
       {
-        err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+        err = gpg_error(gpg_err_code_from_syserror ());
         xfree (hd);
         return err;
       }
@@ -822,14 +822,14 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       goto leave;
     }
   cookie->sock = my_socket_ref (hd->sock);
   hd->fp_write = es_fopencookie (cookie, "w", cookie_functions);
   if (!hd->fp_write)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       my_socket_unref (cookie->sock, NULL, NULL);
       xfree (cookie);
       goto leave;
@@ -839,14 +839,14 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       goto leave;
     }
   cookie->sock = my_socket_ref (hd->sock);
   hd->fp_read = es_fopencookie (cookie, "r", cookie_functions);
   if (!hd->fp_read)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       my_socket_unref (cookie->sock, NULL, NULL);
       xfree (cookie);
       goto leave;
@@ -906,7 +906,7 @@ http_wait_response (http_t hd)
      object keeps the actual system socket open.  */
   cookie = hd->write_cookie;
   if (!cookie)
-    return gpg_err_make (default_errsource, GPG_ERR_INTERNAL);
+    return gpg_error(GPG_ERR_INTERNAL);
 
   es_fclose (hd->fp_write);
   hd->fp_write = NULL;
@@ -923,7 +923,7 @@ http_wait_response (http_t hd)
   /* Create a new cookie and a stream for reading.  */
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
-    return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+    return gpg_error(gpg_err_code_from_syserror ());
   cookie->sock = my_socket_ref (hd->sock);
   cookie->session = http_session_ref (hd->session);
   cookie->use_tls = hd->uri->use_tls;
@@ -932,7 +932,7 @@ http_wait_response (http_t hd)
   hd->fp_read = es_fopencookie (cookie, "r", cookie_functions);
   if (!hd->fp_read)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       my_socket_unref (cookie->sock, NULL, NULL);
       http_session_unref (cookie->session);
       xfree (cookie);
@@ -1055,7 +1055,7 @@ parse_uri (parsed_uri_t *ret_uri, const char *uri,
 
   *ret_uri = xtrycalloc (1, sizeof **ret_uri + strlen (uri));
   if (!*ret_uri)
-    return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+    return gpg_error(gpg_err_code_from_syserror ());
   strcpy ((*ret_uri)->buffer, uri);
   ec = do_parse_uri (*ret_uri, 0, no_scheme_check, force_tls);
   if (ec)
@@ -1063,7 +1063,7 @@ parse_uri (parsed_uri_t *ret_uri, const char *uri,
       xfree (*ret_uri);
       *ret_uri = NULL;
     }
-  return gpg_err_make (default_errsource, ec);
+  return gpg_error(ec);
 }
 
 
@@ -1499,12 +1499,12 @@ send_request (http_t hd, const char *httphost, const char *auth,
   if (hd->uri->use_tls && !hd->session)
     {
       log_error ("TLS requested but no session object provided\n");
-      return gpg_err_make (default_errsource, GPG_ERR_INTERNAL);
+      return gpg_error(GPG_ERR_INTERNAL);
     }
   if (hd->uri->use_tls && !hd->session->tls_session)
     {
       log_error ("TLS requested but no GNUTLS context available\n");
-      return gpg_err_make (default_errsource, GPG_ERR_INTERNAL);
+      return gpg_error(GPG_ERR_INTERNAL);
     }
 
   if ((hd->flags & HTTP_FLAG_FORCE_TOR))
@@ -1514,7 +1514,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
       if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
         {
           log_error ("Tor support is not available\n");
-          return gpg_err_make (default_errsource, GPG_ERR_NOT_IMPLEMENTED);
+          return gpg_error(GPG_ERR_NOT_IMPLEMENTED);
         }
     }
 
@@ -1530,7 +1530,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
       hd->session->servername = xtrystrdup (httphost? httphost : server);
       if (!hd->session->servername)
         {
-          err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+          err = gpg_error(gpg_err_code_from_syserror ());
           return err;
         }
 
@@ -1568,15 +1568,15 @@ send_request (http_t hd, const char *httphost, const char *auth,
       else if (!strcmp (uri->scheme, "http") || !strcmp (uri->scheme, "socks4"))
         ;
       else if (!strcmp (uri->scheme, "socks5h"))
-        err = gpg_err_make (default_errsource, GPG_ERR_NOT_IMPLEMENTED);
+        err = gpg_error(GPG_ERR_NOT_IMPLEMENTED);
       else
-        err = gpg_err_make (default_errsource, GPG_ERR_INV_URI);
+        err = gpg_error(GPG_ERR_INV_URI);
 
       if (err)
 	{
 	  log_error ("invalid HTTP proxy (%s): %s\n",
 		     http_proxy, gpg_strerror (err));
-	  return gpg_err_make (default_errsource, GPG_ERR_CONFIGURATION);
+	  return gpg_error(GPG_ERR_CONFIGURATION);
 	}
 
       if (uri->auth)
@@ -1587,8 +1587,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
                                             uri->auth, strlen(uri->auth));
           if (!proxy_authstr)
             {
-              err = gpg_err_make (default_errsource,
-                                  gpg_err_code_from_syserror ());
+              err = gpg_error (gpg_err_code_from_syserror ());
               http_release_parsed_uri (uri);
               return err;
             }
@@ -1613,7 +1612,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
   if (!hd->sock)
     {
       xfree (proxy_authstr);
-      return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      return gpg_error(gpg_err_code_from_syserror ());
     }
 
 
@@ -1657,7 +1656,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           else
             log_info ("TLS handshake failed: %s\n", gnutls_strerror (rc));
           xfree (proxy_authstr);
-          return gpg_err_make (default_errsource, GPG_ERR_NETWORK);
+          return gpg_error(GPG_ERR_NETWORK);
         }
 
       hd->session->verify.done = 0;
@@ -1684,7 +1683,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           if (!myauth)
             {
               xfree (proxy_authstr);
-              return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+              return gpg_error(gpg_err_code_from_syserror ());
             }
           remove_escapes (myauth);
         }
@@ -1702,14 +1701,13 @@ send_request (http_t hd, const char *httphost, const char *auth,
       if (!authstr)
         {
           xfree (proxy_authstr);
-          return gpg_err_make (default_errsource,
-                               gpg_err_code_from_syserror ());
+          return gpg_error (gpg_err_code_from_syserror ());
         }
     }
 
   p = build_rel_path (hd->uri);
   if (!p)
-    return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+    return gpg_error(gpg_err_code_from_syserror ());
 
   if (http_proxy && *http_proxy)
     {
@@ -1746,7 +1744,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
   xfree (p);
   if (!request)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       xfree (authstr);
       xfree (proxy_authstr);
       return err;
@@ -1763,7 +1761,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
     cookie = xtrycalloc (1, sizeof *cookie);
     if (!cookie)
       {
-        err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+        err = gpg_error(gpg_err_code_from_syserror ());
         goto leave;
       }
     cookie->sock = my_socket_ref (hd->sock);
@@ -1774,13 +1772,13 @@ send_request (http_t hd, const char *httphost, const char *auth,
     hd->fp_write = es_fopencookie (cookie, "w", cookie_functions);
     if (!hd->fp_write)
       {
-        err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+        err = gpg_error(gpg_err_code_from_syserror ());
         my_socket_unref (cookie->sock, NULL, NULL);
         xfree (cookie);
         hd->write_cookie = NULL;
       }
     else if (es_fputs (request, hd->fp_write) || es_fflush (hd->fp_write))
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
     else
       err = 0;
 
@@ -1793,8 +1791,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           if ((es_fputs (headers->d, hd->fp_write) || es_fflush (hd->fp_write))
               || (es_fputs("\r\n",hd->fp_write) || es_fflush(hd->fp_write)))
             {
-              err = gpg_err_make (default_errsource,
-                                  gpg_err_code_from_syserror ());
+              err = gpg_error (gpg_err_code_from_syserror ());
               break;
             }
         }
@@ -2273,7 +2270,7 @@ my_wsagetlasterror (void)
     default:                 ec = GPG_ERR_EIO;          break;
     }
 
-  return gpg_err_make (default_errsource, ec);
+  return gpg_error(ec);
 }
 #endif /*HAVE_W32_SYSTEM*/
 
@@ -2317,7 +2314,7 @@ connect_with_timeout (assuan_fd_t sock,
     {
       /* Shortcut.  */
       if (assuan_sock_connect (sock, addr, addrlen))
-        err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+        err = gpg_error(gpg_err_code_from_syserror ());
       else
         err = 0;
       return err;
@@ -2333,7 +2330,7 @@ connect_with_timeout (assuan_fd_t sock,
 #else
   oflags = fcntl (sock, F_GETFL, 0);
   if (fcntl (sock, F_SETFL, oflags | O_NONBLOCK))
-    return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+    return gpg_error(gpg_err_code_from_syserror ());
 #endif
 
   /* Do the connect.  */
@@ -2343,7 +2340,7 @@ connect_with_timeout (assuan_fd_t sock,
       RESTORE_BLOCKING ();
       return 0; /* Success.  */
     }
-  err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+  err = gpg_error(gpg_err_code_from_syserror ());
   if (gpg_err_code (err) != GPG_ERR_EINPROGRESS)
     {
       RESTORE_BLOCKING ();
@@ -2359,7 +2356,7 @@ connect_with_timeout (assuan_fd_t sock,
   n = my_select (FD2INT(sock)+1, &rset, &wset, NULL, &tval);
   if (n < 0)
     {
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
       RESTORE_BLOCKING ();
       return err;
     }
@@ -2367,12 +2364,12 @@ connect_with_timeout (assuan_fd_t sock,
     {
       /* Timeout: We do not restore the socket flags on timeout
        * because the caller is expected to close the socket.  */
-      return gpg_err_make (default_errsource, GPG_ERR_ETIMEDOUT);
+      return gpg_error(GPG_ERR_ETIMEDOUT);
     }
   if (!FD_ISSET (sock, &rset) && !FD_ISSET (sock, &wset))
     {
       /* select misbehaved.  */
-      return gpg_err_make (default_errsource, GPG_ERR_SYSTEM_BUG);
+      return gpg_error(GPG_ERR_SYSTEM_BUG);
     }
 
   slen = sizeof (syserr);
@@ -2380,10 +2377,10 @@ connect_with_timeout (assuan_fd_t sock,
                   (void*)&syserr, &slen) < 0)
     {
       /* Assume that this is Solaris which returns the error in ERRNO.  */
-      err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+      err = gpg_error(gpg_err_code_from_syserror ());
     }
   else if (syserr)
-    err = gpg_err_make (default_errsource, gpg_err_code_from_errno (syserr));
+    err = gpg_error(gpg_err_code_from_errno (syserr));
   else
     err = 0; /* Connected.  */
 
@@ -2429,8 +2426,7 @@ connect_server (const char *server, unsigned short port,
                                          ASSUAN_SOCK_TOR);
       if (sock == ASSUAN_INVALID_FD)
         {
-          err = gpg_err_make (default_errsource,
-                              (errno == EHOSTUNREACH)? GPG_ERR_UNKNOWN_HOST
+          err = gpg_error ((errno == EHOSTUNREACH)? GPG_ERR_UNKNOWN_HOST
                               : gpg_err_code_from_syserror ());
           log_error ("can't connect to '%s': %s\n", server, gpg_strerror (err));
           return err;
@@ -2442,7 +2438,7 @@ connect_server (const char *server, unsigned short port,
 
 #else /*!ASSUAN_SOCK_TOR*/
 
-      err = gpg_err_make (default_errsource, GPG_ERR_ENETUNREACH);
+      err = gpg_error(GPG_ERR_ENETUNREACH);
       return ASSUAN_INVALID_FD;
 
 #endif /*!HASSUAN_SOCK_TOR*/
@@ -2465,7 +2461,7 @@ connect_server (const char *server, unsigned short port,
 	 up a fake SRV record. */
       serverlist = xtrycalloc (1, sizeof *serverlist);
       if (!serverlist)
-        return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+        return gpg_error(gpg_err_code_from_syserror ());
 
       serverlist->port = port;
       strncpy (serverlist->target, server, DIMof (struct srventry, target));
@@ -2504,8 +2500,7 @@ connect_server (const char *server, unsigned short port,
           sock = my_sock_new_for_addr (ai->addr, ai->socktype, ai->protocol);
           if (sock == ASSUAN_INVALID_FD)
             {
-              err = gpg_err_make (default_errsource,
-                                  gpg_err_code_from_syserror ());
+              err = gpg_error (gpg_err_code_from_syserror ());
               log_error ("error creating socket: %s\n", gpg_strerror (err));
               free_dns_addrinfo (aibuf);
               xfree (serverlist);
@@ -2548,8 +2543,7 @@ connect_server (const char *server, unsigned short port,
                    server, gpg_strerror (last_err));
 #endif
         }
-      err = last_err? last_err : gpg_err_make (default_errsource,
-                                               GPG_ERR_UNKNOWN_HOST);
+      err = last_err? last_err : gpg_error (GPG_ERR_UNKNOWN_HOST);
       if (sock != ASSUAN_INVALID_FD)
 	assuan_sock_close (sock);
       return err;

@@ -21,13 +21,7 @@
 #ifndef AGENT_H
 #define AGENT_H
 
-#ifdef GPG_ERR_SOURCE_DEFAULT
-#error GPG_ERR_SOURCE_DEFAULT already defined
-#endif
-#define GPG_ERR_SOURCE_DEFAULT  GPG_ERR_SOURCE_GPGAGENT
 #include <gpg-error.h>
-#define map_assuan_err(a) \
-        map_assuan_err_with_source (GPG_ERR_SOURCE_DEFAULT, (a))
 #include <errno.h>
 
 #include <gcrypt.h>
@@ -178,11 +172,6 @@ struct server_control_s
   struct {
     gnupg_fd_t fd;
   } thread_startup;
-
-  /* Flag indicating the connection is run in restricted mode.
-     A value of 1 if used for --extra-socket,
-     a value of 2 is used for --browser-socket.  */
-  int restricted;
 
   /* Private data of the server (command.c). */
   struct server_local_s *server_local;

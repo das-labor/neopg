@@ -30,18 +30,9 @@
 #ifndef GNUPG_COMMON_INIT_H
 #define GNUPG_COMMON_INIT_H
 
-#ifndef GPG_ERR_SOURCE_DEFAULT
-# error GPG_ERR_SOURCE_DEFAULT is not defined
-#elseif GPG_ERR_SOURCE_DEFAULT == GPG_ERR_SOURCE_UNKNOWN
-# error GPG_ERR_SOURCE_DEFAULT has default value
-#endif
-
 void register_mem_cleanup_func (void (*func)(void));
 
 void early_system_init (void);
-void _init_common_subsystems (gpg_err_source_t errsource,
-                              int *argcp, char ***argvp);
-#define init_common_subsystems(a,b)                             \
-  _init_common_subsystems (GPG_ERR_SOURCE_DEFAULT, (a), (b))
+void init_common_subsystems (int *argcp, char ***argvp);
 
 #endif /*GNUPG_COMMON_INIT_H*/

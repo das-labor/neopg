@@ -10,8 +10,7 @@
   int syserror_main(int argc, char* argv[]);
 
 TEST(GpgErrorTest, ErrorType) {
-    gpg_error_t err = gpg_err_make(GPG_ERR_SOURCE_USER_1, GPG_ERR_USER_1);
-    ASSERT_EQ(GPG_ERR_SOURCE_USER_1, gpg_err_source(err));
+    gpg_error_t err = gpg_error(GPG_ERR_USER_1);
     ASSERT_EQ(GPG_ERR_USER_1, gpg_err_code(err));
 }
 

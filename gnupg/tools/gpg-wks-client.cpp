@@ -238,7 +238,6 @@ main (int argc, char **argv)
   i18n_init();
   init_common_subsystems (&argc, &argv);
 
-  assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
   setup_libassuan_logging (&opt.debug, NULL);
 
   /* Parse the command line. */

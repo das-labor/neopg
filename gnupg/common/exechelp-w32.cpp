@@ -88,13 +88,13 @@
 static inline gpg_error_t
 my_error_from_syserror (void)
 {
-  return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+  return gpg_error (gpg_err_code_from_syserror ());
 }
 
 static inline gpg_error_t
 my_error (int errcode)
 {
-  return gpg_err_make (default_errsource, errcode);
+  return gpg_error (errcode);
 }
 
 
@@ -428,7 +428,6 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
                       INVALID_HANDLE_VALUE};
   int i;
   es_syshd_t syshd;
-  gpg_err_source_t errsource = default_errsource;
   int nonblock = !!(flags & GNUPG_SPAWN_NONBLOCK);
 
   (void)except; /* Not yet used.  */
@@ -445,7 +444,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
     {
       if (create_inheritable_pipe (inpipe, INHERIT_READ))
         {
-          err = gpg_err_make (errsource, GPG_ERR_GENERAL);
+          err = gpg_error (GPG_ERR_GENERAL);
           log_error (_("error creating a pipe: %s\n"), gpg_strerror (err));
           return err;
         }
@@ -455,7 +454,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
       infp = es_sysopen (&syshd, nonblock? "w,nonblock" : "w");
       if (!infp)
         {
-          err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
+          err = gpg_error (gpg_err_code_from_syserror ());
           log_error (_("error creating a stream for a pipe: %s\n"),
                      gpg_strerror (err));
           CloseHandle (inpipe[0]);
@@ -469,7 +468,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
     {
       if (create_inheritable_pipe (outpipe, INHERIT_WRITE))
         {
-          err = gpg_err_make (errsource, GPG_ERR_GENERAL);
+          err = gpg_error (GPG_ERR_GENERAL);
           log_error (_("error creating a pipe: %s\n"), gpg_strerror (err));
           return err;
         }
@@ -479,7 +478,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
       outfp = es_sysopen (&syshd, nonblock? "r,nonblock" : "r");
       if (!outfp)
         {
-          err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
+          err = gpg_error (gpg_err_code_from_syserror ());
           log_error (_("error creating a stream for a pipe: %s\n"),
                      gpg_strerror (err));
           CloseHandle (outpipe[0]);
@@ -499,7 +498,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
     {
       if (create_inheritable_pipe (errpipe, INHERIT_WRITE))
         {
-          err = gpg_err_make (errsource, GPG_ERR_GENERAL);
+          err = gpg_error (GPG_ERR_GENERAL);
           log_error (_("error creating a pipe: %s\n"), gpg_strerror (err));
           return err;
         }
@@ -509,7 +508,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
       errfp = es_sysopen (&syshd, nonblock? "r,nonblock" : "r");
       if (!errfp)
         {
-          err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
+          err = gpg_error (gpg_err_code_from_syserror ());
           log_error (_("error creating a stream for a pipe: %s\n"),
                      gpg_strerror (err));
           CloseHandle (errpipe[0]);
@@ -597,7 +596,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
         CloseHandle (errpipe[0]);
       if (errpipe[1] != INVALID_HANDLE_VALUE)
         CloseHandle (errpipe[1]);
-      return gpg_err_make (errsource, GPG_ERR_GENERAL);
+      return gpg_error (GPG_ERR_GENERAL);
     }
   xfree (cmdline);
   cmdline = NULL;
@@ -815,7 +814,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
     }
 
  leave:
-  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, ec);
+  return gpg_error (ec);
 }
 
 

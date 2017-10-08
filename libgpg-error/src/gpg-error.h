@@ -62,59 +62,8 @@ extern "C" {
    of the other components.  The interface will not change in a
    backward incompatible way.
 
-   An error code together with an error source build up an error
-   value.  As the error value is been passed from one component to
-   another, it preserver the information about the source and nature
-   of the error.
-
-   A component of the GnuPG project can define the following macros to
-   tune the behaviour of the library:
-
-   GPG_ERR_SOURCE_DEFAULT: Define to an error source of type
-   gpg_err_source_t to make that source the default for gpg_error().
-   Otherwise GPG_ERR_SOURCE_UNKNOWN is used as default.
-
    In addition to the error codes, Libgpg-error also provides a set of
    functions used by most GnuPG components.  */
-
-
-/* The error source type gpg_err_source_t.
-
-   Where as the Poo out of a welle small
-   Taketh his firste springing and his sours.
-					--Chaucer.  */
-
-/* Only use free slots, never change or reorder the existing
-   entries.  */
-enum
-  {
-    GPG_ERR_SOURCE_UNKNOWN = 0,
-    GPG_ERR_SOURCE_GCRYPT = 1,
-    GPG_ERR_SOURCE_GPG = 2,
-    GPG_ERR_SOURCE_GPGSM = 3,
-    GPG_ERR_SOURCE_GPGAGENT = 4,
-    GPG_ERR_SOURCE_PINENTRY = 5,
-    GPG_ERR_SOURCE_SCD = 6,
-    GPG_ERR_SOURCE_GPGME = 7,
-    GPG_ERR_SOURCE_KEYBOX = 8,
-    GPG_ERR_SOURCE_KSBA = 9,
-    GPG_ERR_SOURCE_DIRMNGR = 10,
-    GPG_ERR_SOURCE_GSTI = 11,
-    GPG_ERR_SOURCE_GPA = 12,
-    GPG_ERR_SOURCE_KLEO = 13,
-    GPG_ERR_SOURCE_G13 = 14,
-    GPG_ERR_SOURCE_ASSUAN = 15,
-    GPG_ERR_SOURCE_TLS = 17,
-    GPG_ERR_SOURCE_ANY = 31,
-    GPG_ERR_SOURCE_USER_1 = 32,
-    GPG_ERR_SOURCE_USER_2 = 33,
-    GPG_ERR_SOURCE_USER_3 = 34,
-    GPG_ERR_SOURCE_USER_4 = 35,
-
-    /* This is one more than the largest allowed entry.  */
-    GPG_ERR_SOURCE_DIM = 128
-  };
-  typedef int gpg_err_source_t;
 
 
 /* The error code type gpg_err_code_t.  */
@@ -687,15 +636,6 @@ typedef unsigned int gpg_error_t;
    bit indicates system errors.  */
 #define GPG_ERR_CODE_MASK	(GPG_ERR_CODE_DIM - 1)
 
-/* Bits 17 to 24 are reserved.  */
-
-/* We use the upper 7 bits of gpg_error_t for error sources.  */
-#define GPG_ERR_SOURCE_MASK	(GPG_ERR_SOURCE_DIM - 1)
-#define GPG_ERR_SOURCE_SHIFT	24
-
-/* The highest bit is reserved.  It shouldn't be used to prevent
-   potential negative numbers when transmitting error values as
-   text.  */
 
 
 /* GCC feature test.  */
@@ -873,27 +813,10 @@ void gpgrt_set_alloc_func  (void *(*f)(void *a, size_t n));
 
 /* Constructor and accessor functions.  */
 
-/* Construct an error value from an error code and source.  Within a
-   subsystem, use gpg_error.  */
-static GPG_ERR_INLINE gpg_error_t
-gpg_err_make (gpg_err_source_t source, gpg_err_code_t code)
-{
-  return code == GPG_ERR_NO_ERROR ? GPG_ERR_NO_ERROR
-    : (((source & GPG_ERR_SOURCE_MASK) << GPG_ERR_SOURCE_SHIFT)
-       | (code & GPG_ERR_CODE_MASK));
-}
-
-
-/* The user should define GPG_ERR_SOURCE_DEFAULT before including this
-   file to specify a default source for gpg_error.  */
-#ifndef GPG_ERR_SOURCE_DEFAULT
-#define GPG_ERR_SOURCE_DEFAULT	GPG_ERR_SOURCE_UNKNOWN
-#endif
-
 static GPG_ERR_INLINE gpg_error_t
 gpg_error (gpg_err_code_t code)
 {
-  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, code);
+  return code;
 }
 
 
@@ -901,17 +824,9 @@ gpg_error (gpg_err_code_t code)
 static GPG_ERR_INLINE gpg_err_code_t
 gpg_err_code (gpg_error_t err)
 {
-  return (gpg_err_code_t) (err & GPG_ERR_CODE_MASK);
+  return err;
 }
 
-
-/* Retrieve the error source from an error value.  */
-static GPG_ERR_INLINE gpg_err_source_t
-gpg_err_source (gpg_error_t err)
-{
-  return (gpg_err_source_t) ((err >> GPG_ERR_SOURCE_SHIFT)
-			     & GPG_ERR_SOURCE_MASK);
-}
 
 
 /* String functions.  */
@@ -928,10 +843,6 @@ const char *gpg_strerror (gpg_error_t err);
    large enough, ERANGE is returned and BUF contains as much of the
    beginning of the error string as fits into the buffer.  */
 int gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen);
-
-/* Return a pointer to a string containing a description of the error
-   source in the error value ERR.  */
-const char *gpg_strsource (gpg_error_t err);
 
 
 /* Mapping of system errors (errno).  */
@@ -1000,13 +911,6 @@ size_t  gpgrt_w32_iconv (gpgrt_w32_iconv_t cd,
 
 
 /* Self-documenting convenience functions.  */
-
-static GPG_ERR_INLINE gpg_error_t
-gpg_err_make_from_errno (gpg_err_source_t source, int err)
-{
-  return gpg_err_make (source, gpg_err_code_from_errno (err));
-}
-
 
 static GPG_ERR_INLINE gpg_error_t
 gpg_error_from_errno (int err)

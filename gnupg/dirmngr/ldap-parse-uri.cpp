@@ -191,7 +191,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
   else
     *purip = puri;
 
-  return gpg_err_make (default_errsource, err);
+  return gpg_error (err);
 }
 
 /* The following characters need to be escaped to be part of an LDAP

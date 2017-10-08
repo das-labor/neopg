@@ -74,7 +74,7 @@
 #endif
 #include <sys/stat.h>
 
-#include "dirmngr-err.h"
+#include <gpg-error.h>
 #include "cdb.h"
 
 #ifndef EPROTO

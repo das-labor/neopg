@@ -50,7 +50,6 @@ add_library(gpg-error
   ../libgpg-error/src/b64dec.cpp
   ../libgpg-error/src/code-from-errno.cpp
   ../libgpg-error/src/code-to-errno.cpp
-  ../libgpg-error/src/strsource.cpp
   ../libgpg-error/src/strerror.cpp
   ../libgpg-error/src/estream.h
   ../libgpg-error/src/estream.cpp

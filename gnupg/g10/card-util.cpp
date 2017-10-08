@@ -1762,8 +1762,7 @@ factory_reset (void)
    */
 
   err = agent_scd_learn (&info, 0);
-  if (gpg_err_code (err) == GPG_ERR_OBJ_TERM_STATE
-      && gpg_err_source (err) == GPG_ERR_SOURCE_SCD)
+  if (gpg_err_code (err) == GPG_ERR_OBJ_TERM_STATE)
     termstate = 1;
   else if (err)
     {

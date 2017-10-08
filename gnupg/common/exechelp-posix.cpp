@@ -80,13 +80,13 @@
 static inline gpg_error_t
 my_error_from_syserror (void)
 {
-  return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+  return gpg_error (gpg_err_code_from_syserror ());
 }
 
 static inline gpg_error_t
 my_error (int errcode)
 {
-  return gpg_err_make (default_errsource, errcode);
+  return gpg_error (errcode);
 }
 
 
@@ -699,7 +699,7 @@ gnupg_wait_process (const char *pgmname, pid_t pid, int hang, int *r_exitcode)
       ec = 0;
     }
 
-  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, ec);
+  return gpg_error (ec);
 }
 
 /* See exechelp.h for a description.  */
@@ -810,7 +810,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
       }
 
   xfree (dummy);
-  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, ec);
+  return gpg_error (ec);
 }
 
 

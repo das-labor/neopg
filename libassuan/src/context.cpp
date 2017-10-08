@@ -188,8 +188,8 @@ void assuan_set_io_monitor (assuan_context_t ctx,
 gpg_error_t
 assuan_set_error (assuan_context_t ctx, gpg_error_t err, const char *text)
 {
-  TRACE4 (ctx, ASSUAN_LOG_CTX, "assuan_set_error", ctx,
-	  "err=%i (%s,%s),text=%s", err, gpg_strsource (err),
+  TRACE3 (ctx, ASSUAN_LOG_CTX, "assuan_set_error", ctx,
+	  "err=%i (%s),text=%s", err,
 	  gpg_strerror (err), text?text:"(none)");
 
   ctx->err_no = err;

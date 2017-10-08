@@ -33,12 +33,6 @@ gcry_strerror (gcry_error_t err)
   return _gcry_strerror (err);
 }
 
-const char *
-gcry_strsource (gcry_error_t err)
-{
-  return _gcry_strsource (err);
-}
-
 gcry_err_code_t
 gcry_err_code_from_errno (int err)
 {
@@ -49,12 +43,6 @@ int
 gcry_err_code_to_errno (gcry_err_code_t code)
 {
   return _gcry_err_code_to_errno (code);
-}
-
-gcry_error_t
-gcry_err_make_from_errno (gcry_err_source_t source, int err)
-{
-  return _gcry_err_make_from_errno (source, err);
 }
 
 gcry_error_t

@@ -135,13 +135,10 @@ set_libassuan_log_cats (unsigned int newcats)
 
 
 static gpg_error_t
-send_one_option (assuan_context_t ctx, gpg_err_source_t errsource,
-                 const char *name, const char *value, int use_putenv)
+send_one_option (assuan_context_t ctx, const char *name, const char *value, int use_putenv)
 {
   gpg_error_t err;
   char *optstr;
-
-  (void)errsource;
 
   if (!value || !*value)
     err = 0;  /* Avoid sending empty strings.  */
@@ -163,7 +160,6 @@ send_one_option (assuan_context_t ctx, gpg_err_source_t errsource,
    defaults taken from the current locale. */
 gpg_error_t
 send_pinentry_environment (assuan_context_t ctx,
-                           gpg_err_source_t errsource,
                            const char *opt_lc_ctype,
                            const char *opt_lc_messages,
                            session_env_t session_env)
@@ -187,10 +183,10 @@ send_pinentry_environment (assuan_context_t ctx,
         continue;
 
       if (assname)
-        err = send_one_option (ctx, errsource, assname, value, 0);
+        err = send_one_option (ctx, assname, value, 0);
       else
         {
-          err = send_one_option (ctx, errsource, name, value, 1);
+          err = send_one_option (ctx, name, value, 1);
           if (gpg_err_code (err) == GPG_ERR_UNKNOWN_OPTION)
             err = 0;  /* Server too old; can't pass the new envvars.  */
         }
@@ -217,7 +213,7 @@ send_pinentry_environment (assuan_context_t ctx,
 #endif
   if (opt_lc_ctype || (dft_ttyname && dft_lc))
     {
-      err = send_one_option (ctx, errsource, "lc-ctype",
+      err = send_one_option (ctx, "lc-ctype",
                              opt_lc_ctype ? opt_lc_ctype : dft_lc, 0);
     }
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
@@ -243,7 +239,7 @@ send_pinentry_environment (assuan_context_t ctx,
 #endif
   if (opt_lc_messages || (dft_ttyname && dft_lc))
     {
-      err = send_one_option (ctx, errsource, "lc-messages",
+      err = send_one_option (ctx, "lc-messages",
                              opt_lc_messages ? opt_lc_messages : dft_lc, 0);
     }
 #if defined(HAVE_SETLOCALE) && defined(LC_MESSAGES)
@@ -268,7 +264,6 @@ extern char *neopg_program;
    code. */
 gpg_error_t
 start_new_gpg_agent (assuan_context_t *r_ctx,
-                     gpg_err_source_t errsource,
                      const char *agent_program,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
@@ -306,8 +301,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
     abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
     if (!abs_homedir)
       {
-	gpg_error_t tmperr = gpg_err_make (errsource,
-					   gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error (gpg_err_code_from_syserror ());
 	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	return tmperr;
@@ -327,8 +321,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
 			       | ASSUAN_PIPE_CONNECT_DETACHED);
     if (err)
       {
-	gpg_error_t tmperr = gpg_err_make (errsource,
-					   gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error (gpg_err_code_from_syserror ());
 	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	xfree (abs_homedir);
@@ -345,11 +338,10 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
                          NULL, NULL, NULL, NULL, NULL, NULL);
   if (!err)
     {
-      err = send_pinentry_environment (ctx, errsource,
+      err = send_pinentry_environment (ctx,
                                        opt_lc_ctype, opt_lc_messages,
                                        session_env);
-      if (gpg_err_code (err) == GPG_ERR_FORBIDDEN
-          && gpg_err_source (err) == GPG_ERR_SOURCE_GPGAGENT)
+      if (gpg_err_code (err) == GPG_ERR_FORBIDDEN)
         {
           /* Check whether we are in restricted mode.  */
           if (!assuan_transact (ctx, "GETINFO restricted",
@@ -377,7 +369,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
    Returns a new assuan context at R_CTX or an error code. */
 gpg_error_t
 start_new_dirmngr (assuan_context_t *r_ctx,
-                   gpg_err_source_t errsource,
                    const char *dirmngr_program,
                    int autostart,
                    int verbose, int debug,
@@ -412,8 +403,7 @@ start_new_dirmngr (assuan_context_t *r_ctx,
     abs_homedir = make_absfilename (gnupg_homedir (), NULL);
     if (!abs_homedir)
       {
-	gpg_error_t tmperr = gpg_err_make (errsource,
-					   gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error(gpg_err_code_from_syserror ());
 	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	return tmperr;
@@ -433,8 +423,7 @@ start_new_dirmngr (assuan_context_t *r_ctx,
 			       | ASSUAN_PIPE_CONNECT_DETACHED);
     if (err)
       {
-	gpg_error_t tmperr = gpg_err_make (errsource,
-					   gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error(gpg_err_code_from_syserror ());
 	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	xfree (abs_homedir);

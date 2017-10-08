@@ -587,8 +587,7 @@ import (ctrl_t ctrl, IOBUF inp, const char* fname,struct import_stats_s *stats,
          this does only make sense if we keep on going despite of
          errors.  For now we do this only if the imported key is too
          large. */
-      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE
-            && gpg_err_source (rc) == GPG_ERR_SOURCE_KEYBOX)
+      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE)
         {
           stats->not_imported++;
         }

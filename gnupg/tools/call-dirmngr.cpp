@@ -63,7 +63,6 @@ connect_dirmngr (assuan_context_t *r_ctx)
 
   *r_ctx = NULL;
   err = start_new_dirmngr (&ctx,
-                           GPG_ERR_SOURCE_DEFAULT,
                            NULL,
                            opt.autostart, opt.verbose, opt.debug_ipc,
                            NULL, NULL);

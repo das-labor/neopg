@@ -44,7 +44,7 @@
 #endif /*HAVE_INOTIFY_INIT*/
 #include <npth.h>
 
-#include "dirmngr-err.h"
+#include <gpg-error.h>
 
 # include <gnutls/gnutls.h>
 
@@ -812,7 +812,6 @@ dirmngr_main (int argc, char **argv)
   malloc_hooks.free = gcry_free;
   assuan_set_malloc_hooks (&malloc_hooks);
   assuan_set_assuan_log_prefix (log_get_prefix (NULL));
-  assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
   assuan_set_system_hooks (ASSUAN_SYSTEM_NPTH);
   assuan_sock_init ();
   setup_libassuan_logging (&opt.debug, dirmngr_assuan_log_monitor);

@@ -32,25 +32,20 @@ strerror_main (int argc, char *argv[])
       int i = 1;
       while (i + 1 < argc)
 	{
-	  gpg_error_t err = gpg_err_make (atoi (argv[i]), atoi (argv[i + 1]));
-	  printf ("%s: %s\n", gpg_strsource (err), gpg_strerror (err));
+	  gpg_error_t err = gpg_error (atoi (argv[i + 1]));
+	  printf ("%s\n", gpg_strerror (err));
 	  i += 2;
 	}
     }
   else
     {
-      struct
-      {
-	gpg_err_source_t src;
-	gpg_err_code_t code;
-      } list[] = { { 0, 0 }, { 1, 201 }, { 2, 2 }, { 3, 102 },
-		   { 4, 100 }, { 5, 99 }, { 6, 110 }, { 7, 7 }, { 8, 888 } };
+      gpg_err_code_t list[] = { 0, 201, 2, 102, 100, 99, 110, 7, 888 };
       int i = 0;
 
       while (i < sizeof (list) / sizeof (list[0]))
 	{
-	  gpg_error_t err = gpg_err_make (list[i].src, list[i].code);
-	  printf ("%s: %s\n", gpg_strsource (err), gpg_strerror (err));
+	  gpg_error_t err = gpg_error (list[i]);
+	  printf ("%s\n", gpg_strerror (err));
 	  i++;
 	}
     }

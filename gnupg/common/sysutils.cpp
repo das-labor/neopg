@@ -89,13 +89,13 @@ static int allow_special_filenames;
 static GPGRT_INLINE gpg_error_t
 my_error_from_syserror (void)
 {
-  return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+  return gpg_error (gpg_err_code_from_syserror ());
 }
 
 static GPGRT_INLINE gpg_error_t
 my_error (int e)
 {
-  return gpg_err_make (default_errsource, (e));
+  return gpg_error (e);
 }
 
 

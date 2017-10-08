@@ -214,7 +214,6 @@ dirmngr_client_main (int argc, char **argv )
 
   /* Init Assuan.  */
   assuan_set_assuan_log_prefix (log_get_prefix (NULL));
-  assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
 
   /* Setup I18N. */
   i18n_init();
@@ -296,7 +295,6 @@ dirmngr_client_main (int argc, char **argv )
     }
 
   err = start_new_dirmngr (&ctx,
-                           GPG_ERR_SOURCE_DEFAULT,
                            opt.dirmngr_program
                              ? opt.dirmngr_program
                              : gnupg_module_name (GNUPG_MODULE_NAME_DIRMNGR),

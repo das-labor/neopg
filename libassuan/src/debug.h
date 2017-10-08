@@ -164,10 +164,10 @@ void _assuan_debug_buffer (assuan_context_t ctx, unsigned int cat,
 #define TRACE_ERR(err)							\
   err == 0 ? (TRACE_SUC ()) :						\
     (_assuan_debug (_assuan_trace_context, _assuan_trace_level,		\
-		    "%s (%s=%p): error: %s <%s>\n",			\
+		    "%s (%s=%p): error: %s \n",			\
 		    _assuan_trace_func, _assuan_trace_tagname,		\
-		    _assuan_trace_tag, gpg_strerror (err),		\
-		    ctx?gpg_strsource (ctx->err_source):""),            \
+		    _assuan_trace_tag, gpg_strerror (err)		\
+		    ),            \
      _assuan_error (ctx, err))
 
 /* The cast to void suppresses GCC warnings.  */

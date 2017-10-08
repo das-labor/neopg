@@ -132,7 +132,6 @@ start_agent (ctrl_t ctrl)
   else
     {
       rc = start_new_gpg_agent (&agent_ctx,
-                                GPG_ERR_SOURCE_DEFAULT,
                                 opt.agent_program,
                                 opt.lc_ctype, opt.lc_messages,
                                 opt.session_env,

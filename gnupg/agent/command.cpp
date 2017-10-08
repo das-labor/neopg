@@ -410,20 +410,11 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
           ctrl_t ctrl = assuan_get_pointer (ctx);
 
           if (!ctrl->server_local->allow_fully_canceled)
-            err = gpg_err_make (gpg_err_source (err), GPG_ERR_CANCELED);
+            err = gpg_error (GPG_ERR_CANCELED);
         }
 
-      /* Most code from common/ does not know the error source, thus
-         we fix this here.  */
-      if (gpg_err_source (err) == GPG_ERR_SOURCE_UNKNOWN)
-        err = gpg_err_make (GPG_ERR_SOURCE_DEFAULT, gpg_err_code (err));
-
-      if (gpg_err_source (err) == GPG_ERR_SOURCE_DEFAULT)
-        log_error ("command '%s' failed: %s\n", name,
-                   gpg_strerror (err));
-      else
-        log_error ("command '%s' failed: %s <%s>\n", name,
-                   gpg_strerror (err), gpg_strsource (err));
+      log_error ("command '%s' failed: %s\n", name,
+		 gpg_strerror (err));
     }
   return err;
 }
@@ -449,9 +440,6 @@ cmd_geteventcounter (assuan_context_t ctx, char *line)
   ctrl_t ctrl = assuan_get_pointer (ctx);
 
   (void)line;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   return agent_print_status (ctrl, "EVENTCOUNTER", "%u %u %u",
                              eventcounter.any,
@@ -533,9 +521,6 @@ cmd_listtrusted (assuan_context_t ctx, char *line)
 
   (void)line;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   rc = agent_listtrusted (ctx);
   return leave_cmd (ctx, rc);
 }
@@ -553,9 +538,6 @@ cmd_marktrusted (assuan_context_t ctx, char *line)
   char *p;
   char fpr[41];
   int flag;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   /* parse the fingerprint value */
   for (p=line,n=0; hexdigitp (p); p++, n++)
@@ -677,15 +659,7 @@ cmd_setkeydesc (assuan_context_t ctx, char *line)
 
   xfree (ctrl->server_local->keydesc);
 
-  if (ctrl->restricted)
-    {
-      ctrl->server_local->keydesc = strconcat
-        ((ctrl->restricted == 2
-         ? _("Note: Request from the web browser.")
-         : _("Note: Request from a remote site.")  ), "%0A%0A", desc, NULL);
-    }
-  else
-    ctrl->server_local->keydesc = xtrystrdup (desc);
+  ctrl->server_local->keydesc = xtrystrdup (desc);
   if (!ctrl->server_local->keydesc)
     return out_of_core ();
   return 0;
@@ -902,9 +876,6 @@ cmd_genkey (assuan_context_t ctx, char *line)
   char *p, *pend;
   int c;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   no_protection = has_option (line, "--no-protection");
   opt_preset = has_option (line, "--preset");
   opt_inq_passwd = has_option (line, "--inq-passwd");
@@ -1003,9 +974,6 @@ cmd_readkey (assuan_context_t ctx, char *line)
   char *serialno = NULL;
   size_t pkbuflen;
   const char *opt_card;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   opt_card = has_option_name (line, "--card");
   line = skip_options (line);
@@ -1247,9 +1215,6 @@ cmd_keyinfo (assuan_context_t ctx, char *line)
   char hexgrip[41];
   int disabled, ttl, confirm;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   list_mode = has_option (line, "--list");
   opt_data = has_option (line, "--data");
   line = skip_options (line);
@@ -1383,9 +1348,6 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
   int opt_data, opt_check, opt_no_ask, opt_qualbar;
   int opt_repeat = 0;
   char *entry_errtext = NULL;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   opt_data = has_option (line, "--data");
   opt_check = has_option (line, "--check");
@@ -1536,9 +1498,6 @@ cmd_clear_passphrase (assuan_context_t ctx, char *line)
   char *p;
   int opt_normal;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   opt_normal = has_option (line, "--mode=normal");
   line = skip_options (line);
 
@@ -1580,9 +1539,6 @@ cmd_get_confirmation (assuan_context_t ctx, char *line)
   int rc;
   char *desc = NULL;
   char *p;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   /* parse the stuff */
   for (p=line; *p == ' '; p++)
@@ -1629,9 +1585,6 @@ cmd_learn (assuan_context_t ctx, char *line)
   sendinfo = send? 1 : has_option (line, "--sendinfo");
   force = has_option (line, "--force");
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   err = agent_handle_learn (ctrl, send, sendinfo? ctx : NULL, force);
   return leave_cmd (ctx, err);
 }
@@ -1660,9 +1613,6 @@ cmd_passwd (assuan_context_t ctx, char *line)
   char *passphrase = NULL;
   char *pend;
   int opt_preset, opt_verify;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   opt_preset = has_option (line, "--preset");
   cache_nonce = option_value (line, "--cache-nonce");
@@ -1833,9 +1783,6 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
   size_t len;
   int opt_inquire;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   if (!opt.allow_preset_passphrase)
     return set_error (GPG_ERR_NOT_SUPPORTED, "no --allow-preset-passphrase");
 
@@ -1920,9 +1867,6 @@ cmd_scd (assuan_context_t ctx, char *line)
   ctrl_t ctrl = assuan_get_pointer (ctx);
   int rc;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   rc = divert_generic_cmd (ctrl, line, ctx);
 
   return rc;
@@ -1951,9 +1895,6 @@ cmd_keywrap_key (assuan_context_t ctx, char *line)
   ctrl_t ctrl = assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   int clearopt = has_option (line, "--clear");
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   assuan_begin_confidential (ctx);
   if (has_option (line, "--import"))
@@ -2018,9 +1959,6 @@ cmd_import_key (assuan_context_t ctx, char *line)
   gcry_sexp_t openpgp_sexp = NULL;
   char *cache_nonce = NULL;
   char *p;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   if (!ctrl->server_local->import_key)
     {
@@ -2216,9 +2154,6 @@ cmd_export_key (assuan_context_t ctx, char *line)
   char *pend;
   int c;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   openpgp = has_option (line, "--openpgp");
   cache_nonce = option_value (line, "--cache-nonce");
   if (cache_nonce)
@@ -2373,9 +2308,6 @@ cmd_delete_key (assuan_context_t ctx, char *line)
   int force, stub_only;
   unsigned char grip[20];
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   force = has_option (line, "--force");
   stub_only = has_option (line, "--stub-only");
   line = skip_options (line);
@@ -2420,9 +2352,6 @@ cmd_keytocard (assuan_context_t ctx, char *line)
   const char *serialno, *timestamp_str, *id;
   unsigned char *shadow_info = NULL;
   time_t timestamp;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   force = has_option (line, "--force");
   line = skip_options (line);
@@ -2532,9 +2461,6 @@ cmd_getval (assuan_context_t ctx, char *line)
   char *p;
   struct putval_item_s *vl;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   for (p=line; *p == ' '; p++)
     ;
   key = p;
@@ -2592,9 +2518,6 @@ cmd_putval (assuan_context_t ctx, char *line)
   size_t valuelen = 0;
   char *p;
   struct putval_item_s *vl, *vlprev;
-
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
 
   for (p=line; *p == ' '; p++)
     ;
@@ -2662,9 +2585,6 @@ cmd_killagent (assuan_context_t ctx, char *line)
 
   (void)line;
 
-  if (ctrl->restricted)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_FORBIDDEN));
-
   ctrl->server_local->stopme = 1;
   assuan_set_flag (ctx, ASSUAN_FORCE_CLOSE, 1);
   return 0;
@@ -2687,8 +2607,7 @@ static const char hlp_getinfo[] =
   "  std_startup_env - List the standard startup environment.\n"
   "  cmd_has_option\n"
   "              - Returns OK if the command CMD implements the option OPT.\n"
-  "  connections - Return number of active connections.\n"
-  "  restricted  - Returns OK if the connection is in restricted mode.\n";
+  "  connections - Return number of active connections.\n";
 static gpg_error_t
 cmd_getinfo (assuan_context_t ctx, char *line)
 {
@@ -2739,15 +2658,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       snprintf (numbuf, sizeof numbuf, "%lu", get_standard_s2k_count ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
     }
-  else if (!strcmp (line, "restricted"))
-    {
-      rc = ctrl->restricted? 0 : gpg_error (GPG_ERR_GENERAL);
-    }
-  else if (ctrl->restricted)
-    {
-      rc = gpg_error (GPG_ERR_FORBIDDEN);
-    }
-  /* All sub-commands below are not allowed in restricted mode.  */
   else if (!strcmp (line, "pid"))
     {
       char numbuf[50];
@@ -2832,11 +2742,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       ctrl->server_local->allow_fully_canceled =
         gnupg_compare_version (value, "2.1.0");
     }
-  else if (ctrl->restricted)
-    {
-      err = gpg_error (GPG_ERR_FORBIDDEN);
-    }
-  /* All options below are not allowed in restricted mode.  */
   else if (!strcmp (key, "putenv"))
     {
       /* Change the session's environment to be used for the
@@ -3063,12 +2968,6 @@ start_command_handler (ctrl_t ctrl, gnupg_fd_t listen_fd, gnupg_fd_t fd)
 {
   int rc;
   assuan_context_t ctx = NULL;
-
-  if (ctrl->restricted)
-    {
-      if (agent_copy_startup_env (ctrl))
-        return;
-    }
 
   rc = assuan_new (&ctx);
   if (rc)

@@ -44,9 +44,6 @@
 # include <sys/select.h>
 #endif /*!_WIN32*/
 
-/* This is required for error code compatibility. */
-#define _GCRY_ERR_SOURCE_DEFAULT GPG_ERR_SOURCE_GCRYPT
-
 #ifdef __cplusplus
 extern "C" {
 #if 0 /* (Keep Emacsens' auto-indent happy.) */
@@ -108,24 +105,11 @@ extern "C" {
 
 typedef gpg_error_t gcry_error_t;
 typedef gpg_err_code_t gcry_err_code_t;
-typedef gpg_err_source_t gcry_err_source_t;
-
-static GPG_ERR_INLINE gcry_error_t
-gcry_err_make (gcry_err_source_t source, gcry_err_code_t code)
-{
-  return gpg_err_make (source, code);
-}
-
-/* The user can define GPG_ERR_SOURCE_DEFAULT before including this
-   file to specify a default source for gpg_error.  */
-#ifndef GCRY_ERR_SOURCE_DEFAULT
-#define GCRY_ERR_SOURCE_DEFAULT  GPG_ERR_SOURCE_USER_1
-#endif
 
 static GPG_ERR_INLINE gcry_error_t
 gcry_error (gcry_err_code_t code)
 {
-  return gcry_err_make (GCRY_ERR_SOURCE_DEFAULT, code);
+  return gpg_error (code);
 }
 
 static GPG_ERR_INLINE gcry_err_code_t
@@ -135,19 +119,9 @@ gcry_err_code (gcry_error_t err)
 }
 
 
-static GPG_ERR_INLINE gcry_err_source_t
-gcry_err_source (gcry_error_t err)
-{
-  return gpg_err_source (err);
-}
-
 /* Return a pointer to a string containing a description of the error
    code in the error value ERR.  */
 const char *gcry_strerror (gcry_error_t err);
-
-/* Return a pointer to a string containing a description of the error
-   source in the error value ERR.  */
-const char *gcry_strsource (gcry_error_t err);
 
 /* Retrieve the error code for the system error ERR.  This returns
    GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
@@ -157,10 +131,6 @@ gcry_err_code_t gcry_err_code_from_errno (int err);
 /* Retrieve the system error for the error code CODE.  This returns 0
    if CODE is not a system error code.  */
 int gcry_err_code_to_errno (gcry_err_code_t code);
-
-/* Return an error value with the error source SOURCE and the system
-   error ERR.  */
-gcry_error_t gcry_err_make_from_errno (gcry_err_source_t source, int err);
 
 /* Return an error value with the system error ERR.  */
 gcry_error_t gcry_error_from_errno (int err);

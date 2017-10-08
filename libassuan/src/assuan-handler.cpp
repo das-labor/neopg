@@ -710,8 +710,8 @@ assuan_process_done (assuan_context_t ctx, gpg_error_t rc)
         text = "[closing connection]";
 
       gpg_strerror_r (rc, ebuf, sizeof (ebuf));
-      snprintf (errline, sizeof errline, "ERR %d %.50s <%.30s>%s%.100s",
-                rc, ebuf, gpg_strsource (rc),
+      snprintf (errline, sizeof errline, "ERR %d %.50s %s%.100s",
+                rc, ebuf,
                 text? " - ":"", text?text:"");
 
       rc = assuan_write_line (ctx, errline);

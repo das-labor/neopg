@@ -582,8 +582,7 @@ _keybox_dump_file (const char *filename, int stats_only, FILE *outfp)
   for (;;)
     {
       rc = _keybox_read_blob (&blob, fp, NULL);
-      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE
-          && gpg_err_source (rc) == GPG_ERR_SOURCE_KEYBOX)
+      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE)
         {
           if (stats_only)
             stats.skipped_long_blobs++;

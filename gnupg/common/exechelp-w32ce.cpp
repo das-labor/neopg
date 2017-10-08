@@ -539,7 +539,6 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
   } errpipe = {INVALID_HANDLE_VALUE, 0};
   estream_t outfp = NULL;
   estream_t errfp = NULL;
-  gpg_err_source_t errsource = default_errsource;
 
   (void)except; /* Not yet used.  */
   (void)preexec;
@@ -601,7 +600,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
       outfp = es_sysopen (&syshd, "r");
       if (!outfp)
         {
-          err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
+          err = gpg_error (gpg_err_code_from_syserror ());
           log_error ("error opening pipe stream: %s\n", gpg_strerror (err));
           CloseHandle (outpipe.hd);
           return err;
@@ -630,7 +629,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
       errfp = es_sysopen (&syshd, "r");
       if (!errfp)
         {
-          err = gpg_err_make (errsource, gpg_err_code_from_syserror ());
+          err = gpg_error (gpg_err_code_from_syserror ());
           log_error ("error opening pipe stream: %s\n", gpg_strerror (err));
           CloseHandle (errpipe.hd);
           return err;
@@ -799,7 +798,7 @@ gnupg_wait_process (const char *pgmname, pid_t pid, int hang, int *exitcode)
       break;
     }
 
-  return gpg_err_make (GPG_ERR_SOURCE_DEFAULT, ec);
+  return gpg_error (ec);
 }
 
 

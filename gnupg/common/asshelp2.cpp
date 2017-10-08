@@ -49,7 +49,7 @@ vprint_assuan_status (assuan_context_t ctx,
 
   rc = gpgrt_vasprintf (&buf, format, arg_ptr);
   if (rc < 0)
-    return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+    return gpg_error(gpg_err_code_from_syserror ());
   rc = assuan_write_status (ctx, keyword, buf);
   xfree (buf);
   return rc;

@@ -647,7 +647,6 @@ agent_main (int argc, char **argv )
   malloc_hooks.realloc = gcry_realloc;
   malloc_hooks.free = gcry_free;
   assuan_set_malloc_hooks (&malloc_hooks);
-  assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
   assuan_sock_init ();
   setup_libassuan_logging (&opt.debug, NULL);
 

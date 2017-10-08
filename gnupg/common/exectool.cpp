@@ -62,7 +62,7 @@ typedef struct
 static inline gpg_error_t
 my_error_from_syserror (void)
 {
-  return gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
+  return gpg_error(gpg_err_code_from_syserror ());
 }
 
 

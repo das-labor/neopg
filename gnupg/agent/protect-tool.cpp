@@ -621,8 +621,7 @@ main (int argc, char **argv )
     }
 
   /* Set the information which can't be taken from envvars.  */
-  gnupg_prepare_get_passphrase (GPG_ERR_SOURCE_DEFAULT,
-                                opt.verbose,
+  gnupg_prepare_get_passphrase (opt.verbose,
                                 opt_agent_program,
                                 NULL, NULL, NULL);
 

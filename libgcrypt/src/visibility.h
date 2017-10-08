@@ -61,10 +61,8 @@ MARK_VISIBLEX (gcry_set_progress_handler)
 
 MARK_VISIBLEX (gcry_err_code_from_errno)
 MARK_VISIBLEX (gcry_err_code_to_errno)
-MARK_VISIBLEX (gcry_err_make_from_errno)
 MARK_VISIBLEX (gcry_error_from_errno)
 MARK_VISIBLEX (gcry_strerror)
-MARK_VISIBLEX (gcry_strsource)
 
 MARK_VISIBLEX (gcry_malloc)
 MARK_VISIBLEX (gcry_malloc_secure)

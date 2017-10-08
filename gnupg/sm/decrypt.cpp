@@ -627,8 +627,8 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   if (rc)
     {
       gpgsm_status (ctrl, STATUS_DECRYPTION_FAILED, NULL);
-      log_error ("message decryption failed: %s <%s>\n",
-                 gpg_strerror (rc), gpg_strsource (rc));
+      log_error ("message decryption failed: %s\n",
+                 gpg_strerror (rc));
     }
   ksba_cms_release (cms);
   gnupg_ksba_destroy_reader (b64reader);
