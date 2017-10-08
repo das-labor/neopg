@@ -88,7 +88,7 @@ target_include_directories(gpg-error PRIVATE
 target_compile_definitions(gpg-error PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread)
-target_compile_options(gpg-error PUBLIC -fpermissive)
+target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(gpg-error-test
   ../libgpg-error/tests/t-b64dec.cpp
@@ -440,22 +440,22 @@ target_link_libraries(ksba-test PRIVATE
 add_test(KsbaTest ksba-test COMMAND ksba-test test_xml_output --gtest_output=xml:ksba-test.xml)
 
 
-# FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 
 # libneopg
 
-# add_library(libneopg
-#   lib/codec/radix64.h
-#   lib/codec/radix64.cpp
-# )
-# target_compile_options(libneopg
-#   PRIVATE
-#   -fvisibility=hidden
-# )
-# target_compile_definitions(gpg-error
-#    PRIVATE
-#   NEOPG_DLL=__attribute__((visibility("default")))
-# )
+add_library(libneopg
+  lib/utils/time.h
+  lib/utils/time.cpp
+)
+target_compile_options(libneopg
+  PRIVATE
+  -fvisibility=hidden
+)
+target_compile_definitions(gpg-error
+   PRIVATE
+
+)
 
 
 
@@ -689,10 +689,11 @@ target_include_directories(neopg PRIVATE
   ../npth/src
   ../libksba/src
   ${CMAKE_BINARY_DIR}/.
-#  ${Boost_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}
   ${BOTAN2_INCLUDE_DIRS}
   ${LIBUSB_INCLUDE_DIRS}
+  ../src/lib
 )
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
@@ -707,6 +708,7 @@ ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
  -lldap -lz -lbz2 -lgnutls
+ libneopg
 )
 target_compile_options(neopg PUBLIC
  -fpermissive

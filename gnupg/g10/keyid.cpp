@@ -344,19 +344,19 @@ format_keyid (u32 *keyid, int format, char *buffer, int len)
       break;
 
     case KF_SHORT:
-      snprintf (buffer, len, "%08lX", (ulong)keyid[1]);
+      snprintf (buffer, len, "%08lX", (unsigned long)keyid[1]);
       break;
 
     case KF_LONG:
-      snprintf (buffer, len, "%08lX%08lX", (ulong)keyid[0], (ulong)keyid[1]);
+      snprintf (buffer, len, "%08lX%08lX", (unsigned long)keyid[0], (unsigned long)keyid[1]);
       break;
 
     case KF_0xSHORT:
-      snprintf (buffer, len, "0x%08lX", (ulong)keyid[1]);
+      snprintf (buffer, len, "0x%08lX", (unsigned long)keyid[1]);
       break;
 
     case KF_0xLONG:
-      snprintf (buffer, len, "0x%08lX%08lX", (ulong)keyid[0],(ulong)keyid[1]);
+      snprintf (buffer, len, "0x%08lX%08lX", (unsigned long)keyid[0],(unsigned long)keyid[1]);
       break;
 
     default:
@@ -732,7 +732,7 @@ colon_strtime (u32 t)
 
   if (!t)
     return "";
-  snprintf (buf, sizeof buf, "%lu", (ulong)t);
+  snprintf (buf, sizeof buf, "%lu", (unsigned long)t);
   return buf;
 }
 
@@ -741,7 +741,7 @@ colon_datestr_from_pk (PKT_public_key *pk)
 {
   static char buf[20];
 
-  snprintf (buf, sizeof buf, "%lu", (ulong)pk->timestamp);
+  snprintf (buf, sizeof buf, "%lu", (unsigned long)pk->timestamp);
   return buf;
 }
 
@@ -751,7 +751,7 @@ colon_datestr_from_sig (PKT_signature *sig)
 {
   static char buf[20];
 
-  snprintf (buf, sizeof buf, "%lu", (ulong)sig->timestamp);
+  snprintf (buf, sizeof buf, "%lu", (unsigned long)sig->timestamp);
   return buf;
 }
 
@@ -763,7 +763,7 @@ colon_expirestr_from_sig (PKT_signature *sig)
   if (!sig->expiredate)
     return "";
 
-  snprintf (buf, sizeof buf,"%lu", (ulong)sig->expiredate);
+  snprintf (buf, sizeof buf,"%lu", (unsigned long)sig->expiredate);
   return buf;
 }
 

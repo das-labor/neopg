@@ -752,7 +752,7 @@ do_plaintext( IOBUF out, int ctb, PKT_plaintext *pt )
           iobuf_set_partial_body_length_mode (out, 0);
         if( pt->len && nbytes != pt->len )
           log_error("do_plaintext(): wrote %lu bytes but expected %lu bytes\n",
-                    (ulong)nbytes, (ulong)pt->len );
+                    (unsigned long)nbytes, (unsigned long)pt->len );
       }
 
     return rc;

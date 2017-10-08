@@ -401,8 +401,8 @@ dump_kbnode (KBNODE node)
         {
           log_printf ("  class=%02x keyid=%08lX ts=%lu\n",
                       node->pkt->pkt.signature->sig_class,
-                      (ulong)node->pkt->pkt.signature->keyid[1],
-                      (ulong)node->pkt->pkt.signature->timestamp);
+                      (unsigned long)node->pkt->pkt.signature->keyid[1],
+                      (unsigned long)node->pkt->pkt.signature->timestamp);
         }
       else if (node->pkt->pkttype == PKT_GPG_CONTROL)
         {
@@ -416,7 +416,7 @@ dump_kbnode (KBNODE node)
           PKT_public_key *pk = node->pkt->pkt.public_key;
 
           log_printf ("  keyid=%08lX a=%d u=%d %c%c%c%c\n",
-                      (ulong)keyid_from_pk( pk, NULL ),
+                      (unsigned long)keyid_from_pk( pk, NULL ),
                       pk->pubkey_algo, pk->pubkey_usage,
                       pk->has_expired? 'e':'.',
                       pk->flags.revoked? 'r':'.',

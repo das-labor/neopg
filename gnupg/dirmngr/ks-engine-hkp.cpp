@@ -1391,12 +1391,12 @@ ks_hkp_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
       pattern = desc.u.name;
       break;
     case KEYDB_SEARCH_MODE_SHORT_KID:
-      snprintf (fprbuf, sizeof fprbuf, "0x%08lX", (ulong)desc.u.kid[1]);
+      snprintf (fprbuf, sizeof fprbuf, "0x%08lX", (unsigned long)desc.u.kid[1]);
       pattern = fprbuf;
       break;
     case KEYDB_SEARCH_MODE_LONG_KID:
       snprintf (fprbuf, sizeof fprbuf, "0x%08lX%08lX",
-                (ulong)desc.u.kid[0], (ulong)desc.u.kid[1]);
+                (unsigned long)desc.u.kid[0], (unsigned long)desc.u.kid[1]);
       pattern = fprbuf;
       break;
     case KEYDB_SEARCH_MODE_FPR16:
@@ -1529,11 +1529,11 @@ ks_hkp_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec, estream_t *r_fp)
   switch (desc.mode)
     {
     case KEYDB_SEARCH_MODE_SHORT_KID:
-      snprintf (kidbuf, sizeof kidbuf, "0x%08lX", (ulong)desc.u.kid[1]);
+      snprintf (kidbuf, sizeof kidbuf, "0x%08lX", (unsigned long)desc.u.kid[1]);
       break;
     case KEYDB_SEARCH_MODE_LONG_KID:
       snprintf (kidbuf, sizeof kidbuf, "0x%08lX%08lX",
-		(ulong)desc.u.kid[0], (ulong)desc.u.kid[1]);
+		(unsigned long)desc.u.kid[0], (unsigned long)desc.u.kid[1]);
       break;
     case KEYDB_SEARCH_MODE_FPR20:
     case KEYDB_SEARCH_MODE_FPR:

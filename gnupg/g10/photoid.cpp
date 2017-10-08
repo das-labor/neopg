@@ -340,10 +340,10 @@ show_photos (ctrl_t ctrl, const struct user_attribute *attrs, int count,
            which.  The spec permits this, by the way. -dms */
 
 #ifdef USE_ONLY_8DOT3
-	sprintf(name,"%08lX" EXTSEP_S "%s",(ulong)kid[1],
+	sprintf(name,"%08lX" EXTSEP_S "%s",(unsigned long)kid[1],
 		image_type_to_string(args.imagetype,0));
 #else
-	sprintf(name,"%08lX%08lX" EXTSEP_S "%s",(ulong)kid[0],(ulong)kid[1],
+	sprintf(name,"%08lX%08lX" EXTSEP_S "%s",(unsigned long)kid[0],(unsigned long)kid[1],
 		image_type_to_string(args.imagetype,0));
 #endif
 

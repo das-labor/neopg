@@ -47,11 +47,7 @@ one_test_x0 (const char *format, ...)
 
   errno = ENOENT; /* For the "%m" test.  */
   va_start (arg_ptr, format);
-#ifdef HAVE_VASPRINTF
-  one_test_rc1 = vasprintf (&one_test_buf1, format, arg_ptr);
-#else
-  one_test_rc1 = -1;
-#endif
+  one_test_rc1 = gpgrt_vasprintf (&one_test_buf1, format, arg_ptr);
   va_end (arg_ptr);
   if (one_test_rc1 == -1)
     {

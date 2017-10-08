@@ -74,7 +74,7 @@ list_trustdb (ctrl_t ctrl, estream_t fp, const char *username)
   /* For now we ignore the user ID. */
   if (1)
     {
-      ulong recnum;
+      unsigned long recnum;
       int i;
 
       es_fprintf (fp, "TrustDB: %s\n", tdbio_get_dbname ());
@@ -97,7 +97,7 @@ void
 export_ownertrust (ctrl_t ctrl)
 {
   TRUSTREC rec;
-  ulong recnum;
+  unsigned long recnum;
   int i;
   byte *p;
 

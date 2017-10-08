@@ -143,13 +143,13 @@ unsigned int tdb_get_validity_core (ctrl_t ctrl, kbnode_t kb,
 				    PKT_signature *sig, int may_ask);
 
 void list_trust_path( const char *username );
-int enum_cert_paths( void **context, ulong *lid,
+int enum_cert_paths( void **context, unsigned long *lid,
 		     unsigned *ownertrust, unsigned *validity );
 void enum_cert_paths_print( void **context, FILE *fp,
-					   int refresh, ulong selected_lid );
+					   int refresh, unsigned long selected_lid );
 
 void read_trust_options (ctrl_t ctrl, byte *trust_model,
-                         ulong *created, ulong *nextcheck,
+                         unsigned long *created, unsigned long *nextcheck,
                          byte *marginals, byte *completes, byte *cert_depth,
                          byte *min_cert_level);
 

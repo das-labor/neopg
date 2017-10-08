@@ -22,6 +22,7 @@
 #include <config.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <time.h>
 #include <unistd.h>
 #ifdef HAVE_GETOPT_H
@@ -48,6 +49,9 @@
 #include "../common/userids.h"
 #include "ks-engine.h"
 #include "ldap-parse-uri.h"
+
+#include "utils/time.h"
+#define timegm NeoPG::timegm
 
 #ifndef HAVE_TIMEGM
 time_t timegm(struct tm *tm);
@@ -369,11 +373,11 @@ keyspec_to_ldap_filter (const char *keyspec, char **filter, int only_exact)
       break;
 
     case KEYDB_SEARCH_MODE_SHORT_KID:
-      f = xasprintf ("(pgpKeyID=%08lX)", (ulong) desc.u.kid[1]);
+      f = xasprintf ("(pgpKeyID=%08lX)", (unsigned long) desc.u.kid[1]);
       break;
     case KEYDB_SEARCH_MODE_LONG_KID:
       f = xasprintf ("(pgpCertID=%08lX%08lX)",
-		     (ulong) desc.u.kid[0], (ulong) desc.u.kid[1]);
+		     (unsigned long) desc.u.kid[0], (unsigned long) desc.u.kid[1]);
       break;
 
     case KEYDB_SEARCH_MODE_FPR16:

@@ -94,7 +94,7 @@ struct mainproc_context
   kbnode_t list;    /* The current list of packets. */
   iobuf_t iobuf;    /* Used to get the filename etc. */
   int trustletter;  /* Temporary usage in list_node. */
-  ulong symkeys;    /* Number of symmetrically encrypted session keys.  */
+  unsigned long symkeys;    /* Number of symmetrically encrypted session keys.  */
   struct kidlist_item *pkenc_list; /* List of encryption packets. */
   struct {
     unsigned int sig_seen:1;      /* Set to true if a signature packet
@@ -387,7 +387,7 @@ proc_pubkey_enc (ctrl_t ctrl, CTX c, PACKET *pkt)
          algorithm so to implement a proposed new algorithm before the
          IANA will finally assign an OpenPGP identifier.  */
       snprintf (buf, sizeof buf, "%08lX%08lX %d 0",
-		(ulong)enc->keyid[0], (ulong)enc->keyid[1], enc->pubkey_algo);
+		(unsigned long)enc->keyid[0], (unsigned long)enc->keyid[1], enc->pubkey_algo);
       write_status_text (STATUS_ENC_TO, buf);
     }
 
@@ -506,7 +506,7 @@ print_pkenc_list (ctrl_t ctrl, struct kidlist_item *list, int failed)
             {
               char buf[20];
               snprintf (buf, sizeof buf, "%08lX%08lX",
-                        (ulong)list->kid[0], (ulong)list->kid[1]);
+                        (unsigned long)list->kid[0], (unsigned long)list->kid[1]);
               write_status_text (STATUS_NO_SECKEY, buf);
 	    }
 	}
@@ -1069,7 +1069,7 @@ list_node (CTX c, kbnode_t node)
           es_printf (":%u:%d:%08lX%08lX:%s:%s::",
                      nbits_from_pk( pk ),
                      pk->pubkey_algo,
-                     (ulong)keyid[0],(ulong)keyid[1],
+                     (unsigned long)keyid[0],(unsigned long)keyid[1],
                      colon_datestr_from_pk( pk ),
                      colon_strtime (pk->expiredate) );
           if (pk->flags.primary && !opt.fast_list_mode)
@@ -1176,7 +1176,7 @@ list_node (CTX c, kbnode_t node)
           if (sigrc != ' ')
             es_putc (sigrc, es_stdout);
           es_printf ("::%d:%08lX%08lX:%s:%s:", sig->pubkey_algo,
-                     (ulong)sig->keyid[0], (ulong)sig->keyid[1],
+                     (unsigned long)sig->keyid[0], (unsigned long)sig->keyid[1],
                      colon_datestr_from_sig (sig),
                      colon_expirestr_from_sig (sig));
 
@@ -1972,7 +1972,7 @@ check_sig_and_print (CTX c, kbnode_t node)
       keyblock = get_pubkeyblock (c->ctrl, sig->keyid);
 
       snprintf (keyid_str, sizeof keyid_str, "%08lX%08lX [uncertain] ",
-                (ulong)sig->keyid[0], (ulong)sig->keyid[1]);
+                (unsigned long)sig->keyid[0], (unsigned long)sig->keyid[1]);
 
       /* Find and print the primary user ID along with the
          "Good|Expired|Bad signature" line.  */
@@ -2155,8 +2155,8 @@ check_sig_and_print (CTX c, kbnode_t node)
                                "%s %s %lu %lu %d 0 %d %d %02X %s",
                                pkhex,
                                strtimestamp (sig->timestamp),
-                               (ulong)sig->timestamp,
-                               (ulong)sig->expiredate,
+                               (unsigned long)sig->timestamp,
+                               (unsigned long)sig->expiredate,
                                sig->version, sig->pubkey_algo,
                                sig->digest_algo,
                                sig->sig_class,
@@ -2259,9 +2259,9 @@ check_sig_and_print (CTX c, kbnode_t node)
       char buf[50];
 
       snprintf (buf, sizeof buf, "%08lX%08lX %d %d %02x %lu %d",
-                (ulong)sig->keyid[0], (ulong)sig->keyid[1],
+                (unsigned long)sig->keyid[0], (unsigned long)sig->keyid[1],
                 sig->pubkey_algo, sig->digest_algo,
-                sig->sig_class, (ulong)sig->timestamp, rc);
+                sig->sig_class, (unsigned long)sig->timestamp, rc);
       write_status_text (STATUS_ERRSIG, buf);
       if (rc == GPG_ERR_NO_PUBKEY)
         {

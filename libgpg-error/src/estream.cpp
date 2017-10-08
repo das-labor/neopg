@@ -2697,6 +2697,17 @@ es_write_fbf (estream_t _GPGRT__RESTRICT stream,
   return err;
 }
 
+static void *
+memrchr (const void *buffer, int c, size_t n)
+{
+  const unsigned char *p = buffer;
+
+  for (p += n; n ; n--)
+    if (*--p == c)
+      return (void *)p;
+  return NULL;
+}
+
 
 /* Write BYTES_TO_WRITE bytes from BUFFER into STREAM in
    line-buffered-mode, storing the amount of bytes written in

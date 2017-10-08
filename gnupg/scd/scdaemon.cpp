@@ -808,7 +808,7 @@ scd_main (int argc, char **argv )
 
           /* create the info string: <name>:<pid>:<protocol_version> */
           if (gpgrt_asprintf (&infostr, "SCDAEMON_INFO=%s:%lu:1",
-                              socket_name, (ulong) pid) < 0)
+                              socket_name, (unsigned long) pid) < 0)
             {
               log_error ("out of core\n");
               kill (pid, SIGTERM);

@@ -1,3 +1,5 @@
+#define _GNU_SOURCE 1
+
 /* dns-stuff.c - DNS related code including CERT RR (rfc-4398)
  * Copyright (C) 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
  * Copyright (C) 2005, 2006, 2009, 2015. 2016 Werner Koch

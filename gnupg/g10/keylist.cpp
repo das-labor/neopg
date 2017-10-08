@@ -91,7 +91,7 @@ public_key_list (ctrl_t ctrl, strlist_t list, int locate_mode)
   if (opt.with_colons)
     {
       byte trust_model, marginals, completes, cert_depth, min_cert_level;
-      ulong created, nextcheck;
+      unsigned long created, nextcheck;
 
       read_trust_options (ctrl, &trust_model, &created, &nextcheck,
 			  &marginals, &completes, &cert_depth, &min_cert_level);
@@ -851,9 +851,9 @@ dump_attribs (const PKT_user_id *uid, PKT_public_key *pk)
 	    sprintf (buf + 2 * j, "%02X", *p);
 
 	  sprintf (buf + strlen (buf), " %lu %u %u %u %lu %lu %u",
-		   (ulong) uid->attribs[i].len, uid->attribs[i].type, i + 1,
-		   uid->numattribs, (ulong) uid->created,
-		   (ulong) uid->expiredate,
+		   (unsigned long) uid->attribs[i].len, uid->attribs[i].type, i + 1,
+		   uid->numattribs, (unsigned long) uid->created,
+		   (unsigned long) uid->expiredate,
 		   ((uid->flags.primary ? 0x01 : 0) | (uid->flags.revoked ? 0x02 : 0) |
 		    (uid->flags.expired ? 0x04 : 0)));
 	  write_status_text (STATUS_ATTRIBUTE, buf);
@@ -1279,7 +1279,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
   es_fprintf (es_stdout, ":%u:%d:%08lX%08lX:%s:%s::",
               keylength,
               pk->pubkey_algo,
-              (ulong) keyid[0], (ulong) keyid[1],
+              (unsigned long) keyid[0], (unsigned long) keyid[1],
               colon_datestr_from_pk (pk), colon_strtime (pk->expiredate));
 
   if (ownertrust_print)
@@ -1422,7 +1422,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	  es_fprintf (es_stdout, ":%u:%d:%08lX%08lX:%s:%s:::::",
                       keylength,
                       pk2->pubkey_algo,
-                      (ulong) keyid2[0], (ulong) keyid2[1],
+                      (unsigned long) keyid2[0], (unsigned long) keyid2[1],
                       colon_datestr_from_pk (pk2),
                       colon_strtime (pk2->expiredate));
 	  print_capabilities (ctrl, pk2, NULL);
@@ -1543,7 +1543,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	  if (sigrc != ' ')
 	    es_putc (sigrc, es_stdout);
 	  es_fprintf (es_stdout, "::%d:%08lX%08lX:%s:%s:", sig->pubkey_algo,
-		  (ulong) sig->keyid[0], (ulong) sig->keyid[1],
+		  (unsigned long) sig->keyid[0], (unsigned long) sig->keyid[1],
 		  colon_datestr_from_sig (sig),
 		  colon_expirestr_from_sig (sig));
 

@@ -1419,7 +1419,7 @@ keyring_rebuild_cache (ctrl_t ctrl, void *token, int noisy)
   char *tmpfilename = NULL;
   char *bakfilename = NULL;
   int rc;
-  ulong count = 0, sigcount = 0;
+  unsigned long count = 0, sigcount = 0;
 
   hd = keyring_new (token);
   if (!hd)

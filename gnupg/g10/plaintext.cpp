@@ -215,13 +215,13 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
       es_fflush (es_stdout);
 
       snprintf (status, sizeof status,
-                "%X %lu ", (byte) pt->mode, (ulong) pt->timestamp);
+                "%X %lu ", (byte) pt->mode, (unsigned long) pt->timestamp);
       write_status_text_and_buffer (STATUS_PLAINTEXT,
 				    status, pt->name, pt->namelen, 0);
 
       if (!pt->is_partial)
 	{
-	  snprintf (status, sizeof status, "%lu", (ulong) pt->len);
+	  snprintf (status, sizeof status, "%lu", (unsigned long) pt->len);
 	  write_status_text (STATUS_PLAINTEXT_LENGTH, status);
 	}
     }

@@ -54,7 +54,7 @@ struct kbnode_struct {
     PACKET *pkt;
     int flag;
     int private_flag;
-    ulong recno;  /* used while updating the trustdb */
+    unsigned long recno;  /* used while updating the trustdb */
 };
 
 #define is_deleted_kbnode(a)  ((a)->private_flag & 1)

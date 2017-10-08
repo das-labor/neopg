@@ -263,7 +263,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
 
   if (pksk->timestamp > sig->timestamp )
     {
-      ulong d = pksk->timestamp - sig->timestamp;
+      unsigned long d = pksk->timestamp - sig->timestamp;
       log_info (ngettext("key %s was created %lu second"
                          " in the future (time warp or clock problem)\n",
                          "key %s was created %lu seconds"
@@ -553,7 +553,7 @@ print_status_sig_created (PKT_public_key *pk, PKT_signature *sig, int what)
 
   snprintf (buf, sizeof buf - 2*MAX_FINGERPRINT_LEN, "%c %d %d %02x %lu ",
             what, sig->pubkey_algo, sig->digest_algo, sig->sig_class,
-            (ulong)sig->timestamp );
+            (unsigned long)sig->timestamp );
   fingerprint_from_pk (pk, array, &n);
   bin2hex (array, n, buf + strlen (buf));
 

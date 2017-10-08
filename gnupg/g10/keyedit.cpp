@@ -161,9 +161,9 @@ print_and_check_one_sig_colon (ctrl_t ctrl, kbnode_t keyblock, kbnode_t node,
   if (sigrc != '?' || print_without_key)
     {
       es_printf ("sig:%c::%d:%08lX%08lX:%lu:%lu:",
-                 sigrc, sig->pubkey_algo, (ulong) sig->keyid[0],
-                 (ulong) sig->keyid[1], (ulong) sig->timestamp,
-                 (ulong) sig->expiredate);
+                 sigrc, sig->pubkey_algo, (unsigned long) sig->keyid[0],
+                 (unsigned long) sig->keyid[1], (unsigned long) sig->timestamp,
+                 (unsigned long) sig->expiredate);
 
       if (sig->trust_depth || sig->trust_value)
 	es_printf ("%d %d", sig->trust_depth, sig->trust_value);
@@ -758,7 +758,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
 		    }
 
 		  snprintf (buf, sizeof buf, "%08lX%08lX",
-			    (ulong) pk->keyid[0], (ulong) pk->keyid[1]);
+			    (unsigned long) pk->keyid[0], (unsigned long) pk->keyid[1]);
 		  write_status_text (STATUS_ALREADY_SIGNED, buf);
 		  uidnode->flag &= ~NODFLG_MARK_A;	/* remove mark */
 
@@ -3140,8 +3140,8 @@ show_key_with_all_names_colon (ctrl_t ctrl, estream_t fp, kbnode_t keyblock)
 	  es_fprintf (fp, ":%u:%d:%08lX%08lX:%lu:%lu::",
                       nbits_from_pk (pk),
                       pk->pubkey_algo,
-                      (ulong) keyid[0], (ulong) keyid[1],
-                      (ulong) pk->timestamp, (ulong) pk->expiredate);
+                      (unsigned long) keyid[0], (unsigned long) keyid[1],
+                      (unsigned long) pk->timestamp, (unsigned long) pk->expiredate);
 	  if (node->pkt->pkttype == PKT_PUBLIC_KEY
 	      && !(opt.fast_list_mode || opt.no_expensive_trust_checks))
 	    es_putc (get_ownertrust_info (ctrl, pk, 0), fp);
@@ -6137,7 +6137,7 @@ menu_showphoto (ctrl_t ctrl, kbnode_t keyblock)
 		      tty_printf (_("Displaying %s photo ID of size %ld for "
 				    "key %s (uid %d)\n"),
 				  image_type_to_string (type, 1),
-				  (ulong) size, keystr_from_pk (pk), count);
+				  (unsigned long) size, keystr_from_pk (pk), count);
 		      show_photos (ctrl, &uid->attribs[i], 1, pk, uid);
 		    }
 		}

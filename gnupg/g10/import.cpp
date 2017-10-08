@@ -45,22 +45,22 @@
 
 struct import_stats_s
 {
-  ulong count;
-  ulong no_user_id;
-  ulong imported;
-  ulong n_uids;
-  ulong n_sigs;
-  ulong n_subk;
-  ulong unchanged;
-  ulong n_revoc;
-  ulong secret_read;
-  ulong secret_imported;
-  ulong secret_dups;
-  ulong skipped_new_keys;
-  ulong not_imported;
-  ulong n_sigs_cleaned;
-  ulong n_uids_cleaned;
-  ulong v3keys;   /* Number of V3 keys seen.  */
+  unsigned long count;
+  unsigned long no_user_id;
+  unsigned long imported;
+  unsigned long n_uids;
+  unsigned long n_sigs;
+  unsigned long n_subk;
+  unsigned long unchanged;
+  unsigned long n_revoc;
+  unsigned long secret_read;
+  unsigned long secret_imported;
+  unsigned long secret_dups;
+  unsigned long skipped_new_keys;
+  unsigned long not_imported;
+  unsigned long n_sigs_cleaned;
+  unsigned long n_uids_cleaned;
+  unsigned long v3keys;   /* Number of V3 keys seen.  */
 };
 
 
@@ -1217,7 +1217,7 @@ impex_filter_getval (void *cookie, const char *propname)
 
       if (!strcmp (propname, "sig_created"))
         {
-          snprintf (numbuf, sizeof numbuf, "%lu", (ulong)sig->timestamp);
+          snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)sig->timestamp);
           result = numbuf;
         }
       else if (!strcmp (propname, "sig_created_d"))
@@ -1260,7 +1260,7 @@ impex_filter_getval (void *cookie, const char *propname)
         }
       else if (!strcmp (propname, "key_created"))
         {
-          snprintf (numbuf, sizeof numbuf, "%lu", (ulong)pk->timestamp);
+          snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)pk->timestamp);
           result = numbuf;
         }
       else if (!strcmp (propname, "key_created_d"))

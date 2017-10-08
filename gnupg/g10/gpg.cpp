@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <unistd.h>
 #ifdef HAVE_STAT
@@ -1327,7 +1328,7 @@ add_group(char *string)
   struct groupitem *item;
 
   /* Break off the group name */
-  name=strsep(&string,"=");
+  name=gpg_strsep(&string,"=");
   if(string==NULL)
     {
       log_error(_("no = sign found in group definition '%s'\n"),name);
@@ -1351,7 +1352,7 @@ add_group(char *string)
     }
 
   /* Break apart the values */
-  while ((value= strsep(&string," \t")))
+  while ((value= gpg_strsep(&string," \t")))
     {
       if (*value)
         add_to_strlist2(&item->values,value,utf8_strings);
@@ -1645,7 +1646,7 @@ list_config(char *items)
   if(!opt.with_colons)
     return;
 
-  while(show_all || (name=strsep(&items," ")))
+  while(show_all || (name=gpg_strsep(&items," ")))
     {
       int any=0;
 
@@ -1863,7 +1864,7 @@ parse_subpacket_list(char *list)
 	    }
 	}
 
-      while((tok=strsep(&list," ,")))
+      while((tok=gpg_strsep(&list," ,")))
 	{
 	  if(!*tok)
 	    continue;

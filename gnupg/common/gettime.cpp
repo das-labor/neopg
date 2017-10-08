@@ -39,6 +39,10 @@
 #include "i18n.h"
 #include "gettime.h"
 
+#include "utils/time.h"
+#define timegm NeoPG::timegm
+
+
 #ifdef HAVE_UNSIGNED_TIME_T
 # define IS_INVALID_TIME_T(a) ((a) == (time_t)(-1))
 #else

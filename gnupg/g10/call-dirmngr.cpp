@@ -798,7 +798,7 @@ record_output (estream_t output,
 	       int pub_key_length,
 	       /* The public key algo or -1.  */
 	       int pub_key_algo,
-	       /* 2 ulongs or NULL.  */
+	       /* 2 unsigned longs or NULL.  */
 	       const u32 *keyid,
 	       /* The creation / expiration date or 0.  */
 	       u32 creation_date,
@@ -838,7 +838,7 @@ record_output (estream_t output,
     pub_key_algo_str = xasprintf ("%d", pub_key_algo);
 
   if (keyid)
-    keyid_str = xasprintf ("%08lX%08lX", (ulong) keyid[0], (ulong) keyid[1]);
+    keyid_str = xasprintf ("%08lX%08lX", (unsigned long) keyid[0], (unsigned long) keyid[1]);
 
   if (creation_date)
     creation_date_str = xstrdup (colon_strtime (creation_date));

@@ -46,7 +46,7 @@ struct trust_record {
     int  mark;
     int  dirty; 		/* for now only used internal by functions */
     struct trust_record *next;	/* help pointer to build lists in memory */
-    ulong recnum;
+    unsigned long recnum;
     union {
 	struct {	     /* version record: */
 	    byte  version;   /* should be 3 */
@@ -55,34 +55,34 @@ struct trust_record {
 	    byte  cert_depth;
 	    byte  trust_model;
 	    byte  min_cert_level;
-	    ulong created;   /* timestamp of trustdb creation  */
-	    ulong nextcheck; /* timestamp of next scheduled check */
-	    ulong reserved;
-	    ulong reserved2;
-	    ulong firstfree;
-	    ulong reserved3;
-            ulong trusthashtbl;
+	    unsigned long created;   /* timestamp of trustdb creation  */
+	    unsigned long nextcheck; /* timestamp of next scheduled check */
+	    unsigned long reserved;
+	    unsigned long reserved2;
+	    unsigned long firstfree;
+	    unsigned long reserved3;
+            unsigned long trusthashtbl;
 	} ver;
 	struct {	    /* free record */
-	    ulong next;
+	    unsigned long next;
 	} free;
 	struct {
-	    ulong item[ITEMS_PER_HTBL_RECORD];
+	    unsigned long item[ITEMS_PER_HTBL_RECORD];
 	} htbl;
 	struct {
-	    ulong next;
-	    ulong rnum[ITEMS_PER_HLST_RECORD]; /* of another record */
+	    unsigned long next;
+	    unsigned long rnum[ITEMS_PER_HLST_RECORD]; /* of another record */
 	} hlst;
       struct {
         byte fingerprint[20];
         byte ownertrust;
         byte depth;
-        ulong validlist;
+        unsigned long validlist;
 	byte min_ownertrust;
       } trust;
       struct {
         byte namehash[20];
-        ulong next;
+        unsigned long next;
         byte validity;
 	byte full_count;
 	byte marginal_count;
@@ -97,19 +97,19 @@ int tdbio_set_dbname (ctrl_t ctrl, const char *new_dbname,
                       int create, int *r_nofile);
 const char *tdbio_get_dbname(void);
 void tdbio_dump_record( TRUSTREC *rec, estream_t fp );
-int tdbio_read_record( ulong recnum, TRUSTREC *rec, int expected );
+int tdbio_read_record( unsigned long recnum, TRUSTREC *rec, int expected );
 int tdbio_write_record (ctrl_t ctrl, TRUSTREC *rec);
 int tdbio_db_matches_options(void);
 byte tdbio_read_model(void);
-ulong tdbio_read_nextcheck (void);
-int tdbio_write_nextcheck (ctrl_t ctrl, ulong stamp);
+unsigned long tdbio_read_nextcheck (void);
+int tdbio_write_nextcheck (ctrl_t ctrl, unsigned long stamp);
 int tdbio_is_dirty(void);
 int tdbio_sync(void);
 int tdbio_begin_transaction(void);
 int tdbio_end_transaction(void);
 int tdbio_cancel_transaction(void);
-int tdbio_delete_record (ctrl_t ctrl, ulong recnum);
-ulong tdbio_new_recnum (ctrl_t ctrl);
+int tdbio_delete_record (ctrl_t ctrl, unsigned long recnum);
+unsigned long tdbio_new_recnum (ctrl_t ctrl);
 gpg_error_t tdbio_search_trust_byfpr (const byte *fingerprint, TRUSTREC *rec);
 gpg_error_t tdbio_search_trust_bypk (PKT_public_key *pk, TRUSTREC *rec);
 

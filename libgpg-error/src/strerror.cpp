@@ -880,81 +880,6 @@ _gpg_strerror (gpg_error_t err)
 }
 
 
-#ifdef HAVE_STRERROR_R
-#ifdef STRERROR_R_CHAR_P
-/* The GNU C library and probably some other systems have this weird
-   variant of strerror_r.  */
-
-/* Return a dynamically allocated string in *STR describing the system
-   error NO.  If this call succeeds, return 1.  If this call fails due
-   to a resource shortage, set *STR to NULL and return 1.  If this
-   call fails because the error number is not valid, don't set *STR
-   and return 0.  */
-static int
-system_strerror_r (int no, char *buf, size_t buflen)
-{
-  char *errstr;
-
-  errstr = strerror_r (no, buf, buflen);
-  if (errstr != buf)
-    {
-      size_t errstr_len = strlen (errstr) + 1;
-      size_t cpy_len = errstr_len < buflen ? errstr_len : buflen;
-      memcpy (buf, errstr, cpy_len);
-
-      return cpy_len == errstr_len ? 0 : ERANGE;
-    }
-  else
-    {
-      /* We can not tell if the buffer was large enough, but we can
-	 try to make a guess.  */
-      if (strlen (buf) + 1 >= buflen)
-	return ERANGE;
-
-      return 0;
-    }
-}
-
-#else	/* STRERROR_R_CHAR_P */
-/* Now the POSIX version.  */
-
-static int
-system_strerror_r (int no, char *buf, size_t buflen)
-{
-  return strerror_r (no, buf, buflen);
-}
-
-#endif	/* STRERROR_R_CHAR_P */
-
-#else	/* HAVE_STRERROR_H */
-/* Without strerror_r(), we can still provide a non-thread-safe
-   version.  Maybe we are even lucky and the system's strerror() is
-   already thread-safe.  */
-
-static int
-system_strerror_r (int no, char *buf, size_t buflen)
-{
-  char *errstr = strerror (no);
-
-  if (!errstr)
-    {
-      int saved_errno = errno;
-
-      if (saved_errno != EINVAL)
-	snprintf (buf, buflen, "strerror failed: %i\n", errno);
-      return saved_errno;
-    }
-  else
-    {
-      size_t errstr_len = strlen (errstr) + 1;
-      size_t cpy_len = errstr_len < buflen ? errstr_len : buflen;
-      memcpy (buf, errstr, cpy_len);
-      return cpy_len == errstr_len ? 0 : ERANGE;
-    }
-}
-#endif
-
-
 /* Return the error string for ERR in the user-supplied buffer BUF of
    size BUFLEN.  This function is, in contrast to gpg_strerror,
    thread-safe if a thread-safe strerror_r() function is provided by
@@ -974,7 +899,7 @@ _gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen)
       int no = gpg_error_to_errno (err);
       if (no)
 	{
-	  int system_err = system_strerror_r (no, buf, buflen);
+	  int system_err = strerror_r (no, buf, buflen);
 
 	  if (system_err != EINVAL)
 	    {

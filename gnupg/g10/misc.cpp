@@ -1,3 +1,5 @@
+#define strsep(a,b) 0
+
 /* misc.c - miscellaneous functions
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
  *               2008, 2009, 2010 Free Software Foundation, Inc.
@@ -842,7 +844,7 @@ pct_expando(const char *string,struct expando_args *args)
 	    case 's': /* short key id */
 	      if(idx+8<maxlen)
 		{
-		  sprintf(&ret[idx],"%08lX",(ulong)sk_keyid[1]);
+		  sprintf(&ret[idx],"%08lX",(unsigned long)sk_keyid[1]);
 		  idx+=8;
 		  done=1;
 		}
@@ -852,7 +854,7 @@ pct_expando(const char *string,struct expando_args *args)
 	      if(idx+16<maxlen)
 		{
 		  sprintf(&ret[idx],"%08lX%08lX",
-			  (ulong)sk_keyid[0],(ulong)sk_keyid[1]);
+			  (unsigned long)sk_keyid[0],(unsigned long)sk_keyid[1]);
 		  idx+=16;
 		  done=1;
 		}
@@ -861,7 +863,7 @@ pct_expando(const char *string,struct expando_args *args)
 	    case 'k': /* short key id */
 	      if(idx+8<maxlen)
 		{
-		  sprintf(&ret[idx],"%08lX",(ulong)pk_keyid[1]);
+		  sprintf(&ret[idx],"%08lX",(unsigned long)pk_keyid[1]);
 		  idx+=8;
 		  done=1;
 		}
@@ -871,7 +873,7 @@ pct_expando(const char *string,struct expando_args *args)
 	      if(idx+16<maxlen)
 		{
 		  sprintf(&ret[idx],"%08lX%08lX",
-			  (ulong)pk_keyid[0],(ulong)pk_keyid[1]);
+			  (unsigned long)pk_keyid[0],(unsigned long)pk_keyid[1]);
 		  idx+=16;
 		  done=1;
 		}

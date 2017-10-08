@@ -1,3 +1,4 @@
+#define strsep(a,b) 0
 /* keyserver.c - generic keyserver code
  * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
  *               2009, 2011, 2012 Free Software Foundation, Inc.
@@ -500,7 +501,7 @@ print_keyrec (ctrl_t ctrl, int number,struct keyrec *keyrec)
       es_printf ("key %s%08lX",
                  (opt.keyid_format==KF_0xSHORT
                   || opt.keyid_format==KF_0xLONG)?"0x":"",
-                 (ulong)keyrec->desc.u.kid[1]);
+                 (unsigned long)keyrec->desc.u.kid[1]);
       break;
 
       /* However, if it gave us a long keyid, we can honor
@@ -1645,8 +1646,8 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
           linelen += n;
 
           pattern[npat] = xtryasprintf ("0x%08lX%08lX",
-                                        (ulong)desc[idx].u.kid[0],
-                                        (ulong)desc[idx].u.kid[1]);
+                                        (unsigned long)desc[idx].u.kid[0],
+                                        (unsigned long)desc[idx].u.kid[1]);
           if (!pattern[npat])
             err = gpg_error_from_syserror ();
           else
@@ -1659,7 +1660,7 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
             break; /* Declare end of this chunk.  */
           linelen += n;
 
-          pattern[npat] = xtryasprintf ("0x%08lX", (ulong)desc[idx].u.kid[1]);
+          pattern[npat] = xtryasprintf ("0x%08lX", (unsigned long)desc[idx].u.kid[1]);
           if (!pattern[npat])
             err = gpg_error_from_syserror ();
           else

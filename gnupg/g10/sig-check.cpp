@@ -269,7 +269,7 @@ check_signature2 (ctrl_t ctrl,
 
 	p = make_radix64_string (hashbuf, 20);
 	sprintf (buffer, "%s %s %lu",
-		 p, strtimestamp (sig->timestamp), (ulong)sig->timestamp);
+		 p, strtimestamp (sig->timestamp), (unsigned long)sig->timestamp);
 	xfree (p);
 	write_status_text (STATUS_SIG_ID, buffer);
 	xfree (buffer);
@@ -317,7 +317,7 @@ check_signature_metadata_validity (PKT_public_key *pk, PKT_signature *sig,
 
     if( pk->timestamp > sig->timestamp )
       {
-	ulong d = pk->timestamp - sig->timestamp;
+	unsigned long d = pk->timestamp - sig->timestamp;
         if ( d < 86400 )
           {
             log_info
@@ -342,7 +342,7 @@ check_signature_metadata_validity (PKT_public_key *pk, PKT_signature *sig,
     cur_time = make_timestamp();
     if( pk->timestamp > cur_time )
       {
-	ulong d = pk->timestamp - cur_time;
+	unsigned long d = pk->timestamp - cur_time;
         if (d < 86400)
           {
             log_info (ngettext("key %s was created %lu second"
@@ -373,7 +373,7 @@ check_signature_metadata_validity (PKT_public_key *pk, PKT_signature *sig,
         if (opt.verbose)
 	  log_info(_("Note: signature key %s expired %s\n"),
 		   keystr_from_pk(pk), asctimestamp( pk->expiredate ) );
-	sprintf(buf,"%lu",(ulong)pk->expiredate);
+	sprintf(buf,"%lu",(unsigned long)pk->expiredate);
 	write_status_text(STATUS_KEYEXPIRED,buf);
 	if(r_expired)
 	  *r_expired = 1;
@@ -648,8 +648,8 @@ check_revocation_keys (ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig)
 
   busy=1;
 
-  /*  es_printf("looking at %08lX with a sig from %08lX\n",(ulong)pk->keyid[1],
-      (ulong)sig->keyid[1]); */
+  /*  es_printf("looking at %08lX with a sig from %08lX\n",(unsigned long)pk->keyid[1],
+      (unsigned long)sig->keyid[1]); */
 
   /* is the issuer of the sig one of our revokers? */
   if( !pk->revkey && pk->numrevkeys )

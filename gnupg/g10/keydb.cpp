@@ -205,13 +205,13 @@ kid_not_found_p (u32 *kid)
       {
         if (DBG_CACHE)
           log_debug ("keydb: kid_not_found_p (%08lx%08lx) => not in DB\n",
-                     (ulong)kid[0], (ulong)kid[1]);
+                     (unsigned long)kid[0], (unsigned long)kid[1]);
         return 1;
       }
 
   if (DBG_CACHE)
     log_debug ("keydb: kid_not_found_p (%08lx%08lx) => indeterminate\n",
-               (ulong)kid[0], (ulong)kid[1]);
+               (unsigned long)kid[0], (unsigned long)kid[1]);
   return 0;
 }
 
@@ -228,7 +228,7 @@ kid_not_found_insert (u32 *kid)
 
   if (DBG_CACHE)
     log_debug ("keydb: kid_not_found_insert (%08lx%08lx)\n",
-               (ulong)kid[0], (ulong)kid[1]);
+               (unsigned long)kid[0], (unsigned long)kid[1]);
   k = xmalloc (sizeof *k);
   k->kid[0] = kid[0];
   k->kid[1] = kid[1];

@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
+#include <strings.h>
 
 #include "util.h"
 #include "iobuf.h"

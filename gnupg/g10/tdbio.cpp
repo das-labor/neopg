@@ -69,7 +69,7 @@ struct cache_ctrl_struct
     unsigned used:1;
     unsigned dirty:1;
   } flags;
-  ulong recno;
+  unsigned long recno;
   char data[TRUST_RECORD_LEN];
 };
 
@@ -175,7 +175,7 @@ release_write_lock (void)
  * a cache miss.
  */
 static const char *
-get_record_from_cache (ulong recno)
+get_record_from_cache (unsigned long recno)
 {
   CACHE_CTRL r;
 
@@ -226,7 +226,7 @@ write_cache_item (CACHE_CTRL r)
  * Returns: 0 on success or an error code.
  */
 static int
-put_record_into_cache (ulong recno, const char *data)
+put_record_into_cache (unsigned long recno, const char *data)
 {
   CACHE_CTRL r, unused;
   int dirty_count = 0;
@@ -811,7 +811,7 @@ create_hashtable (ctrl_t ctrl, TRUSTREC *vr, int type)
 {
   TRUSTREC rec;
   off_t offset;
-  ulong recnum;
+  unsigned long recnum;
   int i, n, rc;
 
   offset = lseek (db_fd, 0, SEEK_END);
@@ -899,7 +899,7 @@ tdbio_read_model (void)
  * Read and return the nextstamp value from the trustdb.  On a read
  * problem the process is terminated.
  */
-ulong
+unsigned long
 tdbio_read_nextcheck ()
 {
   TRUSTREC vr;
@@ -920,7 +920,7 @@ tdbio_read_nextcheck ()
  * Return: True if the stamp actually changed.
  */
 int
-tdbio_write_nextcheck (ctrl_t ctrl, ulong stamp)
+tdbio_write_nextcheck (ctrl_t ctrl, unsigned long stamp)
 {
   TRUSTREC vr;
   int rc;
@@ -950,10 +950,10 @@ tdbio_write_nextcheck (ctrl_t ctrl, ulong stamp)
  *
  * Return: record number
  */
-static ulong
+static unsigned long
 get_trusthashrec(void)
 {
-  static ulong trusthashtbl; /* Record number of the trust hashtable.  */
+  static unsigned long trusthashtbl; /* Record number of the trust hashtable.  */
 
   if (!trusthashtbl)
     {
@@ -981,10 +981,10 @@ get_trusthashrec(void)
  * Return: 0 on success or an error code.
  */
 static int
-upd_hashtable (ctrl_t ctrl, ulong table, byte *key, int keylen, ulong newrecnum)
+upd_hashtable (ctrl_t ctrl, unsigned long table, byte *key, int keylen, unsigned long newrecnum)
 {
   TRUSTREC lastrec, rec;
-  ulong hashrec, item;
+  unsigned long hashrec, item;
   int msb;
   int level = 0;
   int rc, i;
@@ -1160,11 +1160,11 @@ upd_hashtable (ctrl_t ctrl, ulong table, byte *key, int keylen, ulong newrecnum)
  * Return: 0 on success or an error code.
  */
 static int
-drop_from_hashtable (ctrl_t ctrl, ulong table,
-                     byte *key, int keylen, ulong recnum)
+drop_from_hashtable (ctrl_t ctrl, unsigned long table,
+                     byte *key, int keylen, unsigned long recnum)
 {
   TRUSTREC rec;
-  ulong hashrec, item;
+  unsigned long hashrec, item;
   int msb;
   int level = 0;
   int rc, i;
@@ -1260,12 +1260,12 @@ drop_from_hashtable (ctrl_t ctrl, ulong table,
  * Return: 0 if found, GPG_ERR_NOT_FOUND, or another error code.
  */
 static gpg_error_t
-lookup_hashtable (ulong table, const byte *key, size_t keylen,
+lookup_hashtable (unsigned long table, const byte *key, size_t keylen,
 		  int (*cmpfnc)(const void*, const TRUSTREC *),
                   const void *cmpdata, TRUSTREC *rec )
 {
   int rc;
-  ulong hashrec, item;
+  unsigned long hashrec, item;
   int msb;
   int level = 0;
 
@@ -1370,7 +1370,7 @@ void
 tdbio_dump_record (TRUSTREC *rec, estream_t fp)
 {
   int i;
-  ulong rnum = rec->recnum;
+  unsigned long rnum = rec->recnum;
 
   es_fprintf (fp, "rec %5lu, ", rnum);
 
@@ -1444,7 +1444,7 @@ tdbio_dump_record (TRUSTREC *rec, estream_t fp)
  * Return: 0 on success, -1 on EOF, or an error code.
  */
 int
-tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
+tdbio_read_record (unsigned long recnum, TRUSTREC *rec, int expected)
 {
   byte readbuf[TRUST_RECORD_LEN];
   const byte *buf, *p;
@@ -1522,7 +1522,7 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
           if (recnum)
             {
               log_error( _("%s: version record with recnum %lu\n"), db_name,
-                         (ulong)recnum );
+                         (unsigned long)recnum );
               err = GPG_ERR_TRUSTDB;
             }
           else if (rec->r.ver.version != 3)
@@ -1578,7 +1578,7 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
 
     default:
       log_error ("%s: invalid record type %d at recnum %lu\n",
-                 db_name, rec->rectype, (ulong)recnum);
+                 db_name, rec->rectype, (unsigned long)recnum);
       err = GPG_ERR_TRUSTDB;
       break;
     }
@@ -1599,7 +1599,7 @@ tdbio_write_record (ctrl_t ctrl, TRUSTREC *rec)
   byte *p;
   int rc = 0;
   int i;
-  ulong recnum = rec->recnum;
+  unsigned long recnum = rec->recnum;
 
   if (db_fd == -1)
     open_db ();
@@ -1689,7 +1689,7 @@ tdbio_write_record (ctrl_t ctrl, TRUSTREC *rec)
  * Return: 0 on success or an error code.
  */
 int
-tdbio_delete_record (ctrl_t ctrl, ulong recnum)
+tdbio_delete_record (ctrl_t ctrl, unsigned long recnum)
 {
   TRUSTREC vr, rec;
   int rc;
@@ -1728,11 +1728,11 @@ tdbio_delete_record (ctrl_t ctrl, ulong recnum)
 /*
  * Create a new record and return its record number.
  */
-ulong
+unsigned long
 tdbio_new_recnum (ctrl_t ctrl)
 {
   off_t offset;
-  ulong recnum;
+  unsigned long recnum;
   TRUSTREC vr, rec;
   int rc;
 

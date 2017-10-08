@@ -185,7 +185,7 @@ parse_parameter_usage (struct para_data_s *para, enum para_name key)
 
   use = 0;
   pn = r->u.value;
-  while ( (p = strsep (&pn, " \t,")) )
+  while ( (p = gpg_strsep (&pn, " \t,")) )
     {
       if (!*p)
         ;

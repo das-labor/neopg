@@ -17,11 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#undef ENABLE_HASH_LOGGING
-
-#ifdef ENABLE_HASH_LOGGING
-#define _GNU_SOURCE 1
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,19 +93,6 @@ one_file (const char *fname)
   ksba_stop_reason_t stopreason;
   int count = 0;
   FILE *hashlog = NULL;
-
-#ifdef ENABLE_HASH_LOGGING
-    {
-      char *buf;
-
-      if (asprintf (&buf, "%s.hash.log", fname) < 0)
-        fail ("asprintf failed");
-      hashlog = fopen (buf, "wb");
-      if (!hashlog)
-        fail ("can't create log file");
-      free (buf);
-    }
-#endif
 
   printf ("*** checking `%s' ***\n", fname);
   fp = fopen (fname, "rb");

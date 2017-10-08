@@ -1217,7 +1217,7 @@ dirmngr_main (int argc, char **argv)
 
       pid = getpid ();
       es_printf ("set %s=%s;%lu;1\n",
-                 DIRMNGR_INFO_NAME, socket_name, (ulong) pid);
+                 DIRMNGR_INFO_NAME, socket_name, (unsigned long) pid);
 #else
       pid = fork();
       if (pid == (pid_t)-1)
@@ -1238,7 +1238,7 @@ dirmngr_main (int argc, char **argv)
 
           /* Create the info string: <name>:<pid>:<protocol_version> */
           if (asprintf (&infostr, "%s=%s:%lu:1",
-                        DIRMNGR_INFO_NAME, serv_addr.sun_path, (ulong)pid ) < 0)
+                        DIRMNGR_INFO_NAME, serv_addr.sun_path, (unsigned long)pid ) < 0)
             {
               log_error (_("out of core\n"));
               kill (pid, SIGTERM);

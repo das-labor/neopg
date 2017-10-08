@@ -808,7 +808,7 @@ void gpgrt_set_alloc_func  (void *(*f)(void *a, size_t n));
 /* String functions.  */
 
 /* Return a pointer to a string containing a description of the error
-   code in the error value ERR.  This function is not thread-safe.  */
+   code in the error value ERR.  */
 const char *gpg_strerror (gpg_error_t err);
 
 /* Return the error string for ERR in the user-supplied buffer BUF of
@@ -1306,6 +1306,7 @@ gpg_error_t gpgrt_b64dec_proc (gpgrt_b64state_t state,
                                void *buffer, size_t length, size_t *r_nbytes);
 gpg_error_t gpgrt_b64dec_finish (gpgrt_b64state_t state);
 
+char *gpg_strsep(char **stringp, const char *delim);
 
 #ifdef __cplusplus
 }

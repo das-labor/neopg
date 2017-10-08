@@ -177,12 +177,12 @@ struct membuf {
 struct keyboxblob_key {
   char   fpr[20];
   u32    off_kid;
-  ulong  off_kid_addr;
+  unsigned long  off_kid_addr;
   u16    flags;
 };
 struct keyboxblob_uid {
   u32    off;
-  ulong  off_addr;
+  unsigned long  off_addr;
   char   *name;     /* used only with x509 */
   u32    len;
   u16    flags;

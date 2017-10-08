@@ -251,7 +251,7 @@ static void
 verify_own_keys (ctrl_t ctrl)
 {
   TRUSTREC rec;
-  ulong recnum;
+  unsigned long recnum;
   int rc;
   struct key_item *k;
 
@@ -340,7 +340,7 @@ tdb_utks (void)
  * Read a record but die if it does not exist
  */
 static void
-read_record (ulong recno, TRUSTREC *rec, int rectype )
+read_record (unsigned long recno, TRUSTREC *rec, int rectype )
 {
   int rc = tdbio_read_record (recno, rec, rectype);
   if (rc)
@@ -535,7 +535,7 @@ check_trustdb (ctrl_t ctrl)
     {
       if (opt.batch && !opt.answer_yes)
 	{
-	  ulong scheduled;
+	  unsigned long scheduled;
 
 	  scheduled = tdbio_read_nextcheck ();
 	  if (!scheduled)
@@ -611,7 +611,7 @@ tdb_check_or_update (ctrl_t ctrl)
 
 void
 read_trust_options (ctrl_t ctrl,
-                    byte *trust_model, ulong *created, ulong *nextcheck,
+                    byte *trust_model, unsigned long *created, unsigned long *nextcheck,
 		    byte *marginals, byte *completes, byte *cert_depth,
 		    byte *min_cert_level)
 {
@@ -805,7 +805,7 @@ update_min_ownertrust (ctrl_t ctrl, u32 *kid, unsigned int new_trust)
     {
       if (DBG_TRUST)
         log_debug ("key %08lX%08lX: update min_ownertrust from %u to %u\n",
-                   (ulong)kid[0],(ulong)kid[1],
+                   (unsigned long)kid[0],(unsigned long)kid[1],
 		   (unsigned int)rec.r.trust.min_ownertrust,
 		   new_trust );
       if (rec.r.trust.min_ownertrust != new_trust)
@@ -891,7 +891,7 @@ update_validity (ctrl_t ctrl, PKT_public_key *pk, PKT_user_id *uid,
 {
   TRUSTREC trec, vrec;
   gpg_error_t err;
-  ulong recno;
+  unsigned long recno;
 
   namehash_from_uid(uid);
 
@@ -1001,7 +1001,7 @@ tdb_check_trustdb_stale (ctrl_t ctrl)
       && (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC
           || opt.trust_model == TM_TOFU_PGP || opt.trust_model == TM_TOFU))
     {
-      ulong scheduled;
+      unsigned long scheduled;
 
       did_nextcheck = 1;
       scheduled = tdbio_read_nextcheck ();
@@ -1041,7 +1041,7 @@ tdb_get_validity_core (ctrl_t ctrl,
 {
   TRUSTREC trec, vrec;
   gpg_error_t err = 0;
-  ulong recno;
+  unsigned long recno;
 #ifdef USE_TOFU
   unsigned int tofu_validity = TRUST_UNKNOWN;
   int free_kb = 0;
@@ -1281,7 +1281,7 @@ static void
 get_validity_counts (ctrl_t ctrl, PKT_public_key *pk, PKT_user_id *uid)
 {
   TRUSTREC trec, vrec;
-  ulong recno;
+  unsigned long recno;
 
   if(pk==NULL || uid==NULL)
     BUG();
@@ -1338,7 +1338,7 @@ list_trust_path( const char *username )
  * Returns: -1 on EOF or the level of the returned LID
  */
 int
-enum_cert_paths( void **context, ulong *lid,
+enum_cert_paths( void **context, unsigned long *lid,
 		 unsigned *ownertrust, unsigned *validity )
 {
   (void)context;
@@ -1354,7 +1354,7 @@ enum_cert_paths( void **context, ulong *lid,
  */
 void
 enum_cert_paths_print (void **context, FILE *fp,
-                       int refresh, ulong selected_lid)
+                       int refresh, unsigned long selected_lid)
 {
   (void)context;
   (void)fp;
@@ -1435,7 +1435,7 @@ dump_key_array (int depth, struct key_array *keys)
 
       keyid_from_pk(node->pkt->pkt.public_key, kid);
       es_printf ("%d:%08lX%08lX:K::%c::::\n",
-                 depth, (ulong)kid[0], (ulong)kid[1], '?');
+                 depth, (unsigned long)kid[0], (unsigned long)kid[1], '?');
 
       for (; node; node = node->next)
         {
@@ -1446,7 +1446,7 @@ dump_key_array (int depth, struct key_array *keys)
               if (len > 30)
                 len = 30;
               es_printf ("%d:%08lX%08lX:U:::%c:::",
-                         depth, (ulong)kid[0], (ulong)kid[1],
+                         depth, (unsigned long)kid[0], (unsigned long)kid[1],
                          (node->flag & 4)? 'f':
                          (node->flag & 2)? 'm':
                          (node->flag & 1)? 'q':'-');
@@ -1917,7 +1917,7 @@ static void
 reset_trust_records (ctrl_t ctrl)
 {
   TRUSTREC rec;
-  ulong recnum;
+  unsigned long recnum;
   int count = 0, nreset = 0;
 
   for (recnum=1; !tdbio_read_record (recnum, &rec, 0); recnum++ )
@@ -2108,7 +2108,7 @@ validate_keys (ctrl_t ctrl, int interactive)
 	      if(DBG_TRUST)
 		log_debug("key %08lX%08lX:"
 			  " overriding ownertrust '%s' with '%s'\n",
-			  (ulong)k->kid[0],(ulong)k->kid[1],
+			  (unsigned long)k->kid[0],(unsigned long)k->kid[1],
 			  trust_value_to_string(k->ownertrust),
 			  trust_value_to_string(min));
 

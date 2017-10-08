@@ -959,7 +959,7 @@ radix64_read( armor_filter_context_t *afx, IOBUF a, size_t *retn,
 	    }
 	    else if( mycrc != afx->crc ) {
                 log_info (_("CRC error; %06lX - %06lX\n"),
-				    (ulong)afx->crc, (ulong)mycrc);
+				    (unsigned long)afx->crc, (unsigned long)mycrc);
                 rc = invalid_crc();
 	    }
 	    else {
@@ -1529,7 +1529,7 @@ unarmor_pump (UnarmorPump x, int c)
             rval = -1; /* ready */
             if( x->crc != x->mycrc ) {
                 log_info (_("CRC error; %06lX - %06lX\n"),
-                          (ulong)x->crc, (ulong)x->mycrc);
+                          (unsigned long)x->crc, (unsigned long)x->mycrc);
                 if ( invalid_crc() )
                     rval = -3;
             }

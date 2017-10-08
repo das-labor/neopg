@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 
 #include "gpg.h"
@@ -3486,7 +3487,7 @@ finish_lookup (kbnode_t keyblock, unsigned int req_usage, int want_exact,
 
   if (DBG_LOOKUP)
     log_debug ("finish_lookup: checking key %08lX (%s)(req_usage=%x)\n",
-	       (ulong) keyid_from_pk (keyblock->pkt->pkt.public_key, NULL),
+	       (unsigned long) keyid_from_pk (keyblock->pkt->pkt.public_key, NULL),
 	       foundk ? "one" : "all", req_usage);
 
   if (!req_usage)
@@ -3528,7 +3529,7 @@ finish_lookup (kbnode_t keyblock, unsigned int req_usage, int want_exact,
 	  pk = k->pkt->pkt.public_key;
 	  if (DBG_LOOKUP)
 	    log_debug ("\tchecking subkey %08lX\n",
-		       (ulong) keyid_from_pk (pk, NULL));
+		       (unsigned long) keyid_from_pk (pk, NULL));
 
 	  if (!pk->flags.valid)
 	    {
@@ -3638,7 +3639,7 @@ finish_lookup (kbnode_t keyblock, unsigned int req_usage, int want_exact,
  found:
   if (DBG_LOOKUP)
     log_debug ("\tusing key %08lX\n",
-	       (ulong) keyid_from_pk (latest_key->pkt->pkt.public_key, NULL));
+	       (unsigned long) keyid_from_pk (latest_key->pkt->pkt.public_key, NULL));
 
   if (latest_key)
     {
@@ -4067,7 +4068,7 @@ get_user_id_string (ctrl_t ctrl, u32 * keyid, int mode, size_t *r_len)
                     {
                       if (mode)
                         p = xasprintf ("%08lX%08lX %.*s",
-                                       (ulong) keyid[0], (ulong) keyid[1],
+                                       (unsigned long) keyid[0], (unsigned long) keyid[1],
                                        r->len, r->name);
                       else
                         p = xasprintf ("%s %.*s", keystr (keyid),
@@ -4086,7 +4087,7 @@ get_user_id_string (ctrl_t ctrl, u32 * keyid, int mode, size_t *r_len)
   if (mode == 2)
     p = xstrdup (user_id_not_found_utf8 ());
   else if (mode)
-    p = xasprintf ("%08lX%08lX [?]", (ulong) keyid[0], (ulong) keyid[1]);
+    p = xasprintf ("%08lX%08lX [?]", (unsigned long) keyid[0], (unsigned long) keyid[1]);
   else
     p = xasprintf ("%s [?]", keystr (keyid));
 

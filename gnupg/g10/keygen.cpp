@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -441,7 +442,7 @@ keygen_set_std_prefs (const char *string,int personal)
         /* We need a writable string. */
 	prefstring = prefstringbuf = xstrdup (string);
 
-	while((tok=strsep(&prefstring," ,")))
+	while((tok=gpg_strsep(&prefstring," ,")))
 	  {
 	    if((val=string_to_cipher_algo (tok)))
 	      {
@@ -2484,9 +2485,9 @@ ask_expire_interval(int object,const char *def_expire)
 	    tty_printf(object==0
 		       ? _("Key expires at %s\n")
 		       : _("Signature expires at %s\n"),
-		       asctimestamp((ulong)(curtime + interval) ) );
+		       asctimestamp((unsigned long)(curtime + interval) ) );
 #if SIZEOF_TIME_T <= 4 && !defined (HAVE_UNSIGNED_TIME_T)
-	    if ( (time_t)((ulong)(curtime+interval)) < 0 )
+	    if ( (time_t)((unsigned long)(curtime+interval)) < 0 )
 	      tty_printf (_("Your system can't display dates beyond 2038.\n"
                             "However, it will be correctly handled up to"
                             " 2106.\n"));
@@ -4958,7 +4959,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
 
   if (pri_psk->timestamp > cur_time)
     {
-      ulong d = pri_psk->timestamp - cur_time;
+      unsigned long d = pri_psk->timestamp - cur_time;
       log_info ( d==1 ? _("key has been created %lu second "
                           "in future (time warp or clock problem)\n")
                  : _("key has been created %lu seconds "
@@ -5144,7 +5145,7 @@ generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
   cur_time = make_timestamp();
   if (pri_pk->timestamp > cur_time)
     {
-      ulong d = pri_pk->timestamp - cur_time;
+      unsigned long d = pri_pk->timestamp - cur_time;
       log_info (d==1 ? _("key has been created %lu second "
                          "in future (time warp or clock problem)\n")
                      : _("key has been created %lu seconds "

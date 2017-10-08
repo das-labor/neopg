@@ -54,9 +54,9 @@ typedef struct subkey_list_s *subkey_list_t;
 /* An object to track statistics for export operations.  */
 struct export_stats_s
 {
-  ulong count;            /* Number of processed keys.        */
-  ulong secret_count;     /* Number of secret keys seen.      */
-  ulong exported;         /* Number of actual exported keys.  */
+  unsigned long count;            /* Number of processed keys.        */
+  unsigned long secret_count;     /* Number of secret keys seen.      */
+  unsigned long exported;         /* Number of actual exported keys.  */
 };
 
 
@@ -2081,12 +2081,12 @@ key_to_sshblob (membuf_t *mb, const char *identifier, ...)
   size_t buflen;
   gcry_mpi_t a;
 
-  ulongtobuf (nbuf, (ulong)strlen (identifier));
+  unsigned longtobuf (nbuf, (unsigned long)strlen (identifier));
   put_membuf (mb, nbuf, 4);
   put_membuf_str (mb, identifier);
   if (!strncmp (identifier, "ecdsa-sha2-", 11))
     {
-      ulongtobuf (nbuf, (ulong)strlen (identifier+11));
+      unsigned longtobuf (nbuf, (unsigned long)strlen (identifier+11));
       put_membuf (mb, nbuf, 4);
       put_membuf_str (mb, identifier+11);
     }
@@ -2190,7 +2190,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
           pk = node->pkt->pkt.public_key;
           if (DBG_LOOKUP)
             log_debug ("\tchecking subkey %08lX\n",
-                       (ulong) keyid_from_pk (pk, NULL));
+                       (unsigned long) keyid_from_pk (pk, NULL));
           if (!(pk->pubkey_usage & PUBKEY_USAGE_AUTH))
             {
               if (DBG_LOOKUP)
@@ -2241,7 +2241,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
           pk = node->pkt->pkt.public_key;
           if (DBG_LOOKUP)
             log_debug ("\tchecking primary key %08lX\n",
-                       (ulong) keyid_from_pk (pk, NULL));
+                       (unsigned long) keyid_from_pk (pk, NULL));
           if (!(pk->pubkey_usage & PUBKEY_USAGE_AUTH))
             {
               if (DBG_LOOKUP)
@@ -2286,7 +2286,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
 
   pk = latest_key->pkt->pkt.public_key;
   if (DBG_LOOKUP)
-    log_debug ("\tusing key %08lX\n", (ulong) keyid_from_pk (pk, NULL));
+    log_debug ("\tusing key %08lX\n", (unsigned long) keyid_from_pk (pk, NULL));
 
   switch (pk->pubkey_algo)
     {
@@ -2384,7 +2384,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
     }
   if (err)
     goto leave;
-  es_fprintf (fp, " openpgp:0x%08lX\n", (ulong)keyid_from_pk (pk, NULL));
+  es_fprintf (fp, " openpgp:0x%08lX\n", (unsigned long)keyid_from_pk (pk, NULL));
 
   if (es_ferror (fp))
     err = gpg_error_from_syserror ();

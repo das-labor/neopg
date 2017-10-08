@@ -452,10 +452,10 @@ emit_status_need_passphrase (ctrl_t ctrl,
   xfree (us);
 
   snprintf (buf, sizeof buf, "%08lX%08lX %08lX%08lX %d 0",
-            (ulong)keyid[0],
-            (ulong)keyid[1],
-            (ulong)(mainkeyid? mainkeyid[0]:keyid[0]),
-            (ulong)(mainkeyid? mainkeyid[1]:keyid[1]),
+            (unsigned long)keyid[0],
+            (unsigned long)keyid[1],
+            (unsigned long)(mainkeyid? mainkeyid[0]:keyid[0]),
+            (unsigned long)(mainkeyid? mainkeyid[1]:keyid[1]),
             pubkey_algo);
 
   write_status_text (STATUS_NEED_PASSPHRASE, buf);

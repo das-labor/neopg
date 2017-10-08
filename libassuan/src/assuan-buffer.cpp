@@ -18,8 +18,6 @@
  */
 
 #include <config.h>
-/* For memrchr */
-#define _GNU_SOURCE 1
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -31,6 +29,16 @@
 #endif
 #include "assuan-defs.h"
 
+static void *
+memrchr (const void *buffer, int c, size_t n)
+{
+  const unsigned char *p = buffer;
+
+  for (p += n; n ; n--)
+    if (*--p == c)
+      return (void *)p;
+  return NULL;
+}
 
 /* Extended version of write(2) to guarantee that all bytes are
    written.  Returns 0 on success or -1 and ERRNO on failure.  NOTE:

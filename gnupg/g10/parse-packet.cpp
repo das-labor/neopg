@@ -1200,8 +1200,8 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
           es_write_hexstring (listfp, k->s2k.salt, 8, 0, NULL);
 	  if (s2kmode == 3)
 	    es_fprintf (listfp, ", count %lu (%lu)",
-                        S2K_DECODE_COUNT ((ulong) k->s2k.count),
-                        (ulong) k->s2k.count);
+                        S2K_DECODE_COUNT ((unsigned long) k->s2k.count),
+                        (unsigned long) k->s2k.count);
 	  es_fprintf (listfp, "\n");
 	}
     }
@@ -1249,8 +1249,8 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
   if (list_mode)
     es_fprintf (listfp,
                 ":pubkey enc packet: version %d, algo %d, keyid %08lX%08lX\n",
-                k->version, k->pubkey_algo, (ulong) k->keyid[0],
-                (ulong) k->keyid[1]);
+                k->version, k->pubkey_algo, (unsigned long) k->keyid[0],
+                (unsigned long) k->keyid[1]);
 
   ndata = pubkey_get_nenc (k->pubkey_algo);
   if (!ndata)
@@ -1403,8 +1403,8 @@ dump_sig_subpkt (int hashed, int type, int critical,
     case SIGSUBPKT_ISSUER:
       if (length >= 8)
 	es_fprintf (listfp, "issuer key ID %08lX%08lX",
-                    (ulong) buf32_to_u32 (buffer),
-                    (ulong) buf32_to_u32 (buffer + 4));
+                    (unsigned long) buf32_to_u32 (buffer),
+                    (unsigned long) buf32_to_u32 (buffer + 4));
       break;
     case SIGSUBPKT_ISSUER_FPR:
       if (length >= 21)
@@ -2061,8 +2061,8 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
                   "\tversion %d, created %lu, md5len %d, sigclass 0x%02x\n"
                   "\tdigest algo %d, begin of digest %02x %02x\n",
                   sig->pubkey_algo,
-                  (ulong) sig->keyid[0], (ulong) sig->keyid[1],
-                  sig->version, (ulong) sig->timestamp, md5_len, sig->sig_class,
+                  (unsigned long) sig->keyid[0], (unsigned long) sig->keyid[1],
+                  sig->version, (unsigned long) sig->timestamp, md5_len, sig->sig_class,
                   sig->digest_algo, sig->digest_start[0], sig->digest_start[1]);
       if (is_v4)
 	{
@@ -2169,7 +2169,7 @@ parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
                 ":onepass_sig packet: keyid %08lX%08lX\n"
                 "\tversion %d, sigclass 0x%02x, digest %d, pubkey %d, "
                 "last=%d\n",
-                (ulong) ops->keyid[0], (ulong) ops->keyid[1],
+                (unsigned long) ops->keyid[0], (unsigned long) ops->keyid[1],
                 version, ops->sig_class,
                 ops->digest_algo, ops->pubkey_algo, ops->last);
 
@@ -2481,8 +2481,8 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		  pktlen--;
 		  if (list_mode)
 		    es_fprintf (listfp, "\tprotect count: %lu (%lu)\n",
-                                (ulong)S2K_DECODE_COUNT ((ulong)ski->s2k.count),
-                                (ulong) ski->s2k.count);
+                                (unsigned long)S2K_DECODE_COUNT ((unsigned long)ski->s2k.count),
+                                (unsigned long) ski->s2k.count);
 		}
 	      else if (ski->s2k.mode == 1002)
 		{
@@ -2625,7 +2625,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
   /* Note that KEYID below has been initialized above in list_mode.  */
   if (list_mode)
     es_fprintf (listfp, "\tkeyid: %08lX%08lX\n",
-                (ulong) keyid[0], (ulong) keyid[1]);
+                (unsigned long) keyid[0], (unsigned long) keyid[1]);
 
  leave:
   iobuf_skip_rest (inp, pktlen, 0);
@@ -2778,13 +2778,13 @@ make_attribute_uidname (PKT_user_id * uid, size_t max_namelen)
 
 	  if (parse_image_header (uid->attribs, &type, &len))
 	    sprintf (uid->name, "[%.20s image of size %lu]",
-		     image_type_to_string (type, 1), (ulong) len);
+		     image_type_to_string (type, 1), (unsigned long) len);
 	  else
 	    sprintf (uid->name, "[invalid image]");
 	}
       else
 	sprintf (uid->name, "[unknown attribute of size %lu]",
-		 (ulong) uid->attribs->len);
+		 (unsigned long) uid->attribs->len);
     }
 
   uid->len = strlen (uid->name);
@@ -3052,7 +3052,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (!partial && pktlen < 6)
     {
-      log_error ("packet(%d) too short (%lu)\n", pkttype, (ulong) pktlen);
+      log_error ("packet(%d) too short (%lu)\n", pkttype, (unsigned long) pktlen);
       if (list_mode)
         es_fputs (":literal data packet: [too short]\n", listfp);
       rc = GPG_ERR_INV_PACKET;
@@ -3095,7 +3095,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
       es_fprintf (listfp, ":literal data packet:\n"
                   "\tmode %c (%X), created %lu, name=\"",
                   mode >= ' ' && mode < 'z' ? mode : '?', mode,
-                  (ulong) pt->timestamp);
+                  (unsigned long) pt->timestamp);
       for (p = pt->name, i = 0; i < namelen; p++, i++)
 	{
 	  if (*p >= ' ' && *p <= 'z')
@@ -3107,7 +3107,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
       if (partial)
 	es_fprintf (listfp, "unknown length\n");
       else
-	es_fprintf (listfp, "%lu bytes\n", (ulong) pt->len);
+	es_fprintf (listfp, "%lu bytes\n", (unsigned long) pt->len);
     }
 
  leave:

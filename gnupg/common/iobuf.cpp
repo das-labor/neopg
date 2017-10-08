@@ -865,7 +865,7 @@ block_filter (void *opaque, int control, iobuf_t chain, byte * buffer,
 		    c = 0;
 		  log_error
 		    ("block_filter %p: read error (size=%lu,a->size=%lu)\n",
-		     a, (ulong) size + c, (ulong) a->size + c);
+		     a, (unsigned long) size + c, (unsigned long) a->size + c);
 		  rc = GPG_ERR_BAD_DATA;
 		}
 	      else
@@ -1795,7 +1795,7 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
       len = a->d.size - a->d.len;
       if (DBG_IOBUF)
 	log_debug ("iobuf-%d.%d: underflow: A->FILTER (%lu bytes)\n",
-		   a->no, a->subno, (ulong) len);
+		   a->no, a->subno, (unsigned long) len);
       if (len == 0)
 	/* There is no space for more data.  Don't bother calling
 	   A->FILTER.  */
@@ -1809,7 +1809,7 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
 	log_debug ("iobuf-%d.%d: A->FILTER() returned rc=%d (%s), read %lu bytes\n",
 		   a->no, a->subno,
 		   rc, rc == 0 ? "ok" : rc == -1 ? "EOF" : gpg_strerror (rc),
-		   (ulong) len);
+		   (unsigned long) len);
 /*  	    if( a->no == 1 ) */
 /*                   log_hexdump ("     data:", a->d.buf, len); */
 
@@ -1889,7 +1889,7 @@ filter_flush (iobuf_t a)
 
       if (DBG_IOBUF)
 	log_debug ("increasing temp iobuf from %lu to %lu\n",
-		   (ulong) a->d.size, (ulong) newsize);
+		   (unsigned long) a->d.size, (unsigned long) newsize);
 
       a->d.buf = xrealloc (a->d.buf, newsize);
       a->d.size = newsize;
@@ -2251,7 +2251,7 @@ iobuf_get_filelength (iobuf_t a, int *overflow)
     gnupg_fd_t fp = b->fp;
 
 #if defined(HAVE_W32_SYSTEM)
-    ulong size;
+    unsigned long size;
     static int (* __stdcall get_file_size_ex) (void *handle,
 					       LARGE_INTEGER *r_size);
     static int get_file_size_ex_initialized;
