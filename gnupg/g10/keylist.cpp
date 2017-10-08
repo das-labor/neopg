@@ -28,6 +28,8 @@
 # include <fcntl.h>		/* for setmode() */
 #endif
 
+#include <botan/hash.h>
+
 #include "gpg.h"
 #include "options.h"
 #include "packet.h"
@@ -974,8 +976,11 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
               if (mbox && (p = strchr (mbox, '@')))
                 {
                   *p++ = 0;
-                  gcry_md_hash_buffer (GCRY_MD_SHA1, hashbuf,
-                                       mbox, strlen (mbox));
+
+		  std::unique_ptr<Botan::HashFunction> sha1(Botan::HashFunction::create_or_throw("SHA-1"));
+		  sha1->update(mbox, strlen(mbox));
+		  sha1->final((byte*)hashbuf);
+
                   hash = zb32_encode (hashbuf, 8*20);
                   if (hash)
                     {

@@ -26,23 +26,25 @@
 #include <assert.h>
 #include <npth.h>
 
+#include <botan/rng.h>
+#include <botan/auto_rng.h>
+#include <botan/rfc3394.h>
+
 #include "agent.h"
 
 /* The size of the encryption key in bytes.  */
-#define ENCRYPTION_KEYSIZE (128/8)
+static const size_t ENCRYPTION_KEYSIZE = 128/8;
+
+/* The encryption context.  This is the only place where the
+   encryption key for all cached entries is available.  It would be
+   nice to keep this (or just the key) in some hardware device, for
+   example a TPM.  The encryption merely avoids grepping for clear
+   texts in the memory.  Nevertheless the encryption provides the
+   necessary infrastructure to make it more secure.  */
+static Botan::SymmetricKey *encryption_handle;
 
 /* A mutex used to serialize access to the cache.  */
 static npth_mutex_t cache_lock;
-/* The encryption context.  This is the only place where the
-   encryption key for all cached entries is available.  It would be nice
-   to keep this (or just the key) in some hardware device, for example
-   a TPM.  Libgcrypt could be extended to provide such a service.
-   With the current scheme it is easy to retrieve the cached entries
-   if access to Libgcrypt's memory is available.  The encryption
-   merely avoids grepping for clear texts in the memory.  Nevertheless
-   the encryption provides the necessary infrastructure to make it
-   more secure.  */
-static gcry_cipher_hd_t encryption_handle;
 
 
 struct secret_data_s {
@@ -85,7 +87,7 @@ initialize_module_cache (void)
 void
 deinitialize_module_cache (void)
 {
-  gcry_cipher_close (encryption_handle);
+  delete encryption_handle;
   encryption_handle = NULL;
 }
 
@@ -103,31 +105,12 @@ init_encryption (void)
   void *key;
 
   if (encryption_handle)
-    return 0; /* Shortcut - Already initialized.  */
+    return 0;
 
-  err = gcry_cipher_open (&encryption_handle, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, GCRY_CIPHER_SECURE);
-  if (!err)
-    {
-      key = gcry_random_bytes (ENCRYPTION_KEYSIZE, GCRY_STRONG_RANDOM);
-      if (!key)
-        err = gpg_error_from_syserror ();
-      else
-        {
-          err = gcry_cipher_setkey (encryption_handle, key, ENCRYPTION_KEYSIZE);
-          xfree (key);
-        }
-      if (err)
-        {
-          gcry_cipher_close (encryption_handle);
-          encryption_handle = NULL;
-        }
-    }
-  if (err)
-    log_error ("error initializing cache encryption context: %s\n",
-               gpg_strerror (err));
+  std::unique_ptr<Botan::RandomNumberGenerator> rng(new Botan::AutoSeeded_RNG);
+  encryption_handle = new Botan::SymmetricKey(*rng, ENCRYPTION_KEYSIZE);
 
-  return err? GPG_ERR_NOT_INITIALIZED : 0;
+  return 0;
 }
 
 
@@ -175,8 +158,14 @@ new_data (const char *string, struct secret_data_s **r_data)
     }
 
   d_enc->totallen = total;
-  err = gcry_cipher_encrypt (encryption_handle, d_enc->data, total,
-                             d->data, total - 8);
+
+  const Botan::secure_vector<uint8_t> data(total - 8);
+  memcpy(data.data(), d->data, total - 8);
+  Botan::secure_vector<uint8_t> enc = Botan::rfc3394_keywrap(data, *encryption_handle);
+  assert(enc.size() == total);
+  memcpy(d_enc->data, enc.data(), total);
+  err = 0;
+  
   xfree (d);
   if (err)
     {
@@ -434,9 +423,12 @@ agent_get_cache (const char *key, cache_mode_t cache_mode)
             err = gpg_error_from_syserror ();
           else
             {
-              err = gcry_cipher_decrypt (encryption_handle,
-                                         value, r->pw->totallen - 8,
-                                         r->pw->data, r->pw->totallen);
+	      const Botan::secure_vector<uint8_t> pw_data(r->pw->totallen);
+	      memcpy(pw_data.data(), r->pw->data, r->pw->totallen);
+	      Botan::secure_vector<uint8_t> val = Botan::rfc3394_keyunwrap(pw_data, *encryption_handle);
+	      assert(val.size() == r->pw->totallen - 8);
+	      memcpy(value, val.data(), val.size());
+	      err = 0;
             }
           if (err)
             {
