@@ -331,32 +331,6 @@ is_tor_running (ctrl_t ctrl)
 }
 
 
-/* Return an error if the assuan context does not belong to the owner
-   of the process or to root.  On error FAILTEXT is set as Assuan
-   error string.  */
-static gpg_error_t
-check_owner_permission (assuan_context_t ctx, const char *failtext)
-{
-#ifdef HAVE_W32_SYSTEM
-  /* Under Windows the dirmngr is always run under the control of the
-     user.  */
-  (void)ctx;
-  (void)failtext;
-#else
-  gpg_error_t ec;
-  assuan_peercred_t cred;
-
-  ec = assuan_get_peercred (ctx, &cred);
-  if (!ec && cred->uid && cred->uid != getuid ())
-    ec = GPG_ERR_EPERM;
-  if (ec)
-    return set_error (ec, failtext);
-#endif
-  return 0;
-}
-
-
-
 /* Common code for get_cert_local and get_issuer_cert_local. */
 static ksba_cert_t
 do_get_cert_local (ctrl_t ctrl, const char *name, const char *command)
@@ -2041,12 +2015,6 @@ cmd_keyserver (assuan_context_t ctx, char *line)
       err = set_error (GPG_ERR_ASS_PARAMETER, "no support for zombies");
       goto leave;
     }
-  if (dead_flag)
-    {
-      err = check_owner_permission (ctx, "no permission to use --dead");
-      if (err)
-        goto leave;
-    }
   if (alive_flag || dead_flag)
     {
       if (!*line)
@@ -2638,18 +2606,6 @@ start_command_handler ()
           log_info (_("Assuan accept problem: %s\n"), gpg_strerror (rc));
           break;
         }
-
-#ifndef HAVE_W32_SYSTEM
-      if (opt.verbose)
-        {
-	  assuan_peercred_t peercred;
-
-          if (!assuan_get_peercred (ctx, &peercred))
-            log_info ("connection from process %ld (%ld:%ld)\n",
-                      (long)peercred->pid, (long)peercred->uid,
-		      (long)peercred->gid);
-        }
-#endif
 
       rc = assuan_process (ctx);
       if (rc)

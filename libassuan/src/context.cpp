@@ -209,21 +209,3 @@ assuan_get_pid (assuan_context_t ctx)
 
   return (ctx && ctx->pid) ? ctx->pid : ASSUAN_INVALID_PID;
 }
-
-
-/* Return user credentials.  For getting the pid of the peer the
-   assuan_get_pid is usually better suited. */
-gpg_error_t
-assuan_get_peercred (assuan_context_t ctx, assuan_peercred_t *peercred)
-{
-  TRACE (ctx, ASSUAN_LOG_CTX, "assuan_get_peercred", ctx);
-
-  if (!ctx)
-    return GPG_ERR_ASS_INV_VALUE;
-  if (!ctx->peercred_valid)
-    return GPG_ERR_ASS_GENERAL;
-
-  *peercred = &ctx->peercred;
-
-  return 0;
-}

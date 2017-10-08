@@ -422,22 +422,6 @@ gpg_error_t assuan_pipe_connect (assuan_context_t ctx,
 
 /*-- context.c --*/
 pid_t assuan_get_pid (assuan_context_t ctx);
-struct _assuan_peercred
-{
-#ifdef _WIN32
-  /* Empty struct not allowed on some compilers.  */
-  unsigned int _dummy;
-#else
-  pid_t pid;
-  uid_t uid;
-  gid_t gid;
-#endif
-};
-typedef struct _assuan_peercred *assuan_peercred_t;
-
-gpg_error_t assuan_get_peercred (assuan_context_t ctx,
-				 assuan_peercred_t *peercred);
-
 
 
 /* Client interface.  */
