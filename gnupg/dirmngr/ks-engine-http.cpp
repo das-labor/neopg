@@ -151,7 +151,7 @@ ks_http_fetch (ctrl_t ctrl, const char *url, estream_t *r_fp)
             err = gpg_error_from_syserror ();
           }
         else
-          err = gpg_error (GPG_ERR_NO_DATA);
+          err = GPG_ERR_NO_DATA;
         log_error (_("too many redirections\n"));
       }
       goto leave;
@@ -159,14 +159,14 @@ ks_http_fetch (ctrl_t ctrl, const char *url, estream_t *r_fp)
     default:
       log_error (_("error accessing '%s': http status %u\n"),
                  url, http_get_status_code (http));
-      err = gpg_error (GPG_ERR_NO_DATA);
+      err = GPG_ERR_NO_DATA;
       goto leave;
     }
 
   fp = http_get_read_ptr (http);
   if (!fp)
     {
-      err = gpg_error (GPG_ERR_BUG);
+      err = GPG_ERR_BUG;
       goto leave;
     }
 

@@ -185,7 +185,7 @@ cmac_final (gcry_cipher_hd_t c)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_tag (gcry_cipher_hd_t c, unsigned char *tag, size_t taglen, int check)
 {
   if (!tag || taglen == 0 || taglen > c->spec->blocksize)
@@ -210,7 +210,7 @@ cmac_tag (gcry_cipher_hd_t c, unsigned char *tag, size_t taglen, int check)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cmac_authenticate (gcry_cipher_hd_t c,
                                 const unsigned char *abuf, size_t abuflen)
 {
@@ -229,7 +229,7 @@ _gcry_cipher_cmac_authenticate (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cmac_get_tag (gcry_cipher_hd_t c,
                            unsigned char *outtag, size_t taglen)
 {
@@ -237,14 +237,14 @@ _gcry_cipher_cmac_get_tag (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cmac_check_tag (gcry_cipher_hd_t c,
                              const unsigned char *intag, size_t taglen)
 {
   return cmac_tag (c, (unsigned char *) intag, taglen, 1);
 }
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cmac_set_subkeys (gcry_cipher_hd_t c)
 {
   cmac_generate_subkeys (c);

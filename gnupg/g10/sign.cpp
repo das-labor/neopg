@@ -270,7 +270,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
                          " in the future (time warp or clock problem)\n",
                          d), keystr_from_pk (pksk), d);
       if (!opt.ignore_time_conflict)
-        return gpg_error (GPG_ERR_TIME_CONFLICT);
+        return GPG_ERR_TIME_CONFLICT;
     }
 
   print_pubkey_algo_note (pksk->pubkey_algo);
@@ -285,7 +285,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
 		   " while in %s mode\n"),
 		 gcry_md_algo_name (mdalgo),
 		 gnupg_compliance_option_string (opt.compliance));
-      err = gpg_error (GPG_ERR_DIGEST_ALGO);
+      err = GPG_ERR_DIGEST_ALGO;
       goto leave;
     }
 
@@ -295,7 +295,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
       log_error (_("key %s not suitable for signing while in %s mode\n"),
                  keystr_from_pk (pksk),
                  gnupg_compliance_option_string (opt.compliance));
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       goto leave;
     }
 
@@ -1323,7 +1323,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     cfx.dek = passphrase_to_dek (algo, s2k, 1, 1, NULL, &canceled);
 
     if (!cfx.dek || !cfx.dek->keylen) {
-        rc = gpg_error (canceled?GPG_ERR_CANCELED:GPG_ERR_BAD_PASSPHRASE);
+        rc = canceled?GPG_ERR_CANCELED:GPG_ERR_BAD_PASSPHRASE;
         log_error(_("error creating passphrase: %s\n"), gpg_strerror (rc) );
         goto leave;
     }
@@ -1615,7 +1615,7 @@ update_keysig_packet (ctrl_t ctrl,
         {
           if (++tmout > 5 && !opt.ignore_time_conflict)
             {
-              rc = gpg_error (GPG_ERR_TIME_CONFLICT);
+              rc = GPG_ERR_TIME_CONFLICT;
               goto leave;
             }
           gnupg_sleep (1);

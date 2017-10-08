@@ -652,11 +652,11 @@ check_binary_integrity (void)
 
 /* Run the self-tests.  If EXTENDED is true, extended versions of the
    selftest are run, that is more tests than required by FIPS.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_fips_run_selftests (int extended)
 {
   enum module_states result = STATE_ERROR;
-  gcry_err_code_t ec = GPG_ERR_SELFTEST_FAILED;
+  gpg_error_t ec = GPG_ERR_SELFTEST_FAILED;
 
   if (fips_mode ())
     fips_new_state (STATE_SELFTEST);

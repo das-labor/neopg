@@ -132,20 +132,20 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
   else if (tok && toklen == 10 && !memcmp ("public-key", tok, toklen))
     is_pubkey = 1;
   else
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
     return err;
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
     return err;
   if (!tok || toklen != 3 || memcmp ("rsa", tok, toklen))
-    return gpg_error (GPG_ERR_WRONG_PUBKEY_ALGO);
+    return GPG_ERR_WRONG_PUBKEY_ALGO;
 
   last_depth1 = depth;
   while (!(err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen))
          && depth && depth >= last_depth1)
     {
       if (tok)
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
         return err;
       if (tok && toklen == 1)
@@ -159,7 +159,7 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
             default:  mpi = NULL;   mpi_len = NULL; break;
             }
           if (mpi && *mpi)
-            return gpg_error (GPG_ERR_DUP_VALUE);
+            return GPG_ERR_DUP_VALUE;
 
           if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
             return err;
@@ -201,7 +201,7 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
       break;
 
     default:
-      return gpg_error (GPG_ERR_DIGEST_ALGO);
+      return GPG_ERR_DIGEST_ALGO;
     }
 
   if (rsa_s && !is_pubkey)

@@ -101,9 +101,9 @@ gpg_error_t
 _ksba_der_encoder_set_module (DerEncoder d, ksba_asn_tree_t module)
 {
   if (!d || !module)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (d->module)
-    return gpg_error (GPG_ERR_CONFLICT); /* module already set */
+    return GPG_ERR_CONFLICT; /* module already set */
 
   d->module = module->parse_tree;
   return 0;
@@ -114,9 +114,9 @@ gpg_error_t
 _ksba_der_encoder_set_writer (DerEncoder d, ksba_writer_t w)
 {
   if (!d || !w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (d->writer)
-    return gpg_error (GPG_ERR_CONFLICT); /* reader already set */
+    return GPG_ERR_CONFLICT; /* reader already set */
 
   d->writer = w;
   return 0;
@@ -216,7 +216,7 @@ _ksba_der_copy_tree (AsnNode dst_root,
       if (s->flags.in_array && s->right)
         {
           if (!_ksba_asn_insert_copy (d))
-            return gpg_error (GPG_ERR_ENOMEM);
+            return GPG_ERR_ENOMEM;
         }
 
       if ( !_ksba_asn_is_primitive (s->type) )
@@ -236,7 +236,7 @@ _ksba_der_copy_tree (AsnNode dst_root,
 /*        _ksba_asn_node_dump_all (src_root, stderr); */
 /*        fputs ("DESTINATION TREE:\n", stderr); */
 /*        _ksba_asn_node_dump_all (dst_root, stderr); */
-      return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+      return GPG_ERR_ENCODING_PROBLEM;
     }
   return 0;
 }
@@ -291,7 +291,7 @@ _ksba_der_store_time (AsnNode node, const ksba_isotime_t atime)
       return store_value (node, p, strlen (p));
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 /* Store the utf-8 STRING in NODE. */
@@ -309,7 +309,7 @@ _ksba_der_store_string (AsnNode node, const char *string)
       return store_value (node, string, strlen (string));
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 
@@ -327,7 +327,7 @@ _ksba_der_store_integer (AsnNode node, const unsigned char *value)
       return store_value (node, value+4, len);
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 gpg_error_t
@@ -351,7 +351,7 @@ _ksba_der_store_oid (AsnNode node, const char *oid)
       return err;
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 
@@ -366,7 +366,7 @@ _ksba_der_store_octet_string (AsnNode node, const char *buf, size_t len)
       return store_value (node, buf, len);
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 
@@ -381,7 +381,7 @@ _ksba_der_store_sequence (AsnNode node, const unsigned char *buf, size_t len)
       return store_value (node, buf, len);
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 
@@ -397,7 +397,7 @@ _ksba_der_store_null (AsnNode node)
       return 0;
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 }
 
 
@@ -592,7 +592,7 @@ _ksba_der_encode_tree (AsnNode root,
   /* now we can create an encoding in image */
   image = xtrymalloc (imagelen);
   if (!image)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   len = 0;
   for (n=root; n ; n = _ksba_asn_walk_tree (root, n))
     {

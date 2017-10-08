@@ -59,7 +59,7 @@
 static gpg_error_t
 map_sw (int sw)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (sw)
     {
@@ -104,7 +104,7 @@ map_sw (int sw)
       else
         ec = GPG_ERR_CARD;
     }
-  return gpg_error (ec);
+  return ec;
 }
 
 /* Map a status word from the APDU layer to a gpg-error code.  */
@@ -163,7 +163,7 @@ iso7816_select_path (int slot, const unsigned short *path, size_t pathlen)
   int buflen;
 
   if (pathlen/2 >= sizeof buffer)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
 
   for (buflen = 0; pathlen; pathlen--, path++)
     {
@@ -187,7 +187,7 @@ iso7816_list_directory (int slot, int list_dirs,
   int sw;
 
   if (!result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -218,7 +218,7 @@ iso7816_apdu_direct (int slot, const void *apdudata, size_t apdudatalen,
   int sw;
 
   if (!result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -312,11 +312,11 @@ iso7816_change_reference_data (int slot, int chvno,
   if ((!oldchv && oldchvlen)
       || (oldchv && !oldchvlen)
       || !newchv || !newchvlen )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   buf = xtrymalloc (oldchvlen + newchvlen);
   if (!buf)
-    return gpg_error (gpg_err_code_from_errno (errno));
+    return gpg_error_from_errno (errno);
   if (oldchvlen)
     memcpy (buf, oldchv, oldchvlen);
   memcpy (buf+oldchvlen, newchv, newchvlen);
@@ -336,7 +336,7 @@ iso7816_reset_retry_counter_with_rc (int slot, int chvno,
   int sw;
 
   if (!data || !datalen )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   sw = apdu_send_simple (slot, 0, 0x00, CMD_RESET_RETRY_COUNTER,
                          0, chvno, datalen, data);
@@ -368,7 +368,7 @@ iso7816_get_data (int slot, int extended_mode, int tag,
   int le;
 
   if (!result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -435,7 +435,7 @@ iso7816_manage_security_env (int slot, int p1, int p2,
   int sw;
 
   if (p1 < 0 || p1 > 255 || p2 < 0 || p2 > 255 )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   sw = apdu_send_simple (slot, 0, 0x00, CMD_MSE, p1, p2,
                          data? datalen : -1, (const char*)data);
@@ -455,7 +455,7 @@ iso7816_compute_ds (int slot, int extended_mode,
   int sw;
 
   if (!data || !datalen || !result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -497,7 +497,7 @@ iso7816_decipher (int slot, int extended_mode,
   unsigned char *buf;
 
   if (!data || !datalen || !result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -511,7 +511,7 @@ iso7816_decipher (int slot, int extended_mode,
       /* We need to prepend the padding indicator. */
       buf = xtrymalloc (datalen + 1);
       if (!buf)
-        return gpg_error (gpg_err_code_from_errno (errno));
+        return gpg_error_from_errno (errno);
 
       *buf = padind; /* Padding indicator. */
       memcpy (buf+1, data, datalen);
@@ -551,7 +551,7 @@ iso7816_internal_authenticate (int slot, int extended_mode,
   int sw;
 
   if (!data || !datalen || !result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -590,7 +590,7 @@ do_generate_keypair (int slot, int extended_mode, int read_only,
   int sw;
 
   if (!data || !datalen || !result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -643,7 +643,7 @@ iso7816_get_challenge (int slot, int length, unsigned char *buffer)
   size_t resultlen, n;
 
   if (!buffer || length < 1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   do
     {
@@ -685,14 +685,14 @@ iso7816_read_binary (int slot, size_t offset, size_t nmax,
   size_t n;
 
   if (!result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
   /* We can only encode 15 bits in p0,p1 to indicate an offset. Thus
      we check for this limit. */
   if (offset > 32767)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   do
     {
@@ -780,7 +780,7 @@ iso7816_read_record (int slot, int recno, int reccount, int short_ef,
   size_t bufferlen;
 
   if (!result || !resultlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
   *resultlen = 0;
 
@@ -788,7 +788,7 @@ iso7816_read_record (int slot, int recno, int reccount, int short_ef,
      we check for this limit. */
   if (recno < 0 || recno > 255 || reccount != 1
       || short_ef < 0 || short_ef > 254 )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   buffer = NULL;
   bufferlen = 0;

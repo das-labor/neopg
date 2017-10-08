@@ -853,7 +853,7 @@ proc_type_sign (audit_ctx_t ctx)
         result = "error";
       else if (!item->err)
         result = "okay";
-      else if (gpg_err_code (item->err) == GPG_ERR_CANCELED)
+      else if (item->err == GPG_ERR_CANCELED)
         result = "skipped";
       else
         result = gpg_strerror (item->err);
@@ -946,7 +946,7 @@ proc_type_decrypt (audit_ctx_t ctx)
         result = "not-used";
       else if (!item->err)
         result = "okay";
-      else if (gpg_err_code (item->err) == GPG_ERR_CANCELED)
+      else if (item->err == GPG_ERR_CANCELED)
         result = "skipped";
       else
         result = gpg_strerror (item->err);
@@ -1102,7 +1102,7 @@ proc_type_verify (audit_ctx_t ctx)
       if (item)
         {
           const char *ok;
-          switch (gpg_err_code (item->err))
+          switch (item->err)
             {
             case 0:                    ok = "good"; break;
             case GPG_ERR_CERT_REVOKED: ok = "bad"; break;
@@ -1118,8 +1118,8 @@ proc_type_verify (audit_ctx_t ctx)
 
           writeout_li (ctx, ok, "%s", _("CRL/OCSP check of certificates"));
           if (item->err
-              && gpg_err_code (item->err) != GPG_ERR_CERT_REVOKED
-              && gpg_err_code (item->err) != GPG_ERR_NOT_ENABLED)
+              && item->err != GPG_ERR_CERT_REVOKED
+              && item->err != GPG_ERR_NOT_ENABLED)
             add_helptag (ctx, "gpgsm.crl-problem");
         }
 

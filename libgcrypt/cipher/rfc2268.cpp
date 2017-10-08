@@ -203,7 +203,7 @@ decrypt_block (void *context, unsigned char *outbuf, const unsigned char *inbuf)
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 setkey_core (void *context, const unsigned char *key, unsigned int keylen, int with_phase2)
 {
   static int initialized;
@@ -261,7 +261,7 @@ setkey_core (void *context, const unsigned char *key, unsigned int keylen, int w
   return 0;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 do_setkey (void *context, const unsigned char *key, unsigned int keylen)
 {
   return setkey_core (context, key, keylen, 1);

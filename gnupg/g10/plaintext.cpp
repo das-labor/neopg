@@ -92,7 +92,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 	fname = ask_outfile_name (embedded_name, embedded_namelen);
       if (!fname)
 	{
-	  err = gpg_error (GPG_ERR_GENERAL);	/* Can't create file. */
+	  err = GPG_ERR_GENERAL;	/* Can't create file. */
 	  goto leave;
 	}
     }
@@ -137,7 +137,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 	    {
 	      xfree (tmp);
               /* FIXME: Below used to be GPG_ERR_CREATE_FILE */
-	      err = gpg_error (GPG_ERR_GENERAL);
+	      err = GPG_ERR_GENERAL;
 	      goto leave;
 	    }
 	  xfree (fname);
@@ -147,7 +147,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 
   if (opt.outfp && is_secured_file (es_fileno (opt.outfp)))
     {
-      err = gpg_error (GPG_ERR_EPERM);
+      err = GPG_ERR_EPERM;
       log_error (_("error creating '%s': %s\n"), fname, gpg_strerror (err));
       goto leave;
     }
@@ -240,7 +240,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
       if (clearsig)
 	{
 	  log_error ("clearsig encountered while not expected\n");
-	  err = gpg_error (GPG_ERR_UNEXPECTED);
+	  err = GPG_ERR_UNEXPECTED;
 	  goto leave;
 	}
 
@@ -269,7 +269,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    {
 		      log_error ("error writing to '%s': %s\n",
 				 fname, "exceeded --max-output limit\n");
-		      err = gpg_error (GPG_ERR_TOO_LARGE);
+		      err = GPG_ERR_TOO_LARGE;
 		      goto leave;
 		    }
 		  else if (es_putc (c, fp) == EOF)
@@ -277,7 +277,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		      if (es_ferror (fp))
 			err = gpg_error_from_syserror ();
 		      else
-			err = gpg_error (GPG_ERR_EOF);
+			err = GPG_ERR_EOF;
 		      log_error ("error writing to '%s': %s\n",
 				 fname, gpg_strerror (err));
 		      goto leave;
@@ -308,7 +308,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    {
 		      log_error ("error writing to '%s': %s\n",
 				 fname, "exceeded --max-output limit\n");
-		      err = gpg_error (GPG_ERR_TOO_LARGE);
+		      err = GPG_ERR_TOO_LARGE;
 		      xfree (buffer);
 		      goto leave;
 		    }
@@ -344,7 +344,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    {
 		      log_error ("Error writing to '%s': %s\n",
 				 fname, "exceeded --max-output limit\n");
-		      err = gpg_error (GPG_ERR_TOO_LARGE);
+		      err = GPG_ERR_TOO_LARGE;
 		      goto leave;
 		    }
 		  else if (es_putc (c, fp) == EOF)
@@ -352,7 +352,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		      if (es_ferror (fp))
 			err = gpg_error_from_syserror ();
 		      else
-			err = gpg_error (GPG_ERR_EOF);
+			err = GPG_ERR_EOF;
 		      log_error ("error writing to '%s': %s\n",
 				 fname, gpg_strerror (err));
 		      goto leave;
@@ -393,7 +393,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    {
 		      log_error ("error writing to '%s': %s\n",
 				 fname, "exceeded --max-output limit\n");
-		      err = gpg_error (GPG_ERR_TOO_LARGE);
+		      err = GPG_ERR_TOO_LARGE;
 		      xfree (buffer);
 		      goto leave;
 		    }
@@ -423,7 +423,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		{
 		  log_error ("error writing to '%s': %s\n",
 			     fname, "exceeded --max-output limit\n");
-		  err = gpg_error (GPG_ERR_TOO_LARGE);
+		  err = GPG_ERR_TOO_LARGE;
 		  goto leave;
 		}
 	      else if (es_putc (c, fp) == EOF)
@@ -585,7 +585,7 @@ ask_for_detached_datafile (gcry_md_hd_t md, gcry_md_hd_t md2,
 
 	  if (any && !*answer)
 	    {
-	      rc = gpg_error (GPG_ERR_GENERAL);	/*G10ERR_READ_FILE */
+	      rc = GPG_ERR_GENERAL;	/*G10ERR_READ_FILE */
 	      goto leave;
 	    }
 	  fp = iobuf_open (answer);
@@ -661,7 +661,7 @@ hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2, strlist_t files,
         }
       log_error (_("no signed data\n"));
       release_progress_context (pfx);
-      return gpg_error (GPG_ERR_NO_DATA);
+      return GPG_ERR_NO_DATA;
     }
 
 

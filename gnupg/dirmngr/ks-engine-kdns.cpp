@@ -72,8 +72,8 @@ ks_kdns_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp)
   *r_fp = NULL;
 
   if (strcmp (uri->scheme, "kdns"))
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
-  err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  err = GPG_ERR_NOT_IMPLEMENTED;
   return err;
 }

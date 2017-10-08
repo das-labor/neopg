@@ -1282,7 +1282,7 @@ lookup_hashtable (ulong table, const byte *key, size_t keylen,
 
   item = rec->r.htbl.item[msb % ITEMS_PER_HTBL_RECORD];
   if (!item)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   rc = tdbio_read_record (item, rec, 0);
   if (rc)
@@ -1338,14 +1338,14 @@ lookup_hashtable (ulong table, const byte *key, size_t keylen,
 		}
 	    }
           else
-            return gpg_error (GPG_ERR_NOT_FOUND);
+            return GPG_ERR_NOT_FOUND;
 	}
     }
 
   if ((*cmpfnc)(cmpdata, rec))
     return 0; /* really found */
 
-  return gpg_error (GPG_ERR_NOT_FOUND); /* no: not found */
+  return GPG_ERR_NOT_FOUND; /* no: not found */
 }
 
 
@@ -1485,7 +1485,7 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
     {
       log_error ("%lu: read expected rec type %d, got %d\n",
                  recnum, expected, rec->rectype);
-      return gpg_error (GPG_ERR_TRUSTDB);
+      return GPG_ERR_TRUSTDB;
     }
   p++;    /* Skip reserved byte.  */
   switch (rec->rectype)
@@ -1497,7 +1497,7 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
       if (memcmp(buf+1, GPGEXT_GPG, 3))
         {
           log_error (_("%s: not a trustdb file\n"), db_name );
-          err = gpg_error (GPG_ERR_TRUSTDB);
+          err = GPG_ERR_TRUSTDB;
         }
       else
         {
@@ -1523,13 +1523,13 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
             {
               log_error( _("%s: version record with recnum %lu\n"), db_name,
                          (ulong)recnum );
-              err = gpg_error (GPG_ERR_TRUSTDB);
+              err = GPG_ERR_TRUSTDB;
             }
           else if (rec->r.ver.version != 3)
             {
               log_error( _("%s: invalid file version %d\n"), db_name,
                          rec->r.ver.version );
-              err = gpg_error (GPG_ERR_TRUSTDB);
+              err = GPG_ERR_TRUSTDB;
             }
         }
       break;
@@ -1579,7 +1579,7 @@ tdbio_read_record (ulong recnum, TRUSTREC *rec, int expected)
     default:
       log_error ("%s: invalid record type %d at recnum %lu\n",
                  db_name, rec->rectype, (ulong)recnum);
-      err = gpg_error (GPG_ERR_TRUSTDB);
+      err = GPG_ERR_TRUSTDB;
       break;
     }
 

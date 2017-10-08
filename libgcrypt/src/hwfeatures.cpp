@@ -77,7 +77,7 @@ static unsigned int hw_features;
 
 /* Disable a feature by name.  This function must be called *before*
    _gcry_detect_hw_features is called.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_disable_hw_feature (const char *name)
 {
   int i;

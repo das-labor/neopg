@@ -127,7 +127,7 @@ init_encryption (void)
     log_error ("error initializing cache encryption context: %s\n",
                gpg_strerror (err));
 
-  return err? gpg_error (GPG_ERR_NOT_INITIALIZED) : 0;
+  return err? GPG_ERR_NOT_INITIALIZED : 0;
 }
 
 
@@ -427,7 +427,7 @@ agent_get_cache (const char *key, cache_mode_t cache_mode)
           if (DBG_CACHE)
             log_debug ("... hit\n");
           if (r->pw->totallen < 32)
-            err = gpg_error (GPG_ERR_INV_LENGTH);
+            err = GPG_ERR_INV_LENGTH;
           else if ((err = init_encryption ()))
             ;
           else if (!(value = xtrymalloc_secure (r->pw->totallen - 8)))

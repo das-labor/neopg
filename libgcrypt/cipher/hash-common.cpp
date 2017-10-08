@@ -46,7 +46,7 @@ _gcry_hash_selftest_check_one (int algo,
                                const void *expect, size_t expectlen)
 {
   const char *result = NULL;
-  gcry_error_t err = 0;
+  gpg_error_t err = 0;
   gcry_md_hd_t hd;
   unsigned char *digest;
   char aaa[1000];

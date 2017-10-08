@@ -362,14 +362,14 @@ print_digest_rejected_note (enum gcry_md_algos algo)
  * the value IGNORE_EC no message is printed.  A message is also not
  * printed if ERR is 0.  */
 void
-print_reported_error (gpg_error_t err, gpg_err_code_t ignore_ec)
+print_reported_error (gpg_error_t err, gpg_error_t ignore_ec)
 {
   if (!opt.verbose)
     return;
 
-  if (!gpg_err_code (err))
+  if (!err)
     ;
-  else if (gpg_err_code (err) == ignore_ec)
+  else if (err == ignore_ec)
     ;
   else
     log_info (_("(reported error: %s)\n"),
@@ -548,7 +548,7 @@ openpgp_cipher_test_algo (cipher_algo_t algo)
 
   ga = map_cipher_openpgp_to_gcry (algo);
   if (!ga)
-    return gpg_error (GPG_ERR_CIPHER_ALGO);
+    return GPG_ERR_CIPHER_ALGO;
 
   return gcry_cipher_test_algo (ga);
 }
@@ -637,7 +637,7 @@ openpgp_pk_test_algo2 (pubkey_algo_t algo, unsigned int use)
       break;
     }
   if (!ga)
-    return gpg_error (GPG_ERR_PUBKEY_ALGO);
+    return GPG_ERR_PUBKEY_ALGO;
 
   /* Now check whether Libgcrypt has support for the algorithm.  */
   return gcry_pk_algo_info (ga, GCRYCTL_TEST_ALGO, NULL, &use_buf);
@@ -757,7 +757,7 @@ openpgp_md_test_algo (digest_algo_t algo)
 
   ga = map_md_openpgp_to_gcry (algo);
   if (!ga)
-    return gpg_error (GPG_ERR_DIGEST_ALGO);
+    return GPG_ERR_DIGEST_ALGO;
 
   return gcry_md_test_algo (ga);
 }

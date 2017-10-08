@@ -564,7 +564,7 @@ _gcry_secmem_init (size_t n)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_secmem_module_init ()
 {
   /* Not anymore needed.  */

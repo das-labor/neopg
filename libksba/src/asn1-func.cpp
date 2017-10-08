@@ -657,7 +657,7 @@ _ksba_asn_delete_structure (AsnNode root)
   AsnNode p, p2, p3;
 
   if (root == NULL)
-    return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+    return GPG_ERR_ELEMENT_NOT_FOUND;
 
   p = root;
   while (p)
@@ -709,14 +709,14 @@ _ksba_asn_check_identifier (AsnNode node)
   char name2[129];
 
   if (!node)
-    return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+    return GPG_ERR_ELEMENT_NOT_FOUND;
 
   for (p = node; p; p = _ksba_asn_walk_tree (node, p))
     {
       if (p->type == TYPE_IDENTIFIER && p->valuetype == VALTYPE_CSTR)
 	{
           if (strlen (node->name)+strlen(p->value.v_cstr)+2 > DIM(name2))
-            return gpg_error (GPG_ERR_BUG); /* well identifier too long */
+            return GPG_ERR_BUG; /* well identifier too long */
           strcpy (name2, node->name);
           strcat (name2, ".");
 	  strcat (name2, p->value.v_cstr);
@@ -724,7 +724,7 @@ _ksba_asn_check_identifier (AsnNode node)
 	  if (!p2)
 	    {
 	      fprintf (stderr,"reference to `%s' not found\n", name2);
-	      return gpg_error (GPG_ERR_IDENTIFIER_NOT_FOUND);
+	      return GPG_ERR_IDENTIFIER_NOT_FOUND;
 	    }
 /*            fprintf (stdout,"found reference for `%s' (", name2); */
 /*            print_node (p2, stdout); */
@@ -739,7 +739,7 @@ _ksba_asn_check_identifier (AsnNode node)
 		{ /* the first constand below is a reference */
                   if (strlen (node->name)
                       +strlen(p->value.v_cstr)+2 > DIM(name2))
-                    return gpg_error (GPG_ERR_BUG); /* well identifier too long */
+                    return GPG_ERR_BUG; /* well identifier too long */
                   strcpy (name2, node->name);
                   strcat (name2, ".");
 		  strcat (name2, p2->value.v_cstr);
@@ -748,13 +748,13 @@ _ksba_asn_check_identifier (AsnNode node)
                     {
                       fprintf (stderr,"object id reference `%s' not found\n",
                                name2);
-                      return gpg_error (GPG_ERR_IDENTIFIER_NOT_FOUND);
+                      return GPG_ERR_IDENTIFIER_NOT_FOUND;
                     }
                   else if ( p2->type != TYPE_OBJECT_ID
                             || !p2->flags.assignment )
 		    {
 		      fprintf (stderr,"`%s' is not an object id\n", name2);
-		      return gpg_error (GPG_ERR_IDENTIFIER_NOT_FOUND);
+		      return GPG_ERR_IDENTIFIER_NOT_FOUND;
 		    }
 /*                    fprintf (stdout,"found objid reference for `%s' (", name2); */
 /*                    print_node (p2, stdout); */
@@ -842,7 +842,7 @@ _ksba_asn_change_integer_value (AsnNode node)
   AsnNode p;
 
   if (node == NULL)
-    return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+    return GPG_ERR_ELEMENT_NOT_FOUND;
 
   for (p = node; p; p = _ksba_asn_walk_tree (node, p))
     {
@@ -870,11 +870,11 @@ _ksba_asn_expand_object_id (AsnNode node)
 
   /* Fixme: Make a cleaner implementation */
   if (!node)
-    return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+    return GPG_ERR_ELEMENT_NOT_FOUND;
   if (!node->name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (strlen(node->name) >= DIM(name_root)-1)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   strcpy (name_root, node->name);
 
  restart:
@@ -889,14 +889,14 @@ _ksba_asn_expand_object_id (AsnNode node)
                   && !isdigit (p2->value.v_cstr[0]))
                 {
                   if (strlen(p2->value.v_cstr)+1+strlen(name2) >= DIM(name2)-1)
-                    return gpg_error (GPG_ERR_GENERAL);
+                    return GPG_ERR_GENERAL;
                   strcpy (name2, name_root);
                   strcat (name2, ".");
                   strcat (name2, p2->value.v_cstr);
                   p3 = _ksba_asn_find_node (node, name2);
                   if (!p3 || p3->type != TYPE_OBJECT_ID ||
                       !p3->flags.assignment)
-                    return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+                    return GPG_ERR_ELEMENT_NOT_FOUND;
                   set_down (p, p2->right);
                   _ksba_asn_remove_node (p2);
                   p2 = p;

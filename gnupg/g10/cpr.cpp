@@ -233,7 +233,7 @@ write_status_errcode (const char *where, int errcode)
     return;  /* Not enabled or allowed. */
 
   es_fprintf (statusfp, "[GNUPG:] %s %s %u\n",
-              get_status_string (STATUS_ERROR), where, gpg_err_code (errcode));
+              get_status_string (STATUS_ERROR), where, errcode);
   if (es_fflush (statusfp) && opt.exit_on_status_write_error)
     g10_exit (0);
 }

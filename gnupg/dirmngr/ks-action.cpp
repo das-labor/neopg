@@ -131,7 +131,7 @@ ks_action_resolve (ctrl_t ctrl, uri_item_t keyservers)
     }
 
   if (!any_server)
-    err = gpg_error (GPG_ERR_NO_KEYSERVER);
+    err = GPG_ERR_NO_KEYSERVER;
   return err;
 }
 
@@ -149,7 +149,7 @@ ks_action_search (ctrl_t ctrl, uri_item_t keyservers,
   estream_t infp;
 
   if (!patterns)
-    return gpg_error (GPG_ERR_NO_USER_ID);
+    return GPG_ERR_NO_USER_ID;
 
   /* FIXME: We only take care of the first pattern.  To fully support
      multiple patterns we might either want to run several queries in
@@ -181,7 +181,7 @@ ks_action_search (ctrl_t ctrl, uri_item_t keyservers,
                                    &infp, &http_status);
 	    }
 
-          if (err == gpg_error (GPG_ERR_NO_DATA)
+          if (err == GPG_ERR_NO_DATA
               && http_status == 404 /* not found */)
             {
               /* No record found.  Clear error and try next server.  */
@@ -200,9 +200,9 @@ ks_action_search (ctrl_t ctrl, uri_item_t keyservers,
     }
 
   if (!any_server)
-    err = gpg_error (GPG_ERR_NO_KEYSERVER);
+    err = GPG_ERR_NO_KEYSERVER;
   else if (err == 0 && !any_results)
-    err = gpg_error (GPG_ERR_NO_DATA);
+    err = GPG_ERR_NO_DATA;
   return err;
 }
 
@@ -222,7 +222,7 @@ ks_action_get (ctrl_t ctrl, uri_item_t keyservers,
   estream_t infp;
 
   if (!patterns)
-    return gpg_error (GPG_ERR_NO_USER_ID);
+    return GPG_ERR_NO_USER_ID;
 
   /* FIXME: We only take care of the first keyserver.  To fully
      support multiple keyservers we need to track the result for each
@@ -283,7 +283,7 @@ ks_action_get (ctrl_t ctrl, uri_item_t keyservers,
     }
 
   if (!any_server)
-    err = gpg_error (GPG_ERR_NO_KEYSERVER);
+    err = GPG_ERR_NO_KEYSERVER;
   else if (!err && first_err && !any_data)
     err = first_err;
   return err;
@@ -300,7 +300,7 @@ ks_action_fetch (ctrl_t ctrl, const char *url, estream_t outfp)
   parsed_uri_t parsed_uri;  /* The broken down URI.  */
 
   if (!url)
-    return gpg_error (GPG_ERR_INV_URI);
+    return GPG_ERR_INV_URI;
 
   err = http_parse_uri (&parsed_uri, url, 1);
   if (err)
@@ -317,7 +317,7 @@ ks_action_fetch (ctrl_t ctrl, const char *url, estream_t outfp)
     }
   else if (!parsed_uri->opaque)
     {
-      err = gpg_error (GPG_ERR_INV_URI);
+      err = GPG_ERR_INV_URI;
     }
   else if (!strcmp (parsed_uri->scheme, "finger"))
     {
@@ -338,7 +338,7 @@ ks_action_fetch (ctrl_t ctrl, const char *url, estream_t outfp)
         }
     }
   else
-    err = gpg_error (GPG_ERR_INV_URI);
+    err = GPG_ERR_INV_URI;
 
   http_release_parsed_uri (parsed_uri);
   return err;
@@ -397,7 +397,7 @@ ks_action_put (ctrl_t ctrl, uri_item_t keyservers,
     }
 
   if (!any_server)
-    err = gpg_error (GPG_ERR_NO_KEYSERVER);
+    err = GPG_ERR_NO_KEYSERVER;
   else if (!err && first_err)
     err = first_err;
   return err;

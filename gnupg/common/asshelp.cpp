@@ -187,7 +187,7 @@ send_pinentry_environment (assuan_context_t ctx,
       else
         {
           err = send_one_option (ctx, name, value, 1);
-          if (gpg_err_code (err) == GPG_ERR_UNKNOWN_OPTION)
+          if (err == GPG_ERR_UNKNOWN_OPTION)
             err = 0;  /* Server too old; can't pass the new envvars.  */
         }
       if (err)
@@ -301,7 +301,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
     abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
     if (!abs_homedir)
       {
-	gpg_error_t tmperr = gpg_error (gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error_from_syserror ();
 	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	return tmperr;
@@ -321,7 +321,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
 			       | ASSUAN_PIPE_CONNECT_DETACHED);
     if (err)
       {
-	gpg_error_t tmperr = gpg_error (gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error_from_syserror ();
 	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	xfree (abs_homedir);
@@ -341,7 +341,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
       err = send_pinentry_environment (ctx,
                                        opt_lc_ctype, opt_lc_messages,
                                        session_env);
-      if (gpg_err_code (err) == GPG_ERR_FORBIDDEN)
+      if (err == GPG_ERR_FORBIDDEN)
         {
           /* Check whether we are in restricted mode.  */
           if (!assuan_transact (ctx, "GETINFO restricted",
@@ -403,7 +403,7 @@ start_new_dirmngr (assuan_context_t *r_ctx,
     abs_homedir = make_absfilename (gnupg_homedir (), NULL);
     if (!abs_homedir)
       {
-	gpg_error_t tmperr = gpg_error(gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error_from_syserror ();
 	log_error ("error building filename: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	return tmperr;
@@ -423,7 +423,7 @@ start_new_dirmngr (assuan_context_t *r_ctx,
 			       | ASSUAN_PIPE_CONNECT_DETACHED);
     if (err)
       {
-	gpg_error_t tmperr = gpg_error(gpg_err_code_from_syserror ());
+	gpg_error_t tmperr = gpg_error_from_syserror ();
 	log_error ("error starting agent: %s\n",gpg_strerror (tmperr));
 	assuan_release (ctx);
 	xfree (abs_homedir);

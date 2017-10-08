@@ -37,12 +37,12 @@
  * Return the signature struct (r,s) from the message hash.  The caller
  * must have allocated R and S.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_ecdsa_sign (gcry_mpi_t input, ECC_secret_key *skey,
                       gcry_mpi_t r, gcry_mpi_t s,
                       int flags, int hashalgo)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   int extraloops = 0;
   gcry_mpi_t k, dr, sum, k_1, x;
   mpi_point_struct I;
@@ -147,11 +147,11 @@ _gcry_ecc_ecdsa_sign (gcry_mpi_t input, ECC_secret_key *skey,
 /* Verify an ECDSA signature.
  * Check if R and S verifies INPUT.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_ecdsa_verify (gcry_mpi_t input, ECC_public_key *pkey,
                         gcry_mpi_t r, gcry_mpi_t s)
 {
-  gpg_err_code_t err = 0;
+  gpg_error_t err = 0;
   gcry_mpi_t hash, h, h1, h2, x;
   mpi_point_struct Q, Q1, Q2;
   mpi_ec_t ctx;

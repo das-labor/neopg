@@ -57,7 +57,7 @@ time_t timegm(struct tm *tm);
 static int
 ldap_err_to_gpg_err (int code)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (code)
     {
@@ -396,7 +396,7 @@ keyspec_to_ldap_filter (const char *keyspec, char **filter, int only_exact)
   if (! f)
     {
       log_error ("Unsupported search mode.\n");
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   *filter = f;
@@ -479,7 +479,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
   ldap_conn = ldap_init (uri->host, uri->port);
   if (! ldap_conn)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       log_error ("Failed to open connection to LDAP server (%s://%s:%d)\n",
 		 uri->scheme, uri->host, uri->port);
       goto out;
@@ -854,7 +854,7 @@ ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec,
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("LDAP access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   /* Before connecting to the server, make sure we have a sane
@@ -911,7 +911,7 @@ ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec,
 	if (count == -1)
 	  err = ldap_to_gpg_err (ldap_conn);
 	else
-	  err = gpg_error (GPG_ERR_NO_DATA);
+	  err = GPG_ERR_NO_DATA;
 
 	goto out;
       }
@@ -982,7 +982,7 @@ ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec,
       free_strlist (seen);
 
       if (! fp)
-	err = gpg_error (GPG_ERR_NO_DATA);
+	err = GPG_ERR_NO_DATA;
     }
   }
 
@@ -1037,7 +1037,7 @@ ks_ldap_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("LDAP access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   /* Before connecting to the server, make sure we have a sane
@@ -1913,7 +1913,7 @@ ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("LDAP access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   ldap_err = my_ldap_connect (uri,

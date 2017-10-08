@@ -209,7 +209,7 @@ basic_initialization (void)
 static void
 lock_rng (void)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
 
   rc = gpgrt_lock_lock (&fips_rng_lock);
   if (rc)
@@ -222,7 +222,7 @@ lock_rng (void)
 static void
 unlock_rng (void)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
 
   fips_rng_is_locked = 0;
   rc = gpgrt_lock_unlock (&fips_rng_lock);
@@ -387,7 +387,7 @@ encrypt_aes (gcry_cipher_hd_t key,
 
   err = _gcry_cipher_encrypt (key, output, length, input, length);
   if (err)
-    log_fatal ("AES encryption in RNG failed: %s\n", _gcry_strerror (err));
+    log_fatal ("AES encryption in RNG failed: %s\n", gpg_strerror (err));
 }
 
 
@@ -590,7 +590,7 @@ static gcry_cipher_hd_t
 x931_generate_key (int for_nonce)
 {
   gcry_cipher_hd_t hd;
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   void *buffer;
 
   gcry_assert (fips_rng_is_locked);
@@ -601,7 +601,7 @@ x931_generate_key (int for_nonce)
   if (rc)
     {
       log_error ("error creating cipher context for RNG: %s\n",
-                 _gcry_strerror (rc));
+                 gpg_strerror (rc));
       return NULL;
     }
 
@@ -623,7 +623,7 @@ x931_generate_key (int for_nonce)
   xfree (buffer);
   if (rc)
     {
-      log_error ("error creating key for RNG: %s\n", _gcry_strerror (rc));
+      log_error ("error creating key for RNG: %s\n", gpg_strerror (rc));
       _gcry_cipher_close (hd);
       return NULL;
     }
@@ -808,7 +808,7 @@ _gcry_rngfips_is_faked (void)
 /* Add BUFLEN bytes from BUF to the internal random pool.  QUALITY
    should be in the range of 0..100 to indicate the goodness of the
    entropy added, or -1 for goodness not known. */
-gcry_error_t
+gpg_error_t
 _gcry_rngfips_add_bytes (const void *buf, size_t buflen, int quality)
 {
   (void)buf;
@@ -855,7 +855,7 @@ _gcry_rngfips_create_nonce (void *buffer, size_t length)
    don't take the requirement to throw away the first block and use
    that for duplicate check in account.  Thus we made up our own test
    vectors. */
-static gcry_err_code_t
+static gpg_error_t
 selftest_kat (selftest_report_func_t report)
 {
   static struct
@@ -905,7 +905,7 @@ selftest_kat (selftest_report_func_t report)
     };
   int tvidx, ridx;
   rng_context_t test_ctx;
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   const char *errtxt = NULL;
   unsigned char result[16];
 
@@ -995,10 +995,10 @@ selftest_kat (selftest_report_func_t report)
 
 
 /* Run the self-tests.  */
-gcry_error_t
+gpg_error_t
 _gcry_rngfips_selftest (selftest_report_func_t report)
 {
-  gcry_err_code_t ec;
+  gpg_error_t ec;
 
 #if defined(USE_RNDLINUX) || defined(USE_RNDW32)
   {
@@ -1017,20 +1017,20 @@ _gcry_rngfips_selftest (selftest_report_func_t report)
   report ("random", 0, "setup", "no entropy gathering module");
   ec = GPG_ERR_SELFTEST_FAILED;
 #endif
-  return gpg_error (ec);
+  return ec;
 }
 
 
 /* Create a new test context for an external RNG test driver.  On
    success the test context is stored at R_CONTEXT; on failure NULL is
    stored at R_CONTEXT and an error code is returned.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_rngfips_init_external_test (void **r_context, unsigned int flags,
                                   const void *key, size_t keylen,
                                   const void *seed, size_t seedlen,
                                   const void *dt, size_t dtlen)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   rng_context_t test_ctx;
 
   _gcry_rngfips_initialize (1);  /* Auto-initialize if needed.  */
@@ -1043,7 +1043,7 @@ _gcry_rngfips_init_external_test (void **r_context, unsigned int flags,
 
   test_ctx = xtrycalloc (1, sizeof *test_ctx + dtlen);
   if (!test_ctx)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   setup_guards (test_ctx);
 
   /* Setup the key.  */
@@ -1096,7 +1096,7 @@ _gcry_rngfips_init_external_test (void **r_context, unsigned int flags,
 
 /* Get BUFLEN bytes from the RNG using the test CONTEXT and store them
    at BUFFER.  Return 0 on success or an error code.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_rngfips_run_external_test (void *context, char *buffer, size_t buflen)
 {
   rng_context_t test_ctx = context;

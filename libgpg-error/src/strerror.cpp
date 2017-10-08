@@ -30,7 +30,7 @@
 #include "gettext.h"
 
 static const char *
-err_code (gpg_err_code_t err)
+err_code (gpg_error_t err)
 {
   switch (err) {
   case GPG_ERR_NO_ERROR:
@@ -868,17 +868,15 @@ err_code (gpg_err_code_t err)
 const char *
 _gpg_strerror (gpg_error_t err)
 {
-  gpg_err_code_t code = gpg_err_code (err);
-
-  if (code & GPG_ERR_SYSTEM_ERROR)
+  if (err & GPG_ERR_SYSTEM_ERROR)
     {
-      int no = gpg_err_code_to_errno (code);
+      int no = gpg_error_to_errno (err);
       if (no)
 	return strerror (no);
       else
-	code = GPG_ERR_UNKNOWN_ERRNO;
+	err = GPG_ERR_UNKNOWN_ERRNO;
     }
-  return dgettext (PACKAGE, err_code(code));
+  return dgettext (PACKAGE, err_code(err));
 }
 
 
@@ -967,14 +965,13 @@ system_strerror_r (int no, char *buf, size_t buflen)
 int
 _gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen)
 {
-  gpg_err_code_t code = gpg_err_code (err);
   const char *errstr;
   size_t errstr_len;
   size_t cpy_len;
 
-  if (code & GPG_ERR_SYSTEM_ERROR)
+  if (err & GPG_ERR_SYSTEM_ERROR)
     {
-      int no = gpg_err_code_to_errno (code);
+      int no = gpg_error_to_errno (err);
       if (no)
 	{
 	  int system_err = system_strerror_r (no, buf, buflen);
@@ -986,10 +983,10 @@ _gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen)
 	      return system_err;
 	    }
 	}
-      code = GPG_ERR_UNKNOWN_ERRNO;
+      err = GPG_ERR_UNKNOWN_ERRNO;
     }
 
-  errstr = dgettext (PACKAGE, err_code (code));
+  errstr = dgettext (PACKAGE, err_code (err));
   errstr_len = strlen (errstr) + 1;
   cpy_len = errstr_len < buflen ? errstr_len : buflen;
   memcpy (buf, errstr, cpy_len);

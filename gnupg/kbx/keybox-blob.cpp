@@ -490,7 +490,7 @@ x509_create_blob_cert (KEYBOXBLOB blob, ksba_cert_t cert)
 
   image = ksba_cert_get_image (cert, &length);
   if (!image)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   put_membuf (a, image, length);
 
   add_fixup (blob, 12, a->len - kbstart);
@@ -651,7 +651,7 @@ create_blob_finish (KEYBOXBLOB blob)
   n = 0; /* (Just to avoid compiler warning.) */
   p = get_membuf (a, &n);
   if (!p)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   assert (n >= 20);
 
   /* fixup the length */
@@ -661,7 +661,7 @@ create_blob_finish (KEYBOXBLOB blob)
   if (blob->fixup_out_of_core)
     {
       xfree (p);
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
     }
 
   {
@@ -847,7 +847,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
       if (n < 2)
         {
           xfree (sn);
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
       blob->serialbuf = sn;
       sn++; n--; /* skip '(' */
@@ -857,7 +857,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
         {
           xfree (blob->serialbuf);
           blob->serialbuf = NULL;
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
       sn++;
       blob->serial = sn;
@@ -879,7 +879,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
   p = ksba_cert_get_issuer (cert, 0);
   if (!p)
     {
-      rc =  gpg_error (GPG_ERR_MISSING_VALUE);
+      rc =  GPG_ERR_MISSING_VALUE;
       goto leave;
     }
   names[blob->nuids++] = p;
@@ -911,7 +911,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
   blob->sigs = xtrycalloc (blob->nsigs, sizeof *blob->sigs );
   if (!blob->keys || !blob->uids || !blob->sigs)
     {
-      rc = gpg_error (GPG_ERR_ENOMEM);
+      rc = GPG_ERR_ENOMEM;
       goto leave;
     }
 

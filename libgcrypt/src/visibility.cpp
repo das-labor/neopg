@@ -27,84 +27,60 @@
 #include "context.h"
 #include "mpi.h"
 
-const char *
-gcry_strerror (gcry_error_t err)
-{
-  return _gcry_strerror (err);
-}
-
-gcry_err_code_t
-gcry_err_code_from_errno (int err)
-{
-  return _gcry_err_code_from_errno (err);
-}
-
-int
-gcry_err_code_to_errno (gcry_err_code_t code)
-{
-  return _gcry_err_code_to_errno (code);
-}
-
-gcry_error_t
-gcry_error_from_errno (int err)
-{
-  return _gcry_error_from_errno (err);
-}
-
-gcry_error_t
+gpg_error_t
 gcry_control (enum gcry_ctl_cmds cmd, ...)
 {
-  gcry_error_t err;
+  gpg_error_t err;
   va_list arg_ptr;
 
   va_start (arg_ptr, cmd);
-  err = gpg_error (_gcry_vcontrol (cmd, arg_ptr));
+  err = _gcry_vcontrol (cmd, arg_ptr);
   va_end(arg_ptr);
   return err;
 }
 
-gcry_error_t
+gpg_error_t
 gcry_sexp_new (gcry_sexp_t *retsexp,
                const void *buffer, size_t length,
                int autodetect)
 {
-  return gpg_error (_gcry_sexp_new (retsexp, buffer, length, autodetect));
+  return _gcry_sexp_new (retsexp, buffer, length, autodetect);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_sexp_create (gcry_sexp_t *retsexp,
                   void *buffer, size_t length,
                   int autodetect, void (*freefnc) (void *))
 {
-  return gpg_error (_gcry_sexp_create (retsexp, buffer, length,
-                                       autodetect, freefnc));
+  return _gcry_sexp_create (retsexp, buffer, length,
+                                       autodetect, freefnc);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                  const char *buffer, size_t length)
 {
-  return gpg_error (_gcry_sexp_sscan (retsexp, erroff, buffer, length));
+  return _gcry_sexp_sscan (retsexp, erroff, buffer, length);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_sexp_build (gcry_sexp_t *retsexp, size_t *erroff,
                  const char *format, ...)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   va_list arg_ptr;
 
   va_start (arg_ptr, format);
   rc = _gcry_sexp_vbuild (retsexp, erroff, format, arg_ptr);
   va_end (arg_ptr);
-  return gpg_error (rc);
+  return rc;
 }
 
-gcry_error_t
+gpg_error_t
 gcry_sexp_build_array (gcry_sexp_t *retsexp, size_t *erroff,
                        const char *format, void **arg_list)
 {
-  return gpg_error (_gcry_sexp_build_array (retsexp, erroff, format, arg_list));
+  return _gcry_sexp_build_array (retsexp, erroff, format, arg_list);
 }
 
 void
@@ -115,14 +91,14 @@ gcry_sexp_release (gcry_sexp_t sexp)
 
 size_t
 gcry_sexp_canon_len (const unsigned char *buffer, size_t length,
-                     size_t *erroff, gcry_error_t *errcode)
+                     size_t *erroff, gpg_error_t *errcode)
 {
   size_t n;
-  gpg_err_code_t rc;
+  gpg_error_t rc;
 
   n = _gcry_sexp_canon_len (buffer, length, erroff, &rc);
   if (errcode)
-    *errcode = gpg_error (rc);
+    *errcode = rc;
   return n;
 }
 
@@ -236,13 +212,13 @@ gpg_error_t
 gcry_sexp_extract_param (gcry_sexp_t sexp, const char *path,
                          const char *list, ...)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   va_list arg_ptr;
 
   va_start (arg_ptr, list);
   rc = _gcry_sexp_vextract_param (sexp, path, list, arg_ptr);
   va_end (arg_ptr);
-  return gpg_error (rc);
+  return rc;
 }
 
 
@@ -289,10 +265,10 @@ gcry_mpi_set_ui (gcry_mpi_t w, unsigned long u)
   return _gcry_mpi_set_ui (w, u);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mpi_get_ui (gcry_mpi_t w, unsigned long *u)
 {
-  return gpg_error (_gcry_mpi_get_ui (w, u));
+  return _gcry_mpi_get_ui (w, u);
 }
 
 void
@@ -331,29 +307,29 @@ gcry_mpi_cmp_ui (const gcry_mpi_t u, unsigned long v)
   return _gcry_mpi_cmp_ui (u, v);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mpi_scan (gcry_mpi_t *ret_mpi, enum gcry_mpi_format format,
                const void *buffer, size_t buflen,
                size_t *nscanned)
 {
-  return gpg_error (_gcry_mpi_scan (ret_mpi, format, buffer, buflen, nscanned));
+  return _gcry_mpi_scan (ret_mpi, format, buffer, buflen, nscanned);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mpi_print (enum gcry_mpi_format format,
                 unsigned char *buffer, size_t buflen,
                 size_t *nwritten,
                 const gcry_mpi_t a)
 {
-  return gpg_error (_gcry_mpi_print (format, buffer, buflen, nwritten, a));
+  return _gcry_mpi_print (format, buffer, buflen, nwritten, a);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mpi_aprint (enum gcry_mpi_format format,
                  unsigned char **buffer, size_t *nwritten,
                  const gcry_mpi_t a)
 {
-  return gpg_error (_gcry_mpi_aprint (format, buffer, nwritten, a));
+  return _gcry_mpi_aprint (format, buffer, nwritten, a);
 }
 
 void
@@ -498,7 +474,7 @@ gpg_error_t
 gcry_mpi_ec_new (gcry_ctx_t *r_ctx,
                  gcry_sexp_t keyparam, const char *curvename)
 {
-  return gpg_error (_gcry_mpi_ec_new (r_ctx, keyparam, curvename));
+  return _gcry_mpi_ec_new (r_ctx, keyparam, curvename);
 }
 
 gcry_mpi_t
@@ -516,23 +492,23 @@ gcry_mpi_ec_get_point (const char *name, gcry_ctx_t ctx, int copy)
 gpg_error_t
 gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue, gcry_ctx_t ctx)
 {
-  return gpg_error (_gcry_mpi_ec_set_mpi (name, newvalue, ctx));
+  return _gcry_mpi_ec_set_mpi (name, newvalue, ctx);
 }
 
 gpg_error_t
 gcry_mpi_ec_set_point (const char *name, gcry_mpi_point_t newvalue,
                         gcry_ctx_t ctx)
 {
-  return gpg_error (_gcry_mpi_ec_set_point (name, newvalue, ctx));
+  return _gcry_mpi_ec_set_point (name, newvalue, ctx);
 }
 
 gpg_error_t
 gcry_mpi_ec_decode_point (gcry_mpi_point_t result, gcry_mpi_t value,
                           gcry_ctx_t ctx)
 {
-  return gpg_error (_gcry_mpi_ec_decode_point
+  return _gcry_mpi_ec_decode_point
                     (result, value,
-                     ctx? _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC) : NULL));
+                     ctx? _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC) : NULL);
 }
 
 int
@@ -678,17 +654,17 @@ _gcry_mpi_get_const (int no)
     }
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_open (gcry_cipher_hd_t *handle,
                   int algo, int mode, unsigned int flags)
 {
   if (!fips_is_operational ())
     {
       *handle = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
 
-  return gpg_error (_gcry_cipher_open (handle, algo, mode, flags));
+  return _gcry_cipher_open (handle, algo, mode, flags);
 }
 
 void
@@ -697,83 +673,83 @@ gcry_cipher_close (gcry_cipher_hd_t h)
   _gcry_cipher_close (h);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_setkey (gcry_cipher_hd_t hd, const void *key, size_t keylen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gcry_error (_gcry_cipher_setkey (hd, key, keylen));
+  return _gcry_cipher_setkey (hd, key, keylen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_setiv (gcry_cipher_hd_t hd, const void *iv, size_t ivlen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gcry_error (_gcry_cipher_setiv (hd, iv, ivlen));
+  return _gcry_cipher_setiv (hd, iv, ivlen);
 }
 
 gpg_error_t
 gcry_cipher_setctr (gcry_cipher_hd_t hd, const void *ctr, size_t ctrlen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gcry_error (_gcry_cipher_setctr (hd, ctr, ctrlen));
+  return _gcry_cipher_setctr (hd, ctr, ctrlen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf, size_t abuflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_authenticate (hd, abuf, abuflen));
+  return _gcry_cipher_authenticate (hd, abuf, abuflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag, size_t taglen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_gettag (hd, outtag, taglen));
+  return _gcry_cipher_gettag (hd, outtag, taglen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag, size_t taglen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_checktag (hd, intag, taglen));
+  return _gcry_cipher_checktag (hd, intag, taglen);
 }
 
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer, size_t buflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_ctl (h, cmd, buffer, buflen));
+  return _gcry_cipher_ctl (h, cmd, buffer, buflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_info (gcry_cipher_hd_t h, int what, void *buffer, size_t *nbytes)
 {
-  return gpg_error (_gcry_cipher_info (h, what, buffer, nbytes));
+  return _gcry_cipher_info (h, what, buffer, nbytes);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_algo_info (int algo, int what, void *buffer, size_t *nbytes)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_algo_info (algo, what, buffer, nbytes));
+  return _gcry_cipher_algo_info (algo, what, buffer, nbytes);
 }
 
 const char *
@@ -794,7 +770,7 @@ gcry_cipher_mode_from_oid (const char *string)
   return _gcry_cipher_mode_from_oid (string);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_encrypt (gcry_cipher_hd_t h,
                      void *out, size_t outsize,
                      const void *in, size_t inlen)
@@ -804,21 +780,21 @@ gcry_cipher_encrypt (gcry_cipher_hd_t h,
       /* Make sure that the plaintext will never make it to OUT. */
       if (out)
         memset (out, 0x42, outsize);
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
 
-  return gpg_error (_gcry_cipher_encrypt (h, out, outsize, in, inlen));
+  return _gcry_cipher_encrypt (h, out, outsize, in, inlen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_cipher_decrypt (gcry_cipher_hd_t h,
                      void *out, size_t outsize,
                      const void *in, size_t inlen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_cipher_decrypt (h, out, outsize, in, inlen));
+  return _gcry_cipher_decrypt (h, out, outsize, in, inlen);
 }
 
 size_t
@@ -833,13 +809,13 @@ gcry_cipher_get_algo_blklen (int algo)
   return _gcry_cipher_get_algo_blklen (algo);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_algo_info (int algo, int what, void *buffer, size_t *nbytes)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_algo_info (algo, what, buffer, nbytes));
+  return _gcry_mac_algo_info (algo, what, buffer, nbytes);
 }
 
 const char *
@@ -872,17 +848,17 @@ gcry_mac_get_algo_keylen (int algo)
   return _gcry_mac_get_algo_keylen (algo);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_open (gcry_mac_hd_t *handle, int algo, unsigned int flags,
 	       gcry_ctx_t ctx)
 {
   if (!fips_is_operational ())
     {
       *handle = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
 
-  return gpg_error (_gcry_mac_open (handle, algo, flags, ctx));
+  return _gcry_mac_open (handle, algo, flags, ctx);
 }
 
 void
@@ -891,133 +867,133 @@ gcry_mac_close (gcry_mac_hd_t hd)
   _gcry_mac_close (hd);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_setkey (gcry_mac_hd_t hd, const void *key, size_t keylen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_setkey (hd, key, keylen));
+  return _gcry_mac_setkey (hd, key, keylen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_setiv (gcry_mac_hd_t hd, const void *iv, size_t ivlen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_setiv (hd, iv, ivlen));
+  return _gcry_mac_setiv (hd, iv, ivlen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_write (gcry_mac_hd_t hd, const void *buf, size_t buflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_write (hd, buf, buflen));
+  return _gcry_mac_write (hd, buf, buflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_read (gcry_mac_hd_t hd, void *outbuf, size_t *outlen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_read (hd, outbuf, outlen));
+  return _gcry_mac_read (hd, outbuf, outlen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_verify (gcry_mac_hd_t hd, const void *buf, size_t buflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_verify (hd, buf, buflen));
+  return _gcry_mac_verify (hd, buf, buflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_mac_ctl (gcry_mac_hd_t h, int cmd, void *buffer, size_t buflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_mac_ctl (h, cmd, buffer, buflen));
+  return _gcry_mac_ctl (h, cmd, buffer, buflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_encrypt (gcry_sexp_t *result, gcry_sexp_t data, gcry_sexp_t pkey)
 {
   if (!fips_is_operational ())
     {
       *result = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_pk_encrypt (result, data, pkey));
+  return _gcry_pk_encrypt (result, data, pkey);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_decrypt (gcry_sexp_t *result, gcry_sexp_t data, gcry_sexp_t skey)
 {
   if (!fips_is_operational ())
     {
       *result = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_pk_decrypt (result, data, skey));
+  return _gcry_pk_decrypt (result, data, skey);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_sign (gcry_sexp_t *result, gcry_sexp_t data, gcry_sexp_t skey)
 {
   if (!fips_is_operational ())
     {
       *result = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_pk_sign (result, data, skey));
+  return _gcry_pk_sign (result, data, skey);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_verify (gcry_sexp_t sigval, gcry_sexp_t data, gcry_sexp_t pkey)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_pk_verify (sigval, data, pkey));
+    return fips_not_operational ();
+  return _gcry_pk_verify (sigval, data, pkey);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_testkey (gcry_sexp_t key)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_pk_testkey (key));
+    return fips_not_operational ();
+  return _gcry_pk_testkey (key);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms)
 {
   if (!fips_is_operational ())
     {
       *r_key = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_pk_genkey (r_key, s_parms));
+  return _gcry_pk_genkey (r_key, s_parms);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_ctl (int cmd, void *buffer, size_t buflen)
 {
-  return gpg_error (_gcry_pk_ctl (cmd, buffer, buflen));
+  return _gcry_pk_ctl (cmd, buffer, buflen);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pk_algo_info (int algo, int what, void *buffer, size_t *nbytes)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_pk_algo_info (algo, what, buffer, nbytes));
+  return _gcry_pk_algo_info (algo, what, buffer, nbytes);
 }
 
 const char *
@@ -1077,27 +1053,27 @@ gcry_pk_get_param (int algo, const char *name)
   return _gcry_pk_get_param (algo, name);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp, int mode, gcry_ctx_t ctx)
 {
   if (!fips_is_operational ())
     {
       *r_sexp = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_pubkey_get_sexp (r_sexp, mode, ctx));
+  return _gcry_pubkey_get_sexp (r_sexp, mode, ctx);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_open (gcry_md_hd_t *h, int algo, unsigned int flags)
 {
   if (!fips_is_operational ())
     {
       *h = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
 
-  return gpg_error (_gcry_md_open (h, algo, flags));
+  return _gcry_md_open (h, algo, flags);
 }
 
 void
@@ -1106,23 +1082,23 @@ gcry_md_close (gcry_md_hd_t hd)
   _gcry_md_close (hd);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_enable (gcry_md_hd_t hd, int algo)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_md_enable (hd, algo));
+    return fips_not_operational ();
+  return _gcry_md_enable (hd, algo);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_copy (gcry_md_hd_t *bhd, gcry_md_hd_t ahd)
 {
   if (!fips_is_operational ())
     {
       *bhd = NULL;
-      return gpg_error (fips_not_operational ());
+      return fips_not_operational ();
     }
-  return gpg_error (_gcry_md_copy (bhd, ahd));
+  return _gcry_md_copy (bhd, ahd);
 }
 
 void
@@ -1131,12 +1107,12 @@ gcry_md_reset (gcry_md_hd_t hd)
   _gcry_md_reset (hd);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_ctl (gcry_md_hd_t hd, int cmd, void *buffer, size_t buflen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_md_ctl (hd, cmd, buffer, buflen));
+    return fips_not_operational ();
+  return _gcry_md_ctl (hd, cmd, buffer, buflen);
 }
 
 void
@@ -1156,10 +1132,10 @@ gcry_md_read (gcry_md_hd_t hd, int algo)
   return _gcry_md_read (hd, algo);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_extract (gcry_md_hd_t hd, int algo, void *buffer, size_t length)
 {
-  return gpg_error (_gcry_md_extract(hd, algo, buffer, length));
+  return _gcry_md_extract(hd, algo, buffer, length);
 }
 
 void
@@ -1183,7 +1159,7 @@ gcry_md_hash_buffers (int algo, unsigned int flags, void *digest,
       (void)fips_not_operational ();
       fips_signal_error ("called in non-operational state");
     }
-  return gpg_error (_gcry_md_hash_buffers (algo, flags, digest, iov, iovcnt));
+  return _gcry_md_hash_buffers (algo, flags, digest, iov, iovcnt);
 }
 
 int
@@ -1222,19 +1198,19 @@ gcry_md_is_secure (gcry_md_hd_t a)
   return _gcry_md_is_secure (a);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_info (gcry_md_hd_t h, int what, void *buffer, size_t *nbytes)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
+    return fips_not_operational ();
 
-  return gpg_error (_gcry_md_info (h, what, buffer, nbytes));
+  return _gcry_md_info (h, what, buffer, nbytes);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_algo_info (int algo, int what, void *buffer, size_t *nbytes)
 {
-  return gpg_error (_gcry_md_algo_info (algo, what, buffer, nbytes));
+  return _gcry_md_algo_info (algo, what, buffer, nbytes);
 }
 
 const char *
@@ -1249,12 +1225,12 @@ gcry_md_map_name (const char* name)
   return _gcry_md_map_name (name);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_md_setkey (gcry_md_hd_t hd, const void *key, size_t keylen)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_md_setkey (hd, key, keylen));
+    return fips_not_operational ();
+  return _gcry_md_setkey (hd, key, keylen);
 }
 
 void
@@ -1270,9 +1246,9 @@ gcry_kdf_derive (const void *passphrase, size_t passphraselen,
                  unsigned long iterations,
                  size_t keysize, void *keybuffer)
 {
-  return gpg_error (_gcry_kdf_derive (passphrase, passphraselen, algo, hashalgo,
+  return _gcry_kdf_derive (passphrase, passphraselen, algo, hashalgo,
                                       salt, saltlen, iterations,
-                                      keysize, keybuffer));
+                                      keysize, keybuffer);
 }
 
 void
@@ -1287,12 +1263,12 @@ gcry_randomize (void *buffer, size_t length, enum gcry_random_level level)
   _gcry_randomize (buffer, length, level);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_random_add_bytes (const void *buffer, size_t length, int quality)
 {
   if (!fips_is_operational ())
-    return gpg_error (fips_not_operational ());
-  return gpg_error (_gcry_random_add_bytes (buffer, length, quality));
+    return fips_not_operational ();
+  return _gcry_random_add_bytes (buffer, length, quality);
 }
 
 void *
@@ -1340,7 +1316,7 @@ gcry_create_nonce (void *buffer, size_t length)
   _gcry_create_nonce (buffer, length);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_prime_generate (gcry_mpi_t *prime,
                      unsigned int prime_bits,
                      unsigned int factor_bits,
@@ -1350,17 +1326,17 @@ gcry_prime_generate (gcry_mpi_t *prime,
                      gcry_random_level_t random_level,
                      unsigned int flags)
 {
-  return gpg_error (_gcry_prime_generate (prime, prime_bits, factor_bits,
+  return _gcry_prime_generate (prime, prime_bits, factor_bits,
                                           factors, cb_func, cb_arg,
-                                          random_level, flags));
+                                          random_level, flags);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_prime_group_generator (gcry_mpi_t *r_g,
                             gcry_mpi_t prime, gcry_mpi_t *factors,
                             gcry_mpi_t start_g)
 {
-  return gpg_error (_gcry_prime_group_generator (r_g, prime, factors, start_g));
+  return _gcry_prime_group_generator (r_g, prime, factors, start_g);
 }
 
 void
@@ -1369,10 +1345,10 @@ gcry_prime_release_factors (gcry_mpi_t *factors)
   _gcry_prime_release_factors (factors);
 }
 
-gcry_error_t
+gpg_error_t
 gcry_prime_check (gcry_mpi_t x, unsigned int flags)
 {
-  return gpg_error (_gcry_prime_check (x, flags));
+  return _gcry_prime_check (x, flags);
 }
 
 void

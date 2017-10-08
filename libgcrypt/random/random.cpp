@@ -343,19 +343,19 @@ _gcry_random_is_faked (void)
 /* Add BUFLEN bytes from BUF to the internal random pool.  QUALITY
    should be in the range of 0..100 to indicate the goodness of the
    entropy added, or -1 for goodness not known.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_random_add_bytes (const void *buf, size_t buflen, int quality)
 {
   if (fips_mode ())
     return 0; /* No need for this in fips mode.  */
   else if (rng_types.standard)
-    return gpg_err_code (_gcry_rngcsprng_add_bytes (buf, buflen, quality));
+    return _gcry_rngcsprng_add_bytes (buf, buflen, quality);
   else if (rng_types.fips)
     return 0;
   else if (rng_types.system)
     return 0;
   else /* default */
-    return gpg_err_code (_gcry_rngcsprng_add_bytes (buf, buflen, quality));
+    return _gcry_rngcsprng_add_bytes (buf, buflen, quality);
 }
 
 

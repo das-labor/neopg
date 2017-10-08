@@ -462,7 +462,7 @@ point_copy (gcry_mpi_point_t point)
 static gcry_mpi_t
 scanval (const char *string)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t val;
 
   rc = _gcry_mpi_scan (&val, GCRYMPI_FMT_HEX, string, 0, NULL);
@@ -510,7 +510,7 @@ find_domain_parms_idx (const char *name)
    example only a quick test for availability is desired.  Note that
    the curve fields should be initialized to zero because fields which
    are not NULL are skipped.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_fill_in_curve (unsigned int nbits, const char *name,
                          elliptic_curve_t *curve, unsigned int *r_nbits)
 {
@@ -593,7 +593,7 @@ _gcry_ecc_fill_in_curve (unsigned int nbits, const char *name,
    A, B, G, N, and H if they point to NULL value.  Note that G is returned
    in standard uncompressed format.  Also update MODEL and DIALECT if
    they are not NULL. */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_update_curve_param (const char *name,
                               enum gcry_mpi_ec_models *model,
                               enum ecc_dialects *dialect,
@@ -617,7 +617,7 @@ _gcry_ecc_update_curve_param (const char *name,
       len++;
       buf = xtrymalloc (len);
       if (!buf)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       strcpy (stpcpy (stpcpy (buf, "0x04"), domain_parms[idx].g_x+2),
               domain_parms[idx].g_y+2);
       _gcry_mpi_release (*g);
@@ -662,7 +662,7 @@ _gcry_ecc_update_curve_param (const char *name,
 const char *
 _gcry_ecc_get_curve (gcry_sexp_t keyparms, int iterator, unsigned int *r_nbits)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   const char *result = NULL;
   elliptic_curve_t E;
   gcry_mpi_t mpi_g = NULL;
@@ -690,9 +690,9 @@ _gcry_ecc_get_curve (gcry_sexp_t keyparms, int iterator, unsigned int *r_nbits)
   /*
    * Extract the curve parameters..
    */
-  rc = gpg_err_code (sexp_extract_param (keyparms, NULL, "-pabgnh",
+  rc = sexp_extract_param (keyparms, NULL, "-pabgnh",
                                          &E.p, &E.a, &E.b, &mpi_g, &E.n, &E.h,
-                                         NULL));
+                                         NULL);
   if (rc == GPG_ERR_NO_OBJ)
     {
       /* This might be the second use case of checking whether a
@@ -787,10 +787,10 @@ _gcry_ecc_get_curve (gcry_sexp_t keyparms, int iterator, unsigned int *r_nbits)
 
 
 /* Helper to extract an MPI from key parameters.  */
-static gpg_err_code_t
+static gpg_error_t
 mpi_from_keyparam (gcry_mpi_t *r_a, gcry_sexp_t keyparam, const char *name)
 {
-  gcry_err_code_t ec = 0;
+  gpg_error_t ec = 0;
   gcry_sexp_t l1;
 
   l1 = sexp_find_token (keyparam, name, 0);
@@ -809,11 +809,11 @@ mpi_from_keyparam (gcry_mpi_t *r_a, gcry_sexp_t keyparam, const char *name)
    by appending ".x", ".y" and ".z" to NAME.  ".z" is in this case
    optional and defaults to 1.  EC is the context which at this point
    may not be fully initialized. */
-static gpg_err_code_t
+static gpg_error_t
 point_from_keyparam (gcry_mpi_point_t *r_a,
                      gcry_sexp_t keyparam, const char *name, mpi_ec_t ec)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_sexp_t l1;
   gcry_mpi_point_t point;
 
@@ -848,7 +848,7 @@ point_from_keyparam (gcry_mpi_point_t *r_a,
 
       tmpname = xtrymalloc (strlen (name) + 2 + 1);
       if (!tmpname)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       strcpy (stpcpy (tmpname, name), ".x");
       rc = mpi_from_keyparam (&x, keyparam, tmpname);
       if (rc)
@@ -900,11 +900,11 @@ point_from_keyparam (gcry_mpi_point_t *r_a,
    R_CTX.  On error NULL is stored at R_CTX and an error code is
    returned.  The context needs to be released using
    gcry_ctx_release.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_ec_new (gcry_ctx_t *r_ctx,
                   gcry_sexp_t keyparam, const char *curvename)
 {
-  gpg_err_code_t errc;
+  gpg_error_t errc;
   gcry_ctx_t ctx = NULL;
   enum gcry_mpi_ec_models model = MPI_EC_WEIERSTRASS;
   enum ecc_dialects dialect = ECC_DIALECT_STANDARD;
@@ -989,7 +989,7 @@ _gcry_mpi_ec_new (gcry_ctx_t *r_ctx,
       E = xtrycalloc (1, sizeof *E);
       if (!E)
         {
-          errc = gpg_err_code_from_syserror ();
+          errc = gpg_error_from_syserror ();
           xfree (name);
           goto leave;
         }
@@ -1251,10 +1251,10 @@ _gcry_ecc_get_point (const char *name, mpi_ec_t ec)
 
 
 /* Store the MPI NEWVALUE into the context EC under NAME. */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_set_mpi (const char *name, gcry_mpi_t newvalue, mpi_ec_t ec)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   if (!*name)
     ;
@@ -1323,7 +1323,7 @@ _gcry_ecc_set_mpi (const char *name, gcry_mpi_t newvalue, mpi_ec_t ec)
 
 
 /* Store the point NEWVALUE into the context EC under NAME.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_set_point (const char *name, gcry_mpi_point_t newvalue, mpi_ec_t ec)
 {
   if (!strcmp (name, "g"))

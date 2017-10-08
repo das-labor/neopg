@@ -200,7 +200,7 @@ prepare_dirmngr (ctrl_t ctrl, assuan_context_t ctx, gpg_error_t err)
     {
       err = assuan_transact (ctx, "OPTION audit-events=1",
 			     NULL, NULL, NULL, NULL, NULL, NULL);
-      if (gpg_err_code (err) == GPG_ERR_UNKNOWN_OPTION)
+      if (err == GPG_ERR_UNKNOWN_OPTION)
 	err = 0;  /* Allow the use of old dirmngr versions.  */
     }
   audit_log_ok (ctrl->audit, AUDIT_DIRMNGR_READY, err);
@@ -222,7 +222,7 @@ prepare_dirmngr (ctrl_t ctrl, assuan_context_t ctx, gpg_error_t err)
       assuan_transact (ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
       /* The code below is not required because we don't return an error.  */
       /* err = [above call]  */
-      /* if (gpg_err_code (err) == GPG_ERR_ASS_UNKNOWN_CMD) */
+      /* if (err == GPG_ERR_ASS_UNKNOWN_CMD) */
       /*   err = 0;  /\* Allow the use of old dirmngr versions.  *\/ */
 
       server = server->next;
@@ -239,7 +239,7 @@ start_dirmngr_ext (ctrl_t ctrl, assuan_context_t *ctx_r)
   assuan_context_t ctx;
 
   if (opt.disable_dirmngr || ctrl->offline)
-    return gpg_error (GPG_ERR_NO_DIRMNGR);
+    return GPG_ERR_NO_DIRMNGR;
 
   if (*ctx_r)
     return 0;
@@ -251,7 +251,7 @@ start_dirmngr_ext (ctrl_t ctrl, assuan_context_t *ctx_r)
                            opt.dirmngr_program,
                            opt.autostart, opt.verbose, DBG_IPC,
                            gpgsm_status2, ctrl);
-  if (!opt.autostart && gpg_err_code (err) == GPG_ERR_NO_DIRMNGR)
+  if (!opt.autostart && err == GPG_ERR_NO_DIRMNGR)
     {
       static int shown;
 
@@ -370,7 +370,7 @@ inq_certificate (void *opaque, const char *line)
       for (s=line,n=0; hexdigitp (s); s++, n++)
         ;
       if (*s || n != 40)
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
       for (s=line, n=0; n < 40; s++, n++)
         fpr[n] = (*s >= 'a')? (*s & 0xdf): *s;
       fpr[n] = 0;
@@ -384,7 +384,7 @@ inq_certificate (void *opaque, const char *line)
   else
     {
       log_error ("unsupported inquiry '%s'\n", line);
-      return gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      return GPG_ERR_ASS_UNKNOWN_INQUIRE;
     }
 
   if (!*line)
@@ -392,7 +392,7 @@ inq_certificate (void *opaque, const char *line)
       der = ksba_cert_get_image (issuer_mode? parm->issuer_cert : parm->cert,
                                  &derlen);
       if (!der)
-        rc = gpg_error (GPG_ERR_INV_CERT_OBJ);
+        rc = GPG_ERR_INV_CERT_OBJ;
       else
         rc = assuan_send_data (parm->ctx, der, derlen);
     }
@@ -400,7 +400,7 @@ inq_certificate (void *opaque, const char *line)
     {
       log_error ("sending specific issuer certificate back "
                  "is not yet implemented\n");
-      rc = gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
     }
   else
     { /* Send the given certificate. */
@@ -412,13 +412,13 @@ inq_certificate (void *opaque, const char *line)
       if (err)
         {
           log_error ("certificate not found: %s\n", gpg_strerror (err));
-          rc = gpg_error (GPG_ERR_NOT_FOUND);
+          rc = GPG_ERR_NOT_FOUND;
         }
       else
         {
           der = ksba_cert_get_image (cert, &derlen);
           if (!der)
-            rc = gpg_error (GPG_ERR_INV_CERT_OBJ);
+            rc = GPG_ERR_INV_CERT_OBJ;
           else
             rc = assuan_send_data (parm->ctx, der, derlen);
           ksba_cert_release (cert);
@@ -460,7 +460,7 @@ isvalid_status_cb (void *opaque, const char *line)
         {
           line = s;
           if (gpgsm_status (parm->ctrl, STATUS_PROGRESS, line))
-            return gpg_error (GPG_ERR_ASS_CANCELED);
+            return GPG_ERR_ASS_CANCELED;
         }
     }
   else if ((s = has_leading_keyword (line, "ONLY_VALID_IF_CERT_VALID")))
@@ -513,7 +513,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
         {
           log_error ("error getting the certificate ID\n");
 	  release_dirmngr (ctrl);
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
     }
 
@@ -565,7 +565,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
       if (stparm.seen != 1)
         {
           log_error ("communication problem with dirmngr detected\n");
-          rc = gpg_error (GPG_ERR_INV_CRL);
+          rc = GPG_ERR_INV_CRL;
         }
       else
         {
@@ -579,7 +579,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
 
               kh = sm_keydb_new ();
               if (!kh)
-                rc = gpg_error (GPG_ERR_ENOMEM);
+                rc = GPG_ERR_ENOMEM;
               if (!rc)
                 rc = sm_keydb_search_fpr (ctrl, kh, stparm.fpr);
               if (!rc)
@@ -588,7 +588,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
                 {
                   log_error ("unable to find the certificate used "
                              "by the dirmngr: %s\n", gpg_strerror (rc));
-                  rc = gpg_error (GPG_ERR_INV_CRL);
+                  rc = GPG_ERR_INV_CRL;
                 }
               sm_keydb_release (kh);
             }
@@ -597,7 +597,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
             {
               rc = gpgsm_cert_use_ocsp_p (rspcert);
               if (rc)
-                rc = gpg_error (GPG_ERR_INV_CRL);
+                rc = GPG_ERR_INV_CRL;
               else
                 {
                   /* Note the no_dirmngr flag: This avoids checking
@@ -608,7 +608,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
                     {
                       log_error ("invalid certificate used for CRL/OCSP: %s\n",
                                  gpg_strerror (rc));
-                      rc = gpg_error (GPG_ERR_INV_CRL);
+                      rc = GPG_ERR_INV_CRL;
                     }
                 }
             }
@@ -643,7 +643,7 @@ lookup_cb (void *opaque, const void *buffer, size_t length)
   buf = get_membuf (&parm->data, &len);
   if (!buf)
     {
-      parm->error = gpg_error (GPG_ERR_ENOMEM);
+      parm->error = GPG_ERR_ENOMEM;
       return 0;
     }
 
@@ -740,7 +740,7 @@ lookup_status_cb (void *opaque, const char *line)
         {
           line = s;
           if (gpgsm_status (parm->ctrl, STATUS_PROGRESS, line))
-            return gpg_error (GPG_ERR_ASS_CANCELED);
+            return GPG_ERR_ASS_CANCELED;
         }
     }
   else if ((s = has_leading_keyword (line, "TRUNCATED")))
@@ -871,7 +871,7 @@ get_cached_cert (assuan_context_t ctx,
       return err;
     }
   if (!buf)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   err = ksba_cert_new (&cert);
   if (err)
@@ -927,19 +927,19 @@ run_command_inq_cb (void *opaque, const char *line)
 
       line = s;
       if (!*line)
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
 
       err = gpgsm_find_cert (parm->ctrl, line, NULL, &cert);
       if (err)
         {
           log_error ("certificate not found: %s\n", gpg_strerror (err));
-          rc = gpg_error (GPG_ERR_NOT_FOUND);
+          rc = GPG_ERR_NOT_FOUND;
         }
       else
         {
           der = ksba_cert_get_image (cert, &derlen);
           if (!der)
-            rc = gpg_error (GPG_ERR_INV_CERT_OBJ);
+            rc = GPG_ERR_INV_CERT_OBJ;
           else
             rc = assuan_send_data (parm->ctx, der, derlen);
           ksba_cert_release (cert);
@@ -953,7 +953,7 @@ run_command_inq_cb (void *opaque, const char *line)
   else
     {
       log_error ("unsupported inquiry '%s'\n", line);
-      rc = gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
     }
 
   return rc;
@@ -975,7 +975,7 @@ run_command_status_cb (void *opaque, const char *line)
         {
           line = s;
           if (gpgsm_status (ctrl, STATUS_PROGRESS, line))
-            return gpg_error (GPG_ERR_ASS_CANCELED);
+            return GPG_ERR_ASS_CANCELED;
         }
     }
   return 0;

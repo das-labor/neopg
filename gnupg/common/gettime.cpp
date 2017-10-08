@@ -852,16 +852,16 @@ check_isotime (const gnupg_isotime_t atime)
   const char *s;
 
   if (!*atime)
-    return gpg_error (GPG_ERR_NO_VALUE);
+    return GPG_ERR_NO_VALUE;
 
   for (s=atime, i=0; i < 8; i++, s++)
     if (!digitp (s))
-      return gpg_error (GPG_ERR_INV_TIME);
+      return GPG_ERR_INV_TIME;
   if (*s != 'T')
-      return gpg_error (GPG_ERR_INV_TIME);
+      return GPG_ERR_INV_TIME;
   for (s++, i=9; i < 15; i++, s++)
     if (!digitp (s))
-      return gpg_error (GPG_ERR_INV_TIME);
+      return GPG_ERR_INV_TIME;
   return 0;
 }
 
@@ -910,7 +910,7 @@ add_seconds_to_isotime (gnupg_isotime_t atime, int nseconds)
     return err;
 
   if (nseconds < 0 || nseconds >= (0x7fffffff - 61) )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   year  = atoi_4 (atime+0);
   month = atoi_2 (atime+4);
@@ -920,7 +920,7 @@ add_seconds_to_isotime (gnupg_isotime_t atime, int nseconds)
   sec   = atoi_2 (atime+13);
 
   if (year <= 1582) /* The julian date functions don't support this. */
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   sec    += nseconds;
   minute += sec/60;
@@ -935,7 +935,7 @@ add_seconds_to_isotime (gnupg_isotime_t atime, int nseconds)
 
   if (year > 9999 || month > 12 || day > 31
       || year < 0 || month < 1 || day < 1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   snprintf (atime, 16, "%04d%02d%02dT%02d%02d%02d",
             year, month, day, hour, minute, sec);
@@ -955,7 +955,7 @@ add_days_to_isotime (gnupg_isotime_t atime, int ndays)
     return err;
 
   if (ndays < 0 || ndays >= 9999*366 )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   year  = atoi_4 (atime+0);
   month = atoi_2 (atime+4);
@@ -965,14 +965,14 @@ add_days_to_isotime (gnupg_isotime_t atime, int ndays)
   sec   = atoi_2 (atime+13);
 
   if (year <= 1582) /* The julian date functions don't support this. */
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   jd = date2jd (year, month, day) + ndays;
   jd2date (jd, &year, &month, &day);
 
   if (year > 9999 || month > 12 || day > 31
       || year < 0 || month < 1 || day < 1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   snprintf (atime, 16, "%04d%02d%02dT%02d%02d%02d",
             year, month, day, hour, minute, sec);

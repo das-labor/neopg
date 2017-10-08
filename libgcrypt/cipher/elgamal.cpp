@@ -67,7 +67,7 @@ static const char *elg_names[] =
 
 static int test_keys (ELG_secret_key *sk, unsigned int nbits, int nodie);
 static gcry_mpi_t gen_k (gcry_mpi_t p, int small_k);
-static gcry_err_code_t generate (ELG_secret_key *sk, unsigned nbits,
+static gpg_error_t generate (ELG_secret_key *sk, unsigned nbits,
                                  gcry_mpi_t **factors);
 static int  check_secret_key (ELG_secret_key *sk);
 static void do_encrypt (gcry_mpi_t a, gcry_mpi_t b, gcry_mpi_t input,
@@ -275,10 +275,10 @@ gen_k( gcry_mpi_t p, int small_k )
  * Returns: 2 structures filled with all needed values
  *	    and an array with n-1 factors of (p-1)
  */
-static gcry_err_code_t
+static gpg_error_t
 generate ( ELG_secret_key *sk, unsigned int nbits, gcry_mpi_t **ret_factors )
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t p;    /* the prime */
   gcry_mpi_t p_min1;
   gcry_mpi_t g;
@@ -385,11 +385,11 @@ generate ( ELG_secret_key *sk, unsigned int nbits, gcry_mpi_t **ret_factors )
 
    Returns: A structure filled with all needed values and an array
  	    with n-1 factors of (p-1).  */
-static gcry_err_code_t
+static gpg_error_t
 generate_using_x (ELG_secret_key *sk, unsigned int nbits, gcry_mpi_t x,
                   gcry_mpi_t **ret_factors )
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t p;      /* The prime.  */
   gcry_mpi_t p_min1; /* The prime minus 1.  */
   gcry_mpi_t g;      /* The generator.  */
@@ -681,10 +681,10 @@ verify(gcry_mpi_t a, gcry_mpi_t b, gcry_mpi_t input, ELG_public_key *pkey )
  **************  interface  ******************
  *********************************************/
 
-static gpg_err_code_t
+static gpg_error_t
 elg_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned int nbits;
   ELG_secret_key sk;
   gcry_mpi_t xvalue = NULL;
@@ -731,13 +731,13 @@ elg_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
       arg_list = xtrycalloc (nfac+1, sizeof *arg_list);
       if (!arg_list)
         {
-          rc = gpg_err_code_from_syserror ();
+          rc = gpg_error_from_syserror ();
           goto leave;
         }
       buffer = xtrymalloc (30 + nfac*2 + 2 + 1);
       if (!buffer)
         {
-          rc = gpg_err_code_from_syserror ();
+          rc = gpg_error_from_syserror ();
           xfree (arg_list);
           goto leave;
         }
@@ -784,10 +784,10 @@ elg_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 elg_check_secret_key (gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   ELG_secret_key sk = {NULL, NULL, NULL, NULL};
 
   rc = sexp_extract_param (keyparms, NULL, "pgyx",
@@ -810,10 +810,10 @@ elg_check_secret_key (gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 elg_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t mpi_a = NULL;
   gcry_mpi_t mpi_b = NULL;
@@ -867,10 +867,10 @@ elg_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 elg_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t data_a = NULL;
@@ -968,10 +968,10 @@ elg_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 elg_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t data = NULL;
   ELG_secret_key sk = {NULL, NULL, NULL, NULL};
@@ -1032,10 +1032,10 @@ elg_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 elg_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t s_keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t sig_r = NULL;

@@ -52,7 +52,7 @@ get_inv_recpsgnr_code (gpg_error_t err)
 {
   const char *errstr;
 
-  switch (gpg_err_code (err))
+  switch (err)
     {
     case GPG_ERR_NO_PUBKEY:       errstr = "1"; break;
     case GPG_ERR_AMBIGUOUS_NAME:  errstr = "2"; break;

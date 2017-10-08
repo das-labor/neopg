@@ -43,7 +43,7 @@ void _gcry_update_random_seed_file (void);
 byte *_gcry_get_random_bits( size_t nbits, int level, int secure );
 void _gcry_fast_random_poll( void );
 
-gcry_err_code_t _gcry_random_init_external_test (void **r_context,
+gpg_error_t _gcry_random_init_external_test (void **r_context,
                                                  unsigned int flags,
                                                  const void *key,
                                                  size_t keylen,
@@ -51,16 +51,16 @@ gcry_err_code_t _gcry_random_init_external_test (void **r_context,
                                                  size_t seedlen,
                                                  const void *dt,
                                                  size_t dtlen);
-gcry_err_code_t _gcry_random_run_external_test (void *context,
+gpg_error_t _gcry_random_run_external_test (void *context,
                                                 char *buffer, size_t buflen);
 void            _gcry_random_deinit_external_test (void *context);
 
 /*-- random-drbg.c --*/
-gpg_err_code_t _gcry_rngdrbg_reinit (const char *flagstr,
+gpg_error_t _gcry_rngdrbg_reinit (const char *flagstr,
                                      gcry_buffer_t *pers, int npers);
-gpg_err_code_t _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *t,
+gpg_error_t _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *t,
                                         unsigned char *buf);
-gpg_err_code_t _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector *t);
+gpg_error_t _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector *t);
 
 /*-- rndegd.c --*/
 gpg_error_t _gcry_rndegd_set_socket_name (const char *name);

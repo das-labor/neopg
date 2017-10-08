@@ -1869,7 +1869,7 @@ apdu_dev_list_start (const char *portstr, struct dev_list **l_p)
 
               xfree (dl);
               npth_mutex_unlock (&reader_table_lock);
-              return gpg_error (GPG_ERR_ENODEV);
+              return GPG_ERR_ENODEV;
             }
           else
             dl->idx_max = 1;

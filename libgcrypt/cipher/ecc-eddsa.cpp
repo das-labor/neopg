@@ -50,7 +50,7 @@ reverse_buffer (unsigned char *buffer, unsigned int length)
 static gcry_mpi_t
 scanval (const char *string)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t val;
 
   rc = _gcry_mpi_scan (&val, GCRYMPI_FMT_HEX, string, 0, NULL);
@@ -65,7 +65,7 @@ scanval (const char *string)
    length of the buffer in bytes.  On success 0 is returned an a
    malloced buffer with the encoded point is stored at R_BUFFER; the
    length of this buffer is stored at R_BUFLEN.  */
-static gpg_err_code_t
+static gpg_error_t
 eddsa_encodempi (gcry_mpi_t mpi, unsigned int minlen,
                  unsigned char **r_buffer, unsigned int *r_buflen)
 {
@@ -74,7 +74,7 @@ eddsa_encodempi (gcry_mpi_t mpi, unsigned int minlen,
 
   rawmpi = _gcry_mpi_get_buffer (mpi, minlen, &rawmpilen, NULL);
   if (!rawmpi)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   *r_buffer = rawmpi;
   *r_buflen = rawmpilen;
@@ -87,7 +87,7 @@ eddsa_encodempi (gcry_mpi_t mpi, unsigned int minlen,
    is prefixed with a 0x40 byte.  On success 0 is returned and a
    malloced buffer with the encoded point is stored at R_BUFFER; the
    length of this buffer is stored at R_BUFLEN.  */
-static gpg_err_code_t
+static gpg_error_t
 eddsa_encode_x_y (gcry_mpi_t x, gcry_mpi_t y, unsigned int minlen,
                   int with_prefix,
                   unsigned char **r_buffer, unsigned int *r_buflen)
@@ -98,7 +98,7 @@ eddsa_encode_x_y (gcry_mpi_t x, gcry_mpi_t y, unsigned int minlen,
 
   rawmpi = _gcry_mpi_get_buffer_extra (y, minlen, off?-1:0, &rawmpilen, NULL);
   if (!rawmpi)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   if (mpi_test_bit (x, 0) && rawmpilen)
     rawmpi[off + rawmpilen - 1] |= 0x80;  /* Set sign bit.  */
   if (off)
@@ -115,13 +115,13 @@ eddsa_encode_x_y (gcry_mpi_t x, gcry_mpi_t y, unsigned int minlen,
    with a 0x40 byte.  On success 0 is returned and a malloced buffer
    with the encoded point is stored at R_BUFFER; the length of this
    buffer is stored at R_BUFLEN.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_encodepoint (mpi_point_t point, mpi_ec_t ec,
                              gcry_mpi_t x_in, gcry_mpi_t y_in,
                              int with_prefix,
                              unsigned char **r_buffer, unsigned int *r_buflen)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t x, y;
 
   x = x_in? x_in : mpi_new (0);
@@ -145,10 +145,10 @@ _gcry_ecc_eddsa_encodepoint (mpi_point_t point, mpi_ec_t ec,
 
 /* Make sure that the opaque MPI VALUE is in compact EdDSA format.
    This function updates MPI if needed.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_ensure_compact (gcry_mpi_t value, unsigned int nbits)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   const unsigned char *buf;
   unsigned int rawmpilen;
   gcry_mpi_t x, y;
@@ -194,7 +194,7 @@ _gcry_ecc_eddsa_ensure_compact (gcry_mpi_t value, unsigned int nbits)
              indicator.  Remove that byte.  FIXME: We should write and
              use a function to manipulate an opaque MPI in place. */
           if (!_gcry_mpi_set_opaque_copy (value, buf + 1, (rawmpilen - 1)*8))
-            return gpg_err_code_from_syserror ();
+            return gpg_error_from_syserror ();
         }
     }
 
@@ -203,10 +203,10 @@ _gcry_ecc_eddsa_ensure_compact (gcry_mpi_t value, unsigned int nbits)
 
 
 /* Recover X from Y and SIGN (which actually is a parity bit).  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_recover_x (gcry_mpi_t x, gcry_mpi_t y, int sign, mpi_ec_t ec)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_mpi_t u, v, v3, t;
   static gcry_mpi_t p58, seven;
 
@@ -287,11 +287,11 @@ _gcry_ecc_eddsa_recover_x (gcry_mpi_t x, gcry_mpi_t y, int sign, mpi_ec_t ec)
    caller.  In contrast to the supplied PK, this is not an MPI and
    thus guaranteed to be properly padded.  R_ENCPKLEN receives the
    length of that encoded key.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
                              unsigned char **r_encpk, unsigned int *r_encpklen)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned char *rawmpi;
   unsigned int rawmpilen;
   int sign;
@@ -358,7 +358,7 @@ _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
       /* EdDSA compressed point.  */
       rawmpi = xtrymalloc (rawmpilen? rawmpilen:1);
       if (!rawmpi)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       memcpy (rawmpi, buf, rawmpilen);
       reverse_buffer (rawmpi, rawmpilen);
     }
@@ -369,7 +369,7 @@ _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
          uncompressed format.  Thus we expect native EdDSA format.  */
       rawmpi = _gcry_mpi_get_buffer (pk, ctx->nbits/8, &rawmpilen, NULL);
       if (!rawmpi)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
     }
 
   if (rawmpilen)
@@ -405,11 +405,11 @@ _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
    returns a newly allocated 64 byte buffer at r_digest; the first 32
    bytes represent the A value.  NULL is returned on error and NULL
    stored at R_DIGEST.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_compute_h_d (unsigned char **r_digest,
                              gcry_mpi_t d, mpi_ec_t ec)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned char *rawmpi = NULL;
   unsigned int rawmpilen;
   unsigned char *digest;
@@ -430,7 +430,7 @@ _gcry_ecc_eddsa_compute_h_d (unsigned char **r_digest,
      the key with zeroes for hashing.  */
   digest = xtrycalloc_secure (2, b);
   if (!digest)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   memset (hvec, 0, sizeof hvec);
 
@@ -438,7 +438,7 @@ _gcry_ecc_eddsa_compute_h_d (unsigned char **r_digest,
   if (!rawmpi)
     {
       xfree (digest);
-      return gpg_err_code_from_syserror ();
+      return gpg_error_from_syserror ();
     }
 
   hvec[0].data = digest;
@@ -478,11 +478,11 @@ _gcry_ecc_eddsa_compute_h_d (unsigned char **r_digest,
  * The only @flags bit used by this function is %PUBKEY_FLAG_TRANSIENT
  * to use a faster RNG.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_genkey (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
                         int flags)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   int b = 256/8;             /* The only size we currently support.  */
   gcry_mpi_t a, x, y;
   mpi_point_struct Q;
@@ -508,7 +508,7 @@ _gcry_ecc_eddsa_genkey (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
   hash_d = xtrymalloc_secure (2*b);
   if (!hash_d)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
   dlen = b;
@@ -572,7 +572,7 @@ _gcry_ecc_eddsa_genkey (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
  * Return the signature struct (r,s) from the message hash.  The caller
  * must have allocated R_R and S.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_sign (gcry_mpi_t input, ECC_secret_key *skey,
                       gcry_mpi_t r_r, gcry_mpi_t s, int hashalgo, gcry_mpi_t pk)
 {
@@ -724,7 +724,7 @@ _gcry_ecc_eddsa_sign (gcry_mpi_t input, ECC_secret_key *skey,
  * Check if R_IN and S_IN verifies INPUT.  PKEY has the curve
  * parameters and PK is the EdDSA style encoded public key.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_eddsa_verify (gcry_mpi_t input, ECC_public_key *pkey,
                         gcry_mpi_t r_in, gcry_mpi_t s_in, int hashalgo,
                         gcry_mpi_t pk)

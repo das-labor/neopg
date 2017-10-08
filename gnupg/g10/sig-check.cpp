@@ -140,7 +140,7 @@ check_signature2 (ctrl_t ctrl,
 		    " while in %s mode\n"),
 		  gcry_md_algo_name (sig->digest_algo),
 		  gnupg_compliance_option_string (opt.compliance));
-	rc = gpg_error (GPG_ERR_DIGEST_ALGO);
+	rc = GPG_ERR_DIGEST_ALGO;
       }
     else if ((rc=openpgp_pk_test_algo(sig->pubkey_algo)))
       ; /* We don't have this pubkey algo. */
@@ -152,10 +152,10 @@ check_signature2 (ctrl_t ctrl,
 	   header is missing or does not match the actual sig. */
 
         log_info(_("WARNING: signature digest conflict in message\n"));
-	rc = gpg_error (GPG_ERR_GENERAL);
+	rc = GPG_ERR_GENERAL;
       }
     else if( get_pubkey (ctrl, pk, sig->keyid ) )
-      rc = gpg_error (GPG_ERR_NO_PUBKEY);
+      rc = GPG_ERR_NO_PUBKEY;
     else if (! gnupg_pk_is_allowed (opt.compliance, PK_USE_VERIFICATION,
 				    pk->pubkey_algo, pk->pkey,
                                     nbits_from_pk (pk),
@@ -166,12 +166,12 @@ check_signature2 (ctrl_t ctrl,
                     " while in %s mode\n"),
 		  keystr_from_pk (pk),
                   gnupg_compliance_option_string (opt.compliance));
-	rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+	rc = GPG_ERR_PUBKEY_ALGO;
       }
     else if(!pk->flags.valid)
       {
         /* You cannot have a good sig from an invalid key.  */
-        rc = gpg_error (GPG_ERR_BAD_PUBKEY);
+        rc = GPG_ERR_BAD_PUBKEY;
       }
     else
       {
@@ -198,13 +198,13 @@ check_signature2 (ctrl_t ctrl,
                      error.  TODO: change the default to require this
                      after more keys have backsigs. */
 		if(opt.flags.require_cross_cert)
-		  rc = gpg_error (GPG_ERR_GENERAL);
+		  rc = GPG_ERR_GENERAL;
 	      }
 	    else if(pk->flags.backsig == 1)
 	      {
 		log_info(_("WARNING: signing subkey %s has an invalid"
 			   " cross-certification\n"),keystr_from_pk(pk));
-		rc = gpg_error (GPG_ERR_GENERAL);
+		rc = GPG_ERR_GENERAL;
 	      }
 	  }
       }
@@ -563,7 +563,7 @@ cache_sig_result ( PKT_signature *sig, int result )
         sig->flags.checked = 1;
         sig->flags.valid = 1;
     }
-    else if ( gpg_err_code (result) == GPG_ERR_BAD_SIGNATURE ) {
+    else if ( result == GPG_ERR_BAD_SIGNATURE ) {
         sig->flags.checked = 1;
         sig->flags.valid = 0;
     }
@@ -709,7 +709,7 @@ check_backsig (PKT_public_key *main_pk,PKT_public_key *sub_pk,
     return rc;
 
   if(!opt.no_sig_cache && backsig->flags.checked)
-    return backsig->flags.valid? 0 : gpg_error (GPG_ERR_BAD_SIGNATURE);
+    return backsig->flags.valid? 0 : GPG_ERR_BAD_SIGNATURE;
 
   rc = gcry_md_open (&md, backsig->digest_algo,0);
   if (!rc)
@@ -799,7 +799,7 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
     {
       if (packet->pkttype != PKT_PUBLIC_KEY)
         /* Key revocations can only be over primary keys.  */
-        return gpg_error (GPG_ERR_SIG_CLASS);
+        return GPG_ERR_SIG_CLASS;
     }
   else if (/* Subkey binding.  */
            sig->sig_class == 0x18
@@ -807,7 +807,7 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
            || sig->sig_class == 0x28)
     {
       if (packet->pkttype != PKT_PUBLIC_SUBKEY)
-        return gpg_error (GPG_ERR_SIG_CLASS);
+        return GPG_ERR_SIG_CLASS;
     }
   else if (/* Certification.  */
            sig->sig_class == 0x10
@@ -818,10 +818,10 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
            || sig->sig_class == 0x30)
     {
       if (packet->pkttype != PKT_USER_ID)
-        return gpg_error (GPG_ERR_SIG_CLASS);
+        return GPG_ERR_SIG_CLASS;
     }
   else
-    return gpg_error (GPG_ERR_SIG_CLASS);
+    return GPG_ERR_SIG_CLASS;
 
   /* PACKET is the right type for SIG.  */
 
@@ -1056,7 +1056,7 @@ check_key_signature2 (ctrl_t ctrl,
               return 0;
             }
           cache_stats.badsig++;
-          return gpg_error (GPG_ERR_BAD_SIGNATURE);
+          return GPG_ERR_BAD_SIGNATURE;
         }
     }
 
@@ -1158,7 +1158,7 @@ check_key_signature2 (ctrl_t ctrl,
                 " is not valid over a user id or a key id, ignoring.\n",
                 keystr (sig->keyid), sig->sig_class,
                 sig->digest_start[0], sig->digest_start[1]);
-      rc = gpg_error (GPG_ERR_BAD_SIGNATURE);
+      rc = GPG_ERR_BAD_SIGNATURE;
     }
 
   cache_sig_result  (sig, rc);

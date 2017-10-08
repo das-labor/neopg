@@ -61,37 +61,37 @@ gpgrt_set_alloc_func (void *(*f)(void *a, size_t n))
 }
 
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_lock_init (gpgrt_lock_t *lockhd)
 {
   return _gpgrt_lock_init (lockhd);
 }
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_lock_lock (gpgrt_lock_t *lockhd)
 {
   return _gpgrt_lock_lock (lockhd);
 }
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_lock_trylock (gpgrt_lock_t *lockhd)
 {
   return _gpgrt_lock_trylock (lockhd);
 }
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_lock_unlock (gpgrt_lock_t *lockhd)
 {
   return _gpgrt_lock_unlock (lockhd);
 }
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_lock_destroy (gpgrt_lock_t *lockhd)
 {
   return _gpgrt_lock_destroy (lockhd);
 }
 
-gpg_err_code_t
+gpg_error_t
 gpgrt_yield (void)
 {
   return _gpgrt_yield ();

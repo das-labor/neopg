@@ -131,7 +131,7 @@ print_and_check_one_sig_colon (ctrl_t ctrl, kbnode_t keyblock, kbnode_t node,
      issued it.  See also keylist.c:list_keyblock_print */
 
   rc = check_key_signature (ctrl, keyblock, node, is_selfsig);
-  switch (gpg_err_code (rc))
+  switch (rc)
     {
     case 0:
       node->flag &= ~(NODFLG_BADSIG | NODFLG_NOKEY | NODFLG_SIGERR);
@@ -204,7 +204,7 @@ keyedit_print_one_sig (ctrl_t ctrl, int rc, kbnode_t keyblock, kbnode_t node,
   /* TODO: Make sure a cached sig record here still has the pk that
      issued it.  See also keylist.c:list_keyblock_print */
 
-  switch (gpg_err_code (rc))
+  switch (rc)
     {
     case 0:
       node->flag &= ~(NODFLG_BADSIG | NODFLG_NOKEY | NODFLG_SIGERR);
@@ -1071,7 +1071,7 @@ change_passphrase (ctrl_t ctrl, kbnode_t keyblock)
   if (!node)
     {
       log_error ("Oops; public key missing!\n");
-      err = gpg_error (GPG_ERR_INTERNAL);
+      err = GPG_ERR_INTERNAL;
       goto leave;
     }
   pk = node->pkt->pkt.public_key;
@@ -1096,7 +1096,7 @@ change_passphrase (ctrl_t ctrl, kbnode_t keyblock)
           err = agent_get_keyinfo (ctrl, hexgrip, &serialno, NULL);
           if (!err && serialno)
             ; /* Key on card.  */
-          else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+          else if (err == GPG_ERR_NOT_FOUND)
             ; /* Maybe stub key. */
           else if (!err)
             any = 1; /* Key is known.  */
@@ -1136,13 +1136,13 @@ change_passphrase (ctrl_t ctrl, kbnode_t keyblock)
           xfree (desc);
 
           if (err)
-            log_log ((gpg_err_code (err) == GPG_ERR_CANCELED
-                      || gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+            log_log ((err == GPG_ERR_CANCELED
+                      || err == GPG_ERR_FULLY_CANCELED)
                      ? GPGRT_LOG_INFO : GPGRT_LOG_ERROR,
                      _("key %s: error changing passphrase: %s\n"),
                        keystr_with_sub (keyid, subid),
                        gpg_strerror (err));
-          if (gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+          if (err == GPG_ERR_FULLY_CANCELED)
             break;
         }
     }
@@ -1991,7 +1991,7 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
 	  break;
 
 	case cmdEXPIRE:
-	  if (gpg_err_code (menu_expire (ctrl, keyblock, 0, 0)) == GPG_ERR_TRUE)
+	  if (menu_expire (ctrl, keyblock, 0, 0) == GPG_ERR_TRUE)
 	    {
 	      merge_keys_and_selfsig (ctrl, keyblock);
               run_subkey_warnings = 1;
@@ -2293,8 +2293,8 @@ quick_find_keyblock (ctrl_t ctrl, const char *username,
       keydb_push_found_state (kdbhd);
       err = keydb_search (kdbhd, &desc, 1, NULL);
       if (!err)
-        err = gpg_error (GPG_ERR_AMBIGUOUS_NAME);
-      else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+        err = GPG_ERR_AMBIGUOUS_NAME;
+      else if (err == GPG_ERR_NOT_FOUND)
         err = 0;
       keydb_pop_found_state (kdbhd);
 
@@ -2306,8 +2306,8 @@ quick_find_keyblock (ctrl_t ctrl, const char *username,
           err = agent_probe_secret_key (ctrl, node->pkt->pkt.public_key);
         }
     }
-  else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
-    err = gpg_error (GPG_ERR_NO_PUBKEY);
+  else if (err == GPG_ERR_NOT_FOUND)
+    err = GPG_ERR_NO_PUBKEY;
 
   if (err)
     {
@@ -2426,7 +2426,7 @@ keyedit_quick_revuid (ctrl_t ctrl, const char *username, const char *uidtorev)
               && ! node->pkt->pkt.user_id->flags.expired)
             {
               log_error (_("cannot revoke the last valid user ID.\n"));
-              err = gpg_error (GPG_ERR_INV_USER_ID);
+              err = GPG_ERR_INV_USER_ID;
               goto leave;
             }
 
@@ -2446,7 +2446,7 @@ keyedit_quick_revuid (ctrl_t ctrl, const char *username, const char *uidtorev)
           goto leave;
         }
     }
-  err = gpg_error (GPG_ERR_NO_USER_ID);
+  err = GPG_ERR_NO_USER_ID;
 
 
  leave:
@@ -2499,7 +2499,7 @@ keyedit_quick_set_primary (ctrl_t ctrl, const char *username,
     }
 
   if (!any)
-    err = gpg_error (GPG_ERR_NO_USER_ID);
+    err = GPG_ERR_NO_USER_ID;
   else if (menu_set_primary_uid (ctrl, keyblock))
     {
       merge_keys_and_selfsig (ctrl, keyblock);
@@ -2512,7 +2512,7 @@ keyedit_quick_set_primary (ctrl_t ctrl, const char *username,
       revalidation_mark (ctrl);
     }
   else
-    err = gpg_error (GPG_ERR_GENERAL);
+    err = GPG_ERR_GENERAL;
 
   if (err)
     log_error (_("setting the primary user ID failed: %s\n"),
@@ -2547,7 +2547,7 @@ find_by_primary_fpr (ctrl_t ctrl, const char *fpr,
            || desc.mode == KEYDB_SEARCH_MODE_FPR20))
     {
       log_error (_("\"%s\" is not a fingerprint\n"), fpr);
-      err = gpg_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
       goto leave;
     }
   err = get_pubkey_byname (ctrl, NULL, NULL, fpr, &keyblock, &kdbhd, 1, 1);
@@ -2576,7 +2576,7 @@ find_by_primary_fpr (ctrl_t ctrl, const char *fpr,
   else
     {
       log_error (_("\"%s\" is not the primary fingerprint\n"), fpr);
-      err = gpg_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
       goto leave;
     }
 
@@ -2842,7 +2842,7 @@ keyedit_quick_set_expire (ctrl_t ctrl, const char *fpr, const char *expirestr)
       if (!opt.verbose)
         show_key_with_all_names (ctrl, es_stdout, keyblock, 0, 0, 0, 0, 0, 1);
       log_error ("%s%s", _("Key is revoked."), "\n");
-      err = gpg_error (GPG_ERR_CERT_REVOKED);
+      err = GPG_ERR_CERT_REVOKED;
       goto leave;
     }
 
@@ -2851,7 +2851,7 @@ keyedit_quick_set_expire (ctrl_t ctrl, const char *fpr, const char *expirestr)
   if (expire == (u32)-1 )
     {
       log_error (_("'%s' is not a valid expiration time\n"), expirestr);
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
   if (expire)
@@ -2859,7 +2859,7 @@ keyedit_quick_set_expire (ctrl_t ctrl, const char *fpr, const char *expirestr)
 
   /* Set the new expiration date.  */
   err = menu_expire (ctrl, keyblock, 1, expire);
-  if (gpg_err_code (err) == GPG_ERR_TRUE)
+  if (err == GPG_ERR_TRUE)
     modified = 1;
   else if (err)
     goto leave;
@@ -3868,7 +3868,7 @@ menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
     {
       if (uidstring)
         {
-          write_status_error ("adduid", gpg_error (304));
+          write_status_error ("adduid", 304);
           log_error ("%s", _("Such a user ID already exists on this key!\n"));
         }
       return 0;
@@ -4313,7 +4313,7 @@ menu_expire (ctrl_t ctrl, kbnode_t pub_keyblock,
               ("keyedit.expire_multiple_subkeys.okay",
                _("Are you sure you want to change the"
                  " expiration time for multiple subkeys? (y/N) ")))
-            return gpg_error (GPG_ERR_CANCELED);;
+            return GPG_ERR_CANCELED;;
         }
       else if (n1)
         tty_printf (_("Changing expiration time for a subkey.\n"));
@@ -4374,7 +4374,7 @@ menu_expire (ctrl_t ctrl, kbnode_t pub_keyblock,
 		{
 		  log_info
                     (_("You can't change the expiration date of a v3 key\n"));
-		  return gpg_error (GPG_ERR_LEGACY_KEY);
+		  return GPG_ERR_LEGACY_KEY;
 		}
 
 	      if (mainkey)
@@ -4391,7 +4391,7 @@ menu_expire (ctrl_t ctrl, kbnode_t pub_keyblock,
 		{
 		  log_error ("make_keysig_packet failed: %s\n",
 			     gpg_strerror (rc));
-                  if (gpg_err_code (rc) == GPG_ERR_TRUE)
+                  if (rc == GPG_ERR_TRUE)
                     rc = GPG_ERR_GENERAL;
 		  return rc;
 		}
@@ -4409,7 +4409,7 @@ menu_expire (ctrl_t ctrl, kbnode_t pub_keyblock,
     }
 
   update_trust = 1;
-  return gpg_error (GPG_ERR_TRUE);
+  return GPG_ERR_TRUE;
 }
 
 
@@ -5812,7 +5812,7 @@ core_revuid (ctrl_t ctrl, kbnode_t keyblock, KBNODE node,
 
   if (node->pkt->pkttype != PKT_USER_ID)
     {
-      rc = gpg_error (GPG_ERR_NO_USER_ID);
+      rc = GPG_ERR_NO_USER_ID;
       write_status_error ("keysig", rc);
       log_error (_("tried to revoke a non-user ID: %s\n"), gpg_strerror (rc));
       return 1;

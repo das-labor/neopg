@@ -117,7 +117,7 @@ static gcry_mac_spec_t *mac_list[] = {
 };
 
 /* Explicitly initialize this module.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_init (void)
 {
   if (fips_mode())
@@ -201,7 +201,7 @@ _gcry_mac_algo_name (int algorithm)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 check_mac_algo (int algorithm)
 {
   gcry_mac_spec_t *spec;
@@ -217,11 +217,11 @@ check_mac_algo (int algorithm)
 /****************
  * Open a message digest handle for use with algorithm ALGO.
  */
-static gcry_err_code_t
+static gpg_error_t
 mac_open (gcry_mac_hd_t * hd, int algo, int secure, gcry_ctx_t ctx)
 {
   gcry_mac_spec_t *spec;
-  gcry_err_code_t err;
+  gpg_error_t err;
   gcry_mac_hd_t h;
 
   spec = spec_from_algo (algo);
@@ -241,7 +241,7 @@ mac_open (gcry_mac_hd_t * hd, int algo, int secure, gcry_ctx_t ctx)
     h = xtrycalloc (1, sizeof (*h));
 
   if (!h)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   h->magic = secure ? CTX_MAGIC_SECURE : CTX_MAGIC_NORMAL;
   h->spec = spec;
@@ -258,7 +258,7 @@ mac_open (gcry_mac_hd_t * hd, int algo, int secure, gcry_ctx_t ctx)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_reset (gcry_mac_hd_t hd)
 {
   if (hd->spec->ops->reset)
@@ -280,7 +280,7 @@ mac_close (gcry_mac_hd_t hd)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_setkey (gcry_mac_hd_t hd, const void *key, size_t keylen)
 {
   if (!hd->spec->ops->setkey)
@@ -292,7 +292,7 @@ mac_setkey (gcry_mac_hd_t hd, const void *key, size_t keylen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_setiv (gcry_mac_hd_t hd, const void *iv, size_t ivlen)
 {
   if (!hd->spec->ops->setiv)
@@ -304,7 +304,7 @@ mac_setiv (gcry_mac_hd_t hd, const void *iv, size_t ivlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_write (gcry_mac_hd_t hd, const void *inbuf, size_t inlen)
 {
   if (!hd->spec->ops->write)
@@ -316,7 +316,7 @@ mac_write (gcry_mac_hd_t hd, const void *inbuf, size_t inlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_read (gcry_mac_hd_t hd, void *outbuf, size_t * outlen)
 {
   if (!outbuf || !outlen || *outlen == 0 || !hd->spec->ops->read)
@@ -326,7 +326,7 @@ mac_read (gcry_mac_hd_t hd, void *outbuf, size_t * outlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 mac_verify (gcry_mac_hd_t hd, const void *buf, size_t buflen)
 {
   if (!buf || buflen == 0 || !hd->spec->ops->verify)
@@ -339,11 +339,11 @@ mac_verify (gcry_mac_hd_t hd, const void *buf, size_t buflen)
 /* Create a MAC object for algorithm ALGO.  FLAGS may be
    given as an bitwise OR of the gcry_mac_flags values.
    H is guaranteed to be a valid handle or NULL on error.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_mac_open (gcry_mac_hd_t * h, int algo, unsigned int flags,
                 gcry_ctx_t ctx)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_mac_hd_t hd = NULL;
 
   if ((flags & ~GCRY_MAC_FLAG_SECURE))
@@ -364,35 +364,35 @@ _gcry_mac_close (gcry_mac_hd_t hd)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_setkey (gcry_mac_hd_t hd, const void *key, size_t keylen)
 {
   return mac_setkey (hd, key, keylen);
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_setiv (gcry_mac_hd_t hd, const void *iv, size_t ivlen)
 {
   return mac_setiv (hd, iv, ivlen);
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_write (gcry_mac_hd_t hd, const void *inbuf, size_t inlen)
 {
   return mac_write (hd, inbuf, inlen);
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_read (gcry_mac_hd_t hd, void *outbuf, size_t * outlen)
 {
   return mac_read (hd, outbuf, outlen);
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_verify (gcry_mac_hd_t hd, const void *buf, size_t buflen)
 {
   return mac_verify (hd, buf, buflen);
@@ -432,10 +432,10 @@ _gcry_mac_get_algo_keylen (int algo)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_ctl (gcry_mac_hd_t hd, int cmd, void *buffer, size_t buflen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   /* Currently not used.  */
   (void) hd;
@@ -466,10 +466,10 @@ _gcry_mac_ctl (gcry_mac_hd_t hd, int cmd, void *buffer, size_t buflen)
    and thereby detecting whether a error occurred or not (i.e. while
    checking the block size)
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mac_algo_info (int algo, int what, void *buffer, size_t * nbytes)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   unsigned int ui;
 
   switch (what)

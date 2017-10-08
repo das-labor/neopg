@@ -501,7 +501,7 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
       err = get_dns_srv (name, srvtag, NULL, &srvs, &srvscount);
       if (err)
         {
-          if (gpg_err_code (err) == GPG_ERR_ECONNREFUSED)
+          if (err == GPG_ERR_ECONNREFUSED)
             tor_not_running_p (ctrl);
           return err;
         }
@@ -608,7 +608,7 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
                   xfree (*r_httphost);
                   *r_httphost = NULL;
                 }
-              return gpg_error (GPG_ERR_NO_KEYSERVER);
+              return GPG_ERR_NO_KEYSERVER;
             }
         }
 
@@ -653,7 +653,7 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
           xfree (*r_httphost);
           *r_httphost = NULL;
         }
-      return gpg_error (GPG_ERR_NO_KEYSERVER);
+      return GPG_ERR_NO_KEYSERVER;
     }
 
   if (r_httpflags)
@@ -757,7 +757,7 @@ ks_hkp_mark_host (ctrl_t ctrl, const char *name, int alive)
 
   idx = find_hostinfo (name);
   if (idx == -1)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   hi = hosttable[idx];
   if (alive && hi->dead)
@@ -1255,19 +1255,19 @@ send_request (ctrl_t ctrl, const char *request, const char *hostportstr,
             err = gpg_error_from_syserror ();
           }
         else
-          err = gpg_error (GPG_ERR_NO_DATA);
+          err = GPG_ERR_NO_DATA;
         log_error (_("too many redirections\n"));
       }
       goto leave;
 
     case 501:
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
       goto leave;
 
     default:
       log_error (_("error accessing '%s': http status %u\n"),
                  request, http_get_status_code (http));
-      err = gpg_error (GPG_ERR_NO_DATA);
+      err = GPG_ERR_NO_DATA;
       goto leave;
     }
 
@@ -1278,7 +1278,7 @@ send_request (ctrl_t ctrl, const char *request, const char *hostportstr,
   fp = http_get_read_ptr (http);
   if (!fp)
     {
-      err = gpg_error (GPG_ERR_BUG);
+      err = GPG_ERR_BUG;
       goto leave;
     }
 
@@ -1309,7 +1309,7 @@ handle_send_request_error (ctrl_t ctrl, gpg_error_t err, const char *request,
   /* Fixme: Should we disable all hosts of a protocol family if a
    * request for an address of that familiy returned ENETDOWN?  */
 
-  switch (gpg_err_code (err))
+  switch (err)
     {
     case GPG_ERR_ECONNREFUSED:
       if (tor_not_running_p (ctrl))
@@ -1413,7 +1413,7 @@ ks_hkp_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
       pattern = fprbuf;
       break;
     default:
-      return gpg_error (GPG_ERR_INV_USER_ID);
+      return GPG_ERR_INV_USER_ID;
     }
 
   /* Build the request string.  */
@@ -1470,7 +1470,7 @@ ks_hkp_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
     int c = es_getc (fp);
     if (c == -1)
       {
-        err = es_ferror (fp)?gpg_error_from_syserror ():gpg_error (GPG_ERR_EOF);
+        err = es_ferror (fp)?gpg_error_from_syserror ():GPG_ERR_EOF;
         log_error ("error reading response: %s\n", gpg_strerror (err));
         goto leave;
       }
@@ -1478,7 +1478,7 @@ ks_hkp_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
       {
         /* The document begins with a '<': Assume a HTML response,
            which we don't support.  */
-        err = gpg_error (GPG_ERR_UNSUPPORTED_ENCODING);
+        err = GPG_ERR_UNSUPPORTED_ENCODING;
         goto leave;
       }
     es_ungetc (c, fp);
@@ -1551,7 +1551,7 @@ ks_hkp_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec, estream_t *r_fp)
       log_error ("HKP keyservers do not support v3 fingerprints\n");
       /* fall through */
     default:
-      return gpg_error (GPG_ERR_INV_USER_ID);
+      return GPG_ERR_INV_USER_ID;
     }
 
   searchkey = http_escape_string (exactname? exactname : kidbuf,

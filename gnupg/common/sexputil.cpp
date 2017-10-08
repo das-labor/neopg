@@ -152,13 +152,13 @@ make_canon_sexp (gcry_sexp_t sexp, unsigned char **r_buffer, size_t *r_buflen)
 
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, NULL, 0);
   if (!len)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   buf = xtrymalloc (len);
   if (!buf)
     return gpg_error_from_syserror ();
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, buf, len);
   if (!len)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   *r_buffer = buf;
   if (r_buflen)
@@ -183,13 +183,13 @@ make_canon_sexp_pad (gcry_sexp_t sexp, int secure,
 
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, NULL, 0);
   if (!len)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   len += (8 - len % 8) % 8;
   buf = secure? xtrycalloc_secure (1, len) : xtrycalloc (1, len);
   if (!buf)
     return gpg_error_from_syserror ();
   if (!gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, buf, len))
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   *r_buffer = buf;
   if (r_buflen)
@@ -214,12 +214,12 @@ keygrip_from_canon_sexp (const unsigned char *key, size_t keylen,
   gcry_sexp_t sexp;
 
   if (!grip)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   err = gcry_sexp_sscan (&sexp, NULL, (const char *)key, keylen);
   if (err)
     return err;
   if (!gcry_pk_get_keygrip (sexp, grip))
-    err = gpg_error (GPG_ERR_INTERNAL);
+    err = GPG_ERR_INTERNAL;
   gcry_sexp_release (sexp);
   return err;
 }
@@ -447,20 +447,20 @@ get_rsa_pk_from_canon_sexp (const unsigned char *keydata, size_t keydatalen,
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
     return err;
   if (!tok || toklen != 10 || memcmp ("public-key", tok, toklen))
-    return gpg_error (GPG_ERR_BAD_PUBKEY);
+    return GPG_ERR_BAD_PUBKEY;
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
     return err;
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
     return err;
   if (!tok || toklen != 3 || memcmp ("rsa", tok, toklen))
-    return gpg_error (GPG_ERR_WRONG_PUBKEY_ALGO);
+    return GPG_ERR_WRONG_PUBKEY_ALGO;
 
   last_depth1 = depth;
   while (!(err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen))
          && depth && depth >= last_depth1)
     {
       if (tok)
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
         return err;
       if (tok && toklen == 1)
@@ -475,7 +475,7 @@ get_rsa_pk_from_canon_sexp (const unsigned char *keydata, size_t keydatalen,
             default:  mpi = NULL;   mpi_len = NULL; break;
             }
           if (mpi && *mpi)
-            return gpg_error (GPG_ERR_DUP_VALUE);
+            return GPG_ERR_DUP_VALUE;
 
           if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
             return err;
@@ -502,7 +502,7 @@ get_rsa_pk_from_canon_sexp (const unsigned char *keydata, size_t keydatalen,
     return err;
 
   if (!rsa_n || !rsa_n_len || !rsa_e || !rsa_e_len)
-    return gpg_error (GPG_ERR_BAD_PUBKEY);
+    return GPG_ERR_BAD_PUBKEY;
 
   *r_n = rsa_n;
   *r_nlen = rsa_n_len;

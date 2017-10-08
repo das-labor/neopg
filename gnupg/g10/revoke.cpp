@@ -632,7 +632,7 @@ gen_revoke (ctrl_t ctrl, const char *uname)
     rc = keydb_search (kdbhd, &desc, 1, NULL);
   if (rc)
     {
-      if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+      if (rc == GPG_ERR_NOT_FOUND)
         log_error (_("secret key \"%s\" not found\n"), uname);
       else
         log_error (_("secret key \"%s\" not found: %s\n"),
@@ -648,7 +648,7 @@ gen_revoke (ctrl_t ctrl, const char *uname)
     }
 
   rc = keydb_search (kdbhd, &desc, 1, NULL);
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_NOT_FOUND)
     /* Not ambiguous.  */
     {
     }

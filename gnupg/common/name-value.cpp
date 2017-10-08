@@ -68,23 +68,6 @@ struct name_value_entry
 };
 
 
-/* Helper */
-static inline gpg_error_t
-my_error_from_syserror (void)
-{
-  return gpg_error(gpg_err_code_from_syserror ());
-}
-
-
-static inline gpg_error_t
-my_error (gpg_err_code_t ec)
-{
-  return gpg_error(ec);
-}
-
-
-
-
 /* Allocation and deallocation.  */
 
 /* Allocate a private key container structure.  */
@@ -215,7 +198,7 @@ assert_raw_value (nve_t entry)
 		&entry->value[offset]);
       if (append_to_strlist_try (&entry->raw_value, buf) == NULL)
 	{
-	  err = my_error_from_syserror ();
+	  err = gpg_error_from_syserror ();
 	  goto leave;
 	}
 
@@ -303,7 +286,7 @@ assert_value (nve_t entry)
 
   entry->value = p = xtrymalloc (len);
   if (entry->value == NULL)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   swallow_ws = 0;
   for (s = entry->raw_value; s; s = s->next)
@@ -358,7 +341,7 @@ _nvc_add (nvc_t pk, char *name, char *value, strlist_t raw_value,
 
   if (name && ! valid_name (name))
     {
-      err = my_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
       goto leave;
     }
 
@@ -367,14 +350,14 @@ _nvc_add (nvc_t pk, char *name, char *value, strlist_t raw_value,
       && !ascii_strcasecmp (name, "Key:")
       && nvc_lookup (pk, "Key:"))
     {
-      err = my_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
       goto leave;
     }
 
   e = xtrycalloc (1, sizeof *e);
   if (e == NULL)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -450,13 +433,13 @@ nvc_add (nvc_t pk, const char *name, const char *value)
 
   k = xtrystrdup (name);
   if (k == NULL)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   v = xtrystrdup (value);
   if (v == NULL)
     {
       xfree (k);
-      return my_error_from_syserror ();
+      return gpg_error_from_syserror ();
     }
 
   return _nvc_add (pk, k, v, NULL, 0);
@@ -481,7 +464,7 @@ nvc_set (nvc_t pk, const char *name, const char *value)
 
       v = xtrystrdup (value);
       if (v == NULL)
-	return my_error_from_syserror ();
+	return gpg_error_from_syserror ();
 
       free_strlist_wipe (e->raw_value);
       e->raw_value = NULL;
@@ -576,7 +559,7 @@ nvc_get_private_key (nvc_t pk, gcry_sexp_t *retsexp)
 
   e = pk->private_key_mode? nvc_lookup (pk, "Key:") : NULL;
   if (e == NULL)
-    return my_error (GPG_ERR_MISSING_KEY);
+    return GPG_ERR_MISSING_KEY;
 
   err = assert_value (e);
   if (err)
@@ -595,19 +578,19 @@ nvc_set_private_key (nvc_t pk, gcry_sexp_t sexp)
   size_t len, i;
 
   if (!pk->private_key_mode)
-    return my_error (GPG_ERR_MISSING_KEY);
+    return GPG_ERR_MISSING_KEY;
 
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, NULL, 0);
 
   raw = xtrymalloc (len);
   if (raw == NULL)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   clean = xtrymalloc (len);
   if (clean == NULL)
     {
       xfree (raw);
-      return my_error_from_syserror ();
+      return gpg_error_from_syserror ();
     }
 
   gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, raw, len);
@@ -661,7 +644,7 @@ do_nvc_parse (nvc_t *result, int *errlinep, estream_t stream,
 
   *result = for_private_key? nvc_new_private_key () : nvc_new ();
   if (*result == NULL)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   if (errlinep)
     *errlinep = 0;
@@ -680,7 +663,7 @@ do_nvc_parse (nvc_t *result, int *errlinep, estream_t stream,
 	  /* A continuation.  */
 	  if (append_to_strlist_try (&raw_value, buf) == NULL)
 	    {
-	      err = my_error_from_syserror ();
+	      err = gpg_error_from_syserror ();
 	      goto leave;
 	    }
 	  continue;
@@ -705,7 +688,7 @@ do_nvc_parse (nvc_t *result, int *errlinep, estream_t stream,
 	  colon = strchr (buf, ':');
 	  if (colon == NULL)
 	    {
-	      err = my_error (GPG_ERR_INV_VALUE);
+	      err = GPG_ERR_INV_VALUE;
 	      goto leave;
 	    }
 
@@ -717,13 +700,13 @@ do_nvc_parse (nvc_t *result, int *errlinep, estream_t stream,
 
 	  if (name == NULL)
 	    {
-	      err = my_error_from_syserror ();
+	      err = gpg_error_from_syserror ();
 	      goto leave;
 	    }
 
 	  if (append_to_strlist_try (&raw_value, value) == NULL)
 	    {
-	      err = my_error_from_syserror ();
+	      err = gpg_error_from_syserror ();
 	      goto leave;
 	    }
 	  continue;
@@ -731,7 +714,7 @@ do_nvc_parse (nvc_t *result, int *errlinep, estream_t stream,
 
       if (append_to_strlist_try (&raw_value, buf) == NULL)
 	{
-	  err = my_error_from_syserror ();
+	  err = gpg_error_from_syserror ();
 	  goto leave;
 	}
     }
@@ -799,7 +782,7 @@ nvc_write (nvc_t pk, estream_t stream)
 	es_fputs (s->d, stream);
 
       if (es_ferror (stream))
-	return my_error_from_syserror ();
+	return gpg_error_from_syserror ();
     }
 
   return 0;

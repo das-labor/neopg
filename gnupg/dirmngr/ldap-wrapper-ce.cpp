@@ -280,14 +280,14 @@ outstream_reader_cb (void *cb_value, char *buffer, size_t count,
   int was_full = 0;
 
   if (!buffer && !count && !r_nread)
-    return gpg_error (GPG_ERR_NOT_SUPPORTED); /* Rewind is not supported.  */
+    return GPG_ERR_NOT_SUPPORTED; /* Rewind is not supported.  */
 
   *r_nread = 0;
 
   while (BUFFER_EMPTY(cookie))
     {
       if (cookie->eof_seen)
-        return gpg_error (GPG_ERR_EOF);
+        return GPG_ERR_EOF;
 
       /* Wait for data to become available.  */
       npth_cond_wait (&cookie->wait_data, NULL);
@@ -554,8 +554,8 @@ ldap_wrapper (ctrl_t ctrl, ksba_reader_t *r_reader, const char *argv[])
       {
         ksba_reader_release (reader);
         reader = NULL;
-        if (gpg_err_code (err) == GPG_ERR_EOF)
-          return gpg_error (GPG_ERR_NO_DATA);
+        if (err == GPG_ERR_EOF)
+          return GPG_ERR_NO_DATA;
         else
           return err;
       }

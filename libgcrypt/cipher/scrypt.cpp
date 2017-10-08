@@ -237,7 +237,7 @@ scrypt_ro_mix (u32 r, unsigned char *B, u64 N,
 /*
  *
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_kdf_scrypt (const unsigned char *passwd, size_t passwdlen,
                   int algo, int subalgo,
                   const unsigned char *salt, size_t saltlen,
@@ -248,7 +248,7 @@ _gcry_kdf_scrypt (const unsigned char *passwd, size_t passwdlen,
   u32 r;              /* Block size.  */
   u32 p = iterations; /* Parallelization parameter.  */
 
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   u32 i;
   unsigned char *B = NULL;
   unsigned char *tmp1 = NULL;
@@ -285,21 +285,21 @@ _gcry_kdf_scrypt (const unsigned char *passwd, size_t passwdlen,
   B = xtrymalloc (p * r128);
   if (!B)
     {
-      ec = gpg_err_code_from_syserror ();
+      ec = gpg_error_from_syserror ();
       goto leave;
     }
 
   tmp1 = xtrymalloc (N * r128);
   if (!tmp1)
     {
-      ec = gpg_err_code_from_syserror ();
+      ec = gpg_error_from_syserror ();
       goto leave;
     }
 
   tmp2 = xtrymalloc (64 + r128);
   if (!tmp2)
     {
-      ec = gpg_err_code_from_syserror ();
+      ec = gpg_error_from_syserror ();
       goto leave;
     }
 

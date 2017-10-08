@@ -167,7 +167,7 @@ unlock_scd (ctrl_t ctrl, int rc)
       log_error ("unlock_scd: invalid lock count (%d)\n",
                  ctrl->scd_local->locked);
       if (!rc)
-        rc = gpg_error (GPG_ERR_INTERNAL);
+        rc = GPG_ERR_INTERNAL;
     }
   ctrl->scd_local->locked = 0;
   return rc;
@@ -205,7 +205,7 @@ start_scd (ctrl_t ctrl)
   int j;
 
   if (opt.disable_scdaemon)
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
 
   /* If this is the first call for this session, setup the local data
      structure. */
@@ -225,7 +225,7 @@ start_scd (ctrl_t ctrl)
     {
       log_error ("start_scd: invalid lock count (%d)\n",
                  ctrl->scd_local->locked);
-      return gpg_error (GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
   ctrl->scd_local->locked++;
 
@@ -243,7 +243,7 @@ start_scd (ctrl_t ctrl)
     {
       log_error ("failed to acquire the start_scd lock: %s\n",
                  strerror (rc));
-      return gpg_error (GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
 
   /* Check whether the pipe server has already been started and in
@@ -269,7 +269,7 @@ start_scd (ctrl_t ctrl)
   if (primary_scd_ctx)
     {
       log_info ("SCdaemon is running but won't accept further connections\n");
-      err = gpg_error (GPG_ERR_NO_SCDAEMON);
+      err = GPG_ERR_NO_SCDAEMON;
       goto leave;
     }
 
@@ -317,7 +317,7 @@ start_scd (ctrl_t ctrl)
     {
       log_error ("can't connect to the SCdaemon: %s\n",
                  gpg_strerror (rc));
-      err = gpg_error (GPG_ERR_NO_SCDAEMON);
+      err = GPG_ERR_NO_SCDAEMON;
       goto leave;
     }
 
@@ -577,11 +577,11 @@ get_serialno_cb (void *opaque, const char *line)
   if (keywordlen == 8 && !memcmp (keyword, "SERIALNO", keywordlen))
     {
       if (*serialno)
-        return gpg_error (GPG_ERR_CONFLICT); /* Unexpected status line. */
+        return GPG_ERR_CONFLICT; /* Unexpected status line. */
       for (n=0,s=line; hexdigitp (s); s++, n++)
         ;
       if (!n || (n&1)|| !(spacep (s) || !*s) )
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
       *serialno = (char*) xtrymalloc (n+1);
       if (!*serialno)
         return out_of_core ();
@@ -693,7 +693,7 @@ inq_needpin (void *opaque, const char *line)
   else
     {
       log_error ("unsupported inquiry '%s'\n", line);
-      rc = gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
     }
 
   return rc;
@@ -768,7 +768,7 @@ agent_card_pksign (ctrl_t ctrl,
     return rc;
 
   if (indatalen*2 + 50 > DIM(line))
-    return unlock_scd (ctrl, gpg_error (GPG_ERR_GENERAL));
+    return unlock_scd (ctrl, GPG_ERR_GENERAL);
 
   bin2hex (indata, indatalen, stpcpy (line, "SETDATA "));
 
@@ -796,8 +796,8 @@ agent_card_pksign (ctrl_t ctrl,
                         put_membuf_cb, &data,
                         inq_needpin, &inqparm,
                         NULL, NULL);
-  if (inqparm.any_inq_seen && (gpg_err_code(rc) == GPG_ERR_CANCELED ||
-	gpg_err_code(rc) == GPG_ERR_ASS_CANCELED))
+  if (inqparm.any_inq_seen && (rc == GPG_ERR_CANCELED ||
+	rc == GPG_ERR_ASS_CANCELED))
     rc = cancel_inquire (ctrl, rc);
 
   if (rc)
@@ -890,8 +890,8 @@ agent_card_pkdecrypt (ctrl_t ctrl,
                         put_membuf_cb, &data,
                         inq_needpin, &inqparm,
                         padding_info_cb, r_padding);
-  if (inqparm.any_inq_seen && (gpg_err_code(rc) == GPG_ERR_CANCELED ||
-	gpg_err_code(rc) == GPG_ERR_ASS_CANCELED))
+  if (inqparm.any_inq_seen && (rc == GPG_ERR_CANCELED ||
+	rc == GPG_ERR_ASS_CANCELED))
     rc = cancel_inquire (ctrl, rc);
 
   if (rc)
@@ -901,7 +901,7 @@ agent_card_pkdecrypt (ctrl_t ctrl,
     }
   *r_buf = get_membuf (&data, r_buflen);
   if (!*r_buf)
-    return unlock_scd (ctrl, gpg_error (GPG_ERR_ENOMEM));
+    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
   return unlock_scd (ctrl, 0);
 }
@@ -936,7 +936,7 @@ agent_card_readcert (ctrl_t ctrl,
     }
   *r_buf = get_membuf (&data, r_buflen);
   if (!*r_buf)
-    return unlock_scd (ctrl, gpg_error (GPG_ERR_ENOMEM));
+    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
   return unlock_scd (ctrl, 0);
 }
@@ -971,12 +971,12 @@ agent_card_readkey (ctrl_t ctrl, const char *id, unsigned char **r_buf)
     }
   *r_buf = get_membuf (&data, &buflen);
   if (!*r_buf)
-    return unlock_scd (ctrl, gpg_error (GPG_ERR_ENOMEM));
+    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
   if (!gcry_sexp_canon_len (*r_buf, buflen, NULL, NULL))
     {
       xfree (*r_buf); *r_buf = NULL;
-      return unlock_scd (ctrl, gpg_error (GPG_ERR_INV_VALUE));
+      return unlock_scd (ctrl, GPG_ERR_INV_VALUE);
     }
 
   return unlock_scd (ctrl, 0);
@@ -1025,8 +1025,8 @@ agent_card_writekey (ctrl_t ctrl,  int force, const char *serialno,
 
   rc = assuan_transact (ctrl->scd_local->ctx, line, NULL, NULL,
                         inq_writekey_parms, &parms, NULL, NULL);
-  if (parms.any_inq_seen && (gpg_err_code(rc) == GPG_ERR_CANCELED ||
-                             gpg_err_code(rc) == GPG_ERR_ASS_CANCELED))
+  if (parms.any_inq_seen && (rc == GPG_ERR_CANCELED ||
+                             rc == GPG_ERR_ASS_CANCELED))
     rc = cancel_inquire (ctrl, rc);
   return unlock_scd (ctrl, rc);
 }
@@ -1083,7 +1083,7 @@ agent_card_getattr (ctrl_t ctrl, const char *name, char **result)
   *result = NULL;
 
   if (!*name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   memset (&parm, 0, sizeof parm);
   parm.keyword = name;
@@ -1091,7 +1091,7 @@ agent_card_getattr (ctrl_t ctrl, const char *name, char **result)
 
   /* We assume that NAME does not need escaping. */
   if (8 + strlen (name) > DIM(line)-1)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
   stpcpy (stpcpy (line, "GETATTR "), name);
 
   err = start_scd (ctrl);
@@ -1105,7 +1105,7 @@ agent_card_getattr (ctrl_t ctrl, const char *name, char **result)
     err = gpg_error_from_errno (parm.error);
 
   if (!err && !parm.data)
-    err = gpg_error (GPG_ERR_NO_DATA);
+    err = GPG_ERR_NO_DATA;
 
   if (!err)
     *result = parm.data;
@@ -1144,7 +1144,7 @@ card_cardlist_cb (void *opaque, const char *line)
         ;
 
       if (!n || (n&1) || *s)
-        parm->error = gpg_error (GPG_ERR_ASS_PARAMETER);
+        parm->error = GPG_ERR_ASS_PARAMETER;
       else
         add_to_strlist (&parm->list, line);
     }
@@ -1262,7 +1262,7 @@ agent_card_scd (ctrl_t ctrl, const char *cmdline,
                         pass_data_thru, assuan_context,
                         inq_needpin, &inqparm,
                         pass_status_thru, assuan_context);
-  if (inqparm.any_inq_seen && gpg_err_code(rc) == GPG_ERR_ASS_CANCELED)
+  if (inqparm.any_inq_seen && rc == GPG_ERR_ASS_CANCELED)
     rc = cancel_inquire (ctrl, rc);
 
   assuan_set_flag (ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS, saveflag);

@@ -61,10 +61,10 @@ map_mac_algo_to_cipher (int mac_algo)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_open (gcry_mac_hd_t h)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
   gcry_cipher_hd_t hd;
   int secure = (h->magic == CTX_MAGIC_SECURE);
   int cipher_algo;
@@ -93,28 +93,28 @@ cmac_close (gcry_mac_hd_t h)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_setkey (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
 {
   return _gcry_cipher_setkey (h->u.cmac.ctx, key, keylen);
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_reset (gcry_mac_hd_t h)
 {
   return _gcry_cipher_reset (h->u.cmac.ctx);
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   return _gcry_cipher_cmac_authenticate (h->u.cmac.ctx, buf, buflen);
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t * outlen)
 {
   if (*outlen > h->u.cmac.blklen)
@@ -123,7 +123,7 @@ cmac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t * outlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 cmac_verify (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   return _gcry_cipher_cmac_check_tag (h->u.cmac.ctx, buf, buflen);

@@ -109,7 +109,7 @@ assuan_new_ext (assuan_context_t *r_ctx,
     *r_ctx = NULL;
     ctx = (assuan_context_t) _assuan_malloc (&wctx, sizeof (*ctx));
     if (!ctx)
-      return TRACE_ERR (gpg_err_code_from_syserror ());
+      return TRACE_ERR (gpg_error_from_syserror ());
 
     memcpy (ctx, &wctx, sizeof (*ctx));
     ctx->system = _assuan_system_hooks;

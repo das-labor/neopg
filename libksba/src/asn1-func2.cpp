@@ -124,14 +124,14 @@ ksba_asn_create_tree (const char *mod_name, ksba_asn_tree_t *result)
   AsnNode link_next = NULL;
 
   if (!result)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *result = NULL;
 
   if (!mod_name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   root = _ksba_asn_lookup_table (mod_name, &strgtbl);
   if (!root)
-    return gpg_error (GPG_ERR_MODULE_NOT_FOUND);
+    return GPG_ERR_MODULE_NOT_FOUND;
 
   pointer = NULL;
   move = UP;
@@ -205,7 +205,7 @@ ksba_asn_create_tree (const char *mod_name, ksba_asn_tree_t *result)
       _ksba_asn_expand_object_id (pointer);
       tree = xtrymalloc (sizeof *tree + strlen (mod_name));
       if (!tree)
-        rc = gpg_error (GPG_ERR_ENOMEM);
+        rc = GPG_ERR_ENOMEM;
       else
         {
           tree->parse_tree = pointer;
@@ -216,7 +216,7 @@ ksba_asn_create_tree (const char *mod_name, ksba_asn_tree_t *result)
         }
     }
   else
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
 
   if (rc)
     _ksba_asn_delete_structure (pointer);

@@ -59,13 +59,6 @@ typedef struct
 } read_and_log_buffer_t;
 
 
-static inline gpg_error_t
-my_error_from_syserror (void)
-{
-  return gpg_error(gpg_err_code_from_syserror ());
-}
-
-
 static void
 read_and_log_stderr (read_and_log_buffer_t *state, es_poll_t *fderr)
 {
@@ -137,7 +130,7 @@ read_and_log_stderr (read_and_log_buffer_t *state, es_poll_t *fderr)
             }
           else if (es_ferror (fderr->stream))
             {
-              err = my_error_from_syserror ();
+              err = gpg_error_from_syserror ();
               log_error ("error reading stderr of '%s': %s\n",
                          state->pgmname, gpg_strerror (err));
               fderr->ignore = 1; /* Disable.  */
@@ -165,7 +158,7 @@ read_and_log_stderr (read_and_log_buffer_t *state, es_poll_t *fderr)
                   if (!newbuffer)
                     {
                       log_error ("error allocating memory for status cb: %s\n",
-                                 gpg_strerror (my_error_from_syserror ()));
+                                 gpg_strerror (gpg_error_from_syserror ()));
                       /* We better disable the status CB in this case.  */
                       state->status_cb = NULL;
                       read_and_log_stderr (state, NULL);
@@ -234,8 +227,8 @@ copy_buffer_do_copy (struct copy_buffer *c, estream_t source, estream_t sink)
       c->writep = c->buffer;
       if (es_read (source, c->buffer, sizeof c->buffer, &c->nread))
         {
-          err = my_error_from_syserror ();
-          if (gpg_err_code (err) == GPG_ERR_EAGAIN)
+          err = gpg_error_from_syserror ();
+          if (err == GPG_ERR_EAGAIN)
             return 0;	/* We will just retry next time.  */
 
           return err;
@@ -249,7 +242,7 @@ copy_buffer_do_copy (struct copy_buffer *c, estream_t source, estream_t sink)
 
   nwritten = 0;
   if (sink && es_write (sink, c->writep, c->nread, &nwritten))
-    err = my_error_from_syserror ();
+    err = gpg_error_from_syserror ();
   else
     err = 0;
 
@@ -260,14 +253,14 @@ copy_buffer_do_copy (struct copy_buffer *c, estream_t source, estream_t sink)
 
   if (err)
     {
-      if (gpg_err_code (err) == GPG_ERR_EAGAIN)
+      if (err == GPG_ERR_EAGAIN)
         return 0;	/* We will just retry next time.  */
 
       return err;
     }
 
   if (sink && es_fflush (sink) && errno != EAGAIN)
-    err = my_error_from_syserror ();
+    err = gpg_error_from_syserror ();
 
   return err;
 }
@@ -281,7 +274,7 @@ copy_buffer_flush (struct copy_buffer *c, estream_t sink)
   size_t nwritten = 0;
 
   if (es_write (sink, c->writep, c->nread, &nwritten))
-    err = my_error_from_syserror ();
+    err = gpg_error_from_syserror ();
 
   log_assert (nwritten <= c->nread);
   c->writep += nwritten;
@@ -292,7 +285,7 @@ copy_buffer_flush (struct copy_buffer *c, estream_t sink)
     return err;
 
   if (es_fflush (sink))
-    err = my_error_from_syserror ();
+    err = gpg_error_from_syserror ();
 
   return err;
 }
@@ -338,7 +331,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   cpbuf_in = xtrymalloc (sizeof *cpbuf_in);
   if (cpbuf_in == NULL)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
   copy_buffer_init (cpbuf_in);
@@ -346,7 +339,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   cpbuf_out = xtrymalloc (sizeof *cpbuf_out);
   if (cpbuf_out == NULL)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
   copy_buffer_init (cpbuf_out);
@@ -354,7 +347,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   cpbuf_extra = xtrymalloc (sizeof *cpbuf_extra);
   if (cpbuf_extra == NULL)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
   copy_buffer_init (cpbuf_extra);
@@ -366,7 +359,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   fderrstate.buffer = xtrymalloc (fderrstate.buffer_size);
   if (!fderrstate.buffer)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -436,7 +429,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
       count = es_poll (fds, DIM(fds), -1);
       if (count == -1)
         {
-          err = my_error_from_syserror ();
+          err = gpg_error_from_syserror ();
           log_error ("error polling '%s': %s\n", pgmname, gpg_strerror (err));
           goto leave;
         }
@@ -459,7 +452,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
           if (es_feof (input))
             {
               err = copy_buffer_flush (cpbuf_in, fds[0].stream);
-              if (gpg_err_code (err) == GPG_ERR_EAGAIN)
+              if (err == GPG_ERR_EAGAIN)
                 continue;	/* Retry next time.  */
               if (err)
                 {
@@ -487,7 +480,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
           if (es_feof (inextra))
             {
               err = copy_buffer_flush (cpbuf_extra, fds[3].stream);
-              if (gpg_err_code (err) == GPG_ERR_EAGAIN)
+              if (err == GPG_ERR_EAGAIN)
                 continue;	/* Retry next time.  */
               if (err)
                 {
@@ -597,13 +590,13 @@ gnupg_exec_tool (const char *pgmname, const char *argv[],
       input = es_mopen ((char *) input_string, len, len,
                         0 /* don't grow */, NULL, nop_free, "rb");
       if (! input)
-        return my_error_from_syserror ();
+        return gpg_error_from_syserror ();
     }
 
   output = es_fopenmem (0, "wb");
   if (! output)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -619,7 +612,7 @@ gnupg_exec_tool (const char *pgmname, const char *argv[],
   *result = xtrymalloc (len + 1);
   if (!*result)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -627,7 +620,7 @@ gnupg_exec_tool (const char *pgmname, const char *argv[],
     {
       if (es_read (output, *result, len, &nread))
         {
-          err = my_error_from_syserror ();
+          err = gpg_error_from_syserror ();
           goto leave;
         }
       if (nread != len)

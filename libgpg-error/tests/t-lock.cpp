@@ -134,7 +134,7 @@ pick_value (void)
 static THREAD_RET_TYPE
 revision_thread (void *arg)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   int i = 0;
 
   (void)arg;
@@ -160,7 +160,7 @@ revision_thread (void *arg)
 static THREAD_RET_TYPE
 accountant_thread (void *arg)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   int i;
   int acc1, acc2;
   int value;

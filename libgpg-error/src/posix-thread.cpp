@@ -52,7 +52,7 @@ _gpgrt_thread_set_syscall_clamp (void (*pre)(void), void (*post)(void))
 
 
 
-gpg_err_code_t
+gpg_error_t
 _gpgrt_yield (void)
 {
 # ifdef _POSIX_PRIORITY_SCHEDULING

@@ -84,7 +84,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
 	{
 	  log_error(_("DSA requires the hash length to be a"
 		      " multiple of 8 bits\n"));
-	  return gpg_error (GPG_ERR_INTERNAL);
+	  return GPG_ERR_INTERNAL;
 	}
 
       /* Don't allow any Q smaller than 160 bits.  We don't want
@@ -96,7 +96,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
 	{
 	  log_error (_("%s key uses an unsafe (%u bit) hash\n"),
                      gcry_pk_algo_name (pkalgo), qbits);
-	  return gpg_error (GPG_ERR_INTERNAL);
+	  return GPG_ERR_INTERNAL;
 	}
 
       /* Check if we're too short.  Too long is safe as we'll
@@ -110,7 +110,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
                      gcry_pk_algo_name (pkalgo));
           /* FIXME: we need to check the requirements for ECDSA.  */
           if (nframe < 20 || pkalgo == GCRY_PK_DSA  )
-            return gpg_error (GPG_ERR_INTERNAL);
+            return GPG_ERR_INTERNAL;
         }
 
       frame = xtrymalloc (nframe);
@@ -133,11 +133,11 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
 
       asnlen = DIM(asn);
       if (!algo || gcry_md_test_algo (algo))
-        return gpg_error (GPG_ERR_DIGEST_ALGO);
+        return GPG_ERR_DIGEST_ALGO;
       if (gcry_md_algo_info (algo, GCRYCTL_GET_ASNOID, asn, &asnlen))
         {
           log_error ("no object identifier for algo %d\n", algo);
-          return gpg_error (GPG_ERR_INTERNAL);
+          return GPG_ERR_INTERNAL;
         }
 
       len = gcry_md_get_algo_dlen (algo);
@@ -146,7 +146,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
         {
           log_error ("can't encode a %d bit MD into a %d bits frame\n",
                      (int)(len*8), (int)nbits);
-          return gpg_error (GPG_ERR_INTERNAL);
+          return GPG_ERR_INTERNAL;
         }
 
       /* We encode the MD in this way:
@@ -242,7 +242,7 @@ gpgsm_check_cert_sig (ksba_cert_t issuer_cert, ksba_cert_t cert)
           && (  !strcmp (algoid, "1.2.840.113549.1.1.2")
                 ||!strcmp (algoid, "1.2.840.113549.2.2")))
         log_info (_("(this is the MD2 algorithm)\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   rc = gcry_md_open (&md, algo, 0);
   if (rc)
@@ -269,7 +269,7 @@ gpgsm_check_cert_sig (ksba_cert_t issuer_cert, ksba_cert_t cert)
       log_error ("libksba did not return a proper S-Exp\n");
       gcry_md_close (md);
       ksba_free (p);
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
     }
   if (DBG_CRYPTO)
     {
@@ -297,7 +297,7 @@ gpgsm_check_cert_sig (ksba_cert_t issuer_cert, ksba_cert_t cert)
       gcry_md_close (md);
       ksba_free (p);
       gcry_sexp_release (s_sig);
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
     }
   rc = gcry_sexp_sscan ( &s_pkey, NULL, (char*)p, n);
   ksba_free (p);
@@ -355,7 +355,7 @@ gpgsm_check_cms_signature (ksba_cert_t cert, ksba_const_sexp_t sigval,
   if (!n)
     {
       log_error ("libksba did not return a proper S-Exp\n");
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
     }
   rc = gcry_sexp_sscan (&s_sig, NULL, (char*)sigval, n);
   if (rc)
@@ -371,7 +371,7 @@ gpgsm_check_cms_signature (ksba_cert_t cert, ksba_const_sexp_t sigval,
       log_error ("libksba did not return a proper S-Exp\n");
       ksba_free (p);
       gcry_sexp_release (s_sig);
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
     }
   if (DBG_CRYPTO)
     log_printhex ("public key: ", p, n);
@@ -423,7 +423,7 @@ gpgsm_create_cms_signature (ctrl_t ctrl, ksba_cert_t cert,
 
   grip = gpgsm_get_keygrip_hexstring (cert);
   if (!grip)
-    return gpg_error (GPG_ERR_BAD_CERT);
+    return GPG_ERR_BAD_CERT;
 
   desc = gpgsm_format_keydesc (cert);
 

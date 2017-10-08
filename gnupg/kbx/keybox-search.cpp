@@ -86,7 +86,7 @@ blob_get_first_keyid (KEYBOXBLOB blob, u32 *kid)
 /* Return information on the flag WHAT within the blob BUFFER,LENGTH.
    Return the offset and the length (in bytes) of the flag in
    FLAGOFF,FLAG_SIZE. */
-gpg_err_code_t
+gpg_error_t
 _keybox_get_flag_location (const unsigned char *buffer, size_t length,
                            int what, size_t *flag_off, size_t *flag_size)
 {
@@ -171,11 +171,11 @@ _keybox_get_flag_location (const unsigned char *buffer, size_t length,
 
 /* Return one of the flags WHAT in VALUE from the blob BUFFER of
    LENGTH bytes.  Return 0 on success or an raw error code. */
-static gpg_err_code_t
+static gpg_error_t
 get_flag_from_image (const unsigned char *buffer, size_t length,
                      int what, unsigned int *value)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   size_t pos, size;
 
   *value = 0;
@@ -746,7 +746,7 @@ gpg_error_t
 keybox_search_reset (KEYBOX_HANDLE hd)
 {
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (hd->found.blob)
     {
@@ -788,7 +788,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
   int pk_no, uid_no;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* clear last found result */
   if (hd->found.blob)
@@ -909,7 +909,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
 
       _keybox_release_blob (blob); blob = NULL;
       rc = _keybox_read_blob (&blob, hd->fp, NULL);
-      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE)
+      if (rc == GPG_ERR_TOO_LARGE)
         {
           ++*r_skipped;
           continue; /* Skip too large records.  */
@@ -1005,7 +1005,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
               goto found;
               break;
             default:
-              rc = gpg_error (GPG_ERR_INV_VALUE);
+              rc = GPG_ERR_INV_VALUE;
               goto found;
             }
 	}
@@ -1034,7 +1034,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
       hd->found.pk_no = pk_no;
       hd->found.uid_no = uid_no;
     }
-  else if (rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
+  else if (rc == -1 || rc == GPG_ERR_EOF)
     {
       _keybox_release_blob (blob);
       hd->eof = 1;
@@ -1077,20 +1077,20 @@ keybox_get_keyblock (KEYBOX_HANDLE hd, iobuf_t *r_iobuf,
   *r_iobuf = NULL;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
 
   if (blob_get_type (hd->found.blob) != KEYBOX_BLOBTYPE_PGP)
-    return gpg_error (GPG_ERR_WRONG_BLOB_TYPE);
+    return GPG_ERR_WRONG_BLOB_TYPE;
 
   buffer = _keybox_get_blob_image (hd->found.blob, &length);
   if (length < 40)
-    return gpg_error (GPG_ERR_TOO_SHORT);
+    return GPG_ERR_TOO_SHORT;
   image_off = get32 (buffer+8);
   image_len = get32 (buffer+12);
   if (image_off+image_len > length)
-    return gpg_error (GPG_ERR_TOO_SHORT);
+    return GPG_ERR_TOO_SHORT;
 
   err = _keybox_get_flag_location (buffer, length, KEYBOX_FLAG_SIG_INFO,
                                    &siginfo_off, &siginfo_len);
@@ -1118,20 +1118,20 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
   int rc;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
 
   if (blob_get_type (hd->found.blob) != KEYBOX_BLOBTYPE_X509)
-    return gpg_error (GPG_ERR_WRONG_BLOB_TYPE);
+    return GPG_ERR_WRONG_BLOB_TYPE;
 
   buffer = _keybox_get_blob_image (hd->found.blob, &length);
   if (length < 40)
-    return gpg_error (GPG_ERR_TOO_SHORT);
+    return GPG_ERR_TOO_SHORT;
   cert_off = get32 (buffer+8);
   cert_len = get32 (buffer+12);
   if (cert_off+cert_len > length)
-    return gpg_error (GPG_ERR_TOO_SHORT);
+    return GPG_ERR_TOO_SHORT;
 
   rc = ksba_reader_new (&reader);
   if (rc)
@@ -1141,7 +1141,7 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
     {
       ksba_reader_release (reader);
       /* fixme: need to map the error codes */
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   rc = ksba_cert_new (&cert);
@@ -1157,7 +1157,7 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
       ksba_cert_release (cert);
       ksba_reader_release (reader);
       /* fixme: need to map the error codes */
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   *r_cert = cert;
@@ -1172,18 +1172,18 @@ keybox_get_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int *value)
 {
   const unsigned char *buffer;
   size_t length;
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   (void)idx; /* Not yet used.  */
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
 
   buffer = _keybox_get_blob_image (hd->found.blob, &length);
   ec = get_flag_from_image (buffer, length, what, value);
-  return ec? gpg_error (ec):0;
+  return ec? ec:0;
 }
 
 off_t

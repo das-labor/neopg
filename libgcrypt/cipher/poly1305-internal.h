@@ -154,7 +154,7 @@ typedef struct poly1305_context_s
 } poly1305_context_t;
 
 
-gcry_err_code_t _gcry_poly1305_init (poly1305_context_t * ctx, const byte * key,
+gpg_error_t _gcry_poly1305_init (poly1305_context_t * ctx, const byte * key,
 				     size_t keylen);
 
 void _gcry_poly1305_finish (poly1305_context_t * ctx,

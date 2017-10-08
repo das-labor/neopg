@@ -66,7 +66,7 @@ extern "C" {
    functions used by most GnuPG components.  */
 
 
-/* The error code type gpg_err_code_t.  */
+/* The error code type gpg_error_t.  */
 
 /* Only use free slots, never change or reorder the existing
    entries.  */
@@ -621,7 +621,6 @@ enum
     /* This is one more than the largest allowed entry.  */
     GPG_ERR_CODE_DIM = 65536
   };
-  typedef int gpg_err_code_t;
 
 
 /* The error value type gpg_error_t.  */
@@ -631,11 +630,6 @@ enum
    particular if you want to do it efficiently (also see
    -freg-struct-return option to GCC).  */
 typedef unsigned int gpg_error_t;
-
-/* We use the lowest 16 bits of gpg_error_t for error codes.  The 16th
-   bit indicates system errors.  */
-#define GPG_ERR_CODE_MASK	(GPG_ERR_CODE_DIM - 1)
-
 
 
 /* GCC feature test.  */
@@ -811,24 +805,6 @@ void gpgrt_set_alloc_func  (void *(*f)(void *a, size_t n));
 
 
 
-/* Constructor and accessor functions.  */
-
-static GPG_ERR_INLINE gpg_error_t
-gpg_error (gpg_err_code_t code)
-{
-  return code;
-}
-
-
-/* Retrieve the error code from an error value.  */
-static GPG_ERR_INLINE gpg_err_code_t
-gpg_err_code (gpg_error_t err)
-{
-  return err;
-}
-
-
-
 /* String functions.  */
 
 /* Return a pointer to a string containing a description of the error
@@ -850,27 +826,22 @@ int gpg_strerror_r (gpg_error_t err, char *buf, size_t buflen);
 /* Retrieve the error code for the system error ERR.  This returns
    GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
    this). */
-gpg_err_code_t gpg_err_code_from_errno (int err);
+gpg_error_t gpg_error_from_errno (int err);
 
 
 /* Retrieve the system error for the error code CODE.  This returns 0
    if CODE is not a system error code.  */
-int gpg_err_code_to_errno (gpg_err_code_t code);
+int gpg_error_to_errno (gpg_error_t code);
 
 
 /* Retrieve the error code directly from the ERRNO variable.  This
    returns GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped
    (report this) and GPG_ERR_MISSING_ERRNO if ERRNO has the value 0. */
-gpg_err_code_t gpg_err_code_from_syserror (void);
-
+gpg_error_t gpg_error_from_syserror (void);
 
 /* Set the ERRNO variable.  This function is the preferred way to set
    ERRNO due to peculiarities on WindowsCE.  */
 void gpg_err_set_errno (int err);
-
-/* Return or check the version.  Both functions are identical.  */
-const char *gpgrt_check_version (const char *req_version);
-const char *gpg_error_check_version (const char *req_version);
 
 /* System specific type definitions.  */
 #include <sys/types.h>
@@ -908,23 +879,6 @@ size_t  gpgrt_w32_iconv (gpgrt_w32_iconv_t cd,
 
 #endif /* _WIN32 */
 
-
-
-/* Self-documenting convenience functions.  */
-
-static GPG_ERR_INLINE gpg_error_t
-gpg_error_from_errno (int err)
-{
-  return gpg_error (gpg_err_code_from_errno (err));
-}
-
-static GPG_ERR_INLINE gpg_error_t
-gpg_error_from_syserror (void)
-{
-  return gpg_error (gpg_err_code_from_syserror ());
-}
-
-
 
 /* Lock functions.  */
 
@@ -937,17 +891,17 @@ gpg_error_from_syserror (void)
 
 /* NB: If GPGRT_LOCK_DEFINE is not used, zero out the lock variable
    before passing it to gpgrt_lock_init.  */
-gpg_err_code_t gpgrt_lock_init (gpgrt_lock_t *lockhd);
-gpg_err_code_t gpgrt_lock_lock (gpgrt_lock_t *lockhd);
-gpg_err_code_t gpgrt_lock_trylock (gpgrt_lock_t *lockhd);
-gpg_err_code_t gpgrt_lock_unlock (gpgrt_lock_t *lockhd);
-gpg_err_code_t gpgrt_lock_destroy (gpgrt_lock_t *lockhd);
+gpg_error_t gpgrt_lock_init (gpgrt_lock_t *lockhd);
+gpg_error_t gpgrt_lock_lock (gpgrt_lock_t *lockhd);
+gpg_error_t gpgrt_lock_trylock (gpgrt_lock_t *lockhd);
+gpg_error_t gpgrt_lock_unlock (gpgrt_lock_t *lockhd);
+gpg_error_t gpgrt_lock_destroy (gpgrt_lock_t *lockhd);
 
 
 
 /* Thread functions.  */
 
-gpg_err_code_t gpgrt_yield (void);
+gpg_error_t gpgrt_yield (void);
 
 
 

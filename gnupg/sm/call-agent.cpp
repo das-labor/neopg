@@ -138,7 +138,7 @@ start_agent (ctrl_t ctrl)
                                 opt.autostart, opt.verbose, DBG_IPC,
                                 gpgsm_status2, ctrl);
 
-      if (!opt.autostart && gpg_err_code (rc) == GPG_ERR_NO_AGENT)
+      if (!opt.autostart && rc == GPG_ERR_NO_AGENT)
         {
           static int shown;
 
@@ -237,7 +237,7 @@ gpgsm_agent_pksign (ctrl_t ctrl, const char *keygrip, const char *desc,
   inq_parm.ctx = agent_ctx;
 
   if (digestlen*2 + 50 > DIM(line))
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   rc = assuan_transact (agent_ctx, "RESET", NULL, NULL, NULL, NULL, NULL, NULL);
   if (rc)
@@ -279,7 +279,7 @@ gpgsm_agent_pksign (ctrl_t ctrl, const char *keygrip, const char *desc,
   if (!gcry_sexp_canon_len (*r_buf, *r_buflen, NULL, NULL))
     {
       xfree (*r_buf); *r_buf = NULL;
-      return gpg_error (GPG_ERR_INV_VALUE);
+      return GPG_ERR_INV_VALUE;
     }
 
   return *r_buf? 0 : out_of_core ();
@@ -313,7 +313,7 @@ gpgsm_scd_pksign (ctrl_t ctrl, const char *keyid, const char *desc,
     case GCRY_MD_MD5:   hashopt = "--hash=md5"; break;
     case GCRY_MD_SHA256:hashopt = "--hash=sha256"; break;
     default:
-      return gpg_error (GPG_ERR_DIGEST_ALGO);
+      return GPG_ERR_DIGEST_ALGO;
     }
 
   rc = start_agent (ctrl);
@@ -323,7 +323,7 @@ gpgsm_scd_pksign (ctrl_t ctrl, const char *keyid, const char *desc,
   inq_parm.ctx = agent_ctx;
 
   if (digestlen*2 + 50 > DIM(line))
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   p = stpcpy (line, "SCD SETDATA " );
   for (i=0; i < digestlen ; i++, p += 2 )
@@ -411,12 +411,12 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   size_t ciphertextlen;
 
   if (!keygrip || strlen(keygrip) != 40 || !ciphertext || !r_buf || !r_buflen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *r_buf = NULL;
 
   ciphertextlen = gcry_sexp_canon_len (ciphertext, 0, NULL, NULL);
   if (!ciphertextlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   rc = start_agent (ctrl);
   if (rc)
@@ -458,13 +458,13 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   put_membuf (&data, "", 1); /* Make sure it is 0 terminated. */
   buf = get_membuf (&data, &len);
   if (!buf)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   assert (len); /* (we forced Nul termination.)  */
 
   if (*buf == '(')
     {
       if (len < 13 || memcmp (buf, "(5:value", 8) ) /* "(5:valueN:D)\0" */
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       len -= 11;   /* Count only the data of the second part. */
       p = buf + 8; /* Skip leading parenthesis and the value tag. */
     }
@@ -478,10 +478,10 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
 
   n = strtoul (p, &endp, 10);
   if (!n || *endp != ':')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   endp++;
   if (endp-p+n > len)
-    return gpg_error (GPG_ERR_INV_SEXP); /* Oops: Inconsistent S-Exp. */
+    return GPG_ERR_INV_SEXP; /* Oops: Inconsistent S-Exp. */
 
   memmove (buf, endp, n);
 
@@ -543,7 +543,7 @@ gpgsm_agent_genkey (ctrl_t ctrl,
   gk_parm.sexp = keyparms;
   gk_parm.sexplen = gcry_sexp_canon_len (keyparms, 0, NULL, NULL);
   if (!gk_parm.sexplen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   rc = assuan_transact (agent_ctx, "GENKEY",
                         put_membuf_cb, &data,
                         inq_genkey_parms, &gk_parm, NULL, NULL);
@@ -554,11 +554,11 @@ gpgsm_agent_genkey (ctrl_t ctrl,
     }
   buf = get_membuf (&data, &len);
   if (!buf)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   if (!gcry_sexp_canon_len (buf, len, NULL, NULL))
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   *r_pubkey = buf;
   return 0;
@@ -605,11 +605,11 @@ gpgsm_agent_readkey (ctrl_t ctrl, int fromcard, const char *hexkeygrip,
     }
   buf = get_membuf (&data, &len);
   if (!buf)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   if (!gcry_sexp_canon_len (buf, len, NULL, NULL))
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   *r_pubkey = buf;
   return 0;
@@ -681,7 +681,7 @@ gpgsm_agent_scd_serialno (ctrl_t ctrl, char **r_serialno)
                         default_inq_cb, &inq_parm,
                         scd_serialno_status_cb, &serialno);
   if (!rc && !serialno)
-    rc = gpg_error (GPG_ERR_INTERNAL);
+    rc = GPG_ERR_INTERNAL;
   if (rc)
     {
       xfree (serialno);
@@ -753,7 +753,7 @@ gpgsm_agent_scd_keypairinfo (ctrl_t ctrl, strlist_t *r_list)
                         default_inq_cb, &inq_parm,
                         scd_keypairinfo_status_cb, &list);
   if (!rc && !list)
-    rc = gpg_error (GPG_ERR_NO_DATA);
+    rc = GPG_ERR_NO_DATA;
   if (rc)
     {
       free_strlist (list);
@@ -798,7 +798,7 @@ gpgsm_agent_istrusted (ctrl_t ctrl, ksba_cert_t cert, const char *hexfpr,
   memset (rootca_flags, 0, sizeof *rootca_flags);
 
   if (cert && hexfpr)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   rc = start_agent (ctrl);
   if (rc)
@@ -816,7 +816,7 @@ gpgsm_agent_istrusted (ctrl_t ctrl, ksba_cert_t cert, const char *hexfpr,
       if (!fpr)
         {
           log_error ("error getting the fingerprint\n");
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
 
       snprintf (line, DIM(line), "ISTRUSTED %s", fpr);
@@ -849,14 +849,14 @@ gpgsm_agent_marktrusted (ctrl_t ctrl, ksba_cert_t cert)
   if (!fpr)
     {
       log_error ("error getting the fingerprint\n");
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   dn = ksba_cert_get_issuer (cert, 0);
   if (!dn)
     {
       xfree (fpr);
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   dnfmt = gpgsm_format_name2 (dn, 0);
   xfree (dn);
@@ -886,7 +886,7 @@ gpgsm_agent_havekey (ctrl_t ctrl, const char *hexkeygrip)
     return rc;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   snprintf (line, DIM(line), "HAVEKEY %s", hexkeygrip);
 
@@ -908,7 +908,7 @@ learn_status_cb (void *opaque, const char *line)
       if (parm->ctrl)
         {
           if (gpgsm_status (parm->ctrl, STATUS_PROGRESS, line))
-            return gpg_error (GPG_ERR_ASS_CANCELED);
+            return GPG_ERR_ASS_CANCELED;
         }
     }
   return 0;
@@ -935,12 +935,12 @@ learn_cb (void *opaque, const void *buffer, size_t length)
   buf = get_membuf (parm->data, &len);
   if (!buf)
     {
-      parm->error = gpg_error (GPG_ERR_ENOMEM);
+      parm->error = GPG_ERR_ENOMEM;
       return 0;
     }
 
   if (gpgsm_status (parm->ctrl, STATUS_PROGRESS, "learncard C 0 0"))
-    return gpg_error (GPG_ERR_ASS_CANCELED);
+    return GPG_ERR_ASS_CANCELED;
 
   /* FIXME: this should go into import.c */
   rc = ksba_cert_new (&cert);
@@ -962,8 +962,8 @@ learn_cb (void *opaque, const void *buffer, size_t length)
      because we can assume that the --learn-card command has been used
      on purpose.  */
   rc = gpgsm_basic_cert_check (parm->ctrl, cert);
-  if (rc && gpg_err_code (rc) != GPG_ERR_MISSING_CERT
-      && gpg_err_code (rc) != GPG_ERR_MISSING_ISSUER_CERT)
+  if (rc && rc != GPG_ERR_MISSING_CERT
+      && rc != GPG_ERR_MISSING_ISSUER_CERT)
     log_error ("invalid certificate: %s\n", gpg_strerror (rc));
   else
     {
@@ -1033,7 +1033,7 @@ gpgsm_agent_passwd (ctrl_t ctrl, const char *hexkeygrip, const char *desc)
   inq_parm.ctx = agent_ctx;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (desc)
     {
@@ -1137,7 +1137,7 @@ gpgsm_agent_keyinfo (ctrl_t ctrl, const char *hexkeygrip, char **r_serialno)
     return err;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   snprintf (line, DIM(line), "KEYINFO %s", hexkeygrip);
 

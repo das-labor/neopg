@@ -143,7 +143,7 @@ _gcry_register_pk_ecc_progress (void (*cb) (void *, const char *,
  *
  * FIXME: Check whether N is needed.
  */
-static gpg_err_code_t
+static gpg_error_t
 nist_generate_key (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
                    int flags, unsigned int nbits,
                    gcry_mpi_t *r_x, gcry_mpi_t *r_y)
@@ -513,10 +513,10 @@ check_secret_key (ECC_secret_key *sk, mpi_ec_t ec, int flags)
  **************  interface  ******************
  *********************************************/
 
-static gcry_err_code_t
+static gpg_error_t
 ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned int nbits;
   elliptic_curve_t E;
   ECC_secret_key sk;
@@ -628,7 +628,7 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
           encpk = _gcry_mpi_get_buffer_extra (Qx, nbits/8,
                                               -1, &encpklen, NULL);
           if (encpk == NULL)
-            rc = gpg_err_code_from_syserror ();
+            rc = gpg_error_from_syserror ();
           else
             {
               encpk[0] = 0x40;
@@ -741,10 +741,10 @@ ecc_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 ecc_check_secret_key (gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_sexp_t l1 = NULL;
   int flags = 0;
   char *curvename = NULL;
@@ -878,10 +878,10 @@ ecc_check_secret_key (gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 ecc_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t data = NULL;
   gcry_sexp_t l1 = NULL;
@@ -1022,10 +1022,10 @@ ecc_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 ecc_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t s_keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   char *curvename = NULL;
@@ -1251,11 +1251,11 @@ ecc_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t s_keyparms)
  *   output:
  *     result[0] : shared point (kdG)
  */
-static gcry_err_code_t
+static gpg_error_t
 ecc_encrypt_raw (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
   unsigned int nbits;
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   char *curvename = NULL;
@@ -1427,7 +1427,7 @@ ecc_encrypt_raw (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
       {
         rawmpi = _gcry_mpi_get_buffer_extra (x, nbits/8, -1, &rawmpilen, NULL);
         if (!rawmpi)
-          rc = gpg_err_code_from_syserror ();
+          rc = gpg_error_from_syserror ();
         else
           {
             rawmpi[0] = 0x40;
@@ -1451,7 +1451,7 @@ ecc_encrypt_raw (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
       {
         rawmpi = _gcry_mpi_get_buffer_extra (x, nbits/8, -1, &rawmpilen, NULL);
         if (!rawmpi)
-          rc = gpg_err_code_from_syserror ();
+          rc = gpg_error_from_syserror ();
         else
           {
             rawmpi[0] = 0x40;
@@ -1501,11 +1501,11 @@ ecc_encrypt_raw (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
  *
  *  see ecc_encrypt_raw for details.
  */
-static gcry_err_code_t
+static gpg_error_t
 ecc_decrypt_raw (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
   unsigned int nbits;
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t data_e = NULL;
@@ -1687,7 +1687,7 @@ ecc_decrypt_raw (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
                                              &rawmpilen, NULL);
         if (!rawmpi)
           {
-            rc = gpg_err_code_from_syserror ();
+            rc = gpg_error_from_syserror ();
             goto leave;
           }
         else
@@ -1699,7 +1699,7 @@ ecc_decrypt_raw (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
           }
       }
     if (!r)
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
     else
       rc = 0;
     mpi_free (x);
@@ -1788,12 +1788,12 @@ ecc_get_nbits (gcry_sexp_t parms)
 
 
 /* See rsa.c for a description of this function.  */
-static gpg_err_code_t
+static gpg_error_t
 compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparms)
 {
 #define N_COMPONENTS 7
   static const char names[N_COMPONENTS] = "pabgnhq";
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_sexp_t l1;
   gcry_mpi_t values[N_COMPONENTS];
   int idx;
@@ -1926,7 +1926,7 @@ compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparms)
           rawmpi = _gcry_mpi_get_buffer (values[idx], 0, &rawmpilen, NULL);
           if (!rawmpi)
             {
-              rc = gpg_err_code_from_syserror ();
+              rc = gpg_error_from_syserror ();
               goto leave;
             }
           snprintf (buf, sizeof buf, "(1:%c%u:", names[idx], rawmpilen);
@@ -1956,10 +1956,10 @@ compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparms)
 /* This is the worker function for gcry_pubkey_get_sexp for ECC
    algorithms.  Note that the caller has already stored NULL at
    R_SEXP.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_ecc_get_sexp (gcry_sexp_t *r_sexp, int mode, mpi_ec_t ec)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t mpi_G = NULL;
   gcry_mpi_t mpi_Q = NULL;
 
@@ -2058,7 +2058,7 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
     "f7cb1c942d657c41d436c7a1b6e29f65f3e900dbb9aff4064dc4ab2f843acda8";
 
   const char *errtxt = NULL;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t data = NULL;
   gcry_sexp_t data_bad = NULL;
   gcry_sexp_t sig = NULL;
@@ -2138,7 +2138,7 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
       goto leave;
     }
   err = _gcry_pk_verify (sig, data_bad, pkey);
-  if (gcry_err_code (err) != GPG_ERR_BAD_SIGNATURE)
+  if (err != GPG_ERR_BAD_SIGNATURE)
     {
       errtxt = "bad signature not detected";
       goto leave;
@@ -2159,12 +2159,12 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_ecdsa (selftest_report_func_t report)
 {
   const char *what;
   const char *errtxt;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t skey = NULL;
   gcry_sexp_t pkey = NULL;
 
@@ -2176,7 +2176,7 @@ selftests_ecdsa (selftest_report_func_t report)
                       strlen (sample_public_key_secp256));
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -2184,7 +2184,7 @@ selftests_ecdsa (selftest_report_func_t report)
   err = ecc_check_secret_key(skey);
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -2207,7 +2207,7 @@ selftests_ecdsa (selftest_report_func_t report)
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
   (void)extended;

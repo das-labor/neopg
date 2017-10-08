@@ -105,10 +105,10 @@ _gcry_dsa_gen_k (gcry_mpi_t q, int security_level)
    at R_FRAME.  If the resulting octet string is shorter than NBYTES
    the result will be left padded with zeroes.  If VALUE does not fit
    into NBYTES an error code is returned.  */
-static gpg_err_code_t
+static gpg_error_t
 int2octets (unsigned char **r_frame, gcry_mpi_t value, size_t nbytes)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   size_t nframe, noff, n;
   unsigned char *frame;
 
@@ -122,7 +122,7 @@ int2octets (unsigned char **r_frame, gcry_mpi_t value, size_t nbytes)
   n = nframe + noff;
   frame = mpi_is_secure (value)? xtrymalloc_secure (n) : xtrymalloc (n);
   if (!frame)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   if (noff)
     memset (frame, 0, noff);
   nframe += noff;
@@ -141,12 +141,12 @@ int2octets (unsigned char **r_frame, gcry_mpi_t value, size_t nbytes)
 /* Connert the bit string BITS of length NBITS into an octet string
    with a length of (QBITS+7)/8 bytes.  On success store the result at
    R_FRAME.  */
-static gpg_err_code_t
+static gpg_error_t
 bits2octets (unsigned char **r_frame,
              const void *bits, unsigned int nbits,
              gcry_mpi_t q, unsigned int qbits)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t z1;
 
   /* z1 = bits2int (b) */
@@ -174,13 +174,13 @@ bits2octets (unsigned char **r_frame,
  * algorithm used to create the hash.  On success the value for K is
  * stored at R_K.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
                          gcry_mpi_t dsa_q, gcry_mpi_t dsa_x,
                          const unsigned char *h1, unsigned int hlen,
                          int halgo, unsigned int extraloops)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned char *V = NULL;
   unsigned char *K = NULL;
   unsigned char *x_buf = NULL;
@@ -203,7 +203,7 @@ _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
   V = xtrymalloc (hlen);
   if (!V)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
   for (i=0; i < hlen; i++)
@@ -213,7 +213,7 @@ _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
   K = xtrycalloc (1, hlen);
   if (!K)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -268,7 +268,7 @@ _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
   t = xtrymalloc ((qbits+7)/8+hlen);
   if (!t)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -366,12 +366,12 @@ _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
  * knows what is passed. It is not possible to correctly
  * trucate non-opaque inputs.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_dsa_normalize_hash (gcry_mpi_t input,
                           gcry_mpi_t *out,
                           unsigned int qbits)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   const void *abuf;
   unsigned int abits;
   gcry_mpi_t hash;

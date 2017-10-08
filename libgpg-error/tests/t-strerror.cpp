@@ -32,19 +32,19 @@ strerror_main (int argc, char *argv[])
       int i = 1;
       while (i + 1 < argc)
 	{
-	  gpg_error_t err = gpg_error (atoi (argv[i + 1]));
+	  gpg_error_t err = atoi (argv[i + 1]);
 	  printf ("%s\n", gpg_strerror (err));
 	  i += 2;
 	}
     }
   else
     {
-      gpg_err_code_t list[] = { 0, 201, 2, 102, 100, 99, 110, 7, 888 };
+      gpg_error_t list[] = { 0, 201, 2, 102, 100, 99, 110, 7, 888 };
       int i = 0;
 
       while (i < sizeof (list) / sizeof (list[0]))
 	{
-	  gpg_error_t err = gpg_error (list[i]);
+	  gpg_error_t err = list[i];
 	  printf ("%s\n", gpg_strerror (err));
 	  i++;
 	}

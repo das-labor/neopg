@@ -60,13 +60,13 @@ _keybox_read_blob (KEYBOXBLOB *r_blob, FILE *fp, int *skipped_deleted)
       if ( c1 == EOF && !ferror (fp) )
         return -1; /* eof */
       if (!ferror (fp))
-        return gpg_error (GPG_ERR_TOO_SHORT);
+        return GPG_ERR_TOO_SHORT;
       return gpg_error_from_syserror ();
     }
 
   imagelen = ((unsigned int) c1 << 24) | (c2 << 16) | (c3 << 8 ) | c4;
   if (imagelen < 5)
-    return gpg_error (GPG_ERR_TOO_SHORT);
+    return GPG_ERR_TOO_SHORT;
 
   if (!type)
     {
@@ -84,7 +84,7 @@ _keybox_read_blob (KEYBOXBLOB *r_blob, FILE *fp, int *skipped_deleted)
          record.  */
       if (fseek (fp, imagelen-5, SEEK_CUR))
         return gpg_error_from_syserror ();
-      return gpg_error (GPG_ERR_TOO_LARGE);
+      return GPG_ERR_TOO_LARGE;
     }
 
   if (!r_blob)
@@ -124,7 +124,7 @@ _keybox_write_blob (KEYBOXBLOB blob, FILE *fp)
   image = _keybox_get_blob_image (blob, &length);
 
   if (length > IMAGELEN_LIMIT)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
 
   if (fwrite (image, length, 1, fp) != 1)
     return gpg_error_from_syserror ();

@@ -111,7 +111,7 @@ static gpg_error_t learn_status_cb (void *opaque, const char *line);
 static void
 status_sc_op_failure (int rc)
 {
-  switch (gpg_err_code (rc))
+  switch (rc)
     {
     case 0:
       break;
@@ -170,7 +170,7 @@ default_inq_cb (void *opaque, const char *line)
           pw = cpr_get_hidden ("passphrase.enter", _("Enter passphrase: "));
           cpr_kill_prompt ();
           if (*pw == CONTROL_D && !pw[1])
-            err = gpg_error (GPG_ERR_CANCELED);
+            err = GPG_ERR_CANCELED;
           else
             err = assuan_send_data (parm->ctx, pw, strlen (pw));
           xfree (pw);
@@ -194,7 +194,7 @@ warn_version_mismatch (assuan_context_t ctx, const char *servername, int mode)
 
   err = get_assuan_server_version (ctx, mode, &serverversion);
   if (err)
-    log_log (gpg_err_code (err) == GPG_ERR_NOT_SUPPORTED?
+    log_log (err == GPG_ERR_NOT_SUPPORTED?
              GPGRT_LOG_INFO : GPGRT_LOG_ERROR,
              _("error getting version from '%s': %s\n"),
              servername, gpg_strerror (err));
@@ -242,7 +242,7 @@ start_agent (ctrl_t ctrl, int flag_for_card)
                                 opt.session_env,
                                 opt.autostart, opt.verbose, DBG_IPC,
                                 NULL, NULL);
-      if (!opt.autostart && gpg_err_code (rc) == GPG_ERR_NO_AGENT)
+      if (!opt.autostart && rc == GPG_ERR_NO_AGENT)
         {
           static int shown;
 
@@ -298,7 +298,7 @@ start_agent (ctrl_t ctrl, int flag_for_card)
                               learn_status_cb, &info);
       if (rc && !(flag_for_card & FLAG_FOR_CARD_SUPPRESS_ERRORS))
         {
-          switch (gpg_err_code (rc))
+          switch (rc)
             {
             case GPG_ERR_NOT_SUPPORTED:
             case GPG_ERR_NO_SCDAEMON:
@@ -411,11 +411,11 @@ get_serialno_cb (void *opaque, const char *line)
   if (keywordlen == 8 && !memcmp (keyword, "SERIALNO", keywordlen))
     {
       if (*serialno)
-        return gpg_error (GPG_ERR_CONFLICT); /* Unexpected status line. */
+        return GPG_ERR_CONFLICT; /* Unexpected status line. */
       for (n=0,s=line; hexdigitp (s); s++, n++)
         ;
       if (!n || (n&1)|| !(spacep (s) || !*s) )
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
       *serialno = xtrymalloc (n+1);
       if (!*serialno)
         return out_of_core ();
@@ -721,7 +721,7 @@ agent_scd_apdu (const char *hexapdu, unsigned int *r_sw)
           if (!data)
             err = gpg_error_from_syserror ();
           else if (datalen < 2) /* Ooops */
-            err = gpg_error (GPG_ERR_CARD);
+            err = GPG_ERR_CARD;
           else
             {
               *r_sw = buf16_to_uint (data+datalen-2);
@@ -773,11 +773,11 @@ agent_scd_getattr (const char *name, struct agent_card_info_s *info)
   memset (&parm, 0, sizeof parm);
 
   if (!*name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* We assume that NAME does not need escaping. */
   if (12 + strlen (name) > DIM(line)-1)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
   stpcpy (stpcpy (line, "SCD GETATTR "), name);
 
   rc = start_agent (NULL, 1);
@@ -810,18 +810,18 @@ agent_scd_setattr (const char *name,
   (void)serialno;
 
   if (!*name || !valuelen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* We assume that NAME does not need escaping. */
   if (12 + strlen (name) > DIM(line)-1)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
 
   p = stpcpy (stpcpy (line, "SCD SETATTR "), name);
   *p++ = ' ';
   for (; valuelen; value++, valuelen--)
     {
       if (p >= line + DIM(line)-5 )
-        return gpg_error (GPG_ERR_TOO_LARGE);
+        return GPG_ERR_TOO_LARGE;
       if (*value < ' ' || *value == '+' || *value == '%')
         {
           sprintf (p, "%%%02X", *value);
@@ -1083,7 +1083,7 @@ agent_scd_readcert (const char *certidstr,
     }
   *r_buf = get_membuf (&data, r_buflen);
   if (!*r_buf)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   return 0;
 }
@@ -1116,7 +1116,7 @@ card_cardlist_cb (void *opaque, const char *line)
         ;
 
       if (!n || (n&1) || *s)
-        parm->error = gpg_error (GPG_ERR_ASS_PARAMETER);
+        parm->error = GPG_ERR_ASS_PARAMETER;
       else
         add_to_strlist (&parm->list, line);
     }
@@ -1267,7 +1267,7 @@ agent_get_passphrase (const char *cache_id,
   if (assuan_transact (agent_ctx,
                        "GETINFO cmd_has_option GET_PASSPHRASE repeat",
                        NULL, NULL, NULL, NULL, NULL, NULL))
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
 
   if (cache_id && *cache_id)
     if (!(arg1 = percent_plus_escape (cache_id)))
@@ -1454,7 +1454,7 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
   if (err)
     return err;
 
-  err = gpg_error (GPG_ERR_NO_SECKEY); /* Just in case no key was
+  err = GPG_ERR_NO_SECKEY; /* Just in case no key was
                                           found in KEYBLOCK.  */
   p = stpcpy (line, "HAVEKEY");
   for (kbctx=NULL, nkeys=0; (node = walk_kbnode (keyblock, &kbctx, 0)); )
@@ -1467,7 +1467,7 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
           {
             err = assuan_transact (agent_ctx, line,
                                    NULL, NULL, NULL, NULL, NULL, NULL);
-            if (err != gpg_err_code (GPG_ERR_NO_SECKEY))
+            if (err != GPG_ERR_NO_SECKEY)
               break; /* Seckey available or unexpected error - ready.  */
             p = stpcpy (line, "HAVEKEY");
             nkeys = 0;
@@ -1550,7 +1550,7 @@ agent_get_keyinfo (ctrl_t ctrl, const char *hexkeygrip,
     return err;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   snprintf (line, DIM(line), "KEYINFO %s", hexkeygrip);
 
@@ -1757,7 +1757,7 @@ agent_readkey (ctrl_t ctrl, int fromcard, const char *hexkeygrip,
   if (!gcry_sexp_canon_len (buf, len, NULL, NULL))
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   *r_pubkey = buf;
   return 0;
@@ -1796,7 +1796,7 @@ agent_pksign (ctrl_t ctrl, const char *cache_nonce,
   dfltparm.ctx = agent_ctx;
 
   if (digestlen*2 + 50 > DIM(line))
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   err = assuan_transact (agent_ctx, "RESET",
                          NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1919,7 +1919,7 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
 
   if (!keygrip || strlen(keygrip) != 40
       || !s_ciphertext || !r_buf || !r_buflen || !r_padding)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   *r_buf = NULL;
   *r_padding = -1;
@@ -1978,13 +1978,13 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   if (*buf != '(')
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
 
   if (len < 13 || memcmp (buf, "(5:value", 8) ) /* "(5:valueN:D)\0" */
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   len -= 10;   /* Count only the data of the second part. */
   p = buf + 8; /* Skip leading parenthesis and the value tag. */
@@ -1993,13 +1993,13 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   if (!n || *endp != ':')
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   endp++;
   if (endp-p+n > len)
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_SEXP); /* Oops: Inconsistent S-Exp. */
+      return GPG_ERR_INV_SEXP; /* Oops: Inconsistent S-Exp. */
     }
 
   memmove (buf, endp, n);
@@ -2210,7 +2210,7 @@ agent_delete_key (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
     return err;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (desc)
     {
@@ -2256,7 +2256,7 @@ agent_passwd (ctrl_t ctrl, const char *hexkeygrip, const char *desc, int verify,
   dfltparm.ctx = agent_ctx;
 
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (desc)
     {

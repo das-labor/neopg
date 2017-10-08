@@ -109,9 +109,9 @@ my_es_read (void *opaque, char *buffer, size_t nbytes, size_t *nread)
   /* Fixme we should check whether the semantics of es_read are okay
      and well defined.  I have some doubts.  */
   if (nbytes && !*nread && es_feof (cb_ctx->fp))
-    return gpg_error (GPG_ERR_EOF);
+    return GPG_ERR_EOF;
   if (!nread && es_ferror (cb_ctx->fp))
-    return gpg_error (GPG_ERR_EIO);
+    return GPG_ERR_EIO;
 
   if (!cb_ctx->checked && *nread)
     {
@@ -136,7 +136,7 @@ my_es_read (void *opaque, char *buffer, size_t nbytes, size_t *nread)
         {
           /* EOF from decoder. */
           *nread = 0;
-          result = gpg_error (GPG_ERR_EOF);
+          result = GPG_ERR_EOF;
         }
       else
         *nread = nread2;
@@ -160,7 +160,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
   *reader = NULL;
 
   if (!url)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
  once_more:
   err = http_parse_uri (&uri, url, 0);
@@ -193,7 +193,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
         {
           log_error (_("CRL access not possible due to disabled %s\n"),
                      "HTTP");
-          err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+          err = GPG_ERR_NOT_SUPPORTED;
         }
       else
         err = http_open_document (&hd, url, NULL,
@@ -268,7 +268,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
                   }
               }
             else
-              err = gpg_error (GPG_ERR_NO_DATA);
+              err = GPG_ERR_NO_DATA;
             log_error (_("too many redirections\n")); /* Or no "Location". */
             http_close (hd, 0);
           }
@@ -282,7 +282,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
         default:
           log_error (_("error retrieving '%s': http status %u\n"),
                      url, http_get_status_code (hd));
-          err = gpg_error (GPG_ERR_NO_DATA);
+          err = GPG_ERR_NO_DATA;
           http_close (hd, 0);
         }
     }
@@ -292,20 +292,20 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
         {
           log_error (_("CRL access not possible due to disabled %s\n"),
                      "LDAP");
-          err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+          err = GPG_ERR_NOT_SUPPORTED;
         }
       else if (dirmngr_use_tor ())
         {
           /* For now we do not support LDAP over Tor.  */
           log_error (_("CRL access not possible due to Tor mode\n"));
-          err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+          err = GPG_ERR_NOT_SUPPORTED;
         }
       else
         {
 #       if USE_LDAP
           err = url_fetch_ldap (ctrl, url, NULL, 0, reader);
 #       else /*!USE_LDAP*/
-          err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+          err = GPG_ERR_NOT_IMPLEMENTED;
 #       endif /*!USE_LDAP*/
         }
     }
@@ -324,13 +324,13 @@ crl_fetch_default (ctrl_t ctrl, const char *issuer, ksba_reader_t *reader)
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("CRL access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
   if (opt.disable_ldap)
     {
       log_error (_("CRL access not possible due to disabled %s\n"),
                  "LDAP");
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
 #if USE_LDAP
@@ -340,7 +340,7 @@ crl_fetch_default (ctrl_t ctrl, const char *issuer, ksba_reader_t *reader)
   (void)ctrl;
   (void)issuer;
   (void)reader;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -356,13 +356,13 @@ ca_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context, const char *dn)
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("CRL access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
   if (opt.disable_ldap)
     {
       log_error (_("CRL access not possible due to disabled %s\n"),
                  "LDAP");
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 #if USE_LDAP
   return start_default_fetch_ldap (ctrl, context, dn, "cACertificate");
@@ -370,7 +370,7 @@ ca_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context, const char *dn)
   (void)ctrl;
   (void)context;
   (void)dn;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -383,13 +383,13 @@ start_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
     {
       /* For now we do not support LDAP over Tor.  */
       log_error (_("CRL access not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
   if (opt.disable_ldap)
     {
       log_error (_("certificate search not possible due to disabled %s\n"),
                  "LDAP");
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 #if USE_LDAP
   return start_cert_fetch_ldap (ctrl, context, patterns, server);
@@ -398,7 +398,7 @@ start_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
   (void)context;
   (void)patterns;
   (void)server;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -413,7 +413,7 @@ fetch_next_cert (cert_fetch_context_t context,
   (void)context;
   (void)value;
   (void)valuelen;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -433,10 +433,10 @@ fetch_next_ksba_cert (cert_fetch_context_t context, ksba_cert_t *r_cert)
 #if USE_LDAP
   err = fetch_next_cert_ldap (context, &value, &valuelen);
   if (!err && !value)
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 #else
   (void)context;
-  err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  err = GPG_ERR_NOT_IMPLEMENTED;
 #endif
   if (err)
     return err;
@@ -493,7 +493,7 @@ fetch_cert_by_url (ctrl_t ctrl, const char *url,
 #else
   (void)ctrl;
   (void)url;
-  err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  err = GPG_ERR_NOT_IMPLEMENTED;
 #endif /*USE_LDAP*/
   if (err)
     goto leave;
@@ -509,7 +509,7 @@ fetch_cert_by_url (ctrl_t ctrl, const char *url,
   cert_image = ksba_cert_get_image (cert, &cert_image_n);
   if (!cert_image || !cert_image_n)
     {
-      err = gpg_error (GPG_ERR_INV_CERT_OBJ);
+      err = GPG_ERR_INV_CERT_OBJ;
       goto leave;
     }
 

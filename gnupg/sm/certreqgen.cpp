@@ -378,12 +378,12 @@ read_parameters (ctrl_t ctrl, estream_t fp, estream_t out_fp)
   if (err)
     {
       log_error ("line %d: %s\n", outctrl.lnr, err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
     }
   else if (es_ferror(fp))
     {
       log_error ("line %d: read error: %s\n", outctrl.lnr, strerror(errno) );
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
     }
   else if (para)
     {
@@ -394,7 +394,7 @@ read_parameters (ctrl_t ctrl, estream_t fp, estream_t out_fp)
     }
 
   if (!rc && !any)
-    rc = gpg_error (GPG_ERR_NO_DATA);
+    rc = GPG_ERR_NO_DATA;
 
  leave:
   release_parameter_list (para);
@@ -462,7 +462,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
     {
       r = get_parameter (para, pKEYTYPE, 0);
       log_error (_("line %d: invalid algorithm\n"), r->lnr);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
   /* Check the keylength.  NOTE: If you change this make sure that it
@@ -478,14 +478,14 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       log_error (_("line %d: invalid key length %u (valid are %d to %d)\n"),
                  r->lnr, nbits, 1024, 4096);
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
   /* Check the usage. */
   if (parse_parameter_usage (para, pKEYUSAGE))
     {
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
   /* Check that there is a subject name and that this DN fits our
@@ -495,13 +495,13 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       r = get_parameter (para, pNAMEDN, 0);
       log_error (_("line %d: no subject name given\n"), r->lnr);
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
   err = ksba_dn_teststr (s, 0, &erroff, &errlen);
   if (err)
     {
       r = get_parameter (para, pNAMEDN, 0);
-      if (gpg_err_code (err) == GPG_ERR_UNKNOWN_NAME)
+      if (err == GPG_ERR_UNKNOWN_NAME)
         log_error (_("line %d: invalid subject name label '%.*s'\n"),
                    r->lnr, (int)errlen, s+erroff);
       else
@@ -509,7 +509,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
                    r->lnr, s, (int)erroff);
 
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
   /* Check that the optional email address is okay. */
@@ -524,7 +524,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
           r = get_parameter (para, pNAMEEMAIL, seq);
           log_error (_("line %d: not a valid email address\n"), r->lnr);
           xfree (cardkeyid);
-          return gpg_error (GPG_ERR_INV_PARAMETER);
+          return GPG_ERR_INV_PARAMETER;
         }
     }
 
@@ -543,7 +543,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
               r = get_parameter (para, pSERIAL, 0);
               log_error (_("line %d: invalid serial number\n"), r->lnr);
               xfree (cardkeyid);
-              return gpg_error (GPG_ERR_INV_PARAMETER);
+              return GPG_ERR_INV_PARAMETER;
             }
         }
     }
@@ -556,14 +556,14 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       if (err)
         {
           r = get_parameter (para, pISSUERDN, 0);
-          if (gpg_err_code (err) == GPG_ERR_UNKNOWN_NAME)
+          if (err == GPG_ERR_UNKNOWN_NAME)
             log_error (_("line %d: invalid issuer name label '%.*s'\n"),
                        r->lnr, (int)errlen, string+erroff);
           else
             log_error (_("line %d: invalid issuer name '%s' at pos %d\n"),
                        r->lnr, string, (int)erroff);
           xfree (cardkeyid);
-          return gpg_error (GPG_ERR_INV_PARAMETER);
+          return GPG_ERR_INV_PARAMETER;
         }
     }
 
@@ -574,7 +574,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       r = get_parameter (para, pNOTBEFORE, 0);
       log_error (_("line %d: invalid date given\n"), r->lnr);
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
 
@@ -585,7 +585,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       r = get_parameter (para, pNOTAFTER, 0);
       log_error (_("line %d: invalid date given\n"), r->lnr);
       xfree (cardkeyid);
-      return gpg_error (GPG_ERR_INV_PARAMETER);
+      return GPG_ERR_INV_PARAMETER;
     }
 
   /* Get the optional signing key.  */
@@ -617,7 +617,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
         r = get_parameter (para, pHASHALGO, 0);
         log_error (_("line %d: invalid hash algorithm given\n"), r->lnr);
         xfree (cardkeyid);
-        return gpg_error (GPG_ERR_INV_PARAMETER);
+        return GPG_ERR_INV_PARAMETER;
       }
   }
 
@@ -632,7 +632,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
           r = get_parameter (para, pAUTHKEYID, 0);
           log_error (_("line %d: invalid authority-key-id\n"), r->lnr);
           xfree (cardkeyid);
-          return gpg_error (GPG_ERR_INV_PARAMETER);
+          return GPG_ERR_INV_PARAMETER;
         }
     }
 
@@ -647,7 +647,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
           r = get_parameter (para, pSUBJKEYID, 0);
           log_error (_("line %d: invalid subject-key-id\n"), r->lnr);
           xfree (cardkeyid);
-          return gpg_error (GPG_ERR_INV_PARAMETER);
+          return GPG_ERR_INV_PARAMETER;
         }
     }
 
@@ -685,7 +685,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
           r = get_parameter (para, pEXTENSION, seq);
           log_error (_("line %d: invalid extension syntax\n"), r->lnr);
           xfree (cardkeyid);
-          return gpg_error (GPG_ERR_INV_PARAMETER);
+          return GPG_ERR_INV_PARAMETER;
         }
     }
 
@@ -1151,7 +1151,7 @@ create_request (ctrl_t ctrl,
             ((unsigned char*)hexbuf)[4+len++] = xtoi_2 (p);
           if (len > 125)
             {
-              err = gpg_error (GPG_ERR_TOO_LARGE);
+              err = GPG_ERR_TOO_LARGE;
               xfree (hexbuf);
               goto leave;
             }
@@ -1190,7 +1190,7 @@ create_request (ctrl_t ctrl,
             ((unsigned char*)hexbuf)[2+len++] = xtoi_2 (p);
           if (len > 127)
             {
-              err = gpg_error (GPG_ERR_TOO_LARGE);
+              err = GPG_ERR_TOO_LARGE;
               xfree (hexbuf);
               goto leave;
             }
@@ -1217,7 +1217,7 @@ create_request (ctrl_t ctrl,
           s = strpbrk (string, " \t:");
           if (!s)
             {
-              err = gpg_error (GPG_ERR_INTERNAL);
+              err = GPG_ERR_INTERNAL;
               goto leave;
             }
 
@@ -1235,7 +1235,7 @@ create_request (ctrl_t ctrl,
             s++;
           if (!*s)
             {
-              err = gpg_error (GPG_ERR_INTERNAL);
+              err = GPG_ERR_INTERNAL;
               xfree (oidstr);
               goto leave;
             }
@@ -1290,7 +1290,7 @@ create_request (ctrl_t ctrl,
           if (!n)
             {
               log_error ("libksba did not return a proper S-Exp\n");
-              rc = gpg_error (GPG_ERR_BUG);
+              rc = GPG_ERR_BUG;
               goto leave;
             }
           rc = gcry_sexp_sscan (&s_pkey, NULL, (const char*)sigkey, n);
@@ -1301,7 +1301,7 @@ create_request (ctrl_t ctrl,
             }
           if ( !gcry_pk_get_keygrip (s_pkey, grip) )
             {
-              rc = gpg_error (GPG_ERR_GENERAL);
+              rc = GPG_ERR_GENERAL;
               log_error ("can't figure out the keygrip\n");
               gcry_sexp_release (s_pkey);
               goto leave;

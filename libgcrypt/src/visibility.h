@@ -34,7 +34,7 @@
 #endif
 
 /* Prototypes of functions exported but not ready for use.  */
-gcry_err_code_t gcry_md_get (gcry_md_hd_t hd, int algo,
+gpg_error_t gcry_md_get (gcry_md_hd_t hd, int algo,
                              unsigned char *buffer, int buflen);
 
 
@@ -58,11 +58,6 @@ MARK_VISIBLEX (gcry_set_gettext_handler)
 MARK_VISIBLEX (gcry_set_log_handler)
 MARK_VISIBLEX (gcry_set_outofcore_handler)
 MARK_VISIBLEX (gcry_set_progress_handler)
-
-MARK_VISIBLEX (gcry_err_code_from_errno)
-MARK_VISIBLEX (gcry_err_code_to_errno)
-MARK_VISIBLEX (gcry_error_from_errno)
-MARK_VISIBLEX (gcry_strerror)
 
 MARK_VISIBLEX (gcry_malloc)
 MARK_VISIBLEX (gcry_malloc_secure)

@@ -170,7 +170,7 @@ int _keybox_read_blob (KEYBOXBLOB *r_blob, FILE *fp, int *skipped_deleted);
 int _keybox_write_blob (KEYBOXBLOB blob, FILE *fp);
 
 /*-- keybox-search.c --*/
-gpg_err_code_t _keybox_get_flag_location (const unsigned char *buffer,
+gpg_error_t _keybox_get_flag_location (const unsigned char *buffer,
                                           size_t length,
                                           int what,
                                           size_t *flag_off, size_t *flag_size);

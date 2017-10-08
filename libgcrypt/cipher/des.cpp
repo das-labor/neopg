@@ -196,7 +196,7 @@ static unsigned int do_tripledes_encrypt(void *context, byte *outbuf,
 					 const byte *inbuf );
 static unsigned int do_tripledes_decrypt(void *context, byte *outbuf,
 					 const byte *inbuf );
-static gcry_err_code_t do_tripledes_setkey(void *context, const byte *key,
+static gpg_error_t do_tripledes_setkey(void *context, const byte *key,
                                            unsigned keylen);
 
 static int initialized;
@@ -1085,7 +1085,7 @@ is_weak_key ( const byte *key )
 
 
 /* Alternative setkey for selftests; need larger key than default. */
-static gcry_err_code_t
+static gpg_error_t
 bulk_selftest_setkey (void *context, const byte *__key, unsigned __keylen)
 {
   static const unsigned char key[24] ATTR_ALIGNED_16 = {
@@ -1348,7 +1348,7 @@ selftest (void)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_tripledes_setkey ( void *context, const byte *key, unsigned keylen )
 {
   struct _tripledes_ctx *ctx = (struct _tripledes_ctx *) context;
@@ -1371,12 +1371,12 @@ do_tripledes_setkey ( void *context, const byte *key, unsigned keylen )
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_tripledes_set_extra_info (void *context, int what,
                              const void *buffer, size_t buflen)
 {
   struct _tripledes_ctx *ctx = (struct _tripledes_ctx *)context;
-  gpg_err_code_t ec = 0;
+  gpg_error_t ec = 0;
 
   (void)buffer;
   (void)buflen;
@@ -1412,7 +1412,7 @@ do_tripledes_decrypt( void *context, byte *outbuf, const byte *inbuf )
   return /*burn_stack*/ TRIPLEDES_ECB_BURN_STACK;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 do_des_setkey (void *context, const byte *key, unsigned keylen)
 {
   struct _des_ctx *ctx = (struct _des_ctx *) context;
@@ -1459,7 +1459,7 @@ do_des_decrypt( void *context, byte *outbuf, const byte *inbuf )
 
 
 /* Selftest for TripleDES.  */
-static gpg_err_code_t
+static gpg_error_t
 selftest_fips (int extended, selftest_report_func_t report)
 {
   const char *what;
@@ -1488,10 +1488,10 @@ selftest_fips (int extended, selftest_report_func_t report)
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (algo)
     {

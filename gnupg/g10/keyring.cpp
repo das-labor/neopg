@@ -414,12 +414,12 @@ keyring_get_keyblock (KEYRING_HANDLE hd, KBNODE *ret_kb)
     save_mode = set_packet_list_mode(0);
     while ((rc=parse_packet (&parsectx, pkt)) != -1) {
         hd->found.n_packets = parsectx.n_parsed_packets;
-        if (gpg_err_code (rc) == GPG_ERR_UNKNOWN_PACKET) {
+        if (rc == GPG_ERR_UNKNOWN_PACKET) {
 	    free_packet (pkt, &parsectx);
 	    init_packet (pkt);
 	    continue;
 	}
-        if (gpg_err_code (rc) == GPG_ERR_LEGACY_KEY)
+        if (rc == GPG_ERR_LEGACY_KEY)
           {
             if (in_cert)
               /* It is not this key that is problematic, but the
@@ -518,7 +518,7 @@ keyring_get_keyblock (KEYRING_HANDLE hd, KBNODE *ret_kb)
     /* Make sure that future search operations fail immediately when
      * we know that we are working on a invalid keyring
      */
-    if (gpg_err_code (rc) == GPG_ERR_INV_KEYRING)
+    if (rc == GPG_ERR_INV_KEYRING)
         hd->current.error = rc;
 
     return rc;
@@ -533,7 +533,7 @@ keyring_update_keyblock (KEYRING_HANDLE hd, KBNODE kb)
         return -1; /* no successful prior search */
 
     if (hd->found.kr->read_only)
-      return gpg_error (GPG_ERR_EACCES);
+      return GPG_ERR_EACCES;
 
     if (!hd->found.n_packets) {
         /* need to know the number of packets - do a dummy get_keyblock*/
@@ -579,13 +579,13 @@ keyring_insert_keyblock (KEYRING_HANDLE hd, KBNODE kb)
       {
         fname = hd->found.kr->fname;
         if (hd->found.kr->read_only)
-          return gpg_error (GPG_ERR_EACCES);
+          return GPG_ERR_EACCES;
       }
     else if (hd->current.kr)
       {
         fname = hd->current.kr->fname;
         if (hd->current.kr->read_only)
-          return gpg_error (GPG_ERR_EACCES);
+          return GPG_ERR_EACCES;
       }
     else
         fname = hd->resource? hd->resource->fname:NULL;
@@ -620,7 +620,7 @@ keyring_delete_keyblock (KEYRING_HANDLE hd)
         return -1; /* no successful prior search */
 
     if (hd->found.kr->read_only)
-      return gpg_error (GPG_ERR_EACCES);
+      return GPG_ERR_EACCES;
 
     if (!hd->found.n_packets) {
         /* need to know the number of packets - do a dummy get_keyblock*/
@@ -686,7 +686,7 @@ prepare_search (KEYRING_HANDLE hd)
     if (hd->current.error) {
         /* If the last key was a legacy key, we simply ignore the error so that
            we can easily use search_next.  */
-        if (gpg_err_code (hd->current.error) == GPG_ERR_LEGACY_KEY)
+        if (hd->current.error == GPG_ERR_LEGACY_KEY)
           {
             if (DBG_LOOKUP)
               log_debug ("%s: last error was GPG_ERR_LEGACY_KEY, clearing\n",
@@ -1022,7 +1022,7 @@ keyring_search (KEYRING_HANDLE hd, KEYDB_SEARCH_DESC *desc,
     {
       if (DBG_LOOKUP)
         log_debug ("%s: prepare_search failed: %s (%d)\n",
-                   __func__, gpg_strerror (rc), gpg_err_code (rc));
+                   __func__, gpg_strerror (rc), rc);
       return rc;
     }
 
@@ -1104,7 +1104,7 @@ keyring_search (KEYRING_HANDLE hd, KEYDB_SEARCH_DESC *desc,
       size_t an;
 
       rc = search_packet (&parsectx, &pkt, &offset, need_uid);
-      if (ignore_legacy && gpg_err_code (rc) == GPG_ERR_LEGACY_KEY)
+      if (ignore_legacy && rc == GPG_ERR_LEGACY_KEY)
         {
           free_packet (&pkt, &parsectx);
           continue;
@@ -1474,7 +1474,7 @@ keyring_rebuild_cache (ctrl_t ctrl, void *token, int noisy)
       rc = keyring_get_keyblock (hd, &keyblock);
       if (rc)
         {
-          if (gpg_err_code (rc) == GPG_ERR_LEGACY_KEY)
+          if (rc == GPG_ERR_LEGACY_KEY)
             continue;  /* Skip legacy keys.  */
           log_error ("keyring_get_keyblock failed: %s\n", gpg_strerror (rc));
           goto leave;
@@ -1490,7 +1490,7 @@ keyring_rebuild_cache (ctrl_t ctrl, void *token, int noisy)
             continue;
           log_info ("Hint: backup your keys and try running '%s'\n",
                     "gpg --rebuild-keydb-caches");
-          rc = gpg_error (GPG_ERR_INV_KEYRING);
+          rc = GPG_ERR_INV_KEYRING;
           goto leave;
         }
 

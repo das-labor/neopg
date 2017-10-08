@@ -566,7 +566,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
   if (!(ctb & 0x80))
     {
       log_error ("%s: invalid packet (ctb=%02x)\n", iobuf_where (inp), ctb);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
 
@@ -590,7 +590,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       if ((c = iobuf_get (inp)) == -1)
 	{
 	  log_error ("%s: 1st length byte missing\n", iobuf_where (inp));
-	  rc = gpg_error (GPG_ERR_INV_PACKET);
+	  rc = GPG_ERR_INV_PACKET;
 	  goto leave;
 	}
 
@@ -605,7 +605,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
             {
               log_error ("%s: 2nd length byte missing\n",
                          iobuf_where (inp));
-              rc = gpg_error (GPG_ERR_INV_PACKET);
+              rc = GPG_ERR_INV_PACKET;
               goto leave;
             }
           hdr[hdrlen++] = c;
@@ -621,7 +621,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
               if ((c = iobuf_get (inp)) == -1)
                 {
                   log_error ("%s: 4 byte length invalid\n", iobuf_where (inp));
-                  rc = gpg_error (GPG_ERR_INV_PACKET);
+                  rc = GPG_ERR_INV_PACKET;
                   goto leave;
                 }
               value[i] = hdr[hdrlen++] = c;
@@ -645,7 +645,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
             default:
               log_error ("%s: partial length invalid for"
                          " packet type %d\n", iobuf_where (inp), pkttype);
-              rc = gpg_error (GPG_ERR_INV_PACKET);
+              rc = GPG_ERR_INV_PACKET;
               goto leave;
             }
         }
@@ -671,7 +671,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
 	    {
 	      log_error ("%s: indeterminate length for invalid"
 			 " packet type %d\n", iobuf_where (inp), pkttype);
-	      rc = gpg_error (GPG_ERR_INV_PACKET);
+	      rc = GPG_ERR_INV_PACKET;
 	      goto leave;
 	    }
 	}
@@ -684,7 +684,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
 	      if (c == -1)
 		{
 		  log_error ("%s: length invalid\n", iobuf_where (inp));
-		  rc = gpg_error (GPG_ERR_INV_PACKET);
+		  rc = GPG_ERR_INV_PACKET;
 		  goto leave;
 		}
 	      pktlen |= hdr[hdrlen++] = c;
@@ -717,7 +717,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       if (partial)
 	{
 	  log_error ("parse: Can't copy partial packet.  Aborting.\n");
-	  rc = gpg_error (GPG_ERR_INV_PACKET);
+	  rc = GPG_ERR_INV_PACKET;
 	  goto leave;
 	}
 
@@ -851,10 +851,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
   if (!rc && iobuf_error (inp))
     rc = GPG_ERR_INV_KEYRING;
 
-  /* FIXME: We use only the error code for now to avoid problems with
-     callers which have not been checked to always use gpg_err_code()
-     when comparing error codes.  */
-  return rc == -1? -1 : gpg_err_code (rc);
+  return rc == -1? -1 : rc;
 }
 
 
@@ -919,7 +916,7 @@ copy_packet (IOBUF inp, IOBUF out, int pkttype,
 	  n = pktlen > sizeof (buf) ? sizeof (buf) : pktlen;
 	  n = iobuf_read (inp, buf, n);
 	  if (n == -1)
-	    return gpg_error (GPG_ERR_EOF);
+	    return GPG_ERR_EOF;
 	  if ((rc = iobuf_write (out, buf, n)))
 	    return rc;		/* write error */
 	}
@@ -1014,17 +1011,17 @@ read_size_body (iobuf_t inp, int pktlen, size_t *r_nread,
   *r_data = NULL;
 
   if (!pktlen)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
   c = iobuf_readbyte (inp);
   if (c < 0)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
   pktlen--;
   ++*r_nread;
   nbytes = c;
   if (nbytes < 2 || nbytes > 254)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
   if (nbytes > pktlen)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
 
   buffer[0] = nbytes;
 
@@ -1032,7 +1029,7 @@ read_size_body (iobuf_t inp, int pktlen, size_t *r_nread,
     {
       c = iobuf_get (inp);
       if (c < 0)
-        return gpg_error (GPG_ERR_INV_PACKET);
+        return GPG_ERR_INV_PACKET;
       ++*r_nread;
       buffer[1+i] = c;
     }
@@ -1105,7 +1102,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too short\n", pkttype);
       if (list_mode)
         es_fprintf (listfp, ":symkey enc packet: [too short]\n");
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   version = iobuf_get_noeof (inp);
@@ -1115,7 +1112,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) with unknown version %d\n", pkttype, version);
       if (list_mode)
         es_fprintf (listfp, ":symkey enc packet: [unknown version]\n");
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   if (pktlen > 200)
@@ -1123,7 +1120,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too large\n", pkttype);
       if (list_mode)
         es_fprintf (listfp, ":symkey enc packet: [too large]\n");
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   cipher_algo = iobuf_get_noeof (inp);
@@ -1154,7 +1151,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet with S2K %d too short\n", s2kmode);
       if (list_mode)
         es_fprintf (listfp, ":symkey enc packet: [too short]\n");
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   seskeylen = pktlen - minlen;
@@ -1229,7 +1226,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too short\n", pkttype);
       if (list_mode)
         es_fputs (":pubkey enc packet: [too short]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   k->version = iobuf_get_noeof (inp);
@@ -1239,7 +1236,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) with unknown version %d\n", pkttype, k->version);
       if (list_mode)
         es_fputs (":pubkey enc packet: [unknown version]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   k->keyid[0] = read_32 (inp);
@@ -1279,7 +1276,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
               k->data[i] = mpi_read (inp, &n, 0);
               pktlen -= n;
               if (!k->data[i])
-                rc = gpg_error (GPG_ERR_INV_PACKET);
+                rc = GPG_ERR_INV_PACKET;
             }
           if (rc)
             goto leave;
@@ -1861,7 +1858,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 		 pkttype, sig->version);
       if (list_mode)
         es_fputs (":signature packet: [unknown version]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
 
@@ -2142,7 +2139,7 @@ parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too short\n", pkttype);
       if (list_mode)
         es_fputs (":onepass_sig packet: [too short]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   version = iobuf_get_noeof (inp);
@@ -2152,7 +2149,7 @@ parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("onepass_sig with unknown version %d\n", version);
       if (list_mode)
         es_fputs (":onepass_sig packet: [unknown version]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   ops->sig_class = iobuf_get_noeof (inp);
@@ -2235,7 +2232,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       if (list_mode)
         es_fprintf (listfp, ":key packet: [obsolete version %d]\n", version);
       pk->version = version;
-      err = gpg_error (GPG_ERR_LEGACY_KEY);
+      err = GPG_ERR_LEGACY_KEY;
       goto leave;
     }
   else
@@ -2243,7 +2240,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) with unknown version %d\n", pkttype, version);
       if (list_mode)
         es_fputs (":key packet: [unknown version]\n", listfp);
-      err = gpg_error (GPG_ERR_INV_PACKET);
+      err = GPG_ERR_INV_PACKET;
       goto leave;
     }
 
@@ -2252,7 +2249,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too short\n", pkttype);
       if (list_mode)
         es_fputs (":key packet: [too short]\n", listfp);
-      err = gpg_error (GPG_ERR_INV_PACKET);
+      err = GPG_ERR_INV_PACKET;
       goto leave;
     }
   else if (pktlen > MAX_KEY_PACKET_LENGTH)
@@ -2260,7 +2257,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too large\n", pkttype);
       if (list_mode)
         es_fputs (":key packet: [too larget]\n", listfp);
-      err = gpg_error (GPG_ERR_INV_PACKET);
+      err = GPG_ERR_INV_PACKET;
       goto leave;
     }
 
@@ -2323,7 +2320,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
               pk->pkey[i] = mpi_read (inp, &n, 0);
               pktlen -= n;
               if (!pk->pkey[i])
-                err = gpg_error (GPG_ERR_INV_PACKET);
+                err = GPG_ERR_INV_PACKET;
             }
           if (err)
             goto leave;
@@ -2355,7 +2352,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 
       if (pktlen < 1)
         {
-          err = gpg_error (GPG_ERR_INV_PACKET);
+          err = GPG_ERR_INV_PACKET;
           goto leave;
         }
 
@@ -2376,7 +2373,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 	    {
 	      if (pktlen < 3)
 		{
-		  err = gpg_error (GPG_ERR_INV_PACKET);
+		  err = GPG_ERR_INV_PACKET;
 		  goto leave;
 		}
 	      ski->sha1chk = (ski->algo == 254);
@@ -2399,7 +2396,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		      if (list_mode)
 			es_fprintf (listfp, "\tunknown S2K %d\n",
                                     ski->s2k.mode);
-		      err = gpg_error (GPG_ERR_INV_PACKET);
+		      err = GPG_ERR_INV_PACKET;
 		      goto leave;
 		    }
 		  /* Here we know that it is a GNU extension.  What
@@ -2418,7 +2415,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		    temp[i] = iobuf_get_noeof (inp);
                   if (i < 8)
                     {
-		      err = gpg_error (GPG_ERR_INV_PACKET);
+		      err = GPG_ERR_INV_PACKET;
 		      goto leave;
                     }
 		  memcpy (ski->s2k.salt, temp, 8);
@@ -2453,7 +2450,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		    es_fprintf (listfp, "\tunknown %sS2K %d\n",
                                 ski->s2k.mode < 1000 ? "" : "GNU ",
                                 ski->s2k.mode);
-		  err = gpg_error (GPG_ERR_INV_PACKET);
+		  err = GPG_ERR_INV_PACKET;
 		  goto leave;
 		}
 
@@ -2477,7 +2474,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		{
 		  if (pktlen < 1)
 		    {
-		      err = gpg_error (GPG_ERR_INV_PACKET);
+		      err = GPG_ERR_INV_PACKET;
 		      goto leave;
 		    }
 		  ski->s2k.count = iobuf_get (inp);
@@ -2492,14 +2489,14 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 		  /* Read the serial number. */
 		  if (pktlen < 1)
 		    {
-		      err = gpg_error (GPG_ERR_INV_PACKET);
+		      err = GPG_ERR_INV_PACKET;
 		      goto leave;
 		    }
 		  snlen = iobuf_get (inp);
 		  pktlen--;
 		  if (pktlen < snlen || snlen == (size_t)(-1))
 		    {
-		      err = gpg_error (GPG_ERR_INV_PACKET);
+		      err = GPG_ERR_INV_PACKET;
 		      goto leave;
 		    }
 		}
@@ -2533,7 +2530,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 
 	  if (pktlen < ski->ivlen)
 	    {
-              err = gpg_error (GPG_ERR_INV_PACKET);
+              err = GPG_ERR_INV_PACKET;
 	      goto leave;
 	    }
 	  for (i = 0; i < ski->ivlen; i++, pktlen--)
@@ -2566,7 +2563,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 	{
 	  if (pktlen < 2) /* At least two bytes for the length.  */
 	    {
-              err = gpg_error (GPG_ERR_INV_PACKET);
+              err = GPG_ERR_INV_PACKET;
 	      goto leave;
 	    }
 
@@ -2594,7 +2591,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 
               if (pktlen < 2) /* At least two bytes for the length.  */
                 {
-                  err = gpg_error (GPG_ERR_INV_PACKET);
+                  err = GPG_ERR_INV_PACKET;
                   goto leave;
                 }
               n = pktlen;
@@ -2608,14 +2605,14 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
                 }
 
 	      if (!pk->pkey[i])
-		err = gpg_error (GPG_ERR_INV_PACKET);
+		err = GPG_ERR_INV_PACKET;
 	    }
 	  if (err)
 	    goto leave;
 
 	  if (pktlen < 2)
 	    {
-              err = gpg_error (GPG_ERR_INV_PACKET);
+              err = GPG_ERR_INV_PACKET;
 	      goto leave;
 	    }
 	  ski->csum = read_16 (inp);
@@ -3058,7 +3055,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
       log_error ("packet(%d) too short (%lu)\n", pkttype, (ulong) pktlen);
       if (list_mode)
         es_fputs (":literal data packet: [too short]\n", listfp);
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   mode = iobuf_get_noeof (inp);
@@ -3170,7 +3167,7 @@ parse_encrypted (IOBUF inp, int pkttype, unsigned long pktlen,
           if (list_mode)
             es_fputs (":encrypted data packet: [unknown version]\n", listfp);
 	  /*skip_rest(inp, pktlen); should we really do this? */
-	  rc = gpg_error (GPG_ERR_INV_PACKET);
+	  rc = GPG_ERR_INV_PACKET;
 	  goto leave;
 	}
       ed->mdc_method = DIGEST_ALGO_SHA1;
@@ -3234,7 +3231,7 @@ parse_mdc (IOBUF inp, int pkttype, unsigned long pktlen,
   if (!new_ctb || pktlen != 20)
     {
       log_error ("mdc_packet with invalid encoding\n");
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
   p = mdc->hash;
@@ -3320,7 +3317,7 @@ parse_gpg_control (IOBUF inp, int pkttype, unsigned long pktlen,
       es_putc ('\n', listfp);
     }
   iobuf_skip_rest (inp, pktlen, 0);
-  return gpg_error (GPG_ERR_INV_PACKET);
+  return GPG_ERR_INV_PACKET;
 }
 
 

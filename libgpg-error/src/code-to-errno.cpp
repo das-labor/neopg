@@ -23,7 +23,7 @@
 #include <gpg-error.h>
 
 static int
-code_to_errno(gpg_err_code_t code)
+code_to_errno(gpg_error_t code)
 {
   switch (code) {
   case GPG_ERR_E2BIG:
@@ -1446,7 +1446,7 @@ code_to_errno(gpg_err_code_t code)
 /* Retrieve the system error for the error code CODE.  This returns 0
    if CODE is not a system error code.  */
 int
-gpg_err_code_to_errno (gpg_err_code_t code)
+gpg_error_to_errno (gpg_error_t code)
 {
   if (!(code & GPG_ERR_SYSTEM_ERROR))
     return 0;

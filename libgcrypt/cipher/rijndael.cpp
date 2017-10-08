@@ -259,7 +259,7 @@ static void prefetch_dec(void)
 
 
 /* Perform the key setup.  */
-static gcry_err_code_t
+static gpg_error_t
 do_setkey (RIJNDAEL_context *ctx, const byte *key, const unsigned keylen)
 {
   static int initialized = 0;
@@ -502,7 +502,7 @@ do_setkey (RIJNDAEL_context *ctx, const byte *key, const unsigned keylen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rijndael_setkey (void *context, const byte *key, const unsigned keylen)
 {
   RIJNDAEL_context *ctx = context;
@@ -1832,7 +1832,7 @@ selftest_fips_128_38a (int requested_mode)
 
 
 /* Complete selftest for AES-128 with all modes and driver code.  */
-static gpg_err_code_t
+static gpg_error_t
 selftest_fips_128 (int extended, selftest_report_func_t report)
 {
   const char *what;
@@ -1865,7 +1865,7 @@ selftest_fips_128 (int extended, selftest_report_func_t report)
 }
 
 /* Complete selftest for AES-192.  */
-static gpg_err_code_t
+static gpg_error_t
 selftest_fips_192 (int extended, selftest_report_func_t report)
 {
   const char *what;
@@ -1889,7 +1889,7 @@ selftest_fips_192 (int extended, selftest_report_func_t report)
 
 
 /* Complete selftest for AES-256.  */
-static gpg_err_code_t
+static gpg_error_t
 selftest_fips_256 (int extended, selftest_report_func_t report)
 {
   const char *what;
@@ -1913,10 +1913,10 @@ selftest_fips_256 (int extended, selftest_report_func_t report)
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (algo)
     {

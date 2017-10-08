@@ -39,7 +39,7 @@ typedef void (*selftest_report_func_t)(const char *domain,
                                        const char *errdesc);
 
 /* Definition of the selftest functions.  */
-typedef gpg_err_code_t (*selftest_func_t)
+typedef gpg_error_t (*selftest_func_t)
      (int algo, int extended, selftest_report_func_t report);
 
 
@@ -50,29 +50,29 @@ typedef gpg_err_code_t (*selftest_func_t)
  */
 
 /* Type for the pk_generate function.  */
-typedef gcry_err_code_t (*gcry_pk_generate_t) (gcry_sexp_t genparms,
+typedef gpg_error_t (*gcry_pk_generate_t) (gcry_sexp_t genparms,
                                                gcry_sexp_t *r_skey);
 
 /* Type for the pk_check_secret_key function.  */
-typedef gcry_err_code_t (*gcry_pk_check_secret_key_t) (gcry_sexp_t keyparms);
+typedef gpg_error_t (*gcry_pk_check_secret_key_t) (gcry_sexp_t keyparms);
 
 /* Type for the pk_encrypt function.  */
-typedef gcry_err_code_t (*gcry_pk_encrypt_t) (gcry_sexp_t *r_ciph,
+typedef gpg_error_t (*gcry_pk_encrypt_t) (gcry_sexp_t *r_ciph,
                                               gcry_sexp_t s_data,
                                               gcry_sexp_t keyparms);
 
 /* Type for the pk_decrypt function.  */
-typedef gcry_err_code_t (*gcry_pk_decrypt_t) (gcry_sexp_t *r_plain,
+typedef gpg_error_t (*gcry_pk_decrypt_t) (gcry_sexp_t *r_plain,
                                               gcry_sexp_t s_data,
                                               gcry_sexp_t keyparms);
 
 /* Type for the pk_sign function.  */
-typedef gcry_err_code_t (*gcry_pk_sign_t) (gcry_sexp_t *r_sig,
+typedef gpg_error_t (*gcry_pk_sign_t) (gcry_sexp_t *r_sig,
                                            gcry_sexp_t s_data,
                                            gcry_sexp_t keyparms);
 
 /* Type for the pk_verify function.  */
-typedef gcry_err_code_t (*gcry_pk_verify_t) (gcry_sexp_t s_sig,
+typedef gpg_error_t (*gcry_pk_verify_t) (gcry_sexp_t s_sig,
                                              gcry_sexp_t s_data,
                                              gcry_sexp_t keyparms);
 
@@ -81,7 +81,7 @@ typedef unsigned (*gcry_pk_get_nbits_t) (gcry_sexp_t keyparms);
 
 
 /* The type used to compute the keygrip.  */
-typedef gpg_err_code_t (*pk_comp_keygrip_t) (gcry_md_hd_t md,
+typedef gpg_error_t (*pk_comp_keygrip_t) (gcry_md_hd_t md,
                                              gcry_sexp_t keyparm);
 
 /* The type used to query an ECC curve name.  */
@@ -130,7 +130,7 @@ typedef struct gcry_pk_spec
  */
 
 /* Type for the cipher_setkey function.  */
-typedef gcry_err_code_t (*gcry_cipher_setkey_t) (void *c,
+typedef gpg_error_t (*gcry_cipher_setkey_t) (void *c,
 						 const unsigned char *key,
 						 unsigned keylen);
 
@@ -157,7 +157,7 @@ typedef void (*gcry_cipher_stdecrypt_t) (void *c,
 					 size_t n);
 
 /* The type used to convey additional information to a cipher.  */
-typedef gpg_err_code_t (*cipher_set_extra_info_t)
+typedef gpg_error_t (*cipher_set_extra_info_t)
      (void *c, int what, const void *buffer, size_t buflen);
 
 /* The type used to set an IV directly in the algorithm module.  */
@@ -248,16 +248,16 @@ typedef struct gcry_md_spec
 
 
 /* The selftest functions.  */
-gcry_error_t _gcry_cipher_selftest (int algo, int extended,
+gpg_error_t _gcry_cipher_selftest (int algo, int extended,
                                     selftest_report_func_t report);
-gcry_error_t _gcry_md_selftest (int algo, int extended,
+gpg_error_t _gcry_md_selftest (int algo, int extended,
                                 selftest_report_func_t report);
-gcry_error_t _gcry_pk_selftest (int algo, int extended,
+gpg_error_t _gcry_pk_selftest (int algo, int extended,
                                 selftest_report_func_t report);
-gcry_error_t _gcry_hmac_selftest (int algo, int extended,
+gpg_error_t _gcry_hmac_selftest (int algo, int extended,
                                   selftest_report_func_t report);
 
-gcry_error_t _gcry_random_selftest (selftest_report_func_t report);
+gpg_error_t _gcry_random_selftest (selftest_report_func_t report);
 
 
 

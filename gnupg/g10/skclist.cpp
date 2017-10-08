@@ -277,7 +277,7 @@ build_sk_list (ctrl_t ctrl,
     {
       log_error ("no valid signators\n");
       write_status_text (STATUS_NO_SGNR, "0");
-      err = gpg_error (GPG_ERR_NO_USER_ID);
+      err = GPG_ERR_NO_USER_ID;
     }
 
   if (err)

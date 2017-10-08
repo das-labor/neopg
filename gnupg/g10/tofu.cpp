@@ -231,7 +231,7 @@ begin_transaction (ctrl_t ctrl, int only_batch)
           log_error (_("error beginning transaction on TOFU database: %s\n"),
                      err);
           sqlite3_free (err);
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
 
       dbs->in_batch_transaction = 1;
@@ -255,7 +255,7 @@ begin_transaction (ctrl_t ctrl, int only_batch)
       log_error (_("error beginning transaction on TOFU database: %s\n"),
                  err);
       sqlite3_free (err);
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   return 0;
@@ -301,7 +301,7 @@ end_transaction (ctrl_t ctrl, int only_batch)
               log_error (_("error committing transaction on TOFU database: %s\n"),
                          err);
               sqlite3_free (err);
-              return gpg_error (GPG_ERR_GENERAL);
+              return GPG_ERR_GENERAL;
             }
 
           return 0;
@@ -324,7 +324,7 @@ end_transaction (ctrl_t ctrl, int only_batch)
       log_error (_("error committing transaction on TOFU database: %s\n"),
                  err);
       sqlite3_free (err);
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   return 0;
@@ -354,7 +354,7 @@ rollback_transaction (ctrl_t ctrl)
       log_error (_("error rolling back transaction on TOFU database: %s\n"),
                  err);
       sqlite3_free (err);
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   return 0;
@@ -410,7 +410,7 @@ string_to_long (long *r_value, const char *string, long fallback, int line)
   *r_value = strtol (string, &tail, 0);
   if (errno || !(!strcmp (tail, ".0") || !*tail))
     {
-      err = errno? gpg_error_from_errno (errno) : gpg_error (GPG_ERR_BAD_DATA);
+      err = errno? gpg_error_from_errno (errno) : GPG_ERR_BAD_DATA;
       log_debug ("%s:%d: strtol failed for TOFU DB data; returned string"
                  " (string='%.10s%s'; tail='%.10s%s'): %s\n",
                  __FILE__, line,
@@ -441,7 +441,7 @@ string_to_ulong (unsigned long *r_value, const char *string,
   *r_value = strtoul (string, &tail, 0);
   if (errno || !(!strcmp (tail, ".0") || !*tail))
     {
-      err = errno? gpg_error_from_errno (errno) : gpg_error (GPG_ERR_BAD_DATA);
+      err = errno? gpg_error_from_errno (errno) : GPG_ERR_BAD_DATA;
       log_debug ("%s:%d: strtoul failed for TOFU DB data; returned string"
                  " (string='%.10s%s'; tail='%.10s%s'): %s\n",
                  __FILE__, line,
@@ -1608,7 +1608,7 @@ ask_about_binding (ctrl_t ctrl,
       log_error (_("error gathering other user IDs: %s\n"), sqerr);
       sqlite3_free (sqerr);
       sqerr = NULL;
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
     }
 
   if (other_user_ids)
@@ -1687,7 +1687,7 @@ ask_about_binding (ctrl_t ctrl,
          GPGSQL_ARG_END);
       if (rc)
         {
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           break;
         }
 
@@ -1705,7 +1705,7 @@ ask_about_binding (ctrl_t ctrl,
          GPGSQL_ARG_END);
       if (rc)
         {
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           break;
         }
 
@@ -2073,7 +2073,7 @@ build_conflict_set (ctrl_t ctrl, tofu_dbs_t dbs,
       log_error (_("error reading TOFU database: %s\n"), sqerr);
       print_further_info ("listing fingerprints");
       sqlite3_free (sqerr);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       return NULL;
     }
 
@@ -2352,7 +2352,7 @@ get_policy (ctrl_t ctrl, tofu_dbs_t dbs, PKT_public_key *pk,
       log_error (_("error reading TOFU database: %s\n"), err);
       print_further_info ("reading the policy");
       sqlite3_free (err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto out;
     }
 
@@ -2828,7 +2828,7 @@ get_trust (ctrl_t ctrl, PKT_public_key *pk,
                               fingerprint, user_id);
           sqlite3_free (sqerr);
           sqerr = NULL;
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
         }
       else if (DBG_TRUST)
         log_debug ("Set %s to conflict with %s\n",
@@ -3018,7 +3018,7 @@ show_statistics (tofu_dbs_t dbs,
       log_error (_("error reading TOFU database: %s\n"), err);
       print_further_info ("getting signature statistics");
       sqlite3_free (err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto out;
     }
   rc = gpgsql_exec_printf
@@ -3035,7 +3035,7 @@ show_statistics (tofu_dbs_t dbs,
       log_error (_("error reading TOFU database: %s\n"), err);
       print_further_info ("getting signature statistics (by day)");
       sqlite3_free (err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto out;
     }
 
@@ -3072,7 +3072,7 @@ show_statistics (tofu_dbs_t dbs,
       log_error (_("error reading TOFU database: %s\n"), err);
       print_further_info ("getting encryption statistics");
       sqlite3_free (err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto out;
     }
   rc = gpgsql_exec_printf
@@ -3089,7 +3089,7 @@ show_statistics (tofu_dbs_t dbs,
       log_error (_("error reading TOFU database: %s\n"), err);
       print_further_info ("getting encryption statistics (by day)");
       sqlite3_free (err);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto out;
     }
 
@@ -3339,7 +3339,7 @@ tofu_register_signature (ctrl_t ctrl,
   dbs = opendbs (ctrl);
   if (! dbs)
     {
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       log_error (_("error opening TOFU database: %s\n"),
                  gpg_strerror (rc));
       return rc;
@@ -3375,7 +3375,7 @@ tofu_register_signature (ctrl_t ctrl,
                      0, NULL, NULL, now)
           == _tofu_GET_TRUST_ERROR)
         {
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           xfree (email);
           break;
         }
@@ -3399,7 +3399,7 @@ tofu_register_signature (ctrl_t ctrl,
           log_error (_("error reading TOFU database: %s\n"), err);
           print_further_info ("checking existence");
           sqlite3_free (err);
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
         }
       else if (c > 1)
         /* Duplicates!  This should not happen.  In particular,
@@ -3453,7 +3453,7 @@ tofu_register_signature (ctrl_t ctrl,
               log_error (_("error updating TOFU database: %s\n"), err);
               print_further_info ("insert signatures");
               sqlite3_free (err);
-              rc = gpg_error (GPG_ERR_GENERAL);
+              rc = GPG_ERR_GENERAL;
             }
         }
 
@@ -3491,7 +3491,7 @@ tofu_register_encryption (ctrl_t ctrl,
   dbs = opendbs (ctrl);
   if (! dbs)
     {
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       log_error (_("error opening TOFU database: %s\n"),
                  gpg_strerror (rc));
       return rc;
@@ -3548,7 +3548,7 @@ tofu_register_encryption (ctrl_t ctrl,
       if (tl == _tofu_GET_TRUST_ERROR)
         {
           /* An error.  */
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           xfree (email);
           goto die;
         }
@@ -3591,7 +3591,7 @@ tofu_register_encryption (ctrl_t ctrl,
           log_error (_("error updating TOFU database: %s\n"), err);
           print_further_info ("insert encryption");
           sqlite3_free (err);
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
         }
 
       xfree (email);
@@ -3693,7 +3693,7 @@ tofu_write_tfs_record (ctrl_t ctrl, estream_t fp,
   dbs = opendbs (ctrl);
   if (!dbs)
     {
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       log_error (_("error opening TOFU database: %s\n"), gpg_strerror (err));
       return err;
     }
@@ -3879,7 +3879,7 @@ tofu_set_policy (ctrl_t ctrl, kbnode_t kb, enum tofu_policy policy)
     {
       log_error (_("error opening TOFU database: %s\n"),
                  gpg_strerror (GPG_ERR_GENERAL));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   if (DBG_TRUST)
@@ -3954,7 +3954,7 @@ tofu_get_policy (ctrl_t ctrl, PKT_public_key *pk, PKT_user_id *user_id,
     {
       log_error (_("error opening TOFU database: %s\n"),
                  gpg_strerror (GPG_ERR_GENERAL));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   fingerprint = hexfingerprint (pk, NULL, 0);
@@ -3967,7 +3967,7 @@ tofu_get_policy (ctrl_t ctrl, PKT_public_key *pk, PKT_user_id *user_id,
   xfree (email);
   xfree (fingerprint);
   if (*policy == _tofu_GET_POLICY_ERROR)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   return 0;
 }
 
@@ -3990,7 +3990,7 @@ tofu_notice_key_changed (ctrl_t ctrl, kbnode_t kb)
     {
       log_error (_("error opening TOFU database: %s\n"),
                  gpg_strerror (GPG_ERR_GENERAL));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   fingerprint = hexfingerprint (pk, NULL, 0);
@@ -4004,6 +4004,6 @@ tofu_notice_key_changed (ctrl_t ctrl, kbnode_t kb)
   xfree (fingerprint);
 
   if (rc == _tofu_GET_POLICY_ERROR)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   return 0;
 }

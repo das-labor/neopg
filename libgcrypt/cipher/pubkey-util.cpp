@@ -50,11 +50,11 @@ pss_verify_cmp (void *opaque, gcry_mpi_t tmp)
    R_ENCODING and the flags are stored at R_FLAGS.  If any of them is
    not needed, NULL may be passed.  The function returns 0 on success
    or an error code. */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_util_parse_flaglist (gcry_sexp_t list,
                               int *r_flags, enum pk_encoding *r_encoding)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   const char *s;
   size_t n;
   int i;
@@ -274,7 +274,7 @@ get_hash_algo (const char *s, size_t n)
  * R_NBITS.  For parsing errors the function returns an error code and
  * stores 0 at R_NBITS.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_util_get_nbits (gcry_sexp_t list, unsigned int *r_nbits)
 {
   char buf[50];
@@ -321,7 +321,7 @@ _gcry_pk_util_get_nbits (gcry_sexp_t list, unsigned int *r_nbits)
  * R_E.  For parsing errors the function returns an error code and
  * stores 0 at R_E.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_util_get_rsa_use_e (gcry_sexp_t list, unsigned long *r_e)
 {
   char buf[50];
@@ -359,11 +359,11 @@ _gcry_pk_util_get_rsa_use_e (gcry_sexp_t list, unsigned long *r_e)
    to NULL and an error code returned.  If R_ECCFLAGS is not NULL flag
    values are set into it; as of now they are only used with ecc
    algorithms.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_util_preparse_sigval (gcry_sexp_t s_sig, const char **algo_names,
                                gcry_sexp_t *r_parms, int *r_eccflags)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_sexp_t l1 = NULL;
   gcry_sexp_t l2 = NULL;
   char *name = NULL;
@@ -461,12 +461,12 @@ _gcry_pk_util_preparse_sigval (gcry_sexp_t s_sig, const char **algo_names,
 
    HASH-ALGO and LABEL are specific to OAEP.  CTX will be updated with
    encoding information.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_pk_util_preparse_encval (gcry_sexp_t sexp, const char **algo_names,
                                gcry_sexp_t *r_parms,
                                struct pk_encoding_ctx *ctx)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_sexp_t l1 = NULL;
   gcry_sexp_t l2 = NULL;
   char *name = NULL;
@@ -546,7 +546,7 @@ _gcry_pk_util_preparse_encval (gcry_sexp_t sexp, const char **algo_names,
 		{
 		  ctx->label = xtrymalloc (n);
 		  if (!ctx->label)
-		    rc = gpg_err_code_from_syserror ();
+		    rc = gpg_error_from_syserror ();
 		  else
 		    {
 		      memcpy (ctx->label, s, n);
@@ -669,11 +669,11 @@ _gcry_pk_util_free_encoding_ctx (struct pk_encoding_ctx *ctx)
 
    RANDOM-OVERRIDE is used to replace random nonces for regression
    testing.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
                            struct pk_encoding_ctx *ctx)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_sexp_t ldata, lhash, lvalue;
   size_t n;
   const char *s;
@@ -754,7 +754,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
           valuelen = 0;
           value = xtrymalloc (1);
           if (!value)
-            rc = gpg_err_code_from_syserror ();
+            rc = gpg_error_from_syserror ();
         }
       else if ((valuelen * 8) < valuelen)
         {
@@ -837,7 +837,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
                 {
                   random_override = xtrymalloc (n);
                   if (!random_override)
-                    rc = gpg_err_code_from_syserror ();
+                    rc = gpg_error_from_syserror ();
                   else
                     {
                       memcpy (random_override, s, n);
@@ -939,7 +939,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
 		{
 		  ctx->label = xtrymalloc (n);
 		  if (!ctx->label)
-		    rc = gpg_err_code_from_syserror ();
+		    rc = gpg_error_from_syserror ();
 		  else
 		    {
 		      memcpy (ctx->label, s, n);
@@ -961,7 +961,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
                 {
                   random_override = xtrymalloc (n);
                   if (!random_override)
-                    rc = gpg_err_code_from_syserror ();
+                    rc = gpg_error_from_syserror ();
                   else
                     {
                       memcpy (random_override, s, n);
@@ -1031,7 +1031,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
                     {
                       random_override = xtrymalloc (n);
                       if (!random_override)
-                        rc = gpg_err_code_from_syserror ();
+                        rc = gpg_error_from_syserror ();
                       else
                         {
                           memcpy (random_override, s, n);

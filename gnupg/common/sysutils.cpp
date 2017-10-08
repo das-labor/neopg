@@ -86,20 +86,6 @@
 static int allow_special_filenames;
 
 
-static GPGRT_INLINE gpg_error_t
-my_error_from_syserror (void)
-{
-  return gpg_error (gpg_err_code_from_syserror ());
-}
-
-static GPGRT_INLINE gpg_error_t
-my_error (int e)
-{
-  return gpg_error (e);
-}
-
-
-
 #if defined(__linux__) && defined(__alpha__) && __GLIBC__ < 2
 #warning using trap_unaligned
 static int
@@ -651,13 +637,13 @@ gnupg_rename_file (const char *oldname, const char *newname, int *block_signals)
             Sleep (wtime);
             goto again;
           }
-        err = my_error_from_syserror ();
+        err = gpg_error_from_syserror ();
       }
   }
 #else /* Unix */
   {
     if (rename (oldname, newname) )
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
   }
 #endif /* Unix */
 
@@ -980,15 +966,15 @@ gnupg_inotify_watch_delete_self (int *r_fd, const char *fname)
   *r_fd = -1;
 
   if (!fname)
-    return my_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   fd = inotify_init ();
   if (fd == -1)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   if (inotify_add_watch (fd, fname, IN_DELETE_SELF) == -1)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       close (fd);
       return err;
     }
@@ -999,7 +985,7 @@ gnupg_inotify_watch_delete_self (int *r_fd, const char *fname)
 
   (void)fname;
   *r_fd = -1;
-  return my_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 
 #endif /*!HAVE_INOTIFY_INIT*/
 }
@@ -1019,16 +1005,16 @@ gnupg_inotify_watch_socket (int *r_fd, const char *socket_name)
   *r_fd = -1;
 
   if (!socket_name)
-    return my_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   fname = xtrystrdup (socket_name);
   if (!fname)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   fd = inotify_init ();
   if (fd == -1)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       xfree (fname);
       return err;
     }
@@ -1042,7 +1028,7 @@ gnupg_inotify_watch_socket (int *r_fd, const char *socket_name)
   if (inotify_add_watch (fd, fname,
                          (IN_DELETE|IN_DELETE_SELF|IN_EXCL_UNLINK)) == -1)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       close (fd);
       xfree (fname);
       return err;
@@ -1056,7 +1042,7 @@ gnupg_inotify_watch_socket (int *r_fd, const char *socket_name)
 
   (void)socket_name;
   *r_fd = -1;
-  return my_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 
 #endif /*!HAVE_INOTIFY_INIT*/
 }
@@ -1133,7 +1119,7 @@ gnupg_get_socket_name (int fd)
 
   if (getsockname (fd, (struct sockaddr*)&un, &len) != 0)
     log_error ("could not getsockname(%d): %s\n", fd,
-               gpg_strerror (my_error_from_syserror ()));
+               gpg_strerror (gpg_error_from_syserror ()));
   else if (un.sun_family != AF_UNIX)
     log_error ("file descriptor %d is not a unix-domain socket\n", fd);
   else if (len <= offsetof (struct sockaddr_un, sun_path))
@@ -1150,7 +1136,7 @@ gnupg_get_socket_name (int fd)
       name = xtrymalloc (namelen + 1);
       if (!name)
         log_error ("failed to allocate memory for name of fd %d: %s\n",
-                   fd, gpg_strerror (my_error_from_syserror ()));
+                   fd, gpg_strerror (gpg_error_from_syserror ()));
       else
         {
           memcpy (name, un.sun_path, namelen);

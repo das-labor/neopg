@@ -514,7 +514,7 @@ _gcry_mpi_ec_p_internal_new (enum gcry_mpi_ec_models model,
    returned.
 
    The context needs to be released using gcry_ctx_release.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_ec_p_new (gcry_ctx_t *r_ctx,
                     enum gcry_mpi_ec_models model,
                     enum ecc_dialects dialect,
@@ -530,7 +530,7 @@ _gcry_mpi_ec_p_new (gcry_ctx_t *r_ctx,
 
   ctx = _gcry_ctx_alloc (CONTEXT_TYPE_EC, sizeof *ec, ec_deinit);
   if (!ctx)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
   ec_p_init (ec, model, dialect, flags, p, a, b);
 
@@ -570,7 +570,7 @@ _gcry_mpi_ec_get_point (const char *name, gcry_ctx_t ctx, int copy)
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue,
                       gcry_ctx_t ctx)
 {
@@ -580,7 +580,7 @@ _gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue,
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_ec_set_point (const char *name, gcry_mpi_point_t newvalue,
                         gcry_ctx_t ctx)
 {
@@ -595,10 +595,10 @@ _gcry_mpi_ec_set_point (const char *name, gcry_mpi_point_t newvalue,
  * error an error code is return but RESULT might have been changed.
  * If no context is given the function tries to decode VALUE by
  * assuming a 0x04 prefixed uncompressed encoding.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_ec_decode_point (mpi_point_t result, gcry_mpi_t value, mpi_ec_t ec)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   if (ec && ec->dialect == ECC_DIALECT_ED25519)
     rc = _gcry_ecc_eddsa_decodepoint (value, ec, result, NULL, NULL);

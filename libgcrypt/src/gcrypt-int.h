@@ -47,37 +47,37 @@ typedef struct mpi_ec_ctx_s *mpi_ec_t;
    included by some test programs which define theie own xmalloc
    macros.  */
 
-gpg_err_code_t _gcry_cipher_open (gcry_cipher_hd_t *handle,
+gpg_error_t _gcry_cipher_open (gcry_cipher_hd_t *handle,
                                   int algo, int mode, unsigned int flags);
 void _gcry_cipher_close (gcry_cipher_hd_t h);
-gpg_err_code_t _gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer,
+gpg_error_t _gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer,
                              size_t buflen);
-gpg_err_code_t _gcry_cipher_info (gcry_cipher_hd_t h, int what, void *buffer,
+gpg_error_t _gcry_cipher_info (gcry_cipher_hd_t h, int what, void *buffer,
                                   size_t *nbytes);
-gpg_err_code_t _gcry_cipher_algo_info (int algo, int what, void *buffer,
+gpg_error_t _gcry_cipher_algo_info (int algo, int what, void *buffer,
                                        size_t *nbytes);
 const char *_gcry_cipher_algo_name (int algorithm) _GCRY_GCC_ATTR_PURE;
 int _gcry_cipher_map_name (const char *name) _GCRY_GCC_ATTR_PURE;
 int _gcry_cipher_mode_from_oid (const char *string) _GCRY_GCC_ATTR_PURE;
-gpg_err_code_t _gcry_cipher_encrypt (gcry_cipher_hd_t h,
+gpg_error_t _gcry_cipher_encrypt (gcry_cipher_hd_t h,
                                      void *out, size_t outsize,
                                      const void *in, size_t inlen);
-gpg_err_code_t _gcry_cipher_decrypt (gcry_cipher_hd_t h,
+gpg_error_t _gcry_cipher_decrypt (gcry_cipher_hd_t h,
                                      void *out, size_t outsize,
                                      const void *in, size_t inlen);
-gcry_err_code_t _gcry_cipher_setkey (gcry_cipher_hd_t hd,
+gpg_error_t _gcry_cipher_setkey (gcry_cipher_hd_t hd,
                                      const void *key, size_t keylen);
-gcry_err_code_t _gcry_cipher_setiv (gcry_cipher_hd_t hd,
+gpg_error_t _gcry_cipher_setiv (gcry_cipher_hd_t hd,
                                     const void *iv, size_t ivlen);
-gpg_err_code_t _gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf,
+gpg_error_t _gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf,
                                           size_t abuflen);
-gpg_err_code_t _gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag,
+gpg_error_t _gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag,
                                     size_t taglen);
-gpg_err_code_t _gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag,
+gpg_error_t _gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag,
                                       size_t taglen);
-gpg_err_code_t _gcry_cipher_setctr (gcry_cipher_hd_t hd,
+gpg_error_t _gcry_cipher_setctr (gcry_cipher_hd_t hd,
                                     const void *ctr, size_t ctrlen);
-gpg_err_code_t _gcry_cipher_getctr (gcry_cipher_hd_t hd,
+gpg_error_t _gcry_cipher_getctr (gcry_cipher_hd_t hd,
                                     void *ctr, size_t ctrlen);
 size_t _gcry_cipher_get_algo_keylen (int algo);
 size_t _gcry_cipher_get_algo_blklen (int algo);
@@ -87,18 +87,18 @@ size_t _gcry_cipher_get_algo_blklen (int algo);
 
 
 
-gpg_err_code_t _gcry_pk_encrypt (gcry_sexp_t *result,
+gpg_error_t _gcry_pk_encrypt (gcry_sexp_t *result,
                                  gcry_sexp_t data, gcry_sexp_t pkey);
-gpg_err_code_t _gcry_pk_decrypt (gcry_sexp_t *result,
+gpg_error_t _gcry_pk_decrypt (gcry_sexp_t *result,
                                  gcry_sexp_t data, gcry_sexp_t skey);
-gpg_err_code_t _gcry_pk_sign (gcry_sexp_t *result,
+gpg_error_t _gcry_pk_sign (gcry_sexp_t *result,
                               gcry_sexp_t data, gcry_sexp_t skey);
-gpg_err_code_t _gcry_pk_verify (gcry_sexp_t sigval,
+gpg_error_t _gcry_pk_verify (gcry_sexp_t sigval,
                                 gcry_sexp_t data, gcry_sexp_t pkey);
-gpg_err_code_t _gcry_pk_testkey (gcry_sexp_t key);
-gpg_err_code_t _gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms);
-gpg_err_code_t _gcry_pk_ctl (int cmd, void *buffer, size_t buflen);
-gpg_err_code_t _gcry_pk_algo_info (int algo, int what,
+gpg_error_t _gcry_pk_testkey (gcry_sexp_t key);
+gpg_error_t _gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms);
+gpg_error_t _gcry_pk_ctl (int cmd, void *buffer, size_t buflen);
+gpg_error_t _gcry_pk_algo_info (int algo, int what,
                                    void *buffer, size_t *nbytes);
 const char *_gcry_pk_algo_name (int algorithm) _GCRY_GCC_ATTR_PURE;
 int _gcry_pk_map_name (const char* name) _GCRY_GCC_ATTR_PURE;
@@ -107,37 +107,37 @@ unsigned char *_gcry_pk_get_keygrip (gcry_sexp_t key, unsigned char *array);
 const char *_gcry_pk_get_curve (gcry_sexp_t key, int iterator,
                                 unsigned int *r_nbits);
 gcry_sexp_t _gcry_pk_get_param (int algo, const char *name);
-gpg_err_code_t _gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp,
+gpg_error_t _gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp,
                                       int mode, gcry_ctx_t ctx);
 
 
-gpg_err_code_t _gcry_md_open (gcry_md_hd_t *h, int algo, unsigned int flags);
+gpg_error_t _gcry_md_open (gcry_md_hd_t *h, int algo, unsigned int flags);
 void _gcry_md_close (gcry_md_hd_t hd);
-gpg_err_code_t _gcry_md_enable (gcry_md_hd_t hd, int algo);
-gpg_err_code_t _gcry_md_copy (gcry_md_hd_t *bhd, gcry_md_hd_t ahd);
+gpg_error_t _gcry_md_enable (gcry_md_hd_t hd, int algo);
+gpg_error_t _gcry_md_copy (gcry_md_hd_t *bhd, gcry_md_hd_t ahd);
 void _gcry_md_reset (gcry_md_hd_t hd);
-gpg_err_code_t _gcry_md_ctl (gcry_md_hd_t hd, int cmd,
+gpg_error_t _gcry_md_ctl (gcry_md_hd_t hd, int cmd,
                           void *buffer, size_t buflen);
 void _gcry_md_write (gcry_md_hd_t hd, const void *buffer, size_t length);
 unsigned char *_gcry_md_read (gcry_md_hd_t hd, int algo);
-gpg_err_code_t _gcry_md_extract (gcry_md_hd_t hd, int algo, void *buffer,
+gpg_error_t _gcry_md_extract (gcry_md_hd_t hd, int algo, void *buffer,
                               size_t length);
 void _gcry_md_hash_buffer (int algo, void *digest,
                            const void *buffer, size_t length);
-gpg_err_code_t _gcry_md_hash_buffers (int algo, unsigned int flags,
+gpg_error_t _gcry_md_hash_buffers (int algo, unsigned int flags,
                                       void *digest,
                                       const gcry_buffer_t *iov, int iovcnt);
 int _gcry_md_get_algo (gcry_md_hd_t hd);
 unsigned int _gcry_md_get_algo_dlen (int algo);
 int _gcry_md_is_enabled (gcry_md_hd_t a, int algo);
 int _gcry_md_is_secure (gcry_md_hd_t a);
-gpg_err_code_t _gcry_md_info (gcry_md_hd_t h, int what, void *buffer,
+gpg_error_t _gcry_md_info (gcry_md_hd_t h, int what, void *buffer,
                           size_t *nbytes);
-gpg_err_code_t _gcry_md_algo_info (int algo, int what, void *buffer,
+gpg_error_t _gcry_md_algo_info (int algo, int what, void *buffer,
                                 size_t *nbytes);
 const char *_gcry_md_algo_name (int algo) _GCRY_GCC_ATTR_PURE;
 int _gcry_md_map_name (const char* name) _GCRY_GCC_ATTR_PURE;
-gpg_err_code_t _gcry_md_setkey (gcry_md_hd_t hd,
+gpg_error_t _gcry_md_setkey (gcry_md_hd_t hd,
                                 const void *key, size_t keylen);
 void _gcry_md_debug (gcry_md_hd_t hd, const char *suffix);
 
@@ -157,21 +157,21 @@ void _gcry_md_debug (gcry_md_hd_t hd, const char *suffix);
 
 
 
-gpg_err_code_t _gcry_mac_open (gcry_mac_hd_t *handle, int algo,
+gpg_error_t _gcry_mac_open (gcry_mac_hd_t *handle, int algo,
                             unsigned int flags, gcry_ctx_t ctx);
 void _gcry_mac_close (gcry_mac_hd_t h);
-gpg_err_code_t _gcry_mac_ctl (gcry_mac_hd_t h, int cmd, void *buffer,
+gpg_error_t _gcry_mac_ctl (gcry_mac_hd_t h, int cmd, void *buffer,
                            size_t buflen);
-gpg_err_code_t _gcry_mac_algo_info (int algo, int what, void *buffer,
+gpg_error_t _gcry_mac_algo_info (int algo, int what, void *buffer,
                                  size_t *nbytes);
-gpg_err_code_t _gcry_mac_setkey (gcry_mac_hd_t hd, const void *key,
+gpg_error_t _gcry_mac_setkey (gcry_mac_hd_t hd, const void *key,
                               size_t keylen);
-gpg_err_code_t _gcry_mac_setiv (gcry_mac_hd_t hd, const void *iv,
+gpg_error_t _gcry_mac_setiv (gcry_mac_hd_t hd, const void *iv,
                              size_t ivlen);
-gpg_err_code_t _gcry_mac_write (gcry_mac_hd_t hd, const void *buffer,
+gpg_error_t _gcry_mac_write (gcry_mac_hd_t hd, const void *buffer,
                              size_t length);
-gpg_err_code_t _gcry_mac_read (gcry_mac_hd_t hd, void *buffer, size_t *buflen);
-gpg_err_code_t _gcry_mac_verify (gcry_mac_hd_t hd, const void *buffer,
+gpg_error_t _gcry_mac_read (gcry_mac_hd_t hd, void *buffer, size_t *buflen);
+gpg_error_t _gcry_mac_verify (gcry_mac_hd_t hd, const void *buffer,
                                  size_t buflen);
 int _gcry_mac_get_algo (gcry_mac_hd_t hd);
 unsigned int _gcry_mac_get_algo_maclen (int algo);
@@ -182,14 +182,14 @@ int _gcry_mac_map_name (const char *name) _GCRY_GCC_ATTR_PURE;
 #define _gcry_mac_reset(h)  _gcry_mac_ctl ((h), GCRYCTL_RESET, NULL, 0)
 
 
-gpg_err_code_t _gcry_kdf_derive (const void *passphrase, size_t passphraselen,
+gpg_error_t _gcry_kdf_derive (const void *passphrase, size_t passphraselen,
                                  int algo, int subalgo,
                                  const void *salt, size_t saltlen,
                                  unsigned long iterations,
                                  size_t keysize, void *keybuffer);
 
 
-gpg_err_code_t _gcry_prime_generate (gcry_mpi_t *prime,
+gpg_error_t _gcry_prime_generate (gcry_mpi_t *prime,
                                      unsigned int prime_bits,
                                      unsigned int factor_bits,
                                      gcry_mpi_t **factors,
@@ -197,17 +197,17 @@ gpg_err_code_t _gcry_prime_generate (gcry_mpi_t *prime,
                                      void *cb_arg,
                                      gcry_random_level_t random_level,
                                      unsigned int flags);
-gpg_err_code_t _gcry_prime_group_generator (gcry_mpi_t *r_g,
+gpg_error_t _gcry_prime_group_generator (gcry_mpi_t *r_g,
                                             gcry_mpi_t prime,
                                             gcry_mpi_t *factors,
                                             gcry_mpi_t start_g);
 void _gcry_prime_release_factors (gcry_mpi_t *factors);
-gpg_err_code_t _gcry_prime_check (gcry_mpi_t x, unsigned int flags);
+gpg_error_t _gcry_prime_check (gcry_mpi_t x, unsigned int flags);
 
 
 void _gcry_randomize (void *buffer, size_t length,
                       enum gcry_random_level level);
-gpg_err_code_t _gcry_random_add_bytes (const void *buffer, size_t length,
+gpg_error_t _gcry_random_add_bytes (const void *buffer, size_t length,
                                     int quality);
 void *_gcry_random_bytes (size_t nbytes, enum gcry_random_level level)
                          _GCRY_GCC_ATTR_MALLOC;
@@ -234,56 +234,22 @@ void _gcry_set_log_handler (gcry_handler_log_t f, void *opaque);
 void _gcry_set_gettext_handler (const char *(*f)(const char*));
 void _gcry_set_progress_handler (gcry_handler_progress_t cb, void *cb_data);
 
-
-/* Return a pointer to a string containing a description of the error
-   code in the error value ERR.  */
-static inline const char *
-_gcry_strerror (gcry_error_t err)
-{
-  return gpg_strerror (err);
-}
 
-/* Retrieve the error code for the system error ERR.  This returns
-   GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
-   this).  */
-static inline gcry_err_code_t
-_gcry_err_code_from_errno (int err)
-{
-  return gpg_err_code_from_errno (err);
-}
-
-/* Retrieve the system error for the error code CODE.  This returns 0
-   if CODE is not a system error code.  */
-static inline int
-_gcry_err_code_to_errno (gcry_err_code_t code)
-{
-  return gpg_err_code_from_errno (code);
-}
-
-/* Return an error value with the system error ERR.  */
-static inline gcry_error_t
-_gcry_error_from_errno (int err)
-{
-  return gpg_error (gpg_err_code_from_errno (err));
-}
-
-
-
-gpg_err_code_t _gcry_sexp_new (gcry_sexp_t *retsexp,
+gpg_error_t _gcry_sexp_new (gcry_sexp_t *retsexp,
                                const void *buffer, size_t length,
                                int autodetect);
-gpg_err_code_t _gcry_sexp_create (gcry_sexp_t *retsexp,
+gpg_error_t _gcry_sexp_create (gcry_sexp_t *retsexp,
                                   void *buffer, size_t length,
                                   int autodetect, void (*freefnc) (void *));
-gpg_err_code_t _gcry_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
+gpg_error_t _gcry_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                               const char *buffer, size_t length);
-gpg_err_code_t _gcry_sexp_build (gcry_sexp_t *retsexp, size_t *erroff,
+gpg_error_t _gcry_sexp_build (gcry_sexp_t *retsexp, size_t *erroff,
                                  const char *format, ...);
-gpg_err_code_t _gcry_sexp_build_array (gcry_sexp_t *retsexp, size_t *erroff,
+gpg_error_t _gcry_sexp_build_array (gcry_sexp_t *retsexp, size_t *erroff,
                                        const char *format, void **arg_list);
 void _gcry_sexp_release (gcry_sexp_t sexp);
 size_t _gcry_sexp_canon_len (const unsigned char *buffer, size_t length,
-                            size_t *erroff, gcry_err_code_t *errcode);
+                            size_t *erroff, gpg_error_t *errcode);
 size_t _gcry_sexp_sprint (gcry_sexp_t sexp, int mode, void *buffer,
                           size_t maxlength);
 void _gcry_sexp_dump (const gcry_sexp_t a);
@@ -305,7 +271,7 @@ void *_gcry_sexp_nth_buffer (const gcry_sexp_t list, int number,
                              size_t *rlength);
 char *_gcry_sexp_nth_string (gcry_sexp_t list, int number);
 gcry_mpi_t _gcry_sexp_nth_mpi (gcry_sexp_t list, int number, int mpifmt);
-gpg_err_code_t _gcry_sexp_extract_param (gcry_sexp_t sexp,
+gpg_error_t _gcry_sexp_extract_param (gcry_sexp_t sexp,
                                          const char *path,
                                          const char *list,
                                          ...) _GCRY_GCC_ATTR_SENTINEL(0);
@@ -345,21 +311,21 @@ gcry_mpi_t _gcry_mpi_copy (const gcry_mpi_t a);
 void _gcry_mpi_snatch (gcry_mpi_t w, gcry_mpi_t u);
 gcry_mpi_t _gcry_mpi_set (gcry_mpi_t w, const gcry_mpi_t u);
 gcry_mpi_t _gcry_mpi_set_ui (gcry_mpi_t w, unsigned long u);
-gcry_err_code_t _gcry_mpi_get_ui (gcry_mpi_t w, ulong *u);
+gpg_error_t _gcry_mpi_get_ui (gcry_mpi_t w, ulong *u);
 void _gcry_mpi_swap (gcry_mpi_t a, gcry_mpi_t b);
 int _gcry_mpi_is_neg (gcry_mpi_t a);
 void _gcry_mpi_neg (gcry_mpi_t w, gcry_mpi_t u);
 void _gcry_mpi_abs (gcry_mpi_t w);
 int _gcry_mpi_cmp (const gcry_mpi_t u, const gcry_mpi_t v);
 int _gcry_mpi_cmp_ui (const gcry_mpi_t u, unsigned long v);
-gpg_err_code_t _gcry_mpi_scan (gcry_mpi_t *ret_mpi, enum gcry_mpi_format format,
+gpg_error_t _gcry_mpi_scan (gcry_mpi_t *ret_mpi, enum gcry_mpi_format format,
                               const void *buffer, size_t buflen,
                               size_t *nscanned);
-gpg_err_code_t _gcry_mpi_print (enum gcry_mpi_format format,
+gpg_error_t _gcry_mpi_print (enum gcry_mpi_format format,
                                unsigned char *buffer, size_t buflen,
                                size_t *nwritten,
                                const gcry_mpi_t a);
-gpg_err_code_t _gcry_mpi_aprint (enum gcry_mpi_format format,
+gpg_error_t _gcry_mpi_aprint (enum gcry_mpi_format format,
                                 unsigned char **buffer, size_t *nwritten,
                                 const gcry_mpi_t a);
 void _gcry_mpi_dump (const gcry_mpi_t a);

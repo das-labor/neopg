@@ -69,14 +69,14 @@ read_list (char *key, char *country, int *lnr)
     }
 
   if (!listfp)
-    return gpg_error (GPG_ERR_EOF);
+    return GPG_ERR_EOF;
 
   do
     {
       if (!fgets (line, DIM(line)-1, listfp) )
         {
           if (feof (listfp))
-            return gpg_error (GPG_ERR_EOF);
+            return GPG_ERR_EOF;
           return gpg_error_from_syserror ();
         }
 
@@ -85,8 +85,8 @@ read_list (char *key, char *country, int *lnr)
           /* Eat until end of line. */
           while ( (c=getc (listfp)) != EOF && c != '\n')
             ;
-          return gpg_error (*line? GPG_ERR_LINE_TOO_LONG
-                                 : GPG_ERR_INCOMPLETE_LINE);
+          return *line? GPG_ERR_LINE_TOO_LONG
+                                 : GPG_ERR_INCOMPLETE_LINE;
         }
       ++*lnr;
 
@@ -104,7 +104,7 @@ read_list (char *key, char *country, int *lnr)
     {
       log_error (_("invalid formatted fingerprint in '%s', line %d\n"),
                  listname, *lnr);
-      return gpg_error (GPG_ERR_BAD_DATA);
+      return GPG_ERR_BAD_DATA;
     }
   assert (p[i]);
   i++;
@@ -121,7 +121,7 @@ read_list (char *key, char *country, int *lnr)
   else
     {
       log_error (_("invalid country code in '%s', line %d\n"), listname, *lnr);
-      return gpg_error (GPG_ERR_BAD_DATA);
+      return GPG_ERR_BAD_DATA;
     }
 
   return 0;
@@ -158,7 +158,7 @@ gpgsm_is_in_qualified_list (ctrl_t ctrl, ksba_cert_t cert, char *country)
 
   fpr = gpgsm_get_fingerprint_hexstring (cert, GCRY_MD_SHA1);
   if (!fpr)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   if (listfp)
     {
@@ -171,8 +171,8 @@ gpgsm_is_in_qualified_list (ctrl_t ctrl, ksba_cert_t cert, char *country)
       if (!strcmp (key, fpr))
         break;
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF)
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+  if (err == GPG_ERR_EOF)
+    err = GPG_ERR_NOT_FOUND;
 
   if (!err && country)
     strcpy (country, mycountry);
@@ -196,7 +196,7 @@ gpgsm_qualified_consent (ctrl_t ctrl, ksba_cert_t cert)
 
   name = ksba_cert_get_subject (cert, 0);
   if (!name)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   subject = gpgsm_format_name2 (name, 0);
   ksba_free (name); name = NULL;
 
@@ -272,7 +272,7 @@ gpgsm_not_qualified_warning (ctrl_t ctrl, ksba_cert_t cert)
 
   name = ksba_cert_get_subject (cert, 0);
   if (!name)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   subject = gpgsm_format_name2 (name, 0);
   ksba_free (name); name = NULL;
 

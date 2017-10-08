@@ -106,7 +106,7 @@ _gcry_ecc_dialect2str (enum ecc_dialects dialect)
 gcry_mpi_t
 _gcry_ecc_ec2os (gcry_mpi_t x, gcry_mpi_t y, gcry_mpi_t p)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   int pbytes = (mpi_get_nbits (p)+7)/8;
   size_t n;
   unsigned char *buf, *ptr;
@@ -165,10 +165,10 @@ _gcry_mpi_ec_ec2os (gcry_mpi_point_t point, mpi_ec_t ectx)
 
 /* RESULT must have been initialized and is set on success to the
    point given by VALUE.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   size_t n;
   const unsigned char *buf;
   unsigned char *buf_memory;
@@ -289,7 +289,7 @@ _gcry_ecc_compute_public (mpi_point_t Q, mpi_ec_t ec,
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result)
 {
   unsigned char *rawmpi;
@@ -313,7 +313,7 @@ _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result)
 
       rawmpi = xtrymalloc (rawmpilen? rawmpilen:1);
       if (!rawmpi)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
 
       p = rawmpi + rawmpilen;
       while (p > rawmpi)
@@ -325,7 +325,7 @@ _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result)
 
       rawmpi = _gcry_mpi_get_buffer (pk, nbytes, &rawmpilen, NULL);
       if (!rawmpi)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       /*
        * It is not reliable to assume that 0x40 means the prefix.
        *

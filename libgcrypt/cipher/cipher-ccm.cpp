@@ -106,7 +106,7 @@ do_cbc_mac (gcry_cipher_hd_t c, const unsigned char *inbuf, size_t inlen,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_set_nonce (gcry_cipher_hd_t c, const unsigned char *nonce,
                             size_t noncelen)
 {
@@ -150,7 +150,7 @@ _gcry_cipher_ccm_set_nonce (gcry_cipher_hd_t c, const unsigned char *nonce,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_set_lengths (gcry_cipher_hd_t c, u64 encryptlen, u64 aadlen,
                               u64 taglen)
 {
@@ -227,7 +227,7 @@ _gcry_cipher_ccm_set_lengths (gcry_cipher_hd_t c, u64 encryptlen, u64 aadlen,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_authenticate (gcry_cipher_hd_t c, const unsigned char *abuf,
                                size_t abuflen)
 {
@@ -250,7 +250,7 @@ _gcry_cipher_ccm_authenticate (gcry_cipher_hd_t c, const unsigned char *abuf,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_tag (gcry_cipher_hd_t c, unsigned char *outbuf,
 		      size_t outbuflen, int check)
 {
@@ -297,7 +297,7 @@ _gcry_cipher_ccm_tag (gcry_cipher_hd_t c, unsigned char *outbuf,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_get_tag (gcry_cipher_hd_t c, unsigned char *outtag,
 			  size_t taglen)
 {
@@ -305,7 +305,7 @@ _gcry_cipher_ccm_get_tag (gcry_cipher_hd_t c, unsigned char *outtag,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_check_tag (gcry_cipher_hd_t c, const unsigned char *intag,
 			    size_t taglen)
 {
@@ -313,7 +313,7 @@ _gcry_cipher_ccm_check_tag (gcry_cipher_hd_t c, const unsigned char *intag,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_encrypt (gcry_cipher_hd_t c, unsigned char *outbuf,
                           size_t outbuflen, const unsigned char *inbuf,
                           size_t inbuflen)
@@ -337,12 +337,12 @@ _gcry_cipher_ccm_encrypt (gcry_cipher_hd_t c, unsigned char *outbuf,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ccm_decrypt (gcry_cipher_hd_t c, unsigned char *outbuf,
                           size_t outbuflen, const unsigned char *inbuf,
                           size_t inbuflen)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
   unsigned int burn;
 
   if (outbuflen < inbuflen)

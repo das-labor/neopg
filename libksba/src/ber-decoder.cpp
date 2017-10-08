@@ -186,7 +186,7 @@ push_decoder_state (DECODER_STATE ds)
   if (ds->idx >= ds->stacksize)
     {
       fprintf (stderr, "ksba: ber-decoder: stack overflow!\n");
-      return gpg_error (GPG_ERR_LIMIT_REACHED);
+      return GPG_ERR_LIMIT_REACHED;
     }
   ds->stack[ds->idx++] = ds->cur;
   return 0;
@@ -198,7 +198,7 @@ pop_decoder_state (DECODER_STATE ds)
   if (!ds->idx)
     {
       fprintf (stderr, "ksba: ber-decoder: stack underflow!\n");
-      return gpg_error (GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
   ds->cur = ds->stack[--ds->idx];
   return 0;
@@ -212,7 +212,7 @@ set_error (BerDecoder d, AsnNode node, const char *text)
   fprintf (stderr,"ksba: ber-decoder: node `%s': %s\n",
            node? node->name:"?", text);
   d->last_errdesc = text;
-  return gpg_error (GPG_ERR_BAD_BER);
+  return GPG_ERR_BAD_BER;
 }
 
 
@@ -229,7 +229,7 @@ eof_or_error (BerDecoder d, int premature)
     }
   if (premature)
     return set_error (d, NULL, "premature EOF");
-  return gpg_error (GPG_ERR_EOF);
+  return GPG_ERR_EOF;
 }
 
 static const char *
@@ -373,9 +373,9 @@ gpg_error_t
 _ksba_ber_decoder_set_module (BerDecoder d, ksba_asn_tree_t module)
 {
   if (!d || !module)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (d->module)
-    return gpg_error (GPG_ERR_CONFLICT); /* module already set */
+    return GPG_ERR_CONFLICT; /* module already set */
 
   d->module = module->parse_tree;
   return 0;
@@ -386,9 +386,9 @@ gpg_error_t
 _ksba_ber_decoder_set_reader (BerDecoder d, ksba_reader_t r)
 {
   if (!d || !r)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (d->reader)
-    return gpg_error (GPG_ERR_CONFLICT); /* reader already set */
+    return GPG_ERR_CONFLICT; /* reader already set */
 
   d->reader = r;
   return 0;
@@ -818,7 +818,7 @@ decoder_next (BerDecoder d)
          This here is another hack to not eat up an end tag - this is
          required in in some cases and in theory should be used always
          but we want to avoid any regression, thus this flag.  */
-      return gpg_error (GPG_ERR_EOF);
+      return GPG_ERR_EOF;
     }
 
   err = _ksba_ber_read_tl (d->reader, &ti);
@@ -834,10 +834,10 @@ decoder_next (BerDecoder d)
          where just one byte is appended.  This is for example the
          case with current Siemens certificates.  This approach seems
          to be the least intrusive one. */
-      if (gpg_err_code (err) == GPG_ERR_BAD_BER
+      if (err == GPG_ERR_BAD_BER
           && d->ignore_garbage
           && ti.err_string && !strcmp (ti.err_string, "premature EOF"))
-        err = gpg_error (GPG_ERR_EOF);
+        err = GPG_ERR_EOF;
       return err;
     }
 
@@ -871,12 +871,12 @@ decoder_next (BerDecoder d)
           d->image.used = 0;
           d->image.length = ti.length + 100;
           if (d->image.length < ti.length)
-            return gpg_error (GPG_ERR_BAD_BER);
+            return GPG_ERR_BAD_BER;
           if (d->image.length > MAX_IMAGE_LENGTH)
-            return gpg_error (GPG_ERR_TOO_LARGE);
+            return GPG_ERR_TOO_LARGE;
           d->image.buf = xtrycalloc (1, d->image.length);
           if (!d->image.buf)
-            return gpg_error (GPG_ERR_ENOMEM);
+            return GPG_ERR_ENOMEM;
         }
 
       if (sum_a1_a2_ge_b (ti.nhdr, d->image.used, d->image.length))
@@ -909,7 +909,7 @@ decoder_next (BerDecoder d)
                 {
                   /* We must push back the stuff we already read */
                   ksba_reader_unread (d->reader, ti.buf, ti.nhdr);
-                  return gpg_error (GPG_ERR_EOF);
+                  return GPG_ERR_EOF;
                 }
               else
                 d->bypass = 1;
@@ -1081,7 +1081,7 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
   size_t buflen = 0;
 
   if (!d)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
 #ifdef HAVE_GETENV
   d->debug = !!getenv("KSBA_DEBUG_BER_DECODER");
@@ -1121,9 +1121,9 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
               buf = NULL;
               buflen = d->val.length + 100;
               if (buflen < d->val.length)
-                err = gpg_error (GPG_ERR_BAD_BER); /* Overflow */
+                err = GPG_ERR_BAD_BER; /* Overflow */
               else if (buflen > MAX_IMAGE_LENGTH)
-                err = gpg_error (GPG_ERR_TOO_LARGE);
+                err = GPG_ERR_TOO_LARGE;
               else
                 {
                   buf = xtrymalloc (buflen);
@@ -1170,7 +1170,7 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
         break;
 
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF)
+  if (err == GPG_ERR_EOF)
     err = 0;
 
   decoder_deinit (d);
@@ -1194,7 +1194,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
   unsigned long startoff;
 
   if (!d)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (r_root)
     *r_root = NULL;
@@ -1243,7 +1243,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
                 {
                   size_t sum = d->image.used + d->val.length;
                   if (sum < d->image.used)
-                    err = gpg_error (GPG_ERR_BAD_BER);
+                    err = GPG_ERR_BAD_BER;
                   else
                     d->image.used = sum;
                 }
@@ -1260,9 +1260,9 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
               buf = NULL;
               buflen = d->val.length + 100;
               if (buflen < d->val.length)
-                err = gpg_error (GPG_ERR_BAD_BER);
+                err = GPG_ERR_BAD_BER;
               else if (buflen > MAX_IMAGE_LENGTH)
-                err = gpg_error (GPG_ERR_TOO_LARGE);
+                err = GPG_ERR_TOO_LARGE;
               else
                 {
                   buf = xtrymalloc (buflen);
@@ -1294,7 +1294,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
       if (err)
         break;
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF)
+  if (err == GPG_ERR_EOF)
     err = 0;
 
   if (err)
@@ -1306,7 +1306,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
         { /* Not even the first node available - return eof */
 	  _ksba_asn_release_nodes (d->root);
           d->root = NULL;
-          err = gpg_error (GPG_ERR_EOF);
+          err = GPG_ERR_EOF;
         }
 
       fixup_type_any (d->root);

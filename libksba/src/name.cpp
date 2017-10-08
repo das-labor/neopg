@@ -109,7 +109,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
   char *p;
 
   if (!r_name || !image)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   *r_name = NULL;
 
@@ -124,11 +124,11 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
       if (err)
         return err;
       if (ti.klasse != CLASS_CONTEXT)
-        return gpg_error (GPG_ERR_INV_CERT_OBJ); /* we expected a tag */
+        return GPG_ERR_INV_CERT_OBJ; /* we expected a tag */
       if (ti.ndef)
-        return gpg_error (GPG_ERR_NOT_DER_ENCODED);
+        return GPG_ERR_NOT_DER_ENCODED;
       if (derlen < ti.length)
-        return gpg_error (GPG_ERR_BAD_BER);
+        return GPG_ERR_BAD_BER;
       switch (ti.tag)
         {
         case 1: /* rfc822Name - this is an imlicit IA5_STRING */
@@ -155,7 +155,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
   if (!name->names)
     {
       ksba_name_release (name);
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
     }
   name->n_names = n;
 
@@ -176,7 +176,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
           if (!p)
             {
               ksba_name_release (name);
-              return gpg_error (GPG_ERR_ENOMEM);
+              return GPG_ERR_ENOMEM;
             }
           *p++ = '<';
           memcpy (p, der, ti.length);
@@ -198,7 +198,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
           if (!p)
             {
               ksba_name_release (name);
-              return gpg_error (GPG_ERR_ENOMEM);
+              return GPG_ERR_ENOMEM;
             }
           p = stpcpy (p, "(3:uri");
           p = stpcpy (p, numbuf);

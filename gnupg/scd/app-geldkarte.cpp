@@ -140,7 +140,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
       err = send_one_string (ctrl, name, numbuf);
     }
   else
-    err = gpg_error (GPG_ERR_INV_NAME);
+    err = GPG_ERR_INV_NAME;
 
   return err;
 }
@@ -263,7 +263,7 @@ bcd_to_int (const unsigned char *string, size_t length, int *result)
 
   tmp = copy_bcd (string, length);
   if (!tmp)
-    return gpg_error (GPG_ERR_BAD_DATA);
+    return GPG_ERR_BAD_DATA;
   *result = strtol (tmp, NULL, 10);
   xfree (tmp);
   return 0;
@@ -295,7 +295,7 @@ app_select_geldkarte (app_t app)
     goto leave;  /* Oops - not a Geldkarte.  */
   if (resultlen < 24 || *result != 0x67 || result[22])
     {
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       goto leave;
     }
 
@@ -308,7 +308,7 @@ app_select_geldkarte (app_t app)
     case 0x26:
     case 0x29: banktype = "Genossenschaftsbank"; break;
     default:
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       goto leave; /* Probably not a Geldkarte. */
     }
 
@@ -335,7 +335,7 @@ app_select_geldkarte (app_t app)
   app->app_local = ld = xtrycalloc (1, sizeof *app->app_local);
   if (!app->app_local)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -345,7 +345,7 @@ app_select_geldkarte (app_t app)
   ld->cardno = copy_bcd (result+4, 5);
   if (!ld->cardno)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -357,7 +357,7 @@ app_select_geldkarte (app_t app)
   ld->country = copy_bcd (result+15, 2);
   if (!ld->country)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -383,7 +383,7 @@ app_select_geldkarte (app_t app)
     goto leave;  /* It does not make sense to continue.  */
   if (resultlen < 12)
     {
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       goto leave;
     }
   err = bcd_to_int (result+0, 3, &ld->balance);

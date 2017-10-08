@@ -127,15 +127,15 @@ static const char sample_secret_key_2048[] =
 
 static int test_keys (DSA_secret_key *sk, unsigned int qbits);
 static int check_secret_key (DSA_secret_key *sk);
-static gpg_err_code_t generate (DSA_secret_key *sk,
+static gpg_error_t generate (DSA_secret_key *sk,
                                 unsigned int nbits,
                                 unsigned int qbits,
                                 int transient_key,
                                 dsa_domain_t *domain,
                                 gcry_mpi_t **ret_factors);
-static gpg_err_code_t sign (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input,
+static gpg_error_t sign (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input,
                             DSA_secret_key *skey, int flags, int hashalgo);
-static gpg_err_code_t verify (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input,
+static gpg_error_t verify (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input,
                    DSA_public_key *pkey);
 static unsigned int dsa_get_nbits (gcry_sexp_t parms);
 
@@ -212,11 +212,11 @@ test_keys (DSA_secret_key *sk, unsigned int qbits)
    Returns: 2 structures filled with all needed values
  	    and an array with the n-1 factors of (p-1)
  */
-static gpg_err_code_t
+static gpg_error_t
 generate (DSA_secret_key *sk, unsigned int nbits, unsigned int qbits,
           int transient_key, dsa_domain_t *domain, gcry_mpi_t **ret_factors )
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t p;    /* the prime */
   gcry_mpi_t q;    /* the 160 bit prime factor */
   gcry_mpi_t g;    /* the generator */
@@ -373,14 +373,14 @@ generate (DSA_secret_key *sk, unsigned int nbits, unsigned int qbits,
    If DERIVEPARMS is not NULL it may contain a seed value.  If domain
    parameters are specified in DOMAIN, DERIVEPARMS may not be given
    and NBITS and QBITS must match the specified domain parameters.  */
-static gpg_err_code_t
+static gpg_error_t
 generate_fips186 (DSA_secret_key *sk, unsigned int nbits, unsigned int qbits,
                   gcry_sexp_t deriveparms, int use_fips186_2,
                   dsa_domain_t *domain,
                   int *r_counter, void **r_seed, size_t *r_seedlen,
                   gcry_mpi_t *r_h)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   struct {
     gcry_sexp_t sexp;
     const void *seed;
@@ -590,11 +590,11 @@ check_secret_key( DSA_secret_key *sk )
    backward compatibility the function will not return any error if
    FLAGS and HASHALGO are both 0 and INPUT is a plain MPI.
  */
-static gpg_err_code_t
+static gpg_error_t
 sign (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input, DSA_secret_key *skey,
       int flags, int hashalgo)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   gcry_mpi_t hash;
   gcry_mpi_t k;
   gcry_mpi_t kinv;
@@ -673,10 +673,10 @@ sign (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input, DSA_secret_key *skey,
 /*
    Returns true if the signature composed from R and S is valid.
  */
-static gpg_err_code_t
+static gpg_error_t
 verify (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input, DSA_public_key *pkey )
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_mpi_t w, u1, u2, v;
   gcry_mpi_t base[3];
   gcry_mpi_t ex[3];
@@ -742,10 +742,10 @@ verify (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input, DSA_public_key *pkey )
  **************  interface  ******************
  *********************************************/
 
-static gcry_err_code_t
+static gpg_error_t
 dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   unsigned int nbits;
   gcry_sexp_t domainsexp;
   DSA_secret_key sk;
@@ -918,7 +918,7 @@ dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
          with one "%m" for each factor and construct it.  */
       format = xtrymalloc (50 + 2*nfactors);
       if (!format)
-        rc = gpg_err_code_from_syserror ();
+        rc = gpg_error_from_syserror ();
       else
         {
           p = stpcpy (format, "(misc-key-info");
@@ -938,7 +938,7 @@ dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
              fill it with the factors.  */
           arg_list = xtrycalloc (nfactors+1+1, sizeof *arg_list);
           if (!arg_list)
-            rc = gpg_err_code_from_syserror ();
+            rc = gpg_error_from_syserror ();
           else
             {
               i = 0;
@@ -994,10 +994,10 @@ dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 
 
 
-static gcry_err_code_t
+static gpg_error_t
 dsa_check_secret_key (gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   DSA_secret_key sk = {NULL, NULL, NULL, NULL, NULL};
 
   rc = _gcry_sexp_extract_param (keyparms, NULL, "pqgyx",
@@ -1021,10 +1021,10 @@ dsa_check_secret_key (gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 dsa_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t data = NULL;
   DSA_secret_key sk = {NULL, NULL, NULL, NULL, NULL};
@@ -1084,10 +1084,10 @@ dsa_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 dsa_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t s_keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t sig_r = NULL;
@@ -1202,7 +1202,7 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
     "7081e175455f9247b812b74583e9e94f9ea79bd640dc962533b0680793a38d53";
 
   const char *errtxt = NULL;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t data = NULL;
   gcry_sexp_t data_bad = NULL;
   gcry_sexp_t sig = NULL;
@@ -1282,7 +1282,7 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
       goto leave;
     }
   err = _gcry_pk_verify (sig, data_bad, pkey);
-  if (gcry_err_code (err) != GPG_ERR_BAD_SIGNATURE)
+  if (err != GPG_ERR_BAD_SIGNATURE)
     {
       errtxt = "bad signature not detected";
       goto leave;
@@ -1303,12 +1303,12 @@ selftest_sign (gcry_sexp_t pkey, gcry_sexp_t skey)
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_dsa_2048 (selftest_report_func_t report)
 {
   const char *what;
   const char *errtxt;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t skey = NULL;
   gcry_sexp_t pkey = NULL;
 
@@ -1320,7 +1320,7 @@ selftests_dsa_2048 (selftest_report_func_t report)
                       sample_public_key_2048, strlen (sample_public_key_2048));
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -1328,7 +1328,7 @@ selftests_dsa_2048 (selftest_report_func_t report)
   err = _gcry_pk_testkey (skey);
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -1351,10 +1351,10 @@ selftests_dsa_2048 (selftest_report_func_t report)
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   (void)extended;
 

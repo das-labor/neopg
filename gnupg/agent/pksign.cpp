@@ -167,7 +167,7 @@ do_encode_dsa (const byte *md, size_t mdlen, int pkalgo, gcry_sexp_t pkey,
   else if (pkalgo == GCRY_PK_DSA)
     qbits = get_dsa_qbits (pkey);
   else
-    return gpg_error (GPG_ERR_WRONG_PUBKEY_ALGO);
+    return GPG_ERR_WRONG_PUBKEY_ALGO;
 
   if (pkalgo == GCRY_PK_DSA && (qbits%8))
     {
@@ -175,7 +175,7 @@ do_encode_dsa (const byte *md, size_t mdlen, int pkalgo, gcry_sexp_t pkey,
          length.  */
       log_error (_("DSA requires the hash length to be a"
                    " multiple of 8 bits\n"));
-      return gpg_error (GPG_ERR_INV_LENGTH);
+      return GPG_ERR_INV_LENGTH;
     }
 
   /* Don't allow any Q smaller than 160 bits.  We don't want someone
@@ -186,7 +186,7 @@ do_encode_dsa (const byte *md, size_t mdlen, int pkalgo, gcry_sexp_t pkey,
     {
       log_error (_("%s key uses an unsafe (%u bit) hash\n"),
                  gcry_pk_algo_name (pkalgo), qbits);
-      return gpg_error (GPG_ERR_INV_LENGTH);
+      return GPG_ERR_INV_LENGTH;
     }
 
   /* ECDSA 521 is special has it is larger than the largest hash
@@ -203,7 +203,7 @@ do_encode_dsa (const byte *md, size_t mdlen, int pkalgo, gcry_sexp_t pkey,
                  mdlen*8,
                  gcry_pk_get_nbits (pkey),
                  gcry_pk_algo_name (pkalgo));
-      return gpg_error (GPG_ERR_INV_LENGTH);
+      return GPG_ERR_INV_LENGTH;
     }
 
   /* Truncate.  */
@@ -238,7 +238,7 @@ do_encode_raw_pkcs1 (const byte *md, size_t mdlen, unsigned int nbits,
   if ( !mdlen || mdlen + 8 + 4 > nframe )
     {
       /* Can't encode this hash into a frame of size NFRAME. */
-      return gpg_error (GPG_ERR_TOO_SHORT);
+      return GPG_ERR_TOO_SHORT;
     }
 
   frame = xtrymalloc (nframe);
@@ -307,14 +307,14 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
     }
 
   if (!ctrl->have_keygrip)
-    return gpg_error (GPG_ERR_NO_SECKEY);
+    return GPG_ERR_NO_SECKEY;
 
   rc = agent_key_from_file (ctrl, cache_nonce, desc_text, ctrl->keygrip,
                             &shadow_info, cache_mode, lookup_ttl,
                             &s_skey, NULL);
   if (rc)
     {
-      if (gpg_err_code (rc) != GPG_ERR_NO_SECKEY)
+      if (rc != GPG_ERR_NO_SECKEY)
         log_error ("failed to read the secret key\n");
       goto leave;
     }
@@ -434,7 +434,7 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
           xfree (s_buf_allocated);
         }
       else
-        rc = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+        rc = GPG_ERR_NOT_IMPLEMENTED;
 
       xfree (buf);
       if (rc)

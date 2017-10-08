@@ -32,7 +32,7 @@
 #include "../common/sysutils.h"
 #include "../common/server-help.h"
 
-#define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
+#define set_error(e,t) assuan_set_error (ctx, e, (t))
 
 
 /* The filepointer for status message used in non-server mode */
@@ -208,7 +208,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     {
       int i = *value? atoi (value) : -1;
       if (ctrl->include_certs < -2)
-        err = gpg_error (GPG_ERR_ASS_PARAMETER);
+        err = GPG_ERR_ASS_PARAMETER;
       else
         ctrl->include_certs = i;
     }
@@ -231,7 +231,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
           ctrl->server_local->list_external = 1;
         }
       else
-        err = gpg_error (GPG_ERR_ASS_PARAMETER);
+        err = GPG_ERR_ASS_PARAMETER;
     }
   else if (!strcmp (key, "list-to-output"))
     {
@@ -254,7 +254,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       if ( i >= 0 && i <= 2 )
         ctrl->validation_model = i;
       else
-        err = gpg_error (GPG_ERR_ASS_PARAMETER);
+        err = GPG_ERR_ASS_PARAMETER;
     }
   else if (!strcmp (key, "with-key-data"))
     {
@@ -289,7 +289,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
         }
     }
   else
-    err = gpg_error (GPG_ERR_UNKNOWN_OPTION);
+    err = GPG_ERR_UNKNOWN_OPTION;
 
   return err;
 }
@@ -452,7 +452,7 @@ cmd_encrypt (assuan_context_t ctx, char *line)
 
   out_fp = es_fdopen_nc (out_fd, "w");
   if (!out_fp)
-    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+    return set_error (gpg_error_from_syserror (), "fdopen() failed");
 
   /* Now add all encrypt-to marked recipients from the default
      list. */
@@ -509,7 +509,7 @@ cmd_decrypt (assuan_context_t ctx, char *line)
 
   out_fp = es_fdopen_nc (out_fd, "w");
   if (!out_fp)
-    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+    return set_error (gpg_error_from_syserror (), "fdopen() failed");
 
   rc = start_audit_session (ctrl);
   if (!rc)
@@ -552,7 +552,7 @@ cmd_verify (assuan_context_t ctx, char *line)
     {
       out_fp = es_fdopen_nc (out_fd, "w");
       if (!out_fp)
-        return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+        return set_error (gpg_error_from_syserror (), "fdopen() failed");
     }
 
   rc = start_audit_session (ctrl);
@@ -749,7 +749,7 @@ cmd_export (assuan_context_t ctx, char *line)
       if (!out_fp)
         {
           free_strlist (list);
-          return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+          return set_error (gpg_error_from_syserror (), "fdopen() failed");
         }
 
       if (opt_secret)
@@ -856,7 +856,7 @@ cmd_message (assuan_context_t ctx, char *line)
 #ifdef HAVE_W32CE_SYSTEM
   sysfd = _assuan_w32ce_finish_pipe ((int)sysfd, 0);
   if (sysfd == INVALID_HANDLE_VALUE)
-    return set_error (gpg_err_code_from_syserror (),
+    return set_error (gpg_error_from_syserror (),
 		      "rvid conversion failed");
 #endif
 
@@ -938,7 +938,7 @@ do_listkeys (assuan_context_t ctx, char *line, int mode)
         return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
       fp = es_fdopen_nc (outfd, "w");
       if (!fp)
-        return set_error (gpg_err_code_from_syserror (), "es_fdopen() failed");
+        return set_error (gpg_error_from_syserror (), "es_fdopen() failed");
     }
   else
     {
@@ -1018,7 +1018,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
   if (!out_stream)
     {
       es_fclose (in_stream);
-      return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+      return set_error (gpg_error_from_syserror (), "fdopen() failed");
     }
   rc = gpgsm_genkey (ctrl, in_stream, out_stream);
   es_fclose (out_stream);
@@ -1055,7 +1055,7 @@ cmd_getauditlog (assuan_context_t ctx, char *line)
   /* Not needed: line = skip_options (line); */
 
   if (!ctrl->audit)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
 
   if (opt_data)
     {
@@ -1130,33 +1130,33 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       while (*line == ' ' || *line == '\t')
         line++;
       if (!*line)
-        rc = gpg_error (GPG_ERR_MISSING_VALUE);
+        rc = GPG_ERR_MISSING_VALUE;
       else
         {
           cmd = line;
           while (*line && (*line != ' ' && *line != '\t'))
             line++;
           if (!*line)
-            rc = gpg_error (GPG_ERR_MISSING_VALUE);
+            rc = GPG_ERR_MISSING_VALUE;
           else
             {
               *line++ = 0;
               while (*line == ' ' || *line == '\t')
                 line++;
               if (!*line)
-                rc = gpg_error (GPG_ERR_MISSING_VALUE);
+                rc = GPG_ERR_MISSING_VALUE;
               else
                 {
                   cmdopt = line;
                   if (!command_has_option (cmd, cmdopt))
-                    rc = gpg_error (GPG_ERR_GENERAL);
+                    rc = GPG_ERR_GENERAL;
                 }
             }
         }
     }
   else if (!strcmp (line, "offline"))
     {
-      rc = ctrl->offline? 0 : gpg_error (GPG_ERR_GENERAL);
+      rc = ctrl->offline? 0 : GPG_ERR_GENERAL;
     }
   else
     rc = set_error (GPG_ERR_ASS_PARAMETER, "unknown value for WHAT");
@@ -1183,7 +1183,7 @@ cmd_passwd (assuan_context_t ctx, char *line)
   if (err)
     ;
   else if (!(grip = gpgsm_get_keygrip_hexstring (cert)))
-    err = gpg_error (GPG_ERR_INTERNAL);
+    err = GPG_ERR_INTERNAL;
   else
     {
       char *desc = gpgsm_format_keydesc (cert);
@@ -1458,7 +1458,7 @@ gpgsm_status (ctrl_t ctrl, int no, const char *text)
 
 gpg_error_t
 gpgsm_status_with_err_code (ctrl_t ctrl, int no, const char *text,
-                            gpg_err_code_t ec)
+                            gpg_error_t ec)
 {
   char buf[30];
 

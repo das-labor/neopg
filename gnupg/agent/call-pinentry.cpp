@@ -269,7 +269,7 @@ start_pinentry (ctrl_t ctrl)
   if (err)
     {
       if (err == ETIMEDOUT)
-	rc = gpg_error (GPG_ERR_TIMEOUT);
+	rc = GPG_ERR_TIMEOUT;
       else
 	rc = gpg_error_from_errno (rc);
       log_error (_("failed to acquire the pinentry lock: %s\n"),
@@ -292,7 +292,7 @@ start_pinentry (ctrl_t ctrl)
   if (fflush (NULL))
     {
 #ifndef HAVE_W32_SYSTEM
-      gpg_error_t tmperr = gpg_error (gpg_err_code_from_errno (errno));
+      gpg_error_t tmperr = gpg_error_from_errno (errno);
 #endif
       log_error ("error flushing pending output: %s\n", strerror (errno));
       /* At least Windows XP fails here with EBADF.  According to docs
@@ -364,7 +364,7 @@ start_pinentry (ctrl_t ctrl)
       log_error ("can't connect to the PIN entry module '%s': %s\n",
                  full_pgmname, gpg_strerror (rc));
       assuan_release (ctx);
-      return unlock_pinentry (gpg_error (GPG_ERR_NO_PIN_ENTRY));
+      return unlock_pinentry (GPG_ERR_NO_PIN_ENTRY);
     }
   entry_ctx = ctx;
 
@@ -380,7 +380,7 @@ start_pinentry (ctrl_t ctrl)
       rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
 			    NULL);
       xfree (optstr);
-      if (rc && gpg_err_code (rc) != GPG_ERR_UNKNOWN_OPTION)
+      if (rc && rc != GPG_ERR_UNKNOWN_OPTION)
         return unlock_pinentry (rc);
     }
 
@@ -449,7 +449,7 @@ start_pinentry (ctrl_t ctrl)
          correct the password.  */
       rc = assuan_transact (entry_ctx, "OPTION allow-external-password-cache",
                             NULL, NULL, NULL, NULL, NULL, NULL);
-      if (rc && gpg_err_code (rc) != GPG_ERR_UNKNOWN_OPTION)
+      if (rc && rc != GPG_ERR_UNKNOWN_OPTION)
         return unlock_pinentry (rc);
     }
 
@@ -591,9 +591,9 @@ start_pinentry (ctrl_t ctrl)
   else
     {
       rc = agent_inq_pinentry_launched (ctrl, pinentry_pid, flavor_version);
-      if (gpg_err_code (rc) == GPG_ERR_CANCELED
-          || gpg_err_code (rc) == GPG_ERR_FULLY_CANCELED)
-        return unlock_pinentry (gpg_error (gpg_err_code (rc)));
+      if (rc == GPG_ERR_CANCELED
+          || rc == GPG_ERR_FULLY_CANCELED)
+        return unlock_pinentry (rc);
       rc = 0;
     }
 
@@ -623,9 +623,9 @@ pinentry_active_p (ctrl_t ctrl, int waitseconds)
       if (err)
         {
           if (err == ETIMEDOUT)
-            rc = gpg_error (GPG_ERR_TIMEOUT);
+            rc = GPG_ERR_TIMEOUT;
           else
-            rc = gpg_error (GPG_ERR_INTERNAL);
+            rc = GPG_ERR_INTERNAL;
           return rc;
         }
     }
@@ -633,7 +633,7 @@ pinentry_active_p (ctrl_t ctrl, int waitseconds)
     {
       err = npth_mutex_trylock (&entry_lock);
       if (err)
-        return gpg_error (GPG_ERR_LOCKED);
+        return GPG_ERR_LOCKED;
     }
 
   err = npth_mutex_unlock (&entry_lock);
@@ -654,7 +654,7 @@ getpin_cb (void *opaque, const void *buffer, size_t length)
 
   /* we expect the pin to fit on one line */
   if (parm->lines || length >= parm->size)
-    return gpg_error (GPG_ERR_ASS_TOO_MUCH_DATA);
+    return GPG_ERR_ASS_TOO_MUCH_DATA;
 
   /* fixme: we should make sure that the assuan buffer is allocated in
      secure memory or read the response byte by byte */
@@ -762,7 +762,7 @@ inq_quality (void *opaque, const char *line)
   else
     {
       log_error ("unsupported inquiry '%s' from pinentry\n", line);
-      rc = gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
     }
 
   return rc;
@@ -787,7 +787,7 @@ setup_qualitybar (ctrl_t ctrl)
   xfree (tmpstr);
   rc = assuan_transact (entry_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
   if (rc == 103 /*(Old assuan error code)*/
-      || gpg_err_code (rc) == GPG_ERR_ASS_UNKNOWN_CMD)
+      || rc == GPG_ERR_ASS_UNKNOWN_CMD)
     ; /* Ignore Unknown Command from old Pinentry versions.  */
   else if (rc)
     return rc;
@@ -815,7 +815,7 @@ setup_qualitybar (ctrl_t ctrl)
   xfree (tmpstr);
   rc = assuan_transact (entry_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
   if (rc == 103 /*(Old assuan error code)*/
-          || gpg_err_code (rc) == GPG_ERR_ASS_UNKNOWN_CMD)
+          || rc == GPG_ERR_ASS_UNKNOWN_CMD)
     ; /* Ignore Unknown Command from old pinentry versions.  */
   else if (rc)
     return rc;
@@ -902,7 +902,7 @@ agent_askpin (ctrl_t ctrl,
   if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
     {
       if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return gpg_error (GPG_ERR_CANCELED);
+        return GPG_ERR_CANCELED;
       if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
         {
 	  unsigned char *passphrase;
@@ -925,11 +925,11 @@ agent_askpin (ctrl_t ctrl,
 	    }
 	  return rc;
 	}
-      return gpg_error(GPG_ERR_NO_PIN_ENTRY);
+      return GPG_ERR_NO_PIN_ENTRY;
     }
 
   if (!pininfo || pininfo->max_length < 1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!desc_text && pininfo->min_digits)
     desc_text = L_("Please enter your PIN, so that the secret key "
                    "can be unlocked for this session");
@@ -962,7 +962,7 @@ agent_askpin (ctrl_t ctrl,
 
   rc = assuan_transact (entry_ctx, line,
 			NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc && gpg_err_code (rc) != GPG_ERR_ASS_UNKNOWN_CMD)
+  if (rc && rc != GPG_ERR_ASS_UNKNOWN_CMD)
     return unlock_pinentry (rc);
 
   build_cmd_setdesc (line, DIM(line), desc_text);
@@ -1046,17 +1046,17 @@ agent_askpin (ctrl_t ctrl,
       /* Most pinentries out in the wild return the old Assuan error code
          for canceled which gets translated to an assuan Cancel error and
          not to the code for a user cancel.  Fix this here. */
-      if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-        rc = gpg_error (GPG_ERR_CANCELED);
+      if (rc == GPG_ERR_ASS_CANCELED)
+        rc = GPG_ERR_CANCELED;
 
 
       /* Change error code in case the window close button was clicked
          to cancel the operation.  */
       if ((pinentry_status & PINENTRY_STATUS_CLOSE_BUTTON)
-	  && gpg_err_code (rc) == GPG_ERR_CANCELED)
-        rc = gpg_error (GPG_ERR_FULLY_CANCELED);
+	  && rc == GPG_ERR_CANCELED)
+        rc = GPG_ERR_FULLY_CANCELED;
 
-      if (gpg_err_code (rc) == GPG_ERR_ASS_TOO_MUCH_DATA)
+      if (rc == GPG_ERR_ASS_TOO_MUCH_DATA)
         errtext = is_pin? L_("PIN too long")
                         : L_("Passphrase too long");
       else if (rc)
@@ -1079,11 +1079,11 @@ agent_askpin (ctrl_t ctrl,
           /* More checks by utilizing the optional callback. */
           pininfo->cb_errtext = NULL;
           rc = pininfo->check_cb (pininfo);
-          if (gpg_err_code (rc) == GPG_ERR_BAD_PASSPHRASE
+          if (rc == GPG_ERR_BAD_PASSPHRASE
               && pininfo->cb_errtext)
             errtext = pininfo->cb_errtext;
-          else if (gpg_err_code (rc) == GPG_ERR_BAD_PASSPHRASE
-                   || gpg_err_code (rc) == GPG_ERR_BAD_PIN)
+          else if (rc == GPG_ERR_BAD_PASSPHRASE
+                   || rc == GPG_ERR_BAD_PIN)
             errtext = (is_pin? L_("Bad PIN") : L_("Bad Passphrase"));
           else if (rc)
             return unlock_pinentry (rc);
@@ -1103,8 +1103,8 @@ agent_askpin (ctrl_t ctrl,
 	pininfo->failed_tries --;
     }
 
-  return unlock_pinentry (gpg_error (pininfo->min_digits? GPG_ERR_BAD_PIN
-                          : GPG_ERR_BAD_PASSPHRASE));
+  return unlock_pinentry (pininfo->min_digits? GPG_ERR_BAD_PIN
+                          : GPG_ERR_BAD_PASSPHRASE);
 }
 
 
@@ -1126,12 +1126,12 @@ agent_get_passphrase (ctrl_t ctrl,
 
   *retpass = NULL;
   if (opt.batch)
-    return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+    return GPG_ERR_BAD_PASSPHRASE;
 
   if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
     {
       if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return gpg_error (GPG_ERR_CANCELED);
+        return GPG_ERR_CANCELED;
 
       if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
         {
@@ -1141,7 +1141,7 @@ agent_get_passphrase (ctrl_t ctrl,
 				    (unsigned char **)retpass, &size,
                                     MAX_PASSPHRASE_LEN);
         }
-      return gpg_error (GPG_ERR_NO_PIN_ENTRY);
+      return GPG_ERR_NO_PIN_ENTRY;
     }
 
   rc = start_pinentry (ctrl);
@@ -1168,7 +1168,7 @@ agent_get_passphrase (ctrl_t ctrl,
 
   rc = assuan_transact (entry_ctx, line,
 			NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc && gpg_err_code (rc) != GPG_ERR_ASS_UNKNOWN_CMD)
+  if (rc && rc != GPG_ERR_ASS_UNKNOWN_CMD)
     return unlock_pinentry (rc);
 
 
@@ -1216,13 +1216,13 @@ agent_get_passphrase (ctrl_t ctrl,
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_error (GPG_ERR_CANCELED);
+  if (rc == GPG_ERR_ASS_CANCELED)
+    rc = GPG_ERR_CANCELED;
   /* Change error code in case the window close button was clicked
      to cancel the operation.  */
   if ((pinentry_status & PINENTRY_STATUS_CLOSE_BUTTON)
-      && gpg_err_code (rc) == GPG_ERR_CANCELED)
-    rc = gpg_error (GPG_ERR_FULLY_CANCELED);
+      && rc == GPG_ERR_CANCELED)
+    rc = GPG_ERR_FULLY_CANCELED;
 
   if (rc)
     xfree (parm.buffer);
@@ -1251,9 +1251,9 @@ agent_get_confirmation (ctrl_t ctrl,
   if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
     {
       if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return gpg_error (GPG_ERR_CANCELED);
+        return GPG_ERR_CANCELED;
 
-      return gpg_error (GPG_ERR_NO_PIN_ENTRY);
+      return GPG_ERR_NO_PIN_ENTRY;
     }
 
   rc = start_pinentry (ctrl);
@@ -1268,8 +1268,8 @@ agent_get_confirmation (ctrl_t ctrl,
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (rc && gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_error (GPG_ERR_CANCELED);
+  if (rc && rc == GPG_ERR_ASS_CANCELED)
+    rc = GPG_ERR_CANCELED;
 
   if (rc)
     return unlock_pinentry (rc);
@@ -1296,7 +1296,7 @@ agent_get_confirmation (ctrl_t ctrl,
       else
         rc = GPG_ERR_ASS_UNKNOWN_CMD;
 
-      if (gpg_err_code (rc) == GPG_ERR_ASS_UNKNOWN_CMD)
+      if (rc == GPG_ERR_ASS_UNKNOWN_CMD)
 	{
 	  snprintf (line, DIM(line), "SETCANCEL %s", notok);
 	  rc = assuan_transact (entry_ctx, line,
@@ -1308,8 +1308,8 @@ agent_get_confirmation (ctrl_t ctrl,
 
   rc = assuan_transact (entry_ctx, "CONFIRM",
                         NULL, NULL, NULL, NULL, NULL, NULL);
-  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_error (GPG_ERR_CANCELED);
+  if (rc == GPG_ERR_ASS_CANCELED)
+    rc = GPG_ERR_CANCELED;
 
   return unlock_pinentry (rc);
 }
@@ -1327,7 +1327,7 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
   char line[ASSUAN_LINELENGTH];
 
   if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    return gpg_error (GPG_ERR_CANCELED);
+    return GPG_ERR_CANCELED;
 
   rc = start_pinentry (ctrl);
   if (rc)
@@ -1341,8 +1341,8 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
   /* Most pinentries out in the wild return the old Assuan error code
      for canceled which gets translated to an assuan Cancel error and
      not to the code for a user cancel.  Fix this here. */
-  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_error (GPG_ERR_CANCELED);
+  if (rc == GPG_ERR_ASS_CANCELED)
+    rc = GPG_ERR_CANCELED;
 
   if (rc)
     return unlock_pinentry (rc);
@@ -1358,8 +1358,8 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
 
   rc = assuan_transact (entry_ctx, "CONFIRM --one-button", NULL, NULL, NULL,
                         NULL, NULL, NULL);
-  if (gpg_err_code (rc) == GPG_ERR_ASS_CANCELED)
-    rc = gpg_error (GPG_ERR_CANCELED);
+  if (rc == GPG_ERR_ASS_CANCELED)
+    rc = GPG_ERR_CANCELED;
 
   return unlock_pinentry (rc);
 }
@@ -1397,7 +1397,7 @@ agent_popup_message_start (ctrl_t ctrl, const char *desc, const char *ok_btn)
   int err;
 
   if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    return gpg_error (GPG_ERR_CANCELED);
+    return GPG_ERR_CANCELED;
 
   rc = start_pinentry (ctrl);
   if (rc)
@@ -1507,7 +1507,7 @@ agent_clear_passphrase (ctrl_t ctrl,
   if (! (keyinfo && (cache_mode == CACHE_MODE_NORMAL
 		     || cache_mode == CACHE_MODE_USER
 		     || cache_mode == CACHE_MODE_SSH)))
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
 
   rc = start_pinentry (ctrl);
   if (rc)

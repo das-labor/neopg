@@ -34,15 +34,7 @@
 #include <string.h>
 #include <assert.h>
 
-#if GNUPG_MAJOR_VERSION == 1
-#define GPG_ERR_EOF               (-1)
-#define GPG_ERR_BAD_BER           (1)  /*G10ERR_GENERAL*/
-#define GPG_ERR_INV_SEXP          (45) /*G10ERR_INV_ARG*/
-typedef int gpg_error_t;
-#define gpg_make_err(x,n) (n)
-#else
 #include <gpg-error.h>
-#endif
 
 #include "util.h"
 #include "tlv.h"
@@ -177,7 +169,7 @@ parse_ber_header (unsigned char const **buffer, size_t *size,
 
   /* Get the tag. */
   if (!length)
-    return gpg_error (GPG_ERR_EOF);
+    return GPG_ERR_EOF;
   c = *buf++; length--; ++*r_nhdr;
 
   *r_class = (c & 0xc0) >> 6;
@@ -191,7 +183,7 @@ parse_ber_header (unsigned char const **buffer, size_t *size,
         {
           tag <<= 7;
           if (!length)
-            return gpg_error(GPG_ERR_EOF);
+            return GPG_ERR_EOF;
           c = *buf++; length--; ++*r_nhdr;
           tag |= c & 0x7f;
 
@@ -202,7 +194,7 @@ parse_ber_header (unsigned char const **buffer, size_t *size,
 
   /* Get the length. */
   if (!length)
-    return gpg_error (GPG_ERR_EOF);
+    return GPG_ERR_EOF;
   c = *buf++; length--; ++*r_nhdr;
 
   if ( !(c & 0x80) )
@@ -210,20 +202,20 @@ parse_ber_header (unsigned char const **buffer, size_t *size,
   else if (c == 0x80)
     *r_ndef = 1;
   else if (c == 0xff)
-    return gpg_error (GPG_ERR_BAD_BER);
+    return GPG_ERR_BAD_BER;
   else
     {
       unsigned long len = 0;
       int count = (c & 0x7f);
 
       if (count > (sizeof(len)<sizeof(size_t)?sizeof(len):sizeof(size_t)))
-        return gpg_error (GPG_ERR_BAD_BER);
+        return GPG_ERR_BAD_BER;
 
       for (; count; count--)
         {
           len <<= 8;
           if (!length)
-            return gpg_error (GPG_ERR_EOF);
+            return GPG_ERR_EOF;
           c = *buf++; length--; ++*r_nhdr;
           len |= c & 0xff;
         }
@@ -275,7 +267,7 @@ parse_sexp (unsigned char const **buf, size_t *buflen,
   *tok = NULL;
   *toklen = 0;
   if (!n)
-    return *depth ? gpg_error(GPG_ERR_INV_SEXP) : 0;
+    return *depth ? GPG_ERR_INV_SEXP : 0;
   if (*s == '(')
     {
       s++; n--;
@@ -287,7 +279,7 @@ parse_sexp (unsigned char const **buf, size_t *buflen,
   if (*s == ')')
     {
       if (!*depth)
-        return gpg_error(GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       *toklen = 1;
       s++; n--;
       (*depth)--;
@@ -298,10 +290,10 @@ parse_sexp (unsigned char const **buf, size_t *buflen,
   for (vlen=0; n && *s && *s != ':' && (*s >= '0' && *s <= '9'); s++, n--)
     vlen = vlen*10 + (*s - '0');
   if (!n || *s != ':')
-    return gpg_error(GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++; n--;
   if (vlen > n)
-    return gpg_error(GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   *tok = s;
   *toklen = vlen;
   s += vlen;

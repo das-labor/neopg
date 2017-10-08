@@ -465,7 +465,7 @@ mark_usable_uid_certs (ctrl_t ctrl, kbnode_t keyblock, kbnode_t uidnode,
 	{
 	  /* we ignore anything that won't verify, but tag the
 	     no_pubkey case */
-	  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY)
+	  if (rc == GPG_ERR_NO_PUBKEY)
             node->flag |= 1<<12;
           continue;
         }

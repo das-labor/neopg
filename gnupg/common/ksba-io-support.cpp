@@ -706,7 +706,7 @@ gnupg_ksba_create_writer (gnupg_ksba_io_t *ctx, unsigned int flags,
       rc = ksba_writer_set_cb (w, plain_writer_cb, &(*ctx)->u.wparm);
     }
   else
-    rc = gpg_error (GPG_ERR_INV_ARG);
+    rc = GPG_ERR_INV_ARG;
 
   if (rc)
     {
@@ -729,7 +729,7 @@ gnupg_ksba_finish_writer (gnupg_ksba_io_t ctx)
   struct writer_cb_parm_s *parm;
 
   if (!ctx)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   parm = &ctx->u.wparm;
   if (parm->did_finish)
     return 0; /* Already done. */

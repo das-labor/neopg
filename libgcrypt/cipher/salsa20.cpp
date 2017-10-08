@@ -319,7 +319,7 @@ salsa20_keysetup_neon(SALSA20_context_t *ctx, const byte *key, int klen)
 #endif /*USE_ARM_NEON_ASM*/
 
 
-static gcry_err_code_t
+static gpg_error_t
 salsa20_do_setkey (SALSA20_context_t *ctx,
                    const byte *key, unsigned int keylen)
 {
@@ -365,11 +365,11 @@ salsa20_do_setkey (SALSA20_context_t *ctx,
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 salsa20_setkey (void *context, const byte *key, unsigned int keylen)
 {
   SALSA20_context_t *ctx = (SALSA20_context_t *)context;
-  gcry_err_code_t rc = salsa20_do_setkey (ctx, key, keylen);
+  gpg_error_t rc = salsa20_do_setkey (ctx, key, keylen);
   _gcry_burn_stack (4 + sizeof (void *) + 4 * sizeof (void *));
   return rc;
 }

@@ -77,8 +77,8 @@
 
 
 #define PARM_ERROR(t) assuan_set_error (ctx, \
-                                        gpg_error (GPG_ERR_ASS_PARAMETER), (t))
-#define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
+                                        GPG_ERR_ASS_PARAMETER, (t))
+#define set_error(e,t) assuan_set_error (ctx, e, (t))
 
 
 
@@ -343,10 +343,10 @@ check_owner_permission (assuan_context_t ctx, const char *failtext)
   (void)ctx;
   (void)failtext;
 #else
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   assuan_peercred_t cred;
 
-  ec = gpg_err_code (assuan_get_peercred (ctx, &cred));
+  ec = assuan_get_peercred (ctx, &cred);
   if (!ec && cred->uid && cred->uid != getuid ())
     ec = GPG_ERR_EPERM;
   if (ec)
@@ -526,7 +526,7 @@ get_istrusted_from_client (ctrl_t ctrl, const char *hexfpr)
 
   if (!ctrl || !ctrl->server_local || !ctrl->server_local->assuan_ctx
       || !hexfpr)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   snprintf (request, sizeof request, "ISTRUSTED %s", hexfpr);
   rc = assuan_inquire (ctrl->server_local->assuan_ctx, request,
@@ -541,7 +541,7 @@ get_istrusted_from_client (ctrl_t ctrl, const char *hexfpr)
   if (valuelen && *value == '1' && (valuelen == 1 || spacep (value+1)))
     rc = 0;
   else
-    rc = gpg_error (GPG_ERR_NOT_TRUSTED);
+    rc = GPG_ERR_NOT_TRUSTED;
   xfree (value);
   return rc;
 }
@@ -574,7 +574,7 @@ inquire_cert_and_load_crl (assuan_context_t ctx)
 /*   } */
 
   if (!valuelen) /* No data returned; return a comprehensible error. */
-    return gpg_error (GPG_ERR_MISSING_CERT);
+    return GPG_ERR_MISSING_CERT;
 
   err = ksba_cert_new (&cert);
   if (err)
@@ -622,7 +622,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     {
       /* Return an error if we are running in Tor mode.  */
       if (dirmngr_use_tor ())
-        err = gpg_error (GPG_ERR_FORBIDDEN);
+        err = GPG_ERR_FORBIDDEN;
     }
   else if (!strcmp (key, "http-crl"))
     {
@@ -630,7 +630,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       ctrl->http_no_crl = !i;
     }
   else
-    err = gpg_error (GPG_ERR_UNKNOWN_OPTION);
+    err = GPG_ERR_UNKNOWN_OPTION;
 
   return err;
 }
@@ -985,7 +985,7 @@ cmd_ldapserver (assuan_context_t ctx, char *line)
 
   server = ldapserver_parse_one (line, "", 0);
   if (! server)
-    return leave_cmd (ctx, gpg_error (GPG_ERR_INV_ARG));
+    return leave_cmd (ctx, GPG_ERR_INV_ARG);
 
   last_next_p = &ctrl->server_local->ldapservers;
   while (*last_next_p)
@@ -994,7 +994,7 @@ cmd_ldapserver (assuan_context_t ctx, char *line)
   return leave_cmd (ctx, 0);
 #else
   (void)line;
-  return leave_cmd (ctx, gpg_error (GPG_ERR_NOT_IMPLEMENTED));
+  return leave_cmd (ctx, GPG_ERR_NOT_IMPLEMENTED);
 #endif
 }
 
@@ -1068,7 +1068,7 @@ cmd_isvalid (assuan_context_t ctx, char *line)
          on the current certificate semantics used with this
          command. */
       if (!opt.allow_ocsp)
-        err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+        err = GPG_ERR_NOT_SUPPORTED;
       else
         err = ocsp_isvalid (ctrl, NULL, NULL, force_default_responder);
       /* Fixme: If we got no ocsp response and --only-ocsp is not used
@@ -1077,7 +1077,7 @@ cmd_isvalid (assuan_context_t ctx, char *line)
          current certificate and jump to again. */
     }
   else if (only_ocsp)
-    err = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+    err = GPG_ERR_NO_CRL_KNOWN;
   else
     {
       switch (crl_cache_isvalid (ctrl,
@@ -1088,11 +1088,11 @@ cmd_isvalid (assuan_context_t ctx, char *line)
           err = 0;
           break;
         case CRL_CACHE_INVALID:
-          err = gpg_error (GPG_ERR_CERT_REVOKED);
+          err = GPG_ERR_CERT_REVOKED;
           break;
         case CRL_CACHE_DONTKNOW:
           if (did_inquire)
-            err = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+            err = GPG_ERR_NO_CRL_KNOWN;
           else if (!(err = inquire_cert_and_load_crl (ctx)))
             {
               did_inquire = 1;
@@ -1100,7 +1100,7 @@ cmd_isvalid (assuan_context_t ctx, char *line)
             }
           break;
         case CRL_CACHE_CANTUSE:
-          err = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+          err = GPG_ERR_NO_CRL_KNOWN;
           break;
         default:
           log_fatal ("crl_cache_isvalid returned invalid code\n");
@@ -1196,7 +1196,7 @@ cmd_checkcrl (assuan_context_t ctx, char *line)
         }
 
       if (!valuelen) /* No data returned; return a comprehensible error. */
-        err = gpg_error (GPG_ERR_MISSING_CERT);
+        err = GPG_ERR_MISSING_CERT;
       else
         {
           err = ksba_cert_new (&cert);
@@ -1211,7 +1211,7 @@ cmd_checkcrl (assuan_context_t ctx, char *line)
   assert (cert);
 
   err = crl_cache_cert_isvalid (ctrl, cert, ctrl->force_crl_refresh);
-  if (gpg_err_code (err) == GPG_ERR_NO_CRL_KNOWN)
+  if (err == GPG_ERR_NO_CRL_KNOWN)
     {
       err = crl_cache_reload_crl (ctrl, cert);
       if (!err)
@@ -1282,7 +1282,7 @@ cmd_checkocsp (assuan_context_t ctx, char *line)
         }
 
       if (!valuelen) /* No data returned; return a comprehensible error. */
-        err = gpg_error (GPG_ERR_MISSING_CERT);
+        err = GPG_ERR_MISSING_CERT;
       else
         {
           err = ksba_cert_new (&cert);
@@ -1297,7 +1297,7 @@ cmd_checkocsp (assuan_context_t ctx, char *line)
   assert (cert);
 
   if (!opt.allow_ocsp)
-    err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+    err = GPG_ERR_NOT_SUPPORTED;
   else
     err = ocsp_isvalid (ctrl, cert, NULL, force_default_responder);
 
@@ -1353,7 +1353,7 @@ return_one_cert (void *opaque, ksba_cert_t cert)
 
   der = ksba_cert_get_image (cert, &derlen);
   if (!der)
-    err = gpg_error (GPG_ERR_INV_CERT_OBJ);
+    err = GPG_ERR_INV_CERT_OBJ;
   else
     {
       err = assuan_send_data (ctx, der, derlen);
@@ -1426,13 +1426,13 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
           if (!err && single)
             goto ready;
 
-          if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+          if (err == GPG_ERR_NO_DATA)
             {
               err = 0;
               if (cache_only)
                 any_no_data = 1;
             }
-          else if (gpg_err_code (err) == GPG_ERR_INV_NAME && !cache_only)
+          else if (err == GPG_ERR_INV_NAME && !cache_only)
             {
               /* No real fault because the internal pattern lookup
                  can't yet cope with all types of pattern.  */
@@ -1460,7 +1460,7 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
 
       /* Fetch certificates matching pattern */
       err = start_cert_fetch (ctrl, &fetch_context, list, ldapserver);
-      if ( gpg_err_code (err) == GPG_ERR_NO_DATA )
+      if ( err == GPG_ERR_NO_DATA )
         {
           if (DBG_LOOKUP)
             log_debug ("cmd_lookup: no data\n");
@@ -1479,26 +1479,26 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
         {
           xfree (value); value = NULL;
           err = fetch_next_cert (fetch_context, &value, &valuelen);
-          if (gpg_err_code (err) == GPG_ERR_NO_DATA )
+          if (err == GPG_ERR_NO_DATA )
             {
               err = 0;
               any_no_data = 1;
               break; /* Ready. */
             }
-          if (gpg_err_code (err) == GPG_ERR_TRUNCATED)
+          if (err == GPG_ERR_TRUNCATED)
             {
               truncated = 1;
               err = 0;
               break;  /* Ready.  */
             }
-          if (gpg_err_code (err) == GPG_ERR_EOF)
+          if (err == GPG_ERR_EOF)
             {
               err = 0;
               break; /* Ready. */
             }
           if (!err && !value)
             {
-              err = gpg_error (GPG_ERR_BUG);
+              err = GPG_ERR_BUG;
               goto leave;
             }
           if (err)
@@ -1550,7 +1550,7 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
     }
 
   if (!err && !count && !local_count && any_no_data)
-    err = gpg_error (GPG_ERR_NO_DATA);
+    err = GPG_ERR_NO_DATA;
 
  leave:
   free_strlist (list);
@@ -1589,9 +1589,9 @@ cmd_lookup (assuan_context_t ctx, char *line)
   line = skip_options (line);
 
   if (lookup_url && cache_only)
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
   else if (lookup_url && single)
-    err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    err = GPG_ERR_NOT_IMPLEMENTED;
   else if (lookup_url)
     err = lookup_cert_by_url (ctx, line);
   else
@@ -1718,7 +1718,7 @@ cmd_cachecert (assuan_context_t ctx, char *line)
     }
 
   if (!valuelen) /* No data returned; return a comprehensible error. */
-    err = gpg_error (GPG_ERR_MISSING_CERT);
+    err = GPG_ERR_MISSING_CERT;
   else
     {
       err = ksba_cert_new (&cert);
@@ -1789,7 +1789,7 @@ cmd_validate (assuan_context_t ctx, char *line)
     }
 
   if (!valuelen) /* No data returned; return a comprehensible error. */
-    err = gpg_error (GPG_ERR_MISSING_CERT);
+    err = GPG_ERR_MISSING_CERT;
   else if (tls_mode)
     {
       estream_t fp;
@@ -1802,7 +1802,7 @@ cmd_validate (assuan_context_t ctx, char *line)
           err = read_certlist_from_stream (&certlist, fp);
           es_fclose (fp);
           if (!err && !certlist)
-            err = gpg_error (GPG_ERR_MISSING_CERT);
+            err = GPG_ERR_MISSING_CERT;
           if (!err)
             {
               /* Extraxt the first certificate from the list.  */
@@ -2325,7 +2325,7 @@ cmd_ks_put (assuan_context_t ctx, char *line)
 
   if (!valuelen) /* No data returned; return a comprehensible error. */
     {
-      err = gpg_error (GPG_ERR_MISSING_CERT);
+      err = GPG_ERR_MISSING_CERT;
       goto leave;
     }
 
@@ -2459,7 +2459,7 @@ cmd_killdirmngr (assuan_context_t ctx, char *line)
 
   ctrl->server_local->stopme = 1;
   assuan_set_flag (ctx, ASSUAN_FORCE_CLOSE, 1);
-  return gpg_error (GPG_ERR_EOF);
+  return GPG_ERR_EOF;
 }
 
 
@@ -2793,7 +2793,7 @@ dirmngr_tick (ctrl_t ctrl)
           if (err)
             {
               /* Take this as in indication for a cancel request.  */
-              err = gpg_error (GPG_ERR_CANCELED);
+              err = GPG_ERR_CANCELED;
             }
           now = time (NULL);
         }

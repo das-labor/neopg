@@ -93,7 +93,7 @@ ksba_reader_set_release_notify (ksba_reader_t r,
                                 void *notify_value)
 {
   if (!r)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   r->notify_cb = notify;
   r->notify_cb_value = notify_value;
   return 0;
@@ -113,7 +113,7 @@ ksba_reader_clear (ksba_reader_t r, unsigned char **buffer, size_t *buflen)
   size_t n;
 
   if (!r)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   r->eof = 0;
   r->error = 0;
@@ -142,7 +142,7 @@ ksba_reader_clear (ksba_reader_t r, unsigned char **buffer, size_t *buflen)
 gpg_error_t
 ksba_reader_error (ksba_reader_t r)
 {
-  return r? gpg_error_from_errno (r->error) : gpg_error (GPG_ERR_INV_VALUE);
+  return r? gpg_error_from_errno (r->error) : GPG_ERR_INV_VALUE;
 }
 
 unsigned long
@@ -169,18 +169,18 @@ gpg_error_t
 ksba_reader_set_mem (ksba_reader_t r, const void *buffer, size_t length)
 {
   if (!r || !buffer)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (r->type == READER_TYPE_MEM)
     { /* Reuse this reader */
       xfree (r->u.mem.buffer);
       r->type = 0;
     }
   if (r->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   r->u.mem.buffer = xtrymalloc (length);
   if (!r->u.mem.buffer)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   memcpy (r->u.mem.buffer, buffer, length);
   r->u.mem.size = length;
   r->u.mem.readpos = 0;
@@ -205,9 +205,9 @@ gpg_error_t
 ksba_reader_set_fd (ksba_reader_t r, int fd)
 {
   if (!r || fd == -1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (r->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_FD;
@@ -230,9 +230,9 @@ gpg_error_t
 ksba_reader_set_file (ksba_reader_t r, FILE *fp)
 {
   if (!r || !fp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (r->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_FILE;
@@ -271,9 +271,9 @@ ksba_reader_set_cb (ksba_reader_t r,
                     int (*cb)(void*,char *,size_t,size_t*), void *cb_value )
 {
   if (!r || !cb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (r->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_CB;
@@ -310,17 +310,17 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
   size_t nbytes;
 
   if (!r || !nread)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
 
   if (!buffer)
     {
       if (r->type != READER_TYPE_MEM)
-        return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+        return GPG_ERR_NOT_IMPLEMENTED;
       *nread = r->u.mem.size - r->u.mem.readpos;
       if (r->unread.buf)
         *nread += r->unread.length - r->unread.readpos;
-      return *nread? 0 : gpg_error (GPG_ERR_EOF);
+      return *nread? 0 : GPG_ERR_EOF;
     }
 
   *nread = 0;
@@ -329,7 +329,7 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
     {
       nbytes = r->unread.length - r->unread.readpos;
       if (!nbytes)
-        return gpg_error (GPG_ERR_BUG);
+        return GPG_ERR_BUG;
 
       if (nbytes > length)
         nbytes = length;
@@ -346,7 +346,7 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
   if (!r->type)
     {
       r->eof = 1;
-      return gpg_error (GPG_ERR_EOF);
+      return GPG_ERR_EOF;
     }
   else if (r->type == READER_TYPE_MEM)
     {
@@ -354,7 +354,7 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
       if (!nbytes)
         {
           r->eof = 1;
-          return gpg_error (GPG_ERR_EOF);
+          return GPG_ERR_EOF;
         }
 
       if (nbytes > length)
@@ -369,7 +369,7 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
       size_t n;
 
       if (r->eof)
-        return gpg_error (GPG_ERR_EOF);
+        return GPG_ERR_EOF;
 
       if (!length)
         {
@@ -391,24 +391,24 @@ ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
             r->error = errno;
           r->eof = 1;
           if (!n)
-            return gpg_error (GPG_ERR_EOF);
+            return GPG_ERR_EOF;
         }
     }
   else if (r->type == READER_TYPE_CB)
     {
       if (r->eof)
-        return gpg_error (GPG_ERR_EOF);
+        return GPG_ERR_EOF;
 
       if (r->u.cb.fnc (r->u.cb.value, buffer, length, nread))
         {
           *nread = 0;
           r->eof = 1;
-          return gpg_error (GPG_ERR_EOF);
+          return GPG_ERR_EOF;
         }
       r->nread += *nread;
     }
   else
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   return 0;
 }
@@ -417,21 +417,21 @@ gpg_error_t
 ksba_reader_unread (ksba_reader_t r, const void *buffer, size_t count)
 {
   if (!r || !buffer)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!count)
     return 0;
 
   /* Make sure that we do not push more bytes back than we have read.
      Otherwise r->nread won't have a clear semantic. */
   if (r->nread < count)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   if (!r->unread.buf)
     {
       r->unread.size = count + 100;
       r->unread.buf = xtrymalloc (r->unread.size);
       if (!r->unread.buf)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       r->unread.length = count;
       r->unread.readpos = 0;
       memcpy (r->unread.buf, buffer, count);
@@ -444,7 +444,7 @@ ksba_reader_unread (ksba_reader_t r, const void *buffer, size_t count)
       r->nread -= count;
     }
   else
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED); /* fixme: easy to do */
+    return GPG_ERR_NOT_IMPLEMENTED; /* fixme: easy to do */
 
   return 0;
 }

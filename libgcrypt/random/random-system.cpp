@@ -77,7 +77,7 @@ basic_initialization (void)
 static void
 lock_rng (void)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
 
   rc = gpgrt_lock_lock (&system_rng_lock);
   if (rc)
@@ -91,7 +91,7 @@ lock_rng (void)
 static void
 unlock_rng (void)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
 
   system_rng_is_locked = 0;
   rc = gpgrt_lock_unlock (&system_rng_lock);
@@ -220,7 +220,7 @@ _gcry_rngsystem_is_faked (void)
 /* Add BUFLEN bytes from BUF to the internal random pool.  QUALITY
    should be in the range of 0..100 to indicate the goodness of the
    entropy added, or -1 for goodness not known. */
-gcry_error_t
+gpg_error_t
 _gcry_rngsystem_add_bytes (const void *buf, size_t buflen, int quality)
 {
   (void)buf;

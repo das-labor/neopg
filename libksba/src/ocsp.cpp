@@ -85,9 +85,9 @@ parse_sequence (unsigned char const **buf, size_t *len, struct tag_info *ti)
     ;
   else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_SEQUENCE
              && ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
   return err;
 }
 
@@ -102,13 +102,13 @@ parse_enumerated (unsigned char const **buf, size_t *len, struct tag_info *ti,
      ;
   else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_ENUMERATED
              && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (maxlen && ti->length > maxlen)
-    err = gpg_error (GPG_ERR_TOO_LARGE);
+    err = GPG_ERR_TOO_LARGE;
   else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
 
   return err;
 }
@@ -123,11 +123,11 @@ parse_integer (unsigned char const **buf, size_t *len, struct tag_info *ti)
      ;
   else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_INTEGER
              && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
 
   return err;
 }
@@ -142,11 +142,11 @@ parse_octet_string (unsigned char const **buf, size_t *len, struct tag_info *ti)
     ;
   else if (!(ti->klasse == CLASS_UNIVERSAL && ti->tag == TYPE_OCTET_STRING
              && !ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (!ti->length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
 
   return err;
 }
@@ -166,14 +166,14 @@ parse_optional_boolean (unsigned char const **buf, size_t *len, int *r_bool)
   if (err)
     ;
   else if (!ti.length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (ti.length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
   else if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BOOLEAN
            && !ti.is_constructed)
     {
       if (ti.length != 1)
-        err = gpg_error (GPG_ERR_BAD_BER);
+        err = GPG_ERR_BAD_BER;
       *r_bool = !!**buf;
       parse_skip (buf, len, &ti);
     }
@@ -200,11 +200,11 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
     ;
   else if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
                 && !ti.is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (!ti.length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (ti.length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
   else if (!(*oid = ksba_oid_to_str (*buf, ti.length)))
     err = gpg_error_from_syserror ();
   else
@@ -229,9 +229,9 @@ parse_asntime_into_isotime (unsigned char const **buf, size_t *len,
   else if ( !(ti.klasse == CLASS_UNIVERSAL
               && (ti.tag == TYPE_UTC_TIME || ti.tag == TYPE_GENERALIZED_TIME)
               && !ti.is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (ti.length > *len)
-    err = gpg_error (GPG_ERR_INV_BER);
+    err = GPG_ERR_INV_BER;
   else if (!(err = _ksba_asntime_to_iso (*buf, ti.length,
                                          ti.tag == TYPE_UTC_TIME, isotime)))
     parse_skip (buf, len, &ti);
@@ -251,9 +251,9 @@ parse_context_tag (unsigned char const **buf, size_t *len, struct tag_info *ti,
     ;
   else if (!(ti->klasse == CLASS_CONTEXT && ti->tag == tag
 	     && ti->is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (ti->length > *len)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
 
   return err;
 }
@@ -334,7 +334,7 @@ gpg_error_t
 ksba_ocsp_set_digest_algo (ksba_ocsp_t ocsp, const char *oid)
 {
   if (!ocsp || !oid || !*oid)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (ocsp->digest_oid)
     xfree (ocsp->digest_oid);
   ocsp->digest_oid = xtrystrdup (oid);
@@ -349,7 +349,7 @@ ksba_ocsp_set_requestor (ksba_ocsp_t ocsp, ksba_cert_t cert)
 {
   (void)ocsp;
   (void)cert;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -364,7 +364,7 @@ ksba_ocsp_add_target (ksba_ocsp_t ocsp,
   struct ocsp_reqitem_s *ri;
 
   if (!ocsp || !cert || !issuer_cert)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   ri = xtrycalloc (1, sizeof *ri);
   if (!ri)
@@ -422,7 +422,7 @@ issuer_name_hash (ksba_cert_t cert, unsigned char *sha1_buffer)
     {
       err = _ksba_hash_buffer (NULL, ptr, length, 20, sha1_buffer, &dummy);
       if (!err && dummy != 20)
-        err = gpg_error (GPG_ERR_BUG);
+        err = GPG_ERR_BUG;
     }
   return err;
 }
@@ -442,7 +442,7 @@ issuer_key_hash (ksba_cert_t cert, unsigned char *sha1_buffer)
     {
       err = _ksba_hash_buffer (NULL, ptr, length, 20, sha1_buffer, &dummy);
       if (!err && dummy != 20)
-        err = gpg_error (GPG_ERR_BUG);
+        err = GPG_ERR_BUG;
     }
   return err;
 }
@@ -560,14 +560,14 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
   ksba_writer_t w4, w5, w6, w7; /* Used as aliases. */
 
   if (!ocsp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   xfree (ocsp->request_buffer);
   ocsp->request_buffer = NULL;
   ocsp->request_buflen = 0;
 
   if (!ocsp->requestlist)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
 
   /* Create three writer objects for construction of the request. */
   err = ksba_writer_new (&w3);
@@ -787,7 +787,7 @@ ksba_ocsp_hash_request (ksba_ocsp_t ocsp,
   (void)ocsp;
   (void)hasher;
   (void)hasher_arg;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -797,7 +797,7 @@ ksba_ocsp_set_sig_val (ksba_ocsp_t ocsp,
 {
   (void)ocsp;
   (void)sigval;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -806,7 +806,7 @@ ksba_ocsp_add_cert (ksba_ocsp_t ocsp, ksba_cert_t cert)
 {
   (void)ocsp;
   (void)cert;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -822,12 +822,12 @@ ksba_ocsp_build_request (ksba_ocsp_t ocsp,
   gpg_error_t err;
 
   if (!ocsp || !r_buffer || !r_buflen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *r_buffer = NULL;
   *r_buflen = 0;
 
   if (!ocsp->requestlist)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
   if (!ocsp->request_buffer)
     {
       /* No prepare done, do it now. */
@@ -885,7 +885,7 @@ parse_response_extensions (ksba_ocsp_t ocsp,
         goto leave;
       if (length < ti.nhdr + ti.length)
         {
-          err = gpg_error (GPG_ERR_BAD_BER);
+          err = GPG_ERR_BAD_BER;
           goto leave;
         }
       length -= ti.nhdr + ti.length;
@@ -963,7 +963,7 @@ parse_single_extensions (struct ocsp_reqitem_s *ri,
         goto leave;
       if (length < ti.nhdr + ti.length)
         {
-          err = gpg_error (GPG_ERR_BAD_BER);
+          err = GPG_ERR_BAD_BER;
           goto leave;
         }
       length -= ti.nhdr + ti.length;
@@ -1076,7 +1076,7 @@ parse_response_status (ksba_ocsp_t ocsp,
   if (strcmp (oid, oidstr_ocsp_basic))
     {
       xfree (oid);
-      return gpg_error (GPG_ERR_UNSUPPORTED_PROTOCOL);
+      return GPG_ERR_UNSUPPORTED_PROTOCOL;
     }
   xfree (oid);
 
@@ -1210,7 +1210,7 @@ parse_single_response (ksba_ocsp_t ocsp,
   if (err)
     return err;
   if (ti.length > *datalen)
-    return gpg_error (GPG_ERR_BAD_BER);
+    return GPG_ERR_BAD_BER;
   else if (ti.klasse == CLASS_CONTEXT && ti.tag == 0  && !ti.is_constructed)
     { /* good */
       if (!ti.length)
@@ -1221,7 +1221,7 @@ parse_single_response (ksba_ocsp_t ocsp,
           (*data)++;
         }
       else
-        return gpg_error (GPG_ERR_INV_OBJ);
+        return GPG_ERR_INV_OBJ;
 
       if (request_item)
         request_item->status = KSBA_STATUS_GOOD;
@@ -1295,7 +1295,7 @@ parse_single_response (ksba_ocsp_t ocsp,
         request_item->status = KSBA_STATUS_UNKNOWN;
     }
   else
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
 
   /* thisUpdate. */
   err = parse_asntime_into_isotime (data, datalen, this_update);
@@ -1313,7 +1313,7 @@ parse_single_response (ksba_ocsp_t ocsp,
   if (err)
     return err;
   if (ti.length > *datalen)
-    return gpg_error (GPG_ERR_BAD_BER);
+    return GPG_ERR_BAD_BER;
   else if (ti.klasse == CLASS_CONTEXT && ti.tag == 0  && ti.is_constructed)
     { /* have nextUpdate */
       err = parse_asntime_into_isotime (data, datalen, next_update);
@@ -1329,7 +1329,7 @@ parse_single_response (ksba_ocsp_t ocsp,
       *datalen += ti.nhdr;
     }
   else
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
 
   /* singleExtensions is optional */
   if (*data >= endptr)
@@ -1338,7 +1338,7 @@ parse_single_response (ksba_ocsp_t ocsp,
   if (err)
     return err;
   if (ti.length > *datalen)
-    return gpg_error (GPG_ERR_BAD_BER);
+    return GPG_ERR_BAD_BER;
   if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     {
       if (request_item)
@@ -1350,7 +1350,7 @@ parse_single_response (ksba_ocsp_t ocsp,
       parse_skip (data, datalen, &ti);
     }
   else
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
 
   return 0;
 }
@@ -1407,7 +1407,7 @@ parse_response_data (ksba_ocsp_t ocsp,
   if (err)
     return err;
   if (ti.length > *datalen)
-    return gpg_error (GPG_ERR_BAD_BER);
+    return GPG_ERR_BAD_BER;
   else if (ti.klasse == CLASS_CONTEXT && ti.tag == 1  && ti.is_constructed)
     { /* byName. */
       err = _ksba_derdn_to_str (*data, ti.length, &ocsp->responder_id.name);
@@ -1421,7 +1421,7 @@ parse_response_data (ksba_ocsp_t ocsp,
       if (err)
         return err;
       if (!ti.length)
-        return gpg_error (GPG_ERR_INV_OBJ); /* Zero length key id.  */
+        return GPG_ERR_INV_OBJ; /* Zero length key id.  */
       ocsp->responder_id.keyid = xtrymalloc (ti.length);
       if (!ocsp->responder_id.keyid)
         return gpg_error_from_syserror ();
@@ -1430,7 +1430,7 @@ parse_response_data (ksba_ocsp_t ocsp,
       parse_skip (data, datalen, &ti);
     }
   else
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
 
   /* The producedAt field. */
   err = parse_asntime_into_isotime (data, datalen, ocsp->produced_at);
@@ -1463,7 +1463,7 @@ parse_response_data (ksba_ocsp_t ocsp,
         return err;
       parse_skip (data, datalen, &ti);
     }
-  else if (gpg_err_code (err) == GPG_ERR_INV_OBJ)
+  else if (err == GPG_ERR_INV_OBJ)
     {
       *data = savedata;
       *datalen = savedatalen;
@@ -1534,11 +1534,11 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
     return err;
   if (!(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_BIT_STRING
         && !ti.is_constructed) )
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else if (!ti.length)
-    err = gpg_error (GPG_ERR_TOO_SHORT);
+    err = GPG_ERR_TOO_SHORT;
   else if (ti.length > msglen)
-    err = gpg_error (GPG_ERR_BAD_BER);
+    err = GPG_ERR_BAD_BER;
   parse_skip (&msg, &msglen, &ti);
   len = len - msglen;
   xfree (ocsp->sigval); ocsp->sigval = NULL;
@@ -1550,7 +1550,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
   if (msg >= endptr)
     return 0; /* It's optional, so stop now. */
   err = parse_context_tag (&msg, &msglen, &ti, 0);
-  if (gpg_err_code (err) == GPG_ERR_INV_OBJ)
+  if (err == GPG_ERR_INV_OBJ)
     return 0; /* Not the right tag. Stop here. */
   if (err)
     return err;
@@ -1558,7 +1558,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
   if (err)
     return err;
   if (ti.ndef)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ENCODING);
+    return GPG_ERR_UNSUPPORTED_ENCODING;
 
   {
     ksba_cert_t cert;
@@ -1618,10 +1618,10 @@ ksba_ocsp_parse_response (ksba_ocsp_t ocsp,
   struct ocsp_reqitem_s *ri;
 
   if (!ocsp || !msg || !msglen || !response_status)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (!ocsp->requestlist)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
 
   /* Reset the fields used to track the response.  This is so that we
      can use the parse function a second time for the same
@@ -1688,11 +1688,11 @@ ksba_ocsp_hash_response (ksba_ocsp_t ocsp,
 
 {
   if (!ocsp || !msg || !hasher)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!ocsp->hash_length)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
   if (ocsp->hash_offset + ocsp->hash_length >= msglen)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   hasher (hasher_arg, msg + ocsp->hash_offset, ocsp->hash_length);
   return 0;
@@ -1740,7 +1740,7 @@ ksba_ocsp_get_responder_id (ksba_ocsp_t ocsp,
     *r_keyid = NULL;
 
   if (!ocsp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (ocsp->responder_id.name && r_name)
     {
@@ -1765,7 +1765,7 @@ ksba_ocsp_get_responder_id (ksba_ocsp_t ocsp,
       (*r_keyid)[numbuflen + ocsp->responder_id.keyidlen + 1] = 0;
     }
   else
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
 
   return 0;
 }
@@ -1819,9 +1819,9 @@ ksba_ocsp_get_status (ksba_ocsp_t ocsp, ksba_cert_t cert,
   struct ocsp_reqitem_s *ri;
 
   if (!ocsp || !cert || !r_status)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!ocsp->requestlist)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
 
   /* Find the certificate.  We don't care about the issuer certificate
      and stop at the first match.  The implementation may be optimized
@@ -1832,7 +1832,7 @@ ksba_ocsp_get_status (ksba_ocsp_t ocsp, ksba_cert_t cert,
     if (ri->cert == cert)
       break;
   if (!ri)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
   if (r_status)
     *r_status = ri->status;
   if (r_this_update)
@@ -1857,11 +1857,11 @@ ksba_ocsp_get_extension (ksba_ocsp_t ocsp, ksba_cert_t cert, int idx,
   struct ocsp_extension_s *ex;
 
   if (!ocsp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!ocsp->requestlist)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   if (cert)
     {
@@ -1872,12 +1872,12 @@ ksba_ocsp_get_extension (ksba_ocsp_t ocsp, ksba_cert_t cert, int idx,
         if (ri->cert == cert)
           break;
       if (!ri)
-        return gpg_error (GPG_ERR_NOT_FOUND);
+        return GPG_ERR_NOT_FOUND;
 
       for (ex=ri->single_extensions; ex && idx; ex = ex->next, idx--)
         ;
       if (!ex)
-        return gpg_error (GPG_ERR_EOF); /* No more extensions. */
+        return GPG_ERR_EOF; /* No more extensions. */
     }
   else
     {
@@ -1885,7 +1885,7 @@ ksba_ocsp_get_extension (ksba_ocsp_t ocsp, ksba_cert_t cert, int idx,
       for (ex=ocsp->response_extensions; ex && idx; ex = ex->next, idx--)
         ;
       if (!ex)
-        return gpg_error (GPG_ERR_EOF); /* No more extensions. */
+        return GPG_ERR_EOF; /* No more extensions. */
     }
 
   if (r_oid)

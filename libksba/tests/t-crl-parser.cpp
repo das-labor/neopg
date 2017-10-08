@@ -159,7 +159,7 @@ one_file (const char *fname)
             xfree (issuer);
             putchar ('\n');
             err = ksba_crl_get_update_times (crl, this_x, next);
-            if (gpg_err_code (err) != GPG_ERR_INV_TIME)
+            if (err != GPG_ERR_INV_TIME)
               fail_if_err2 (fname, err);
             printf ("thisUpdate: ");
             print_time (this_x);
@@ -209,10 +209,10 @@ one_file (const char *fname)
     ksba_sexp_t keyid;
 
     err = ksba_crl_get_auth_key_id (crl, &keyid, &name1, &serial);
-    if (!err || gpg_err_code (err) == GPG_ERR_NO_DATA)
+    if (!err || err == GPG_ERR_NO_DATA)
       {
         fputs ("AuthorityKeyIdentifier: ", stdout);
-        if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+        if (err == GPG_ERR_NO_DATA)
           fputs ("none\n", stdout);
         else
           {
@@ -242,10 +242,10 @@ one_file (const char *fname)
     ksba_sexp_t serial;
 
     err = ksba_crl_get_crl_number (crl, &serial);
-    if (!err || gpg_err_code (err) == GPG_ERR_NO_DATA)
+    if (!err || err == GPG_ERR_NO_DATA)
       {
         fputs ("crlNumber: ", stdout);
-        if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+        if (err == GPG_ERR_NO_DATA)
           fputs ("none", stdout);
         else
           {
@@ -274,8 +274,8 @@ one_file (const char *fname)
                 s?" (":"", s?s:"", s?")":"",
                 oid, (unsigned long)derlen);
       }
-    if (err && gpg_err_code (err) != GPG_ERR_EOF
-        && gpg_err_code (err) != GPG_ERR_NO_DATA )
+    if (err && err != GPG_ERR_EOF
+        && err != GPG_ERR_NO_DATA )
       fail_if_err (err);
   }
 

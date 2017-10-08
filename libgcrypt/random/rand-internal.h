@@ -54,7 +54,7 @@ void _gcry_rngcsprng_enable_quick_gen (void);
 void _gcry_rngcsprng_set_daemon_socket (const char *socketname);
 int  _gcry_rngcsprng_use_daemon (int onoff);
 int  _gcry_rngcsprng_is_faked (void);
-gcry_error_t _gcry_rngcsprng_add_bytes (const void *buf, size_t buflen,
+gpg_error_t _gcry_rngcsprng_add_bytes (const void *buf, size_t buflen,
                                         int quality);
 void *_gcry_rngcsprng_get_bytes (size_t nbytes,
                                  enum gcry_random_level level);
@@ -71,18 +71,18 @@ void _gcry_rngdrbg_inititialize (int full);
 void _gcry_rngdrbg_close_fds (void);
 void _gcry_rngdrbg_dump_stats (void);
 int  _gcry_rngdrbg_is_faked (void);
-gcry_error_t _gcry_rngdrbg_add_bytes (const void *buf, size_t buflen,
+gpg_error_t _gcry_rngdrbg_add_bytes (const void *buf, size_t buflen,
                                       int quality);
 void _gcry_rngdrbg_randomize (void *buffer, size_t length,
                               enum gcry_random_level level);
-gcry_error_t _gcry_rngdrbg_selftest (selftest_report_func_t report);
+gpg_error_t _gcry_rngdrbg_selftest (selftest_report_func_t report);
 
 /*-- random-system.c --*/
 void _gcry_rngsystem_initialize (int full);
 void _gcry_rngsystem_close_fds (void);
 void _gcry_rngsystem_dump_stats (void);
 int  _gcry_rngsystem_is_faked (void);
-gcry_error_t _gcry_rngsystem_add_bytes (const void *buf, size_t buflen,
+gpg_error_t _gcry_rngsystem_add_bytes (const void *buf, size_t buflen,
                                         int quality);
 void _gcry_rngsystem_randomize (void *buffer, size_t length,
                                 enum gcry_random_level level);

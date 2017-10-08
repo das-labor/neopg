@@ -98,7 +98,7 @@ assuan_init_pipe_server (assuan_context_t ctx, assuan_fd_t filedes[2])
     }
   else
     {
-      rc = _assuan_error (ctx, GPG_ERR_ASS_SERVER_START);
+      rc = GPG_ERR_ASS_SERVER_START;
       return TRACE_ERR (rc);
     }
 #endif

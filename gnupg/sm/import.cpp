@@ -194,8 +194,8 @@ check_and_store (ctrl_t ctrl, struct stats_s *stats,
   if (!rc && ctrl->with_validation)
     rc = gpgsm_validate_chain (ctrl, cert, "", NULL, 0, NULL, 0, NULL);
   if (!rc || (!ctrl->with_validation
-              && (gpg_err_code (rc) == GPG_ERR_MISSING_CERT
-                  || gpg_err_code (rc) == GPG_ERR_MISSING_ISSUER_CERT)))
+              && (rc == GPG_ERR_MISSING_CERT
+                  || rc == GPG_ERR_MISSING_ISSUER_CERT)))
     {
       int existed;
 
@@ -259,9 +259,9 @@ check_and_store (ctrl_t ctrl, struct stats_s *stats,
          GPG_ERR_MISSING_ISSUER_CERT.  */
       print_import_problem
         (ctrl, cert,
-         gpg_err_code (rc) == GPG_ERR_MISSING_ISSUER_CERT? 2 :
-         gpg_err_code (rc) == GPG_ERR_MISSING_CERT? 2 :
-         gpg_err_code (rc) == GPG_ERR_BAD_CERT?     1 : 0);
+         rc == GPG_ERR_MISSING_ISSUER_CERT? 2 :
+         rc == GPG_ERR_MISSING_CERT? 2 :
+         rc == GPG_ERR_BAD_CERT?     1 : 0);
     }
 }
 
@@ -375,7 +375,7 @@ import_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
       else
         {
           log_error ("can't extract certificates from input\n");
-          rc = gpg_error (GPG_ERR_NO_DATA);
+          rc = GPG_ERR_NO_DATA;
         }
 
       ksba_reader_clear (reader, NULL, NULL);
@@ -383,7 +383,7 @@ import_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
   while (!gnupg_ksba_reader_eof_seen (b64reader));
 
  leave:
-  if (any && gpg_err_code (rc) == GPG_ERR_EOF)
+  if (any && rc == GPG_ERR_EOF)
     rc = 0;
   ksba_cms_release (cms);
   ksba_cert_release (cert);
@@ -411,7 +411,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
   kh = sm_keydb_new ();
   if (!kh)
     {
-      err = gpg_error (GPG_ERR_ENOMEM);;
+      err = GPG_ERR_ENOMEM;;
       log_error (_("failed to allocate keyDB handle\n"));
       goto leave;
     }
@@ -429,7 +429,7 @@ reimport_one (ctrl_t ctrl, struct stats_s *stats, int in_fd)
     {
       if (*line && line[strlen(line)-1] != '\n')
         {
-          err = gpg_error (GPG_ERR_LINE_TOO_LONG);
+          err = GPG_ERR_LINE_TOO_LONG;
           goto leave;
 	}
       trim_spaces (line);
@@ -648,7 +648,7 @@ rsa_key_check (struct rsa_secret_key_s *skey)
   gcry_mpi_release (t2);
   gcry_mpi_release (phi);
 
-  return err? gpg_error (GPG_ERR_BAD_SECKEY):0;
+  return err? GPG_ERR_BAD_SECKEY:0;
 }
 
 
@@ -731,14 +731,14 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
       if (ntotal >= MAX_P12OBJ_SIZE*1024)
         {
           /* Arbitrary limit to avoid DoS attacks. */
-          err = gpg_error (GPG_ERR_TOO_LARGE);
+          err = GPG_ERR_TOO_LARGE;
           log_error ("pkcs#12 object is larger than %dk\n", MAX_P12OBJ_SIZE);
           break;
         }
       put_membuf (&p12mbuf, buffer, nread);
       ntotal += nread;
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF)
+  if (err == GPG_ERR_EOF)
     err = 0;
   if (!err)
     {
@@ -785,7 +785,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   if (!kparms)
     {
       log_error ("error parsing or decrypting the PKCS#12 file\n");
-      err = gpg_error (GPG_ERR_INV_OBJ);
+      err = GPG_ERR_INV_OBJ;
       goto leave;
     }
 
@@ -832,7 +832,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   /* Compute the keygrip. */
   if (!gcry_pk_get_keygrip (s_key, grip))
     {
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       log_error ("can't calculate keygrip\n");
       goto leave;
     }
@@ -892,7 +892,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
       stats->secret_read++;
       stats->secret_imported++;
     }
-  else if ( gpg_err_code (err) == GPG_ERR_EEXIST )
+  else if ( err == GPG_ERR_EEXIST )
     {
       err = 0;
       stats->count++;

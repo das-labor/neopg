@@ -66,7 +66,7 @@ write_extended_private_key (char *fname, estream_t fp, int update,
       int line;
 
       err = nvc_parse_private_key (&pk, &line, fp);
-      if (err && gpg_err_code (err) != GPG_ERR_ENOENT)
+      if (err && err != GPG_ERR_ENOENT)
         {
           log_error ("error parsing '%s' line %d: %s\n",
                      fname, line, gpg_strerror (err));
@@ -158,7 +158,7 @@ agent_write_private_key (const unsigned char *grip,
     {
       log_error ("secret key file '%s' already exists\n", fname);
       xfree (fname);
-      return gpg_error (GPG_ERR_EEXIST);
+      return GPG_ERR_EEXIST;
     }
 
   fp = es_fopen (fname, force? "rb+,mode=-rw" : "wbx,mode=-rw");
@@ -166,7 +166,7 @@ agent_write_private_key (const unsigned char *grip,
     {
       gpg_error_t tmperr = gpg_error_from_syserror ();
 
-      if (force && gpg_err_code (tmperr) == GPG_ERR_ENOENT)
+      if (force && tmperr == GPG_ERR_ENOENT)
         {
           fp = es_fopen (fname, "wbx,mode=-rw");
           if (!fp)
@@ -320,8 +320,8 @@ try_unprotect_cb (struct pin_entry_info_s *pi)
                                         L_("I'll change it later"), 0);
           if (!err)
             arg->change_required = 1;
-          else if (gpg_err_code (err) == GPG_ERR_CANCELED
-                   || gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+          else if (err == GPG_ERR_CANCELED
+                   || err == GPG_ERR_FULLY_CANCELED)
             err = 0;
         }
       xfree (desc);
@@ -680,7 +680,7 @@ read_key_file (const unsigned char *grip, gcry_sexp_t *result)
   if (!fp)
     {
       rc = gpg_error_from_syserror ();
-      if (gpg_err_code (rc) != GPG_ERR_ENOENT)
+      if (rc != GPG_ERR_ENOENT)
         log_error ("can't open '%s': %s\n", fname, strerror (errno));
       xfree (fname);
       return rc;
@@ -835,8 +835,8 @@ agent_key_from_file (ctrl_t ctrl, const char *cache_nonce,
   rc = read_key_file (grip, &s_skey);
   if (rc)
     {
-      if (gpg_err_code (rc) == GPG_ERR_ENOENT)
-        rc = gpg_error (GPG_ERR_NO_SECKEY);
+      if (rc == GPG_ERR_ENOENT)
+        rc = GPG_ERR_NO_SECKEY;
       return rc;
     }
 
@@ -926,11 +926,11 @@ agent_key_from_file (ctrl_t ctrl, const char *cache_nonce,
             log_error ("get_shadow_info failed: %s\n", gpg_strerror (rc));
         }
       else
-        rc = gpg_error (GPG_ERR_UNUSABLE_SECKEY);
+        rc = GPG_ERR_UNUSABLE_SECKEY;
       break;
     default:
       log_error ("invalid private key format\n");
-      rc = gpg_error (GPG_ERR_BAD_SECKEY);
+      rc = GPG_ERR_BAD_SECKEY;
       break;
     }
   gcry_sexp_release (s_skey);
@@ -993,7 +993,7 @@ key_parms_from_sexp (gcry_sexp_t s_key, gcry_sexp_t *r_list,
   if (!list)
     {
       log_error ("invalid private key format\n");
-      return gpg_error (GPG_ERR_BAD_SECKEY);
+      return GPG_ERR_BAD_SECKEY;
     }
 
   l2 = gcry_sexp_cadr (list);
@@ -1034,19 +1034,19 @@ key_parms_from_sexp (gcry_sexp_t s_key, gcry_sexp_t *r_list,
     {
       log_error ("unknown private key algorithm\n");
       gcry_sexp_release (list);
-      return gpg_error (GPG_ERR_BAD_SECKEY);
+      return GPG_ERR_BAD_SECKEY;
     }
 
   if (r_algoname)
     {
       if (strlen (algoname) >= algonamesize)
-        return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
+        return GPG_ERR_BUFFER_TOO_SHORT;
       strcpy (r_algoname, algoname);
     }
   if (r_elems)
     {
       if (strlen (elems) >= elemssize)
-        return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
+        return GPG_ERR_BUFFER_TOO_SHORT;
       strcpy (r_elems, elems);
     }
 
@@ -1348,8 +1348,8 @@ agent_key_info_from_file (ctrl_t ctrl, const unsigned char *grip,
     err = read_key_file (grip, &sexp);
     if (err)
       {
-        if (gpg_err_code (err) == GPG_ERR_ENOENT)
-          return gpg_error (GPG_ERR_NOT_FOUND);
+        if (err == GPG_ERR_ENOENT)
+          return GPG_ERR_NOT_FOUND;
         else
           return err;
       }
@@ -1389,7 +1389,7 @@ agent_key_info_from_file (ctrl_t ctrl, const unsigned char *grip,
         }
       break;
     default:
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       break;
     }
 
@@ -1429,8 +1429,8 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
   int key_type;
 
   err = read_key_file (grip, &s_skey);
-  if (gpg_err_code (err) == GPG_ERR_ENOENT)
-    err = gpg_error (GPG_ERR_NO_SECKEY);
+  if (err == GPG_ERR_ENOENT)
+    err = GPG_ERR_NO_SECKEY;
   if (err)
     goto leave;
 
@@ -1441,7 +1441,7 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
   key_type = agent_private_key_type (buf);
   if (only_stubs && key_type != PRIVATE_KEY_SHADOWED)
     {
-      err  = gpg_error (GPG_ERR_FORBIDDEN);
+      err  = GPG_ERR_FORBIDDEN;
       goto leave;
     }
 
@@ -1494,7 +1494,7 @@ agent_delete_key (ctrl_t ctrl, const char *desc_text,
 
     default:
       log_error ("invalid private key format\n");
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       break;
     }
 

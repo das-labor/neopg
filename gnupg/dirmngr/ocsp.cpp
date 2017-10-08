@@ -98,7 +98,7 @@ read_response (estream_t fp, unsigned char **r_buffer, size_t *r_buflen)
           log_error (_("response from server too large; limit is %d bytes\n"),
                      MAX_RESPONSE_SIZE);
           xfree (buffer);
-          return gpg_error (GPG_ERR_TOO_LARGE);
+          return GPG_ERR_TOO_LARGE;
         }
 
       bufsize += 4096;
@@ -137,13 +137,13 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
       /* For now we do not allow OCSP via Tor due to possible privacy
          concerns.  Needs further research.  */
       log_error (_("OCSP request not possible due to Tor mode\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   if (opt.disable_http)
     {
       log_error (_("OCSP request not possible due to disabled HTTP\n"));
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   err = ksba_ocsp_add_target (ocsp, cert, issuer_cert);
@@ -233,7 +233,7 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
                       }
                   }
                 else
-                  err = gpg_error (GPG_ERR_NO_DATA);
+                  err = GPG_ERR_NO_DATA;
                 log_error (_("too many redirections\n"));
               }
               break;
@@ -241,7 +241,7 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
             default:
               log_error (_("error accessing '%s': http status %u\n"),
                          url, http_get_status_code (http));
-              err = gpg_error (GPG_ERR_NO_DATA);
+              err = GPG_ERR_NO_DATA;
               break;
             }
         }
@@ -298,7 +298,7 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
   else
     {
       log_error (_("OCSP responder at '%s' status: %s\n"), url, t);
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
     }
 
   xfree (response);
@@ -328,7 +328,7 @@ validate_responder_cert (ctrl_t ctrl, ksba_cert_t cert,
       else
         {
           log_error (_("not signed by a default OCSP signer's certificate"));
-          err = gpg_error (GPG_ERR_BAD_CA_CERT);
+          err = GPG_ERR_BAD_CA_CERT;
         }
       xfree (fpr);
     }
@@ -371,7 +371,7 @@ check_signature_core (ctrl_t ctrl, ksba_cert_t cert, gcry_sexp_t s_sig,
 
   pubkey = ksba_cert_get_public_key (cert);
   if (!pubkey)
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   else
     err = canon_sexp_to_gcry (pubkey, &s_pkey);
   xfree (pubkey);
@@ -413,14 +413,14 @@ check_signature (ctrl_t ctrl,
   if (algo != GCRY_MD_SHA1 )
     {
       log_error (_("only SHA-1 is supported for OCSP responses\n"));
-      return gpg_error (GPG_ERR_DIGEST_ALGO);
+      return GPG_ERR_DIGEST_ALGO;
     }
   err = gcry_sexp_build (&s_hash, NULL, "(data(flags pkcs1)(hash sha1 %b))",
                          gcry_md_get_algo_dlen (algo),
                          gcry_md_read (md, algo));
   if (err)
     {
-      log_error (_("creating S-expression failed: %s\n"), gcry_strerror (err));
+      log_error (_("creating S-expression failed: %s\n"), gpg_strerror (err));
       return err;
     }
 
@@ -464,7 +464,7 @@ check_signature (ctrl_t ctrl,
           cref = xtrymalloc (sizeof *cref);
           if (!cref)
             log_error (_("allocating list item failed: %s\n"),
-                       gcry_strerror (err));
+                       gpg_strerror (err));
           else if (!cache_cert_silent (cert, &cref->fpr))
             {
               cref->next = ctrl->ocsp_certs;
@@ -479,7 +479,7 @@ check_signature (ctrl_t ctrl,
       if (err)
         {
           log_error (_("error getting responder ID: %s\n"),
-                     gcry_strerror (err));
+                     gpg_strerror (err));
           return err;
         }
       cert = find_cert_bysubject (ctrl, name, keyid);
@@ -514,7 +514,7 @@ check_signature (ctrl_t ctrl,
 
   gcry_sexp_release (s_hash);
   log_error (_("no suitable certificate found to verify the OCSP response\n"));
-  return gpg_error (GPG_ERR_NO_PUBKEY);
+  return GPG_ERR_NO_PUBKEY;
 }
 
 
@@ -563,14 +563,14 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       if (!cert)
         {
           log_error (_("caller did not return the target certificate\n"));
-          err = gpg_error (GPG_ERR_GENERAL);
+          err = GPG_ERR_GENERAL;
           goto leave;
         }
       issuer_cert = get_issuing_cert_local (ctrl, NULL);
       if (!issuer_cert)
         {
           log_error (_("caller did not return the issuing certificate\n"));
-          err = gpg_error (GPG_ERR_GENERAL);
+          err = GPG_ERR_GENERAL;
           goto leave;
         }
     }
@@ -611,7 +611,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       ksba_name_release (name);
       ksba_free (oid);
     }
-  if (err && gpg_err_code (err) != GPG_ERR_EOF)
+  if (err && err != GPG_ERR_EOF)
     {
       log_error (_("can't get authorityInfoAccess: %s\n"), gpg_strerror (err));
       goto leave;
@@ -621,13 +621,13 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       if (!opt.ocsp_responder || !*opt.ocsp_responder)
         {
           log_info (_("no default OCSP responder defined\n"));
-          err = gpg_error (GPG_ERR_CONFIGURATION);
+          err = GPG_ERR_CONFIGURATION;
           goto leave;
         }
       if (!opt.ocsp_signer)
         {
           log_info (_("no default OCSP signer defined\n"));
-          err = gpg_error (GPG_ERR_CONFIGURATION);
+          err = GPG_ERR_CONFIGURATION;
           goto leave;
         }
       url = opt.ocsp_responder;
@@ -657,7 +657,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
   sigval = ksba_ocsp_get_sig_val (ocsp, produced_at);
   if (!sigval || !*produced_at)
     {
-      err = gpg_error (GPG_ERR_INV_OBJ);
+      err = GPG_ERR_INV_OBJ;
       goto leave;
     }
   if ( (err = canon_sexp_to_gcry (sigval, &s_sig)) )
@@ -730,11 +730,11 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
 
 
   if (status == KSBA_STATUS_REVOKED)
-    err = gpg_error (GPG_ERR_CERT_REVOKED);
+    err = GPG_ERR_CERT_REVOKED;
   else if (status == KSBA_STATUS_UNKNOWN)
-    err = gpg_error (GPG_ERR_NO_DATA);
+    err = GPG_ERR_NO_DATA;
   else if (status != KSBA_STATUS_GOOD)
-    err = gpg_error (GPG_ERR_GENERAL);
+    err = GPG_ERR_GENERAL;
 
   /* Allow for some clock skew. */
   gnupg_get_isotime (current_time);
@@ -745,7 +745,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       log_error (_("OCSP responder returned a status in the future\n"));
       log_info ("used now: %s  this_update: %s\n", current_time, this_update);
       if (!err)
-        err = gpg_error (GPG_ERR_TIME_CONFLICT);
+        err = GPG_ERR_TIME_CONFLICT;
     }
 
   /* Check that THIS_UPDATE is not too far back in the past. */
@@ -758,7 +758,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       log_info ("used now: %s  this_update: %s\n",
                 current_time, this_update);
       if (!err)
-        err = gpg_error (GPG_ERR_TIME_CONFLICT);
+        err = GPG_ERR_TIME_CONFLICT;
     }
 
   /* Check that we are not beyound NEXT_UPDATE  (plus some extra time). */
@@ -773,7 +773,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
           log_info ("used now: %s  next_update: %s\n",
                     current_time, next_update);
           if (!err)
-            err = gpg_error (GPG_ERR_TIME_CONFLICT);
+            err = GPG_ERR_TIME_CONFLICT;
         }
     }
 

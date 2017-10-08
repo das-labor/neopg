@@ -284,12 +284,12 @@ struct drbg_core_s
 
 struct drbg_state_ops_s
 {
-  gpg_err_code_t (*update) (drbg_state_t drbg,
+  gpg_error_t (*update) (drbg_state_t drbg,
 			    drbg_string_t *seed, int reseed);
-  gpg_err_code_t (*generate) (drbg_state_t drbg,
+  gpg_error_t (*generate) (drbg_state_t drbg,
 			      unsigned char *buf, unsigned int buflen,
 			      drbg_string_t *addtl);
-  gpg_err_code_t (*crypto_init) (drbg_state_t drbg);
+  gpg_error_t (*crypto_init) (drbg_state_t drbg);
   void		 (*crypto_fini) (drbg_state_t drbg);
 };
 
@@ -369,19 +369,19 @@ static const struct drbg_core_s drbg_cores[] = {
   {DRBG_CTRAES | DRBG_SYM256, 48, 16, GCRY_CIPHER_AES256}
 };
 
-static gpg_err_code_t drbg_hash_init (drbg_state_t drbg);
-static gpg_err_code_t drbg_hmac_init (drbg_state_t drbg);
-static gpg_err_code_t drbg_hmac_setkey (drbg_state_t drbg,
+static gpg_error_t drbg_hash_init (drbg_state_t drbg);
+static gpg_error_t drbg_hmac_init (drbg_state_t drbg);
+static gpg_error_t drbg_hmac_setkey (drbg_state_t drbg,
 					const unsigned char *key);
 static void drbg_hash_fini (drbg_state_t drbg);
 static byte *drbg_hash (drbg_state_t drbg, const drbg_string_t *buf);
-static gpg_err_code_t drbg_sym_init (drbg_state_t drbg);
+static gpg_error_t drbg_sym_init (drbg_state_t drbg);
 static void drbg_sym_fini (drbg_state_t drbg);
-static gpg_err_code_t drbg_sym_setkey (drbg_state_t drbg,
+static gpg_error_t drbg_sym_setkey (drbg_state_t drbg,
 				       const unsigned char *key);
-static gpg_err_code_t drbg_sym (drbg_state_t drbg, unsigned char *outval,
+static gpg_error_t drbg_sym (drbg_state_t drbg, unsigned char *outval,
 				const drbg_string_t *buf);
-static gpg_err_code_t drbg_sym_ctr (drbg_state_t drbg,
+static gpg_error_t drbg_sym_ctr (drbg_state_t drbg,
 			const unsigned char *inbuf, unsigned int inbuflen,
 			unsigned char *outbuf, unsigned int outbuflen);
 
@@ -407,7 +407,7 @@ static gpg_err_code_t drbg_sym_ctr (drbg_state_t drbg,
  * Parse a string of flags and store the flag values at R_FLAGS.
  * Return 0 on success.
  */
-static gpg_err_code_t
+static gpg_error_t
 parse_flag_string (const char *string, u32 *r_flags)
 {
   struct {
@@ -436,7 +436,7 @@ parse_flag_string (const char *string, u32 *r_flags)
 
       tl = _gcry_strtokenize (string, NULL);
       if (!tl)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       for (i=0; (s=tl[i]); i++)
         {
           for (j=0; j < DIM (table); j++)
@@ -642,12 +642,12 @@ drbg_get_entropy (drbg_state_t drbg, unsigned char *buffer,
  ******************************************************************/
 
 /* BCC function for CTR DRBG as defined in 10.4.3 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_ctr_bcc (drbg_state_t drbg,
               unsigned char *out, const unsigned char *key,
               drbg_string_t *in)
 {
-  gpg_err_code_t ret = GPG_ERR_GENERAL;
+  gpg_error_t ret = GPG_ERR_GENERAL;
   drbg_string_t *curr = in;
   size_t inpos = curr->len;
   const unsigned char *pos = curr->buf;
@@ -744,11 +744,11 @@ drbg_ctr_bcc (drbg_state_t drbg,
  */
 
 /* Derivation Function for CTR DRBG as defined in 10.4.2 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_ctr_df (drbg_state_t drbg, unsigned char *df_data,
              size_t bytes_to_return, drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = GPG_ERR_GENERAL;
+  gpg_error_t ret = GPG_ERR_GENERAL;
   unsigned char L_N[8];
   /* S3 is input */
   drbg_string_t S1, S2, S4, cipherin;
@@ -879,10 +879,10 @@ drbg_ctr_df (drbg_state_t drbg, unsigned char *df_data,
  *      was called with addtl, the df_data memory already contains the
  *      DFed addtl information and we do not need to call DF again.
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_ctr_update (drbg_state_t drbg, drbg_string_t *addtl, int reseed)
 {
-  gpg_err_code_t ret = GPG_ERR_GENERAL;
+  gpg_error_t ret = GPG_ERR_GENERAL;
   /* 10.2.1.2 step 1 */
   unsigned char *temp = drbg->scratchpad;
   unsigned char *df_data = drbg->scratchpad +
@@ -946,12 +946,12 @@ drbg_ctr_update (drbg_state_t drbg, drbg_string_t *addtl, int reseed)
  * drbg_ctr_extract_bytes. Therefore, the scratchpad is reused
  */
 /* Generate function of CTR DRBG as defined in 10.2.1.5.2 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_ctr_generate (drbg_state_t drbg,
                    unsigned char *buf, unsigned int buflen,
                    drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
 
   memset (drbg->scratchpad, 0, drbg_blocklen (drbg));
 
@@ -989,10 +989,10 @@ static struct drbg_state_ops_s drbg_ctr_ops = {
  * HMAC DRBG callback functions
  ******************************************************************/
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_hmac_update (drbg_state_t drbg, drbg_string_t *seed, int reseed)
 {
-  gpg_err_code_t ret = GPG_ERR_GENERAL;
+  gpg_error_t ret = GPG_ERR_GENERAL;
   int i = 0;
   drbg_string_t seed1, seed2, cipherin;
 
@@ -1043,11 +1043,11 @@ drbg_hmac_update (drbg_state_t drbg, drbg_string_t *seed, int reseed)
 }
 
 /* generate function of HMAC DRBG as defined in 10.1.2.5 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hmac_generate (drbg_state_t drbg, unsigned char *buf, unsigned int buflen,
                     drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   unsigned int len = 0;
   drbg_string_t data;
 
@@ -1105,7 +1105,7 @@ static struct drbg_state_ops_s drbg_hmac_ops = {
  *	length: drbg_blocklen(drbg)
  */
 /* Derivation Function for Hash DRBG as defined in 10.4.1 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_df (drbg_state_t drbg,
               unsigned char *outval, size_t outlen,
               drbg_string_t *entropy)
@@ -1140,10 +1140,10 @@ drbg_hash_df (drbg_state_t drbg,
 }
 
 /* update function for Hash DRBG as defined in 10.1.1.2 / 10.1.1.3 */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_update (drbg_state_t drbg, drbg_string_t *seed, int reseed)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   drbg_string_t data1, data2;
   unsigned char *V = drbg->scratchpad;
   unsigned char prefix = DRBG_PREFIX1;
@@ -1189,7 +1189,7 @@ drbg_hash_update (drbg_state_t drbg, drbg_string_t *seed, int reseed)
 }
 
 /* Processing of additional information string for Hash DRBG.  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_process_addtl (drbg_state_t drbg, drbg_string_t *addtl)
 {
   drbg_string_t data1, data2;
@@ -1220,7 +1220,7 @@ drbg_hash_process_addtl (drbg_state_t drbg, drbg_string_t *addtl)
 /*
  * Hashgen defined in 10.1.1.4
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_hashgen (drbg_state_t drbg, unsigned char *buf, unsigned int buflen)
 {
   unsigned int len = 0;
@@ -1252,11 +1252,11 @@ drbg_hash_hashgen (drbg_state_t drbg, unsigned char *buf, unsigned int buflen)
 }
 
 /* Generate function for Hash DRBG as defined in 10.1.1.4  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_generate (drbg_state_t drbg, unsigned char *buf, unsigned int buflen,
 		    drbg_string_t *addtl)
 {
-  gpg_err_code_t ret;
+  gpg_error_t ret;
   unsigned char prefix = DRBG_PREFIX3;
   drbg_string_t data1, data2;
   byte *retval;
@@ -1319,10 +1319,10 @@ static struct drbg_state_ops_s drbg_hash_ops = {
  *	0 on success
  *	error value otherwise
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_seed (drbg_state_t drbg, drbg_string_t *pers, int reseed)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   unsigned char *entropy = NULL;
   size_t entropylen = 0;
   drbg_string_t data1;
@@ -1407,12 +1407,12 @@ drbg_seed (drbg_state_t drbg, drbg_string_t *pers, int reseed)
  *
  * return: Generated number of bytes.
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_generate (drbg_state_t drbg,
                unsigned char *buf, unsigned int buflen,
                drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = GPG_ERR_INV_ARG;
+  gpg_error_t ret = GPG_ERR_INV_ARG;
 
   if (0 == buflen || !buf)
     {
@@ -1508,12 +1508,12 @@ drbg_generate (drbg_state_t drbg,
  * Return codes: see drbg_generate -- if one drbg_generate request fails,
  *		 the entire drbg_generate_long request fails
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_generate_long (drbg_state_t drbg,
                     unsigned char *buf, unsigned int buflen,
                     drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   unsigned int slice = 0;
   unsigned char *buf_p = buf;
   unsigned len = 0;
@@ -1541,7 +1541,7 @@ drbg_generate_long (drbg_state_t drbg,
  * return
  * 	0 on success
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_uninstantiate (drbg_state_t drbg)
 {
   if (!drbg)
@@ -1582,11 +1582,11 @@ drbg_uninstantiate (drbg_state_t drbg)
  *	0 on success
  *	error value otherwise
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_instantiate (drbg_state_t drbg,
                   drbg_string_t *pers, int coreref, int pr)
 {
-  gpg_err_code_t ret = GPG_ERR_ENOMEM;
+  gpg_error_t ret = GPG_ERR_ENOMEM;
   unsigned int sb_size = 0;
 
   if (!drbg)
@@ -1673,10 +1673,10 @@ drbg_instantiate (drbg_state_t drbg,
  * 	0 on success
  * 	error value otherwise
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_reseed (drbg_state_t drbg,drbg_string_t *addtl)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   ret = drbg_seed (drbg, addtl, 1);
   return ret;
 }
@@ -1694,7 +1694,7 @@ drbg_reseed (drbg_state_t drbg,drbg_string_t *addtl)
 static inline void
 drbg_lock (void)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   ec = gpgrt_lock_lock (&drbg_lock_var);
   if (ec)
@@ -1704,7 +1704,7 @@ drbg_lock (void)
 static inline void
 drbg_unlock (void)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   ec = gpgrt_lock_unlock (&drbg_lock_var);
   if (ec)
@@ -1732,7 +1732,7 @@ basic_initialization (void)
 /****** helper functions where lock must be held by caller *****/
 
 /* Check whether given flags are known to point to an applicable DRBG */
-static gpg_err_code_t
+static gpg_error_t
 drbg_algo_available (u32 flags, int *coreref)
 {
   int i = 0;
@@ -1748,11 +1748,11 @@ drbg_algo_available (u32 flags, int *coreref)
   return GPG_ERR_GENERAL;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 _drbg_init_internal (u32 flags, drbg_string_t *pers)
 {
   static u32 oldflags;
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   int coreref = 0;
   int pr = 0;
 
@@ -1781,7 +1781,7 @@ _drbg_init_internal (u32 flags, drbg_string_t *pers)
     {
       drbg_state = xtrycalloc_secure (1, sizeof *drbg_state);
       if (!drbg_state)
-	return gpg_err_code_from_syserror ();
+	return gpg_error_from_syserror ();
     }
   if (flags & DRBG_PREDICTION_RESIST)
     pr = 1;
@@ -1827,10 +1827,10 @@ _gcry_rngdrbg_inititialize (int full)
  * is not NULL NPERS must be one and PERS and the first ietm from the
  * bufer is take as personalization string.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rngdrbg_reinit (const char *flagstr, gcry_buffer_t *pers, int npers)
 {
-  gpg_err_code_t ret;
+  gpg_error_t ret;
   unsigned int flags;
 
   /* If PERS is not given we expect NPERS to be zero; if given we
@@ -1890,10 +1890,10 @@ _gcry_rngdrbg_is_faked (void)
 /* Add BUFLEN bytes from BUF to the internal random pool.  QUALITY
  * should be in the range of 0..100 to indicate the goodness of the
  * entropy added, or -1 for goodness not known. */
-gcry_error_t
+gpg_error_t
 _gcry_rngdrbg_add_bytes (const void *buf, size_t buflen, int quality)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   drbg_string_t seed;
   (void) quality;
   _gcry_rngdrbg_inititialize (1); /* Auto-initialize if needed */
@@ -2291,10 +2291,10 @@ struct gcry_drbg_test_vector drbg_test_nopr[] = {
  * This function is not static as it is needed for as a private API
  * call for the CAVS test tool.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *test, unsigned char *buf)
 {
-  gpg_err_code_t ret = 0;
+  gpg_error_t ret = 0;
   drbg_state_t drbg = NULL;
   struct drbg_test_data_s test_data;
   drbg_string_t addtl, pers, testentropy;
@@ -2313,7 +2313,7 @@ _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *test, unsigned char *buf)
   drbg = xtrycalloc_secure (1, sizeof *drbg);
   if (!drbg)
     {
-      ret = gpg_err_code_from_syserror ();
+      ret = gpg_error_from_syserror ();
       goto outbuf;
     }
 
@@ -2367,10 +2367,10 @@ _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *test, unsigned char *buf)
  * This function is not static as it is needed for as a private API
  * call for the CAVS test tool.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector * test)
 {
-  gpg_err_code_t ret = GPG_ERR_ENOMEM;
+  gpg_error_t ret = GPG_ERR_ENOMEM;
   unsigned char *buf = xcalloc_secure (1, test->expectedlen);
   if (!buf)
     return GPG_ERR_ENOMEM;
@@ -2390,13 +2390,13 @@ _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector * test)
  * Note, testing the reseed counter is not done as an automatic reseeding
  * is performed in drbg_generate when the reseed counter is too large.
  */
-static gpg_err_code_t
+static gpg_error_t
 drbg_healthcheck_sanity (struct gcry_drbg_test_vector *test)
 {
   unsigned int len = 0;
   drbg_state_t drbg = NULL;
-  gpg_err_code_t ret = GPG_ERR_GENERAL;
-  gpg_err_code_t tmpret = GPG_ERR_GENERAL;
+  gpg_error_t ret = GPG_ERR_GENERAL;
+  gpg_error_t tmpret = GPG_ERR_GENERAL;
   struct drbg_test_data_s test_data;
   drbg_string_t addtl, testentropy;
   int coreref = 0;
@@ -2415,14 +2415,14 @@ drbg_healthcheck_sanity (struct gcry_drbg_test_vector *test)
 
   buf = xtrycalloc_secure (1, test->expectedlen);
   if (!buf)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   tmpret = drbg_algo_available (flags, &coreref);
   if (tmpret)
     goto outbuf;
   drbg = xtrycalloc_secure (1, sizeof *drbg);
   if (!drbg)
     {
-      ret = gpg_err_code_from_syserror ();
+      ret = gpg_error_from_syserror ();
       goto outbuf;
     }
 
@@ -2496,10 +2496,10 @@ drbg_healthcheck (void)
 }
 
 /* Run the self-tests.  */
-gcry_error_t
+gpg_error_t
 _gcry_rngdrbg_selftest (selftest_report_func_t report)
 {
-  gcry_err_code_t ec;
+  gpg_error_t ec;
   const char *errtxt = NULL;
   drbg_lock ();
   if (0 != drbg_healthcheck ())
@@ -2508,14 +2508,14 @@ _gcry_rngdrbg_selftest (selftest_report_func_t report)
   if (report && errtxt)
     report ("random", 0, "KAT", errtxt);
   ec = errtxt ? GPG_ERR_SELFTEST_FAILED : 0;
-  return gpg_error (ec);
+  return ec;
 }
 
 /***************************************************************
  * Cipher invocations requested by DRBG
  ***************************************************************/
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_hash_init (drbg_state_t drbg)
 {
   gcry_md_hd_t hd;
@@ -2530,7 +2530,7 @@ drbg_hash_init (drbg_state_t drbg)
   return 0;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_hmac_init (drbg_state_t drbg)
 {
   gcry_md_hd_t hd;
@@ -2545,7 +2545,7 @@ drbg_hmac_init (drbg_state_t drbg)
   return 0;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_hmac_setkey (drbg_state_t drbg, const unsigned char *key)
 {
   gcry_md_hd_t hd = (gcry_md_hd_t)drbg->priv_data;
@@ -2586,7 +2586,7 @@ drbg_sym_fini (drbg_state_t drbg)
     free(drbg->ctr_null);
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_sym_init (drbg_state_t drbg)
 {
   gcry_cipher_hd_t hd;
@@ -2624,7 +2624,7 @@ drbg_sym_init (drbg_state_t drbg)
   return 0;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_sym_setkey (drbg_state_t drbg, const unsigned char *key)
 {
   gcry_cipher_hd_t hd = (gcry_cipher_hd_t)drbg->priv_data;
@@ -2632,7 +2632,7 @@ drbg_sym_setkey (drbg_state_t drbg, const unsigned char *key)
   return _gcry_cipher_setkey (hd, key, drbg_keylen (drbg));
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_sym (drbg_state_t drbg, unsigned char *outval, const drbg_string_t *buf)
 {
   gcry_cipher_hd_t hd = (gcry_cipher_hd_t)drbg->priv_data;
@@ -2645,7 +2645,7 @@ drbg_sym (drbg_state_t drbg, unsigned char *outval, const drbg_string_t *buf)
 			       buf->len);
 }
 
-static gpg_err_code_t
+static gpg_error_t
 drbg_sym_ctr (drbg_state_t drbg,
 	      const unsigned char *inbuf, unsigned int inbuflen,
 	      unsigned char *outbuf, unsigned int outbuflen)

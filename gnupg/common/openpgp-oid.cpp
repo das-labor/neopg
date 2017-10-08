@@ -116,7 +116,7 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
   *r_mpi = NULL;
 
   if (!string || !*string)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* We can safely assume that the encoded OID is shorter than the string. */
   buf = xtrymalloc (1 + strlen (string) + 2);
@@ -133,7 +133,7 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
     if (!digitp (string) || !(*endp == '.' || !*endp))
       {
         xfree (buf);
-        return gpg_error (GPG_ERR_INV_OID_STRING);
+        return GPG_ERR_INV_OID_STRING;
       }
     if (*endp == '.')
       string = endp+1;
@@ -151,7 +151,7 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
             if (val > 39)
               {
                 xfree (buf);
-                return gpg_error (GPG_ERR_INV_OID_STRING);
+                return GPG_ERR_INV_OID_STRING;
               }
             buf[buflen++] = val1*40 + val;
           }
@@ -170,7 +170,7 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
   if (arcno == 1 || buflen < 2 || buflen > 254 )
     { /* It is not possible to encode only the first arc.  */
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_OID_STRING);
+      return GPG_ERR_INV_OID_STRING;
     }
 
   *buf = buflen - 1;

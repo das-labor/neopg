@@ -238,7 +238,7 @@ parse_and_set_import_filter (const char *string)
   else if (!strncmp (string, "drop-sig=", 9))
     err = recsel_parse_expr (&import_filter.drop_sig, string+9);
   else
-    err = gpg_error (GPG_ERR_INV_NAME);
+    err = GPG_ERR_INV_NAME;
 
   return err;
 }
@@ -315,7 +315,7 @@ read_key_from_file (ctrl_t ctrl, const char *fname, kbnode_t *r_keyblock)
     {
       iobuf_close (inp);
       inp = NULL;
-      err = gpg_error (GPG_ERR_EPERM);
+      err = GPG_ERR_EPERM;
     }
   else
     err = 0;
@@ -324,8 +324,8 @@ read_key_from_file (ctrl_t ctrl, const char *fname, kbnode_t *r_keyblock)
       log_error (_("can't open '%s': %s\n"),
                  iobuf_is_pipe_filename (fname)? "[stdin]": fname,
                  gpg_strerror (err));
-      if (gpg_err_code (err) == GPG_ERR_ENOENT)
-        err = gpg_error (GPG_ERR_NO_PUBKEY);
+      if (err == GPG_ERR_ENOENT)
+        err = GPG_ERR_NO_PUBKEY;
       goto leave;
     }
 
@@ -349,7 +349,7 @@ read_key_from_file (ctrl_t ctrl, const char *fname, kbnode_t *r_keyblock)
     }
   if (err)
     {
-      if (gpg_err_code (err) != GPG_ERR_INV_KEYRING)
+      if (err != GPG_ERR_INV_KEYRING)
         log_error (_("error reading '%s': %s\n"),
                    iobuf_is_pipe_filename (fname)? "[stdin]": fname,
                    gpg_strerror (err));
@@ -360,7 +360,7 @@ read_key_from_file (ctrl_t ctrl, const char *fname, kbnode_t *r_keyblock)
 
   if (!find_next_kbnode (keyblock, PKT_USER_ID))
     {
-      err = gpg_error (GPG_ERR_NO_USER_ID);
+      err = GPG_ERR_NO_USER_ID;
       goto leave;
     }
 
@@ -369,13 +369,13 @@ read_key_from_file (ctrl_t ctrl, const char *fname, kbnode_t *r_keyblock)
   clear_kbnode_flags (keyblock);
   if (chk_self_sigs (ctrl, keyblock, keyid, &non_self))
     {
-      err = gpg_error (GPG_ERR_INV_KEYRING);
+      err = GPG_ERR_INV_KEYRING;
       goto leave;
     }
 
   if (!delete_inv_parts (ctrl, keyblock, keyid, 0) )
     {
-      err = gpg_error (GPG_ERR_NO_USER_ID);
+      err = GPG_ERR_NO_USER_ID;
       goto leave;
     }
 
@@ -587,7 +587,7 @@ import (ctrl_t ctrl, IOBUF inp, const char* fname,struct import_stats_s *stats,
          this does only make sense if we keep on going despite of
          errors.  For now we do this only if the imported key is too
          large. */
-      if (gpg_err_code (rc) == GPG_ERR_TOO_LARGE)
+      if (rc == GPG_ERR_TOO_LARGE)
         {
           stats->not_imported++;
         }
@@ -600,7 +600,7 @@ import (ctrl_t ctrl, IOBUF inp, const char* fname,struct import_stats_s *stats,
   stats->v3keys += v3keys;
   if (rc == -1)
     rc = 0;
-  else if (rc && gpg_err_code (rc) != GPG_ERR_INV_KEYRING)
+  else if (rc && rc != GPG_ERR_INV_KEYRING)
     log_error (_("error reading '%s': %s\n"), fname, gpg_strerror (rc));
 
   return rc;
@@ -648,7 +648,7 @@ import_old_secring (ctrl_t ctrl, const char *fname)
   import_release_stats_handle (stats);
   if (err == -1)
     err = 0;
-  else if (err && gpg_err_code (err) != GPG_ERR_INV_KEYRING)
+  else if (err && err != GPG_ERR_INV_KEYRING)
     log_error (_("error reading '%s': %s\n"), fname, gpg_strerror (err));
   else if (err)
     log_error ("import from '%s' failed: %s\n", fname, gpg_strerror (err));
@@ -786,7 +786,7 @@ read_block( IOBUF a, int with_meta,
   in_v3key = 0;
   while ((rc=parse_packet (&parsectx, pkt)) != -1)
     {
-      if (rc && (gpg_err_code (rc) == GPG_ERR_LEGACY_KEY
+      if (rc && (rc == GPG_ERR_LEGACY_KEY
                  && (pkt->pkttype == PKT_PUBLIC_KEY
                      || pkt->pkttype == PKT_SECRET_KEY)))
         {
@@ -798,7 +798,7 @@ read_block( IOBUF a, int with_meta,
         }
       else if (rc ) /* (ignore errors) */
         {
-          if (gpg_err_code (rc) == GPG_ERR_UNKNOWN_PACKET)
+          if (rc == GPG_ERR_UNKNOWN_PACKET)
             ; /* Do not show a diagnostic.  */
           else
             {
@@ -991,7 +991,7 @@ fix_bad_direct_key_sigs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid)
           && IS_KEY_SIG (node->pkt->pkt.signature))
         {
           err = check_key_signature (ctrl, keyblock, node, NULL);
-          if (err && gpg_err_code (err) != GPG_ERR_PUBKEY_ALGO )
+          if (err && err != GPG_ERR_PUBKEY_ALGO )
             {
               /* If we don't know the error, we can't decide; this is
                  not a problem because cmp_signature can't compare the
@@ -1588,8 +1588,8 @@ import_one (ctrl_t ctrl,
   /* Do we have this key already in one of our pubrings ? */
   pk_orig = xmalloc_clear( sizeof *pk_orig );
   rc = get_pubkey_byfprint_fast (pk_orig, fpr2, fpr2len);
-  if (rc && gpg_err_code (rc) != GPG_ERR_NO_PUBKEY
-      && gpg_err_code (rc) != GPG_ERR_UNUSABLE_PUBKEY )
+  if (rc && rc != GPG_ERR_NO_PUBKEY
+      && rc != GPG_ERR_UNUSABLE_PUBKEY )
     {
       if (!silent)
         log_error (_("key %s: public key not found: %s\n"),
@@ -1957,7 +1957,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
       nskey = pubkey_get_nskey (pk->pubkey_algo);
       if (!nskey || nskey > PUBKEY_MAX_NSKEY)
         {
-          err = gpg_error (GPG_ERR_BAD_SECKEY);
+          err = GPG_ERR_BAD_SECKEY;
           log_error ("internal error: %s\n", gpg_strerror (err));
           goto leave;
         }
@@ -2111,7 +2111,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
           if (stats)
             stats->secret_imported++;
         }
-      else if ( gpg_err_code (err) == GPG_ERR_EEXIST )
+      else if ( err == GPG_ERR_EEXIST )
         {
           if (opt.verbose)
             log_info (_("key %s: secret key already exists\n"),
@@ -2125,15 +2125,15 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
           log_error (_("key %s: error sending to agent: %s\n"),
                      keystr_from_pk_with_sub (main_pk, pk),
                      gpg_strerror (err));
-          if (gpg_err_code (err) == GPG_ERR_CANCELED
-              || gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+          if (err == GPG_ERR_CANCELED
+              || err == GPG_ERR_FULLY_CANCELED)
             break; /* Don't try the other subkeys.  */
         }
     }
 
   if (!err && stub_key_skipped)
     /* We need to notify user how to migrate stub keys.  */
-    err = gpg_error (GPG_ERR_NOT_PROCESSED);
+    err = GPG_ERR_NOT_PROCESSED;
 
  leave:
   gcry_sexp_release (curve);
@@ -2331,7 +2331,7 @@ import_secret_one (ctrl_t ctrl, kbnode_t keyblock,
 
               err = transfer_secret_keys (ctrl, &subkey_stats, keyblock,
                                           batch, 0);
-              if (gpg_err_code (err) == GPG_ERR_NOT_PROCESSED)
+              if (err == GPG_ERR_NOT_PROCESSED)
                 {
                   /* TRANSLATORS: For smartcard, each private key on
                      host has a reference (stub) to a smartcard and
@@ -2396,7 +2396,7 @@ import_revoke_cert (ctrl_t ctrl, kbnode_t node, struct import_stats_s *stats)
 
   pk = xmalloc_clear( sizeof *pk );
   rc = get_pubkey (ctrl, pk, keyid );
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY )
+  if (rc == GPG_ERR_NO_PUBKEY )
     {
       log_error(_("key %s: no public key -"
                   " can't apply revocation certificate\n"), keystr(keyid));
@@ -2572,7 +2572,7 @@ chk_self_sigs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid, int *non_self)
                       char *p = utf8_to_native
                         (unode->pkt->pkt.user_id->name,
                          strlen (unode->pkt->pkt.user_id->name),0);
-                      log_info (gpg_err_code(rc) == GPG_ERR_PUBKEY_ALGO ?
+                      log_info (rc == GPG_ERR_PUBKEY_ALGO ?
                                 _("key %s: unsupported public key "
                                   "algorithm on user ID \"%s\"\n"):
                                 _("key %s: invalid self-signature "
@@ -2591,7 +2591,7 @@ chk_self_sigs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid, int *non_self)
           if ( rc )
             {
               if (opt.verbose)
-                log_info (gpg_err_code (rc) == GPG_ERR_PUBKEY_ALGO ?
+                log_info (rc == GPG_ERR_PUBKEY_ALGO ?
                           _("key %s: unsupported public key algorithm\n"):
                           _("key %s: invalid direct key signature\n"),
                           keystr (keyid));
@@ -2617,7 +2617,7 @@ chk_self_sigs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid, int *non_self)
               if ( rc )
                 {
                   if (opt.verbose)
-                    log_info (gpg_err_code (rc) == GPG_ERR_PUBKEY_ALGO ?
+                    log_info (rc == GPG_ERR_PUBKEY_ALGO ?
                               _("key %s: unsupported public key"
                                 " algorithm\n"):
                               _("key %s: invalid subkey binding\n"),
@@ -2668,7 +2668,7 @@ chk_self_sigs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid, int *non_self)
               if ( rc )
                 {
                   if(opt.verbose)
-                    log_info (gpg_err_code (rc) == GPG_ERR_PUBKEY_ALGO ?
+                    log_info (rc == GPG_ERR_PUBKEY_ALGO ?
                               _("key %s: unsupported public"
                                 " key algorithm\n"):
                               _("key %s: invalid subkey revocation\n"),
@@ -3029,8 +3029,8 @@ revocation_present (ctrl_t ctrl, kbnode_t keyblock)
 
 		      rc=get_pubkey_byfprint_fast (NULL,sig->revkey[idx].fpr,
                                                    MAX_FINGERPRINT_LEN);
-		      if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
-                          || gpg_err_code (rc) == GPG_ERR_UNUSABLE_PUBKEY)
+		      if (rc == GPG_ERR_NO_PUBKEY
+                          || rc == GPG_ERR_UNUSABLE_PUBKEY)
 			{
 			  char *tempkeystr=xstrdup(keystr_from_pk(pk));
 
@@ -3053,8 +3053,8 @@ revocation_present (ctrl_t ctrl, kbnode_t keyblock)
 						     MAX_FINGERPRINT_LEN);
 			    }
 
-			  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
-                              || gpg_err_code (rc) == GPG_ERR_UNUSABLE_PUBKEY)
+			  if (rc == GPG_ERR_NO_PUBKEY
+                              || rc == GPG_ERR_UNUSABLE_PUBKEY)
 			    log_info(_("WARNING: key %s may be revoked:"
 				       " revocation key %s not present.\n"),
 				     tempkeystr,keystr(keyid));

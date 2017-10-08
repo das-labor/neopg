@@ -2031,7 +2031,7 @@ gpgsm_main ( int argc, char **argv)
           if (rc)
             ;
           else if (!(grip = gpgsm_get_keygrip_hexstring (cert)))
-            rc = gpg_error (GPG_ERR_BUG);
+            rc = GPG_ERR_BUG;
           else
             {
               char *desc = gpgsm_format_keydesc (cert);

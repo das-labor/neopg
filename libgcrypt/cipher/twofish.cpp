@@ -619,7 +619,7 @@ static byte calc_sb_tbl[512] = {
 /* Perform the key setup.  Note that this works only with 128- and 256-bit
  * keys, despite the API that looks like it might support other sizes. */
 
-static gcry_err_code_t
+static gpg_error_t
 do_twofish_setkey (TWOFISH_context *ctx, const byte *key, const unsigned keylen)
 {
   int i, j, k;
@@ -733,7 +733,7 @@ do_twofish_setkey (TWOFISH_context *ctx, const byte *key, const unsigned keylen)
   return 0;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 twofish_setkey (void *context, const byte *key, unsigned int keylen)
 {
   TWOFISH_context *ctx = context;

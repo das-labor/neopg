@@ -68,8 +68,8 @@ findkey_fname (const char *key, const char *fname)
           /* Eat until end of line. */
           while ( (c=getc (fp)) != EOF && c != '\n')
             ;
-          err = gpg_error (*line? GPG_ERR_LINE_TOO_LONG
-                           : GPG_ERR_INCOMPLETE_LINE);
+          err = *line? GPG_ERR_LINE_TOO_LONG
+                           : GPG_ERR_INCOMPLETE_LINE;
           log_error (_("file '%s', line %d: %s\n"),
                      fname, lnr, gpg_strerror (err));
         }

@@ -362,7 +362,7 @@ static inline void blake2b_init_param(BLAKE2B_STATE *S,
     S->h[i] = blake2b_IV[i] ^ buf_get_le64(p + sizeof(S->h[i]) * i);
 }
 
-static inline gcry_err_code_t blake2b_init(BLAKE2B_CONTEXT *ctx,
+static inline gpg_error_t blake2b_init(BLAKE2B_CONTEXT *ctx,
 					   const byte *key, size_t keylen)
 {
   struct blake2b_param_s P[1] = { { 0, } };
@@ -392,7 +392,7 @@ static inline gcry_err_code_t blake2b_init(BLAKE2B_CONTEXT *ctx,
   return 0;
 }
 
-static gcry_err_code_t blake2b_init_ctx(void *ctx, unsigned int flags,
+static gpg_error_t blake2b_init_ctx(void *ctx, unsigned int flags,
 					const byte *key, size_t keylen,
 					unsigned int dbits)
 {
@@ -594,7 +594,7 @@ static inline void blake2s_init_param(BLAKE2S_STATE *S,
     S->h[i] ^= blake2s_IV[i] ^ buf_get_le32(&p[i * 4]);
 }
 
-static inline gcry_err_code_t blake2s_init(BLAKE2S_CONTEXT *ctx,
+static inline gpg_error_t blake2s_init(BLAKE2S_CONTEXT *ctx,
 					   const byte *key, size_t keylen)
 {
   struct blake2s_param_s P[1] = { { 0, } };
@@ -624,7 +624,7 @@ static inline gcry_err_code_t blake2s_init(BLAKE2S_CONTEXT *ctx,
   return 0;
 }
 
-static gcry_err_code_t blake2s_init_ctx(void *ctx, unsigned int flags,
+static gpg_error_t blake2s_init_ctx(void *ctx, unsigned int flags,
 					const byte *key, size_t keylen,
 					unsigned int dbits)
 {
@@ -658,7 +658,7 @@ static void selftest_seq(byte *out, size_t len, u32 seed)
     }
 }
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_blake2b (int algo, int extended, selftest_report_func_t report)
 {
   static const byte blake2b_res[32] =
@@ -728,7 +728,7 @@ failed:
   return GPG_ERR_SELFTEST_FAILED;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_blake2s (int algo, int extended, selftest_report_func_t report)
 {
   static const byte blake2s_res[32] =
@@ -799,11 +799,11 @@ failed:
 }
 
 
-gcry_err_code_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
+gpg_error_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
 					   const unsigned char *key,
 					   size_t keylen, int algo)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   switch (algo)
     {
     case GCRY_MD_BLAKE2B_512:

@@ -219,9 +219,9 @@ assuan_get_peercred (assuan_context_t ctx, assuan_peercred_t *peercred)
   TRACE (ctx, ASSUAN_LOG_CTX, "assuan_get_peercred", ctx);
 
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
   if (!ctx->peercred_valid)
-    return _assuan_error (ctx, GPG_ERR_ASS_GENERAL);
+    return GPG_ERR_ASS_GENERAL;
 
   *peercred = &ctx->peercred;
 

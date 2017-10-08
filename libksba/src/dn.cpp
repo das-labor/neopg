@@ -548,9 +548,9 @@ append_atv (const unsigned char *image, AsnNode root, struct stringbuf *sb)
   int i;
 
   if (!node || node->type != TYPE_OBJECT_ID)
-    return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+    return GPG_ERR_UNEXPECTED_TAG;
   if (node->off == -1)
-    return gpg_error (GPG_ERR_NO_VALUE); /* Hmmm, this might lead to misunderstandings */
+    return GPG_ERR_NO_VALUE; /* Hmmm, this might lead to misunderstandings */
 
   name = NULL;
   for (i=0; oid_name_tbl[i].name; i++)
@@ -574,7 +574,7 @@ append_atv (const unsigned char *image, AsnNode root, struct stringbuf *sb)
 
       p = ksba_oid_to_str (image+node->off+node->nhdr, node->len);
       if (!p)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
 
       for (i=0; *p && oid_name_tbl[i].name; i++)
         {
@@ -597,7 +597,7 @@ append_atv (const unsigned char *image, AsnNode root, struct stringbuf *sb)
   put_stringbuf (sb, "=");
   node = node->right;
   if (!node || node->off == -1)
-    return gpg_error (GPG_ERR_NO_VALUE);
+    return GPG_ERR_NO_VALUE;
 
   switch (use_hex? 0 : node->type)
     {
@@ -646,7 +646,7 @@ dn_to_str (const unsigned char *image, AsnNode root, struct stringbuf *sb)
   if (!nset)
     return 0; /* consider this as empty */
   if (nset->type != TYPE_SET_OF)
-    return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+    return GPG_ERR_UNEXPECTED_TAG;
 
   /* output in reverse order */
   while (nset->right)
@@ -657,11 +657,11 @@ dn_to_str (const unsigned char *image, AsnNode root, struct stringbuf *sb)
       AsnNode nseq;
 
       if (nset->type != TYPE_SET_OF)
-        return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+        return GPG_ERR_UNEXPECTED_TAG;
       for (nseq = nset->down; nseq; nseq = nseq->right)
         {
           if (nseq->type != TYPE_SEQUENCE)
-            return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+            return GPG_ERR_UNEXPECTED_TAG;
           if (nseq != nset->down)
             put_stringbuf (sb, "+");
           err = append_atv (image, nseq, sb);
@@ -686,7 +686,7 @@ _ksba_dn_to_str (const unsigned char *image, AsnNode node, char **r_string)
 
   *r_string = NULL;
   if (!node || node->type != TYPE_SEQUENCE_OF)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   init_stringbuf (&sb, 100);
   err = dn_to_str (image, node, &sb);
@@ -694,7 +694,7 @@ _ksba_dn_to_str (const unsigned char *image, AsnNode node, char **r_string)
     {
       *r_string = get_stringbuf (&sb);
       if (!*r_string)
-        err = gpg_error (GPG_ERR_ENOMEM);
+        err = GPG_ERR_ENOMEM;
     }
   deinit_stringbuf (&sb);
 
@@ -721,7 +721,7 @@ create_and_run_decoder (ksba_reader_t reader, const char *elem_name,
   if (!decoder)
     {
       ksba_asn_tree_release (crl_tree);
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
     }
 
   err = _ksba_ber_decoder_set_reader (decoder, reader);
@@ -948,12 +948,12 @@ parse_rdn (const unsigned char *string, const char **endp,
   *roff = *rlen = 0;
 
   if (!string)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   while (*string == ' ')
     string++;
   *roff = string - orig_string;
   if (!*string)
-    return gpg_error (GPG_ERR_SYNTAX); /* empty elements are not allowed */
+    return GPG_ERR_SYNTAX; /* empty elements are not allowed */
   s = string;
 
   if ( ((*s == 'o' && s[1] == 'i' && s[2] == 'd')
@@ -972,13 +972,13 @@ parse_rdn (const unsigned char *string, const char **endp,
       while (*s == ' ')
         s++;
       if (*s != '=')
-        return gpg_error (GPG_ERR_SYNTAX);
+        return GPG_ERR_SYNTAX;
 
       if (writer)
         {
           p = xtrymalloc (n+1);
           if (!p)
-            return gpg_error (GPG_ERR_ENOMEM);
+            return GPG_ERR_ENOMEM;
           memcpy (p, string, n);
           p[n] = 0;
           err = ksba_oid_from_str (p, &oidbuf, &oidlen);
@@ -997,7 +997,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       while (*s == ' ')
         s++;
       if (*s != '=')
-        return gpg_error (GPG_ERR_SYNTAX);
+        return GPG_ERR_SYNTAX;
 
       for (i=0; oid_name_tbl[i].name; i++)
         {
@@ -1009,13 +1009,13 @@ parse_rdn (const unsigned char *string, const char **endp,
         {
           *roff = string - orig_string;
           *rlen = n;
-          return gpg_error (GPG_ERR_UNKNOWN_NAME);
+          return GPG_ERR_UNKNOWN_NAME;
         }
       oid = oid_name_tbl[i].oid;
       oidlen = oid_name_tbl[i].oidlen;
     }
   else
-    return gpg_error (GPG_ERR_INV_NAME);
+    return GPG_ERR_INV_NAME;
 
   s++;
   while (*s == ' ')
@@ -1027,7 +1027,7 @@ parse_rdn (const unsigned char *string, const char **endp,
   /* parse attributeValue */
   if (!*s)
     {
-      err = gpg_error (GPG_ERR_SYNTAX); /* missing value */
+      err = GPG_ERR_SYNTAX; /* missing value */
       goto leave;
     }
 
@@ -1043,7 +1043,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       if (!n || (n & 1))
         {
           *rlen = n;
-          err = gpg_error (GPG_ERR_SYNTAX); /* no hex digits or odd number */
+          err = GPG_ERR_SYNTAX; /* no hex digits or odd number */
           goto leave;
         }
       while (*s == ' ')
@@ -1055,7 +1055,7 @@ parse_rdn (const unsigned char *string, const char **endp,
           valuebuf = xtrymalloc (valuelen);
           if (!valuebuf)
             {
-              err = gpg_error (GPG_ERR_ENOMEM);
+              err = GPG_ERR_ENOMEM;
               goto leave;
             }
           for (p=valuebuf, s1=string; n; p++, s1 += 2, n--)
@@ -1091,7 +1091,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       if (!s || *s != '\"')
         {
           *rlen = s - orig_string;
-          err = gpg_error (GPG_ERR_SYNTAX); /* error or quote not closed */
+          err = GPG_ERR_SYNTAX; /* error or quote not closed */
           goto leave;
         }
       s++;
@@ -1106,7 +1106,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       s = count_quoted_string (string, &n, 0, &valuetype);
       if (!s)
         {
-          err = gpg_error (GPG_ERR_SYNTAX); /* error */
+          err = GPG_ERR_SYNTAX; /* error */
           goto leave;
         }
       while (*s == ' ')
@@ -1118,20 +1118,20 @@ parse_rdn (const unsigned char *string, const char **endp,
 
   if (!valuelen)
     {
-      err = gpg_error (GPG_ERR_SYNTAX); /* empty elements are not allowed */
+      err = GPG_ERR_SYNTAX; /* empty elements are not allowed */
       goto leave;
     }
   if ( *s && *s != ',' && *s != ';' && *s != '+')
     {
       *roff = s - orig_string;
-      err = gpg_error (GPG_ERR_SYNTAX); /* invalid delimiter */
+      err = GPG_ERR_SYNTAX; /* invalid delimiter */
       goto leave;
     }
   if (*s == '+') /* fixme: implement this */
     {
       *roff = s - orig_string;
       *rlen = 1;
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
       goto leave;
     }
   *endp = *s? (s+1):s;
@@ -1217,7 +1217,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
                                 : xtrymalloc (part_array_size * sizeof *tmp);
           if (!tmp)
             {
-              err = gpg_error (GPG_ERR_ENOMEM);
+              err = GPG_ERR_ENOMEM;
               goto leave;
             }
           part_array = tmp;
@@ -1227,7 +1227,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
     }
   if (!nparts)
     {
-      err = gpg_error (GPG_ERR_SYNTAX);
+      err = GPG_ERR_SYNTAX;
       goto leave;
     }
 
@@ -1242,7 +1242,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
   buf = ksba_writer_snatch_mem (writer, &buflen);
   if (!buf)
     {
-      err = gpg_error (GPG_ERR_ENOMEM);
+      err = GPG_ERR_ENOMEM;
       goto leave;
     }
   /* Reinitialize the buffer to create the outer sequence.  */
@@ -1264,7 +1264,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
   *rbuf = ksba_writer_snatch_mem (writer, rlength);
   if (!*rbuf)
     {
-      err = gpg_error (GPG_ERR_ENOMEM);
+      err = GPG_ERR_ENOMEM;
       goto leave;
     }
 
@@ -1330,6 +1330,6 @@ ksba_dn_teststr (const char *string, int seq,
       s = endp;
     }
   if (!nparts)
-    return gpg_error (GPG_ERR_SYNTAX);
+    return GPG_ERR_SYNTAX;
   return 0;
 }

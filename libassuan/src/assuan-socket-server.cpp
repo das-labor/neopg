@@ -137,14 +137,14 @@ accept_connection (assuan_context_t ctx)
                              (struct sockaddr*)&clnt_addr, &len ));
   if (fd == ASSUAN_INVALID_FD)
     {
-      return _assuan_error (ctx, gpg_err_code_from_syserror ());
+      return gpg_error_from_syserror ();
     }
   TRACE1 (ctx, ASSUAN_LOG_SYSIO, "accept_connection", ctx, 
           "fd->0x%x", fd);
   if (_assuan_sock_check_nonce (ctx, fd, &ctx->listen_nonce))
     {
       _assuan_close (ctx, fd);
-      return _assuan_error (ctx, GPG_ERR_ASS_ACCEPT_FAILED);
+      return GPG_ERR_ASS_ACCEPT_FAILED;
     }
 
   ctx->connected_fd = fd;

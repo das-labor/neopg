@@ -106,7 +106,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
                    " while in %s mode\n"),
 		 openpgp_cipher_algo_name (dek->algo),
 		 gnupg_compliance_option_string (opt.compliance));
-      rc = gpg_error (GPG_ERR_CIPHER_ALGO);
+      rc = GPG_ERR_CIPHER_ALGO;
       goto leave;
     }
 
@@ -145,7 +145,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
     {
        /* An invalid message.  We can't check that during parsing
           because we may not know the used cipher then.  */
-      rc = gpg_error (GPG_ERR_INV_PACKET);
+      rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
 
@@ -172,7 +172,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
 
   /* log_hexdump( "thekey", dek->key, dek->keylen );*/
   rc = gcry_cipher_setkey (dfx->cipher_hd, dek->key, dek->keylen);
-  if ( gpg_err_code (rc) == GPG_ERR_WEAK_KEY )
+  if ( rc == GPG_ERR_WEAK_KEY )
     {
       log_info(_("WARNING: message was encrypted with"
                  " a weak key in the symmetric cipher.\n"));
@@ -218,7 +218,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
   if (dek->symmetric
       && (p[nprefix-2] != p[nprefix] || p[nprefix-1] != p[nprefix+1]) )
     {
-      rc = gpg_error (GPG_ERR_BAD_KEY);
+      rc = GPG_ERR_BAD_KEY;
       goto leave;
     }
 
@@ -268,7 +268,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
 
   ed->buf = NULL;
   if (dfx->eof_seen > 1 )
-    rc = gpg_error (GPG_ERR_INV_PACKET);
+    rc = GPG_ERR_INV_PACKET;
   else if ( ed->mdc_method )
     {
       /* We used to let parse-packet.c handle the MDC packet but this
@@ -296,7 +296,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
           || dfx->defer[1] != '\x14'
           || datalen != 20
           || memcmp (gcry_md_read (dfx->mdc_hash, 0), dfx->defer+2, datalen))
-        rc = gpg_error (GPG_ERR_BAD_SIGNATURE);
+        rc = GPG_ERR_BAD_SIGNATURE;
       /* log_printhex("MDC message:", dfx->defer, 22); */
       /* log_printhex("MDC calc:", gcry_md_read (dfx->mdc_hash,0), datalen); */
     }

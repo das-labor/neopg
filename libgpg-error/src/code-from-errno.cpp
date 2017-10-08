@@ -24,7 +24,7 @@
 
 #include <gpg-error.h>
 
-static gpg_err_code_t
+static gpg_error_t
 code_from_errno(int err)
 {
   switch (err) {
@@ -606,8 +606,8 @@ code_from_errno(int err)
 /* Retrieve the error code for the system error ERR.  This returns
    GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
    this).  */
-gpg_err_code_t
-gpg_err_code_from_errno (int err)
+gpg_error_t
+gpg_error_from_errno (int err)
 {
   if (!err)
     return GPG_ERR_NO_ERROR;
@@ -619,8 +619,8 @@ gpg_err_code_from_errno (int err)
 /* Retrieve the error code directly from the ERRNO variable.  This
    returns GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped
    (report this) and GPG_ERR_MISSING_ERRNO if ERRNO has the value 0. */
-gpg_err_code_t
-gpg_err_code_from_syserror (void)
+gpg_error_t
+gpg_error_from_syserror (void)
 {
   int err = errno;
 

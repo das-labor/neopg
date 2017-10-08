@@ -72,7 +72,7 @@ typedef struct {
 #endif
 } CAST5_context;
 
-static gcry_err_code_t cast_setkey (void *c, const byte *key, unsigned keylen);
+static gpg_error_t cast_setkey (void *c, const byte *key, unsigned keylen);
 static unsigned int encrypt_block (void *c, byte *outbuf, const byte *inbuf);
 static unsigned int decrypt_block (void *c, byte *outbuf, const byte *inbuf);
 
@@ -958,7 +958,7 @@ key_schedule( u32 *x, u32 *z, u32 *k )
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_cast_setkey( CAST5_context *c, const byte *key, unsigned keylen )
 {
   static int initialized;
@@ -1028,11 +1028,11 @@ do_cast_setkey( CAST5_context *c, const byte *key, unsigned keylen )
   return GPG_ERR_NO_ERROR;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 cast_setkey (void *context, const byte *key, unsigned keylen )
 {
   CAST5_context *c = (CAST5_context *) context;
-  gcry_err_code_t rc = do_cast_setkey (c, key, keylen);
+  gpg_error_t rc = do_cast_setkey (c, key, keylen);
   return rc;
 }
 

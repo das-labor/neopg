@@ -265,10 +265,10 @@ session_env_putenv (session_env_t se, const char *string)
   const char *s;
 
   if (!string || !*string)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   s = strchr (string, '=');
   if (s == string)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!s)
     return delete_var (se, string);
   else
@@ -282,7 +282,7 @@ gpg_error_t
 session_env_setenv (session_env_t se, const char *name, const char *value)
 {
   if (!name || !*name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!value)
     return delete_var (se, name);
   else

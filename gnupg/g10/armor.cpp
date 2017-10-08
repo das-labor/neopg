@@ -550,7 +550,7 @@ check_input( armor_filter_context_t *afx, IOBUF a )
 	    if( hdr_line == BEGIN_SIGNED_MSG_IDX ) {
 		if( afx->in_cleartext ) {
 		    log_error(_("nested clear text signatures\n"));
-		    rc = gpg_error (GPG_ERR_INV_ARMOR);
+		    rc = GPG_ERR_INV_ARMOR;
 		}
 		afx->in_cleartext = 1;
 	    }
@@ -784,7 +784,7 @@ invalid_crc(void)
   if ( opt.ignore_crc_error )
     return 0;
   log_inc_errorcount();
-  return gpg_error (GPG_ERR_INV_ARMOR);
+  return GPG_ERR_INV_ARMOR;
 }
 
 

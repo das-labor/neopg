@@ -182,7 +182,7 @@ parse_and_set_export_filter (const char *string)
   else if (!strncmp (string, "drop-subkey=", 12))
     err = recsel_parse_expr (&export_drop_subkey, string+12);
   else
-    err = gpg_error (GPG_ERR_INV_NAME);
+    err = GPG_ERR_INV_NAME;
 
   return err;
 }
@@ -306,7 +306,7 @@ export_pubkey_buffer (ctrl_t ctrl, const char *keyspec, unsigned int options,
   err = do_export_stream (ctrl, iobuf, helplist, 0, r_keyblock, options,
                           stats, &any);
   if (!err && !any)
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
   if (!err)
     {
       const void *src;
@@ -316,7 +316,7 @@ export_pubkey_buffer (ctrl_t ctrl, const char *keyspec, unsigned int options,
       src = iobuf_get_temp_buffer (iobuf);
       datalen = iobuf_get_temp_length (iobuf);
       if (!datalen)
-        err = gpg_error (GPG_ERR_NO_PUBKEY);
+        err = GPG_ERR_NO_PUBKEY;
       else if (!(*r_data = xtrymalloc (datalen)))
         err = gpg_error_from_syserror ();
       else
@@ -500,27 +500,27 @@ match_curve_skey_pk (gcry_sexp_t s_key, PKT_public_key *pk)
   if (!(pk->pubkey_algo==PUBKEY_ALGO_ECDH
         || pk->pubkey_algo==PUBKEY_ALGO_ECDSA
         || pk->pubkey_algo==PUBKEY_ALGO_EDDSA))
-    return gpg_error (GPG_ERR_PUBKEY_ALGO);
+    return GPG_ERR_PUBKEY_ALGO;
 
   curve = gcry_sexp_find_token (s_key, "curve", 0);
   if (!curve)
     {
       log_error ("no reported curve\n");
-      return gpg_error (GPG_ERR_UNKNOWN_CURVE);
+      return GPG_ERR_UNKNOWN_CURVE;
     }
   curve_str = gcry_sexp_nth_string (curve, 1);
   gcry_sexp_release (curve); curve = NULL;
   if (!curve_str)
     {
       log_error ("no curve name\n");
-      return gpg_error (GPG_ERR_UNKNOWN_CURVE);
+      return GPG_ERR_UNKNOWN_CURVE;
     }
   oidstr = openpgp_curve_to_oid (curve_str, NULL);
   if (!oidstr)
     {
       log_error ("no OID known for curve '%s'\n", curve_str);
       xfree (curve_str);
-      return gpg_error (GPG_ERR_UNKNOWN_CURVE);
+      return GPG_ERR_UNKNOWN_CURVE;
     }
   xfree (curve_str);
   err = openpgp_oid_from_str (oidstr, &curve_as_mpi);
@@ -530,7 +530,7 @@ match_curve_skey_pk (gcry_sexp_t s_key, PKT_public_key *pk)
     {
       log_error ("curves do not match\n");
       gcry_mpi_release (curve_as_mpi);
-      return gpg_error (GPG_ERR_INV_CURVE);
+      return GPG_ERR_INV_CURVE;
     }
   gcry_mpi_release (curve_as_mpi);
   flags = gcry_sexp_find_token (s_key, "flags", 0);
@@ -547,7 +547,7 @@ match_curve_skey_pk (gcry_sexp_t s_key, PKT_public_key *pk)
   if (is_eddsa != (pk->pubkey_algo == PUBKEY_ALGO_EDDSA))
     {
       log_error ("disagreement about EdDSA\n");
-      err = gpg_error (GPG_ERR_INV_CURVE);
+      err = GPG_ERR_INV_CURVE;
     }
 
   return err;
@@ -622,7 +622,7 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
                                      NULL);
       for (idx=0; idx < 2 && !err; idx++)
         if (gcry_mpi_cmp(pk->pkey[idx], pub_params[idx]))
-          err = gpg_error (GPG_ERR_BAD_PUBKEY);
+          err = GPG_ERR_BAD_PUBKEY;
       if (!err)
         {
           for (idx = 2; idx < 6 && !err; idx++)
@@ -655,7 +655,7 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
                                      NULL);
       for (idx=0; idx < 4 && !err; idx++)
         if (gcry_mpi_cmp(pk->pkey[idx], pub_params[idx]))
-          err = gpg_error (GPG_ERR_BAD_PUBKEY);
+          err = GPG_ERR_BAD_PUBKEY;
       if (!err)
         {
           gcry_mpi_release (pk->pkey[4]);
@@ -678,7 +678,7 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
                                      NULL);
       for (idx=0; idx < 3 && !err; idx++)
         if (gcry_mpi_cmp(pk->pkey[idx], pub_params[idx]))
-          err = gpg_error (GPG_ERR_BAD_PUBKEY);
+          err = GPG_ERR_BAD_PUBKEY;
       if (!err)
         {
           gcry_mpi_release (pk->pkey[3]);
@@ -700,7 +700,7 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
                                        &pub_params[0],
                                        NULL);
       if (!err && (gcry_mpi_cmp(pk->pkey[1], pub_params[0])))
-        err = gpg_error (GPG_ERR_BAD_PUBKEY);
+        err = GPG_ERR_BAD_PUBKEY;
 
       sec_start = 2;
       if (pk->pubkey_algo == PUBKEY_ALGO_ECDH)
@@ -721,7 +721,7 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
     default:
       pk->seckey_info = NULL;
       xfree (ski);
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
       break;
     }
 
@@ -735,11 +735,11 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
   return err;
 
  bad_pubkey_algo:
-  err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+  err = GPG_ERR_PUBKEY_ALGO;
   goto leave;
 
  bad_seckey:
-  err = gpg_error (GPG_ERR_BAD_SECKEY);
+  err = GPG_ERR_BAD_SECKEY;
   goto leave;
 }
 
@@ -888,7 +888,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
     }
   if (!pk_algo)
     {
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       goto leave;
     }
 
@@ -998,7 +998,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
   if (!is_v4 || is_protected != 2 )
     {
       /* We only support the v4 format and a SHA-1 checksum.  */
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
       goto leave;
     }
 
@@ -1014,7 +1014,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
          needed (this was used by some beta versions of 2.1.  */
       if (!curve || !skey[0] || !skey[1] || skey[2])
         {
-          err = gpg_error (GPG_ERR_INTERNAL);
+          err = GPG_ERR_INTERNAL;
           goto leave;
         }
 
@@ -1022,7 +1022,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
       if (!oidstr)
         {
           log_error ("no OID known for curve '%s'\n", curve);
-          err = gpg_error (GPG_ERR_UNKNOWN_CURVE);
+          err = GPG_ERR_UNKNOWN_CURVE;
           goto leave;
         }
       /* Put the curve's OID into the MPI array.  This requires
@@ -1067,7 +1067,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
   if (s2k_count > 255)
     {
       /* We expect an already encoded S2K count.  */
-      err = gpg_error (GPG_ERR_INV_DATA);
+      err = GPG_ERR_INV_DATA;
       goto leave;
     }
   err = openpgp_cipher_test_algo (protect_algo);
@@ -1082,7 +1082,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
   for (idx=0; idx < npkey; idx++)
     if (gcry_mpi_cmp (pk->pkey[idx], skey[idx]))
       {
-        err = gpg_error (GPG_ERR_BAD_PUBKEY);
+        err = GPG_ERR_BAD_PUBKEY;
         goto leave;
       }
 
@@ -1134,11 +1134,11 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
   return err;
 
  bad_seckey:
-  err = gpg_error (GPG_ERR_BAD_SECKEY);
+  err = GPG_ERR_BAD_SECKEY;
   goto leave;
 
  outofmem:
-  err = gpg_error (GPG_ERR_ENOMEM);
+  err = GPG_ERR_ENOMEM;
   goto leave;
 }
 
@@ -1197,7 +1197,7 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
     goto unwraperror;
   if (wrappedkeylen < 24)
     {
-      err = gpg_error (GPG_ERR_INV_LENGTH);
+      err = GPG_ERR_INV_LENGTH;
       goto unwraperror;
     }
   keylen = wrappedkeylen - 8;
@@ -1231,7 +1231,7 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
     {
       log_error ("key %s: error receiving key from agent:"
                  " %s%s\n", hexgrip, gpg_strerror (err),
-                 gpg_err_code (err) == GPG_ERR_FULLY_CANCELED?
+                 err == GPG_ERR_FULLY_CANCELED?
                  "":_(" - skipped"));
     }
   return err;
@@ -1255,7 +1255,7 @@ write_keyblock_to_output (kbnode_t keyblock, int with_armor,
 
   fname = opt.outfile? opt.outfile : "-";
   if (is_secured_filename (fname) )
-    return gpg_error (GPG_ERR_EPERM);
+    return GPG_ERR_EPERM;
 
   out = iobuf_create (fname, 0);
   if (!out)
@@ -1539,7 +1539,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
                         KEYDB_SEARCH_DESC *desc, size_t ndesc,
                         size_t descindex, gcry_cipher_hd_t cipherhd)
 {
-  gpg_error_t err = gpg_error (GPG_ERR_NOT_FOUND);
+  gpg_error_t err = GPG_ERR_NOT_FOUND;
   char *cache_nonce = NULL;
   subkey_list_t subkey_list = NULL;  /* Track already processed subkeys. */
   int skip_until_subkey = 0;
@@ -1709,7 +1709,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
                         keystr_with_sub (keyid, subkid));
               skip_until_subkey = 1;
             }
-          else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND
+          else if (err == GPG_ERR_NOT_FOUND
                    || (!err && serialno))
             {
               /* Create a key stub.  */
@@ -1751,7 +1751,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
                                                hexgrip, pk);
               if (err)
                 {
-                  if (gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+                  if (err == GPG_ERR_FULLY_CANCELED)
                     goto leave;
                   skip_until_subkey = 1;
                   err = 0;
@@ -1901,7 +1901,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
   if (secret)
     {
       log_error (_("exporting secret keys not allowed\n"));
-      err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+      err = GPG_ERR_NOT_SUPPORTED;
       goto leave;
     }
 #endif
@@ -2053,7 +2053,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
         }
 
     }
-  if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (err == GPG_ERR_NOT_FOUND)
     err = 0;
 
  leave:
@@ -2151,8 +2151,8 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
         {
           err = getkey_next (ctrl, getkeyctx, NULL, NULL);
           if (!err)
-            err = gpg_error (GPG_ERR_AMBIGUOUS_NAME);
-          else if (gpg_err_code (err) == GPG_ERR_NO_PUBKEY)
+            err = GPG_ERR_AMBIGUOUS_NAME;
+          else if (err == GPG_ERR_NO_PUBKEY)
             err = 0;
         }
       getkey_end (ctrl, getkeyctx);
@@ -2279,7 +2279,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
 
   if (!latest_key)
     {
-      err = gpg_error (GPG_ERR_UNUSABLE_PUBKEY);
+      err = GPG_ERR_UNUSABLE_PUBKEY;
       log_error (_("key \"%s\" not found: %s\n"), userid, gpg_strerror (err));
       goto leave;
     }
@@ -2312,7 +2312,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
         if (!curveoid)
           err = gpg_error_from_syserror ();
         else if (!(curve = openpgp_oid_to_curve (curveoid, 0)))
-          err = gpg_error (GPG_ERR_UNKNOWN_CURVE);
+          err = GPG_ERR_UNKNOWN_CURVE;
         else
           {
             if (!strcmp (curve, "nistp256"))
@@ -2323,7 +2323,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
               identifier = "ecdsa-sha2-nistp521";
 
             if (!identifier)
-              err = gpg_error (GPG_ERR_UNKNOWN_CURVE);
+              err = GPG_ERR_UNKNOWN_CURVE;
             else
               err = key_to_sshblob (&mb, identifier, pk->pkey[1], NULL);
           }
@@ -2333,7 +2333,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
 
     case PUBKEY_ALGO_EDDSA:
       if (!openpgp_oid_is_ed25519 (pk->pkey[0]))
-        err = gpg_error (GPG_ERR_UNKNOWN_CURVE);
+        err = GPG_ERR_UNKNOWN_CURVE;
       else
         {
           identifier = "ssh-ed25519";
@@ -2343,7 +2343,7 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
 
     case PUBKEY_ALGO_ELGAMAL_E:
     case PUBKEY_ALGO_ELGAMAL:
-      err = gpg_error (GPG_ERR_UNUSABLE_PUBKEY);
+      err = GPG_ERR_UNUSABLE_PUBKEY;
       break;
 
     default:

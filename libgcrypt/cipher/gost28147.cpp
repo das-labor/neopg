@@ -38,7 +38,7 @@
 #include "gost.h"
 #include "gost-sb.h"
 
-static gcry_err_code_t
+static gpg_error_t
 gost_setkey (void *c, const byte *key, unsigned keylen)
 {
   int i;
@@ -167,7 +167,7 @@ gost_decrypt_block (void *c, byte *outbuf, const byte *inbuf)
                           4*sizeof(void*) /* gost_val call */;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 gost_set_sbox (GOST28147_context *ctx, const char *oid)
 {
   int i;
@@ -183,11 +183,11 @@ gost_set_sbox (GOST28147_context *ctx, const char *oid)
   return GPG_ERR_VALUE_NOT_FOUND;
 }
 
-static gpg_err_code_t
+static gpg_error_t
 gost_set_extra_info (void *c, int what, const void *buffer, size_t buflen)
 {
   GOST28147_context *ctx = c;
-  gpg_err_code_t ec = 0;
+  gpg_error_t ec = 0;
 
   (void)buffer;
   (void)buflen;

@@ -556,13 +556,13 @@ do_ghash_buf(gcry_cipher_hd_t c, byte *hash, const byte *buf,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_encrypt (gcry_cipher_hd_t c,
                           byte *outbuf, size_t outbuflen,
                           const byte *inbuf, size_t inbuflen)
 {
   static const unsigned char zerobuf[MAX_BLOCKSIZE];
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   if (c->spec->blocksize != GCRY_GCM_BLOCK_LEN)
     return GPG_ERR_CIPHER_ALGO;
@@ -605,7 +605,7 @@ _gcry_cipher_gcm_encrypt (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_decrypt (gcry_cipher_hd_t c,
                           byte *outbuf, size_t outbuflen,
                           const byte *inbuf, size_t inbuflen)
@@ -646,7 +646,7 @@ _gcry_cipher_gcm_decrypt (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_authenticate (gcry_cipher_hd_t c,
                                const byte * aadbuf, size_t aadbuflen)
 {
@@ -689,7 +689,7 @@ _gcry_cipher_gcm_setkey (gcry_cipher_hd_t c)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 _gcry_cipher_gcm_initiv (gcry_cipher_hd_t c, const byte *iv, size_t ivlen)
 {
   memset (c->u_mode.gcm.aadlen, 0, sizeof(c->u_mode.gcm.aadlen));
@@ -754,7 +754,7 @@ _gcry_cipher_gcm_initiv (gcry_cipher_hd_t c, const byte *iv, size_t ivlen)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_setiv (gcry_cipher_hd_t c, const byte *iv, size_t ivlen)
 {
   c->marks.iv = 0;
@@ -824,7 +824,7 @@ is_tag_length_valid(size_t taglen)
     }
 }
 
-static gcry_err_code_t
+static gpg_error_t
 _gcry_cipher_gcm_tag (gcry_cipher_hd_t c,
                       byte * outbuf, size_t outbuflen, int check)
 {
@@ -890,7 +890,7 @@ _gcry_cipher_gcm_tag (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_get_tag (gcry_cipher_hd_t c, unsigned char *outtag,
                           size_t taglen)
 {
@@ -901,7 +901,7 @@ _gcry_cipher_gcm_get_tag (gcry_cipher_hd_t c, unsigned char *outtag,
   return _gcry_cipher_gcm_tag (c, outtag, taglen, 0);
 }
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gcm_check_tag (gcry_cipher_hd_t c, const unsigned char *intag,
                             size_t taglen)
 {

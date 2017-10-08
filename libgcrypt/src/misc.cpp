@@ -527,5 +527,5 @@ void
 _gcry_divide_by_zero (void)
 {
     gpg_err_set_errno (EDOM);
-    _gcry_fatal_error (gpg_err_code_from_errno (errno), "divide by zero");
+    _gcry_fatal_error (gpg_error_from_errno (errno), "divide by zero");
 }

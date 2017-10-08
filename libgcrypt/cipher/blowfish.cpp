@@ -67,7 +67,7 @@ typedef struct {
     u32 p[BLOWFISH_ROUNDS+2];
 } BLOWFISH_context;
 
-static gcry_err_code_t bf_setkey (void *c, const byte *key, unsigned keylen);
+static gpg_error_t bf_setkey (void *c, const byte *key, unsigned keylen);
 static unsigned int encrypt_block (void *bc, byte *outbuf, const byte *inbuf);
 static unsigned int decrypt_block (void *bc, byte *outbuf, const byte *inbuf);
 
@@ -979,7 +979,7 @@ add_val(struct hashset_elem hset[256], u32 val, int *midx,
   return 0;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 do_bf_setkey (BLOWFISH_context *c, const byte *key, unsigned keylen)
 {
   struct hashset_elem mempool[4 * 255]; /* Enough entries for the worst case. */
@@ -1094,11 +1094,11 @@ do_bf_setkey (BLOWFISH_context *c, const byte *key, unsigned keylen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 bf_setkey (void *context, const byte *key, unsigned keylen)
 {
   BLOWFISH_context *c = (BLOWFISH_context *) context;
-  gcry_err_code_t rc = do_bf_setkey (c, key, keylen);
+  gpg_error_t rc = do_bf_setkey (c, key, keylen);
   return rc;
 }
 

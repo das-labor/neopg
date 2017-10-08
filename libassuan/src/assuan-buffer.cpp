@@ -119,7 +119,7 @@ _assuan_read_line (assuan_context_t ctx)
   char *endp = 0;
 
   if (ctx->inbound.eof)
-    return _assuan_error (ctx, GPG_ERR_EOF);
+    return GPG_ERR_EOF;
 
   atticlen = ctx->inbound.attic.linelen;
   if (atticlen)
@@ -165,13 +165,13 @@ _assuan_read_line (assuan_context_t ctx)
         }
 
       gpg_err_set_errno (saved_errno);
-      return _assuan_error (ctx, gpg_err_code_from_syserror ());
+      return gpg_error_from_syserror ();
     }
   if (!nread)
     {
       assert (ctx->inbound.eof);
       _assuan_log_control_channel (ctx, 0, "eof", NULL, 0, NULL, 0);
-      return _assuan_error (ctx, GPG_ERR_EOF);
+      return GPG_ERR_EOF;
     }
 
   ctx->inbound.attic.pending = 0;
@@ -222,9 +222,9 @@ _assuan_read_line (assuan_context_t ctx)
                                    NULL, 0, NULL, 0);
       *line = 0;
       ctx->inbound.linelen = 0;
-      return _assuan_error (ctx, ctx->inbound.eof
+      return ctx->inbound.eof
 			    ? GPG_ERR_ASS_INCOMPLETE_LINE
-			    : GPG_ERR_ASS_LINE_TOO_LONG);
+			    : GPG_ERR_ASS_LINE_TOO_LONG;
     }
 }
 
@@ -244,7 +244,7 @@ assuan_read_line (assuan_context_t ctx, char **line, size_t *linelen)
   gpg_error_t err;
 
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   do
     {
@@ -302,18 +302,18 @@ _assuan_write_line (assuan_context_t ctx, const char *prefix,
     {
       rc = writen (ctx, prefix, prefixlen);
       if (rc)
-	rc = _assuan_error (ctx, gpg_err_code_from_syserror ());
+	rc = gpg_error_from_syserror ();
     }
   if (!rc && !(monitor_result & ASSUAN_IO_MONITOR_IGNORE))
     {
       rc = writen (ctx, line, len);
       if (rc)
-	rc = _assuan_error (ctx, gpg_err_code_from_syserror ());
+	rc = gpg_error_from_syserror ();
       if (!rc)
         {
           rc = writen (ctx, "\n", 1);
           if (rc)
-	    rc = _assuan_error (ctx, gpg_err_code_from_syserror ());
+	    rc = gpg_error_from_syserror ();
         }
     }
   return rc;
@@ -327,7 +327,7 @@ assuan_write_line (assuan_context_t ctx, const char *line)
   const char *str;
 
   if (! ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   /* Make sure that we never take a LF from the user - this might
      violate the protocol. */
@@ -408,7 +408,7 @@ _assuan_cookie_write_data (void *cookie, const char *buffer, size_t orig_size)
           if ( !(monitor_result & ASSUAN_IO_MONITOR_IGNORE)
                && writen (ctx, ctx->outbound.data.line, linelen))
             {
-              ctx->outbound.data.error = gpg_err_code_from_syserror ();
+              ctx->outbound.data.error = gpg_error_from_syserror ();
               return 0;
             }
           line = ctx->outbound.data.line;
@@ -454,7 +454,7 @@ _assuan_cookie_write_flush (void *cookie)
       if (! (monitor_result & ASSUAN_IO_MONITOR_IGNORE)
            && writen (ctx, ctx->outbound.data.line, linelen))
         {
-          ctx->outbound.data.error = gpg_err_code_from_syserror ();
+          ctx->outbound.data.error = gpg_error_from_syserror ();
           return 0;
         }
       ctx->outbound.data.linelen = 0;
@@ -488,9 +488,9 @@ gpg_error_t
 assuan_send_data (assuan_context_t ctx, const void *buffer, size_t length)
 {
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
   if (!buffer && length > 1)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (!buffer)
     { /* flush what we have */
@@ -519,11 +519,11 @@ assuan_sendfd (assuan_context_t ctx, assuan_fd_t fd)
 #ifdef USE_DESCRIPTOR_PASSING
     return 0;
 #else
-  return _assuan_error (ctx, GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (! ctx->engine.sendfd)
     return set_error (ctx, GPG_ERR_NOT_IMPLEMENTED,
@@ -536,7 +536,7 @@ gpg_error_t
 assuan_receivefd (assuan_context_t ctx, assuan_fd_t *fd)
 {
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (! ctx->engine.receivefd)
     return set_error (ctx, GPG_ERR_NOT_IMPLEMENTED,

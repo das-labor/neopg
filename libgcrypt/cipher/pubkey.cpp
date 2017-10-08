@@ -118,7 +118,7 @@ spec_from_name (const char *name)
  * "private-key" or "public-key" is stored there and the caller must
  * call gcry_sexp_release on it.
  */
-static gcry_err_code_t
+static gpg_error_t
 spec_from_sexp (gcry_sexp_t sexp, int want_private,
                 gcry_pk_spec_t **r_spec, gcry_sexp_t *r_parms)
 {
@@ -216,10 +216,10 @@ _gcry_pk_algo_name (int algo)
 /****************
  * A USE of 0 means: don't care.
  */
-static gcry_err_code_t
+static gpg_error_t
 check_pubkey_algo (int algo, unsigned use)
 {
-  gcry_err_code_t err = 0;
+  gpg_error_t err = 0;
   gcry_pk_spec_t *spec;
 
   spec = spec_from_algo (algo);
@@ -308,10 +308,10 @@ pubkey_get_nenc (int algo)
                ))
 
 */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t s_pkey)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
@@ -360,10 +360,10 @@ _gcry_pk_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t s_pkey)
             With pkcs1 or oaep decoding enabled the returned value is a
             verbatim octet string.
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t s_skey)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
@@ -413,10 +413,10 @@ _gcry_pk_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t s_skey)
 
   Note that (hash algo) in R_SIG is not used.
 */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_hash, gcry_sexp_t s_skey)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
@@ -444,10 +444,10 @@ _gcry_pk_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_hash, gcry_sexp_t s_skey)
    hashvalue data.  Public key has to be a standard public key given
    as an S-Exp, sig is a S-Exp as returned from gcry_pk_sign and data
    must be an S-Exp like the one in sign too.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_verify (gcry_sexp_t s_sig, gcry_sexp_t s_hash, gcry_sexp_t s_pkey)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
@@ -475,10 +475,10 @@ _gcry_pk_verify (gcry_sexp_t s_sig, gcry_sexp_t s_hash, gcry_sexp_t s_pkey)
    Returns: 0 or an errorcode.
 
    NOTE: We currently support only secret key checking. */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_testkey (gcry_sexp_t s_key)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
@@ -530,14 +530,14 @@ _gcry_pk_testkey (gcry_sexp_t s_key)
       (pm1-factors n1 n2 ... nn)
    ))
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms)
 {
   gcry_pk_spec_t *spec = NULL;
   gcry_sexp_t list = NULL;
   gcry_sexp_t l2 = NULL;
   char *name = NULL;
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   *r_key = NULL;
 
@@ -772,10 +772,10 @@ _gcry_pk_get_param (int algo, const char *name)
 
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_ctl (int cmd, void *buffer, size_t buflen)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (cmd)
     {
@@ -817,10 +817,10 @@ _gcry_pk_ctl (int cmd, void *buffer, size_t buflen)
    the return value.  The caller will in all cases consult the value
    and thereby detecting whether a error occurred or not (i.e. while
    checking the block size) */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_algo_info (int algorithm, int what, void *buffer, size_t *nbytes)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (what)
     {
@@ -893,7 +893,7 @@ _gcry_pk_algo_info (int algorithm, int what, void *buffer, size_t *nbytes)
    of the function is gcry_pubkey_xxx and not gcry_pk_xxx.  The idea
    is that we will eventually provide variants of the existing
    gcry_pk_xxx functions which will take a context parameter.   */
-gcry_err_code_t
+gpg_error_t
 _gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp, int mode, gcry_ctx_t ctx)
 {
   mpi_ec_t ec;
@@ -923,7 +923,7 @@ _gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp, int mode, gcry_ctx_t ctx)
 
 
 /* Explicitly initialize this module.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_pk_init (void)
 {
   if (fips_mode())
@@ -946,7 +946,7 @@ _gcry_pk_init (void)
 gpg_error_t
 _gcry_pk_selftest (int algo, int extended, selftest_report_func_t report)
 {
-  gcry_err_code_t ec;
+  gpg_error_t ec;
   gcry_pk_spec_t *spec;
 
   algo = map_algo (algo);
@@ -966,5 +966,5 @@ _gcry_pk_selftest (int algo, int extended, selftest_report_func_t report)
                 "algorithm not found");
     }
 
-  return gpg_error (ec);
+  return ec;
 }

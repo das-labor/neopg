@@ -760,7 +760,7 @@ show_prompt (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int numdesc,
     }
 
   if (answer[0]=='q' || answer[0]=='Q')
-    err = gpg_error (GPG_ERR_CANCELED);
+    err = GPG_ERR_CANCELED;
   else if (atoi (answer) >= 1 && atoi (answer) <= numdesc)
     {
       char *split = answer;
@@ -859,7 +859,7 @@ search_line_handler (void *opaque, int special, char *line)
             {
               log_error (_("invalid keyserver protocol "
                            "(us %d!=handler %d)\n"), 1, version);
-              return gpg_error (GPG_ERR_UNSUPPORTED_PROTOCOL);
+              return GPG_ERR_UNSUPPORTED_PROTOCOL;
             }
         }
 
@@ -1046,7 +1046,7 @@ keyserver_retrieval_screener (kbnode_t keyblock, void *opaque)
      limited checks.  */
   node = find_kbnode (keyblock, PKT_SECRET_KEY);
   if (node)
-    return gpg_error (GPG_ERR_GENERAL);   /* Do not import. */
+    return GPG_ERR_GENERAL;   /* Do not import. */
 
   if (!ndesc)
     return 0; /* Okay if no description given.  */
@@ -1090,7 +1090,7 @@ keyserver_retrieval_screener (kbnode_t keyblock, void *opaque)
         }
     }
 
-  return gpg_error (GPG_ERR_GENERAL);
+  return GPG_ERR_GENERAL;
 }
 
 
@@ -1353,7 +1353,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
 	}
     }
 
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_NOT_FOUND)
     rc = 0;
 
  leave:
@@ -1537,7 +1537,7 @@ keyserver_search (ctrl_t ctrl, strlist_t tokens)
         log_info (_("key not found on keyserver\n"));
     }
 
-  if (gpg_err_code (err) == GPG_ERR_NO_KEYSERVER)
+  if (err == GPG_ERR_NO_KEYSERVER)
     log_error (_("no keyserver known (use option --keyserver)\n"));
   else if (err)
     log_error ("error searching keyserver: %s\n", gpg_strerror (err));
@@ -1564,7 +1564,7 @@ keyserver_search (ctrl_t ctrl, strlist_t tokens)
   /*     break; */
   /*   } */
 
-  /* return gpg_error (GPG_ERR_KEYSERVER); */
+  /* return GPG_ERR_KEYSERVER; */
 
 
  leave:
@@ -1810,7 +1810,7 @@ keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
   if (gpg_dirmngr_ks_list (ctrl, &ksurl))
     {
       log_error (_("no keyserver known\n"));
-      return gpg_error (GPG_ERR_NO_KEYSERVER);
+      return GPG_ERR_NO_KEYSERVER;
     }
 
   for (kspec = keyspecs; kspec; kspec = kspec->next)
@@ -2028,8 +2028,8 @@ keyserver_import_wkd (ctrl_t ctrl, const char *name, int quick,
   if (!mbox)
     {
       err = gpg_error_from_syserror ();
-      if (gpg_err_code (err) == GPG_ERR_EINVAL)
-        err = gpg_error (GPG_ERR_INV_USER_ID);
+      if (err == GPG_ERR_EINVAL)
+        err = GPG_ERR_INV_USER_ID;
       return err;
     }
 
@@ -2081,7 +2081,7 @@ keyserver_import_ldap (ctrl_t ctrl,
   (void)name;
   (void)fpr;
   (void)fprlen;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED); /*FIXME*/
+  return GPG_ERR_NOT_IMPLEMENTED; /*FIXME*/
 #if 0
   char *domain;
   struct keyserver_spec *keyserver;
@@ -2141,7 +2141,7 @@ keyserver_import_ldap (ctrl_t ctrl,
 
   append_to_strlist(&list,name);
 
-  rc = gpg_error (GPG_ERR_NOT_IMPLEMENTED); /*FIXME*/
+  rc = GPG_ERR_NOT_IMPLEMENTED; /*FIXME*/
        /* keyserver_work (ctrl, KS_GETNAME, list, NULL, */
        /*                 0, fpr, fpr_len, keyserver); */
 

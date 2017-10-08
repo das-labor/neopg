@@ -674,7 +674,7 @@ check_signatures_trust (ctrl_t ctrl, PKT_signature *sig)
       log_info(_("         The signature is probably a FORGERY.\n"));
       if (opt.with_fingerprint)
         print_fingerprint (ctrl, NULL, pk, 1);
-      rc = gpg_error (GPG_ERR_BAD_SIGNATURE);
+      rc = GPG_ERR_BAD_SIGNATURE;
       break;
 
     case TRUST_MARGINAL:
@@ -828,7 +828,7 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
   PKT_public_key *pk;
 
   if (!name || !*name)
-    return gpg_error (GPG_ERR_INV_USER_ID);
+    return GPG_ERR_INV_USER_ID;
 
   pk = xtrycalloc (1, sizeof *pk);
   if (!pk)
@@ -845,7 +845,7 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
 
       /* Key not found or other error. */
       log_error (_("%s: skipped: %s\n"), name, gpg_strerror (rc) );
-      switch (gpg_err_code (rc))
+      switch (rc)
         {
         case GPG_ERR_NO_SECKEY:
         case GPG_ERR_NO_PUBKEY:   code =  1; break;

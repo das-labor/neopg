@@ -269,7 +269,7 @@ open_outfile (int inp_fd, const char *iname, int mode, int restrictedperm,
           if ( !tmp || !*tmp )
             {
               xfree (tmp);
-              rc = gpg_error (GPG_ERR_EEXIST);
+              rc = GPG_ERR_EEXIST;
               break;
             }
           xfree (buf);

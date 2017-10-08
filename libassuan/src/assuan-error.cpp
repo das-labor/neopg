@@ -35,7 +35,7 @@
 int
 _assuan_error_is_eagain (assuan_context_t ctx, gpg_error_t err)
 {
-  if (gpg_err_code (err) == GPG_ERR_EAGAIN)
+  if (err == GPG_ERR_EAGAIN)
     {
       /* Avoid spinning by sleeping for one tenth of a second.  */
       _assuan_usleep (ctx, 100000);

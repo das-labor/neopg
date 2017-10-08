@@ -2871,7 +2871,7 @@ ksba_asn_parse_file (const char *file_name, ksba_asn_tree_t *result, int debug)
 
   parsectl.lineno = 0;
   parsectl.debug = debug;
-  parsectl.result_parse = gpg_error (GPG_ERR_SYNTAX);
+  parsectl.result_parse = GPG_ERR_SYNTAX;
   parsectl.parse_tree = NULL;
   parsectl.all_nodes = NULL;
   /* yydebug = 1; */

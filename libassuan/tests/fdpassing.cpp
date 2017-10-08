@@ -49,12 +49,12 @@ cmd_echo (assuan_context_t ctx, char *line)
 
   fd = assuan_get_input_fd (ctx);
   if (fd == -1)
-    return gpg_error (GPG_ERR_ASS_NO_INPUT);
+    return GPG_ERR_ASS_NO_INPUT;
   fp = fdopen (fd, "r");
   if (!fp)
     {
       log_error ("fdopen failed on input fd: %s\n", strerror (errno));
-      return gpg_error (GPG_ERR_ASS_GENERAL);
+      return GPG_ERR_ASS_GENERAL;
     }
   nbytes = 0;
   while ( (c=getc (fp)) != -1)

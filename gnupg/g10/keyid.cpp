@@ -936,7 +936,7 @@ keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
       break;
 
     default:
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       break;
     }
 
@@ -947,7 +947,7 @@ keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
     {
       log_info ("error computing keygrip\n");
       memset (array, 0, 20);
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
     }
   else
     {

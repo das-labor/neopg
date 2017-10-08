@@ -114,7 +114,7 @@ hash_and_copy_data (int fd, gcry_md_hd_t md, ksba_writer_t writer)
          already written the tag for data and now expects an octet
          string and an octet string of size 0 is illegal.  */
       log_error ("cannot sign an empty message\n");
-      rc = gpg_error (GPG_ERR_NO_DATA);
+      rc = GPG_ERR_NO_DATA;
     }
   if (!rc)
     {
@@ -143,7 +143,7 @@ gpgsm_get_default_cert (ctrl_t ctrl, ksba_cert_t *r_cert)
 
   hd = sm_keydb_new ();
   if (!hd)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   rc = sm_keydb_search_first (ctrl, hd);
   if (rc)
     {
@@ -335,7 +335,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -387,7 +387,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
           log_error ("no default signer found\n");
           gpgsm_status2 (ctrl, STATUS_INV_SGNR,
                          get_inv_recpsgnr_code (GPG_ERR_NO_SECKEY), NULL);
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           goto leave;
         }
 
@@ -468,7 +468,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                        " while in %s mode\n"),
                      gcry_md_algo_name (cl->hash_algo),
                      gnupg_compliance_option_string (opt.compliance));
-          err = gpg_error (GPG_ERR_DIGEST_ALGO);
+          err = GPG_ERR_DIGEST_ALGO;
           goto leave;
         }
 
@@ -483,7 +483,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                        "signing while in %s mode\n",
                        gpgsm_get_short_fingerprint (cl->cert, NULL),
                        gnupg_compliance_option_string (opt.compliance));
-            err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+            err = GPG_ERR_PUBKEY_ALGO;
             goto leave;
           }
       }
@@ -578,7 +578,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       if (!algo)
         {
           log_error ("unknown hash algorithm '%s'\n", algoid? algoid:"?");
-          rc = gpg_error (GPG_ERR_BUG);
+          rc = GPG_ERR_BUG;
           goto leave;
         }
       gcry_md_enable (data_md, algo);
@@ -603,7 +603,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
           if ( !digest || !digest_len )
             {
               log_error ("problem getting the hash of the data\n");
-              rc = gpg_error (GPG_ERR_BUG);
+              rc = GPG_ERR_BUG;
               goto leave;
             }
           err = ksba_cms_set_message_digest (cms, signer, digest, digest_len);
@@ -678,7 +678,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
               if ( !digest || !digest_len )
                 {
                   log_error ("problem getting the hash of the data\n");
-                  rc = gpg_error (GPG_ERR_BUG);
+                  rc = GPG_ERR_BUG;
                   goto leave;
                 }
               err = ksba_cms_set_message_digest (cms, signer,
@@ -759,7 +759,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
               fpr = gpgsm_get_fingerprint_hexstring (cl->cert, GCRY_MD_SHA1);
               if (!fpr)
                 {
-                  rc = gpg_error (GPG_ERR_ENOMEM);
+                  rc = GPG_ERR_ENOMEM;
                   gcry_md_close (md);
                   goto leave;
                 }

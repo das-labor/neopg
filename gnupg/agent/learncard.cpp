@@ -155,7 +155,7 @@ kpinfo_cb (void *opaque, const char *line)
     }
   else if ((p - item->hexgrip) != 40 || !spacep (p))
     { /* not a 20 byte hex keygrip or not followed by a space */
-      parm->error = gpg_error (GPG_ERR_INV_RESPONSE);
+      parm->error = GPG_ERR_INV_RESPONSE;
       xfree (item);
       return;
     }
@@ -167,7 +167,7 @@ kpinfo_cb (void *opaque, const char *line)
     p++;
   if (p == item->id)
     { /* invalid ID string */
-      parm->error = gpg_error (GPG_ERR_INV_RESPONSE);
+      parm->error = GPG_ERR_INV_RESPONSE;
       xfree (item);
       return;
     }
@@ -203,7 +203,7 @@ certinfo_cb (void *opaque, const char *line)
     ;
   if (p == pend || !*p)
     {
-      parm->error = gpg_error (GPG_ERR_INV_RESPONSE);
+      parm->error = GPG_ERR_INV_RESPONSE;
       return;
     }
   *pend = 0; /* ignore trailing stuff */
@@ -264,7 +264,7 @@ send_cert_back (ctrl_t ctrl, const char *id, void *assuan_context)
     {
       const char *action;
 
-      switch (gpg_err_code (rc))
+      switch (rc)
         {
         case GPG_ERR_INV_ID:
         case GPG_ERR_NOT_FOUND:

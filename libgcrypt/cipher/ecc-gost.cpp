@@ -37,11 +37,11 @@
  * Return the signature struct (r,s) from the message hash.  The caller
  * must have allocated R and S.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_gost_sign (gcry_mpi_t input, ECC_secret_key *skey,
                      gcry_mpi_t r, gcry_mpi_t s)
 {
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_mpi_t k, dr, sum, ke, x, e;
   mpi_point_struct I;
   gcry_mpi_t hash;
@@ -137,11 +137,11 @@ _gcry_ecc_gost_sign (gcry_mpi_t input, ECC_secret_key *skey,
 /* Verify a GOST R 34.10-01/-12 signature.
  * Check if R and S verifies INPUT.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_ecc_gost_verify (gcry_mpi_t input, ECC_public_key *pkey,
                        gcry_mpi_t r, gcry_mpi_t s)
 {
-  gpg_err_code_t err = 0;
+  gpg_error_t err = 0;
   gcry_mpi_t e, x, z1, z2, v, rv, zero;
   mpi_point_struct Q, Q1, Q2;
   mpi_ec_t ctx;

@@ -96,20 +96,20 @@ enum gcry_cipher_internal_modes
 
 
 /*-- cipher.c --*/
-gcry_err_code_t _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
+gpg_error_t _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
 					    int algo, int mode,
 					    unsigned int flags);
 
 /*-- cipher-cmac.c --*/
-gcry_err_code_t _gcry_cipher_cmac_authenticate
+gpg_error_t _gcry_cipher_cmac_authenticate
 /*           */ (gcry_cipher_hd_t c, const unsigned char *abuf, size_t abuflen);
-gcry_err_code_t _gcry_cipher_cmac_get_tag
+gpg_error_t _gcry_cipher_cmac_get_tag
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outtag, size_t taglen);
-gcry_err_code_t _gcry_cipher_cmac_check_tag
+gpg_error_t _gcry_cipher_cmac_check_tag
 /*           */ (gcry_cipher_hd_t c,
                  const unsigned char *intag, size_t taglen);
-gcry_err_code_t _gcry_cipher_cmac_set_subkeys
+gpg_error_t _gcry_cipher_cmac_set_subkeys
 /*           */ (gcry_cipher_hd_t c);
 
 /*-- rmd160.c --*/
@@ -134,7 +134,7 @@ void _gcry_sha512_hash_buffers (void *outbuf,
                                 const gcry_buffer_t *iov, int iovcnt);
 
 /*-- blake2.c --*/
-gcry_err_code_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
+gpg_error_t _gcry_blake2_init_with_key(void *ctx, unsigned int flags,
 					   const unsigned char *key,
 					   size_t keylen, int algo);
 

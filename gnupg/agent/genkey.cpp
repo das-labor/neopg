@@ -43,7 +43,7 @@ store_key (gcry_sexp_t privater, const char *passphrase, int force,
   if ( !gcry_pk_get_keygrip (privater, grip) )
     {
       log_error ("can't calculate keygrip\n");
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, NULL, 0);
@@ -157,7 +157,7 @@ take_this_one_anyway2 (ctrl_t ctrl, const char *desc, const char *anyway_btn)
     {
       err = agent_show_message (ctrl, desc, L_("Enter new passphrase"));
       if (!err)
-        err = gpg_error (GPG_ERR_CANCELED);
+        err = GPG_ERR_CANCELED;
     }
   else
     err = agent_get_confirmation (ctrl, desc,
@@ -225,7 +225,7 @@ check_passphrase_constraints (ctrl_t ctrl, const char *pw,
     {
       if (!failed_constraint)
         {
-          err = gpg_error (GPG_ERR_INV_PASSPHRASE);
+          err = GPG_ERR_INV_PASSPHRASE;
           goto leave;
         }
 
@@ -244,7 +244,7 @@ check_passphrase_constraints (ctrl_t ctrl, const char *pw,
     {
       if (!failed_constraint)
         {
-          err = gpg_error (GPG_ERR_INV_PASSPHRASE);
+          err = GPG_ERR_INV_PASSPHRASE;
           goto leave;
         }
 
@@ -270,7 +270,7 @@ check_passphrase_constraints (ctrl_t ctrl, const char *pw,
     {
       if (!failed_constraint)
         {
-          err = gpg_error (GPG_ERR_INV_PASSPHRASE);
+          err = GPG_ERR_INV_PASSPHRASE;
           goto leave;
         }
 
@@ -333,7 +333,7 @@ reenter_compare_cb (struct pin_entry_info_s *pi)
 
   if (!strcmp (pin1, pi->pin))
     return 0; /* okay */
-  return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+  return GPG_ERR_BAD_PASSPHRASE;
 }
 
 
@@ -410,7 +410,7 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
       if (*pi->pin && !pi->repeat_okay)
         {
           err = agent_askpin (ctrl, text2, NULL, NULL, pi2, NULL, 0);
-          if (gpg_err_code (err) == GPG_ERR_BAD_PASSPHRASE)
+          if (err == GPG_ERR_BAD_PASSPHRASE)
             { /* The re-entered one did not match and the user did not
                  hit cancel. */
               initial_errtext = xtrystrdup (L_("does not match - try again"));
@@ -458,7 +458,7 @@ agent_genkey (ctrl_t ctrl, const char *cache_nonce,
   if (rc)
     {
       log_error ("failed to convert keyparam: %s\n", gpg_strerror (rc));
-      return gpg_error (GPG_ERR_INV_DATA);
+      return GPG_ERR_INV_DATA;
     }
 
   /* Get the passphrase now, cause key generation may take a while. */
@@ -501,7 +501,7 @@ agent_genkey (ctrl_t ctrl, const char *cache_nonce,
       log_error ("key generation failed: invalid return value\n");
       gcry_sexp_release (s_key);
       xfree (passphrase_buffer);
-      return gpg_error (GPG_ERR_INV_DATA);
+      return GPG_ERR_INV_DATA;
     }
   s_public = gcry_sexp_find_token (s_key, "public-key", 0);
   if (!s_public)
@@ -510,7 +510,7 @@ agent_genkey (ctrl_t ctrl, const char *cache_nonce,
       gcry_sexp_release (s_private);
       gcry_sexp_release (s_key);
       xfree (passphrase_buffer);
-      return gpg_error (GPG_ERR_INV_DATA);
+      return GPG_ERR_INV_DATA;
     }
   gcry_sexp_release (s_key); s_key = NULL;
 

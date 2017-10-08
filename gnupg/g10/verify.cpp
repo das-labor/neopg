@@ -112,7 +112,7 @@ verify_signatures (ctrl_t ctrl, int nfiles, char **files )
     free_strlist(sl);
     iobuf_close(fp);
     if( (afx && afx->no_openpgp_data && rc == -1)
-        || gpg_err_code (rc) == GPG_ERR_NO_DATA ) {
+        || rc == GPG_ERR_NO_DATA ) {
 	log_error(_("the signature could not be verified.\n"
 		   "Please remember that the signature file (.sig or .asc)\n"
 		   "should be the first file given on the command line.\n") );
@@ -264,8 +264,8 @@ gpg_verify (ctrl_t ctrl, int sig_fd, int data_fd, estream_t out_fp)
   rc = proc_signature_packets_by_fd (ctrl, NULL, fp, data_fd);
 
   if ( afx && afx->no_openpgp_data
-       && (rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF) )
-    rc = gpg_error (GPG_ERR_NO_DATA);
+       && (rc == -1 || rc == GPG_ERR_EOF) )
+    rc = GPG_ERR_NO_DATA;
 
  leave:
   iobuf_close (fp);

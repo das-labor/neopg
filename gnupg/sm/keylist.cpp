@@ -253,14 +253,14 @@ print_capabilities (ksba_cert_t cert, estream_t fp)
       if (*buffer)
         es_putc ('q', fp);
     }
-  else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  else if (err == GPG_ERR_NOT_FOUND)
     ; /* Don't know - will not get marked as 'q' */
   else
     log_debug ("get_user_data(is_qualified) failed: %s\n",
                gpg_strerror (err));
 
   err = ksba_cert_get_key_usage (cert, &use);
-  if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+  if (err == GPG_ERR_NO_DATA)
     {
       es_putc ('e', fp);
       es_putc ('s', fp);
@@ -413,9 +413,9 @@ list_cert_colon (ctrl_t ctrl, ksba_cert_t cert, unsigned int validity,
   truststring[0] = 0;
   truststring[1] = 0;
   if ((validity & VALIDITY_REVOKED)
-      || gpg_err_code (valerr) == GPG_ERR_CERT_REVOKED)
+      || valerr == GPG_ERR_CERT_REVOKED)
     *truststring = 'r';
-  else if (gpg_err_code (valerr) == GPG_ERR_CERT_EXPIRED)
+  else if (valerr == GPG_ERR_CERT_EXPIRED)
     *truststring = 'e';
   else
     {
@@ -454,7 +454,7 @@ list_cert_colon (ctrl_t ctrl, ksba_cert_t cert, unsigned int validity,
           rc = gpgsm_agent_istrusted (ctrl, cert, NULL, &dummy_flags);
           if (!rc)
             *truststring = 'u';  /* Yes, we trust this one (ultimately). */
-          else if (gpg_err_code (rc) == GPG_ERR_NOT_TRUSTED)
+          else if (rc == GPG_ERR_NOT_TRUSTED)
             *truststring = 'n';  /* No, we do not trust this one. */
           /* (in case of an error we can't tell anything.) */
         }
@@ -638,7 +638,7 @@ print_utf8_extn_raw (estream_t fp, int indent,
   err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_UTF8_STRING))
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   if (err)
     {
       es_fprintf (fp, "%*s[%s]\n", indent, "", gpg_strerror (err));
@@ -663,7 +663,7 @@ print_utf8_extn (estream_t fp, int indent,
   err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_UTF8_STRING))
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   if (err)
     {
       es_fprintf (fp, "%*s[%s%s]\n",
@@ -777,9 +777,9 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
   /* subjectKeyIdentifier */
   es_fputs ("    subjKeyId: ", fp);
   err = ksba_cert_get_subj_key_id (cert, NULL, &keyid);
-  if (!err || gpg_err_code (err) == GPG_ERR_NO_DATA)
+  if (!err || err == GPG_ERR_NO_DATA)
     {
-      if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+      if (err == GPG_ERR_NO_DATA)
         es_fputs ("[none]\n", fp);
       else
         {
@@ -795,9 +795,9 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
   /* authorityKeyIdentifier */
   es_fputs ("    authKeyId: ", fp);
   err = ksba_cert_get_auth_key_id (cert, &keyid, &name, &sexp);
-  if (!err || gpg_err_code (err) == GPG_ERR_NO_DATA)
+  if (!err || err == GPG_ERR_NO_DATA)
     {
-      if (gpg_err_code (err) == GPG_ERR_NO_DATA || !name)
+      if (err == GPG_ERR_NO_DATA || !name)
         es_fputs ("[none]\n", fp);
       else
         {
@@ -820,7 +820,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
 
   es_fputs ("     keyUsage:", fp);
   err = ksba_cert_get_key_usage (cert, &kusage);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       if (err)
         es_fprintf (fp, " [error: %s]", gpg_strerror (err));
@@ -852,7 +852,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
 
   es_fputs ("  extKeyUsage: ", fp);
   err = ksba_cert_get_ext_key_usages (cert, &string);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       if (err)
         es_fprintf (fp, "[error: %s]", gpg_strerror (err));
@@ -885,7 +885,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
 
   es_fputs ("     policies: ", fp);
   err = ksba_cert_get_cert_policies (cert, &string);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       if (err)
         es_fprintf (fp, "[error: %s]", gpg_strerror (err));
@@ -919,7 +919,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
   err = ksba_cert_is_ca (cert, &is_ca, &chainlen);
   if (err || is_ca)
     {
-      if (gpg_err_code (err) == GPG_ERR_NO_VALUE )
+      if (err == GPG_ERR_NO_VALUE )
         es_fprintf (fp, "[none]");
       else if (err)
         es_fprintf (fp, "[error: %s]", gpg_strerror (err));
@@ -963,8 +963,8 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
       ksba_name_release (name);
       ksba_name_release (name2);
     }
-  if (err && gpg_err_code (err) != GPG_ERR_EOF
-      && gpg_err_code (err) != GPG_ERR_NO_VALUE)
+  if (err && err != GPG_ERR_EOF
+      && err != GPG_ERR_NO_VALUE)
     es_fputs ("        crlDP: [error]\n", fp);
   else if (!idx)
     es_fputs ("        crlDP: [none]\n", fp);
@@ -981,8 +981,8 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
       ksba_name_release (name);
       ksba_free (string);
     }
-  if (err && gpg_err_code (err) != GPG_ERR_EOF
-      && gpg_err_code (err) != GPG_ERR_NO_VALUE)
+  if (err && err != GPG_ERR_EOF
+      && err != GPG_ERR_NO_VALUE)
     es_fputs ("     authInfo: [error]\n", fp);
   else if (!idx)
     es_fputs ("     authInfo: [none]\n", fp);
@@ -998,8 +998,8 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
       ksba_name_release (name);
       ksba_free (string);
     }
-  if (err && gpg_err_code (err) != GPG_ERR_EOF
-      && gpg_err_code (err) != GPG_ERR_NO_VALUE)
+  if (err && err != GPG_ERR_EOF
+      && err != GPG_ERR_NO_VALUE)
     es_fputs ("     subjInfo: [error]\n", fp);
   else if (!idx)
     es_fputs ("     subjInfo: [none]\n", fp);
@@ -1125,7 +1125,7 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
 
 
   err = ksba_cert_get_key_usage (cert, &kusage);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       es_fputs ("    key usage:", fp);
       if (err)
@@ -1155,7 +1155,7 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
     }
 
   err = ksba_cert_get_ext_key_usages (cert, &string);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       es_fputs ("ext key usage: ", fp);
       if (err)
@@ -1200,7 +1200,7 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
 
   /* Print policies.  */
   err = ksba_cert_get_cert_policies (cert, &string);
-  if (gpg_err_code (err) != GPG_ERR_NO_DATA)
+  if (err != GPG_ERR_NO_DATA)
     {
       es_fputs ("     policies: ", fp);
       if (err)
@@ -1222,7 +1222,7 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
   if (err || is_ca)
     {
       es_fputs (" chain length: ", fp);
-      if (gpg_err_code (err) == GPG_ERR_NO_VALUE )
+      if (err == GPG_ERR_NO_VALUE )
         es_fprintf (fp, "none");
       else if (err)
         es_fprintf (fp, "[error: %s]", gpg_strerror (err));
@@ -1279,7 +1279,7 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
           if (*buffer)
             es_fputs ("  [qualified]\n", fp);
         }
-      else if (gpg_err_code (tmperr) == GPG_ERR_NOT_FOUND)
+      else if (tmperr == GPG_ERR_NOT_FOUND)
         ; /* Don't know - will not get marked as 'q' */
       else
         log_debug ("get_user_data(is_qualified) failed: %s\n",
@@ -1346,7 +1346,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
   if (!hd)
     {
       log_error ("sm_keydb_new failed\n");
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -1468,7 +1468,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
               rc = gpgsm_agent_havekey (ctrl, p);
               if (!rc)
                 have_secret = 1;
-              else if ( gpg_err_code (rc) != GPG_ERR_NO_SECKEY)
+              else if ( rc != GPG_ERR_NO_SECKEY)
                 goto leave;
               rc = 0;
               xfree (p);
@@ -1499,7 +1499,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
       lastcert = cert;
       cert = NULL;
     }
-  if (gpg_err_code (rc) == GPG_ERR_EOF || rc == -1 )
+  if (rc == GPG_ERR_EOF || rc == -1 )
     rc = 0;
   if (rc)
     log_error ("keydb_search failed: %s\n", gpg_strerror (rc));
@@ -1566,8 +1566,8 @@ list_external_keys (ctrl_t ctrl, strlist_t names, estream_t fp, int raw_mode)
   parm.raw_mode  = raw_mode;
 
   rc = gpgsm_dirmngr_lookup (ctrl, names, 0, list_external_cb, &parm);
-  if (gpg_err_code (rc) == GPG_ERR_EOF || rc == -1
-      || gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_EOF || rc == -1
+      || rc == GPG_ERR_NOT_FOUND)
     rc = 0; /* "Not found" is not an error here. */
   if (rc)
     log_error ("listing external keys failed: %s\n", gpg_strerror (rc));

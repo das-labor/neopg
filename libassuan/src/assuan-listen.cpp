@@ -31,7 +31,7 @@ gpg_error_t
 assuan_set_hello_line (assuan_context_t ctx, const char *line)
 {
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
   if (!line)
     {
       _assuan_free (ctx, ctx->hello_line);
@@ -41,7 +41,7 @@ assuan_set_hello_line (assuan_context_t ctx, const char *line)
     {
       char *buf = _assuan_malloc (ctx, 3 + strlen (line) + 1);
       if (!buf)
-	return _assuan_error (ctx, gpg_err_code_from_syserror ());
+	return gpg_error_from_syserror ();
       if (strchr (line, '\n'))
         strcpy (buf, line);
       else
@@ -74,7 +74,7 @@ assuan_accept (assuan_context_t ctx)
   const char *p, *pend;
 
   if (!ctx)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (ctx->max_accepts != -1)
     {
@@ -150,7 +150,7 @@ gpg_error_t
 assuan_close_input_fd (assuan_context_t ctx)
 {
   if (!ctx || ctx->input_fd == ASSUAN_INVALID_FD)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
   _assuan_close (ctx, ctx->input_fd);
   ctx->input_fd = ASSUAN_INVALID_FD;
   return 0;
@@ -162,7 +162,7 @@ gpg_error_t
 assuan_close_output_fd (assuan_context_t ctx)
 {
   if (!ctx || ctx->output_fd == ASSUAN_INVALID_FD)
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   _assuan_close (ctx, ctx->output_fd);
   ctx->output_fd = ASSUAN_INVALID_FD;

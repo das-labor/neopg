@@ -257,7 +257,7 @@ do_setkey( IDEA_context *c, const byte *key, unsigned int keylen )
     return 0;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 idea_setkey (void *context, const byte *key, unsigned int keylen)
 {
     IDEA_context *ctx = context;

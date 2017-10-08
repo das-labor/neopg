@@ -333,12 +333,12 @@ keybox_insert_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
   struct _keybox_openpgp_info info;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
 
   /* Close this one otherwise we will mess up the position for a next
@@ -379,18 +379,18 @@ keybox_update_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
   struct _keybox_openpgp_info info;
 
   if (!hd || !image || !imagelen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
   if (blob_get_type (hd->found.blob) != KEYBOX_BLOBTYPE_PGP)
-    return gpg_error (GPG_ERR_WRONG_BLOB_TYPE);
+    return GPG_ERR_WRONG_BLOB_TYPE;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
   off = _keybox_get_blob_fileoffset (hd->found.blob);
   if (off == (off_t)-1)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   /* Close this the file so that we do no mess up the position for a
      next search.  */
@@ -425,12 +425,12 @@ keybox_insert_cert (KEYBOX_HANDLE hd, ksba_cert_t cert,
   KEYBOXBLOB blob;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
   /* Close this one otherwise we will mess up the position for a next
      search.  Fixme: it would be better to adjust the position after
@@ -470,7 +470,7 @@ keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value)
   off_t off;
   const char *fname;
   FILE *fp;
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   size_t flag_pos, flag_size;
   const unsigned char *buffer;
   size_t length;
@@ -478,25 +478,25 @@ keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value)
   (void)idx;  /* Not yet used.  */
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
   if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
   off = _keybox_get_blob_fileoffset (hd->found.blob);
   if (off == (off_t)-1)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   buffer = _keybox_get_blob_image (hd->found.blob, &length);
   ec = _keybox_get_flag_location (buffer, length, what, &flag_pos, &flag_size);
   if (ec)
-    return gpg_error (ec);
+    return ec;
 
   off += flag_pos;
 
@@ -507,7 +507,7 @@ keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value)
 
   ec = 0;
   if (fseeko (fp, off, SEEK_SET))
-    ec = gpg_err_code_from_syserror ();
+    ec = gpg_error_from_syserror ();
   else
     {
       unsigned char tmp[4];
@@ -523,7 +523,7 @@ keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value)
         case 2:
         case 4:
           if (fwrite (tmp+4-flag_size, flag_size, 1, fp) != 1)
-            ec = gpg_err_code_from_syserror ();
+            ec = gpg_error_from_syserror ();
           break;
         default:
           ec = GPG_ERR_BUG;
@@ -534,10 +534,10 @@ keybox_set_flags (KEYBOX_HANDLE hd, int what, int idx, unsigned int value)
   if (fclose (fp))
     {
       if (!ec)
-        ec = gpg_err_code_from_syserror ();
+        ec = gpg_error_from_syserror ();
     }
 
-  return gpg_error (ec);
+  return ec;
 }
 
 
@@ -551,18 +551,18 @@ keybox_delete (KEYBOX_HANDLE hd)
   int rc;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!hd->found.blob)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
   if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
   off = _keybox_get_blob_fileoffset (hd->found.blob);
   if (off == (off_t)-1)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
   off += 4;
 
   _keybox_close_file (hd);
@@ -604,14 +604,14 @@ keybox_compress (KEYBOX_HANDLE hd)
   int skipped_deleted;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (hd->secret)
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    return GPG_ERR_NOT_IMPLEMENTED;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
 
   _keybox_close_file (hd);
 
@@ -712,7 +712,7 @@ keybox_compress (KEYBOX_HANDLE hd)
                                      KEYBOX_FLAG_BLOB, &pos, &size)
           || size != 2)
         {
-          rc = gpg_error (GPG_ERR_BUG);
+          rc = GPG_ERR_BUG;
           break;
         }
       blobflags = buf16_to_uint (buffer+pos);

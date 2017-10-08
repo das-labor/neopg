@@ -73,7 +73,7 @@ ldap_uri_p (const char *url)
 gpg_error_t
 ldap_parse_uri (parsed_uri_t *purip, const char *uri)
 {
-  gpg_err_code_t err = 0;
+  gpg_error_t err = 0;
   parsed_uri_t puri = NULL;
 
   int result;
@@ -138,7 +138,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
   puri = xtrycalloc (1, sizeof *puri + len);
   if (! puri)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       goto out;
     }
 
@@ -168,7 +168,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
       puri->query = calloc (sizeof (*puri->query), 1);
       if (!puri->query)
         {
-          err = gpg_err_code_from_syserror ();
+          err = gpg_error_from_syserror ();
           goto out;
         }
       puri->query->name = "password";
@@ -191,7 +191,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
   else
     *purip = puri;
 
-  return gpg_error (err);
+  return err;
 }
 
 /* The following characters need to be escaped to be part of an LDAP

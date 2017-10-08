@@ -1118,23 +1118,23 @@ ecckey_from_sexp (gcry_mpi_t *array, gcry_sexp_t sexp, int algo)
 
   list = gcry_sexp_find_token (sexp, "public-key", 0);
   if (!list)
-    return gpg_error (GPG_ERR_INV_OBJ);
+    return GPG_ERR_INV_OBJ;
   l2 = gcry_sexp_cadr (list);
   gcry_sexp_release (list);
   list = l2;
   if (!list)
-    return gpg_error (GPG_ERR_NO_OBJ);
+    return GPG_ERR_NO_OBJ;
 
   l2 = gcry_sexp_find_token (list, "curve", 0);
   if (!l2)
     {
-      err = gpg_error (GPG_ERR_NO_OBJ);
+      err = GPG_ERR_NO_OBJ;
       goto leave;
     }
   curve = gcry_sexp_nth_string (l2, 1);
   if (!curve)
     {
-      err = gpg_error (GPG_ERR_NO_OBJ);
+      err = GPG_ERR_NO_OBJ;
       goto leave;
     }
   gcry_sexp_release (l2);
@@ -1143,7 +1143,7 @@ ecckey_from_sexp (gcry_mpi_t *array, gcry_sexp_t sexp, int algo)
     {
       /* That can't happen because we used one of the curves
          gpg_curve_to_oid knows about.  */
-      err = gpg_error (GPG_ERR_INV_OBJ);
+      err = GPG_ERR_INV_OBJ;
       goto leave;
     }
   err = openpgp_oid_from_str (oidstr, &array[0]);
@@ -1153,14 +1153,14 @@ ecckey_from_sexp (gcry_mpi_t *array, gcry_sexp_t sexp, int algo)
   l2 = gcry_sexp_find_token (list, "q", 0);
   if (!l2)
     {
-      err = gpg_error (GPG_ERR_NO_OBJ);
+      err = GPG_ERR_NO_OBJ;
       goto leave;
     }
   array[1] = gcry_sexp_nth_mpi (l2, 1, GCRYMPI_FMT_USG);
   gcry_sexp_release (l2);
   if (!array[1])
     {
-      err = gpg_error (GPG_ERR_INV_OBJ);
+      err = GPG_ERR_INV_OBJ;
       goto leave;
     }
   gcry_sexp_release (list);
@@ -1203,26 +1203,26 @@ key_from_sexp (gcry_mpi_t *array, gcry_sexp_t sexp,
 
   list = gcry_sexp_find_token (sexp, topname, 0);
   if (!list)
-    return gpg_error (GPG_ERR_INV_OBJ);
+    return GPG_ERR_INV_OBJ;
   l2 = gcry_sexp_cadr (list);
   gcry_sexp_release (list);
   list = l2;
   if (!list)
-    return gpg_error (GPG_ERR_NO_OBJ);
+    return GPG_ERR_NO_OBJ;
 
   for (idx=0,s=elems; *s; s++, idx++)
     {
       l2 = gcry_sexp_find_token (list, s, 1);
       if (!l2)
         {
-          rc = gpg_error (GPG_ERR_NO_OBJ); /* required parameter not found */
+          rc = GPG_ERR_NO_OBJ; /* required parameter not found */
           goto leave;
         }
       array[idx] = gcry_sexp_nth_mpi (l2, 1, GCRYMPI_FMT_USG);
       gcry_sexp_release (l2);
       if (!array[idx])
         {
-          rc = gpg_error (GPG_ERR_INV_OBJ); /* required parameter invalid */
+          rc = GPG_ERR_INV_OBJ; /* required parameter invalid */
           goto leave;
         }
     }
@@ -1266,7 +1266,7 @@ do_create_from_keygrip (ctrl_t ctrl, int algo, const char *hexkeygrip,
     case PUBKEY_ALGO_ECDH:
     case PUBKEY_ALGO_ECDSA:     algoelem = ""; break;
     case PUBKEY_ALGO_EDDSA:     algoelem = ""; break;
-    default: return gpg_error (GPG_ERR_INTERNAL);
+    default: return GPG_ERR_INTERNAL;
     }
 
 
@@ -1561,7 +1561,7 @@ gen_ecc (int algo, const char *curve, kbnode_t pub_root,
               || algo == PUBKEY_ALGO_ECDH);
 
   if (!curve || !*curve)
-    return gpg_error (GPG_ERR_UNKNOWN_CURVE);
+    return GPG_ERR_UNKNOWN_CURVE;
 
   /* Note that we use the "comp" flag with EdDSA to request the use of
      a 0x40 compression prefix octet.  */
@@ -2912,7 +2912,7 @@ parse_key_parameter_part (char *string, int for_subkey,
         {
           size = strtoul (string+3, &endp, 10);
           if (size < 512 || size > 16384 || *endp)
-            return gpg_error (GPG_ERR_INV_VALUE);
+            return GPG_ERR_INV_VALUE;
         }
     }
   else if ((curve = openpgp_is_curve_supported (string, &algo, &size)))
@@ -2924,7 +2924,7 @@ parse_key_parameter_part (char *string, int for_subkey,
         }
     }
   else
-    return gpg_error (GPG_ERR_UNKNOWN_CURVE);
+    return GPG_ERR_UNKNOWN_CURVE;
 
   /* Parse the flags.  */
   keyuse = 0;
@@ -2956,7 +2956,7 @@ parse_key_parameter_part (char *string, int for_subkey,
               else
                 {
                   xfree (tokens);
-                  return gpg_error (GPG_ERR_INV_FLAG);
+                  return GPG_ERR_INV_FLAG;
                 }
               ecdh_or_ecdsa = 0;
             }
@@ -2967,7 +2967,7 @@ parse_key_parameter_part (char *string, int for_subkey,
               else
                 {
                   xfree (tokens);
-                  return gpg_error (GPG_ERR_INV_FLAG);
+                  return GPG_ERR_INV_FLAG;
                 }
               ecdh_or_ecdsa = 0;
             }
@@ -2979,13 +2979,13 @@ parse_key_parameter_part (char *string, int for_subkey,
               else
                 {
                   xfree (tokens);
-                  return gpg_error (GPG_ERR_INV_FLAG);
+                  return GPG_ERR_INV_FLAG;
                 }
             }
           else
             {
               xfree (tokens);
-              return gpg_error (GPG_ERR_UNKNOWN_FLAG);
+              return GPG_ERR_UNKNOWN_FLAG;
             }
         }
 
@@ -3029,7 +3029,7 @@ parse_key_parameter_part (char *string, int for_subkey,
        || ((keyuse & PUBKEY_USAGE_ENC)
            && !pubkey_get_nenc (algo))
        || (for_subkey && (keyuse & PUBKEY_USAGE_CERT)))
-    return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
+    return GPG_ERR_WRONG_KEY_USAGE;
 
   /* Return values.  */
   if (r_algo)
@@ -3930,7 +3930,7 @@ quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,
 
     err = keydb_search (kdbhd, &desc, 1, NULL);
     keydb_release (kdbhd);
-    if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+    if (err != GPG_ERR_NOT_FOUND)
       {
         log_info (_("A key for \"%s\" already exists\n"), uid);
         if (opt.answer_yes)
@@ -3939,7 +3939,7 @@ quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,
                  || !cpr_get_answer_is_yes_def ("quick_keygen.force",
                                                 _("Create anyway? (y/N) "), 0))
           {
-            write_status_error ("genkey", gpg_error (304));
+            write_status_error ("genkey", 304);
             log_inc_errorcount ();  /* we used log_info */
             goto leave;
           }
@@ -3983,7 +3983,7 @@ quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,
           expire = parse_expire_string (expirestr);
           if (expire == (u32)-1 )
             {
-              err = gpg_error (GPG_ERR_INV_VALUE);
+              err = GPG_ERR_INV_VALUE;
               log_error (_("Key generation failed: %s\n"), gpg_strerror (err));
               goto leave;
             }
@@ -4867,7 +4867,7 @@ parse_algo_usage_expire (ctrl_t ctrl, int for_subkey,
       /* Take algo from existing key.  */
       algo = check_keygrip (ctrl, algostr+1);
       /* FIXME: We need the curve name as well.  */
-      return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      return GPG_ERR_NOT_IMPLEMENTED;
     }
 
   err = parse_key_parameter_string (algostr, for_subkey? 1 : 0,
@@ -4883,7 +4883,7 @@ parse_algo_usage_expire (ctrl_t ctrl, int for_subkey,
   else if ((wantuse = parse_usagestr (usagestr)) != -1)
     use = wantuse;
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Make sure a primary key has the CERT usage.  */
   if (!for_subkey)
@@ -4897,12 +4897,12 @@ parse_algo_usage_expire (ctrl_t ctrl, int for_subkey,
        || ((use & PUBKEY_USAGE_ENC)
            && !pubkey_get_nenc (algo))
        || (for_subkey && (use & PUBKEY_USAGE_CERT)))
-    return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
+    return GPG_ERR_WRONG_KEY_USAGE;
 
   /* Parse the expire string.  */
   expire = parse_expire_string (expirestr);
   if (expire == (u32)-1 )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (curve)
     {
@@ -4949,7 +4949,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
   if (!node)
     {
       log_error ("Oops; primary key missing in keyblock!\n");
-      err = gpg_error (GPG_ERR_BUG);
+      err = GPG_ERR_BUG;
       goto leave;
     }
   pri_psk = node->pkt->pkt.public_key;
@@ -4965,7 +4965,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
                      "in future (time warp or clock problem)\n"), d );
       if (!opt.ignore_time_conflict)
         {
-          err = gpg_error (GPG_ERR_TIME_CONFLICT);
+          err = GPG_ERR_TIME_CONFLICT;
           goto leave;
         }
     }
@@ -4974,7 +4974,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
     {
       log_info (_("Note: creating subkeys for v3 keys "
                   "is not OpenPGP compliant\n"));
-      err = gpg_error (GPG_ERR_CONFLICT);
+      err = GPG_ERR_CONFLICT;
       goto leave;
     }
 
@@ -4987,7 +4987,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
         tty_printf (_("Secret parts of primary key are not available.\n"));
       else
         log_info (  _("Secret parts of primary key are not available.\n"));
-      err = gpg_error (GPG_ERR_NO_SECKEY);
+      err = GPG_ERR_NO_SECKEY;
       goto leave;
     }
   if (serialno)
@@ -5016,7 +5016,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
       if (!cpr_enabled() && !cpr_get_answer_is_yes("keygen.sub.okay",
                                                    _("Really create? (y/N) ")))
         {
-          err = gpg_error (GPG_ERR_CANCELED);
+          err = GPG_ERR_CANCELED;
           goto leave;
         }
     }
@@ -5136,7 +5136,7 @@ generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
   if (!node)
     {
       log_error ("Oops; public key lost!\n");
-      err = gpg_error (GPG_ERR_INTERNAL);
+      err = GPG_ERR_INTERNAL;
       goto leave;
     }
   pri_pk = node->pkt->pkt.public_key;
@@ -5151,7 +5151,7 @@ generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
                          "in future (time warp or clock problem)\n"), d );
 	if (!opt.ignore_time_conflict)
           {
-	    err = gpg_error (GPG_ERR_TIME_CONFLICT);
+	    err = GPG_ERR_TIME_CONFLICT;
 	    goto leave;
           }
     }
@@ -5160,7 +5160,7 @@ generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
     {
       log_info (_("Note: creating subkeys for v3 keys "
                   "is not OpenPGP compliant\n"));
-      err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+      err = GPG_ERR_NOT_SUPPORTED;
       goto leave;
     }
 
@@ -5174,7 +5174,7 @@ generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
   if (!cpr_enabled() && !cpr_get_answer_is_yes("keygen.cardsub.okay",
                                                _("Really create? (y/N) ")))
     {
-      err = gpg_error (GPG_ERR_CANCELED);
+      err = GPG_ERR_CANCELED;
       goto leave;
     }
 
@@ -5255,7 +5255,7 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
   err = agent_scd_genkey (keyno, 1, timestamp);
   /*  The code below is not used because we force creation of
    *  the a card key (3rd arg).
-   * if (gpg_err_code (rc) == GPG_ERR_EEXIST)
+   * if (rc == GPG_ERR_EEXIST)
    *   {
    *     tty_printf ("\n");
    *     log_error ("WARNING: key does already exists!\n");
@@ -5292,7 +5292,7 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
            || algo == PUBKEY_ALGO_ECDH )
     err = ecckey_from_sexp (pk->pkey, s_key, algo);
   else
-    err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+    err = GPG_ERR_PUBKEY_ALGO;
   gcry_sexp_release (s_key);
 
   if (err)
@@ -5319,6 +5319,6 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
   (void)pub_root;
   (void)timestamp;
   (void)expireval;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 #endif /*!ENABLE_CARD_SUPPORT*/
 }

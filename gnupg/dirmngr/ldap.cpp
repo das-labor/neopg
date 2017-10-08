@@ -272,7 +272,7 @@ gpg_error_t
 attr_fetch_ldap (ctrl_t ctrl,
                  const char *dn, const char *attr, ksba_reader_t *reader)
 {
-  gpg_error_t err = gpg_error (GPG_ERR_CONFIGURATION);
+  gpg_error_t err = GPG_ERR_CONFIGURATION;
   struct ldapserver_iter iter;
 
   *reader = NULL;
@@ -474,7 +474,7 @@ start_default_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
 
   /* FIXME; we might want to look at the Base SN to try matching
      servers first. */
-  err = gpg_error (GPG_ERR_CONFIGURATION);
+  err = GPG_ERR_CONFIGURATION;
 
   for (ldapserver_iter_begin (&iter, ctrl); ! ldapserver_iter_end_p (&iter);
        ldapserver_iter_next (&iter))
@@ -552,7 +552,7 @@ start_cert_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
 
     }
   else /* Use a default server. */
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    return GPG_ERR_NOT_IMPLEMENTED;
 
 
   if (!base)
@@ -609,14 +609,14 @@ start_cert_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
              arbitrary number of patters because the length of the
              command line is limited anyway.  */
           /* fixme: cleanup. */
-          return gpg_error (GPG_ERR_RESOURCE_LIMIT);
+          return GPG_ERR_RESOURCE_LIMIT;
         }
       sl = parse_one_pattern (patterns->d);
       if (!sl)
         {
           log_error (_("start_cert_fetch: invalid pattern '%s'\n"),
                      patterns->d);
-          err = gpg_error (GPG_ERR_INV_USER_ID);
+          err = GPG_ERR_INV_USER_ID;
           goto leave;
         }
       if ((sl->flags & 1))
@@ -839,10 +839,10 @@ fetch_next_cert_ldap (cert_fetch_context_t context,
       xfree (*value);
       *value = NULL;
       *valuelen = 0;
-      if (gpg_err_code (err) == GPG_ERR_EOF && context->truncated)
+      if (err == GPG_ERR_EOF && context->truncated)
         {
           context->truncated = 0; /* So that the next call would return EOF. */
-          err = gpg_error (GPG_ERR_TRUNCATED);
+          err = GPG_ERR_TRUNCATED;
         }
     }
 

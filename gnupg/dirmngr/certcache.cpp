@@ -315,7 +315,7 @@ put_cert (ksba_cert_t cert, int permanent, unsigned int trustclass,
   cert_compute_fpr (cert, fpr);
   for (ci=cert_cache[*fpr]; ci; ci = ci->next)
     if (ci->cert && !memcmp (ci->fpr, fpr, 20))
-      return gpg_error (GPG_ERR_DUP_VALUE);
+      return GPG_ERR_DUP_VALUE;
   /* Try to reuse an existing entry.  */
   for (ci=cert_cache[*fpr]; ci; ci = ci->next)
     if (!ci->cert)
@@ -337,7 +337,7 @@ put_cert (ksba_cert_t cert, int permanent, unsigned int trustclass,
   if (!ci->issuer_dn || !ci->sn)
     {
       clean_cache_slot (ci);
-      return gpg_error (GPG_ERR_INV_CERT_OBJ);
+      return GPG_ERR_INV_CERT_OBJ;
     }
   ci->subject_dn = ksba_cert_get_subject (cert, 0);
   ci->permanent = !!permanent;
@@ -413,7 +413,7 @@ load_certs_from_dir (const char *dirname, unsigned int trustclass)
         }
 
       err = put_cert (cert, 1, trustclass, NULL);
-      if (gpg_err_code (err) == GPG_ERR_DUP_VALUE)
+      if (err == GPG_ERR_DUP_VALUE)
         log_info (_("certificate '%s' already cached\n"), fname);
       else if (!err)
         {
@@ -463,7 +463,7 @@ load_certs_from_file (const char *fname, unsigned int trustclasses,
   if (!fp)
     {
       err = gpg_error_from_syserror ();
-      if (gpg_err_code (err) == GPG_ERR_ENONET && no_error)
+      if (err == GPG_ERR_ENONET && no_error)
         log_info (_("can't open '%s': %s\n"), fname, gpg_strerror (err));
       else
         log_error (_("can't open '%s': %s\n"), fname, gpg_strerror (err));
@@ -490,7 +490,7 @@ load_certs_from_file (const char *fname, unsigned int trustclasses,
         err = ksba_cert_read_der (cert, reader);
       if (err)
         {
-          if (gpg_err_code (err) == GPG_ERR_EOF)
+          if (err == GPG_ERR_EOF)
             err = 0;
           else
             log_error (_("can't parse certificate '%s': %s\n"),
@@ -499,7 +499,7 @@ load_certs_from_file (const char *fname, unsigned int trustclasses,
         }
 
       err = put_cert (cert, 1, trustclasses, NULL);
-      if (gpg_err_code (err) == GPG_ERR_DUP_VALUE)
+      if (err == GPG_ERR_DUP_VALUE)
         log_info (_("certificate '%s' already cached\n"), fname);
       else if (err)
         log_error (_("error loading certificate '%s': %s\n"),
@@ -611,7 +611,7 @@ load_certs_from_w32_store (const char *storename)
           err = put_cert (cert, 1, CERTTRUST_CLASS_SYSTEM, NULL);
           if (!err)
             count++;
-          if (gpg_err_code (err) == GPG_ERR_DUP_VALUE)
+          if (err == GPG_ERR_DUP_VALUE)
             {
               if (DBG_X509)
                 log_debug (_("certificate '%s' already cached\n"), storename);
@@ -823,7 +823,7 @@ cache_cert (ksba_cert_t cert)
   acquire_cache_write_lock ();
   err = put_cert (cert, 0, 0, NULL);
   release_cache_lock ();
-  if (gpg_err_code (err) == GPG_ERR_DUP_VALUE)
+  if (err == GPG_ERR_DUP_VALUE)
     log_info (_("certificate already cached\n"));
   else if (!err)
     log_info (_("certificate cached\n"));
@@ -845,7 +845,7 @@ cache_cert_silent (ksba_cert_t cert, void *fpr_buffer)
   acquire_cache_write_lock ();
   err = put_cert (cert, 0, 0, fpr_buffer);
   release_cache_lock ();
-  if (gpg_err_code (err) == GPG_ERR_DUP_VALUE)
+  if (err == GPG_ERR_DUP_VALUE)
     err = 0;
   if (err)
     log_error (_("error caching certificate: %s\n"), gpg_strerror (err));
@@ -1229,7 +1229,7 @@ get_certs_bypattern (const char *pattern,
   unsigned int seq;
 
   if (!pattern || !retfnc)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   klasse = classify_pattern (pattern, &offset, &sn_offset);
   hexserialno = pattern + sn_offset;
@@ -1237,12 +1237,12 @@ get_certs_bypattern (const char *pattern,
   switch (klasse)
     {
     case PATTERN_UNKNOWN:
-      err = gpg_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
       break;
 
     case PATTERN_FINGERPRINT20:
       cert = get_cert_byhexfpr (pattern);
-      err = cert? 0 : gpg_error (GPG_ERR_NOT_FOUND);
+      err = cert? 0 : GPG_ERR_NOT_FOUND;
       break;
 
     case PATTERN_SERIALNO_ISSUER:
@@ -1252,7 +1252,7 @@ get_certs_bypattern (const char *pattern,
       else
         {
           cert = get_cert_bysn (pattern, serialno);
-          err = cert? 0 : gpg_error (GPG_ERR_NOT_FOUND);
+          err = cert? 0 : GPG_ERR_NOT_FOUND;
         }
       break;
 
@@ -1264,7 +1264,7 @@ get_certs_bypattern (const char *pattern,
           cert = NULL;
         }
       if (!err && !seq)
-        err = gpg_error (GPG_ERR_NOT_FOUND);
+        err = GPG_ERR_NOT_FOUND;
       break;
 
     case PATTERN_SUBJECT:
@@ -1275,7 +1275,7 @@ get_certs_bypattern (const char *pattern,
           cert = NULL;
         }
       if (!err && !seq)
-        err = gpg_error (GPG_ERR_NOT_FOUND);
+        err = GPG_ERR_NOT_FOUND;
       break;
 
     case PATTERN_EMAIL:
@@ -1286,7 +1286,7 @@ get_certs_bypattern (const char *pattern,
     case PATTERN_SUBSTR:
     case PATTERN_SERIALNO:
       /* Not supported.  */
-      err = gpg_error (GPG_ERR_INV_NAME);
+      err = GPG_ERR_INV_NAME;
     }
 
 
@@ -1610,7 +1610,7 @@ is_trusted_cert (ksba_cert_t cert, unsigned int trustclasses)
       }
 
   release_cache_lock ();
-  return gpg_error (GPG_ERR_NOT_TRUSTED);
+  return GPG_ERR_NOT_TRUSTED;
 }
 
 
@@ -1634,7 +1634,7 @@ find_issuing_cert (ctrl_t ctrl, ksba_cert_t cert, ksba_cert_t *r_cert)
   if (!issuer_dn)
     {
       log_error (_("no issuer found in certificate\n"));
-      err = gpg_error (GPG_ERR_BAD_CERT);
+      err = GPG_ERR_BAD_CERT;
       goto leave;
     }
 
@@ -1701,7 +1701,7 @@ find_issuing_cert (ctrl_t ctrl, ksba_cert_t cert, ksba_cert_t *r_cert)
 
  leave:
   if (!err && !issuer_cert)
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
 
   xfree (issuer_dn);
 
@@ -1749,7 +1749,7 @@ read_certlist_from_stream (certlist_t *r_certlist, estream_t fp)
         err = ksba_cert_read_der (cert, reader);
       if (err)
         {
-          if (gpg_err_code (err) == GPG_ERR_EOF)
+          if (err == GPG_ERR_EOF)
             err = 0;
           goto leave;
         }

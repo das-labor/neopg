@@ -464,7 +464,7 @@ init_trustdb (ctrl_t ctrl, int no_create)
            * it.  Return an error and set the initialization state
            * back so that we always test for an existing trustdb.  */
           trustdb_args.init = 0;
-          return gpg_error (GPG_ERR_ENOENT);
+          return GPG_ERR_ENOENT;
         }
       if (rc)
 	log_fatal("can't init trustdb: %s\n", gpg_strerror (rc) );
@@ -652,7 +652,7 @@ read_trust_record (ctrl_t ctrl, PKT_public_key *pk, TRUSTREC *rec)
   rc = tdbio_search_trust_bypk (pk, rec);
   if (rc)
     {
-      if (gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+      if (rc != GPG_ERR_NOT_FOUND)
         log_error ("trustdb: searching trust record failed: %s\n",
                    gpg_strerror (rc));
       return rc;
@@ -692,7 +692,7 @@ tdb_get_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int no_create)
     return TRUST_UNKNOWN;
 
   err = read_trust_record (ctrl, pk, &rec);
-  if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (err == GPG_ERR_NOT_FOUND)
     return TRUST_UNKNOWN; /* no record yet */
   if (err)
     {
@@ -720,7 +720,7 @@ tdb_get_min_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int no_create)
     return TRUST_UNKNOWN;
 
   err = read_trust_record (ctrl, pk, &rec);
-  if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (err == GPG_ERR_NOT_FOUND)
     return TRUST_UNKNOWN; /* no record yet */
   if (err)
     {
@@ -759,7 +759,7 @@ tdb_update_ownertrust (ctrl_t ctrl, PKT_public_key *pk, unsigned int new_trust )
           do_sync ();
         }
     }
-  else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  else if (err == GPG_ERR_NOT_FOUND)
     { /* no record yet - create a new one */
       size_t dummy;
 
@@ -816,7 +816,7 @@ update_min_ownertrust (ctrl_t ctrl, u32 *kid, unsigned int new_trust)
           do_sync ();
         }
     }
-  else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  else if (err == GPG_ERR_NOT_FOUND)
     { /* no record yet - create a new one */
       size_t dummy;
 
@@ -875,7 +875,7 @@ tdb_clear_ownertrusts (ctrl_t ctrl, PKT_public_key *pk)
           return 1;
         }
     }
-  else if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+  else if (err != GPG_ERR_NOT_FOUND)
     {
       tdbio_invalid ();
     }
@@ -896,12 +896,12 @@ update_validity (ctrl_t ctrl, PKT_public_key *pk, PKT_user_id *uid,
   namehash_from_uid(uid);
 
   err = read_trust_record (ctrl, pk, &trec);
-  if (err && gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+  if (err && err != GPG_ERR_NOT_FOUND)
     {
       tdbio_invalid ();
       return;
     }
-  if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (err == GPG_ERR_NOT_FOUND)
     {
       /* No record yet - create a new one. */
       size_t dummy;
@@ -963,12 +963,12 @@ tdb_cache_disabled_value (ctrl_t ctrl, PKT_public_key *pk)
     return 0;  /* No trustdb => not disabled.  */
 
   err = read_trust_record (ctrl, pk, &trec);
-  if (err && gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+  if (err && err != GPG_ERR_NOT_FOUND)
     {
       tdbio_invalid ();
       goto leave;
     }
-  if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (err == GPG_ERR_NOT_FOUND)
     {
       /* No record found, so assume not disabled.  */
       goto leave;
@@ -1203,12 +1203,12 @@ tdb_get_validity_core (ctrl_t ctrl,
       || opt.trust_model == TM_PGP)
     {
       err = read_trust_record (ctrl, main_pk, &trec);
-      if (err && gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+      if (err && err != GPG_ERR_NOT_FOUND)
 	{
 	  tdbio_invalid ();
 	  return 0;
 	}
-      if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+      if (err == GPG_ERR_NOT_FOUND)
 	{
 	  /* No record found.  */
 	  validity = TRUST_UNKNOWN;
@@ -1823,7 +1823,7 @@ validate_key_list (ctrl_t ctrl, KEYDB_HANDLE hd, KeyHashTable full_trust,
   desc.skipfnc = search_skipfnc;
   desc.skipfncvalue = full_trust;
   rc = keydb_search (hd, &desc, 1, NULL);
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_NOT_FOUND)
     {
       keys[nkeys].keyblock = NULL;
       return keys;
@@ -1897,7 +1897,7 @@ validate_key_list (ctrl_t ctrl, KEYDB_HANDLE hd, KeyHashTable full_trust,
     }
   while (!(rc = keydb_search (hd, &desc, 1, NULL)));
 
-  if (rc && gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+  if (rc && rc != GPG_ERR_NOT_FOUND)
     {
       log_error ("keydb_search_next failed: %s\n", gpg_strerror (rc));
       goto die;

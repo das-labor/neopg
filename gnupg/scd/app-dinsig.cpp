@@ -142,7 +142,7 @@ do_learn_status (app_t app, ctrl_t ctrl, unsigned int flags)
     {
       log_error ("failed to calculate the keygrip for FID 0x%04X\n", fid);
       ksba_cert_release (cert);
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
   ksba_cert_release (cert);
 
@@ -180,15 +180,15 @@ do_readcert (app_t app, const char *certid,
   *cert = NULL;
   *certlen = 0;
   if (strncmp (certid, "DINSIG.", 7) )
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   certid += 7;
   if (!hexdigitp (certid) || !hexdigitp (certid+1)
       || !hexdigitp (certid+2) || !hexdigitp (certid+3)
       || certid[4])
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   fid = xtoi_4 (certid);
   if (fid != 0xC000 )
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   /* Read the entire file.  fixme: This could be optimized by first
      reading the header to figure out how long the certificate
@@ -211,7 +211,7 @@ do_readcert (app_t app, const char *certid,
   if (!buflen || *buffer == 0xff)
     {
       log_info ("no certificate contained in FID 0x%04X\n", fid);
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       goto leave;
     }
 
@@ -227,7 +227,7 @@ do_readcert (app_t app, const char *certid,
   else if ( klasse == CLASS_UNIVERSAL && tag == TAG_SET && constructed )
     rootca = 1;
   else
-    return gpg_error (GPG_ERR_INV_OBJ);
+    return GPG_ERR_INV_OBJ;
   totobjlen = objlen + hdrlen;
   assert (totobjlen <= buflen);
 
@@ -247,7 +247,7 @@ do_readcert (app_t app, const char *certid,
          the certificate. */
       if (n < objlen)
         {
-          err = gpg_error (GPG_ERR_INV_OBJ);
+          err = GPG_ERR_INV_OBJ;
           goto leave;
         }
       p += objlen;
@@ -258,7 +258,7 @@ do_readcert (app_t app, const char *certid,
       if (err)
         goto leave;
       if ( !(klasse == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed) )
-        return gpg_error (GPG_ERR_INV_OBJ);
+        return GPG_ERR_INV_OBJ;
       totobjlen = objlen + hdrlen;
       assert (save_p + totobjlen <= buffer + buflen);
       memmove (buffer, save_p, totobjlen);
@@ -327,7 +327,7 @@ verify_pin (app_t app,
         {
           log_error ("Non-numeric digits found in PIN\n");
           xfree (pinvalue);
-          return gpg_error (GPG_ERR_BAD_PIN);
+          return GPG_ERR_BAD_PIN;
         }
 
       if (strlen (pinvalue) < pininfo.minlen)
@@ -335,18 +335,18 @@ verify_pin (app_t app,
           log_error ("PIN is too short; minimum length is %d\n",
                      pininfo.minlen);
           xfree (pinvalue);
-          return gpg_error (GPG_ERR_BAD_PIN);
+          return GPG_ERR_BAD_PIN;
         }
       else if (strlen (pinvalue) > pininfo.maxlen)
         {
           log_error ("PIN is too large; maximum length is %d\n",
                      pininfo.maxlen);
           xfree (pinvalue);
-          return gpg_error (GPG_ERR_BAD_PIN);
+          return GPG_ERR_BAD_PIN;
         }
 
       rc = iso7816_verify (app->slot, 0x81, pinvalue, strlen (pinvalue));
-      if (gpg_err_code (rc) == GPG_ERR_INV_VALUE)
+      if (rc == GPG_ERR_INV_VALUE)
         {
           /* We assume that ISO 9564-1 encoding is used and we failed
              because the first nibble we passed was 3 and not 2.  DIN
@@ -410,23 +410,23 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   int datalen;
 
   if (!keyidstr || !*keyidstr)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (indatalen != 20 && indatalen != 16 && indatalen != 32
       && indatalen != (15+20) && indatalen != (19+32))
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Check that the provided ID is vaid.  This is not really needed
      but we do it to enforce correct usage by the caller. */
   if (strncmp (keyidstr, "DINSIG.", 7) )
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   keyidstr += 7;
   if (!hexdigitp (keyidstr) || !hexdigitp (keyidstr+1)
       || !hexdigitp (keyidstr+2) || !hexdigitp (keyidstr+3)
       || keyidstr[4])
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   fid = xtoi_4 (keyidstr);
   if (fid != 0xC000)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   /* Prepare the DER object from INDATA. */
   datalen = 35;
@@ -440,7 +440,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       else if (hashalgo == GCRY_MD_RMD160 && !memcmp (indata, rmd160_prefix,15))
         ;
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
       memcpy (data, indata, indatalen);
     }
   else if (indatalen == 19+32)
@@ -459,7 +459,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
           datalen  = indatalen;
         }
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
       memcpy (data, indata, indatalen);
     }
   else
@@ -476,7 +476,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
           memcpy (data, sha256_prefix, len);
         }
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
       memcpy (data+len, indata, indatalen);
     }
 
@@ -504,7 +504,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
   size_t oldpinlen;
 
   if ((flags & APP_CHANGE_FLAG_RESET))
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    return GPG_ERR_NOT_IMPLEMENTED;
 
   if ((flags & APP_CHANGE_FLAG_NULLPIN))
     {

@@ -125,12 +125,12 @@ maybe_create_keybox (char *filename, int force, int *r_created)
 
   /* A quick test whether the filename already exists. */
   if (!access (filename, F_OK))
-    return !access (filename, R_OK)? 0 : gpg_error (GPG_ERR_EACCES);
+    return !access (filename, R_OK)? 0 : GPG_ERR_EACCES;
 
   /* If we don't want to create a new file at all, there is no need to
      go any further - bail out right here.  */
   if (!force)
-    return gpg_error (GPG_ERR_ENOENT);
+    return GPG_ERR_ENOENT;
 
   /* First of all we try to create the home directory.  Note, that we
      don't do any locking here because any sane application of gpg
@@ -147,7 +147,7 @@ maybe_create_keybox (char *filename, int force, int *r_created)
   }
 #endif /*HAVE_W32_SYSTEM*/
   if (!last_slash_in_filename)
-    return gpg_error (GPG_ERR_ENOENT);  /* No slash at all - should
+    return GPG_ERR_ENOENT;  /* No slash at all - should
                                            not happen though.  */
   save_slash = *last_slash_in_filename;
   *last_slash_in_filename = 0;
@@ -183,16 +183,16 @@ maybe_create_keybox (char *filename, int force, int *r_created)
         log_info ("can't allocate lock for '%s'\n", filename );
 
       if (!force)
-        return gpg_error (GPG_ERR_ENOENT);
+        return GPG_ERR_ENOENT;
       else
-        return gpg_error (GPG_ERR_GENERAL);
+        return GPG_ERR_GENERAL;
     }
 
   if ( dotlock_take (lockhd, -1) )
     {
       /* This is something bad.  Probably a stale lockfile.  */
       log_info ("can't lock '%s'\n", filename);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -278,7 +278,7 @@ sm_keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_create
       else if (strchr (resname, ':'))
         {
           log_error ("invalid key resource URL '%s'\n", url );
-          err = gpg_error (GPG_ERR_GENERAL);
+          err = GPG_ERR_GENERAL;
           goto leave;
 	}
 #endif /* !HAVE_DRIVE_LETTERS */
@@ -326,7 +326,7 @@ sm_keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_create
     {
     case KEYDB_RESOURCE_TYPE_NONE:
       log_error ("unknown type of key resource '%s'\n", url );
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       goto leave;
 
     case KEYDB_RESOURCE_TYPE_KEYBOX:
@@ -338,12 +338,12 @@ sm_keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_create
         void *token;
 
         err = keybox_register_file (filename, 0, &token);
-        if (gpg_err_code (err) == GPG_ERR_EEXIST)
+        if (err == GPG_ERR_EEXIST)
           ; /* Already registered - ignore.  */
         else if (err)
           ; /* Other error.  */
         else if (used_resources >= MAX_KEYDB_RESOURCES)
-          err = gpg_error (GPG_ERR_RESOURCE_LIMIT);
+          err = GPG_ERR_RESOURCE_LIMIT;
         else
           {
             all_resources[used_resources].type = rt;
@@ -375,7 +375,7 @@ sm_keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_create
 
     default:
       log_error ("resource type of '%s' not supported\n", url);
-      err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+      err = GPG_ERR_NOT_SUPPORTED;
       goto leave;
     }
 
@@ -533,7 +533,7 @@ gpg_error_t
 sm_keydb_lock (KEYDB_HANDLE hd)
 {
   if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   if (hd->locked)
     return 0; /* Already locked. */
   return lock_all (hd);
@@ -586,7 +586,7 @@ lock_all (KEYDB_HANDLE hd)
     /* make_dotlock () does not yet guarantee that errno is set, thus
        we can't rely on the error reason and will simply use
        EACCES. */
-    return rc? gpg_error (GPG_ERR_EACCES) : 0;
+    return rc? GPG_ERR_EACCES : 0;
 }
 
 static void
@@ -676,7 +676,7 @@ sm_keydb_get_cert (KEYDB_HANDLE hd, ksba_cert_t *r_cert)
   int rc = 0;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if ( hd->found < 0 || hd->found >= hd->used)
     return -1; /* nothing found */
@@ -684,7 +684,7 @@ sm_keydb_get_cert (KEYDB_HANDLE hd, ksba_cert_t *r_cert)
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL); /* oops */
+      rc = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       rc = keybox_get_cert (hd->active[hd->found].u.kr, r_cert);
@@ -704,15 +704,15 @@ sm_keydb_get_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int *value)
   int err = 0;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if ( hd->found < 0 || hd->found >= hd->used)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
 
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      err = gpg_error (GPG_ERR_GENERAL); /* oops */
+      err = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       err = keybox_get_flags (hd->active[hd->found].u.kr, which, idx, value);
@@ -734,18 +734,18 @@ sm_keydb_set_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int value)
   int err = 0;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if ( hd->found < 0 || hd->found >= hd->used)
-    return gpg_error (GPG_ERR_NOTHING_FOUND);
+    return GPG_ERR_NOTHING_FOUND;
 
   if (!hd->locked)
-    return gpg_error (GPG_ERR_NOT_LOCKED);
+    return GPG_ERR_NOT_LOCKED;
 
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      err = gpg_error (GPG_ERR_GENERAL); /* oops */
+      err = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       err = keybox_set_flags (hd->active[hd->found].u.kr, which, idx, value);
@@ -766,7 +766,7 @@ sm_keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   unsigned char digest[20];
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (opt.dry_run)
     return 0;
@@ -776,17 +776,17 @@ sm_keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   else if ( hd->current >= 0 && hd->current < hd->used)
     idx = hd->current;
   else
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   if (!hd->locked)
-    return gpg_error (GPG_ERR_NOT_LOCKED);
+    return GPG_ERR_NOT_LOCKED;
 
   gpgsm_get_fingerprint (cert, GCRY_MD_SHA1, digest, NULL); /* kludge*/
 
   switch (hd->active[idx].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       rc = keybox_insert_cert (hd->active[idx].u.kr, cert, digest);
@@ -807,7 +807,7 @@ sm_keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   unsigned char digest[20];
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if ( hd->found < 0 || hd->found >= hd->used)
     return -1; /* nothing found */
@@ -824,7 +824,7 @@ sm_keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL); /* oops */
+      rc = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       rc = keybox_update_cert (hd->active[hd->found].u.kr, cert, digest);
@@ -845,7 +845,7 @@ sm_keydb_delete (KEYDB_HANDLE hd, int unlock)
   int rc = -1;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if ( hd->found < 0 || hd->found >= hd->used)
     return -1; /* nothing found */
@@ -854,12 +854,12 @@ sm_keydb_delete (KEYDB_HANDLE hd, int unlock)
     return 0;
 
   if (!hd->locked)
-    return gpg_error (GPG_ERR_NOT_LOCKED);
+    return GPG_ERR_NOT_LOCKED;
 
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
       rc = keybox_delete (hd->active[hd->found].u.kr);
@@ -886,7 +886,7 @@ sm_keydb_locate_writable (KEYDB_HANDLE hd, const char *reserved)
   (void)reserved;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   rc = sm_keydb_search_reset (hd); /* this does reset hd->current */
   if (rc)
@@ -945,7 +945,7 @@ sm_keydb_search_reset (KEYDB_HANDLE hd)
   gpg_error_t rc = 0;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   hd->current = 0;
   hd->found = -1;
@@ -976,13 +976,13 @@ sm_keydb_search (ctrl_t ctrl, KEYDB_HANDLE hd,
   unsigned long skipped;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (!any_registered)
     {
       gpgsm_status_with_error (ctrl, STATUS_ERROR, "keydb_search",
-                               gpg_error (GPG_ERR_KEYRING_OPEN));
-      return gpg_error (GPG_ERR_NOT_FOUND);
+                               GPG_ERR_KEYRING_OPEN);
+      return GPG_ERR_NOT_FOUND;
     }
 
   while (rc == -1 && hd->current >= 0 && hd->current < hd->used)
@@ -998,7 +998,7 @@ sm_keydb_search (ctrl_t ctrl, KEYDB_HANDLE hd,
                               NULL, &skipped);
           break;
         }
-      if (rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
+      if (rc == -1 || rc == GPG_ERR_EOF)
         { /* EOF -> switch to next resource */
           hd->current++;
         }
@@ -1081,12 +1081,12 @@ sm_keydb_search_issuer_sn (ctrl_t ctrl, KEYDB_HANDLE hd,
   desc.mode = KEYDB_SEARCH_MODE_ISSUER_SN;
   s = serial;
   if (*s !='(')
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   s++;
   for (desc.snlen = 0; digitp (s); s++)
     desc.snlen = 10*desc.snlen + atoi_1 (s);
   if (*s !=':')
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   desc.sn = s+1;
   desc.u.name = issuer;
   rc = sm_keydb_search (ctrl, hd, &desc, 1);
@@ -1125,14 +1125,14 @@ sm_keydb_store_cert (ctrl_t ctrl, ksba_cert_t cert, int ephemeral, int *existed)
   if (!gpgsm_get_fingerprint (cert, 0, fpr, NULL))
     {
       log_error (_("failed to get the fingerprint\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      return gpg_error (GPG_ERR_ENOMEM);;
+      return GPG_ERR_ENOMEM;;
     }
 
   /* Set the ephemeral flag so that the search looks at all
@@ -1211,14 +1211,14 @@ sm_keydb_set_cert_flags (ctrl_t ctrl, ksba_cert_t cert, int ephemeral,
   if (!gpgsm_get_fingerprint (cert, 0, fpr, NULL))
     {
       log_error (_("failed to get the fingerprint\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   kh = sm_keydb_new ();
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      return gpg_error (GPG_ERR_ENOMEM);;
+      return GPG_ERR_ENOMEM;;
     }
 
   if (ephemeral)
@@ -1236,7 +1236,7 @@ sm_keydb_set_cert_flags (ctrl_t ctrl, ksba_cert_t cert, int ephemeral,
   if (err)
     {
       if (err == -1)
-        err = gpg_error (GPG_ERR_NOT_FOUND);
+        err = GPG_ERR_NOT_FOUND;
       else
         log_error (_("problem re-searching certificate: %s\n"),
                    gpg_strerror (err));

@@ -57,7 +57,7 @@ make_session_key( DEK *dek )
 	    gcry_cipher_close (chd);
 	    return;
           }
-        if (gpg_err_code (rc) != GPG_ERR_WEAK_KEY)
+        if (rc != GPG_ERR_WEAK_KEY)
           BUG();
 	log_info(_("weak key created - retrying\n") );
 	/* Renew the session key until we get a non-weak key. */

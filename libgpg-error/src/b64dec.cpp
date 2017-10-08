@@ -120,7 +120,7 @@ gpgrt_b64dec_proc (gpgrt_b64state_t state, void *buffer, size_t length,
   if (state->stop_seen)
     {
       *r_nbytes = 0;
-      state->lasterr = gpg_error (GPG_ERR_EOF);
+      state->lasterr = GPG_ERR_EOF;
       free (state->title);
       state->title = NULL;
       return state->lasterr;
@@ -272,7 +272,7 @@ gpgrt_b64dec_finish (gpgrt_b64state_t state)
   else
     {
       free (state->title);
-      err = state->invalid_encoding? gpg_error(GPG_ERR_BAD_DATA): 0;
+      err = state->invalid_encoding ? GPG_ERR_BAD_DATA : 0;
     }
   free (state);
 

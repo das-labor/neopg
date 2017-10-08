@@ -10,8 +10,8 @@
   int syserror_main(int argc, char* argv[]);
 
 TEST(GpgErrorTest, ErrorType) {
-    gpg_error_t err = gpg_error(GPG_ERR_USER_1);
-    ASSERT_EQ(GPG_ERR_USER_1, gpg_err_code(err));
+    gpg_error_t err = GPG_ERR_USER_1;
+    ASSERT_EQ(GPG_ERR_USER_1, err);
 }
 
 TEST(GpgErrorTest, b64dec) {

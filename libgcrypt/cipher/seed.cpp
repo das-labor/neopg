@@ -256,7 +256,7 @@ static const u32 KC[NUMKC] = {
 
 /* Perform the key setup.
  */
-static gcry_err_code_t
+static gpg_error_t
 do_setkey (SEED_context *ctx, const byte *key, const unsigned keylen)
 {
   static int initialized = 0;
@@ -308,7 +308,7 @@ do_setkey (SEED_context *ctx, const byte *key, const unsigned keylen)
   return 0;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 seed_setkey (void *context, const byte *key, const unsigned keylen)
 {
   SEED_context *ctx = context;

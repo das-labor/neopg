@@ -66,10 +66,10 @@ app_help_get_keygrip_string (ksba_cert_t cert, char *hexkeygrip)
 
   p = ksba_cert_get_public_key (cert);
   if (!p)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   n = gcry_sexp_canon_len (p, 0, NULL, NULL);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   err = gcry_sexp_sscan (&s_pkey, NULL, (char*)p, n);
   xfree (p);
   if (err)
@@ -77,7 +77,7 @@ app_help_get_keygrip_string (ksba_cert_t cert, char *hexkeygrip)
   if (!gcry_pk_get_keygrip (s_pkey, array))
     {
       gcry_sexp_release (s_pkey);
-      return gpg_error (GPG_ERR_GENERAL); /* Failed to calculate the keygrip.*/
+      return GPG_ERR_GENERAL; /* Failed to calculate the keygrip.*/
     }
   gcry_sexp_release (s_pkey);
 

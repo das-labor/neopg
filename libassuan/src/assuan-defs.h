@@ -216,14 +216,6 @@ struct assuan_context_s
 };
 
 
-
-/* Generate an error code specific to a context.  */
-static GPG_ERR_INLINE gpg_error_t
-_assuan_error (assuan_context_t ctx, gpg_err_code_t errcode)
-{
-  return errcode;
-}
-
 /* Release all resources associated with an engine operation.  */
 void _assuan_reset (assuan_context_t ctx);
 
@@ -311,7 +303,7 @@ int _assuan_error_is_eagain (assuan_context_t ctx, gpg_error_t err);
 
 
 #define set_error(c,e,t)						\
-  assuan_set_error ((c), _assuan_error (c,e), (t))
+  assuan_set_error ((c), e, (t))
 
 #ifdef HAVE_W32_SYSTEM
 char *_assuan_w32_strerror (assuan_context_t ctx, int ec);

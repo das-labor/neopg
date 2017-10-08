@@ -164,7 +164,7 @@ has_validation_model_chain (ksba_cert_t cert, int listmode, estream_t listfp)
   der = ksba_cert_get_image (cert, NULL);
   if (!der)
     {
-      err = gpg_error (GPG_ERR_INV_OBJ); /* Oops  */
+      err = GPG_ERR_INV_OBJ; /* Oops  */
       goto leave;
     }
   der += off;
@@ -172,14 +172,14 @@ has_validation_model_chain (ksba_cert_t cert, int listmode, estream_t listfp)
   err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_SEQUENCE))
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   if (err)
     goto leave;
   derlen = objlen;
   err = parse_ber_header (&der, &derlen, &klasse, &tag, &constructed,
                           &ndef, &objlen, &hdrlen);
   if (!err && (objlen > derlen || tag != TAG_OBJECT_ID))
-    err = gpg_error (GPG_ERR_INV_OBJ);
+    err = GPG_ERR_INV_OBJ;
   if (err)
     goto leave;
   oidbuf = ksba_oid_to_str (der, objlen);
@@ -255,14 +255,14 @@ unknown_criticals (ksba_cert_t cert, int listmode, estream_t fp)
           do_list (1, listmode, fp,
                    _("critical certificate extension %s is not supported"),
                    oid);
-          rc = gpg_error (GPG_ERR_UNSUPPORTED_CERT);
+          rc = GPG_ERR_UNSUPPORTED_CERT;
         }
     }
   /* We ignore the error codes EOF as well as no-value. The later will
      occur for certificates with no extensions at all. */
   if (err
-      && gpg_err_code (err) != GPG_ERR_EOF
-      && gpg_err_code (err) != GPG_ERR_NO_VALUE)
+      && err != GPG_ERR_EOF
+      && err != GPG_ERR_NO_VALUE)
     rc = err;
 
   return rc;
@@ -293,7 +293,7 @@ allowed_ca (ctrl_t ctrl,
         }
 
       do_list (1, listmode, fp,_("issuer certificate is not marked as a CA"));
-      return gpg_error (GPG_ERR_BAD_CA_CERT);
+      return GPG_ERR_BAD_CA_CERT;
     }
   return 0;
 }
@@ -308,7 +308,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
   int any_critical;
 
   err = ksba_cert_get_cert_policies (cert, &policies);
-  if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+  if (err == GPG_ERR_NO_DATA)
     return 0; /* No policy given. */
   if (err)
     return err;
@@ -331,7 +331,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
         {
           do_list (1, listmode, fplist,
                    _("critical marked policy without configured policies"));
-          return gpg_error (GPG_ERR_NO_POLICY_MATCH);
+          return GPG_ERR_NO_POLICY_MATCH;
         }
       return 0;
     }
@@ -353,7 +353,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
         }
       do_list (1, listmode, fplist,
                _("certificate policy not allowed"));
-      return gpg_error (GPG_ERR_NO_POLICY_MATCH);
+      return GPG_ERR_NO_POLICY_MATCH;
     }
 
   for (;;)
@@ -367,7 +367,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
         {
           if (!fgets (line, DIM(line)-1, fp) )
             {
-              gpg_error_t tmperr = gpg_error (gpg_err_code_from_errno (errno));
+              gpg_error_t tmperr = gpg_error_from_errno (errno);
 
               xfree (policies);
               if (feof (fp))
@@ -382,7 +382,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
                     }
                   do_list (1, listmode, fplist,
                            _("certificate policy not allowed"));
-                  return gpg_error (GPG_ERR_NO_POLICY_MATCH);
+                  return GPG_ERR_NO_POLICY_MATCH;
                 }
               fclose (fp);
               return tmperr;
@@ -395,8 +395,8 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
                 ;
               fclose (fp);
               xfree (policies);
-              return gpg_error (*line? GPG_ERR_LINE_TOO_LONG
-                                     : GPG_ERR_INCOMPLETE_LINE);
+              return *line? GPG_ERR_LINE_TOO_LONG
+                                     : GPG_ERR_INCOMPLETE_LINE;
             }
 
           /* Allow for empty lines and spaces */
@@ -415,7 +415,7 @@ check_cert_policy (ksba_cert_t cert, int listmode, estream_t fplist)
         {
           fclose (fp);
           xfree (policies);
-          return gpg_error (GPG_ERR_CONFIGURATION);
+          return GPG_ERR_CONFIGURATION;
         }
       *p = 0; /* strip the rest of the line */
       /* See whether we find ALLOWED (which is an OID) in POLICIES */
@@ -831,7 +831,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -840,13 +840,13 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
   if (!issuer)
     {
       log_error ("no issuer found in certificate\n");
-      rc = gpg_error (GPG_ERR_BAD_CERT);
+      rc = GPG_ERR_BAD_CERT;
       goto leave;
     }
   if (!subject)
     {
       log_error ("no subject found in certificate\n");
-      rc = gpg_error (GPG_ERR_BAD_CERT);
+      rc = GPG_ERR_BAD_CERT;
       goto leave;
     }
 
@@ -863,7 +863,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
          print an error here.  */
       if (rc != -1 && opt.verbose > 1)
         log_error ("failed to find issuer's certificate: rc=%d\n", rc);
-      rc = gpg_error (GPG_ERR_MISSING_ISSUER_CERT);
+      rc = GPG_ERR_MISSING_ISSUER_CERT;
       goto leave;
     }
 
@@ -871,7 +871,7 @@ gpgsm_walk_cert_chain (ctrl_t ctrl, ksba_cert_t start, ksba_cert_t *r_next)
   if (rc)
     {
       log_error ("keydb_get_cert() failed: rc=%d\n", rc);
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
     }
 
  leave:
@@ -905,7 +905,7 @@ is_root_cert (ksba_cert_t cert, const char *issuerdn, const char *subjectdn)
   err = ksba_cert_get_auth_key_id (cert, &ak_keyid, &ak_name, &ak_sn);
   if (err)
     {
-      if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+      if (err == GPG_ERR_NO_DATA)
         return 1; /* Yes. Without a authorityKeyIdentifier this needs
                      to be the Root certifcate (our trust anchor).  */
       log_error ("error getting authorityKeyIdentifier: %s\n",
@@ -980,7 +980,7 @@ is_cert_still_valid (ctrl_t ctrl, int force_ocsp, int lm, estream_t fp,
   if (ctrl->offline || (opt.no_crl_check && !ctrl->use_ocsp))
     {
       audit_log_ok (ctrl->audit, AUDIT_CRL_CHECK,
-                    gpg_error (GPG_ERR_NOT_ENABLED));
+                    GPG_ERR_NOT_ENABLED);
       return 0;
     }
 
@@ -993,7 +993,7 @@ is_cert_still_valid (ctrl_t ctrl, int force_ocsp, int lm, estream_t fp,
     {
       if (!lm)
         gpgsm_cert_log_name (NULL, subject_cert);
-      switch (gpg_err_code (err))
+      switch (err)
         {
         case GPG_ERR_CERT_REVOKED:
           do_list (1, lm, fp, _("certificate has been revoked"));
@@ -1054,7 +1054,7 @@ check_validity_period (ksba_isotime_t current_time,
     {
       do_list (1, listmode, listfp,
                _("certificate with invalid validity: %s"), gpg_strerror (err));
-      return gpg_error (GPG_ERR_BAD_CERT);
+      return GPG_ERR_BAD_CERT;
     }
 
   if (*not_after)
@@ -1077,7 +1077,7 @@ check_validity_period (ksba_isotime_t current_time,
           dump_isotime (not_before);
           log_printf (")\n");
         }
-      return gpg_error (GPG_ERR_CERT_TOO_YOUNG);
+      return GPG_ERR_CERT_TOO_YOUNG;
     }
 
   if (*not_after && strcmp (current_time, not_after) > 0 )
@@ -1095,7 +1095,7 @@ check_validity_period (ksba_isotime_t current_time,
       if (opt.ignore_expiration)
         log_info ("WARNING: ignoring expiration\n");
       else
-        return gpg_error (GPG_ERR_CERT_EXPIRED);
+        return GPG_ERR_CERT_EXPIRED;
     }
 
   return 0;
@@ -1122,7 +1122,7 @@ check_validity_period_cm (ksba_isotime_t current_time,
     {
       do_list (1, listmode, listfp,
                _("certificate with invalid validity: %s"), gpg_strerror (err));
-      return gpg_error (GPG_ERR_BAD_CERT);
+      return GPG_ERR_BAD_CERT;
     }
   if (!*not_before || !*not_after)
     {
@@ -1131,7 +1131,7 @@ check_validity_period_cm (ksba_isotime_t current_time,
                !*not_before? "notBefore":"",
                (!*not_before && !*not_after)? ", ":"",
                !*not_before? "notAfter":"");
-      return gpg_error (GPG_ERR_BAD_CERT);
+      return GPG_ERR_BAD_CERT;
     }
   if (strcmp (not_before, not_after) > 0 )
     {
@@ -1142,7 +1142,7 @@ check_validity_period_cm (ksba_isotime_t current_time,
       log_printf (" expired at ");
       dump_isotime (not_after);
       log_printf (")\n");
-      return gpg_error (GPG_ERR_BAD_CERT);
+      return GPG_ERR_BAD_CERT;
     }
 
   if (!*exptime)
@@ -1162,7 +1162,7 @@ check_validity_period_cm (ksba_isotime_t current_time,
           dump_isotime (not_before);
           log_printf (")\n");
         }
-      return gpg_error (GPG_ERR_CERT_TOO_YOUNG);
+      return GPG_ERR_CERT_TOO_YOUNG;
     }
 
   if (*check_time
@@ -1194,7 +1194,7 @@ check_validity_period_cm (ksba_isotime_t current_time,
       if (opt.ignore_expiration)
         log_info ("WARNING: ignoring expiration\n");
       else
-        return gpg_error (GPG_ERR_CERT_EXPIRED);
+        return GPG_ERR_CERT_EXPIRED;
     }
 
   return 0;
@@ -1219,7 +1219,7 @@ ask_marktrusted (ctrl_t ctrl, ksba_cert_t cert, int listmode)
   xfree (fpr);
 
   if (no_more_questions)
-    rc = gpg_error (GPG_ERR_NOT_SUPPORTED);
+    rc = GPG_ERR_NOT_SUPPORTED;
   else
     rc = gpgsm_agent_marktrusted (ctrl, cert);
   if (!rc)
@@ -1234,14 +1234,14 @@ ask_marktrusted (ctrl_t ctrl, ksba_cert_t cert, int listmode)
                 "to add it manually to the list of trusted certificates.\n");
     }
 
-  if (gpg_err_code (rc) == GPG_ERR_NOT_SUPPORTED)
+  if (rc == GPG_ERR_NOT_SUPPORTED)
     {
       if (!no_more_questions)
         log_info (_("interactive marking as trusted "
                     "not enabled in gpg-agent\n"));
       no_more_questions = 1;
     }
-  else if (gpg_err_code (rc) == GPG_ERR_CANCELED)
+  else if (rc == GPG_ERR_CANCELED)
     {
       log_info (_("interactive marking as trusted "
                   "disabled for this session\n"));
@@ -1325,7 +1325,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -1366,7 +1366,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
       if (!issuer)
         {
           do_list (1, listmode, listfp,  _("no issuer found in certificate"));
-          rc = gpg_error (GPG_ERR_BAD_CERT);
+          rc = GPG_ERR_BAD_CERT;
           goto leave;
         }
 
@@ -1384,7 +1384,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
             {
               memset (rootca_flags, 0, sizeof *rootca_flags);
               istrusted_rc = ((flags & VALIDATE_FLAG_STEED)
-                              ? 0 : gpg_error (GPG_ERR_NOT_TRUSTED));
+                              ? 0 : GPG_ERR_NOT_TRUSTED);
             }
           else
             istrusted_rc = gpgsm_agent_istrusted (ctrl, subject_cert, NULL,
@@ -1408,7 +1408,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
         rc = check_validity_period (current_time, subject_cert,
                                     exptime, listmode, listfp,
                                     (depth && is_root)? -1: depth);
-      if (gpg_err_code (rc) == GPG_ERR_CERT_EXPIRED)
+      if (rc == GPG_ERR_CERT_EXPIRED)
         any_expired = 1;
       else if (rc)
         goto leave;
@@ -1423,7 +1423,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
       if (!opt.no_policy_check)
         {
           rc = check_cert_policy (subject_cert, listmode, listfp);
-          if (gpg_err_code (rc) == GPG_ERR_NO_POLICY_MATCH)
+          if (rc == GPG_ERR_NO_POLICY_MATCH)
             {
               any_no_policy_match = 1;
               rc = 1;  /* Be on the safe side and set RC.  */
@@ -1448,8 +1448,8 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
                 {
                   gpgsm_dump_cert ("self-signing cert", subject_cert);
                 }
-              rc = gpg_error (depth? GPG_ERR_BAD_CERT_CHAIN
-                                   : GPG_ERR_BAD_CERT);
+              rc = depth? GPG_ERR_BAD_CERT_CHAIN
+                                   : GPG_ERR_BAD_CERT;
               goto leave;
             }
           if (!rootca_flags->relax)
@@ -1484,7 +1484,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
                   err = gpgsm_is_in_qualified_list (ctrl, subject_cert, NULL);
                   if (!err)
                     is_qualified = 1;
-                  else if ( gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+                  else if ( err == GPG_ERR_NOT_FOUND)
                     is_qualified = 0;
                   else
                     log_error ("checking the list of qualified "
@@ -1509,7 +1509,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
           rc = istrusted_rc;
           if (!rc)
             ;
-          else if (gpg_err_code (rc) == GPG_ERR_NOT_TRUSTED)
+          else if (rc == GPG_ERR_NOT_TRUSTED)
             {
               do_list (0, listmode, listfp,
                        _("root certificate is not marked trusted"));
@@ -1560,7 +1560,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
       if ((depth+1) > maxdepth)
         {
           do_list (1, listmode, listfp, _("certificate chain too long\n"));
-          rc = gpg_error (GPG_ERR_BAD_CERT_CHAIN);
+          rc = GPG_ERR_BAD_CERT_CHAIN;
           goto leave;
         }
 
@@ -1581,7 +1581,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
             }
           else
             log_error ("failed to find issuer's certificate: rc=%d\n", rc);
-          rc = gpg_error (GPG_ERR_MISSING_ISSUER_CERT);
+          rc = GPG_ERR_MISSING_ISSUER_CERT;
           goto leave;
         }
 
@@ -1590,7 +1590,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
       if (rc)
         {
           log_error ("sm_keydb_get_cert() failed: rc=%d\n", rc);
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           goto leave;
         }
 
@@ -1610,7 +1610,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
               gpgsm_dump_cert ("signing issuer", issuer_cert);
               gpgsm_dump_cert ("signed subject", subject_cert);
             }
-          if (gpg_err_code (rc) == GPG_ERR_BAD_SIGNATURE)
+          if (rc == GPG_ERR_BAD_SIGNATURE)
             {
               /* We now try to find other issuer certificates which
                  might have been used.  This is required because some
@@ -1630,7 +1630,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
                          identical certificate.  We better stop here
                          to avoid infinite checks. */
                       /* No need to set RC because it is not used:
-                         rc = gpg_error (GPG_ERR_BAD_SIGNATURE);  */
+                         rc = GPG_ERR_BAD_SIGNATURE;  */
                       ksba_cert_release (tmp_cert);
                     }
                   else
@@ -1647,7 +1647,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
 
           /* We give a more descriptive error code than the one
              returned from the signature checking. */
-          rc = gpg_error (GPG_ERR_BAD_CERT_CHAIN);
+          rc = GPG_ERR_BAD_CERT_CHAIN;
           goto leave;
         }
 
@@ -1676,7 +1676,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
                   {
                     memset (rootca_flags, 0, sizeof *rootca_flags);
                     istrusted_rc = ((flags & VALIDATE_FLAG_STEED)
-                                    ? 0 : gpg_error (GPG_ERR_NOT_TRUSTED));
+                                    ? 0 : GPG_ERR_NOT_TRUSTED);
                   }
                 else
                   istrusted_rc = gpgsm_agent_istrusted
@@ -1697,7 +1697,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
             do_list (1, listmode, listfp,
                      _("certificate chain longer than allowed by CA (%d)"),
                      chainlen);
-            rc = gpg_error (GPG_ERR_BAD_CERT_CHAIN);
+            rc = GPG_ERR_BAD_CERT_CHAIN;
             goto leave;
           }
       }
@@ -1776,15 +1776,15 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
     { /* If we encountered an error somewhere during the checks, set
          the error code to the most critical one */
       if (any_revoked)
-        rc = gpg_error (GPG_ERR_CERT_REVOKED);
+        rc = GPG_ERR_CERT_REVOKED;
       else if (any_expired)
-        rc = gpg_error (GPG_ERR_CERT_EXPIRED);
+        rc = GPG_ERR_CERT_EXPIRED;
       else if (any_no_crl)
-        rc = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+        rc = GPG_ERR_NO_CRL_KNOWN;
       else if (any_crl_too_old)
-        rc = gpg_error (GPG_ERR_CRL_TOO_OLD);
+        rc = GPG_ERR_CRL_TOO_OLD;
       else if (any_no_policy_match)
-        rc = gpg_error (GPG_ERR_NO_POLICY_MATCH);
+        rc = GPG_ERR_NO_POLICY_MATCH;
     }
 
  leave:
@@ -1806,7 +1806,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
              anyway.  */
           err = sm_keydb_set_cert_flags (ctrl, ci->cert, 1, KEYBOX_FLAG_BLOB, 0,
                                       KEYBOX_FLAG_BLOB_EPHEMERAL, 0);
-          if (!ci->next && gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+          if (!ci->next && err == GPG_ERR_NOT_FOUND)
             ;
           else if (err)
             log_error ("clearing ephemeral flag failed: %s\n",
@@ -1917,7 +1917,7 @@ gpgsm_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime,
     {
       *retflags |= VALIDATE_FLAG_STEED;
     }
-  else if (gpg_err_code (rc) == GPG_ERR_CERT_EXPIRED
+  else if (rc == GPG_ERR_CERT_EXPIRED
       && !(flags & VALIDATE_FLAG_CHAIN_MODEL)
       && (rootca_flags.valid && rootca_flags.chain_model))
     {
@@ -1963,7 +1963,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -1972,7 +1972,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
   if (!issuer)
     {
       log_error ("no issuer found in certificate\n");
-      rc = gpg_error (GPG_ERR_BAD_CERT);
+      rc = GPG_ERR_BAD_CERT;
       goto leave;
     }
 
@@ -1987,7 +1987,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
             {
               gpgsm_dump_cert ("self-signing cert", cert);
             }
-          rc = gpg_error (GPG_ERR_BAD_CERT);
+          rc = GPG_ERR_BAD_CERT;
           goto leave;
         }
     }
@@ -2006,7 +2006,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
             }
           else
             log_error ("failed to find issuer's certificate: rc=%d\n", rc);
-          rc = gpg_error (GPG_ERR_MISSING_ISSUER_CERT);
+          rc = GPG_ERR_MISSING_ISSUER_CERT;
           goto leave;
         }
 
@@ -2015,7 +2015,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
       if (rc)
         {
           log_error ("keydb_get_cert() failed: rc=%d\n", rc);
-          rc = gpg_error (GPG_ERR_GENERAL);
+          rc = GPG_ERR_GENERAL;
           goto leave;
         }
 
@@ -2029,7 +2029,7 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
               gpgsm_dump_cert ("signing issuer", issuer_cert);
               gpgsm_dump_cert ("signed subject", cert);
             }
-          rc = gpg_error (GPG_ERR_BAD_CERT);
+          rc = GPG_ERR_BAD_CERT;
           goto leave;
         }
       if (opt.verbose)
@@ -2086,7 +2086,7 @@ get_regtp_ca_info (ctrl_t ctrl, ksba_cert_t cert, int *chainlen)
       *chainlen = buf[1];
       return 1; /* This is a regtp CA. */
     }
-  else if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+  else if (err != GPG_ERR_NOT_FOUND)
     {
       log_error ("ksba_cert_get_user_data(%s) failed: %s\n",
                  "regtp_ca_chainlen", gpg_strerror (err));

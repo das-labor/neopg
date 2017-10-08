@@ -300,12 +300,12 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
 
   /* A quick test whether the filename already exists. */
   if (!access (filename, F_OK))
-    return !access (filename, R_OK)? 0 : gpg_error (GPG_ERR_EACCES);
+    return !access (filename, R_OK)? 0 : GPG_ERR_EACCES;
 
   /* If we don't want to create a new file at all, there is no need to
      go any further - bail out right here.  */
   if (!force_create)
-    return gpg_error (GPG_ERR_ENOENT);
+    return GPG_ERR_ENOENT;
 
   /* First of all we try to create the home directory.  Note, that we
      don't do any locking here because any sane application of gpg
@@ -322,7 +322,7 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
   }
 #endif /*HAVE_W32_SYSTEM*/
   if (!last_slash_in_filename)
-    return gpg_error (GPG_ERR_ENOENT);  /* No slash at all - should
+    return GPG_ERR_ENOENT;  /* No slash at all - should
                                            not happen though.  */
   save_slash = *last_slash_in_filename;
   *last_slash_in_filename = 0;
@@ -360,7 +360,7 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
                   filename, gpg_strerror (rc));
 
       if (!force_create)
-        return gpg_error (GPG_ERR_ENOENT);  /* Won't happen.  */
+        return GPG_ERR_ENOENT;  /* Won't happen.  */
       else
         return rc;
     }
@@ -403,7 +403,7 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
     {
       /* Very likely another process is updating a pubring.gpg and we
          should not create a pubring.kbx.  */
-      rc = gpg_error (GPG_ERR_ENOENT);
+      rc = GPG_ERR_ENOENT;
       goto leave;
     }
 
@@ -668,7 +668,7 @@ keydb_add_resource (const char *url, unsigned int flags)
   else if (strchr (resname, ':'))
     {
       log_error ("invalid key resource URL '%s'\n", url );
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       goto leave;
     }
 #endif /* !HAVE_DRIVE_LETTERS */
@@ -763,7 +763,7 @@ keydb_add_resource (const char *url, unsigned int flags)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
       log_error ("unknown type of key resource '%s'\n", url );
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       goto leave;
 
     case KEYDB_RESOURCE_TYPE_KEYRING:
@@ -774,7 +774,7 @@ keydb_add_resource (const char *url, unsigned int flags)
       if (keyring_register_filename (filename, read_only, &token))
         {
           if (used_resources >= MAX_KEYDB_RESOURCES)
-            err = gpg_error (GPG_ERR_RESOURCE_LIMIT);
+            err = GPG_ERR_RESOURCE_LIMIT;
           else
             {
               if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY))
@@ -805,7 +805,7 @@ keydb_add_resource (const char *url, unsigned int flags)
         if (!err)
           {
             if (used_resources >= MAX_KEYDB_RESOURCES)
-              err = gpg_error (GPG_ERR_RESOURCE_LIMIT);
+              err = GPG_ERR_RESOURCE_LIMIT;
             else
               {
                 if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY))
@@ -820,7 +820,7 @@ keydb_add_resource (const char *url, unsigned int flags)
                 used_resources++;
               }
           }
-        else if (gpg_err_code (err) == GPG_ERR_EEXIST)
+        else if (err == GPG_ERR_EEXIST)
           {
             /* Already registered.  We will mark it as the primary key
                if requested.  */
@@ -832,7 +832,7 @@ keydb_add_resource (const char *url, unsigned int flags)
 
       default:
 	log_error ("resource type of '%s' not supported\n", url);
-	err = gpg_error (GPG_ERR_GENERAL);
+	err = GPG_ERR_GENERAL;
 	goto leave;
     }
 
@@ -1218,7 +1218,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
   pk_count = uid_count = 0;
   while ((err = parse_packet (&parsectx, pkt)) != -1)
     {
-      if (gpg_err_code (err) == GPG_ERR_UNKNOWN_PACKET)
+      if (err == GPG_ERR_UNKNOWN_PACKET)
         {
           free_packet (pkt, &parsectx);
           init_packet (pkt);
@@ -1228,7 +1228,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
         {
           log_error ("parse_keyblock_image: read error: %s\n",
                      gpg_strerror (err));
-          err = gpg_error (GPG_ERR_INV_KEYRING);
+          err = GPG_ERR_INV_KEYRING;
           break;
         }
 
@@ -1260,7 +1260,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
         {
           log_error ("parse_keyblock_image: first packet in a keybox blob "
                      "is not a public key packet\n");
-          err = gpg_error (GPG_ERR_INV_KEYRING);
+          err = GPG_ERR_INV_KEYRING;
           break;
         }
       if (in_cert && (pkt->pkttype == PKT_PUBLIC_KEY
@@ -1268,7 +1268,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
         {
           log_error ("parse_keyblock_image: "
                      "multiple keyblocks in a keybox blob\n");
-          err = gpg_error (GPG_ERR_INV_KEYRING);
+          err = GPG_ERR_INV_KEYRING;
           break;
         }
       in_cert = 1;
@@ -1343,7 +1343,7 @@ keydb_get_keyblock (KEYDB_HANDLE hd, KBNODE *ret_kb)
   *ret_kb = NULL;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   if (DBG_CLOCK)
     log_clock ("keydb_get_keybock enter");
@@ -1372,12 +1372,12 @@ keydb_get_keyblock (KEYDB_HANDLE hd, KBNODE *ret_kb)
     }
 
   if (hd->found < 0 || hd->found >= hd->used)
-    return gpg_error (GPG_ERR_VALUE_NOT_FOUND);
+    return GPG_ERR_VALUE_NOT_FOUND;
 
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      err = gpg_error (GPG_ERR_GENERAL); /* oops */
+      err = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYRING:
       err = keyring_get_keyblock (hd->active[hd->found].u.kr, ret_kb);
@@ -1491,7 +1491,7 @@ keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
   pk = kb->pkt->pkt.public_key;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   kid_not_found_flush ();
   keyblock_cache_clear (hd);
@@ -1517,13 +1517,13 @@ keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
   keydb_search_reset (hd);
   err = keydb_search (hd, &desc, 1, NULL);
   if (err)
-    return gpg_error (GPG_ERR_VALUE_NOT_FOUND);
+    return GPG_ERR_VALUE_NOT_FOUND;
   log_assert (hd->found >= 0 && hd->found < hd->used);
 
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      err = gpg_error (GPG_ERR_GENERAL); /* oops */
+      err = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYRING:
       err = keyring_update_keyblock (hd->active[hd->found].u.kr, kb);
@@ -1568,7 +1568,7 @@ keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
   int idx;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   kid_not_found_flush ();
   keyblock_cache_clear (hd);
@@ -1581,7 +1581,7 @@ keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
   else if (hd->current >= 0 && hd->current < hd->used)
     idx = hd->current;
   else
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   err = lock_all (hd);
   if (err)
@@ -1590,7 +1590,7 @@ keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
   switch (hd->active[idx].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      err = gpg_error (GPG_ERR_GENERAL); /* oops */
+      err = GPG_ERR_GENERAL; /* oops */
       break;
     case KEYDB_RESOURCE_TYPE_KEYRING:
       err = keyring_insert_keyblock (hd->active[idx].u.kr, kb);
@@ -1632,13 +1632,13 @@ keydb_delete_keyblock (KEYDB_HANDLE hd)
   gpg_error_t rc;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   kid_not_found_flush ();
   keyblock_cache_clear (hd);
 
   if (hd->found < 0 || hd->found >= hd->used)
-    return gpg_error (GPG_ERR_VALUE_NOT_FOUND);
+    return GPG_ERR_VALUE_NOT_FOUND;
 
   if (opt.dry_run)
     return 0;
@@ -1650,7 +1650,7 @@ keydb_delete_keyblock (KEYDB_HANDLE hd)
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       break;
     case KEYDB_RESOURCE_TYPE_KEYRING:
       rc = keyring_delete_keyblock (hd->active[hd->found].u.kr);
@@ -1726,7 +1726,7 @@ keydb_locate_writable (KEYDB_HANDLE hd)
         }
     }
 
-  return gpg_error (GPG_ERR_NOT_FOUND);
+  return GPG_ERR_NOT_FOUND;
 }
 
 
@@ -1780,7 +1780,7 @@ keydb_search_reset (KEYDB_HANDLE hd)
   int i;
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   keyblock_cache_clear (hd);
 
@@ -1847,12 +1847,12 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
     *descindex = 0; /* Make sure it is always set on return.  */
 
   if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   if (!any_registered)
     {
-      write_status_error ("keydb_search", gpg_error (GPG_ERR_KEYRING_OPEN));
-      return gpg_error (GPG_ERR_NOT_FOUND);
+      write_status_error ("keydb_search", GPG_ERR_KEYRING_OPEN);
+      return GPG_ERR_NOT_FOUND;
     }
 
   if (DBG_CLOCK)
@@ -1876,7 +1876,7 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
       if (DBG_CLOCK)
         log_clock ("keydb_search leave (not found, cached)");
       keydb_stats.notfound_cached++;
-      return gpg_error (GPG_ERR_NOT_FOUND);
+      return GPG_ERR_NOT_FOUND;
     }
 
   /* NB: If one of the exact search modes below is used in a loop to
@@ -1909,7 +1909,7 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
     }
 
   rc = -1;
-  while ((rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
+  while ((rc == -1 || rc == GPG_ERR_EOF)
          && hd->current >= 0 && hd->current < hd->used)
     {
       if (DBG_LOOKUP)
@@ -1949,7 +1949,7 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
                    hd->current, hd->used,
                    rc == -1 ? "EOF" : gpg_strerror (rc));
 
-      if (rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
+      if (rc == -1 || rc == GPG_ERR_EOF)
         {
           /* EOF -> switch to next resource */
           hd->current++;
@@ -1959,8 +1959,8 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
     }
   hd->is_reset = 0;
 
-  rc = ((rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
-        ? gpg_error (GPG_ERR_NOT_FOUND)
+  rc = ((rc == -1 || rc == GPG_ERR_EOF)
+        ? GPG_ERR_NOT_FOUND
         : rc);
 
   keyblock_cache_clear (hd);
@@ -1980,7 +1980,7 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
       memcpy (hd->keyblock_cache.fpr, desc[0].u.fpr, 20);
     }
 
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND
+  if (rc == GPG_ERR_NOT_FOUND
       && ndesc == 1 && desc[0].mode == KEYDB_SEARCH_MODE_LONG_KID && was_reset
       && !already_in_cache)
     kid_not_found_insert (desc[0].u.kid);

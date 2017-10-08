@@ -41,13 +41,13 @@ struct poly1305mac_context_s {
 };
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_open (gcry_mac_hd_t h)
 {
   struct poly1305mac_context_s *mac_ctx;
   int secure = (h->magic == CTX_MAGIC_SECURE);
   unsigned int flags = (secure ? GCRY_CIPHER_SECURE : 0);
-  gcry_err_code_t err;
+  gpg_error_t err;
   int cipher_algo;
 
   if (secure)
@@ -56,7 +56,7 @@ poly1305mac_open (gcry_mac_hd_t h)
     mac_ctx = xtrycalloc (1, sizeof(*mac_ctx));
 
   if (!mac_ctx)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   h->u.poly1305mac.ctx = mac_ctx;
 
@@ -110,7 +110,7 @@ poly1305mac_close (gcry_mac_hd_t h)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_prepare_key (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
@@ -128,11 +128,11 @@ poly1305mac_prepare_key (gcry_mac_hd_t h, const unsigned char *key, size_t keyle
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_setkey (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   memset(&mac_ctx->ctx, 0, sizeof(mac_ctx->ctx));
   memset(&mac_ctx->tag, 0, sizeof(mac_ctx->tag));
@@ -176,11 +176,11 @@ poly1305mac_setkey (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_setiv (gcry_mac_hd_t h, const unsigned char *iv, size_t ivlen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   if (h->spec->algo == GCRY_MAC_POLY1305)
     return GPG_ERR_INV_ARG;
@@ -211,7 +211,7 @@ poly1305mac_setiv (gcry_mac_hd_t h, const unsigned char *iv, size_t ivlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_reset (gcry_mac_hd_t h)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
@@ -230,7 +230,7 @@ poly1305mac_reset (gcry_mac_hd_t h)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
@@ -244,7 +244,7 @@ poly1305mac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t *outlen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
@@ -275,11 +275,11 @@ poly1305mac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t *outlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305mac_verify (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   struct poly1305mac_context_s *mac_ctx = h->u.poly1305mac.ctx;
-  gcry_err_code_t err;
+  gpg_error_t err;
   size_t outlen = 0;
 
   /* Check and finalize tag. */

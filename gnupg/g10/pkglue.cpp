@@ -133,7 +133,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
   if (pkalgo == PUBKEY_ALGO_DSA)
     {
       if (!data[0] || !data[1])
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else
         rc = gcry_sexp_build (&s_sig, NULL,
                               "(sig-val(dsa(r%m)(s%m)))", data[0], data[1]);
@@ -141,7 +141,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
   else if (pkalgo == PUBKEY_ALGO_ECDSA)
     {
       if (!data[0] || !data[1])
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else
         rc = gcry_sexp_build (&s_sig, NULL,
                               "(sig-val(ecdsa(r%m)(s%m)))", data[0], data[1]);
@@ -156,11 +156,11 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
       log_assert (neededfixedlen <= sizeof buf);
 
       if (!r || !s)
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else if ((rlen = (gcry_mpi_get_nbits (r)+7)/8) > neededfixedlen || !rlen)
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else if ((slen = (gcry_mpi_get_nbits (s)+7)/8) > neededfixedlen || !slen)
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else
         {
           /* We need to fixup the length in case of leading zeroes.
@@ -205,7 +205,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
   else if (pkalgo == PUBKEY_ALGO_ELGAMAL || pkalgo == PUBKEY_ALGO_ELGAMAL_E)
     {
       if (!data[0] || !data[1])
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else
         rc = gcry_sexp_build (&s_sig, NULL,
                               "(sig-val(elg(r%m)(s%m)))", data[0], data[1]);
@@ -213,7 +213,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
   else if (pkalgo == PUBKEY_ALGO_RSA || pkalgo == PUBKEY_ALGO_RSA_S)
     {
       if (!data[0])
-        rc = gpg_error (GPG_ERR_BAD_MPI);
+        rc = GPG_ERR_BAD_MPI;
       else
         rc = gcry_sexp_build (&s_sig, NULL, "(sig-val(rsa(s%m)))", data[0]);
     }
@@ -296,7 +296,7 @@ pk_encrypt (pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
         }
     }
   else
-    rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+    rc = GPG_ERR_PUBKEY_ALGO;
 
   /* Pass it to libgcrypt. */
   if (!rc)
@@ -328,7 +328,7 @@ pk_encrypt (pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
       result = NULL;
       fingerprint_from_pk (pk, fp, &fpn);
       if (fpn != 20)
-        rc = gpg_error (GPG_ERR_INV_LENGTH);
+        rc = GPG_ERR_INV_LENGTH;
       else
         rc = pk_ecdh_encrypt_with_shared_point (1 /*=encrypton*/, shared,
                                                 fp, data, pkey, &result);

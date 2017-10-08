@@ -32,7 +32,7 @@
 /* Perform the AES-Wrap algorithm as specified by RFC3394.  We
    implement this as a mode usable with any cipher algorithm of
    blocksize 128.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_aeswrap_encrypt (gcry_cipher_hd_t c,
                               byte *outbuf, size_t outbuflen,
                               const byte *inbuf, size_t inbuflen )
@@ -114,7 +114,7 @@ _gcry_cipher_aeswrap_encrypt (gcry_cipher_hd_t c,
 /* Perform the AES-Unwrap algorithm as specified by RFC3394.  We
    implement this as a mode usable with any cipher algorithm of
    blocksize 128.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_aeswrap_decrypt (gcry_cipher_hd_t c,
                               byte *outbuf, size_t outbuflen,
                               const byte *inbuf, size_t inbuflen)

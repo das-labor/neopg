@@ -143,7 +143,7 @@ struct primepool_s *primepool;
 GPGRT_LOCK_DEFINE (primepool_lock);
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_primegen_init (void)
 {
   /* This function was formerly used to initialize the primepool
@@ -297,7 +297,7 @@ _gcry_generate_public_prime (unsigned int nbits,
    CB_FUNC, CB_ARG:  Callback to be used for extra checks.
 
  */
-static gcry_err_code_t
+static gpg_error_t
 prime_generate_internal (int need_q_factor,
 			 gcry_mpi_t *prime_generated, unsigned int pbits,
 			 unsigned int qbits, gcry_mpi_t g,
@@ -306,7 +306,7 @@ prime_generate_internal (int need_q_factor,
                          int all_factors,
                          gcry_prime_check_func_t cb_func, void *cb_arg)
 {
-  gcry_err_code_t err = 0;
+  gpg_error_t err = 0;
   gcry_mpi_t *factors_new = NULL; /* Factors to return to the
 				     caller.  */
   gcry_mpi_t *factors = NULL;	/* Current factors.  */
@@ -385,7 +385,7 @@ prime_generate_internal (int need_q_factor,
   factors = xtrycalloc (n + 2, sizeof (*factors));
   if (!factors)
     {
-      err = gpg_err_code_from_errno (errno);
+      err = gpg_error_from_errno (errno);
       goto leave;
     }
 
@@ -393,7 +393,7 @@ prime_generate_internal (int need_q_factor,
   pool_in_use = xtrymalloc (n * sizeof *pool_in_use);
   if (!pool_in_use)
     {
-      err = gpg_err_code_from_errno (errno);
+      err = gpg_error_from_errno (errno);
       goto leave;
     }
   for (i=0; i < n; i++)
@@ -412,7 +412,7 @@ prime_generate_internal (int need_q_factor,
   pool = xtrycalloc (m , sizeof (*pool));
   if (! pool)
     {
-      err = gpg_err_code_from_errno (errno);
+      err = gpg_error_from_errno (errno);
       goto leave;
     }
 
@@ -438,7 +438,7 @@ prime_generate_internal (int need_q_factor,
           perms = xtrycalloc (1, m);
           if (!perms)
             {
-              err = gpg_err_code_from_errno (errno);
+              err = gpg_error_from_errno (errno);
               goto leave;
             }
 
@@ -593,7 +593,7 @@ prime_generate_internal (int need_q_factor,
       factors_new = xtrycalloc (n + 4, sizeof (*factors_new));
       if (! factors_new)
         {
-          err = gpg_err_code_from_errno (errno);
+          err = gpg_error_from_errno (errno);
           goto leave;
         }
 
@@ -728,7 +728,7 @@ prime_generate_internal (int need_q_factor,
    to NULL and an error code is returned.  If RET_FACTORS is not NULL
    it is set to an allocated array of factors on success or to NULL on
    error.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_generate_elg_prime (int mode, unsigned pbits, unsigned qbits,
 			  gcry_mpi_t g,
                           gcry_mpi_t *r_prime, gcry_mpi_t **ret_factors)
@@ -1107,14 +1107,14 @@ m_out_of_n ( char *array, int m, int n )
    non-zero, allocate a new, NULL-terminated array holding the prime
    factors and store it in FACTORS.  FLAGS might be used to influence
    the prime number generation process.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_prime_generate (gcry_mpi_t *prime, unsigned int prime_bits,
                       unsigned int factor_bits, gcry_mpi_t **factors,
                       gcry_prime_check_func_t cb_func, void *cb_arg,
                       gcry_random_level_t random_level,
                       unsigned int flags)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   gcry_mpi_t *factors_generated = NULL;
   gcry_mpi_t prime_generated = NULL;
   unsigned int mode = 0;
@@ -1163,7 +1163,7 @@ _gcry_prime_generate (gcry_mpi_t *prime, unsigned int prime_bits,
 }
 
 /* Check whether the number X is prime.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_prime_check (gcry_mpi_t x, unsigned int flags)
 {
   (void)flags;
@@ -1184,10 +1184,10 @@ _gcry_prime_check (gcry_mpi_t x, unsigned int flags)
 
 
 /* Check whether the number X is prime according to FIPS 186-4 table C.2.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_fips186_4_prime_check (gcry_mpi_t x, unsigned int bits)
 {
-  gcry_err_code_t ec = GPG_ERR_NO_ERROR;
+  gpg_error_t ec = GPG_ERR_NO_ERROR;
 
   switch (mpi_cmp_ui (x, 2))
     {
@@ -1207,7 +1207,7 @@ _gcry_fips186_4_prime_check (gcry_mpi_t x, unsigned int bits)
    in the NULL terminated array FACTORS. Return the generator as a
    newly allocated MPI in R_G.  If START_G is not NULL, use this as s
    atart for the search. Returns 0 on success.*/
-gcry_err_code_t
+gpg_error_t
 _gcry_prime_group_generator (gcry_mpi_t *r_g,
                              gcry_mpi_t prime, gcry_mpi_t *factors,
                              gcry_mpi_t start_g)
@@ -1436,14 +1436,14 @@ _gcry_derive_x931_prime (const gcry_mpi_t xp,
    success the generated primes are stored at R_Q and R_P, the counter
    value is stored at R_COUNTER and the seed actually used for
    generation is stored at R_SEED and R_SEEDVALUE.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_generate_fips186_2_prime (unsigned int pbits, unsigned int qbits,
                                 const void *seed, size_t seedlen,
                                 gcry_mpi_t *r_q, gcry_mpi_t *r_p,
                                 int *r_counter,
                                 void **r_seed, size_t *r_seedlen)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   unsigned char seed_help_buffer[160/8];  /* Used to hold a generated SEED. */
   unsigned char *seed_plus;     /* Malloced buffer to hold SEED+x.  */
   unsigned char digest[160/8];  /* Helper buffer for SHA-1 digest.  */
@@ -1472,7 +1472,7 @@ _gcry_generate_fips186_2_prime (unsigned int pbits, unsigned int qbits,
   seed_plus = xtrymalloc (seedlen < 20? 20:seedlen);
   if (!seed_plus)
     {
-      ec = gpg_err_code_from_syserror ();
+      ec = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -1648,7 +1648,7 @@ _gcry_generate_fips186_2_prime (unsigned int pbits, unsigned int qbits,
  * to the minor differences, other buffer sizes and for documentarion,
  * we use a separate function.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_generate_fips186_3_prime (unsigned int pbits, unsigned int qbits,
                                 const void *seed, size_t seedlen,
                                 gcry_mpi_t *r_q, gcry_mpi_t *r_p,
@@ -1656,7 +1656,7 @@ _gcry_generate_fips186_3_prime (unsigned int pbits, unsigned int qbits,
                                 void **r_seed, size_t *r_seedlen,
                                 int *r_hashalgo)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   unsigned char seed_help_buffer[256/8];  /* Used to hold a generated SEED. */
   unsigned char *seed_plus;     /* Malloced buffer to hold SEED+x.  */
   unsigned char digest[256/8];  /* Helper buffer for SHA-2 digest.  */
@@ -1707,7 +1707,7 @@ _gcry_generate_fips186_3_prime (unsigned int pbits, unsigned int qbits,
                           sizeof seed_help_buffer : seedlen);
   if (!seed_plus)
     {
-      ec = gpg_err_code_from_syserror ();
+      ec = gpg_error_from_syserror ();
       goto leave;
     }
   val_2   = mpi_alloc_set_ui (2);

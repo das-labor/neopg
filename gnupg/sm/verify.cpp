@@ -113,7 +113,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -266,7 +266,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   if (data_fd != -1 && !is_detached)
     {
       log_error ("data given for a non-detached signature\n");
-      rc = gpg_error (GPG_ERR_CONFLICT);
+      rc = GPG_ERR_CONFLICT;
       audit_log (ctrl->audit, AUDIT_USAGE_ERROR);
       goto leave;
     }
@@ -297,7 +297,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       unsigned int verifyflags;
 
       rc = ksba_cms_get_issuer_serial (cms, signer, &issuer, &serial);
-      if (!signer && gpg_err_code (rc) == GPG_ERR_NO_DATA
+      if (!signer && rc == GPG_ERR_NO_DATA
           && data_fd == -1 && is_detached)
         {
           log_info ("certs-only message accepted\n");
@@ -330,7 +330,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         }
 
       rc = ksba_cms_get_signing_time (cms, signer, sigtime);
-      if (gpg_err_code (rc) == GPG_ERR_NO_DATA)
+      if (rc == GPG_ERR_NO_DATA)
         *sigtime = 0;
       else if (rc)
         {
@@ -354,7 +354,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
               goto next_signer;
             }
         }
-      else if (gpg_err_code (rc) == GPG_ERR_NO_DATA)
+      else if (rc == GPG_ERR_NO_DATA)
         {
           assert (!msgdigest);
           rc = 0;
@@ -426,7 +426,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           if (rc == -1)
             {
               log_error ("certificate not found\n");
-              rc = gpg_error (GPG_ERR_NO_PUBKEY);
+              rc = GPG_ERR_NO_PUBKEY;
             }
           else
             log_error ("failed to find the certificate: %s\n",
@@ -568,7 +568,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (rc)
         {
           gpgsm_status_with_err_code (ctrl, STATUS_ERROR, "verify.keyusage",
-                                      gpg_err_code (rc));
+                                      rc);
           rc = 0;
         }
 
@@ -583,7 +583,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         char *fpr, *buf, *tstr;
 
         fpr = gpgsm_fpr_and_name_for_status (cert);
-        if (gpg_err_code (rc) == GPG_ERR_CERT_EXPIRED)
+        if (rc == GPG_ERR_CERT_EXPIRED)
           {
             gpgsm_status (ctrl, STATUS_EXPKEYSIG, fpr);
             rc = 0;
@@ -609,15 +609,15 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (rc) /* of validate_chain */
         {
           log_error ("invalid certification chain: %s\n", gpg_strerror (rc));
-          if (gpg_err_code (rc) == GPG_ERR_BAD_CERT_CHAIN
-              || gpg_err_code (rc) == GPG_ERR_BAD_CERT
-              || gpg_err_code (rc) == GPG_ERR_BAD_CA_CERT
-              || gpg_err_code (rc) == GPG_ERR_CERT_REVOKED)
+          if (rc == GPG_ERR_BAD_CERT_CHAIN
+              || rc == GPG_ERR_BAD_CERT
+              || rc == GPG_ERR_BAD_CA_CERT
+              || rc == GPG_ERR_CERT_REVOKED)
             gpgsm_status_with_err_code (ctrl, STATUS_TRUST_NEVER, NULL,
-                                        gpg_err_code (rc));
+                                        rc);
           else
             gpgsm_status_with_err_code (ctrl, STATUS_TRUST_UNDEFINED, NULL,
-                                        gpg_err_code (rc));
+                                        rc);
           audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
         }
@@ -652,7 +652,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                        "to create or verify such signatures.\n"));
               }
           }
-        else if (gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+        else if (rc != GPG_ERR_NOT_FOUND)
           log_error ("get_user_data(is_qualified) failed: %s\n",
                      gpg_strerror (rc));
       }

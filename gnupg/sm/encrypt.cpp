@@ -76,7 +76,7 @@ init_dek (DEK dek)
   if (!dek->algo || !mode)
     {
       log_error ("unsupported algorithm '%s'\n", dek->algoid);
-      return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+      return GPG_ERR_UNSUPPORTED_ALGORITHM;
     }
 
   /* Extra check for algorithms we consider to be too weak for
@@ -88,24 +88,24 @@ init_dek (DEK dek)
     case GCRY_CIPHER_RFC2268_40:
       log_error ("cipher algorithm '%s' not allowed: too weak\n",
                  gnupg_cipher_algo_name (dek->algo));
-      return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+      return GPG_ERR_UNSUPPORTED_ALGORITHM;
     default:
       break;
     }
 
   dek->keylen = gcry_cipher_get_algo_keylen (dek->algo);
   if (!dek->keylen || dek->keylen > sizeof (dek->key))
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   dek->ivlen = gcry_cipher_get_algo_blklen (dek->algo);
   if (!dek->ivlen || dek->ivlen > sizeof (dek->iv))
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   /* Make sure we don't use weak keys. */
   if (dek->keylen < 100/8)
     {
       log_error ("key length of '%s' too small\n", dek->algoid);
-      return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+      return GPG_ERR_UNSUPPORTED_ALGORITHM;
     }
 
   rc = gcry_cipher_open (&dek->chd, dek->algo, mode, GCRY_CIPHER_SECURE);
@@ -119,7 +119,7 @@ init_dek (DEK dek)
     {
       gcry_randomize (dek->key, dek->keylen, GCRY_STRONG_RANDOM );
       rc = gcry_cipher_setkey (dek->chd, dek->key, dek->keylen);
-      if (gpg_err_code (rc) != GPG_ERR_WEAK_KEY)
+      if (rc != GPG_ERR_WEAK_KEY)
         break;
       log_info(_("weak key created - retrying\n") );
     }
@@ -182,13 +182,13 @@ encrypt_dek (const DEK dek, ksba_cert_t cert, unsigned char **encval)
   if (!buf)
     {
       log_error ("no public key for recipient\n");
-      return gpg_error (GPG_ERR_NO_PUBKEY);
+      return GPG_ERR_NO_PUBKEY;
     }
   len = gcry_sexp_canon_len (buf, 0, NULL, NULL);
   if (!len)
     {
       log_error ("libksba did not return a proper S-Exp\n");
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
     }
   rc = gcry_sexp_sscan (&s_pkey, NULL, (char*)buf, len);
   xfree (buf); buf = NULL;
@@ -330,7 +330,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
       log_error(_("no valid recipients given\n"));
       gpgsm_status (ctrl, STATUS_NO_RECP, "0");
       audit_log_i (ctrl->audit, AUDIT_GOT_RECIPIENTS, 0);
-      rc = gpg_error (GPG_ERR_NO_PUBKEY);
+      rc = GPG_ERR_NO_PUBKEY;
       goto leave;
     }
 
@@ -342,7 +342,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -416,7 +416,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
 		   " while in %s mode\n"),
 		 opt.def_cipher_algoid,
 		 gnupg_compliance_option_string (opt.compliance));
-      rc = gpg_error (GPG_ERR_CIPHER_ALGO);
+      rc = GPG_ERR_CIPHER_ALGO;
       goto leave;
     }
 
@@ -477,7 +477,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
                      "encryption while in %s mode\n",
                      gpgsm_get_short_fingerprint (cl->cert, NULL),
                      gnupg_compliance_option_string (opt.compliance));
-          rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+          rc = GPG_ERR_PUBKEY_ALGO;
           goto leave;
         }
 
@@ -540,7 +540,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   if (encparm.readerror)
     {
       log_error ("error reading input: %s\n", strerror (encparm.readerror));
-      rc = gpg_error (gpg_err_code_from_errno (encparm.readerror));
+      rc = gpg_error_from_errno (encparm.readerror);
       goto leave;
     }
 

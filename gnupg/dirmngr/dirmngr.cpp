@@ -405,9 +405,9 @@ my_ksba_hash_buffer (void *arg, const char *oid,
   (void)arg;
 
   if (oid && strcmp (oid, "1.3.14.3.2.26"))
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
   if (resultsize < 20)
-    return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
+    return GPG_ERR_BUFFER_TOO_SHORT;
   gcry_md_hash_buffer (2, result, buffer, length);
   *resultlen = 20;
   return 0;
@@ -1668,8 +1668,8 @@ parse_ocsp_signer (const char *string)
           /* Eat until end of line. */
           while ( (c=es_getc (fp)) != EOF && c != '\n')
             ;
-          err = gpg_error (*line? GPG_ERR_LINE_TOO_LONG
-                           /* */: GPG_ERR_INCOMPLETE_LINE);
+          err = *line? GPG_ERR_LINE_TOO_LONG
+                           /* */: GPG_ERR_INCOMPLETE_LINE;
           log_error (_("%s:%u: read error: %s\n"),
                      fname, lnr, gpg_strerror (err));
           errflag = 1;

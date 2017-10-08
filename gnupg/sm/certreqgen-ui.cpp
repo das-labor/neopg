@@ -307,7 +307,7 @@ gpgsm_gencertreq_tty (ctrl_t ctrl, estream_t output_stream)
         tty_printf (_("No subject name given\n"));
       else if ( (err = ksba_dn_teststr (answer, 0, &erroff, &errlen)) )
         {
-          if (gpg_err_code (err) == GPG_ERR_UNKNOWN_NAME)
+          if (err == GPG_ERR_UNKNOWN_NAME)
             tty_printf (_("Invalid subject name label '%.*s'\n"),
                         (int)errlen, answer+erroff);
           else

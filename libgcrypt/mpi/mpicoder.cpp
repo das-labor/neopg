@@ -462,7 +462,7 @@ twocompl (unsigned char *p, unsigned int n)
  * with a length of BUFLEN into a newly create MPI returned in
  * RET_MPI.  If NSCANNED is not NULL, it will receive the number of
  * bytes actually scanned after a successful operation.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mpi_scan (struct gcry_mpi **ret_mpi, enum gcry_mpi_format format,
                 const void *buffer_arg, size_t buflen, size_t *nscanned)
 {
@@ -626,7 +626,7 @@ _gcry_mpi_scan (struct gcry_mpi **ret_mpi, enum gcry_mpi_format format,
    receives the actual length of the external representation unless it
    has been passed as NULL.  BUFFER may be NULL to query the required
    length.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mpi_print (enum gcry_mpi_format format,
                  unsigned char *buffer, size_t buflen,
                  size_t *nwritten, struct gcry_mpi *a)
@@ -659,7 +659,7 @@ _gcry_mpi_print (enum gcry_mpi_format format,
 
       tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
       if (!tmp)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
 
       if (negative)
         {
@@ -716,7 +716,7 @@ _gcry_mpi_print (enum gcry_mpi_format format,
 
           tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
           if (!tmp)
-            return gpg_err_code_from_syserror ();
+            return gpg_error_from_syserror ();
           memcpy (buffer, tmp, n);
           xfree (tmp);
 	}
@@ -744,7 +744,7 @@ _gcry_mpi_print (enum gcry_mpi_format format,
 
           tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
           if (!tmp)
-            return gpg_err_code_from_syserror ();
+            return gpg_error_from_syserror ();
           memcpy (s+2, tmp, n);
           xfree (tmp);
 	}
@@ -759,7 +759,7 @@ _gcry_mpi_print (enum gcry_mpi_format format,
 
       tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
       if (!tmp)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
 
       if (negative)
         {
@@ -810,7 +810,7 @@ _gcry_mpi_print (enum gcry_mpi_format format,
 
       tmp = _gcry_mpi_get_buffer (a, 0, &n, NULL);
       if (!tmp)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       if (!n || (*tmp & 0x80))
         extra = 2;
 
@@ -859,13 +859,13 @@ _gcry_mpi_print (enum gcry_mpi_format format,
  * The caller has to supply the address of a pointer.  NWRITTEN may be
  * NULL.
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mpi_aprint (enum gcry_mpi_format format,
                   unsigned char **buffer, size_t *nwritten,
                   struct gcry_mpi *a)
 {
   size_t n;
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   *buffer = NULL;
   rc = _gcry_mpi_print (format, NULL, 0, &n, a);
@@ -874,7 +874,7 @@ _gcry_mpi_aprint (enum gcry_mpi_format format,
 
   *buffer = mpi_is_secure(a) ? xtrymalloc_secure (n?n:1) : xtrymalloc (n?n:1);
   if (!*buffer)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   /* If the returned buffer will have a length of 0, we nevertheless
      allocated 1 byte (malloc needs it anyway) and store a 0.  */
   if (!n)
@@ -898,11 +898,11 @@ _gcry_mpi_aprint (enum gcry_mpi_format format,
    NBYTES.  If the resulting octet string is shorter than NBYTES pad
    it to the left with zeroes.  If VALUE does not fit into NBYTES
    return an error code.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_mpi_to_octet_string (unsigned char **r_frame, void *space,
                            gcry_mpi_t value, size_t nbytes)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   size_t nframe, noff, n;
   unsigned char *frame;
 
@@ -927,7 +927,7 @@ _gcry_mpi_to_octet_string (unsigned char **r_frame, void *space,
       frame = mpi_is_secure (value)? xtrymalloc_secure (n) : xtrymalloc (n);
       if (!frame)
         {
-          rc = gpg_err_code_from_syserror ();
+          rc = gpg_error_from_syserror ();
           return rc;
         }
     }

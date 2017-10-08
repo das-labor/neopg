@@ -101,12 +101,12 @@ struct gcry_sexp
 
 #define TOKEN_SPECIALS  "-./_:*+="
 
-static gcry_err_code_t
+static gpg_error_t
 do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                 const char *buffer, size_t length, int argflag,
                 void **arg_list, va_list arg_ptr);
 
-static gcry_err_code_t
+static gpg_error_t
 do_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                const char *buffer, size_t length, int argflag,
                void **arg_list, ...);
@@ -258,11 +258,11 @@ normalize ( gcry_sexp_t list )
 
    This function returns 0 and and the pointer to the new object in
    RETSEXP or an error code in which case RETSEXP is set to NULL.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_sexp_create (gcry_sexp_t *retsexp, void *buffer, size_t length,
                   int autodetect, void (*freefnc)(void*) )
 {
-  gcry_err_code_t errcode;
+  gpg_error_t errcode;
   gcry_sexp_t se;
 
   if (!retsexp)
@@ -301,7 +301,7 @@ _gcry_sexp_create (gcry_sexp_t *retsexp, void *buffer, size_t length,
 }
 
 /* Same as gcry_sexp_create but don't transfer ownership */
-gcry_err_code_t
+gpg_error_t
 _gcry_sexp_new (gcry_sexp_t *retsexp, const void *buffer, size_t length,
                int autodetect)
 {
@@ -970,7 +970,7 @@ struct make_space_ctx
 };
 
 
-static gpg_err_code_t
+static gpg_error_t
 make_space ( struct make_space_ctx *c, size_t n )
 {
   size_t used = c->pos - c->sexp->d;
@@ -986,7 +986,7 @@ make_space ( struct make_space_ctx *c, size_t n )
         return GPG_ERR_TOO_LARGE;
       newsexp = xtryrealloc ( c->sexp, sizeof *newsexp + newsize - 1);
       if (!newsexp)
-        return gpg_err_code_from_errno (errno);
+        return gpg_error_from_errno (errno);
       c->allocated = newsize;
       newhead = newsexp->d;
       c->pos = newhead + used;
@@ -1091,12 +1091,12 @@ unquote_string (const char *string, size_t length, unsigned char *buf)
  * common operation gcry_sexp_cdr_mpi() will always return a secure MPI
  * regardless whether it is needed or not.
  */
-static gpg_err_code_t
+static gpg_error_t
 do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                 const char *buffer, size_t length, int argflag,
                 void **arg_list, va_list arg_ptr)
 {
-  gcry_err_code_t err = 0;
+  gpg_error_t err = 0;
   static const char tokenchars[] =
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -1146,7 +1146,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
      context named C and jumps out to the label LEAVE on error! It
      also sets ERROFF using the variables BUFFER and P.  */
 #define MAKE_SPACE(n)  do {                                                \
-                            gpg_err_code_t _ms_err = make_space (&c, (n)); \
+                            gpg_error_t _ms_err = make_space (&c, (n)); \
                             if (_ms_err)                                   \
                               {                                            \
                                 err = _ms_err;                             \
@@ -1172,7 +1172,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
     c.sexp = xtrymalloc (sizeof *c.sexp + c.allocated - 1);
   if (!c.sexp)
     {
-      err = gpg_err_code_from_errno (errno);
+      err = gpg_error_from_errno (errno);
       *erroff = 0;
       goto leave;
     }
@@ -1410,7 +1410,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                                                        + c.allocated - 1);
                           if (!newsexp)
                             {
-                              err = gpg_err_code_from_errno (errno);
+                              err = gpg_error_from_errno (errno);
                               goto leave;
                             }
                           newhead = newsexp->d;
@@ -1443,7 +1443,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                                                    + c.allocated - 1);
                       if (!newsexp)
                         {
-                          err = gpg_err_code_from_errno (errno);
+                          err = gpg_error_from_errno (errno);
                           goto leave;
                         }
                       newhead = newsexp->d;
@@ -1497,7 +1497,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                                                + c.allocated - 1);
                   if (!newsexp)
                     {
-                      err = gpg_err_code_from_errno (errno);
+                      err = gpg_error_from_errno (errno);
                       goto leave;
                     }
 		  newhead = newsexp->d;
@@ -1705,12 +1705,12 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 do_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                const char *buffer, size_t length, int argflag,
                void **arg_list, ...)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   va_list arg_ptr;
 
   va_start (arg_ptr, arg_list);
@@ -1722,10 +1722,10 @@ do_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gcry_sexp_build (gcry_sexp_t *retsexp, size_t *erroff, const char *format, ...)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   va_list arg_ptr;
 
   va_start (arg_ptr, format);
@@ -1737,7 +1737,7 @@ _gcry_sexp_build (gcry_sexp_t *retsexp, size_t *erroff, const char *format, ...)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_sexp_vbuild (gcry_sexp_t *retsexp, size_t *erroff,
                    const char *format, va_list arg_ptr)
 {
@@ -1748,7 +1748,7 @@ _gcry_sexp_vbuild (gcry_sexp_t *retsexp, size_t *erroff,
 
 /* Like gcry_sexp_build, but uses an array instead of variable
    function arguments.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_sexp_build_array (gcry_sexp_t *retsexp, size_t *erroff,
                         const char *format, void **arg_list)
 {
@@ -1756,7 +1756,7 @@ _gcry_sexp_build_array (gcry_sexp_t *retsexp, size_t *erroff,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_sexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                   const char *buffer, size_t length)
 {
@@ -2045,13 +2045,13 @@ _gcry_sexp_sprint (const gcry_sexp_t list, int mode,
    NULL.  */
 size_t
 _gcry_sexp_canon_len (const unsigned char *buffer, size_t length,
-                      size_t *erroff, gcry_err_code_t *errcode)
+                      size_t *erroff, gpg_error_t *errcode)
 {
   const unsigned char *p;
   const unsigned char *disphint = NULL;
   unsigned int datalen = 0;
   size_t dummy_erroff;
-  gcry_err_code_t dummy_errcode;
+  gpg_error_t dummy_errcode;
   size_t count = 0;
   int level = 0;
 
@@ -2220,11 +2220,11 @@ _gcry_sexp_canon_len (const unsigned char *buffer, size_t length,
  * either truncated if the caller supplied the buffer, or deallocated
  * if the function allocated the buffer.
  */
-gpg_err_code_t
+gpg_error_t
 _gcry_sexp_vextract_param (gcry_sexp_t sexp, const char *path,
                            const char *list, va_list arg_ptr)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   const char *s, *s2;
   gcry_mpi_t *array[20];
   char arrayisdesc[20];
@@ -2432,11 +2432,11 @@ _gcry_sexp_vextract_param (gcry_sexp_t sexp, const char *path,
   return rc;
 }
 
-gpg_err_code_t
+gpg_error_t
 _gcry_sexp_extract_param (gcry_sexp_t sexp, const char *path,
                           const char *list, ...)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   va_list arg_ptr;
 
   va_start (arg_ptr, list);

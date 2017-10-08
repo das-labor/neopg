@@ -447,7 +447,7 @@ _gcry_rngcsprng_is_faked (void)
 /* Add BUFLEN bytes from BUF to the internal random pool.  QUALITY
    should be in the range of 0..100 to indicate the goodness of the
    entropy added, or -1 for goodness not known.  */
-gcry_error_t
+gpg_error_t
 _gcry_rngcsprng_add_bytes (const void *buf, size_t buflen, int quality)
 {
   size_t nbytes;
@@ -461,7 +461,7 @@ _gcry_rngcsprng_add_bytes (const void *buf, size_t buflen, int quality)
     quality = 0;
 
   if (!buf)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   if (!buflen || quality < 10)
     return 0; /* Take a shortcut. */

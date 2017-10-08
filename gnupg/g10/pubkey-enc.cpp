@@ -99,14 +99,14 @@ get_session_key (ctrl_t ctrl, PKT_pubkey_enc * k, DEK * dek)
                           " while in %s mode\n"),
                         keystr_from_pk (sk),
                         gnupg_compliance_option_string (opt.compliance));
-              rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+              rc = GPG_ERR_PUBKEY_ALGO;
             }
           else
             rc = get_it (ctrl, k, dek, sk, k->keyid);
         }
     }
   else if (opt.skip_hidden_recipients)
-    rc = gpg_error (GPG_ERR_NO_SECKEY);
+    rc = GPG_ERR_NO_SECKEY;
   else  /* Anonymous receiver: Try all available secret keys.  */
     {
       void *enum_context = NULL;
@@ -150,7 +150,7 @@ get_session_key (ctrl_t ctrl, PKT_pubkey_enc * k, DEK * dek)
                 log_info (_("okay, we are the anonymous recipient.\n"));
               break;
             }
-          else if (gpg_err_code (rc) == GPG_ERR_FULLY_CANCELED)
+          else if (rc == GPG_ERR_FULLY_CANCELED)
             break; /* Don't try any more secret keys.  */
         }
       enum_secret_keys (ctrl, &enum_context, NULL);  /* free context */
@@ -193,7 +193,7 @@ get_it (ctrl_t ctrl,
       || sk->pubkey_algo == PUBKEY_ALGO_ELGAMAL_E)
     {
       if (!enc->data[0] || !enc->data[1])
-        err = gpg_error (GPG_ERR_BAD_MPI);
+        err = GPG_ERR_BAD_MPI;
       else
         err = gcry_sexp_build (&s_data, NULL, "(enc-val(elg(a%m)(b%m)))",
                                enc->data[0], enc->data[1]);
@@ -202,7 +202,7 @@ get_it (ctrl_t ctrl,
            || sk->pubkey_algo == PUBKEY_ALGO_RSA_E)
     {
       if (!enc->data[0])
-        err = gpg_error (GPG_ERR_BAD_MPI);
+        err = GPG_ERR_BAD_MPI;
       else
         err = gcry_sexp_build (&s_data, NULL, "(enc-val(rsa(a%m)))",
                                enc->data[0]);
@@ -210,13 +210,13 @@ get_it (ctrl_t ctrl,
   else if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
     {
       if (!enc->data[0] || !enc->data[1])
-        err = gpg_error (GPG_ERR_BAD_MPI);
+        err = GPG_ERR_BAD_MPI;
       else
         err = gcry_sexp_build (&s_data, NULL, "(enc-val(ecdh(s%m)(e%m)))",
                                enc->data[1], enc->data[0]);
     }
   else
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 
   if (err)
     goto leave;
@@ -267,7 +267,7 @@ get_it (ctrl_t ctrl,
       err = gcry_mpi_scan (&shared_mpi, GCRYMPI_FMT_USG, frame, nframe, NULL);
       if (err)
         {
-          err = gpg_error (GPG_ERR_WRONG_SECKEY);
+          err = GPG_ERR_WRONG_SECKEY;
           goto leave;
         }
 
@@ -290,7 +290,7 @@ get_it (ctrl_t ctrl,
       if (!nframe || frame[nframe-1] > 8*2 || nframe <= 8
           || frame[nframe-1] > nframe)
         {
-          err = gpg_error (GPG_ERR_WRONG_SECKEY);
+          err = GPG_ERR_WRONG_SECKEY;
           goto leave;
         }
       nframe -= frame[nframe-1]; /* Remove padding.  */
@@ -302,18 +302,18 @@ get_it (ctrl_t ctrl,
         {
           if (n + 7 > nframe)
             {
-              err = gpg_error (GPG_ERR_WRONG_SECKEY);
+              err = GPG_ERR_WRONG_SECKEY;
               goto leave;
             }
           if (frame[n] == 1 && frame[nframe - 1] == 2)
             {
               log_info (_("old encoding of the DEK is not supported\n"));
-              err = gpg_error (GPG_ERR_CIPHER_ALGO);
+              err = GPG_ERR_CIPHER_ALGO;
               goto leave;
             }
           if (frame[n] != 2) /* Something went wrong.  */
             {
-              err = gpg_error (GPG_ERR_WRONG_SECKEY);
+              err = GPG_ERR_WRONG_SECKEY;
               goto leave;
             }
           for (n++; n < nframe && frame[n]; n++) /* Skip the random bytes.  */
@@ -324,7 +324,7 @@ get_it (ctrl_t ctrl,
 
   if (n + 4 > nframe)
     {
-      err = gpg_error (GPG_ERR_WRONG_SECKEY);
+      err = GPG_ERR_WRONG_SECKEY;
       goto leave;
     }
 
@@ -333,7 +333,7 @@ get_it (ctrl_t ctrl,
   err = openpgp_cipher_test_algo (dek->algo);
   if (err)
     {
-      if (!opt.quiet && gpg_err_code (err) == GPG_ERR_CIPHER_ALGO)
+      if (!opt.quiet && err == GPG_ERR_CIPHER_ALGO)
         {
           log_info (_("cipher algorithm %d%s is unknown or disabled\n"),
                     dek->algo,
@@ -344,7 +344,7 @@ get_it (ctrl_t ctrl,
     }
   if (dek->keylen != openpgp_cipher_get_algo_keylen (dek->algo))
     {
-      err = gpg_error (GPG_ERR_WRONG_SECKEY);
+      err = GPG_ERR_WRONG_SECKEY;
       goto leave;
     }
 
@@ -355,7 +355,7 @@ get_it (ctrl_t ctrl,
     csum2 += dek->key[n];
   if (csum != csum2)
     {
-      err = gpg_error (GPG_ERR_WRONG_SECKEY);
+      err = GPG_ERR_WRONG_SECKEY;
       goto leave;
     }
   if (DBG_CLOCK)

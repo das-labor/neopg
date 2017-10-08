@@ -37,7 +37,7 @@
 #include "../common/status.h"
 
 
-#define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
+#define set_error(e,t) assuan_set_error (ctx, e, (t))
 
 
 /* Data used to associate an Assuan context with local server data.  */
@@ -110,7 +110,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       ctrl->server_local->allow_pinentry_notify = 1;
     }
   else
-    return gpg_error (GPG_ERR_UNKNOWN_OPTION);
+    return GPG_ERR_UNKNOWN_OPTION;
 
   return 0;
 }
@@ -236,7 +236,7 @@ cmd_signer (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -272,7 +272,7 @@ cmd_encrypt (assuan_context_t ctx, char *line)
   if ( !ctrl->server_local->recplist )
     {
       write_status_text (STATUS_NO_RECP, "0");
-      err = gpg_error (GPG_ERR_NO_USER_ID);
+      err = GPG_ERR_NO_USER_ID;
       goto leave;
     }
 
@@ -371,7 +371,7 @@ cmd_verify (assuan_context_t ctx, char *line)
 #ifdef HAVE_W32_SYSTEM
   (void)ctx;
   (void)line;
-  rc = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  rc = GPG_ERR_NOT_IMPLEMENTED;
 #else
   ctrl_t ctrl = assuan_get_pointer (ctx);
   gnupg_fd_t fd = assuan_get_input_fd (ctx);
@@ -384,7 +384,7 @@ cmd_verify (assuan_context_t ctx, char *line)
   (void)line;
 
   if (fd == GNUPG_INVALID_FD)
-    return gpg_error (GPG_ERR_ASS_NO_INPUT);
+    return GPG_ERR_ASS_NO_INPUT;
 
   if (out_fd != GNUPG_INVALID_FD)
     {
@@ -399,7 +399,7 @@ cmd_verify (assuan_context_t ctx, char *line)
 #endif
       out_fp = es_sysopen_nc (&syshd, "w");
       if (!out_fp)
-        return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+        return set_error (gpg_error_from_syserror (), "fdopen() failed");
     }
 
   log_debug ("WARNING: The server mode is WORK "
@@ -430,7 +430,7 @@ cmd_sign (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -444,7 +444,7 @@ cmd_import (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -464,7 +464,7 @@ cmd_export (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -478,7 +478,7 @@ cmd_delkeys (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -498,7 +498,7 @@ cmd_message (assuan_context_t ctx, char *line)
   if (rc)
     return rc;
   if (fd == GNUPG_INVALID_FD)
-    return gpg_error (GPG_ERR_ASS_NO_INPUT);
+    return GPG_ERR_ASS_NO_INPUT;
   ctrl->server_local->message_fd = fd;
   return 0;
 }
@@ -517,7 +517,7 @@ do_listkeys (assuan_context_t ctx, char *line, int mode)
   (void)line;
   (void)mode;
 
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -546,7 +546,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
 {
   (void)ctx;
   (void)line;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 }
 
 
@@ -595,7 +595,7 @@ cmd_passwd (assuan_context_t ctx, char *line)
   (void)line;
   /* line = skip_options (line); */
 
-  err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+  err = GPG_ERR_NOT_SUPPORTED;
 
   return err;
 }
@@ -676,7 +676,7 @@ gpg_server (ctrl_t ctrl)
     }
 
 #ifdef HAVE_W32_SYSTEM
-  rc = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  rc = GPG_ERR_NOT_IMPLEMENTED;
 #else
   rc = assuan_init_pipe_server (ctx, filedes);
 #endif

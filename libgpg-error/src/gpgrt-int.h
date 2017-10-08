@@ -34,12 +34,12 @@ void *_gpgrt_realloc (void *a, size_t n);
 void *_gpgrt_malloc (size_t n);
 void _gpgrt_free (void *a);
 
-gpg_err_code_t _gpgrt_lock_init (gpgrt_lock_t *lockhd);
-gpg_err_code_t _gpgrt_lock_lock (gpgrt_lock_t *lockhd);
-gpg_err_code_t _gpgrt_lock_trylock (gpgrt_lock_t *lockhd);
-gpg_err_code_t _gpgrt_lock_unlock (gpgrt_lock_t *lockhd);
-gpg_err_code_t _gpgrt_lock_destroy (gpgrt_lock_t *lockhd);
-gpg_err_code_t _gpgrt_yield (void);
+gpg_error_t _gpgrt_lock_init (gpgrt_lock_t *lockhd);
+gpg_error_t _gpgrt_lock_lock (gpgrt_lock_t *lockhd);
+gpg_error_t _gpgrt_lock_trylock (gpgrt_lock_t *lockhd);
+gpg_error_t _gpgrt_lock_unlock (gpgrt_lock_t *lockhd);
+gpg_error_t _gpgrt_lock_destroy (gpgrt_lock_t *lockhd);
+gpg_error_t _gpgrt_yield (void);
 
 /* Trace support.  */
 

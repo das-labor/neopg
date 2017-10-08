@@ -55,7 +55,7 @@ time_of_saved_swdb (const char *fname, time_t *r_filedate, time_t *r_verified)
   err = fp? 0 : gpg_error_from_syserror ();
   if (err)
     {
-      if (gpg_err_code (err) == GPG_ERR_ENOENT)
+      if (err == GPG_ERR_ENOENT)
         err = 0; /* No file - assume time is the year of Unix.  */
       goto leave;
     }
@@ -67,7 +67,7 @@ time_of_saved_swdb (const char *fname, time_t *r_filedate, time_t *r_verified)
     {
       if (!maxlen)
         {
-          err = gpg_error (GPG_ERR_LINE_TOO_LONG);
+          err = GPG_ERR_LINE_TOO_LONG;
           goto leave;
         }
       /* Strip newline and carriage return, if present.  */
@@ -98,7 +98,7 @@ time_of_saved_swdb (const char *fname, time_t *r_filedate, time_t *r_verified)
     }
   if (filedate == (time_t)(-1) || verified == (time_t)(-1))
     {
-      err = gpg_error (GPG_ERR_INV_TIME);
+      err = GPG_ERR_INV_TIME;
       goto leave;
     }
 
@@ -162,7 +162,7 @@ fetch_file (ctrl_t ctrl, const char *url, estream_t *r_fp)
         }
       else if (nread != nwritten)
         {
-          err = gpg_error (GPG_ERR_EIO);
+          err = GPG_ERR_EIO;
           log_error ("error writing '%s': %s\n",
                      es_fname_get (fp), "short write");
           goto leave;
@@ -261,7 +261,7 @@ dirmngr_load_swdb (ctrl_t ctrl, int force)
       lastcheck = now;
 
       err = time_of_saved_swdb (fname, &filedate, &verified);
-      if (gpg_err_code (err) == GPG_ERR_INV_TIME)
+      if (err == GPG_ERR_INV_TIME)
         err = 0; /* Force reading. */
       if (err)
         goto leave;
@@ -312,8 +312,8 @@ dirmngr_load_swdb (ctrl_t ctrl, int force)
                                 argv, swdb, swdb_sig, NULL,
                                 verify_status_cb, &verify_status_parm);
   if (!err && verify_status_parm.sigtime == (time_t)(-1))
-    err = gpg_error (verify_status_parm.anyvalid? GPG_ERR_BAD_SIGNATURE
-                     /**/                       : GPG_ERR_INV_TIME      );
+    err = verify_status_parm.anyvalid? GPG_ERR_BAD_SIGNATURE
+                     /**/                       : GPG_ERR_INV_TIME      ;
   if (DBG_EXTPROG)
     log_debug ("gpgv finished: err=%d\n", err);
   if (err)

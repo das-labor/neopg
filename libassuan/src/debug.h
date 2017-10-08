@@ -168,7 +168,7 @@ void _assuan_debug_buffer (assuan_context_t ctx, unsigned int cat,
 		    _assuan_trace_func, _assuan_trace_tagname,		\
 		    _assuan_trace_tag, gpg_strerror (err)		\
 		    ),            \
-     _assuan_error (ctx, err))
+     err)
 
 /* The cast to void suppresses GCC warnings.  */
 #define TRACE_SYSRES(res)						\

@@ -52,9 +52,9 @@
 /* The size of the import/export KEK key (in bytes).  */
 #define KEYWRAP_KEYSIZE (128/8)
 
-/* A shortcut to call assuan_set_error using an gpg_err_code_t and a
+/* A shortcut to call assuan_set_error using an gpg_error_t and a
    text string.  */
-#define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
+#define set_error(e,t) assuan_set_error (ctx, e, (t))
 
 /* Check that the maximum digest length we support has at least the
    length of the keygrip.  */
@@ -405,12 +405,12 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
 
       /* Not all users of gpg-agent know about the fully canceled
          error code; map it back if needed.  */
-      if (gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+      if (err == GPG_ERR_FULLY_CANCELED)
         {
           ctrl_t ctrl = assuan_get_pointer (ctx);
 
           if (!ctrl->server_local->allow_fully_canceled)
-            err = gpg_error (GPG_ERR_CANCELED);
+            err = GPG_ERR_CANCELED;
         }
 
       log_error ("command '%s' failed: %s\n", name,
@@ -500,10 +500,10 @@ cmd_istrusted (assuan_context_t ctx, char *line)
     fpr[i] = *p >= 'a'? (*p & 0xdf): *p;
   fpr[i] = 0;
   rc = agent_istrusted (ctrl, fpr, NULL);
-  if (!rc || gpg_err_code (rc) == GPG_ERR_NOT_TRUSTED)
+  if (!rc || rc == GPG_ERR_NOT_TRUSTED)
     return rc;
-  else if (rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF )
-    return gpg_error (GPG_ERR_NOT_TRUSTED);
+  else if (rc == -1 || rc == GPG_ERR_EOF )
+    return GPG_ERR_NOT_TRUSTED;
   else
     return leave_cmd (ctx, rc);
 }
@@ -598,7 +598,7 @@ cmd_havekey (assuan_context_t ctx, char *line)
 
   /* No leave_cmd() here because errors are expected and would clutter
      the log.  */
-  return gpg_error (GPG_ERR_NO_SECKEY);
+  return GPG_ERR_NO_SECKEY;
 }
 
 
@@ -1002,7 +1002,7 @@ cmd_readkey (assuan_context_t ctx, char *line)
         {
           rc = gcry_pk_testkey (s_pkey);
           if (rc == 0)
-            rc = gpg_error (GPG_ERR_INTERNAL);
+            rc = GPG_ERR_INTERNAL;
 
           goto leave;
         }
@@ -1274,7 +1274,7 @@ cmd_keyinfo (assuan_context_t ctx, char *line)
  leave:
   if (dir)
     closedir (dir);
-  if (err && gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+  if (err && err != GPG_ERR_NOT_FOUND)
     leave_cmd (ctx, err);
   return err;
 }
@@ -1412,7 +1412,7 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
       xfree (pw);
     }
   else if (opt_no_ask)
-    rc = gpg_error (GPG_ERR_NO_DATA);
+    rc = GPG_ERR_NO_DATA;
   else
     {
       /* Note, that we only need to replace the + characters and
@@ -1665,7 +1665,7 @@ cmd_passwd (assuan_context_t ctx, char *line)
   else if (shadow_info)
     {
       log_error ("changing a smartcard PIN is not yet supported\n");
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
     }
   else if (opt_verify)
     {
@@ -1792,7 +1792,7 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
   while (*line && (*line != ' ' && *line != '\t'))
     line++;
   if (!*line)
-    return gpg_error (GPG_ERR_MISSING_VALUE);
+    return GPG_ERR_MISSING_VALUE;
   *line = '\0';
   line++;
   while (*line && (*line == ' ' || *line == '\t'))
@@ -1801,7 +1801,7 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
   /* Currently, only infinite timeouts are allowed.  */
   ttl = -1;
   if (line[0] != '-' || line[1] != '1')
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    return GPG_ERR_NOT_IMPLEMENTED;
   line++;
   line++;
   while (!(*line != ' ' && *line != '\t'))
@@ -1962,7 +1962,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
 
   if (!ctrl->server_local->import_key)
     {
-      err = gpg_error (GPG_ERR_MISSING_KEY);
+      err = GPG_ERR_MISSING_KEY;
       goto leave;
     }
 
@@ -1984,7 +1984,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
     goto leave;
   if (wrappedkeylen < 24)
     {
-      err = gpg_error (GPG_ERR_INV_LENGTH);
+      err = GPG_ERR_INV_LENGTH;
       goto leave;
     }
   keylen = wrappedkeylen - 8;
@@ -2082,7 +2082,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
   else
     {
       if (!force && !agent_key_available (grip))
-        err = gpg_error (GPG_ERR_EEXIST);
+        err = GPG_ERR_EEXIST;
       else
         {
           char *prompt = xtryasprintf
@@ -2184,7 +2184,7 @@ cmd_export_key (assuan_context_t ctx, char *line)
 
   if (agent_key_available (grip))
     {
-      err = gpg_error (GPG_ERR_NO_SECKEY);
+      err = GPG_ERR_NO_SECKEY;
       goto leave;
     }
 
@@ -2199,7 +2199,7 @@ cmd_export_key (assuan_context_t ctx, char *line)
   if (shadow_info)
     {
       /* Key is on a smartcard.  */
-      err = gpg_error (GPG_ERR_UNUSABLE_SECKEY);
+      err = GPG_ERR_UNUSABLE_SECKEY;
       goto leave;
     }
 
@@ -2362,7 +2362,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
 
   if (agent_key_available (grip))
     {
-      err =gpg_error (GPG_ERR_NO_SECKEY);
+      err =GPG_ERR_NO_SECKEY;
       goto leave;
     }
 
@@ -2375,7 +2375,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
     line++;
   if (!*line)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE);
+      err = GPG_ERR_MISSING_VALUE;
       goto leave;
     }
   *line = '\0';
@@ -2387,7 +2387,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
     line++;
   if (!*line)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE);
+      err = GPG_ERR_MISSING_VALUE;
       goto leave;
     }
   *line = '\0';
@@ -2402,7 +2402,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
 
   if ((timestamp = isotime2epoch (timestamp_str)) == (time_t)(-1))
     {
-      err = gpg_error (GPG_ERR_INV_TIME);
+      err = GPG_ERR_INV_TIME;
       goto leave;
     }
 
@@ -2419,7 +2419,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
       /* Key is on a smartcard already.  */
       xfree (shadow_info);
       gcry_sexp_release (s_skey);
-      err = gpg_error (GPG_ERR_UNUSABLE_SECKEY);
+      err = GPG_ERR_UNUSABLE_SECKEY;
       goto leave;
     }
 
@@ -2484,7 +2484,7 @@ cmd_getval (assuan_context_t ctx, char *line)
   if (vl) /* Got an entry. */
     rc = assuan_send_data (ctx, vl->d+vl->off, vl->len);
   else
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
 
   return leave_cmd (ctx, rc);
 }
@@ -2627,26 +2627,26 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       while (*line == ' ' || *line == '\t')
         line++;
       if (!*line)
-        rc = gpg_error (GPG_ERR_MISSING_VALUE);
+        rc = GPG_ERR_MISSING_VALUE;
       else
         {
           cmd = line;
           while (*line && (*line != ' ' && *line != '\t'))
             line++;
           if (!*line)
-            rc = gpg_error (GPG_ERR_MISSING_VALUE);
+            rc = GPG_ERR_MISSING_VALUE;
           else
             {
               *line++ = 0;
               while (*line == ' ' || *line == '\t')
                 line++;
               if (!*line)
-                rc = gpg_error (GPG_ERR_MISSING_VALUE);
+                rc = GPG_ERR_MISSING_VALUE;
               else
                 {
                   cmdopt = line;
                   if (!command_has_option (cmd, cmdopt))
-                    rc = gpg_error (GPG_ERR_GENERAL);
+                    rc = GPG_ERR_GENERAL;
                 }
             }
         }
@@ -2667,7 +2667,7 @@ cmd_getinfo (assuan_context_t ctx, char *line)
     }
   else if (!strcmp (line, "scd_running"))
     {
-      rc = agent_scd_check_running ()? 0 : gpg_error (GPG_ERR_GENERAL);
+      rc = agent_scd_check_running ()? 0 : GPG_ERR_GENERAL;
     }
   else if (!strcmp (line, "std_env_names"))
     {
@@ -2796,7 +2796,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     {
       int tmp = parse_pinentry_mode (value);
       if (tmp == -1)
-        err = gpg_error (GPG_ERR_INV_VALUE);
+        err = GPG_ERR_INV_VALUE;
       else
         ctrl->pinentry_mode = tmp;
     }
@@ -2813,7 +2813,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
         }
     }
   else
-    err = gpg_error (GPG_ERR_UNKNOWN_OPTION);
+    err = GPG_ERR_UNKNOWN_OPTION;
 
   return err;
 }
@@ -3023,7 +3023,7 @@ start_command_handler (ctrl_t ctrl, gnupg_fd_t listen_fd, gnupg_fd_t fd)
       pid_t client_pid;
 
       rc = assuan_accept (ctx);
-      if (gpg_err_code (rc) == GPG_ERR_EOF || rc == -1)
+      if (rc == GPG_ERR_EOF || rc == -1)
         {
           break;
         }

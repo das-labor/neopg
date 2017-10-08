@@ -500,7 +500,7 @@ print_pkenc_list (ctrl_t ctrl, struct kidlist_item *list, int failed)
 
       free_public_key (pk);
 
-      if (gpg_err_code (list->reason) == GPG_ERR_NO_SECKEY)
+      if (list->reason == GPG_ERR_NO_SECKEY)
         {
           if (is_status_enabled())
             {
@@ -592,9 +592,9 @@ proc_encrypted (CTX c, PACKET *pkt)
           if (c->dek)
             c->dek->algo_info_printed = 1;
           else if (canceled)
-            result = gpg_error (GPG_ERR_CANCELED);
+            result = GPG_ERR_CANCELED;
           else
-            result = gpg_error (GPG_ERR_INV_PASSPHRASE);
+            result = GPG_ERR_INV_PASSPHRASE;
         }
     }
   else if (!c->dek)
@@ -661,7 +661,7 @@ proc_encrypted (CTX c, PACKET *pkt)
         log_info ("decryption forced to fail\n");
       write_status (STATUS_DECRYPTION_FAILED);
     }
-  else if (!result || (gpg_err_code (result) == GPG_ERR_BAD_SIGNATURE
+  else if (!result || (result == GPG_ERR_BAD_SIGNATURE
                        && opt.ignore_mdc_error))
     {
       write_status (STATUS_DECRYPTION_OKAY);
@@ -672,7 +672,7 @@ proc_encrypted (CTX c, PACKET *pkt)
       else if (!opt.no_mdc_warn)
         log_info (_("WARNING: message was not integrity protected\n"));
     }
-  else if (gpg_err_code (result) == GPG_ERR_BAD_SIGNATURE)
+  else if (result == GPG_ERR_BAD_SIGNATURE)
     {
       glo_ctrl.lasterr = result;
       log_error (_("WARNING: encrypted message has been manipulated!\n"));
@@ -681,7 +681,7 @@ proc_encrypted (CTX c, PACKET *pkt)
     }
   else
     {
-      if (gpg_err_code (result) == GPG_ERR_BAD_KEY
+      if (result == GPG_ERR_BAD_KEY
           && *c->dek->s2k_cacheid != '\0')
         {
           if (opt.debug)
@@ -792,7 +792,7 @@ proc_plaintext( CTX c, PACKET *pkt )
         {
           write_status_text (STATUS_ERROR, "proc_pkt.plaintext 89_BAD_DATA");
           log_inc_errorcount ();
-          rc = gpg_error (GPG_ERR_UNEXPECTED);
+          rc = GPG_ERR_UNEXPECTED;
         }
     }
 
@@ -804,7 +804,7 @@ proc_plaintext( CTX c, PACKET *pkt )
       rc = handle_plaintext (pt, &c->mfx,
                              (opt.outfp || opt.outfile)? 0 :  c->sigs_only,
                              clearsig);
-      if (gpg_err_code (rc) == GPG_ERR_EACCES && !c->sigs_only)
+      if (rc == GPG_ERR_EACCES && !c->sigs_only)
         {
           /* Can't write output but we hash it anyway to check the
              signature. */
@@ -864,7 +864,7 @@ proc_compressed (CTX c, PACKET *pkt)
   else
     rc = handle_compressed (c->ctrl, c, zd, NULL, NULL);
 
-  if (gpg_err_code (rc) == GPG_ERR_BAD_DATA)
+  if (rc == GPG_ERR_BAD_DATA)
     {
       if  (!c->any.uncompress_failed)
         {
@@ -979,7 +979,7 @@ do_check_sig (CTX c, kbnode_t node, int *is_selfsig,
   rc = check_signature2 (c->ctrl, sig, md, NULL, is_expkey, is_revkey, r_pk);
   if (! rc)
     md_good = md;
-  else if (gpg_err_code (rc) == GPG_ERR_BAD_SIGNATURE && md2)
+  else if (rc == GPG_ERR_BAD_SIGNATURE && md2)
     {
       PKT_public_key *pk2;
 
@@ -1147,7 +1147,7 @@ list_node (CTX c, kbnode_t node)
         {
           fflush (stdout);
           rc2 = do_check_sig (c, node, &is_selfsig, NULL, NULL, NULL);
-          switch (gpg_err_code (rc2))
+          switch (rc2)
             {
             case 0:		          sigrc = '!'; break;
             case GPG_ERR_BAD_SIGNATURE:   sigrc = '-'; break;
@@ -1305,7 +1305,7 @@ proc_signature_packets_by_fd (ctrl_t ctrl,
     {
       write_status_text (STATUS_NODATA, "4");
       log_error (_("no signature found\n"));
-      rc = gpg_error (GPG_ERR_NO_DATA);
+      rc = GPG_ERR_NO_DATA;
     }
 
   /* Propagate the signature seen flag upward. Do this only on success
@@ -1377,7 +1377,7 @@ do_proc_packets (ctrl_t ctrl, CTX c, iobuf_t a)
           free_packet (pkt, &parsectx);
           /* Stop processing when an invalid packet has been encountered
            * but don't do so when we are doing a --list-packets.  */
-          if (gpg_err_code (rc) == GPG_ERR_INV_PACKET
+          if (rc == GPG_ERR_INV_PACKET
               && opt.list_packets == 0)
             break;
           continue;
@@ -1808,7 +1808,7 @@ check_sig_and_print (CTX c, kbnode_t node)
   rc = do_check_sig (c, node, NULL, &is_expkey, &is_revkey, &pk);
 
   /* If the key isn't found, check for a preferred keyserver.  */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY && sig->flags.pref_ks)
+  if (rc == GPG_ERR_NO_PUBKEY && sig->flags.pref_ks)
     {
       const byte *p;
       int seq = 0;
@@ -1853,7 +1853,7 @@ check_sig_and_print (CTX c, kbnode_t node)
 
   /* If the avove methods didn't work, our next try is to use the URI
    * from a DNS PKA record.  */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
+  if (rc == GPG_ERR_NO_PUBKEY
       && (opt.keyserver_options.options & KEYSERVER_AUTO_KEY_RETRIEVE)
       && (opt.keyserver_options.options & KEYSERVER_HONOR_PKA_RECORD))
     {
@@ -1886,7 +1886,7 @@ check_sig_and_print (CTX c, kbnode_t node)
    * that the signers fingerprint is encoded in the signature.  We
    * favor this over the WKD method (to be tried next), because an
    * arbitrary keyserver is less subject to web bug like monitoring.  */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
+  if (rc == GPG_ERR_NO_PUBKEY
       && (opt.keyserver_options.options&KEYSERVER_AUTO_KEY_RETRIEVE)
       && keyserver_any_configured (c->ctrl))
     {
@@ -1910,7 +1910,7 @@ check_sig_and_print (CTX c, kbnode_t node)
 
   /* If the above methods didn't work, our next try is to retrieve the
    * key from the WKD. */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
+  if (rc == GPG_ERR_NO_PUBKEY
       && (opt.keyserver_options.options & KEYSERVER_AUTO_KEY_RETRIEVE)
       && !opt.flags.disable_signer_uid
       && akl_has_wkd_method ()
@@ -1931,7 +1931,7 @@ check_sig_and_print (CTX c, kbnode_t node)
 
   /* If the above methods did't work, our next try is to use a
    * keyserver.  */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY
+  if (rc == GPG_ERR_NO_PUBKEY
       && (opt.keyserver_options.options&KEYSERVER_AUTO_KEY_RETRIEVE)
       && keyserver_any_configured (c->ctrl))
     {
@@ -1946,7 +1946,7 @@ check_sig_and_print (CTX c, kbnode_t node)
         rc = do_check_sig (c, node, NULL, &is_expkey, &is_revkey, &pk);
     }
 
-  if (!rc || gpg_err_code (rc) == GPG_ERR_BAD_SIGNATURE)
+  if (!rc || rc == GPG_ERR_BAD_SIGNATURE)
     {
       kbnode_t un, keyblock;
       int count = 0;
@@ -2261,14 +2261,14 @@ check_sig_and_print (CTX c, kbnode_t node)
       snprintf (buf, sizeof buf, "%08lX%08lX %d %d %02x %lu %d",
                 (ulong)sig->keyid[0], (ulong)sig->keyid[1],
                 sig->pubkey_algo, sig->digest_algo,
-                sig->sig_class, (ulong)sig->timestamp, gpg_err_code (rc));
+                sig->sig_class, (ulong)sig->timestamp, rc);
       write_status_text (STATUS_ERRSIG, buf);
-      if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY)
+      if (rc == GPG_ERR_NO_PUBKEY)
         {
           buf[16] = 0;
           write_status_text (STATUS_NO_PUBKEY, buf);
 	}
-      if (gpg_err_code (rc) != GPG_ERR_NOT_PROCESSED)
+      if (rc != GPG_ERR_NOT_PROCESSED)
         log_error (_("Can't check signature: %s\n"), gpg_strerror (rc));
     }
 

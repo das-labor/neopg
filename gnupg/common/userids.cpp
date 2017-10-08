@@ -104,7 +104,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
   switch (*s)
     {
     case 0:  /* Empty string is an error.  */
-      rc = gpg_error (GPG_ERR_INV_USER_ID);
+      rc = GPG_ERR_INV_USER_ID;
       goto out;
 
     case '.': /* An email address, compare from end.  Note that this
@@ -154,7 +154,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
       s++;
       if (!*s || spacep (s)) /* No DN or prefixed with a space.  */
         {
-          rc = gpg_error (GPG_ERR_INV_USER_ID);
+          rc = GPG_ERR_INV_USER_ID;
           goto out;
         }
       desc->u.name = s;
@@ -171,7 +171,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
             s++;
             if (!*s || spacep (s)) /* No DN or prefixed with a space.  */
               {
-                rc = gpg_error (GPG_ERR_INV_USER_ID);
+                rc = GPG_ERR_INV_USER_ID;
                 goto out;
               }
             desc->u.name = s;
@@ -184,7 +184,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
                  /* Check for an invalid digit in the serial number. */
                 if (!strchr("01234567890abcdefABCDEF", *si))
                   {
-                    rc = gpg_error (GPG_ERR_INV_USER_ID);
+                    rc = GPG_ERR_INV_USER_ID;
                     goto out;
                   }
               }
@@ -197,7 +197,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
                 s = si+1;
                 if (!*s || spacep (s))  /* No DN or prefixed with a space.  */
                   {
-                    rc = gpg_error (GPG_ERR_INV_USER_ID);
+                    rc = GPG_ERR_INV_USER_ID;
                     goto out;
                   }
                 desc->u.name = s;
@@ -215,20 +215,20 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
         se = strchr (++s,':');
         if (!se)
           {
-            rc = gpg_error (GPG_ERR_INV_USER_ID);
+            rc = GPG_ERR_INV_USER_ID;
             goto out;
           }
         for (i=0,si=s; si < se; si++, i++ )
           {
             if (!strchr("01234567890abcdefABCDEF", *si))
               {
-                rc = gpg_error (GPG_ERR_INV_USER_ID); /* Invalid digit.  */
+                rc = GPG_ERR_INV_USER_ID; /* Invalid digit.  */
                 goto out;
               }
           }
         if (i != 32 && i != 40)
           {
-            rc = gpg_error (GPG_ERR_INV_USER_ID); /* Invalid length of fpr.  */
+            rc = GPG_ERR_INV_USER_ID; /* Invalid length of fpr.  */
             goto out;
           }
         for (i=0,si=s; si < se; i++, si +=2)
@@ -243,7 +243,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
       {
         if (hex2bin (s+1, desc->u.grip, 20) < 0)
           {
-            rc = gpg_error (GPG_ERR_INV_USER_ID); /* Invalid. */
+            rc = GPG_ERR_INV_USER_ID; /* Invalid. */
             goto out;
           }
         mode = KEYDB_SEARCH_MODE_KEYGRIP;
@@ -270,7 +270,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
           if (hexprefix) /* A "0x" prefix without a correct
                             termination is an error.  */
             {
-              rc = gpg_error (GPG_ERR_INV_USER_ID);
+              rc = GPG_ERR_INV_USER_ID;
               goto out;
             }
           /* The first characters looked like a hex number, but the
@@ -321,7 +321,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
               int c = hextobyte(s);
               if (c == -1)
                 {
-                  rc = gpg_error (GPG_ERR_INV_USER_ID);
+                  rc = GPG_ERR_INV_USER_ID;
                   goto out;
                 }
               desc->u.fpr[i] = c;
@@ -342,7 +342,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
               int c = hextobyte(s);
               if (c == -1)
                 {
-                  rc = gpg_error (GPG_ERR_INV_USER_ID);
+                  rc = GPG_ERR_INV_USER_ID;
                   goto out;
                 }
               desc->u.fpr[i] = c;
@@ -422,7 +422,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
       else
 	{
           /* Hex number with a prefix but with a wrong length.  */
-          rc = gpg_error (GPG_ERR_INV_USER_ID);
+          rc = GPG_ERR_INV_USER_ID;
           goto out;
         }
     }

@@ -41,7 +41,7 @@ _gcry_mpi_get_hw_config (void)
 
 /* Initialize the MPI subsystem.  This is called early and allows to
    do some initialization without taking care of threading issues.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_mpi_init (void)
 {
   int idx;
@@ -538,10 +538,10 @@ _gcry_mpi_set_ui (gcry_mpi_t w, unsigned long u)
   return w;
 }
 
-gcry_err_code_t
+gpg_error_t
 _gcry_mpi_get_ui (gcry_mpi_t w, unsigned long *u)
 {
-  gcry_err_code_t err = GPG_ERR_NO_ERROR;
+  gpg_error_t err = GPG_ERR_NO_ERROR;
   unsigned long x = 0;
 
   if (w->nlimbs > 1)

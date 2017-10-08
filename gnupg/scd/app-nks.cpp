@@ -175,9 +175,9 @@ keygripstr_from_pk_file (app_t app, int fid, char *r_gripstr)
              have use 1 for both, the modulus and the exponent - the
              example in the documentation gives 2 for the exponent. */
           if (buflen[i] < 3)
-            err = gpg_error (GPG_ERR_TOO_SHORT);
+            err = GPG_ERR_TOO_SHORT;
           else if (buffer[i][1] != buflen[i]-2 )
-            err = gpg_error (GPG_ERR_INV_OBJ);
+            err = GPG_ERR_INV_OBJ;
           else
             offset[i] = 2;
         }
@@ -235,7 +235,7 @@ keygripstr_from_pk_file (app_t app, int fid, char *r_gripstr)
 
   if (!gcry_pk_get_keygrip (sexp, grip))
     {
-      err = gpg_error (GPG_ERR_INTERNAL); /* i.e. RSA not supported by
+      err = GPG_ERR_INTERNAL; /* i.e. RSA not supported by
                                              libgcrypt. */
     }
   else
@@ -323,7 +323,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
   for (idx=0; table[idx].name && strcmp (table[idx].name, name); idx++)
     ;
   if (!table[idx].name)
-    return gpg_error (GPG_ERR_INV_NAME);
+    return GPG_ERR_INV_NAME;
 
   switch (table[idx].special)
     {
@@ -369,7 +369,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
 
 
     default:
-      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      err = GPG_ERR_NOT_IMPLEMENTED;
       break;
     }
 
@@ -497,7 +497,7 @@ do_readcert (app_t app, const char *certid,
   else if (!strncmp (certid, "NKS-SIGG.", 9))
     is_sigg = 1;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   err = switch_application (app, is_sigg);
   if (err)
@@ -507,14 +507,14 @@ do_readcert (app_t app, const char *certid,
   if (!hexdigitp (certid) || !hexdigitp (certid+1)
       || !hexdigitp (certid+2) || !hexdigitp (certid+3)
       || certid[4])
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   fid = xtoi_4 (certid);
   for (i=0; filelist[i].fid; i++)
     if ((filelist[i].certtype || filelist[i].iskeypair)
         && filelist[i].fid == fid)
       break;
   if (!filelist[i].fid)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   /* If the requested objects is a plain public key, redirect it to
      the corresponding certificate.  The whole system is a bit messy
@@ -546,7 +546,7 @@ do_readcert (app_t app, const char *certid,
   if (!buflen || *buffer == 0xff)
     {
       log_info ("no certificate contained in FID 0x%04X\n", fid);
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       goto leave;
     }
 
@@ -562,7 +562,7 @@ do_readcert (app_t app, const char *certid,
   else if ( klasse == CLASS_UNIVERSAL && tag == TAG_SET && constructed )
     rootca = 1;
   else
-    return gpg_error (GPG_ERR_INV_OBJ);
+    return GPG_ERR_INV_OBJ;
   totobjlen = objlen + hdrlen;
   assert (totobjlen <= buflen);
 
@@ -582,7 +582,7 @@ do_readcert (app_t app, const char *certid,
          the certificate. */
       if (n < objlen)
         {
-          err = gpg_error (GPG_ERR_INV_OBJ);
+          err = GPG_ERR_INV_OBJ;
           goto leave;
         }
       p += objlen;
@@ -593,7 +593,7 @@ do_readcert (app_t app, const char *certid,
       if (err)
         goto leave;
       if ( !(klasse == CLASS_UNIVERSAL && tag == TAG_SEQUENCE && constructed) )
-        return gpg_error (GPG_ERR_INV_OBJ);
+        return GPG_ERR_INV_OBJ;
       totobjlen = objlen + hdrlen;
       assert (save_p + totobjlen <= buffer + buflen);
       memmove (buffer, save_p, totobjlen);
@@ -633,7 +633,7 @@ do_readkey (app_t app, int advanced, const char *keyid,
   if (!strcmp (keyid, "$IFDAUTHKEY") && app->app_local->nks_version >= 3)
     ;
   else /* Return the error code expected by cmd_readkey.  */
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   /* Access the KEYD file which is always in the master directory.  */
   err = iso7816_select_path (app->slot, path, DIM (path));
@@ -648,7 +648,7 @@ do_readkey (app_t app, int advanced, const char *keyid,
   if (all_zero_p (buffer[0], buflen[0]))
     {
       xfree (buffer[0]);
-      return gpg_error (GPG_ERR_NOT_FOUND);
+      return GPG_ERR_NOT_FOUND;
     }
   err = iso7816_read_record (app->slot, 6, 1, 0, &buffer[1], &buflen[1]);
   if (err)
@@ -700,10 +700,10 @@ do_writekey (app_t app, ctrl_t ctrl,
   if (!strcmp (keyid, "$IFDAUTHKEY") && app->app_local->nks_version >= 3)
     ;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   if (!force && !do_readkey (app, 0, keyid, NULL, NULL))
-    return gpg_error (GPG_ERR_EEXIST);
+    return GPG_ERR_EEXIST;
 
   /* Parse the S-expression.  */
   err = get_rsa_pk_from_canon_sexp (keydata, keydatalen,
@@ -716,7 +716,7 @@ do_writekey (app_t app, ctrl_t ctrl,
   if (nbits != 1024)
     {
       log_error (_("RSA modulus missing or not of size %d bits\n"), 1024);
-      err = gpg_error (GPG_ERR_BAD_PUBKEY);
+      err = GPG_ERR_BAD_PUBKEY;
       goto leave;
     }
 
@@ -725,7 +725,7 @@ do_writekey (app_t app, ctrl_t ctrl,
     {
       log_error (_("RSA public exponent missing or larger than %d bits\n"),
                  32);
-      err = gpg_error (GPG_ERR_BAD_PUBKEY);
+      err = GPG_ERR_BAD_PUBKEY;
       goto leave;
     }
 
@@ -735,7 +735,7 @@ do_writekey (app_t app, ctrl_t ctrl,
 /*     goto leave; */
 
   /* Send the MSE:Store_Public_Key.  */
-  err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  err = GPG_ERR_NOT_IMPLEMENTED;
 /*   mse = xtrymalloc (1000); */
 
 /*   mse[0] = 0x80; /\* Algorithm reference.  *\/ */
@@ -769,12 +769,12 @@ basic_pin_checks (const char *pinvalue, int minlen, int maxlen)
   if (strlen (pinvalue) < minlen)
     {
       log_error ("PIN is too short; minimum length is %d\n", minlen);
-      return gpg_error (GPG_ERR_BAD_PIN);
+      return GPG_ERR_BAD_PIN;
     }
   if (strlen (pinvalue) > maxlen)
     {
       log_error ("PIN is too large; maximum length is %d\n", maxlen);
-      return gpg_error (GPG_ERR_BAD_PIN);
+      return GPG_ERR_BAD_PIN;
     }
   return 0;
 }
@@ -835,7 +835,7 @@ verify_pin (app_t app, int pwid, const char *desc,
 
   if (rc)
     {
-      if ( gpg_err_code (rc) == GPG_ERR_USE_CONDITIONS )
+      if ( rc == GPG_ERR_USE_CONDITIONS )
         log_error (_("the NullPIN has not yet been changed\n"));
       else
         log_error ("verify PIN failed\n");
@@ -872,11 +872,11 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   size_t datalen;
 
   if (!keyidstr || !*keyidstr)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   switch (indatalen)
     {
     case 16: case 20: case 35: case 47: case 51: case 67: case 83: break;
-    default: return gpg_error (GPG_ERR_INV_VALUE);
+    default: return GPG_ERR_INV_VALUE;
     }
 
   /* Check that the provided ID is valid.  This is not really needed
@@ -888,7 +888,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   else if (!strncmp (keyidstr, "NKS-SIGG.", 9) )
     is_sigg = 1;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   keyidstr += 9;
 
   rc = switch_application (app, is_sigg);
@@ -898,21 +898,21 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   if (is_sigg && app->app_local->sigg_is_msig)
     {
       log_info ("mass signature cards are not allowed\n");
-      return gpg_error (GPG_ERR_NOT_SUPPORTED);
+      return GPG_ERR_NOT_SUPPORTED;
     }
 
   if (!hexdigitp (keyidstr) || !hexdigitp (keyidstr+1)
       || !hexdigitp (keyidstr+2) || !hexdigitp (keyidstr+3)
       || keyidstr[4])
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   fid = xtoi_4 (keyidstr);
   for (i=0; filelist[i].fid; i++)
     if (filelist[i].iskeypair && filelist[i].fid == fid)
       break;
   if (!filelist[i].fid)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
   if (!filelist[i].issignkey)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   kid = filelist[i].kid;
 
   /* Prepare the DER object from INDATA.  */
@@ -937,7 +937,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       else if (hashalgo == GCRY_MD_RMD160 && !memcmp (indata,rmd160_prefix,15))
         ;
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
       memcpy (data, indata, indatalen);
       datalen = 35;
     }
@@ -948,12 +948,12 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       else if (hashalgo == GCRY_MD_RMD160)
         memcpy (data, rmd160_prefix, 15);
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
       memcpy (data+15, indata, indatalen);
       datalen = 35;
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
 
   /* Send an MSE for PSO:Computer_Signature.  */
@@ -1001,7 +1001,7 @@ do_decipher (app_t app, const char *keyidstr,
   (void)r_info;
 
   if (!keyidstr || !*keyidstr || !indatalen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Check that the provided ID is valid.  This is not really needed
      but we do it to enforce correct usage by the caller. */
@@ -1012,7 +1012,7 @@ do_decipher (app_t app, const char *keyidstr,
   else if (!strncmp (keyidstr, "NKS-SIGG.", 9) )
     is_sigg = 1;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   keyidstr += 9;
 
   rc = switch_application (app, is_sigg);
@@ -1022,15 +1022,15 @@ do_decipher (app_t app, const char *keyidstr,
   if (!hexdigitp (keyidstr) || !hexdigitp (keyidstr+1)
       || !hexdigitp (keyidstr+2) || !hexdigitp (keyidstr+3)
       || keyidstr[4])
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   fid = xtoi_4 (keyidstr);
   for (i=0; filelist[i].fid; i++)
     if (filelist[i].iskeypair && filelist[i].fid == fid)
       break;
   if (!filelist[i].fid)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
   if (!filelist[i].isenckey)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   kid = filelist[i].kid;
 
   if (app->app_local->nks_version > 2)
@@ -1167,7 +1167,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *pwidstr,
 
   newdesc = parse_pwidstr (pwidstr, 1, &is_sigg, &pwid);
   if (!newdesc)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   err = switch_application (app, is_sigg);
   if (err)
@@ -1205,7 +1205,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *pwidstr,
             altpwidstr = "PW1.CH.SIG";
           else
             {
-              err = gpg_error (GPG_ERR_BUG);
+              err = GPG_ERR_BUG;
               goto leave;
             }
           desc = parse_pwidstr (altpwidstr, 0, &dummy1, &dummy2);
@@ -1281,7 +1281,7 @@ do_check_pin (app_t app, const char *pwidstr,
 
   desc = parse_pwidstr (pwidstr, 0, &is_sigg, &pwid);
   if (!desc)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   err = switch_application (app, is_sigg);
   if (err)
@@ -1399,7 +1399,7 @@ app_select_nks (app_t app)
       app->app_local = xtrycalloc (1, sizeof *app->app_local);
       if (!app->app_local)
         {
-          rc = gpg_error (gpg_err_code_from_errno (errno));
+          rc = gpg_error_from_errno (errno);
           goto leave;
         }
 

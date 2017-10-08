@@ -61,7 +61,7 @@ premature_eof (struct tag_info *ti)
 {
   /* Note: We do an strcmp on this string at othyer places. */
   ti->err_string = "premature EOF";
-  return gpg_error (GPG_ERR_BAD_BER);
+  return GPG_ERR_BAD_BER;
 }
 
 
@@ -80,7 +80,7 @@ eof_or_error (ksba_reader_t reader, struct tag_info *ti, int premature)
   if (premature)
     return premature_eof (ti);
 
-  return gpg_error (GPG_ERR_EOF);
+  return GPG_ERR_EOF;
 }
 
 
@@ -124,7 +124,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
           if (ti->nhdr >= DIM (ti->buf))
             {
               ti->err_string = "tag+length header too large";
-              return gpg_error (GPG_ERR_BAD_BER);
+              return GPG_ERR_BAD_BER;
             }
           ti->buf[ti->nhdr++] = c;
           tag |= c & 0x7f;
@@ -140,7 +140,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
   if (ti->nhdr >= DIM (ti->buf))
     {
       ti->err_string = "tag+length header too large";
-      return gpg_error (GPG_ERR_BAD_BER);
+      return GPG_ERR_BAD_BER;
     }
   ti->buf[ti->nhdr++] = c;
 
@@ -154,7 +154,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
   else if (c == 0xff)
     {
       ti->err_string = "forbidden length value";
-      return gpg_error (GPG_ERR_BAD_BER);
+      return GPG_ERR_BAD_BER;
     }
   else
     {
@@ -162,7 +162,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
       int count = c & 0x7f;
 
       if (count > sizeof (len) || count > sizeof (size_t))
-        return gpg_error (GPG_ERR_BAD_BER);
+        return GPG_ERR_BAD_BER;
 
       for (; count; count--)
         {
@@ -173,7 +173,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
           if (ti->nhdr >= DIM (ti->buf))
             {
               ti->err_string = "tag+length header too large";
-              return gpg_error (GPG_ERR_BAD_BER);
+              return GPG_ERR_BAD_BER;
             }
           ti->buf[ti->nhdr++] = c;
           len |= c & 0xff;
@@ -231,7 +231,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
           if (ti->nhdr >= DIM (ti->buf))
             {
               ti->err_string = "tag+length header too large";
-              return gpg_error (GPG_ERR_BAD_BER);
+              return GPG_ERR_BAD_BER;
             }
           ti->buf[ti->nhdr++] = c;
           tag |= c & 0x7f;
@@ -247,7 +247,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   if (ti->nhdr >= DIM (ti->buf))
     {
       ti->err_string = "tag+length header too large";
-      return gpg_error (GPG_ERR_BAD_BER);
+      return GPG_ERR_BAD_BER;
     }
   ti->buf[ti->nhdr++] = c;
 
@@ -261,7 +261,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   else if (c == 0xff)
     {
       ti->err_string = "forbidden length value";
-      return gpg_error (GPG_ERR_BAD_BER);
+      return GPG_ERR_BAD_BER;
     }
   else
     {
@@ -269,7 +269,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
       int count = c & 0x7f;
 
       if (count > sizeof (len) || count > sizeof (size_t))
-        return gpg_error (GPG_ERR_BAD_BER);
+        return GPG_ERR_BAD_BER;
 
       for (; count; count--)
         {
@@ -280,7 +280,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
           if (ti->nhdr >= DIM (ti->buf))
             {
               ti->err_string = "tag+length header too large";
-              return gpg_error (GPG_ERR_BAD_BER);
+              return GPG_ERR_BAD_BER;
             }
           ti->buf[ti->nhdr++] = c;
           len |= c & 0xff;
@@ -289,7 +289,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
        * the value for malloc plus some additional bytes without
        * risking an overflow.  */
       if (len > (1 << 30))
-        return gpg_error (GPG_ERR_BAD_BER);
+        return GPG_ERR_BAD_BER;
       ti->length = len;
     }
 
@@ -327,7 +327,7 @@ _ksba_ber_write_tl (ksba_writer_t writer,
     }
   else
     {
-      return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      return GPG_ERR_NOT_IMPLEMENTED;
     }
 
   if (!tag && !klasse)

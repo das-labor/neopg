@@ -472,7 +472,7 @@ check_dir_version (estream_t *fpadr, const char *fname,
         {
           log_error (_("first record of '%s' is not the version\n"), fname);
           xfree (line);
-          return gpg_error (GPG_ERR_CONFIGURATION);
+          return GPG_ERR_CONFIGURATION;
         }
       xfree (line);
     }
@@ -495,7 +495,7 @@ check_dir_version (estream_t *fpadr, const char *fname,
               if (!fp)
                 {
                   xfree (line);
-                  return gpg_error (GPG_ERR_CONFIGURATION);
+                  return GPG_ERR_CONFIGURATION;
                 }
               created = 1;
               goto retry;
@@ -503,7 +503,7 @@ check_dir_version (estream_t *fpadr, const char *fname,
         }
       log_error (_("old version of cache directory - giving up\n"));
       xfree (line);
-      return gpg_error (GPG_ERR_CONFIGURATION);
+      return GPG_ERR_CONFIGURATION;
     }
   xfree (line);
   return 0;
@@ -538,7 +538,7 @@ open_dir (crl_cache_t *r_cache)
   fp = open_dir_file (fname);
   if (!fp)
     {
-      err = gpg_error (GPG_ERR_CONFIGURATION);
+      err = GPG_ERR_CONFIGURATION;
       goto leave;
     }
 
@@ -659,7 +659,7 @@ open_dir (crl_cache_t *r_cache)
   if (es_ferror (fp))
     {
       log_error (_("error reading '%s': %s\n"), fname, strerror (errno));
-      err = gpg_error (GPG_ERR_CONFIGURATION);
+      err = GPG_ERR_CONFIGURATION;
       goto leave;
     }
 
@@ -697,7 +697,7 @@ open_dir (crl_cache_t *r_cache)
     {
       log_error (_("detected errors in cache dir file\n"));
       log_info (_("please check the reason and manually delete that file\n"));
-      err = gpg_error (GPG_ERR_CONFIGURATION);
+      err = GPG_ERR_CONFIGURATION;
     }
 
 
@@ -1469,7 +1469,7 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
   if (!tmp)
     {
       log_error ("oops: issuer missing in certificate\n");
-      return gpg_error (GPG_ERR_INV_CERT_OBJ);
+      return GPG_ERR_INV_CERT_OBJ;
     }
   gcry_md_hash_buffer (GCRY_MD_SHA1, issuerhash, tmp, strlen (tmp));
   xfree (tmp);
@@ -1481,14 +1481,14 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
   if (!serial)
     {
       log_error ("oops: S/N missing in certificate\n");
-      return gpg_error (GPG_ERR_INV_CERT_OBJ);
+      return GPG_ERR_INV_CERT_OBJ;
     }
   sn = serial;
   if (*sn != '(')
     {
       log_error ("oops: invalid S/N\n");
       xfree (serial);
-      return gpg_error (GPG_ERR_INV_CERT_OBJ);
+      return GPG_ERR_INV_CERT_OBJ;
     }
   sn++;
   snlen = strtoul (sn, &endp, 10);
@@ -1497,7 +1497,7 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
     {
       log_error ("oops: invalid S/N\n");
       xfree (serial);
-      return gpg_error (GPG_ERR_INV_CERT_OBJ);
+      return GPG_ERR_INV_CERT_OBJ;
     }
   sn++;
 
@@ -1509,13 +1509,13 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
       err = 0;
       break;
     case CRL_CACHE_INVALID:
-      err = gpg_error (GPG_ERR_CERT_REVOKED);
+      err = GPG_ERR_CERT_REVOKED;
       break;
     case CRL_CACHE_DONTKNOW:
-      err = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+      err = GPG_ERR_NO_CRL_KNOWN;
       break;
     case CRL_CACHE_CANTUSE:
-      err = gpg_error (GPG_ERR_NO_CRL_KNOWN);
+      err = GPG_ERR_NO_CRL_KNOWN;
       break;
     default:
       log_fatal ("cache_isvalid returned invalid status code %d\n", result);
@@ -1540,14 +1540,14 @@ start_sig_check (ksba_crl_t crl, gcry_md_hd_t *md, int *algo)
   if (!*algo)
     {
       log_error (_("unknown hash algorithm '%s'\n"), algoid? algoid:"?");
-      return gpg_error (GPG_ERR_DIGEST_ALGO);
+      return GPG_ERR_DIGEST_ALGO;
     }
 
   err = gcry_md_open (md, *algo, 0);
   if (err)
     {
       log_error (_("gcry_md_open for algorithm %d failed: %s\n"),
-                 *algo, gcry_strerror (err));
+                 *algo, gpg_strerror (err));
       return err;
     }
   if (DBG_HASHING)
@@ -1584,14 +1584,14 @@ finish_sig_check (ksba_crl_t crl, gcry_md_hd_t md, int algo,
   if (!n)
     {
       log_error (_("got an invalid S-expression from libksba\n"));
-      err = gpg_error (GPG_ERR_INV_SEXP);
+      err = GPG_ERR_INV_SEXP;
       goto leave;
     }
   err = gcry_sexp_sscan (&s_sig, NULL, sigval, n);
   if (err)
     {
       log_error (_("converting S-expression failed: %s\n"),
-                 gcry_strerror (err));
+                 gpg_strerror (err));
       goto leave;
     }
 
@@ -1603,14 +1603,14 @@ finish_sig_check (ksba_crl_t crl, gcry_md_hd_t md, int algo,
   if (!n)
     {
       log_error (_("got an invalid S-expression from libksba\n"));
-      err = gpg_error (GPG_ERR_INV_SEXP);
+      err = GPG_ERR_INV_SEXP;
       goto leave;
     }
   err = gcry_sexp_sscan (&s_pkey, NULL, pubkey, n);
   if (err)
     {
       log_error (_("converting S-expression failed: %s\n"),
-                 gcry_strerror (err));
+                 gpg_strerror (err));
       goto leave;
     }
 
@@ -1624,7 +1624,7 @@ finish_sig_check (ksba_crl_t crl, gcry_md_hd_t md, int algo,
                          gcry_md_get_algo_dlen (algo), gcry_md_read (md, algo));
   if (err)
     {
-      log_error (_("creating S-expression failed: %s\n"), gcry_strerror (err));
+      log_error (_("creating S-expression failed: %s\n"), gpg_strerror (err));
       goto leave;
     }
 
@@ -1713,7 +1713,7 @@ crl_parse_insert (ctrl_t ctrl, ksba_crl_t crl,
               {
                 log_error (_("error getting update times of CRL: %s\n"),
                            gpg_strerror (err));
-                err = gpg_error (GPG_ERR_INV_CRL);
+                err = GPG_ERR_INV_CRL;
                 goto failure;
               }
 
@@ -1744,7 +1744,7 @@ crl_parse_insert (ctrl_t ctrl, ksba_crl_t crl,
               {
                 log_error (_("error getting CRL item: %s\n"),
                            gpg_strerror (err));
-                err = gpg_error (GPG_ERR_INV_CRL);
+                err = GPG_ERR_INV_CRL;
                 ksba_free (serial);
                 goto failure;
               }
@@ -1786,7 +1786,7 @@ crl_parse_insert (ctrl_t ctrl, ksba_crl_t crl,
               {
                 log_error (_("no CRL issuer found in CRL: %s\n"),
                            gpg_strerror (err) );
-                err = gpg_error (GPG_ERR_INV_CRL);
+                err = GPG_ERR_INV_CRL;
                 goto failure;
               }
 	    /* Note: This should be released by ksba_free, not xfree.
@@ -1837,7 +1837,7 @@ crl_parse_insert (ctrl_t ctrl, ksba_crl_t crl,
             err = 0;
             if (!crlissuer_cert)
               {
-                err = gpg_error (GPG_ERR_MISSING_CERT);
+                err = GPG_ERR_MISSING_CERT;
                 goto failure;
               }
 
@@ -1868,7 +1868,7 @@ crl_parse_insert (ctrl_t ctrl, ksba_crl_t crl,
 
         default:
           log_debug ("crl_parse_insert: unknown stop reason\n");
-          err = gpg_error (GPG_ERR_BUG);
+          err = GPG_ERR_BUG;
           goto failure;
         }
     }
@@ -2095,7 +2095,7 @@ crl_cache_insert (ctrl_t ctrl, const char *url, ksba_reader_t reader)
 
     if (hash_dbfile (fname, md5buf))
       {
-        err = gpg_error (GPG_ERR_CHECKSUM);
+        err = GPG_ERR_CHECKSUM;
         goto leave;
       }
     checksum = hexify_data (md5buf, 16, 0);
@@ -2114,7 +2114,7 @@ crl_cache_insert (ctrl_t ctrl, const char *url, ksba_reader_t reader)
           log_error (_("new CRL still too old; it expired on %s\n"),
                      nextupdate);
           if (!err2)
-            err2 = gpg_error (GPG_ERR_CRL_TOO_OLD);
+            err2 = GPG_ERR_CRL_TOO_OLD;
           invalidate_crl |= 1;
         }
     }
@@ -2129,16 +2129,16 @@ crl_cache_insert (ctrl_t ctrl, const char *url, ksba_reader_t reader)
         continue;
       log_error (_("unknown critical CRL extension %s\n"), oid);
       if (!err2)
-        err2 = gpg_error (GPG_ERR_INV_CRL);
+        err2 = GPG_ERR_INV_CRL;
       invalidate_crl |= 2;
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF
-      || gpg_err_code (err) == GPG_ERR_NO_DATA )
+  if (err == GPG_ERR_EOF
+      || err == GPG_ERR_NO_DATA )
     err = 0;
   if (err)
     {
       log_error (_("error reading CRL extensions: %s\n"), gpg_strerror (err));
-      err = gpg_error (GPG_ERR_INV_CRL);
+      err = GPG_ERR_INV_CRL;
     }
 
 
@@ -2304,7 +2304,7 @@ list_one_crl_entry (crl_cache_t cache, crl_cache_entry_t e, estream_t fp)
 
   cdb = lock_db_file (cache, e);
   if (!cdb)
-    return gpg_error (GPG_ERR_GENERAL);
+    return GPG_ERR_GENERAL;
 
   if (!e->dbfile_checked)
     es_fprintf (fp, _(" ERROR: This cached CRL may have been tampered with!\n"));
@@ -2380,7 +2380,7 @@ list_one_crl_entry (crl_cache_t cache, crl_cache_entry_t e, estream_t fp)
   es_fprintf (fp, _("End CRL dump\n") );
   es_putc ('\n', fp);
 
-  return (rc||warn)? gpg_error (GPG_ERR_GENERAL) : 0;
+  return (rc||warn)? GPG_ERR_GENERAL : 0;
 }
 
 
@@ -2534,7 +2534,7 @@ crl_cache_reload_crl (ctrl_t ctrl, ksba_cert_t cert)
       crl_close_reader (reader);
       reader = NULL;
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF)
+  if (err == GPG_ERR_EOF)
     err = 0;
 
   /* If we did not found any distpoint, try something reasonable. */
@@ -2550,7 +2550,7 @@ crl_cache_reload_crl (ctrl_t ctrl, ksba_cert_t cert)
       if (!issuer)
         {
           log_error ("oops: issuer missing in certificate\n");
-          err = gpg_error (GPG_ERR_INV_CERT_OBJ);
+          err = GPG_ERR_INV_CERT_OBJ;
           goto leave;
         }
 

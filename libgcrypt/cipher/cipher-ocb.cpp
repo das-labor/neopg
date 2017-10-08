@@ -126,7 +126,7 @@ ocb_get_L_big (gcry_cipher_hd_t c, u64 n, unsigned char *l_buf)
 /* Set the nonce for OCB.  This requires that the key has been set.
    Using it again resets start a new encryption cycle using the same
    key.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_set_nonce (gcry_cipher_hd_t c, const unsigned char *nonce,
                             size_t noncelen)
 {
@@ -229,7 +229,7 @@ _gcry_cipher_ocb_set_nonce (gcry_cipher_hd_t c, const unsigned char *nonce,
 /* Process additional authentication data.  This implementation allows
    to add additional authentication data at any time before the final
    gcry_cipher_gettag.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_authenticate (gcry_cipher_hd_t c, const unsigned char *abuf,
                                size_t abuflen)
 {
@@ -440,7 +440,7 @@ ocb_checksum (unsigned char *chksum, const unsigned char *plainbuf,
 
 
 /* Common code for encrypt and decrypt.  */
-static gcry_err_code_t
+static gpg_error_t
 ocb_crypt (gcry_cipher_hd_t c, int encrypt,
            unsigned char *outbuf, size_t outbuflen,
            const unsigned char *inbuf, size_t inbuflen)
@@ -640,7 +640,7 @@ ocb_crypt (gcry_cipher_hd_t c, int encrypt,
    the allocated size of OUTBUF.  This function accepts only multiples
    of a full block unless gcry_cipher_final has been called in which
    case the next block may have any length.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_encrypt (gcry_cipher_hd_t c,
                           unsigned char *outbuf, size_t outbuflen,
                           const unsigned char *inbuf, size_t inbuflen)
@@ -654,7 +654,7 @@ _gcry_cipher_ocb_encrypt (gcry_cipher_hd_t c,
    the allocated size of OUTBUF.  This function accepts only multiples
    of a full block unless gcry_cipher_final has been called in which
    case the next block may have any length.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_decrypt (gcry_cipher_hd_t c,
                           unsigned char *outbuf, size_t outbuflen,
                           const unsigned char *inbuf, size_t inbuflen)
@@ -681,7 +681,7 @@ compute_tag_if_needed (gcry_cipher_hd_t c)
 /* Copy the already computed tag to OUTTAG.  OUTTAGSIZE is the
    allocated size of OUTTAG; the function returns an error if that is
    too short to hold the tag.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_get_tag (gcry_cipher_hd_t c,
                           unsigned char *outtag, size_t outtagsize)
 {
@@ -700,7 +700,7 @@ _gcry_cipher_ocb_get_tag (gcry_cipher_hd_t c,
 
 /* Check that the tag (INTAG,TAGLEN) matches the computed tag for the
    handle C.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ocb_check_tag (gcry_cipher_hd_t c, const unsigned char *intag,
 			    size_t taglen)
 {

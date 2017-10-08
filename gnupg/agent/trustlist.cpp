@@ -165,8 +165,8 @@ read_one_trustfile (const char *fname, int allow_include,
           /* Eat until end of line. */
           while ( (c=es_getc (fp)) != EOF && c != '\n')
             ;
-          err = gpg_error (*line? GPG_ERR_LINE_TOO_LONG
-                           : GPG_ERR_INCOMPLETE_LINE);
+          err = *line? GPG_ERR_LINE_TOO_LONG
+                           : GPG_ERR_INCOMPLETE_LINE;
           log_error (_("file '%s', line %d: %s\n"),
                      fname, lnr, gpg_strerror (err));
           continue;
@@ -248,7 +248,7 @@ read_one_trustfile (const char *fname, int allow_include,
       if (n < 0)
         {
           log_error (_("bad fingerprint in '%s', line %d\n"), fname, lnr);
-          err = gpg_error (GPG_ERR_BAD_DATA);
+          err = GPG_ERR_BAD_DATA;
           continue;
         }
       p += n;
@@ -273,14 +273,14 @@ read_one_trustfile (const char *fname, int allow_include,
       else
         {
           log_error (_("invalid keyflag in '%s', line %d\n"), fname, lnr);
-          err = gpg_error (GPG_ERR_BAD_DATA);
+          err = GPG_ERR_BAD_DATA;
           continue;
         }
       p++;
       if ( *p && !spacep (p) )
         {
           log_error (_("invalid keyflag in '%s', line %d\n"), fname, lnr);
-          err = gpg_error (GPG_ERR_BAD_DATA);
+          err = GPG_ERR_BAD_DATA;
           continue;
         }
 
@@ -296,7 +296,7 @@ read_one_trustfile (const char *fname, int allow_include,
             {
               log_error ("assigning a value to a flag is not yet supported; "
                          "in '%s', line %d\n", fname, lnr);
-              err = gpg_error (GPG_ERR_BAD_DATA);
+              err = GPG_ERR_BAD_DATA;
               p++;
             }
           else if (n == 5 && !memcmp (p, "relax", 5))
@@ -372,7 +372,7 @@ read_trustfiles (void)
   if (err)
     {
       xfree (table);
-      if (gpg_err_code (err) == GPG_ERR_ENOENT)
+      if (err == GPG_ERR_ENOENT)
         {
           /* Take a missing trustlist as an empty one.  */
           clear_trusttable ();
@@ -416,7 +416,7 @@ istrusted_internal (ctrl_t ctrl, const char *fpr, int *r_disabled,
 
   if ( hexcolon2bin (fpr, fprbin, 20) < 0 )
     {
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
 
@@ -462,11 +462,11 @@ istrusted_internal (ctrl_t ctrl, const char *fpr, int *r_disabled,
               }
 
             if (!err)
-              err = ti->flags.disabled? gpg_error (GPG_ERR_NOT_TRUSTED) : 0;
+              err = ti->flags.disabled? GPG_ERR_NOT_TRUSTED : 0;
             goto leave;
           }
     }
-  err = gpg_error (GPG_ERR_NOT_TRUSTED);
+  err = GPG_ERR_NOT_TRUSTED;
 
  leave:
   if (locked && !already_locked)
@@ -622,7 +622,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
   if ( access (fname, W_OK) && errno != ENOENT)
     {
       xfree (fname);
-      return gpg_error (GPG_ERR_EPERM);
+      return GPG_ERR_EPERM;
     }
   xfree (fname);
 
@@ -634,7 +634,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
 
   /* This feature must explicitly been enabled. */
   if (!opt.allow_mark_trusted)
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
 
   if (is_disabled)
     {
@@ -642,7 +642,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
          so that the user won't be asked again for that one.  Changing
          this flag with the integrated marktrusted feature is and will
          not be made possible.  */
-      return gpg_error (GPG_ERR_NOT_TRUSTED);
+      return GPG_ERR_NOT_TRUSTED;
     }
 
 
@@ -674,7 +674,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
   xfree (desc);
   if (!err)
     yes_i_trust = 1;
-  else if (gpg_err_code (err) == GPG_ERR_NOT_CONFIRMED)
+  else if (err == GPG_ERR_NOT_CONFIRMED)
     yes_i_trust = 0;
   else
     {
@@ -720,7 +720,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
          other button is "the default "Cancel" of the Pinentry. */
       err = agent_get_confirmation (ctrl, desc, L_("Correct"), L_("Wrong"), 1);
       xfree (desc);
-      if (gpg_err_code (err) == GPG_ERR_NOT_CONFIRMED)
+      if (err == GPG_ERR_NOT_CONFIRMED)
         yes_i_trust = 0;
       else if (err)
         {
@@ -740,7 +740,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
       unlock_trusttable ();
       xfree (fprformatted);
       xfree (nameformatted);
-      return is_disabled? gpg_error (GPG_ERR_NOT_TRUSTED) : 0;
+      return is_disabled? GPG_ERR_NOT_TRUSTED : 0;
     }
 
   fname = make_filename_try (gnupg_homedir (), "trustlist.txt", NULL);

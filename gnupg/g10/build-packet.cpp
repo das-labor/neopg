@@ -285,11 +285,11 @@ gpg_mpi_write (iobuf_t out, gcry_mpi_t a)
       rc = gcry_mpi_print (GCRYMPI_FMT_PGP, buffer, nbytes, &nbytes, a );
       if( !rc )
         rc = iobuf_write( out, buffer, nbytes );
-      else if (gpg_err_code(rc) == GPG_ERR_TOO_SHORT )
+      else if (rc == GPG_ERR_TOO_SHORT )
         {
           log_info ("mpi too large (%u bits)\n", gcry_mpi_get_nbits (a));
           /* The buffer was too small. We better tell the user about the MPI. */
-          rc = gpg_error (GPG_ERR_TOO_LARGE);
+          rc = GPG_ERR_TOO_LARGE;
         }
     }
 
@@ -314,7 +314,7 @@ gpg_mpi_write_nohdr (iobuf_t out, gcry_mpi_t a)
       rc = p ? iobuf_write (out, p, (nbits+7)/8) : 0;
     }
   else
-    rc = gpg_error (GPG_ERR_BAD_MPI);
+    rc = GPG_ERR_BAD_MPI;
 
   return rc;
 }

@@ -120,7 +120,7 @@
 
 typedef gnutls_session_t tls_session_t;
 
-static gpg_err_code_t do_parse_uri (parsed_uri_t uri, int only_local_part,
+static gpg_error_t do_parse_uri (parsed_uri_t uri, int only_local_part,
                                     int no_scheme_check, int force_tls);
 static gpg_error_t parse_uri (parsed_uri_t *ret_uri, const char *uri,
                               int no_scheme_check, int force_tls);
@@ -133,7 +133,7 @@ static gpg_error_t send_request (http_t hd, const char *httphost,
 				 const char *srvtag, unsigned int timeout,
                                  strlist_t headers);
 static char *build_rel_path (parsed_uri_t uri);
-static gpg_err_code_t parse_response (http_t hd);
+static gpg_error_t parse_response (http_t hd);
 
 static gpg_error_t connect_server (const char *server, unsigned short port,
                                    unsigned int flags, const char *srvtag,
@@ -570,7 +570,7 @@ http_session_new (http_session_t *r_session,
       {
         log_error ("gnutls_certificate_allocate_credentials failed: %s\n",
                    gnutls_strerror (rc));
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
         goto leave;
       }
 
@@ -639,7 +639,7 @@ http_session_new (http_session_t *r_session,
     if (rc < 0)
       {
         log_error ("gnutls_init failed: %s\n", gnutls_strerror (rc));
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
         goto leave;
       }
     /* A new session has the transport ptr set to (void*(-1), we need
@@ -653,7 +653,7 @@ http_session_new (http_session_t *r_session,
       {
         log_error ("gnutls_priority_set_direct failed at '%s': %s\n",
                    errpos, gnutls_strerror (rc));
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
         goto leave;
       }
 
@@ -662,7 +662,7 @@ http_session_new (http_session_t *r_session,
     if (rc < 0)
       {
         log_error ("gnutls_credentials_set failed: %s\n", gnutls_strerror (rc));
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
         goto leave;
       }
   }
@@ -734,7 +734,7 @@ http_open (http_t *r_hd, http_req_t reqtype, const char *url,
   *r_hd = NULL;
 
   if (!(reqtype == HTTP_REQ_GET || reqtype == HTTP_REQ_POST))
-    return gpg_error(GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   /* Create the handle. */
   hd = xtrycalloc (1, sizeof *hd);
@@ -787,7 +787,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
       if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
         {
           log_error ("Tor support is not available\n");
-          return gpg_error(GPG_ERR_NOT_IMPLEMENTED);
+          return GPG_ERR_NOT_IMPLEMENTED;
         }
     }
 
@@ -812,7 +812,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
     hd->sock = my_socket_new (sock);
     if (!hd->sock)
       {
-        err = gpg_error(gpg_err_code_from_syserror ());
+        err = gpg_error_from_syserror ();
         xfree (hd);
         return err;
       }
@@ -822,14 +822,14 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       goto leave;
     }
   cookie->sock = my_socket_ref (hd->sock);
   hd->fp_write = es_fopencookie (cookie, "w", cookie_functions);
   if (!hd->fp_write)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       my_socket_unref (cookie->sock, NULL, NULL);
       xfree (cookie);
       goto leave;
@@ -839,14 +839,14 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       goto leave;
     }
   cookie->sock = my_socket_ref (hd->sock);
   hd->fp_read = es_fopencookie (cookie, "r", cookie_functions);
   if (!hd->fp_read)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       my_socket_unref (cookie->sock, NULL, NULL);
       xfree (cookie);
       goto leave;
@@ -906,7 +906,7 @@ http_wait_response (http_t hd)
      object keeps the actual system socket open.  */
   cookie = hd->write_cookie;
   if (!cookie)
-    return gpg_error(GPG_ERR_INTERNAL);
+    return GPG_ERR_INTERNAL;
 
   es_fclose (hd->fp_write);
   hd->fp_write = NULL;
@@ -923,7 +923,7 @@ http_wait_response (http_t hd)
   /* Create a new cookie and a stream for reading.  */
   cookie = xtrycalloc (1, sizeof *cookie);
   if (!cookie)
-    return gpg_error(gpg_err_code_from_syserror ());
+    return gpg_error_from_syserror ();
   cookie->sock = my_socket_ref (hd->sock);
   cookie->session = http_session_ref (hd->session);
   cookie->use_tls = hd->uri->use_tls;
@@ -932,7 +932,7 @@ http_wait_response (http_t hd)
   hd->fp_read = es_fopencookie (cookie, "r", cookie_functions);
   if (!hd->fp_read)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       my_socket_unref (cookie->sock, NULL, NULL);
       http_session_unref (cookie->session);
       xfree (cookie);
@@ -1051,11 +1051,11 @@ static gpg_error_t
 parse_uri (parsed_uri_t *ret_uri, const char *uri,
            int no_scheme_check, int force_tls)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   *ret_uri = xtrycalloc (1, sizeof **ret_uri + strlen (uri));
   if (!*ret_uri)
-    return gpg_error(gpg_err_code_from_syserror ());
+    return gpg_error_from_syserror ();
   strcpy ((*ret_uri)->buffer, uri);
   ec = do_parse_uri (*ret_uri, 0, no_scheme_check, force_tls);
   if (ec)
@@ -1063,7 +1063,7 @@ parse_uri (parsed_uri_t *ret_uri, const char *uri,
       xfree (*ret_uri);
       *ret_uri = NULL;
     }
-  return gpg_error(ec);
+  return ec;
 }
 
 
@@ -1099,7 +1099,7 @@ http_release_parsed_uri (parsed_uri_t uri)
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 do_parse_uri (parsed_uri_t uri, int only_local_part,
               int no_scheme_check, int force_tls)
 {
@@ -1499,12 +1499,12 @@ send_request (http_t hd, const char *httphost, const char *auth,
   if (hd->uri->use_tls && !hd->session)
     {
       log_error ("TLS requested but no session object provided\n");
-      return gpg_error(GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
   if (hd->uri->use_tls && !hd->session->tls_session)
     {
       log_error ("TLS requested but no GNUTLS context available\n");
-      return gpg_error(GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
 
   if ((hd->flags & HTTP_FLAG_FORCE_TOR))
@@ -1514,7 +1514,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
       if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
         {
           log_error ("Tor support is not available\n");
-          return gpg_error(GPG_ERR_NOT_IMPLEMENTED);
+          return GPG_ERR_NOT_IMPLEMENTED;
         }
     }
 
@@ -1530,7 +1530,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
       hd->session->servername = xtrystrdup (httphost? httphost : server);
       if (!hd->session->servername)
         {
-          err = gpg_error(gpg_err_code_from_syserror ());
+          err = gpg_error_from_syserror ();
           return err;
         }
 
@@ -1553,7 +1553,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
 	http_proxy = proxy;
 
       err = parse_uri (&uri, http_proxy, 0, 0);
-      if (gpg_err_code (err) == GPG_ERR_INV_URI
+      if (err == GPG_ERR_INV_URI
           && is_hostname_port (http_proxy))
         {
           /* Retry assuming a "hostname:port" string.  */
@@ -1568,15 +1568,15 @@ send_request (http_t hd, const char *httphost, const char *auth,
       else if (!strcmp (uri->scheme, "http") || !strcmp (uri->scheme, "socks4"))
         ;
       else if (!strcmp (uri->scheme, "socks5h"))
-        err = gpg_error(GPG_ERR_NOT_IMPLEMENTED);
+        err = GPG_ERR_NOT_IMPLEMENTED;
       else
-        err = gpg_error(GPG_ERR_INV_URI);
+        err = GPG_ERR_INV_URI;
 
       if (err)
 	{
 	  log_error ("invalid HTTP proxy (%s): %s\n",
 		     http_proxy, gpg_strerror (err));
-	  return gpg_error(GPG_ERR_CONFIGURATION);
+	  return GPG_ERR_CONFIGURATION;
 	}
 
       if (uri->auth)
@@ -1587,7 +1587,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
                                             uri->auth, strlen(uri->auth));
           if (!proxy_authstr)
             {
-              err = gpg_error (gpg_err_code_from_syserror ());
+              err = gpg_error_from_syserror ();
               http_release_parsed_uri (uri);
               return err;
             }
@@ -1612,7 +1612,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
   if (!hd->sock)
     {
       xfree (proxy_authstr);
-      return gpg_error(gpg_err_code_from_syserror ());
+      return gpg_error_from_syserror ();
     }
 
 
@@ -1656,7 +1656,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           else
             log_info ("TLS handshake failed: %s\n", gnutls_strerror (rc));
           xfree (proxy_authstr);
-          return gpg_error(GPG_ERR_NETWORK);
+          return GPG_ERR_NETWORK;
         }
 
       hd->session->verify.done = 0;
@@ -1683,7 +1683,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           if (!myauth)
             {
               xfree (proxy_authstr);
-              return gpg_error(gpg_err_code_from_syserror ());
+              return gpg_error_from_syserror ();
             }
           remove_escapes (myauth);
         }
@@ -1701,13 +1701,13 @@ send_request (http_t hd, const char *httphost, const char *auth,
       if (!authstr)
         {
           xfree (proxy_authstr);
-          return gpg_error (gpg_err_code_from_syserror ());
+          return gpg_error_from_syserror ();
         }
     }
 
   p = build_rel_path (hd->uri);
   if (!p)
-    return gpg_error(gpg_err_code_from_syserror ());
+    return gpg_error_from_syserror ();
 
   if (http_proxy && *http_proxy)
     {
@@ -1744,7 +1744,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
   xfree (p);
   if (!request)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       xfree (authstr);
       xfree (proxy_authstr);
       return err;
@@ -1761,7 +1761,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
     cookie = xtrycalloc (1, sizeof *cookie);
     if (!cookie)
       {
-        err = gpg_error(gpg_err_code_from_syserror ());
+        err = gpg_error_from_syserror ();
         goto leave;
       }
     cookie->sock = my_socket_ref (hd->sock);
@@ -1772,13 +1772,13 @@ send_request (http_t hd, const char *httphost, const char *auth,
     hd->fp_write = es_fopencookie (cookie, "w", cookie_functions);
     if (!hd->fp_write)
       {
-        err = gpg_error(gpg_err_code_from_syserror ());
+        err = gpg_error_from_syserror ();
         my_socket_unref (cookie->sock, NULL, NULL);
         xfree (cookie);
         hd->write_cookie = NULL;
       }
     else if (es_fputs (request, hd->fp_write) || es_fflush (hd->fp_write))
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
     else
       err = 0;
 
@@ -1791,7 +1791,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
           if ((es_fputs (headers->d, hd->fp_write) || es_fflush (hd->fp_write))
               || (es_fputs("\r\n",hd->fp_write) || es_fflush(hd->fp_write)))
             {
-              err = gpg_error (gpg_err_code_from_syserror ());
+              err = gpg_error_from_syserror ();
               break;
             }
         }
@@ -1886,7 +1886,7 @@ capitalize_header_name (char *name)
 /* Store an HTTP header line in LINE away.  Line continuation is
    supported as well as merging of headers with the same name. This
    function may modify LINE. */
-static gpg_err_code_t
+static gpg_error_t
 store_header (http_t hd, char *line)
 {
   size_t n;
@@ -1911,7 +1911,7 @@ store_header (http_t hd, char *line)
       n += strlen (hd->headers->value);
       p = xtrymalloc (n+1);
       if (!p)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       strcpy (stpcpy (p, hd->headers->value), line);
       xfree (hd->headers->value);
       hd->headers->value = p;
@@ -1936,7 +1936,7 @@ store_header (http_t hd, char *line)
        * it is a comma separated list and merge them.  */
       p = strconcat (h->value, ",", value, NULL);
       if (!p)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
       xfree (h->value);
       h->value = p;
       return 0;
@@ -1945,13 +1945,13 @@ store_header (http_t hd, char *line)
   /* Append a new header. */
   h = xtrymalloc (sizeof *h + strlen (line));
   if (!h)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   strcpy (h->name, line);
   h->value = xtrymalloc (strlen (value)+1);
   if (!h->value)
     {
       xfree (h);
-      return gpg_err_code_from_syserror ();
+      return gpg_error_from_syserror ();
     }
   strcpy (h->value, value);
   h->next = hd->headers;
@@ -2006,7 +2006,7 @@ http_get_header_names (http_t hd)
  * Parse the response from a server.
  * Returns: Errorcode and sets some files in the handle
  */
-static gpg_err_code_t
+static gpg_error_t
 parse_response (http_t hd)
 {
   char *line, *p, *p2;
@@ -2030,7 +2030,7 @@ parse_response (http_t hd)
       len = es_read_line (hd->fp_read, &hd->buffer, &hd->buffer_size, &maxlen);
       line = hd->buffer;
       if (!line)
-	return gpg_err_code_from_syserror (); /* Out of core. */
+	return gpg_error_from_syserror (); /* Out of core. */
       if (!maxlen)
 	return GPG_ERR_TRUNCATED; /* Line has been truncated. */
       if (!len)
@@ -2074,7 +2074,7 @@ parse_response (http_t hd)
       len = es_read_line (hd->fp_read, &hd->buffer, &hd->buffer_size, &maxlen);
       line = hd->buffer;
       if (!line)
-	return gpg_err_code_from_syserror (); /* Out of core. */
+	return gpg_error_from_syserror (); /* Out of core. */
       /* Note, that we can silently ignore truncated lines. */
       if (!len)
 	return GPG_ERR_EOF;
@@ -2086,7 +2086,7 @@ parse_response (http_t hd)
                   (int)strlen(line)-(*line&&line[1]?2:0),line);
       if (*line)
         {
-          gpg_err_code_t ec = store_header (hd, line);
+          gpg_error_t ec = store_header (hd, line);
           if (ec)
             return ec;
         }
@@ -2252,7 +2252,7 @@ static gpg_error_t
 my_wsagetlasterror (void)
 {
   int wsaerr;
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   wsaerr = WSAGetLastError ();
   switch (wsaerr)
@@ -2270,7 +2270,7 @@ my_wsagetlasterror (void)
     default:                 ec = GPG_ERR_EIO;          break;
     }
 
-  return gpg_error(ec);
+  return ec;
 }
 #endif /*HAVE_W32_SYSTEM*/
 
@@ -2314,7 +2314,7 @@ connect_with_timeout (assuan_fd_t sock,
     {
       /* Shortcut.  */
       if (assuan_sock_connect (sock, addr, addrlen))
-        err = gpg_error(gpg_err_code_from_syserror ());
+        err = gpg_error_from_syserror ();
       else
         err = 0;
       return err;
@@ -2330,7 +2330,7 @@ connect_with_timeout (assuan_fd_t sock,
 #else
   oflags = fcntl (sock, F_GETFL, 0);
   if (fcntl (sock, F_SETFL, oflags | O_NONBLOCK))
-    return gpg_error(gpg_err_code_from_syserror ());
+    return gpg_error_from_syserror ();
 #endif
 
   /* Do the connect.  */
@@ -2340,8 +2340,8 @@ connect_with_timeout (assuan_fd_t sock,
       RESTORE_BLOCKING ();
       return 0; /* Success.  */
     }
-  err = gpg_error(gpg_err_code_from_syserror ());
-  if (gpg_err_code (err) != GPG_ERR_EINPROGRESS)
+  err = gpg_error_from_syserror ();
+  if (err != GPG_ERR_EINPROGRESS)
     {
       RESTORE_BLOCKING ();
       return err;
@@ -2356,7 +2356,7 @@ connect_with_timeout (assuan_fd_t sock,
   n = my_select (FD2INT(sock)+1, &rset, &wset, NULL, &tval);
   if (n < 0)
     {
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
       RESTORE_BLOCKING ();
       return err;
     }
@@ -2364,12 +2364,12 @@ connect_with_timeout (assuan_fd_t sock,
     {
       /* Timeout: We do not restore the socket flags on timeout
        * because the caller is expected to close the socket.  */
-      return gpg_error(GPG_ERR_ETIMEDOUT);
+      return GPG_ERR_ETIMEDOUT;
     }
   if (!FD_ISSET (sock, &rset) && !FD_ISSET (sock, &wset))
     {
       /* select misbehaved.  */
-      return gpg_error(GPG_ERR_SYSTEM_BUG);
+      return GPG_ERR_SYSTEM_BUG;
     }
 
   slen = sizeof (syserr);
@@ -2377,10 +2377,10 @@ connect_with_timeout (assuan_fd_t sock,
                   (void*)&syserr, &slen) < 0)
     {
       /* Assume that this is Solaris which returns the error in ERRNO.  */
-      err = gpg_error(gpg_err_code_from_syserror ());
+      err = gpg_error_from_syserror ();
     }
   else if (syserr)
-    err = gpg_error(gpg_err_code_from_errno (syserr));
+    err = gpg_error_from_errno (syserr);
   else
     err = 0; /* Connected.  */
 
@@ -2426,8 +2426,8 @@ connect_server (const char *server, unsigned short port,
                                          ASSUAN_SOCK_TOR);
       if (sock == ASSUAN_INVALID_FD)
         {
-          err = gpg_error ((errno == EHOSTUNREACH)? GPG_ERR_UNKNOWN_HOST
-                              : gpg_err_code_from_syserror ());
+          err = (errno == EHOSTUNREACH? GPG_ERR_UNKNOWN_HOST
+                              : gpg_error_from_syserror ());
           log_error ("can't connect to '%s': %s\n", server, gpg_strerror (err));
           return err;
         }
@@ -2438,7 +2438,7 @@ connect_server (const char *server, unsigned short port,
 
 #else /*!ASSUAN_SOCK_TOR*/
 
-      err = gpg_error(GPG_ERR_ENETUNREACH);
+      err = GPG_ERR_ENETUNREACH;
       return ASSUAN_INVALID_FD;
 
 #endif /*!HASSUAN_SOCK_TOR*/
@@ -2461,7 +2461,7 @@ connect_server (const char *server, unsigned short port,
 	 up a fake SRV record. */
       serverlist = xtrycalloc (1, sizeof *serverlist);
       if (!serverlist)
-        return gpg_error(gpg_err_code_from_syserror ());
+        return gpg_error_from_syserror ();
 
       serverlist->port = port;
       strncpy (serverlist->target, server, DIMof (struct srventry, target));
@@ -2500,7 +2500,7 @@ connect_server (const char *server, unsigned short port,
           sock = my_sock_new_for_addr (ai->addr, ai->socktype, ai->protocol);
           if (sock == ASSUAN_INVALID_FD)
             {
-              err = gpg_error (gpg_err_code_from_syserror ());
+              err = gpg_error_from_syserror ();
               log_error ("error creating socket: %s\n", gpg_strerror (err));
               free_dns_addrinfo (aibuf);
               xfree (serverlist);
@@ -2543,7 +2543,7 @@ connect_server (const char *server, unsigned short port,
                    server, gpg_strerror (last_err));
 #endif
         }
-      err = last_err? last_err : gpg_error (GPG_ERR_UNKNOWN_HOST);
+      err = last_err? last_err : GPG_ERR_UNKNOWN_HOST;
       if (sock != ASSUAN_INVALID_FD)
 	assuan_sock_close (sock);
       return err;
@@ -2609,7 +2609,7 @@ write_server (assuan_fd_t sock, const char *data, size_t length)
       if ( nwritten == SOCKET_ERROR )
         {
           log_info ("network write failed: ec=%d\n", (int)WSAGetLastError ());
-          return gpg_error (GPG_ERR_NETWORK);
+          return GPG_ERR_NETWORK;
         }
 #else /*!HAVE_W32_SYSTEM*/
 # ifdef USE_NPTH
@@ -2826,7 +2826,7 @@ http_verify_server_credentials (http_session_t sess)
     {
       log_error ("%s: %s\n", errprefix, "not an X.509 certificate");
       sess->verify.rc = GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE;
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
 
   rc = gnutls_certificate_verify_peers2 (sess->tls_session, &status);
@@ -2834,7 +2834,7 @@ http_verify_server_credentials (http_session_t sess)
     {
       log_error ("%s: %s\n", errprefix, gnutls_strerror (rc));
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
   else if (status)
     {
@@ -2854,7 +2854,7 @@ http_verify_server_credentials (http_session_t sess)
 
       sess->verify.status = status;
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
 
   hostname = sess->servername;
@@ -2862,7 +2862,7 @@ http_verify_server_credentials (http_session_t sess)
     {
       log_error ("%s: %s\n", errprefix, "hostname missing");
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
 
   certlist = gnutls_certificate_get_peers (sess->tls_session, &certlistlen);
@@ -2870,7 +2870,7 @@ http_verify_server_credentials (http_session_t sess)
     {
       log_error ("%s: %s\n", errprefix, "server did not send a certificate");
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
 
       /* Need to stop here.  */
       if (err)
@@ -2881,7 +2881,7 @@ http_verify_server_credentials (http_session_t sess)
   if (rc < 0)
     {
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
       if (err)
         return err;
     }
@@ -2892,14 +2892,14 @@ http_verify_server_credentials (http_session_t sess)
       log_error ("%s: %s: %s\n", errprefix, "error importing certificate",
                  gnutls_strerror (rc));
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
 
   if (!gnutls_x509_crt_check_hostname (cert, hostname))
     {
       log_error ("%s: %s\n", errprefix, "hostname does not match");
       if (!err)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
 
   gnutls_x509_crt_deinit (cert);

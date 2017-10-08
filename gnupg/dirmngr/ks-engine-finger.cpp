@@ -67,7 +67,7 @@ ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp)
   *r_fp = NULL;
 
   if (strcmp (uri->scheme, "finger") || !uri->opaque || !uri->path)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
 
   name = xtrystrdup (uri->path);
   if (!name)
@@ -76,7 +76,7 @@ ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp)
   server = strchr (name, '@');
   if (!server)
     {
-      err = gpg_error (GPG_ERR_INV_URI);
+      err = GPG_ERR_INV_URI;
       xfree (name);
       return err;
     }
@@ -96,7 +96,7 @@ ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp)
   fp = http_get_write_ptr (http);
   if (!fp)
     {
-      err = gpg_error (GPG_ERR_INTERNAL);
+      err = GPG_ERR_INTERNAL;
       http_close (http, 0);
       xfree (name);
       return err;
@@ -115,7 +115,7 @@ ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp)
   fp = http_get_read_ptr (http);
   if (!fp)
     {
-      err = gpg_error (GPG_ERR_INTERNAL);
+      err = GPG_ERR_INTERNAL;
       http_close (http, 0);
       return err;
     }

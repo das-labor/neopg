@@ -223,12 +223,12 @@ uds_sendfd (assuan_context_t ctx, assuan_fd_t fd)
       TRACE1 (ctx, ASSUAN_LOG_SYSIO, "uds_sendfd", ctx,
 	      "uds_sendfd: %s", strerror (errno));
       errno = saved_errno;
-      return _assuan_error (ctx, gpg_err_code_from_syserror ());
+      return gpg_error_from_syserror ();
     }
   else
     return 0;
 #else
-  return _assuan_error (ctx, GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -243,7 +243,7 @@ uds_receivefd (assuan_context_t ctx, assuan_fd_t *fd)
     {
       TRACE0 (ctx, ASSUAN_LOG_SYSIO, "uds_receivefd", ctx,
 	      "no pending file descriptors");
-      return _assuan_error (ctx, GPG_ERR_ASS_GENERAL);
+      return GPG_ERR_ASS_GENERAL;
     }
   assert (ctx->uds.pendingfdscount <= DIM(ctx->uds.pendingfds));
 
@@ -254,7 +254,7 @@ uds_receivefd (assuan_context_t ctx, assuan_fd_t *fd)
 
   return 0;
 #else
-  return _assuan_error (ctx, GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 

@@ -95,7 +95,7 @@ ksba_writer_set_release_notify (ksba_writer_t w,
                                 void *notify_value)
 {
   if (!w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   w->notify_cb = notify;
   w->notify_cb_value = notify_value;
   return 0;
@@ -105,7 +105,7 @@ ksba_writer_set_release_notify (ksba_writer_t w,
 int
 ksba_writer_error (ksba_writer_t w)
 {
-  return w? gpg_error_from_errno (w->error) : gpg_error (GPG_ERR_INV_VALUE);
+  return w? gpg_error_from_errno (w->error) : GPG_ERR_INV_VALUE;
 }
 
 unsigned long
@@ -129,9 +129,9 @@ gpg_error_t
 ksba_writer_set_fd (ksba_writer_t w, int fd)
 {
   if (!w || fd == -1)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (w->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   w->error = 0;
   w->type = WRITER_TYPE_FD;
@@ -154,9 +154,9 @@ gpg_error_t
 ksba_writer_set_file (ksba_writer_t w, FILE *fp)
 {
   if (!w || !fp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (w->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   w->error = 0;
   w->type = WRITER_TYPE_FILE;
@@ -190,9 +190,9 @@ ksba_writer_set_cb (ksba_writer_t w,
                     int (*cb)(void*,const void *,size_t), void *cb_value )
 {
   if (!w || !cb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (w->type)
-    return gpg_error (GPG_ERR_CONFLICT);
+    return GPG_ERR_CONFLICT;
 
   w->error = 0;
   w->type = WRITER_TYPE_CB;
@@ -207,20 +207,20 @@ gpg_error_t
 ksba_writer_set_mem (ksba_writer_t w, size_t initial_size)
 {
   if (!w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (w->type == WRITER_TYPE_MEM)
     ; /* Reuse the buffer (we ignore the initial size)*/
   else
     {
       if (w->type)
-        return gpg_error (GPG_ERR_CONFLICT);
+        return GPG_ERR_CONFLICT;
 
       if (!initial_size)
         initial_size = 1024;
 
       w->u.mem.buffer = xtrymalloc (initial_size);
       if (!w->u.mem.buffer)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       w->u.mem.size = initial_size;
       w->type = WRITER_TYPE_MEM;
     }
@@ -281,7 +281,7 @@ ksba_writer_set_filter (ksba_writer_t w,
                         void *filter_arg)
 {
   if (!w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   w->filter = filter;
   w->filter_arg = filter_arg;
@@ -302,7 +302,7 @@ do_writer_write (ksba_writer_t w, const void *buffer, size_t length)
   else if (w->type == WRITER_TYPE_MEM)
     {
       if (w->error == ENOMEM)
-        return gpg_error (GPG_ERR_ENOMEM); /* it does not make sense to proceed then */
+        return GPG_ERR_ENOMEM; /* it does not make sense to proceed then */
 
       if (w->nwritten + length > w->u.mem.size)
         {
@@ -323,13 +323,13 @@ do_writer_write (ksba_writer_t w, const void *buffer, size_t length)
                  ksba_writer_error() to check for it or even figure
                  this state out when using ksba_writer_get_mem() */
               w->error = ENOMEM;
-              return gpg_error (GPG_ERR_ENOMEM);
+              return GPG_ERR_ENOMEM;
             }
           w->u.mem.buffer = p;
           w->u.mem.size = newsize;
           /* Better check again in case of an overwrap. */
           if (w->nwritten + length > w->u.mem.size)
-            return gpg_error (GPG_ERR_ENOMEM);
+            return GPG_ERR_ENOMEM;
         }
       memcpy (w->u.mem.buffer + w->nwritten, buffer, length);
       w->nwritten += length;
@@ -357,7 +357,7 @@ do_writer_write (ksba_writer_t w, const void *buffer, size_t length)
       w->nwritten += length;
     }
   else
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   return 0;
 }
@@ -378,10 +378,10 @@ ksba_writer_write (ksba_writer_t w, const void *buffer, size_t length)
   gpg_error_t err=0;
 
   if (!w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (!buffer)
-      return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+      return GPG_ERR_NOT_IMPLEMENTED;
 
   if (w->filter)
     {
@@ -396,7 +396,7 @@ ksba_writer_write (ksba_writer_t w, const void *buffer, size_t length)
           if (err)
             break;
           if (nin > length || nout > sizeof (outbuf))
-            return gpg_error (GPG_ERR_BUG); /* tsss, someone else made an error */
+            return GPG_ERR_BUG; /* tsss, someone else made an error */
           err = do_writer_write (w, outbuf, nout);
           if (err)
             break;
@@ -424,7 +424,7 @@ ksba_writer_write_octet_string (ksba_writer_t w,
   gpg_error_t err = 0;
 
   if (!w)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (buffer && length)
     {

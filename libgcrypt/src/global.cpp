@@ -77,7 +77,7 @@ static void *outofcore_handler_value;
 static int no_secure_memory;
 
 /* Prototypes.  */
-static gpg_err_code_t external_lock_test (int cmd);
+static gpg_error_t external_lock_test (int cmd);
 
 
 
@@ -89,7 +89,7 @@ static gpg_err_code_t external_lock_test (int cmd);
 static void
 global_init (void)
 {
-  gcry_error_t err = 0;
+  gpg_error_t err = 0;
 
   if (any_init_done)
     return;
@@ -400,11 +400,11 @@ _gcry_get_config (int mode, const char *what)
 
 /* Command dispatcher function, acting as general control
    function.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_vcontrol (enum gcry_ctl_cmds cmd, va_list arg_ptr)
 {
   static int init_finished = 0;
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (cmd)
     {
@@ -838,10 +838,10 @@ get_no_secure_memory (void)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_malloc (size_t n, unsigned int flags, void **mem)
 {
-  gcry_err_code_t err = 0;
+  gpg_error_t err = 0;
   void *m;
 
   if ((flags & GCRY_ALLOC_FLAG_SECURE) && !get_no_secure_memory ())
@@ -865,7 +865,7 @@ do_malloc (size_t n, unsigned int flags, void **mem)
          memory handler didn't it correctly. */
       if (!errno)
         gpg_err_set_errno (ENOMEM);
-      err = gpg_err_code_from_errno (errno);
+      err = gpg_error_from_errno (errno);
     }
   else
     *mem = m;
@@ -1058,7 +1058,7 @@ _gcry_xmalloc( size_t n )
            || !outofcore_handler
            || !outofcore_handler (outofcore_handler_value, n, 0) )
         {
-          _gcry_fatal_error (gpg_err_code_from_errno (errno), NULL);
+          _gcry_fatal_error (gpg_error_from_errno (errno), NULL);
         }
     }
     return p;
@@ -1076,7 +1076,7 @@ _gcry_xrealloc( void *a, size_t n )
            || !outofcore_handler (outofcore_handler_value, n,
                                   _gcry_is_secure(a)? 3:2))
         {
-          _gcry_fatal_error (gpg_err_code_from_errno (errno), NULL );
+          _gcry_fatal_error (gpg_error_from_errno (errno), NULL );
 	}
     }
     return p;
@@ -1093,7 +1093,7 @@ _gcry_xmalloc_secure( size_t n )
            || !outofcore_handler
            || !outofcore_handler (outofcore_handler_value, n, 1) )
         {
-          _gcry_fatal_error (gpg_err_code_from_errno (errno),
+          _gcry_fatal_error (gpg_error_from_errno (errno),
                              _("out of core in secure memory"));
 	}
     }
@@ -1111,7 +1111,7 @@ _gcry_xcalloc( size_t n, size_t m )
   if (m && nbytes / m != n)
     {
       gpg_err_set_errno (ENOMEM);
-      _gcry_fatal_error(gpg_err_code_from_errno (errno), NULL );
+      _gcry_fatal_error(gpg_error_from_errno (errno), NULL );
     }
 
   p = _gcry_xmalloc ( nbytes );
@@ -1129,7 +1129,7 @@ _gcry_xcalloc_secure( size_t n, size_t m )
   if (m && nbytes / m != n)
     {
       gpg_err_set_errno (ENOMEM);
-      _gcry_fatal_error(gpg_err_code_from_errno (errno), NULL );
+      _gcry_fatal_error(gpg_error_from_errno (errno), NULL );
     }
 
   p = _gcry_xmalloc_secure ( nbytes );
@@ -1151,7 +1151,7 @@ _gcry_xstrdup (const char *string)
           || !outofcore_handler
           || !outofcore_handler (outofcore_handler_value, n, is_sec) )
         {
-          _gcry_fatal_error (gpg_err_code_from_errno (errno),
+          _gcry_fatal_error (gpg_error_from_errno (errno),
                              is_sec? _("out of core in secure memory"):NULL);
 	}
     }
@@ -1251,11 +1251,11 @@ _gcry_set_progress_handler (void (*cb)(void *,const char*,int, int, int),
    This function is used by tests/t-lock.c - it is not part of the
    public API!
  */
-static gpg_err_code_t
+static gpg_error_t
 external_lock_test (int cmd)
 {
   GPGRT_LOCK_DEFINE (testlock);
-  gpg_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (cmd)
     {

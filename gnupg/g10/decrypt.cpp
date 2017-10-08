@@ -106,7 +106,7 @@ decrypt_message_fd (ctrl_t ctrl, int input_fd, int output_fd)
   (void)ctrl;
   (void)input_fd;
   (void)output_fd;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #else
   gpg_error_t err;
   IOBUF fp;
@@ -114,7 +114,7 @@ decrypt_message_fd (ctrl_t ctrl, int input_fd, int output_fd)
   progress_filter_context_t *pfx;
 
   if (opt.outfp)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   pfx = new_progress_context ();
 

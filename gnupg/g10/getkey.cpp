@@ -533,7 +533,7 @@ get_pubkeys (ctrl_t ctrl,
       else
         err = getkey_next (ctrl, ctx, pk, &kb);
 
-      if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+      if (err == GPG_ERR_NOT_FOUND)
         /* No more results.   */
         {
           xfree (pk);
@@ -569,7 +569,7 @@ get_pubkeys (ctrl_t ctrl,
                                    fingerprint, sizeof (fingerprint)));
     }
 
-  if (! results && gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  if (! results && err == GPG_ERR_NOT_FOUND)
     /* No match.  */
     {
       if (DBG_LOOKUP)
@@ -581,7 +581,7 @@ get_pubkeys (ctrl_t ctrl,
 
       goto out;
     }
-  else if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+  else if (err == GPG_ERR_NOT_FOUND)
     /* No more matches.  */
     ;
   else if (err)
@@ -822,7 +822,7 @@ get_pubkey_fast (PKT_public_key * pk, u32 * keyid)
   if (!hd)
     return gpg_error_from_syserror ();
   rc = keydb_search_kid (hd, keyid);
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_NOT_FOUND)
     {
       keydb_release (hd);
       return GPG_ERR_NO_PUBKEY;
@@ -1099,7 +1099,7 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
 	  if (err)
 	    {
 	      xfree (ctx);
-	      return gpg_err_code (err); /* FIXME: remove gpg_err_code.  */
+	      return err;
 	    }
 	  if (!include_unusable
 	      && ctx->items[n].mode != KEYDB_SEARCH_MODE_SHORT_KID
@@ -1293,7 +1293,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 
   /* If the requested name resembles a valid mailbox and automatic
      retrieval has been enabled, we try to import the key. */
-  if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY && !no_akl && is_mbox)
+  if (rc == GPG_ERR_NO_PUBKEY && !no_akl && is_mbox)
     {
       /* NAME wasn't present in the local keyring (or we didn't try
        * the local keyring).  Since the auto key locate feature is
@@ -1452,7 +1452,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 			name, mechanism);
 	      break;
 	    }
-	  if (gpg_err_code (rc) != GPG_ERR_NO_PUBKEY
+	  if (rc != GPG_ERR_NO_PUBKEY
               || opt.verbose || no_fingerprint)
 	    log_info (_("error retrieving '%s' via %s: %s\n"),
 		      name, mechanism,
@@ -1739,7 +1739,7 @@ get_pubkey_fromfile (ctrl_t ctrl, PKT_public_key *pk, const char *fname)
       if (found_key)
         pk_from_block (pk, keyblock, found_key);
       else
-        err = gpg_error (GPG_ERR_UNUSABLE_PUBKEY);
+        err = GPG_ERR_UNUSABLE_PUBKEY;
     }
 
   release_kbnode (keyblock);
@@ -1848,7 +1848,7 @@ get_pubkey_byfprint_fast (PKT_public_key * pk,
     return gpg_error_from_syserror ();
 
   rc = keydb_search_fpr (hd, fprbuf);
-  if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  if (rc == GPG_ERR_NOT_FOUND)
     {
       keydb_release (hd);
       return GPG_ERR_NO_PUBKEY;
@@ -1908,7 +1908,7 @@ parse_def_secret_key (ctrl_t ctrl)
 
 
       err = keydb_search (hd, &desc, 1, NULL);
-      if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
+      if (err == GPG_ERR_NOT_FOUND)
         continue;
 
       if (err)
@@ -1928,7 +1928,7 @@ parse_def_secret_key (ctrl_t ctrl)
 
       merge_selfsigs (ctrl, kb);
 
-      err = gpg_error (GPG_ERR_NO_SECKEY);
+      err = GPG_ERR_NO_SECKEY;
       node = kb;
       do
         {
@@ -2735,7 +2735,7 @@ merge_selfsigs_main (ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
 		       more revoked than this.  */
 		    break;
 		  }
-		else if (gpg_err_code (rc) == GPG_ERR_NO_PUBKEY)
+		else if (rc == GPG_ERR_NO_PUBKEY)
 		  pk->flags.maybe_revoked = 1;
 
 		/* A failure here means the sig did not verify, was
@@ -3773,7 +3773,7 @@ lookup (ctrl_t ctrl, getkey_ctx_t ctx, int want_secret,
     }
 
  found:
-  if (rc && gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+  if (rc && rc != GPG_ERR_NOT_FOUND)
     log_error ("keydb_search failed: %s\n", gpg_strerror (rc));
 
   if (!rc)
@@ -3784,9 +3784,9 @@ lookup (ctrl_t ctrl, getkey_ctx_t ctx, int want_secret,
           keyblock = NULL;
         }
     }
-  else if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND && no_suitable_key)
+  else if (rc == GPG_ERR_NOT_FOUND && no_suitable_key)
     rc = want_secret? GPG_ERR_UNUSABLE_SECKEY : GPG_ERR_UNUSABLE_PUBKEY;
-  else if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
+  else if (rc == GPG_ERR_NOT_FOUND)
     rc = want_secret? GPG_ERR_NO_SECKEY : GPG_ERR_NO_PUBKEY;
 
   release_kbnode (keyblock);
@@ -3832,7 +3832,7 @@ lookup (ctrl_t ctrl, getkey_ctx_t ctx, int want_secret,
  *   enum_secret_keys (&ctx, NULL);
  *   free_public_key (sk);
  *
- *   if (gpg_err_code (err) != GPG_ERR_EOF)
+ *   if (err != GPG_ERR_EOF)
  *     ; // An error occurred.
  */
 gpg_error_t
@@ -3871,7 +3871,7 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
     }
 
   if (c->eof)
-    return gpg_error (GPG_ERR_EOF);
+    return GPG_ERR_EOF;
 
   for (;;)
     {
@@ -3936,7 +3936,7 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
 
                 default: /* No more names to check - stop.  */
                   c->eof = 1;
-                  return gpg_error (GPG_ERR_EOF);
+                  return GPG_ERR_EOF;
                 }
             }
           while ((!name || !*name) && !keyblock);

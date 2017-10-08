@@ -330,101 +330,101 @@ struct gcry_cipher_handle
 
 
 /*-- cipher-cbc.c --*/
-gcry_err_code_t _gcry_cipher_cbc_encrypt
+gpg_error_t _gcry_cipher_cbc_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_cbc_decrypt
+gpg_error_t _gcry_cipher_cbc_decrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
 
 /*-- cipher-cfb.c --*/
-gcry_err_code_t _gcry_cipher_cfb_encrypt
+gpg_error_t _gcry_cipher_cfb_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_cfb_decrypt
+gpg_error_t _gcry_cipher_cfb_decrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_cfb8_encrypt
+gpg_error_t _gcry_cipher_cfb8_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_cfb8_decrypt
+gpg_error_t _gcry_cipher_cfb8_decrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
 
 
 /*-- cipher-ofb.c --*/
-gcry_err_code_t _gcry_cipher_ofb_encrypt
+gpg_error_t _gcry_cipher_ofb_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
 
 /*-- cipher-ctr.c --*/
-gcry_err_code_t _gcry_cipher_ctr_encrypt
+gpg_error_t _gcry_cipher_ctr_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
 
 
 /*-- cipher-aeswrap.c --*/
-gcry_err_code_t _gcry_cipher_aeswrap_encrypt
+gpg_error_t _gcry_cipher_aeswrap_encrypt
 /*           */   (gcry_cipher_hd_t c,
                    byte *outbuf, size_t outbuflen,
                    const byte *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_aeswrap_decrypt
+gpg_error_t _gcry_cipher_aeswrap_decrypt
 /*           */   (gcry_cipher_hd_t c,
                    byte *outbuf, size_t outbuflen,
                    const byte *inbuf, size_t inbuflen);
 
 
 /*-- cipher-ccm.c --*/
-gcry_err_code_t _gcry_cipher_ccm_encrypt
+gpg_error_t _gcry_cipher_ccm_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_ccm_decrypt
+gpg_error_t _gcry_cipher_ccm_decrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_ccm_set_nonce
+gpg_error_t _gcry_cipher_ccm_set_nonce
 /*           */ (gcry_cipher_hd_t c, const unsigned char *nonce,
                  size_t noncelen);
-gcry_err_code_t _gcry_cipher_ccm_authenticate
+gpg_error_t _gcry_cipher_ccm_authenticate
 /*           */ (gcry_cipher_hd_t c, const unsigned char *abuf, size_t abuflen);
-gcry_err_code_t _gcry_cipher_ccm_set_lengths
+gpg_error_t _gcry_cipher_ccm_set_lengths
 /*           */ (gcry_cipher_hd_t c, u64 encryptedlen, u64 aadlen, u64 taglen);
-gcry_err_code_t _gcry_cipher_ccm_get_tag
+gpg_error_t _gcry_cipher_ccm_get_tag
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outtag, size_t taglen);
-gcry_err_code_t _gcry_cipher_ccm_check_tag
+gpg_error_t _gcry_cipher_ccm_check_tag
 /*           */ (gcry_cipher_hd_t c,
                  const unsigned char *intag, size_t taglen);
 
 
 /*-- cipher-gcm.c --*/
-gcry_err_code_t _gcry_cipher_gcm_encrypt
+gpg_error_t _gcry_cipher_gcm_encrypt
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outbuf, size_t outbuflen,
                    const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_gcm_decrypt
+gpg_error_t _gcry_cipher_gcm_decrypt
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outbuf, size_t outbuflen,
                    const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_gcm_setiv
+gpg_error_t _gcry_cipher_gcm_setiv
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *iv, size_t ivlen);
-gcry_err_code_t _gcry_cipher_gcm_authenticate
+gpg_error_t _gcry_cipher_gcm_authenticate
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *aadbuf, size_t aadbuflen);
-gcry_err_code_t _gcry_cipher_gcm_get_tag
+gpg_error_t _gcry_cipher_gcm_get_tag
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outtag, size_t taglen);
-gcry_err_code_t _gcry_cipher_gcm_check_tag
+gpg_error_t _gcry_cipher_gcm_check_tag
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *intag, size_t taglen);
 void _gcry_cipher_gcm_setkey
@@ -432,24 +432,24 @@ void _gcry_cipher_gcm_setkey
 
 
 /*-- cipher-poly1305.c --*/
-gcry_err_code_t _gcry_cipher_poly1305_encrypt
+gpg_error_t _gcry_cipher_poly1305_encrypt
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outbuf, size_t outbuflen,
                    const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_poly1305_decrypt
+gpg_error_t _gcry_cipher_poly1305_decrypt
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outbuf, size_t outbuflen,
                    const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_poly1305_setiv
+gpg_error_t _gcry_cipher_poly1305_setiv
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *iv, size_t ivlen);
-gcry_err_code_t _gcry_cipher_poly1305_authenticate
+gpg_error_t _gcry_cipher_poly1305_authenticate
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *aadbuf, size_t aadbuflen);
-gcry_err_code_t _gcry_cipher_poly1305_get_tag
+gpg_error_t _gcry_cipher_poly1305_get_tag
 /*           */   (gcry_cipher_hd_t c,
                    unsigned char *outtag, size_t taglen);
-gcry_err_code_t _gcry_cipher_poly1305_check_tag
+gpg_error_t _gcry_cipher_poly1305_check_tag
 /*           */   (gcry_cipher_hd_t c,
                    const unsigned char *intag, size_t taglen);
 void _gcry_cipher_poly1305_setkey
@@ -457,29 +457,29 @@ void _gcry_cipher_poly1305_setkey
 
 
 /*-- cipher-ocb.c --*/
-gcry_err_code_t _gcry_cipher_ocb_encrypt
+gpg_error_t _gcry_cipher_ocb_encrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_ocb_decrypt
+gpg_error_t _gcry_cipher_ocb_decrypt
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outbuf, size_t outbuflen,
                  const unsigned char *inbuf, size_t inbuflen);
-gcry_err_code_t _gcry_cipher_ocb_set_nonce
+gpg_error_t _gcry_cipher_ocb_set_nonce
 /*           */ (gcry_cipher_hd_t c, const unsigned char *nonce,
                  size_t noncelen);
-gcry_err_code_t _gcry_cipher_ocb_authenticate
+gpg_error_t _gcry_cipher_ocb_authenticate
 /*           */ (gcry_cipher_hd_t c, const unsigned char *abuf, size_t abuflen);
-gcry_err_code_t _gcry_cipher_ocb_get_tag
+gpg_error_t _gcry_cipher_ocb_get_tag
 /*           */ (gcry_cipher_hd_t c,
                  unsigned char *outtag, size_t taglen);
-gcry_err_code_t _gcry_cipher_ocb_check_tag
+gpg_error_t _gcry_cipher_ocb_check_tag
 /*           */ (gcry_cipher_hd_t c,
                  const unsigned char *intag, size_t taglen);
 
 
 /*-- cipher-xts.c --*/
-gcry_err_code_t _gcry_cipher_xts_crypt
+gpg_error_t _gcry_cipher_xts_crypt
 /*           */ (gcry_cipher_hd_t c, unsigned char *outbuf, size_t outbuflen,
 		 const unsigned char *inbuf, size_t inbuflen, int encrypt);
 

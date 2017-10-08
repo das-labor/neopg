@@ -206,7 +206,7 @@ import_ownertrust (ctrl_t ctrl, const char *fname )
                 any = 1;
               }
 	}
-	else if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND) { /* insert */
+	else if (rc == GPG_ERR_NOT_FOUND) { /* insert */
             if (!opt.quiet)
               log_info("inserting ownertrust of %u\n", otrust );
             memset (&rec, 0, sizeof rec);

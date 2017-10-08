@@ -151,7 +151,7 @@ byte *_gcry_mpi_get_secure_buffer (gcry_mpi_t a, unsigned int fill_le,
                                    unsigned *r_nbytes, int *sign);
 void  _gcry_mpi_set_buffer ( gcry_mpi_t a, const void *buffer,
                              unsigned int nbytes, int sign );
-gpg_err_code_t _gcry_mpi_to_octet_string (unsigned char **r_frame,
+gpg_error_t _gcry_mpi_to_octet_string (unsigned char **r_frame,
                                           void *space,
                                           gcry_mpi_t value, size_t nbytes);
 
@@ -260,7 +260,7 @@ mpi_ec_t _gcry_mpi_ec_p_internal_new (enum gcry_mpi_ec_models model,
                                       enum ecc_dialects dialect,
                                       int flags,
                                       gcry_mpi_t p, gcry_mpi_t a, gcry_mpi_t b);
-gpg_err_code_t _gcry_mpi_ec_p_new (gcry_ctx_t *r_ctx,
+gpg_error_t _gcry_mpi_ec_p_new (gcry_ctx_t *r_ctx,
                                    enum gcry_mpi_ec_models model,
                                    enum ecc_dialects dialect,
                                    int flags,
@@ -285,16 +285,16 @@ gcry_mpi_t _gcry_mpi_ec_ec2os (gcry_mpi_point_t point, mpi_ec_t ectx);
 gcry_mpi_t _gcry_mpi_ec_get_mpi (const char *name, gcry_ctx_t ctx, int copy);
 gcry_mpi_point_t _gcry_mpi_ec_get_point (const char *name,
                                          gcry_ctx_t ctx, int copy);
-gpg_err_code_t _gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue,
+gpg_error_t _gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue,
                                      gcry_ctx_t ctx);
-gpg_err_code_t _gcry_mpi_ec_set_point (const char *name,
+gpg_error_t _gcry_mpi_ec_set_point (const char *name,
                                        gcry_mpi_point_t newvalue,
                                        gcry_ctx_t ctx);
-gpg_err_code_t _gcry_mpi_ec_decode_point (mpi_point_t result,
+gpg_error_t _gcry_mpi_ec_decode_point (mpi_point_t result,
                                           gcry_mpi_t value, mpi_ec_t ec);
 
 /*-- ecc-curves.c --*/
-gpg_err_code_t _gcry_mpi_ec_new (gcry_ctx_t *r_ctx,
+gpg_error_t _gcry_mpi_ec_new (gcry_ctx_t *r_ctx,
                                  gcry_sexp_t keyparam, const char *curvename);
 
 

@@ -36,7 +36,7 @@
    NBYTES.  If the resulting octet string is shorter than NBYTES pad
    it to the left with zeroes.  If VALUE does not fit into NBYTES
    return an error code.  */
-static gpg_err_code_t
+static gpg_error_t
 octet_string_from_mpi (unsigned char **r_frame, void *space,
                        gcry_mpi_t value, size_t nbytes)
 {
@@ -66,13 +66,13 @@ octet_string_from_mpi (unsigned char **r_frame, void *space,
    (Note that OpenPGP includes the cipher algorithm and a checksum in
    VALUE; the caller needs to prepare the value accordingly.)
   */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
                                 const unsigned char *value, size_t valuelen,
                                 const unsigned char *random_override,
                                 size_t random_override_len)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   unsigned char *frame = NULL;
   size_t nframe = (nbits+7) / 8;
   int i;
@@ -86,7 +86,7 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
     }
 
   if ( !(frame = xtrymalloc_secure (nframe)))
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   n = 0;
   frame[n++] = 0;
@@ -165,11 +165,11 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
    NBITS is the size of the secret key.  On success the result is
    stored as a newly allocated buffer at R_RESULT and its valid length at
    R_RESULTLEN.  On error NULL is stored at R_RESULT.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
                                 unsigned int nbits, gcry_mpi_t value)
 {
-  gcry_error_t err;
+  gpg_error_t err;
   unsigned char *frame = NULL;
   size_t nframe = (nbits+7) / 8;
   size_t n;
@@ -177,13 +177,13 @@ _gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
   *r_result = NULL;
 
   if ( !(frame = xtrymalloc_secure (nframe)))
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   err = _gcry_mpi_print (GCRYMPI_FMT_USG, frame, nframe, &n, value);
   if (err)
     {
       xfree (frame);
-      return gcry_err_code (err);
+      return err;
     }
 
   nframe = n; /* Set NFRAME to the actual length.  */
@@ -256,12 +256,12 @@ _gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
     does not not support pre-v2.3 signatures, but I'm including this
     comment so the information is easily found if needed.)
 */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pkcs1_encode_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
                                 const unsigned char *value, size_t valuelen,
                                 int algo)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   byte asn[100];
   byte *frame = NULL;
   size_t nframe = (nbits+7) / 8;
@@ -293,7 +293,7 @@ _gcry_rsa_pkcs1_encode_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
     }
 
   if ( !(frame = xtrymalloc (nframe)) )
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   /* Assemble the pkcs#1 block type 1. */
   n = 0;
@@ -339,12 +339,12 @@ _gcry_rsa_pkcs1_encode_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
     does not not support pre-v2.3 signatures, but I'm including this
     comment so the information is easily found if needed.)
 */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
                                 const unsigned char *value, size_t valuelen)
 {
-  gcry_err_code_t rc = 0;
-  gcry_error_t err;
+  gpg_error_t rc = 0;
+  gpg_error_t err;
   byte *frame = NULL;
   size_t nframe = (nbits+7) / 8;
   int i;
@@ -358,7 +358,7 @@ _gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
     }
 
   if ( !(frame = xtrymalloc (nframe)) )
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   /* Assemble the pkcs#1 block type 1. */
   n = 0;
@@ -376,7 +376,7 @@ _gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
   /* Convert it into an MPI. */
   err = _gcry_mpi_scan (r_result, GCRYMPI_FMT_USG, frame, n, &nframe);
   if (err)
-    rc = gcry_err_code (err);
+    rc = err;
   else if (DBG_CIPHER)
     log_mpidump ("PKCS#1 block type 1 encoded data", *r_result);
   xfree (frame);
@@ -386,14 +386,14 @@ _gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
 
 
 /* Mask generation function for OAEP.  See RFC-3447 B.2.1.  */
-static gcry_err_code_t
+static gpg_error_t
 mgf1 (unsigned char *output, size_t outlen, unsigned char *seed, size_t seedlen,
       int algo)
 {
   size_t dlen, nbytes, n;
   int idx;
   gcry_md_hd_t hd;
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   err = _gcry_md_open (&hd, algo, 0);
   if (err)
@@ -465,13 +465,13 @@ mgf1 (unsigned char *output, size_t outlen, unsigned char *seed, size_t seedlen,
          EM =  |00|maskedSeed|          maskedDB          |
                +--+----------+----------------------------+
   */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
                        const unsigned char *value, size_t valuelen,
                        const unsigned char *label, size_t labellen,
                        const void *random_override, size_t random_override_len)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   unsigned char *frame = NULL;
   size_t nframe = (nbits+7) / 8;
   unsigned char *p;
@@ -503,7 +503,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
   /* Allocate the frame.  */
   frame = xtrycalloc_secure (1, nframe);
   if (!frame)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   /* Step 2a: Compute the hash of the label.  We store it in the frame
      where later the maskedDB will commence.  */
@@ -538,7 +538,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
     dmask = xtrymalloc_secure (nframe - hlen - 1);
     if (!dmask)
       {
-        rc = gpg_err_code_from_syserror ();
+        rc = gpg_error_from_syserror ();
         xfree (frame);
         return rc;
       }
@@ -561,7 +561,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
     smask = xtrymalloc_secure (hlen);
     if (!smask)
       {
-        rc = gpg_err_code_from_syserror ();
+        rc = gpg_error_from_syserror ();
         xfree (frame);
         return rc;
       }
@@ -598,13 +598,13 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
    label.  On success the plaintext is returned as a newly allocated
    buffer at R_RESULT; its valid length is stored at R_RESULTLEN.  On
    error NULL is stored at R_RESULT.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
                        unsigned int nbits, int algo,
                        gcry_mpi_t value,
                        const unsigned char *label, size_t labellen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   unsigned char *frame = NULL; /* Encoded messages (EM).  */
   unsigned char *masked_seed;  /* Points into FRAME.  */
   unsigned char *masked_db;    /* Points into FRAME.  */
@@ -635,7 +635,7 @@ _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
   /* Hash the label right away.  */
   lhash = xtrymalloc (hlen);
   if (!lhash)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   _gcry_md_hash_buffer (algo, lhash, label, labellen);
 
   /* Turn the MPI into an octet string.  If the octet string is
@@ -668,7 +668,7 @@ _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
   seed = xtrymalloc_secure (nframe - 1);
   if (!seed)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       xfree (frame);
       xfree (lhash);
       return rc;
@@ -775,12 +775,12 @@ _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
                +-------------------+----------+----+
 
   */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
                       const unsigned char *value, size_t valuelen, int saltlen,
                       const void *random_override, size_t random_override_len)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   size_t hlen;                 /* Length of the hash digest.  */
   unsigned char *em = NULL;    /* Encoded message.  */
   size_t emlen = (nbits+7)/8;  /* Length in bytes of EM.  */
@@ -804,7 +804,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
   buf = xtrymalloc (buflen);
   if (!buf)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
   mhash = buf + 8;
@@ -831,7 +831,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
   em = xtrymalloc (emlen);
   if (!em)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
   h = em + emlen - 1 - hlen;
@@ -902,11 +902,11 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
    function (EM).  NBITS is the size of the public key.  ALGO is the
    hash algorithm and SALTLEN is the length of the used salt.  The
    function returns 0 on success or on error code.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_rsa_pss_verify (gcry_mpi_t value, gcry_mpi_t encoded,
                       unsigned int nbits, int algo, size_t saltlen)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   size_t hlen;                 /* Length of the hash digest.  */
   unsigned char *em = NULL;    /* Encoded message.  */
   size_t emlen = (nbits+7)/8;  /* Length in bytes of EM.  */
@@ -944,7 +944,7 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, gcry_mpi_t encoded,
   buf = xtrymalloc (buflen);
   if (!buf)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
   dbmask = buf;

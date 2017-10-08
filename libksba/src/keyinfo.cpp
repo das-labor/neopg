@@ -289,12 +289,12 @@ struct stringbuf {
 
 #define TLV_LENGTH(prefix) do {         \
   if (!prefix ## len)                    \
-    return gpg_error (GPG_ERR_INV_KEYINFO);  \
+    return GPG_ERR_INV_KEYINFO;  \
   c = *(prefix)++; prefix ## len--;           \
   if (c == 0x80)                  \
-    return gpg_error (GPG_ERR_NOT_DER_ENCODED);  \
+    return GPG_ERR_NOT_DER_ENCODED;  \
   if (c == 0xff)                  \
-    return gpg_error (GPG_ERR_BAD_BER);        \
+    return GPG_ERR_BAD_BER;        \
                                   \
   if ( !(c & 0x80) )              \
     len = c;                      \
@@ -306,13 +306,13 @@ struct stringbuf {
         {                         \
           len <<= 8;              \
           if (!prefix ## len)            \
-            return gpg_error (GPG_ERR_BAD_BER);\
+            return GPG_ERR_BAD_BER;\
           c = *(prefix)++; prefix ## len--;   \
           len |= c & 0xff;        \
         }                         \
     }                             \
   if (len > prefix ## len)               \
-    return gpg_error (GPG_ERR_INV_KEYINFO);  \
+    return GPG_ERR_INV_KEYINFO;  \
 } while (0)
 
 
@@ -382,20 +382,20 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
     *r_parm_type = 0;
   /* get the inner sequence */
   if (!derlen)
-    return gpg_error (GPG_ERR_INV_KEYINFO);
+    return GPG_ERR_INV_KEYINFO;
   c = *der++; derlen--;
   if ( c != 0x30 )
-    return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not a SEQUENCE */
+    return GPG_ERR_UNEXPECTED_TAG; /* not a SEQUENCE */
   TLV_LENGTH(der);
   seqlen = len;
   startseq = der;
 
   /* get the object identifier */
   if (!derlen)
-    return gpg_error (GPG_ERR_INV_KEYINFO);
+    return GPG_ERR_INV_KEYINFO;
   c = *der++; derlen--;
   if ( c != 0x06 )
-    return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not an OBJECT IDENTIFIER */
+    return GPG_ERR_UNEXPECTED_TAG; /* not an OBJECT IDENTIFIER */
   TLV_LENGTH(der);
 
   /* der does now point to an oid of length LEN */
@@ -416,16 +416,16 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
       const unsigned char *startparm = der;
 
       if (!derlen)
-        return gpg_error (GPG_ERR_INV_KEYINFO);
+        return GPG_ERR_INV_KEYINFO;
       c = *der++; derlen--;
       if ( c == 0x05 )
         {
           /*printf ("parameter: NULL \n"); the usual case */
           if (!derlen)
-            return gpg_error (GPG_ERR_INV_KEYINFO);
+            return GPG_ERR_INV_KEYINFO;
           c = *der++; derlen--;
           if (c)
-            return gpg_error (GPG_ERR_BAD_BER);  /* NULL must have a
+            return GPG_ERR_BAD_BER;  /* NULL must have a
                                                     length of 0 */
           seqlen -= 2;
         }
@@ -481,13 +481,13 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
     }
 
   if (seqlen)
-    return gpg_error (GPG_ERR_INV_KEYINFO);
+    return GPG_ERR_INV_KEYINFO;
 
   if (mode)
     {
       /* move forward to the BIT_STR */
       if (!derlen)
-        return gpg_error (GPG_ERR_INV_KEYINFO);
+        return GPG_ERR_INV_KEYINFO;
       c = *der++; derlen--;
 
       if (c == 0x03)
@@ -495,7 +495,7 @@ get_algorithm (int mode, const unsigned char *der, size_t derlen,
       else if (c == 0x04)
         ; /* OCTECT STRING */
       else
-        return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not a BIT STRING */
+        return GPG_ERR_UNEXPECTED_TAG; /* not a BIT STRING */
       TLV_LENGTH(der);
     }
 
@@ -534,7 +534,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
   *r_nread = nread;
   *r_oid = ksba_oid_to_str (der+off, len);
   if (!*r_oid)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   /* Special hack for ecdsaWithSpecified.  We replace the returned OID
      by the one in the parameter. */
@@ -554,7 +554,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
       if (!*r_oid)
         {
           *r_nread = 0;
-          return gpg_error (GPG_ERR_ENOMEM);
+          return GPG_ERR_ENOMEM;
         }
 
       off2 = len2 = 0; /* So that R_PARM is set to NULL.  */
@@ -569,7 +569,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
             {
               xfree (*r_oid);
               *r_oid = NULL;
-              return gpg_error (GPG_ERR_ENOMEM);
+              return GPG_ERR_ENOMEM;
             }
           memcpy (*r_parm, der+off2, len2);
           *r_parmlen = len2;
@@ -697,10 +697,10 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
 
   /* check the outer sequence */
   if (!derlen)
-    return gpg_error (GPG_ERR_INV_KEYINFO);
+    return GPG_ERR_INV_KEYINFO;
   c = *der++; derlen--;
   if ( c != 0x30 )
-    return gpg_error (GPG_ERR_UNEXPECTED_TAG); /* not a SEQUENCE */
+    return GPG_ERR_UNEXPECTED_TAG; /* not a SEQUENCE */
   TLV_LENGTH(der);
   /* and now the inner part */
   err = get_algorithm (1, der, derlen, &nread, &off, &len, &is_bitstr,
@@ -716,9 +716,9 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
         break;
     }
   if (!pk_algo_table[algoidx].oid)
-    return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    return GPG_ERR_UNKNOWN_ALGORITHM;
   if (!pk_algo_table[algoidx].supported)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   if (parm_off && parm_len && parm_type == TYPE_OBJECT_ID)
     parm_oid = ksba_oid_to_str (der+parm_off, parm_len);
@@ -738,7 +738,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
       if (!derlen)
         {
           xfree (parm_oid);
-          return gpg_error (GPG_ERR_INV_KEYINFO);
+          return GPG_ERR_INV_KEYINFO;
         }
       c = *der++; derlen--;
       if (c)
@@ -787,13 +787,13 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
               if (!parmderlen)
                 {
                   xfree (parm_oid);
-                  return gpg_error (GPG_ERR_INV_KEYINFO);
+                  return GPG_ERR_INV_KEYINFO;
                 }
               c = *parmder++; parmderlen--;
               if ( c != *ctrl )
                 {
                   xfree (parm_oid);
-                  return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+                  return GPG_ERR_UNEXPECTED_TAG;
                 }
               is_int = c == 0x02;
               TLV_LENGTH (parmder);
@@ -833,13 +833,13 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
           if (!derlen)
             {
               xfree (parm_oid);
-              return gpg_error (GPG_ERR_INV_KEYINFO);
+              return GPG_ERR_INV_KEYINFO;
             }
           c = *der++; derlen--;
           if ( c != *ctrl )
             {
               xfree (parm_oid);
-              return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+              return GPG_ERR_UNEXPECTED_TAG;
             }
           is_int = c == 0x02;
           TLV_LENGTH (der);
@@ -862,7 +862,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
 
   *r_string = get_stringbuf (&sb);
   if (!*r_string)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   return 0;
 }
@@ -963,71 +963,71 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   size_t bitstr_len;
 
   if (!sexp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   s = sexp;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
 
   n = strtoul (s, &endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
+    return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
   if (n != 10 || memcmp (s, "public-key", 10))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   s += 10;
   if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+    return digitp (s) ? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
   s++;
 
   /* Break out the algorithm ID */
   n = strtoul (s, &endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
+    return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
   oid = oid_from_buffer (s, n, &oidlen, &pkalgo, 0);
   if (!oid)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
   s += n;
 
   /* Collect all the values */
   for (parmidx = 0; *s != ')' ; parmidx++)
     {
       if (parmidx >= DIM(parm))
-        return gpg_error (GPG_ERR_GENERAL);
+        return GPG_ERR_GENERAL;
       if (*s != '(')
-        return gpg_error (digitp(s)? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP);
+        return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
       n = strtoul (s, &endp, 10);
       s = endp;
       if (!n || *s != ':')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s++;
       parm[parmidx].name = s;
       parm[parmidx].namelen = n;
       s += n;
       if (!digitp(s))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* ... or invalid S-Exp. */
+        return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
       n = strtoul (s, &endp, 10);
       s = endp;
       if (!n || *s != ':')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s++;
       parm[parmidx].value = s;
       parm[parmidx].valuelen = n;
       s += n;
       if ( *s != ')')
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* ... or invalid S-Exp. */
+        return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
       s++;
     }
   s++;
   /* We need another closing parenthesis. */
   if ( *s != ')' )
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   /* Describe the parameters in the order we want them and construct
      IDXTBL to access them.  For DSA wie also set algoparmdesc so
@@ -1039,7 +1039,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
     case PKALGO_RSA: parmdesc = "ne"; break;
     case PKALGO_DSA: parmdesc = "y" ; algoparmdesc = "pqg"; break;
     case PKALGO_ECC: parmdesc = "Cq"; break;
-    default: return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    default: return GPG_ERR_UNKNOWN_ALGORITHM;
     }
 
   idxtbllen = 0;
@@ -1068,7 +1068,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
         }
     }
   if (idxtbllen != strlen (parmdesc))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
 
   if (pkalgo == PKALGO_ECC)
     {
@@ -1076,7 +1076,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
                                      parm[idxtbl[0]].valuelen,
                                      &curve_oidlen);
       if (!curve_oid)
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
     }
 
 
@@ -1158,7 +1158,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   bitstr_value = ksba_writer_snatch_mem (writer, &bitstr_len);
   if (!bitstr_value)
     {
-      err = gpg_error (GPG_ERR_ENOMEM);
+      err = GPG_ERR_ENOMEM;
       goto leave;
     }
 
@@ -1180,7 +1180,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
             }
         }
       if (idxtbllen != strlen (algoparmdesc))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
 
       err = ksba_writer_set_mem (writer, 1024);
       if (err)
@@ -1214,7 +1214,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
       algoparmseq_value = ksba_writer_snatch_mem (writer, &algoparmseq_len);
       if (!algoparmseq_value)
         {
-          err = gpg_error (GPG_ERR_ENOMEM);
+          err = GPG_ERR_ENOMEM;
           goto leave;
         }
     }
@@ -1292,7 +1292,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   /* Get the result. */
   *r_der = ksba_writer_snatch_mem (writer, r_derlen);
   if (!*r_der)
-    err = gpg_error (GPG_ERR_ENOMEM);
+    err = GPG_ERR_ENOMEM;
 
  leave:
   ksba_writer_release (writer);
@@ -1334,75 +1334,75 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
   size_t algoparmseq_len;
 
   if (!sexp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   s = sexp;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
 
   n = strtoul (s, &endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* We don't allow empty lengths.  */
+    return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
   s++;
   if (n == 7 && !memcmp (s, "sig-val", 7))
     s += 7;
   else if (n == 10 && !memcmp (s, "public-key", 10))
     s += 10;
   else
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
 
   if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+    return digitp (s) ? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
   s++;
 
   /* Break out the algorithm ID */
   n = strtoul (s, &endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* We don't allow empty lengths.  */
+    return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
   s++;
   oid = oid_from_buffer (s, n, &oidlen, &pkalgo, 1);
   if (!oid)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
   s += n;
 
   /* Collect all the values */
   for (parmidx = 0; *s != ')' ; parmidx++)
     {
       if (parmidx >= DIM(parm))
-        return gpg_error (GPG_ERR_GENERAL);
+        return GPG_ERR_GENERAL;
       if (*s != '(')
-        return gpg_error (digitp(s)? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP);
+        return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
       n = strtoul (s, &endp, 10);
       s = endp;
       if (!n || *s != ':')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s++;
       parm[parmidx].name = s;
       parm[parmidx].namelen = n;
       s += n;
       if (!digitp(s))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* ... or invalid S-Exp. */
+        return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
       n = strtoul (s, &endp, 10);
       s = endp;
       if (!n || *s != ':')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s++;
       parm[parmidx].value = s;
       parm[parmidx].valuelen = n;
       s += n;
       if ( *s != ')')
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* ... or invalid S-Exp. */
+        return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
       s++;
     }
   s++;
   /* We need another closing parenthesis. */
   if ( *s != ')' )
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   /* Describe the parameters in the order we want them and construct
      IDXTBL to access them.  For DSA wie also set algoparmdesc so
@@ -1414,7 +1414,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
     case PKALGO_RSA: parmdesc = ""; break;
     case PKALGO_DSA: parmdesc = "" ; algoparmdesc = "pqg"; break;
     case PKALGO_ECC: parmdesc = "C"; break;
-    default: return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    default: return GPG_ERR_UNKNOWN_ALGORITHM;
     }
 
   idxtbllen = 0;
@@ -1443,7 +1443,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
         }
     }
   if (idxtbllen != strlen (parmdesc))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
 
   if (pkalgo == PKALGO_ECC)
     {
@@ -1451,7 +1451,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
                                      parm[idxtbl[0]].valuelen,
                                      &curve_oidlen);
       if (!curve_oid)
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
     }
 
 
@@ -1483,7 +1483,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
             }
         }
       if (idxtbllen != strlen (algoparmdesc))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
 
       err = ksba_writer_set_mem (writer, 1024);
       if (err)
@@ -1516,7 +1516,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
       algoparmseq_value = ksba_writer_snatch_mem (writer, &algoparmseq_len);
       if (!algoparmseq_value)
         {
-          err = gpg_error (GPG_ERR_ENOMEM);
+          err = GPG_ERR_ENOMEM;
           goto leave;
         }
     }
@@ -1581,7 +1581,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
   /* Get the result. */
   *r_der = ksba_writer_snatch_mem (writer, r_derlen);
   if (!*r_der)
-    err = gpg_error (GPG_ERR_ENOMEM);
+    err = GPG_ERR_ENOMEM;
 
  leave:
   ksba_writer_release (writer);
@@ -1629,9 +1629,9 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
         break;
     }
   if (!algo_table[algoidx].oid)
-    return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+    return GPG_ERR_UNKNOWN_ALGORITHM;
   if (!algo_table[algoidx].supported)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   der += nread;
   derlen -= nread;
@@ -1641,7 +1641,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
          CMS as an octet string - for ease of implementation we always
          allow both */
       if (!derlen)
-        return gpg_error (GPG_ERR_INV_KEYINFO);
+        return GPG_ERR_INV_KEYINFO;
       c = *der++; derlen--;
       if (c)
         fprintf (stderr, "warning: number of unused bits is not zero\n");
@@ -1669,10 +1669,10 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
       else
         {
           if (!derlen)
-            return gpg_error (GPG_ERR_INV_KEYINFO);
+            return GPG_ERR_INV_KEYINFO;
           c = *der++; derlen--;
           if ( c != *ctrl )
-            return gpg_error (GPG_ERR_UNEXPECTED_TAG);
+            return GPG_ERR_UNEXPECTED_TAG;
           is_int = c == 0x02;
           TLV_LENGTH (der);
         }
@@ -1701,7 +1701,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
 
   *r_string = get_stringbuf (&sb);
   if (!*r_string)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   return 0;
 }

@@ -279,7 +279,7 @@ free_dns_addrinfo (dns_addrinfo_t ai)
 static gpg_error_t
 get_h_errno_as_gpg_error (void)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (h_errno)
     {
@@ -289,7 +289,7 @@ get_h_errno_as_gpg_error (void)
     case NO_DATA:        ec = GPG_ERR_NO_DATA; break;
     default:             ec = GPG_ERR_UNKNOWN_ERRNO; break;
     }
-  return gpg_error (ec);
+  return ec;
 }
 #endif /*!HAVE_W32_SYSTEM*/
 
@@ -300,24 +300,24 @@ map_eai_to_gpg_error (int ec)
 
   switch (ec)
     {
-    case EAI_AGAIN:     err = gpg_error (GPG_ERR_EAGAIN); break;
-    case EAI_BADFLAGS:  err = gpg_error (GPG_ERR_INV_FLAG); break;
-    case EAI_FAIL:      err = gpg_error (GPG_ERR_SERVER_FAILED); break;
-    case EAI_MEMORY:    err = gpg_error (GPG_ERR_ENOMEM); break;
+    case EAI_AGAIN:     err = GPG_ERR_EAGAIN; break;
+    case EAI_BADFLAGS:  err = GPG_ERR_INV_FLAG; break;
+    case EAI_FAIL:      err = GPG_ERR_SERVER_FAILED; break;
+    case EAI_MEMORY:    err = GPG_ERR_ENOMEM; break;
 #ifdef EAI_NODATA
-    case EAI_NODATA:    err = gpg_error (GPG_ERR_NO_DATA); break;
+    case EAI_NODATA:    err = GPG_ERR_NO_DATA; break;
 #endif
-    case EAI_NONAME:    err = gpg_error (GPG_ERR_NO_NAME); break;
-    case EAI_SERVICE:   err = gpg_error (GPG_ERR_NOT_SUPPORTED); break;
-    case EAI_FAMILY:    err = gpg_error (GPG_ERR_EAFNOSUPPORT); break;
-    case EAI_SOCKTYPE:  err = gpg_error (GPG_ERR_ESOCKTNOSUPPORT); break;
+    case EAI_NONAME:    err = GPG_ERR_NO_NAME; break;
+    case EAI_SERVICE:   err = GPG_ERR_NOT_SUPPORTED; break;
+    case EAI_FAMILY:    err = GPG_ERR_EAFNOSUPPORT; break;
+    case EAI_SOCKTYPE:  err = GPG_ERR_ESOCKTNOSUPPORT; break;
 #ifndef HAVE_W32_SYSTEM
 # ifdef EAI_ADDRFAMILY
-    case EAI_ADDRFAMILY:err = gpg_error (GPG_ERR_EADDRNOTAVAIL); break;
+    case EAI_ADDRFAMILY:err = GPG_ERR_EADDRNOTAVAIL; break;
 # endif
     case EAI_SYSTEM:    err = gpg_error_from_syserror (); break;
 #endif
-    default:            err = gpg_error (GPG_ERR_UNKNOWN_ERRNO); break;
+    default:            err = GPG_ERR_UNKNOWN_ERRNO; break;
     }
   return err;
 }
@@ -384,8 +384,8 @@ resolve_name_standard (const char *name, unsigned short port,
   if (ret)
     {
       aibuf = NULL;
-      err = map_eai_to_gpg_error (ret);
-      if (gpg_err_code (err) == GPG_ERR_NO_NAME)
+      err = map_eai_to_gpg_error(ret);
+      if (err == GPG_ERR_NO_NAME)
         {
           /* There seems to be a bug in the glibc getaddrinfo function
              if the CNAME points to a long list of A and AAAA records
@@ -401,7 +401,7 @@ resolve_name_standard (const char *name, unsigned short port,
           if (ret)
             {
               aibuf = NULL;
-              err = map_eai_to_gpg_error (ret);
+              err = map_eai_to_gpg_error(ret);
               goto leave;
             }
           err = 0; /* Yep, now it worked.  */
@@ -523,7 +523,7 @@ resolve_addr_standard (const struct sockaddr_storage *addr, int addrlen,
     }
 
   if (ec)
-    err = map_eai_to_gpg_error (ec);
+    err = map_eai_to_gpg_error(ec);
   else
     {
       p = xtryrealloc (buffer, strlen (buffer)+1);
@@ -661,7 +661,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
   if (!answer)
     return gpg_error_from_syserror ();
 
-  err = gpg_error (GPG_ERR_NOT_FOUND);
+  err = GPG_ERR_NOT_FOUND;
   r = res_query (name, C_IN,
                  (want_certtype < DNS_CERTTYPE_RRBASE
                   ? T_CERT
@@ -684,7 +684,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
       rc = dn_skipname (pt, emsg);
       if (rc == -1)
         {
-          err = gpg_error (GPG_ERR_INV_OBJ);
+          err = GPG_ERR_INV_OBJ;
           goto leave;
         }
       pt += rc + QFIXEDSZ;
@@ -702,7 +702,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
           rc = dn_skipname (pt, emsg);  /* the name we just queried for */
           if (rc == -1)
             {
-              err = gpg_error (GPG_ERR_INV_OBJ);
+              err = GPG_ERR_INV_OBJ;
               goto leave;
             }
 
@@ -841,7 +841,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
   (void)r_fpr;
   (void)r_fprlen;
   (void)r_url;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 
 #endif /*!HAVE_SYSTEM_RESOLVER*/
 }
@@ -917,19 +917,19 @@ getsrv_standard (const char *name,
 
   /* Do not allow a query using the standard resolver in Tor mode.  */
   if (tor_mode)
-    return gpg_error (GPG_ERR_NOT_ENABLED);
+    return GPG_ERR_NOT_ENABLED;
 
   my_unprotect ();
   r = res_query (name, C_IN, T_SRV, answer, sizeof res.ans);
   my_protect ();
   if (r < 0)
-    return get_h_errno_as_gpg_error ();
+    return get_h_errno_as_gpg_error();
   if (r < sizeof (HEADER))
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
   if (r > sizeof res.ans)
-    return gpg_error (GPG_ERR_SYSTEM_BUG);
+    return GPG_ERR_SYSTEM_BUG;
   if (header->rcode != NOERROR || !(count=ntohs (header->ancount)))
-    return gpg_error (GPG_ERR_NO_NAME); /* Error or no record found.  */
+    return GPG_ERR_NO_NAME; /* Error or no record found.  */
 
   emsg = &answer[r];
   pt = &answer[sizeof(HEADER)];
@@ -1010,14 +1010,14 @@ getsrv_standard (const char *name,
  fail:
   xfree (*list);
   *list = NULL;
-  return gpg_error (GPG_ERR_GENERAL);
+  return GPG_ERR_GENERAL;
 
 #else /*!HAVE_SYSTEM_RESOLVER*/
 
   (void)name;
   (void)list;
   (void)r_count;
-  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+  return GPG_ERR_NOT_SUPPORTED;
 
 #endif /*!HAVE_SYSTEM_RESOLVER*/
 }
@@ -1058,7 +1058,7 @@ get_dns_srv (const char *name, const char *service, const char *proto,
 
   if (err)
     {
-      if (gpg_err_code (err) == GPG_ERR_NO_NAME)
+      if (err == GPG_ERR_NO_NAME)
         err = 0;
       goto leave;
     }
@@ -1178,32 +1178,32 @@ get_dns_cname_standard (const char *name, char **r_cname)
   r = res_query (name, C_IN, T_CERT, answer, sizeof res.ans);
   my_protect ();
   if (r < 0)
-    return get_h_errno_as_gpg_error ();
+    return get_h_errno_as_gpg_error();
   if (r < sizeof (HEADER))
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
   if (r > sizeof res.ans)
-    return gpg_error (GPG_ERR_SYSTEM_BUG);
+    return GPG_ERR_SYSTEM_BUG;
   if (header->rcode != NOERROR || !(count=ntohs (header->ancount)))
-    return gpg_error (GPG_ERR_NO_NAME); /* Error or no record found.  */
+    return GPG_ERR_NO_NAME; /* Error or no record found.  */
   if (count != 1)
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
 
   emsg = &answer[r];
   pt = &answer[sizeof(HEADER)];
   rc = dn_skipname (pt, emsg);
   if (rc == -1)
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
 
   pt += rc + QFIXEDSZ;
   if (pt >= emsg)
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
 
   rc = dn_skipname (pt, emsg);
   if (rc == -1)
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
   pt += rc + 2 + 2 + 4;
   if (pt+2 >= emsg)
-    return gpg_error (GPG_ERR_SERVER_FAILED);
+    return GPG_ERR_SERVER_FAILED;
   pt += 2;  /* Skip rdlen */
 
   cname = xtrymalloc (cnamesize);
@@ -1214,7 +1214,7 @@ get_dns_cname_standard (const char *name, char **r_cname)
   if (rc == -1)
     {
       xfree (cname);
-      return gpg_error (GPG_ERR_SERVER_FAILED);
+      return GPG_ERR_SERVER_FAILED;
     }
   *r_cname = xtryrealloc (cname, strlen (cname)+1);
   if (!*r_cname)
@@ -1229,7 +1229,7 @@ get_dns_cname_standard (const char *name, char **r_cname)
 
   (void)name;
   (void)r_cname;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 
 #endif /*!HAVE_SYSTEM_RESOLVER*/
 }

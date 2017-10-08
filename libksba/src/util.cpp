@@ -112,7 +112,7 @@ _ksba_hash_buffer (const char *oid, const void *buffer, size_t length,
                    size_t resultsize, unsigned char *result, size_t *resultlen)
 {
   if (!hash_buffer_fnc)
-    return gpg_error (GPG_ERR_CONFIGURATION);
+    return GPG_ERR_CONFIGURATION;
   return hash_buffer_fnc (hash_buffer_fnc_arg, oid, buffer, length,
                           resultsize, result, resultlen);
 }

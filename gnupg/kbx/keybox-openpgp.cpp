@@ -65,40 +65,40 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
   unsigned long pktlen;
 
   if (!len)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
 
   ctb = *buf++; len--;
   if ( !(ctb & 0x80) )
-    return gpg_error (GPG_ERR_INV_PACKET); /* Invalid CTB. */
+    return GPG_ERR_INV_PACKET; /* Invalid CTB. */
 
   if ((ctb & 0x40))  /* New style (OpenPGP) CTB.  */
     {
       pkttype = (ctb & 0x3f);
       if (!len)
-        return gpg_error (GPG_ERR_INV_PACKET); /* No 1st length byte. */
+        return GPG_ERR_INV_PACKET; /* No 1st length byte. */
       c = *buf++; len--;
       if (pkttype == PKT_COMPRESSED)
-        return gpg_error (GPG_ERR_UNEXPECTED); /* ... packet in a keyblock. */
+        return GPG_ERR_UNEXPECTED; /* ... packet in a keyblock. */
       if ( c < 192 )
         pktlen = c;
       else if ( c < 224 )
         {
           pktlen = (c - 192) * 256;
           if (!len)
-            return gpg_error (GPG_ERR_INV_PACKET); /* No 2nd length byte. */
+            return GPG_ERR_INV_PACKET; /* No 2nd length byte. */
           c = *buf++; len--;
           pktlen += c + 192;
         }
       else if (c == 255)
         {
           if (len <4 )
-            return gpg_error (GPG_ERR_INV_PACKET); /* No length bytes. */
+            return GPG_ERR_INV_PACKET; /* No length bytes. */
           pktlen = buf32_to_ulong (buf);
           buf += 4;
           len -= 4;
       }
       else /* Partial length encoding is not allowed for key packets. */
-        return gpg_error (GPG_ERR_UNEXPECTED);
+        return GPG_ERR_UNEXPECTED;
     }
   else /* Old style CTB.  */
     {
@@ -108,9 +108,9 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
       pkttype = (ctb>>2)&0xf;
       lenbytes = ((ctb&3)==3)? 0 : (1<<(ctb & 3));
       if (!lenbytes) /* Not allowed in key packets.  */
-        return gpg_error (GPG_ERR_UNEXPECTED);
+        return GPG_ERR_UNEXPECTED;
       if (len < lenbytes)
-        return gpg_error (GPG_ERR_INV_PACKET); /* Not enough length bytes.  */
+        return GPG_ERR_INV_PACKET; /* Not enough length bytes.  */
       for (; lenbytes; lenbytes--)
         {
           pktlen <<= 8;
@@ -135,7 +135,7 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
     case PKT_GPG_CONTROL:
       break; /* Okay these are allowed packets. */
     default:
-      return gpg_error (GPG_ERR_UNEXPECTED);
+      return GPG_ERR_UNEXPECTED;
     }
 
   if (pkttype == 63 && pktlen == 0xFFFFFFFF)
@@ -146,10 +146,10 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
        Since packets with type 63 are private and we use them as a
        control packet, which won't be 4 GB, we reject such packets as
        invalid.  */
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
 
   if (pktlen > len)
-    return gpg_error (GPG_ERR_INV_PACKET); /* Packet length header too long. */
+    return GPG_ERR_INV_PACKET; /* Packet length header too long. */
 
   *r_data = buf;
   *r_datalen = pktlen;
@@ -182,10 +182,10 @@ parse_key (const unsigned char *data, size_t datalen,
   int is_ecc = 0;
 
   if (datalen < 5)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
   version = *data++; datalen--;
   if (version < 2 || version > 4 )
-    return gpg_error (GPG_ERR_INV_PACKET); /* Invalid version. */
+    return GPG_ERR_INV_PACKET; /* Invalid version. */
 
   /*timestamp = ((data[0]<<24)|(data[1]<<16)|(data[2]<<8)|(data[3]));*/
   data +=4; datalen -=4;
@@ -193,12 +193,12 @@ parse_key (const unsigned char *data, size_t datalen,
   if (version < 4)
     {
       if (datalen < 2)
-        return gpg_error (GPG_ERR_INV_PACKET);
+        return GPG_ERR_INV_PACKET;
       data +=2; datalen -= 2;
     }
 
   if (!datalen)
-    return gpg_error (GPG_ERR_INV_PACKET);
+    return GPG_ERR_INV_PACKET;
   algorithm = *data++; datalen--;
 
   switch (algorithm)
@@ -225,7 +225,7 @@ parse_key (const unsigned char *data, size_t datalen,
       is_ecc = 1;
       break;
     default: /* Unknown algorithm. */
-      return gpg_error (GPG_ERR_UNKNOWN_ALGORITHM);
+      return GPG_ERR_UNKNOWN_ALGORITHM;
     }
 
   ki->algo = algorithm;
@@ -235,16 +235,16 @@ parse_key (const unsigned char *data, size_t datalen,
       unsigned int nbits, nbytes;
 
       if (datalen < 2)
-        return gpg_error (GPG_ERR_INV_PACKET);
+        return GPG_ERR_INV_PACKET;
 
       if (is_ecc && (i == 0 || i == 2))
         {
           nbytes = data[0];
           if (nbytes < 2 || nbytes > 254)
-            return gpg_error (GPG_ERR_INV_PACKET);
+            return GPG_ERR_INV_PACKET;
           nbytes++; /* The size byte itself.  */
           if (datalen < nbytes)
-            return gpg_error (GPG_ERR_INV_PACKET);
+            return GPG_ERR_INV_PACKET;
         }
       else
         {
@@ -253,7 +253,7 @@ parse_key (const unsigned char *data, size_t datalen,
           datalen -= 2;
           nbytes = (nbits+7) / 8;
           if (datalen < nbytes)
-            return gpg_error (GPG_ERR_INV_PACKET);
+            return GPG_ERR_INV_PACKET;
           /* For use by v3 fingerprint calculation we need to know the RSA
              modulus and exponent. */
           if (i==0)
@@ -274,7 +274,7 @@ parse_key (const unsigned char *data, size_t datalen,
       /* We do not support any other algorithm than RSA in v3
          packets. */
       if (algorithm < 1 || algorithm > 3)
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
       err = gcry_md_open (&md, GCRY_MD_MD5, 0);
       if (err)
@@ -373,7 +373,7 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
             info->is_secret = 1;
           else
             {
-              err = gpg_error (GPG_ERR_UNEXPECTED);
+              err = GPG_ERR_UNEXPECTED;
               if (nparsed)
                 *nparsed += n;
               break;
@@ -436,8 +436,8 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
                 {
                   info->nsubkeys--;
                   /* We ignore subkeys with unknown algorithms. */
-                  if (gpg_err_code (err) == GPG_ERR_UNKNOWN_ALGORITHM
-                      || gpg_err_code (err) == GPG_ERR_UNSUPPORTED_ALGORITHM)
+                  if (err == GPG_ERR_UNKNOWN_ALGORITHM
+                      || err == GPG_ERR_UNSUPPORTED_ALGORITHM)
                     err = 0;
                   if (err)
                     break;
@@ -459,8 +459,8 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
                   xfree (k);
                   info->nsubkeys--;
                   /* We ignore subkeys with unknown algorithms. */
-                  if (gpg_err_code (err) == GPG_ERR_UNKNOWN_ALGORITHM
-                      || gpg_err_code (err) == GPG_ERR_UNSUPPORTED_ALGORITHM)
+                  if (err == GPG_ERR_UNKNOWN_ALGORITHM
+                      || err == GPG_ERR_UNSUPPORTED_ALGORITHM)
                     err = 0;
                   if (err)
                     break;

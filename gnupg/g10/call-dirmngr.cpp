@@ -179,7 +179,7 @@ create_context (ctrl_t ctrl, assuan_context_t *r_ctx)
                            opt.dirmngr_program,
                            opt.autostart, opt.verbose, DBG_IPC,
                            NULL /*gpg_status2*/, ctrl);
-  if (!opt.autostart && gpg_err_code (err) == GPG_ERR_NO_DIRMNGR)
+  if (!opt.autostart && err == GPG_ERR_NO_DIRMNGR)
     {
       static int shown;
 
@@ -219,10 +219,10 @@ create_context (ctrl_t ctrl, assuan_context_t *r_ctx)
              will return an error.  */
           err = assuan_transact (ctx, "OPTION honor-keyserver-url-used",
                                  NULL, NULL, NULL, NULL, NULL, NULL);
-          if (gpg_err_code (err) == GPG_ERR_FORBIDDEN)
+          if (err == GPG_ERR_FORBIDDEN)
             log_error (_("keyserver option \"honor-keyserver-url\""
                          " may not be used in Tor mode\n"));
-          else if (gpg_err_code (err) == GPG_ERR_UNKNOWN_OPTION)
+          else if (err == GPG_ERR_UNKNOWN_OPTION)
             err = 0; /* Old dirmngr versions do not support this option.  */
         }
     }
@@ -439,7 +439,7 @@ gpg_dirmngr_ks_list (ctrl_t ctrl, char **r_keyserver)
     goto leave;
   if (!stparm.source)
     {
-      err = gpg_error (GPG_ERR_NO_KEYSERVER);
+      err = GPG_ERR_NO_KEYSERVER;
       goto leave;
     }
 
@@ -696,7 +696,7 @@ gpg_dirmngr_ks_get (ctrl_t ctrl, char **pattern,
     }
   if (linelen + 2 >= ASSUAN_LINELENGTH)
     {
-      err = gpg_error (GPG_ERR_TOO_MANY);
+      err = GPG_ERR_TOO_MANY;
       goto leave;
     }
 
@@ -762,7 +762,7 @@ gpg_dirmngr_ks_fetch (ctrl_t ctrl, const char *url, estream_t *r_fp)
     }
   if (strlen (line) + 2 >= ASSUAN_LINELENGTH)
     {
-      err = gpg_error (GPG_ERR_TOO_LARGE);
+      err = GPG_ERR_TOO_LARGE;
       goto leave;
     }
 
@@ -1046,7 +1046,7 @@ ks_put_inq_cb (void *opaque, const char *line)
       es_fclose (fp);
     }
   else
-    return gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+    return GPG_ERR_ASS_UNKNOWN_INQUIRE;
 
   return err;
 }
@@ -1124,11 +1124,11 @@ dns_cert_status_cb (void *opaque, const char *line)
       if (!(buf = xtrystrdup (s)))
         err = gpg_error_from_syserror ();
       else if (parm->fpr)
-        err = gpg_error (GPG_ERR_DUP_KEY);
+        err = GPG_ERR_DUP_KEY;
       else if (!hex2str (buf, buf, strlen (buf)+1, &nbytes))
         err = gpg_error_from_syserror ();
       else if (nbytes < 20)
-        err = gpg_error (GPG_ERR_TOO_SHORT);
+        err = GPG_ERR_TOO_SHORT;
       else
         {
           parm->fpr = xtrymalloc (nbytes);
@@ -1142,7 +1142,7 @@ dns_cert_status_cb (void *opaque, const char *line)
   else if ((s = has_leading_keyword (line, "URL")) && *s)
     {
       if (parm->url)
-        err = gpg_error (GPG_ERR_DUP_KEY);
+        err = GPG_ERR_DUP_KEY;
       else if (!(parm->url = xtrystrdup (s)))
         err = gpg_error_from_syserror ();
     }
@@ -1201,7 +1201,7 @@ gpg_dirmngr_dns_cert (ctrl_t ctrl, const char *name, const char *certtype,
     }
   if (strlen (line) + 2 >= ASSUAN_LINELENGTH)
     {
-      err = gpg_error (GPG_ERR_TOO_LARGE);
+      err = GPG_ERR_TOO_LARGE;
       goto leave;
     }
 
@@ -1281,7 +1281,7 @@ gpg_dirmngr_get_pka (ctrl_t ctrl, const char *userid,
     }
   if (strlen (line) + 2 >= ASSUAN_LINELENGTH)
     {
-      err = gpg_error (GPG_ERR_TOO_LARGE);
+      err = GPG_ERR_TOO_LARGE;
       goto leave;
     }
 
@@ -1340,7 +1340,7 @@ gpg_dirmngr_wkd_get (ctrl_t ctrl, const char *name, int quick, estream_t *r_key)
     }
   if (strlen (line) + 2 >= ASSUAN_LINELENGTH)
     {
-      err = gpg_error (GPG_ERR_TOO_LARGE);
+      err = GPG_ERR_TOO_LARGE;
       goto leave;
     }
 

@@ -314,7 +314,7 @@ dirmngr_client_main (int argc, char **argv )
     {
       while (!(err = squid_loop_body (ctx)))
         ;
-      if (gpg_err_code (err) == GPG_ERR_EOF)
+      if (err == GPG_ERR_EOF)
         err = 0;
     }
   else if (cmd_lookup)
@@ -376,7 +376,7 @@ dirmngr_client_main (int argc, char **argv )
     return err? 1:0;
   else if (cmd_cache_cert)
     {
-      if (err && gpg_err_code (err) == GPG_ERR_DUP_VALUE )
+      if (err && err == GPG_ERR_DUP_VALUE )
         {
           if (!opt.quiet)
             log_info (_("certificate already cached\n"));
@@ -401,7 +401,7 @@ dirmngr_client_main (int argc, char **argv )
         log_info (_("certificate is valid\n"));
       return 0;
     }
-  else if (gpg_err_code (err) == GPG_ERR_CERT_REVOKED )
+  else if (err == GPG_ERR_CERT_REVOKED )
     {
       if (!opt.quiet)
         log_info (_("certificate has been revoked\n"));
@@ -588,13 +588,13 @@ read_pem_certificate (const char *fname, unsigned char **rbuf, size_t *rbuflen)
   if (state == s_init && c == EOF)
     {
       xfree (buf);
-      return gpg_error (GPG_ERR_EOF);
+      return GPG_ERR_EOF;
     }
   else if (state != s_waitend)
     {
       log_error ("no certificate or invalid encoded\n");
       xfree (buf);
-      return gpg_error (GPG_ERR_INV_ARMOR);
+      return GPG_ERR_INV_ARMOR;
     }
 
   *rbuf = buf;
@@ -696,7 +696,7 @@ inq_cert (void *opaque, const char *line)
   else
     {
       log_info (_("unsupported inquiry '%s'\n"), line);
-      err = gpg_error (GPG_ERR_ASS_UNKNOWN_INQUIRE);
+      err = GPG_ERR_ASS_UNKNOWN_INQUIRE;
       /* Note that this error will let assuan_transact terminate
          immediately instead of return the error to the caller.  It is
          not clear whether this is the desired behaviour - it may
@@ -790,7 +790,7 @@ do_loadcrl (assuan_context_t ctx, const char *filename)
         {
           log_error ("error canonicalizing '%s': %s\n",
                      filename, strerror (errno));
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
 #else
       fname = xstrdup (filename);
@@ -798,7 +798,7 @@ do_loadcrl (assuan_context_t ctx, const char *filename)
       if (*fname != '/')
         {
           log_error (_("absolute file name expected\n"));
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
     }
 
@@ -894,7 +894,7 @@ squid_loop_body (assuan_context_t ctx)
   size_t certbuflen = 0;
 
   err = read_pem_certificate (NULL, &certbuf, &certbuflen);
-  if (gpg_err_code (err) == GPG_ERR_EOF)
+  if (err == GPG_ERR_EOF)
     return err;
   if (err)
     {
@@ -916,7 +916,7 @@ squid_loop_body (assuan_context_t ctx)
     {
       if (!opt.quiet)
         {
-          if (gpg_err_code (err) == GPG_ERR_CERT_REVOKED )
+          if (err == GPG_ERR_CERT_REVOKED )
             log_info (_("certificate has been revoked\n"));
           else
             log_error (_("certificate check failed: %s\n"),

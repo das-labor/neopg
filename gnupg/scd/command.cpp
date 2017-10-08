@@ -56,7 +56,7 @@
 #define MAXLEN_CERTDATA 16384
 
 
-#define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
+#define set_error(e,t) assuan_set_error (ctx, e, (t))
 
 #define IS_LOCKED(c) (locked_session && locked_session != (c)->server_local)
 
@@ -177,12 +177,12 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       /* A value of 0 is allowed to reset the event signal. */
 #ifdef HAVE_W32_SYSTEM
       if (!*value)
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
       ctrl->server_local->event_signal = strtoul (value, NULL, 16);
 #else
       int i = *value? atoi (value) : -1;
       if (i < 0)
-        return gpg_error (GPG_ERR_ASS_PARAMETER);
+        return GPG_ERR_ASS_PARAMETER;
       ctrl->server_local->event_signal = i;
 #endif
     }
@@ -199,10 +199,10 @@ open_card (ctrl_t ctrl)
      the SERIALNO command and a reset are able to clear from that
      state. */
   if (ctrl->server_local->card_removed)
-    return gpg_error (GPG_ERR_CARD_REMOVED);
+    return GPG_ERR_CARD_REMOVED;
 
   if ( IS_LOCKED (ctrl) )
-    return gpg_error (GPG_ERR_LOCKED);
+    return GPG_ERR_LOCKED;
 
   if (ctrl->app_ctx)
     return 0;
@@ -272,7 +272,7 @@ cmd_serialno (assuan_context_t ctx, char *line)
   const char *demand;
 
   if ( IS_LOCKED (ctrl) )
-    return gpg_error (GPG_ERR_LOCKED);
+    return GPG_ERR_LOCKED;
 
   if ((demand = has_option_name (line, "--demand")))
     {
@@ -308,7 +308,7 @@ cmd_serialno (assuan_context_t ctx, char *line)
 
   serial = app_get_serialno (ctrl->app_ctx);
   if (!serial)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   rc = assuan_write_status (ctx, "SERIALNO", serial);
   xfree (serial);
@@ -406,7 +406,7 @@ cmd_learn (assuan_context_t ctx, char *line)
       app_t app = ctrl->app_ctx;
 
       if (!app)
-        return gpg_error (GPG_ERR_CARD_NOT_PRESENT);
+        return GPG_ERR_CARD_NOT_PRESENT;
 
       reader = apdu_get_reader_name (app->slot);
       if (!reader)
@@ -416,7 +416,7 @@ cmd_learn (assuan_context_t ctx, char *line)
 
       serial = app_get_serialno (ctrl->app_ctx);
       if (!serial)
-	return gpg_error (GPG_ERR_INV_VALUE);
+	return GPG_ERR_INV_VALUE;
 
       rc = assuan_write_status (ctx, "SERIALNO", serial);
       if (rc < 0)
@@ -439,7 +439,7 @@ cmd_learn (assuan_context_t ctx, char *line)
           xfree (command);
           if (rc)
             {
-              if (gpg_err_code (rc) != GPG_ERR_ASS_CANCELED)
+              if (rc != GPG_ERR_ASS_CANCELED)
                 log_error ("inquire KNOWNCARDP failed: %s\n",
                            gpg_strerror (rc));
               xfree (serial);
@@ -536,7 +536,7 @@ cmd_readkey (assuan_context_t ctx, char *line)
       goto leave;
     }
 
-  if (gpg_err_code (rc) != GPG_ERR_UNSUPPORTED_OPERATION)
+  if (rc != GPG_ERR_UNSUPPORTED_OPERATION)
     log_error ("app_readkey failed: %s\n", gpg_strerror (rc));
   else
     {
@@ -563,7 +563,7 @@ cmd_readkey (assuan_context_t ctx, char *line)
   p = ksba_cert_get_public_key (kc);
   if (!p)
     {
-      rc = gpg_error (GPG_ERR_NO_PUBKEY);
+      rc = GPG_ERR_NO_PUBKEY;
       goto leave;
     }
 
@@ -600,7 +600,7 @@ cmd_setdata (assuan_context_t ctx, char *line)
   line = skip_options (line);
 
   if (locked_session && locked_session != ctrl->server_local)
-    return gpg_error (GPG_ERR_LOCKED);
+    return GPG_ERR_LOCKED;
 
   /* Parse the hexstring. */
   for (p=line,n=0; hexdigitp (p); p++, n++)
@@ -661,7 +661,7 @@ pin_cb (void *opaque, const char *info, char **retstr)
           log_debug ("prompting for pinpad entry '%s'\n", info);
           rc = gpgrt_asprintf (&command, "POPUPPINPADPROMPT %s", info);
           if (rc < 0)
-            return gpg_error (gpg_err_code_from_errno (errno));
+            return gpg_error_from_errno (errno);
           rc = assuan_inquire (ctx, command, &value, &valuelen, MAXLEN_PIN);
           xfree (command);
         }
@@ -681,7 +681,7 @@ pin_cb (void *opaque, const char *info, char **retstr)
 
   rc = gpgrt_asprintf (&command, "NEEDPIN %s", info);
   if (rc < 0)
-    return gpg_error (gpg_err_code_from_errno (errno));
+    return gpg_error_from_errno (errno);
 
   /* Fixme: Write an inquire function which returns the result in
      secure memory and check all further handling of the PIN. */
@@ -694,7 +694,7 @@ pin_cb (void *opaque, const char *info, char **retstr)
     {
       /* We require that the returned value is an UTF-8 string */
       xfree (value);
-      return gpg_error (GPG_ERR_INV_RESPONSE);
+      return GPG_ERR_INV_RESPONSE;
     }
   *retstr = (char*)value;
   return 0;
@@ -784,7 +784,7 @@ cmd_pkauth (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
  /* We have to use a copy of the key ID because the function may use
      the pin_cb which in turn uses the assuan line buffer and thus
@@ -979,7 +979,7 @@ cmd_writecert (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   certid = xtrystrdup (certid);
   if (!certid)
@@ -1041,7 +1041,7 @@ cmd_writekey (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   keyid = xtrystrdup (keyid);
   if (!keyid)
@@ -1128,7 +1128,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   keyno = xtrystrdup (keyno);
   if (!keyno)
@@ -1166,7 +1166,7 @@ cmd_random (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   buffer = xtrymalloc (nbytes);
   if (!buffer)
@@ -1219,7 +1219,7 @@ cmd_passwd (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   chvnostr = xtrystrdup (chvnostr);
   if (!chvnostr)
@@ -1276,7 +1276,7 @@ cmd_checkpin (assuan_context_t ctx, char *line)
     return rc;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   /* We have to use a copy of the key ID because the function may use
      the pin_cb which in turn uses the assuan line buffer and thus
@@ -1314,7 +1314,7 @@ cmd_lock (assuan_context_t ctx, char *line)
   if (locked_session)
     {
       if (locked_session != ctrl->server_local)
-        rc = gpg_error (GPG_ERR_LOCKED);
+        rc = GPG_ERR_LOCKED;
     }
   else
     locked_session = ctrl->server_local;
@@ -1353,12 +1353,12 @@ cmd_unlock (assuan_context_t ctx, char *line)
   if (locked_session)
     {
       if (locked_session != ctrl->server_local)
-        rc = gpg_error (GPG_ERR_LOCKED);
+        rc = GPG_ERR_LOCKED;
       else
         locked_session = NULL;
     }
   else
-    rc = gpg_error (GPG_ERR_NOT_LOCKED);
+    rc = GPG_ERR_NOT_LOCKED;
 
   if (rc)
     log_error ("cmd_unlock failed: %s\n", gpg_strerror (rc));
@@ -1416,7 +1416,7 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       if (s)
         rc = assuan_send_data (ctx, s, strlen (s));
       else
-        rc = gpg_error (GPG_ERR_NO_DATA);
+        rc = GPG_ERR_NO_DATA;
     }
   else if (!strcmp (line, "connections"))
     {
@@ -1448,11 +1448,11 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       if (s)
         rc = assuan_send_data (ctx, s, strlen (s));
       else
-        rc = gpg_error (GPG_ERR_NO_DATA);
+        rc = GPG_ERR_NO_DATA;
       xfree (s);
     }
   else if (!strcmp (line, "deny_admin"))
-    rc = opt.allow_admin? gpg_error (GPG_ERR_GENERAL) : 0;
+    rc = opt.allow_admin? GPG_ERR_GENERAL : 0;
   else if (!strcmp (line, "app_list"))
     {
       char *s = get_supported_applications ();
@@ -1518,7 +1518,7 @@ cmd_disconnect (assuan_context_t ctx, char *line)
   (void)line;
 
   if (!ctrl->app_ctx)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   apdu_disconnect (ctrl->app_ctx->slot);
   return 0;
@@ -1581,7 +1581,7 @@ cmd_apdu (assuan_context_t ctx, char *line)
 
   app = ctrl->app_ctx;
   if (!app)
-    return gpg_error (GPG_ERR_CARD_NOT_PRESENT);
+    return GPG_ERR_CARD_NOT_PRESENT;
 
   if (with_atr)
     {
@@ -1592,7 +1592,7 @@ cmd_apdu (assuan_context_t ctx, char *line)
       atr = apdu_get_atr (app->slot, &atrlen);
       if (!atr || atrlen > sizeof hexbuf - 2 )
         {
-          rc = gpg_error (GPG_ERR_INV_CARD);
+          rc = GPG_ERR_INV_CARD;
           goto leave;
         }
       if (with_atr == 2)

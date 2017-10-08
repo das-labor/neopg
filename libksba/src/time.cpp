@@ -62,10 +62,10 @@ _ksba_asntime_to_iso (const char *buffer, size_t length, int is_utctime,
   if (is_utctime)
     {
       if ((n != 10 && n != 12) || *s != 'Z')
-        return gpg_error (GPG_ERR_INV_TIME);
+        return GPG_ERR_INV_TIME;
     }
   else if ((n != 12 && n != 14) || *s != 'Z')
-    return gpg_error (GPG_ERR_INV_TIME);
+    return GPG_ERR_INV_TIME;
 
   s = buffer;
   if (n==12 || n == 10 ) /* UTCTime with or without seconds. */
@@ -105,18 +105,18 @@ _ksba_assert_time_format (const ksba_isotime_t atime)
   const char *s;
 
   if (!*atime)
-    return gpg_error (GPG_ERR_NO_VALUE);
+    return GPG_ERR_NO_VALUE;
 
   for (s=atime, i=0; i < 8; i++, s++)
     if (!digitp (s))
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
   if (*s != 'T')
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
   for (s++, i=9; i < 15; i++, s++)
     if (!digitp (s))
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
   if (*s)
-      return gpg_error (GPG_ERR_BUG);
+      return GPG_ERR_BUG;
   return 0;
 }
 

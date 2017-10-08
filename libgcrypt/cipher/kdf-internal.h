@@ -21,7 +21,7 @@
 #define GCRY_KDF_INTERNAL_H
 
 /*-- kdf.c --*/
-gpg_err_code_t
+gpg_error_t
 _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
                  int hashalgo,
                  const void *salt, size_t saltlen,
@@ -29,7 +29,7 @@ _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
                  size_t keysize, void *keybuffer);
 
 /*-- scrypt.c --*/
-gcry_err_code_t
+gpg_error_t
 _gcry_kdf_scrypt (const unsigned char *passwd, size_t passwdlen,
                   int algo, int subalgo,
                   const unsigned char *salt, size_t saltlen,

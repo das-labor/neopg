@@ -82,7 +82,7 @@ get_keygrip (int pubkey_algo, const char *curve, gcry_mpi_t *pkey,
 
     case GCRY_PK_ECC:
       if (!curve)
-        err = gpg_error (GPG_ERR_BAD_SECKEY);
+        err = GPG_ERR_BAD_SECKEY;
       else
         {
           const char *format;
@@ -99,12 +99,12 @@ get_keygrip (int pubkey_algo, const char *curve, gcry_mpi_t *pkey,
       break;
 
     default:
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       break;
     }
 
   if (!err && !gcry_pk_get_keygrip (s_pkey, grip))
-    err = gpg_error (GPG_ERR_INTERNAL);
+    err = GPG_ERR_INTERNAL;
 
   gcry_sexp_release (s_pkey);
   return err;
@@ -150,7 +150,7 @@ convert_secret_key (gcry_sexp_t *r_key, int pubkey_algo, gcry_mpi_t *skey,
 
     case GCRY_PK_ECC:
       if (!curve)
-        err = gpg_error (GPG_ERR_BAD_SECKEY);
+        err = GPG_ERR_BAD_SECKEY;
       else
         {
           const char *format;
@@ -169,7 +169,7 @@ convert_secret_key (gcry_sexp_t *r_key, int pubkey_algo, gcry_mpi_t *skey,
       break;
 
     default:
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       break;
     }
 
@@ -222,7 +222,7 @@ convert_transfer_key (gcry_sexp_t *r_key, int pubkey_algo, gcry_mpi_t *skey,
 
     case GCRY_PK_ECC:
       if (!curve)
-        err = gpg_error (GPG_ERR_BAD_SECKEY);
+        err = GPG_ERR_BAD_SECKEY;
       else
         {
           const char *format;
@@ -244,7 +244,7 @@ convert_transfer_key (gcry_sexp_t *r_key, int pubkey_algo, gcry_mpi_t *skey,
       break;
 
     default:
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
       break;
     }
 
@@ -267,7 +267,7 @@ hash_passphrase_and_set_key (const char *passphrase,
 
   keylen = gcry_cipher_get_algo_keylen (protect_algo);
   if (!keylen)
-    return gpg_error (GPG_ERR_INTERNAL);
+    return GPG_ERR_INTERNAL;
 
   key = xtrymalloc_secure (keylen);
   if (!key)
@@ -336,14 +336,14 @@ prepare_unprotect (int pubkey_algo, gcry_mpi_t *skey, size_t skeysize,
     {
       /* Stub key.  */
       log_info (_("secret key parts are not available\n"));
-      return gpg_error (GPG_ERR_UNUSABLE_SECKEY);
+      return GPG_ERR_UNUSABLE_SECKEY;
     }
 
   if (gcry_pk_test_algo (pubkey_algo))
     {
       log_info (_("public key algorithm %d (%s) is not supported\n"),
                 pubkey_algo, gcry_pk_algo_name (pubkey_algo));
-      return gpg_error (GPG_ERR_PUBKEY_ALGO);
+      return GPG_ERR_PUBKEY_ALGO;
     }
 
   /* Get properties of the public key algorithm and do some
@@ -351,18 +351,18 @@ prepare_unprotect (int pubkey_algo, gcry_mpi_t *skey, size_t skeysize,
      in the SKEY array. */
   get_npkey_nskey (pubkey_algo, &npkey, &nskey);
   if (!npkey || !nskey || npkey >= nskey)
-    return gpg_error (GPG_ERR_INTERNAL);
+    return GPG_ERR_INTERNAL;
   if (skeylen <= npkey)
-    return gpg_error (GPG_ERR_MISSING_VALUE);
+    return GPG_ERR_MISSING_VALUE;
   if (nskey+1 >= skeysize)
-    return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
+    return GPG_ERR_BUFFER_TOO_SHORT;
 
   /* Check that the public key parameters are all available and not
      encrypted.  */
   for (i=0; i < npkey; i++)
     {
       if (!skey[i] || gcry_mpi_get_flag (skey[i], GCRYMPI_FLAG_USER1))
-        return gpg_error (GPG_ERR_BAD_SECKEY);
+        return GPG_ERR_BAD_SECKEY;
     }
 
   if (r_npkey)
@@ -409,7 +409,7 @@ do_unprotect (const char *passphrase,
       for (i=npkey; i < nskey; i++)
         {
           if (!skey[i] || gcry_mpi_get_flag (skey[i], GCRYMPI_FLAG_USER1))
-            return gpg_error (GPG_ERR_BAD_SECKEY);
+            return GPG_ERR_BAD_SECKEY;
 
           if (gcry_mpi_get_flag (skey[i], GCRYMPI_FLAG_OPAQUE))
             {
@@ -434,7 +434,7 @@ do_unprotect (const char *passphrase,
         }
 
       if (actual_csum != desired_csum)
-        return gpg_error (GPG_ERR_CHECKSUM);
+        return GPG_ERR_CHECKSUM;
 
       goto do_convert;
     }
@@ -447,14 +447,14 @@ do_unprotect (const char *passphrase,
          numbers.  */
       log_info (_("protection algorithm %d (%s) is not supported\n"),
                 protect_algo, gnupg_cipher_algo_name (protect_algo));
-      return gpg_error (GPG_ERR_CIPHER_ALGO);
+      return GPG_ERR_CIPHER_ALGO;
     }
 
   if (gcry_md_test_algo (s2k_algo))
     {
       log_info (_("protection hash algorithm %d (%s) is not supported\n"),
                 s2k_algo, gcry_md_algo_name (s2k_algo));
-      return gpg_error (GPG_ERR_DIGEST_ALGO);
+      return GPG_ERR_DIGEST_ALGO;
     }
 
   err = gcry_cipher_open (&cipher_hd, protect_algo,
@@ -491,7 +491,7 @@ do_unprotect (const char *passphrase,
       if (!gcry_mpi_get_flag (skey[npkey], GCRYMPI_FLAG_OPAQUE ))
         {
           gcry_cipher_close (cipher_hd);
-          return gpg_error (GPG_ERR_BAD_SECKEY);
+          return GPG_ERR_BAD_SECKEY;
         }
       p = gcry_mpi_get_opaque (skey[npkey], &ndatabits);
       ndata = (ndatabits+7)/8;
@@ -591,7 +591,7 @@ do_unprotect (const char *passphrase,
           if (!skey[i] || !gcry_mpi_get_flag (skey[i], GCRYMPI_FLAG_OPAQUE))
             {
               gcry_cipher_close (cipher_hd);
-              return gpg_error (GPG_ERR_BAD_SECKEY);
+              return GPG_ERR_BAD_SECKEY;
             }
           p = gcry_mpi_get_opaque (skey[i], &ndatabits);
           ndata = (ndatabits+7)/8;
@@ -599,7 +599,7 @@ do_unprotect (const char *passphrase,
           if (!(ndata >= 2) || !(ndata == (buf16_to_ushort (p) + 7)/8 + 2))
             {
               gcry_cipher_close (cipher_hd);
-              return gpg_error (GPG_ERR_BAD_SECKEY);
+              return GPG_ERR_BAD_SECKEY;
             }
 
           buffer = xtrymalloc_secure (ndata);
@@ -632,11 +632,11 @@ do_unprotect (const char *passphrase,
 
   /* Now let's see whether we have used the correct passphrase. */
   if (actual_csum != desired_csum)
-    return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+    return GPG_ERR_BAD_PASSPHRASE;
 
  do_convert:
   if (nskey != skeylen)
-    err = gpg_error (GPG_ERR_BAD_SECKEY);
+    err = GPG_ERR_BAD_SECKEY;
   else
     err = convert_secret_key (r_key, pubkey_algo, skey, curve);
   if (err)
@@ -648,7 +648,7 @@ do_unprotect (const char *passphrase,
     {
       gcry_sexp_release (*r_key);
       *r_key = NULL;
-      return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+      return GPG_ERR_BAD_PASSPHRASE;
     }
 
   return 0;
@@ -896,7 +896,7 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
 
   if (!dontcare_exist && !from_native && !agent_key_available (grip))
     {
-      err = gpg_error (GPG_ERR_EEXIST);
+      err = GPG_ERR_EEXIST;
       goto leave;
     }
 
@@ -942,7 +942,7 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
       pi_arg.skeyidx = skeyidx;
       pi_arg.r_key = &s_skey;
 
-      err = gpg_error (GPG_ERR_BAD_PASSPHRASE);
+      err = GPG_ERR_BAD_PASSPHRASE;
       if (!is_protected)
         {
           err = try_do_unprotect_cb (pi);
@@ -967,7 +967,7 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
             strcpy (pi->pin, passphrase);
           err = try_do_unprotect_cb (pi);
         }
-      if (gpg_err_code (err) == GPG_ERR_BAD_PASSPHRASE && !from_native)
+      if (err == GPG_ERR_BAD_PASSPHRASE && !from_native)
         err = agent_askpin (ctrl, prompt, NULL, NULL, pi, NULL, 0);
       skeyidx = pi_arg.skeyidx;
       if (!err && r_passphrase && is_protected)
@@ -1005,11 +1005,11 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
   return err;
 
  bad_seckey:
-  err = gpg_error (GPG_ERR_BAD_SECKEY);
+  err = GPG_ERR_BAD_SECKEY;
   goto leave;
 
  outofmem:
-  err = gpg_error (GPG_ERR_ENOMEM);
+  err = GPG_ERR_ENOMEM;
   goto leave;
 
 }
@@ -1050,7 +1050,7 @@ convert_from_openpgp_native (ctrl_t ctrl,
   unsigned char grip[20];
 
   if (!passphrase)
-    return gpg_error (GPG_ERR_INTERNAL);
+    return GPG_ERR_INTERNAL;
 
   err = convert_from_openpgp_main (ctrl, s_pgp, 0, grip, NULL,
                                    NULL, passphrase,
@@ -1221,7 +1221,7 @@ extract_private_key (gcry_sexp_t s_key, int req_private_key_data,
   if (!list)
     {
       log_error ("invalid private key format\n");
-      return gpg_error (GPG_ERR_BAD_SECKEY);
+      return GPG_ERR_BAD_SECKEY;
     }
 
   l2 = gcry_sexp_cadr (list);
@@ -1231,7 +1231,7 @@ extract_private_key (gcry_sexp_t s_key, int req_private_key_data,
   if (!name)
     {
       gcry_sexp_release (list);
-      return gpg_error (GPG_ERR_INV_OBJ); /* Invalid structure of object. */
+      return GPG_ERR_INV_OBJ; /* Invalid structure of object. */
     }
 
   if (arraysize < 7)
@@ -1284,7 +1284,7 @@ extract_private_key (gcry_sexp_t s_key, int req_private_key_data,
     }
   else
     {
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      err = GPG_ERR_PUBKEY_ALGO;
     }
   xfree (name);
   gcry_sexp_release (list);

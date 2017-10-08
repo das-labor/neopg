@@ -162,14 +162,14 @@ read_and_hash_cont (ksba_cms_t cms)
                            && !ti.is_constructed)
                     break; /* ready with this chunk */
                   else
-                    return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+                    return GPG_ERR_ENCODING_PROBLEM;
                 }
             }
           else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                    && !ti.is_constructed)
             return 0; /* ready */
           else
-            return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+            return GPG_ERR_ENCODING_PROBLEM;
         }
     }
   else
@@ -188,7 +188,7 @@ read_and_hash_cont (ksba_cms_t cms)
       if (err)
         return err;
       if (nleft < ti.nhdr)
-        return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+        return GPG_ERR_ENCODING_PROBLEM;
       nleft -= ti.nhdr;
 
       if (ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OCTET_STRING
@@ -212,7 +212,7 @@ read_and_hash_cont (ksba_cms_t cms)
                        && !ti.is_constructed)
                 break; /* Ready with this chunk */
               else
-                return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+                return GPG_ERR_ENCODING_PROBLEM;
             }
         }
       else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
@@ -298,14 +298,14 @@ read_encrypted_cont (ksba_cms_t cms)
                            && !ti.is_constructed)
                     break; /* ready with this chunk */
                   else
-                    return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+                    return GPG_ERR_ENCODING_PROBLEM;
                 }
             }
           else if (ti.klasse == CLASS_UNIVERSAL && !ti.tag
                    && !ti.is_constructed)
             return 0; /* ready */
           else
-            return gpg_error (GPG_ERR_ENCODING_PROBLEM);
+            return GPG_ERR_ENCODING_PROBLEM;
         }
     }
   else
@@ -349,7 +349,7 @@ write_encrypted_cont (ksba_cms_t cms)
       if (!err)
         err = ksba_writer_write (cms->writer, buffer, nread);
     }
-  if (gpg_err_code (err) == GPG_ERR_EOF) /* write the end tag */
+  if (err == GPG_ERR_EOF) /* write the end tag */
       err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
 
   return err;
@@ -550,9 +550,9 @@ gpg_error_t
 ksba_cms_set_reader_writer (ksba_cms_t cms, ksba_reader_t r, ksba_writer_t w)
 {
   if (!cms || !(r || w))
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if ((r && cms->reader) || (w && cms->writer) )
-    return gpg_error (GPG_ERR_CONFLICT); /* already set */
+    return GPG_ERR_CONFLICT; /* already set */
 
   cms->reader = r;
   cms->writer = w;
@@ -568,7 +568,7 @@ ksba_cms_parse (ksba_cms_t cms, ksba_stop_reason_t *r_stopreason)
   int i;
 
   if (!cms || !r_stopreason)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   *r_stopreason = KSBA_SR_RUNNING;
   if (!cms->stop_reason)
@@ -582,9 +582,9 @@ ksba_cms_parse (ksba_cms_t cms, ksba_stop_reason_t *r_stopreason)
             break;
         }
       if (!content_handlers[i].oid)
-        return gpg_error (GPG_ERR_UNKNOWN_CMS_OBJ);
+        return GPG_ERR_UNKNOWN_CMS_OBJ;
       if (!content_handlers[i].parse_handler)
-        return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
+        return GPG_ERR_UNSUPPORTED_CMS_OBJ;
       cms->content.ct      = content_handlers[i].ct;
       cms->content.handler = content_handlers[i].parse_handler;
       cms->stop_reason = KSBA_SR_GOT_CONTENT;
@@ -596,7 +596,7 @@ ksba_cms_parse (ksba_cms_t cms, ksba_stop_reason_t *r_stopreason)
         return err;
     }
   else
-    return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
+    return GPG_ERR_UNSUPPORTED_CMS_OBJ;
 
   *r_stopreason = cms->stop_reason;
   return 0;
@@ -608,17 +608,17 @@ ksba_cms_build (ksba_cms_t cms, ksba_stop_reason_t *r_stopreason)
   gpg_error_t err;
 
   if (!cms || !r_stopreason)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   *r_stopreason = KSBA_SR_RUNNING;
   if (!cms->stop_reason)
     { /* Initial state: check that the content handler is known */
       if (!cms->writer)
-        return gpg_error (GPG_ERR_MISSING_ACTION);
+        return GPG_ERR_MISSING_ACTION;
       if (!cms->content.handler)
-        return gpg_error (GPG_ERR_MISSING_ACTION);
+        return GPG_ERR_MISSING_ACTION;
       if (!cms->inner_cont_oid)
-        return gpg_error (GPG_ERR_MISSING_ACTION);
+        return GPG_ERR_MISSING_ACTION;
       cms->stop_reason = KSBA_SR_GOT_CONTENT;
     }
   else if (cms->content.handler)
@@ -628,7 +628,7 @@ ksba_cms_build (ksba_cms_t cms, ksba_stop_reason_t *r_stopreason)
         return err;
     }
   else
-    return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
+    return GPG_ERR_UNSUPPORTED_CMS_OBJ;
 
   *r_stopreason = cms->stop_reason;
   return 0;
@@ -687,11 +687,11 @@ ksba_cms_get_content_enc_iv (ksba_cms_t cms, void *iv,
                              size_t maxivlen, size_t *ivlen)
 {
   if (!cms || !iv || !ivlen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!cms->encr_ivlen)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
   if (cms->encr_ivlen > maxivlen)
-    return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
+    return GPG_ERR_BUFFER_TOO_SHORT;
   memcpy (iv, cms->encr_iv, cms->encr_ivlen);
   *ivlen = cms->encr_ivlen;
   return 0;
@@ -752,9 +752,9 @@ ksba_cms_get_issuer_serial (ksba_cms_t cms, int idx,
   AsnNode n;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   if (cms->signer_info)
     {
@@ -784,20 +784,20 @@ ksba_cms_get_issuer_serial (ksba_cms_t cms, int idx,
       image = tmp->image;
     }
   else
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
 
   if (r_issuer)
     {
       n = _ksba_asn_find_node (root, issuer_path);
       if (!n || !n->down)
-        return gpg_error (GPG_ERR_NO_VALUE);
+        return GPG_ERR_NO_VALUE;
       n = n->down; /* dereference the choice node */
 
       if (n->off == -1)
         {
 /*            fputs ("get_issuer problem at node:\n", stderr); */
 /*            _ksba_asn_node_dump_all (n, stderr); */
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
       err = _ksba_dn_to_str (image, n, r_issuer);
       if (err)
@@ -813,20 +813,20 @@ ksba_cms_get_issuer_serial (ksba_cms_t cms, int idx,
       /* fixme: we do not release the r_issuer stuff on error */
       n = _ksba_asn_find_node (root, serial_path);
       if (!n)
-        return gpg_error (GPG_ERR_NO_VALUE);
+        return GPG_ERR_NO_VALUE;
 
       if (n->off == -1)
         {
 /*            fputs ("get_serial problem at node:\n", stderr); */
 /*            _ksba_asn_node_dump_all (n, stderr); */
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
 
       sprintf (numbuf,"(%u:", (unsigned int)n->len);
       numbuflen = strlen (numbuf);
       p = xtrymalloc (numbuflen + n->len + 2);
       if (!p)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       strcpy (p, numbuf);
       memcpy (p+numbuflen, image + n->off + n->nhdr, n->len);
       p[numbuflen + n->len] = ')';
@@ -923,11 +923,11 @@ ksba_cms_get_message_digest (ksba_cms_t cms, int idx,
   struct signer_info_s *si;
 
   if (!cms || !r_digest || !r_digest_len)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!cms->signer_info)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   for (si=cms->signer_info; si && idx; si = si->next, idx-- )
     ;
@@ -939,7 +939,7 @@ ksba_cms_get_message_digest (ksba_cms_t cms, int idx,
   *r_digest_len = 0;
   nsiginfo = _ksba_asn_find_node (si->root, "SignerInfo.signedAttrs");
   if (!nsiginfo)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   n = _ksba_asn_find_type_value (si->image, nsiginfo, 0,
                                  oid_messageDigest, DIM(oid_messageDigest));
@@ -949,21 +949,21 @@ ksba_cms_get_message_digest (ksba_cms_t cms, int idx,
   /* check that there is only one */
   if (_ksba_asn_find_type_value (si->image, nsiginfo, 1,
                                  oid_messageDigest, DIM(oid_messageDigest)))
-    return gpg_error (GPG_ERR_DUP_VALUE);
+    return GPG_ERR_DUP_VALUE;
 
   /* the value is is a SET OF OCTECT STRING but the set must have
      excactly one OCTECT STRING.  (rfc2630 11.2) */
   if ( !(n->type == TYPE_SET_OF && n->down
          && n->down->type == TYPE_OCTET_STRING && !n->down->right))
-    return gpg_error (GPG_ERR_INV_CMS_OBJ);
+    return GPG_ERR_INV_CMS_OBJ;
   n = n->down;
   if (n->off == -1)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   *r_digest_len = n->len;
   *r_digest = xtrymalloc (n->len);
   if (!*r_digest)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   memcpy (*r_digest, si->image + n->off + n->nhdr, n->len);
   return 0;
 }
@@ -978,12 +978,12 @@ ksba_cms_get_signing_time (ksba_cms_t cms, int idx, ksba_isotime_t r_sigtime)
   struct signer_info_s *si;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   *r_sigtime = 0;
   if (!cms->signer_info)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   for (si=cms->signer_info; si && idx; si = si->next, idx-- )
     ;
@@ -1003,7 +1003,7 @@ ksba_cms_get_signing_time (ksba_cms_t cms, int idx, ksba_isotime_t r_sigtime)
   /* check that there is only one */
   if (_ksba_asn_find_type_value (si->image, nsiginfo, 1,
                                  oid_signingTime, DIM(oid_signingTime)))
-    return gpg_error (GPG_ERR_DUP_VALUE);
+    return GPG_ERR_DUP_VALUE;
 
   /* the value is is a SET OF CHOICE but the set must have
      excactly one CHOICE of generalized or utctime.  (rfc2630 11.3) */
@@ -1011,10 +1011,10 @@ ksba_cms_get_signing_time (ksba_cms_t cms, int idx, ksba_isotime_t r_sigtime)
          && (n->down->type == TYPE_GENERALIZED_TIME
              || n->down->type == TYPE_UTC_TIME)
          && !n->down->right))
-    return gpg_error (GPG_ERR_INV_CMS_OBJ);
+    return GPG_ERR_INV_CMS_OBJ;
   n = n->down;
   if (n->off == -1)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   return _ksba_asntime_to_iso (si->image + n->off + n->nhdr, n->len,
                                n->type == TYPE_UTC_TIME, r_sigtime);
@@ -1040,11 +1040,11 @@ ksba_cms_get_sigattr_oids (ksba_cms_t cms, int idx,
   int i;
 
   if (!cms || !r_value)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!cms->signer_info)
-    return gpg_error (GPG_ERR_NO_DATA);
+    return GPG_ERR_NO_DATA;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
   *r_value = NULL;
 
   for (si=cms->signer_info; si && idx; si = si->next, idx-- )
@@ -1072,14 +1072,14 @@ ksba_cms_get_sigattr_oids (ksba_cms_t cms, int idx,
         {
           xfree (reqoidbuf);
           xfree (retstr);
-          return gpg_error (GPG_ERR_INV_CMS_OBJ);
+          return GPG_ERR_INV_CMS_OBJ;
         }
       n = n->down;
       if (n->off == -1)
         {
           xfree (reqoidbuf);
           xfree (retstr);
-          return gpg_error (GPG_ERR_BUG);
+          return GPG_ERR_BUG;
         }
 
       p = _ksba_oid_node_to_str (si->image, n);
@@ -1087,7 +1087,7 @@ ksba_cms_get_sigattr_oids (ksba_cms_t cms, int idx,
         {
           xfree (reqoidbuf);
           xfree (retstr);
-          return gpg_error (GPG_ERR_INV_CMS_OBJ);
+          return GPG_ERR_INV_CMS_OBJ;
         }
 
       if (!retstr)
@@ -1109,7 +1109,7 @@ ksba_cms_get_sigattr_oids (ksba_cms_t cms, int idx,
           xfree (reqoidbuf);
           xfree (retstr);
           xfree (p);
-          return gpg_error (GPG_ERR_ENOMEM);
+          return GPG_ERR_ENOMEM;
         }
       strcpy (line, p);
       xfree (p);
@@ -1255,9 +1255,9 @@ ksba_cms_hash_signed_attrs (ksba_cms_t cms, int idx)
   struct signer_info_s *si;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!cms->hash_fnc)
-    return gpg_error (GPG_ERR_MISSING_ACTION);
+    return GPG_ERR_MISSING_ACTION;
   if (idx < 0)
     return -1;
 
@@ -1268,7 +1268,7 @@ ksba_cms_hash_signed_attrs (ksba_cms_t cms, int idx)
 
   n = _ksba_asn_find_node (si->root, "SignerInfo.signedAttrs");
   if (!n || n->off == -1)
-    return gpg_error (GPG_ERR_NO_VALUE);
+    return GPG_ERR_NO_VALUE;
 
   /* We don't hash the implicit tag [0] but a SET tag */
   cms->hash_fnc (cms->hash_fnc_arg, "\x31", 1);
@@ -1302,7 +1302,7 @@ ksba_cms_set_content_type (ksba_cms_t cms, int what, ksba_content_type_t type)
   char *oid;
 
   if (!cms || what < 0 || what > 1 )
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   for (i=0; content_handlers[i].oid; i++)
     {
@@ -1310,12 +1310,12 @@ ksba_cms_set_content_type (ksba_cms_t cms, int what, ksba_content_type_t type)
         break;
     }
   if (!content_handlers[i].oid)
-    return gpg_error (GPG_ERR_UNKNOWN_CMS_OBJ);
+    return GPG_ERR_UNKNOWN_CMS_OBJ;
   if (!content_handlers[i].build_handler)
-    return gpg_error (GPG_ERR_UNSUPPORTED_CMS_OBJ);
+    return GPG_ERR_UNSUPPORTED_CMS_OBJ;
   oid = xtrystrdup (content_handlers[i].oid);
   if (!oid)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   if (!what)
     {
@@ -1348,17 +1348,17 @@ ksba_cms_add_digest_algo (ksba_cms_t cms, const char *oid)
   struct oidlist_s *ol;
 
   if (!cms || !oid)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   ol = xtrymalloc (sizeof *ol);
   if (!ol)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   ol->oid = xtrystrdup (oid);
   if (!ol->oid)
     {
       xfree (ol);
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
     }
   ol->next = cms->digest_algos;
   cms->digest_algos = ol;
@@ -1382,11 +1382,11 @@ ksba_cms_add_signer (ksba_cms_t cms, ksba_cert_t cert)
   struct certlist_s *cl, *cl2;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   cl = xtrycalloc (1,sizeof *cl);
   if (!cl)
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
 
   ksba_cert_ref (cert);
   cl->cert = cert;
@@ -1418,7 +1418,7 @@ ksba_cms_add_cert (ksba_cms_t cms, ksba_cert_t cert)
   struct certlist_s *cl;
 
   if (!cms || !cert)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* first check whether this is a duplicate. */
   for (cl = cms->cert_info_list; cl; cl = cl->next)
@@ -1430,7 +1430,7 @@ ksba_cms_add_cert (ksba_cms_t cms, ksba_cert_t cert)
   /* Okay, add it. */
   cl = xtrycalloc (1,sizeof *cl);
   if (!cl)
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
 
   ksba_cert_ref (cert);
   cl->cert = cert;
@@ -1458,7 +1458,7 @@ ksba_cms_add_smime_capability (ksba_cms_t cms, const char *oid,
   struct oidparmlist_s *opl, *opl2;
 
   if (!cms || !oid)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (!der)
     derlen = 0;
@@ -1516,16 +1516,16 @@ ksba_cms_set_message_digest (ksba_cms_t cms, int idx,
   struct certlist_s *cl;
 
   if (!cms || !digest)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!digest_len || digest_len > DIM(cl->msg_digest))
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   for (cl=cms->cert_list; cl && idx; cl = cl->next, idx--)
     ;
   if (!cl)
-    return gpg_error (GPG_ERR_INV_INDEX); /* no certificate to store it */
+    return GPG_ERR_INV_INDEX; /* no certificate to store it */
   cl->msg_digest_len = digest_len;
   memcpy (cl->msg_digest, digest, digest_len);
   return 0;
@@ -1549,14 +1549,14 @@ ksba_cms_set_signing_time (ksba_cms_t cms, int idx, const ksba_isotime_t sigtime
   struct certlist_s *cl;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   for (cl=cms->cert_list; cl && idx; cl = cl->next, idx--)
     ;
   if (!cl)
-    return gpg_error (GPG_ERR_INV_INDEX); /* no certificate to store it */
+    return GPG_ERR_INV_INDEX; /* no certificate to store it */
 
   /* Fixme: We might want to check the validity of the passed time
      string. */
@@ -1590,42 +1590,42 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
   int i;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX); /* only one signer for now */
+    return GPG_ERR_INV_INDEX; /* only one signer for now */
 
   s = sigval;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
 
   for (i=0, sv_tail=&cms->sig_val; *sv_tail; sv_tail=&(*sv_tail)->next, i++)
     ;
   if (i != idx)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
 
   if (!(n = snext (&s)))
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, 7, "sig-val"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+    return digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
   s++;
 
   /* Break out the algorithm ID. */
   if (!(n = snext (&s)))
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   sv = xtrycalloc (1, sizeof *sv);
   if (!sv)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   if (n==3 && s[0] == 'r' && s[1] == 's' && s[2] == 'a')
     { /* kludge to allow "rsa" to be passed as algorithm name */
       sv->algo = xtrystrdup ("1.2.840.113549.1.1.1");
       if (!sv->algo)
         {
           xfree (sv);
-          return gpg_error (GPG_ERR_ENOMEM);
+          return GPG_ERR_ENOMEM;
         }
     }
   else
@@ -1634,7 +1634,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
       if (!sv->algo)
         {
           xfree (sv);
-          return gpg_error (GPG_ERR_ENOMEM);
+          return GPG_ERR_ENOMEM;
         }
       memcpy (sv->algo, s, n);
       sv->algo[n] = 0;
@@ -1647,7 +1647,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
     {
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+      return digitp (s) ? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
     }
   s++;
 
@@ -1655,7 +1655,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
     {
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
   s += n; /* ignore the name of the parameter */
 
@@ -1664,14 +1664,14 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
       xfree (sv->algo);
       xfree (sv);
       /* May also be an invalid S-EXP.  */
-      return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+      return GPG_ERR_UNKNOWN_SEXP;
     }
 
   if (!(n = snext (&s)))
     {
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
 
   if (n > 1 && !*s)
@@ -1685,7 +1685,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
     {
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (GPG_ERR_ENOMEM);
+      return GPG_ERR_ENOMEM;
     }
   memcpy (sv->value, s, n);
   sv->valuelen = n;
@@ -1695,7 +1695,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
       xfree (sv->value);
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
+      return GPG_ERR_UNKNOWN_SEXP; /* but may also be an invalid one */
     }
   s++;
   /* fixme: end loop over parameters */
@@ -1706,7 +1706,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
       xfree (sv->value);
       xfree (sv->algo);
       xfree (sv);
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
 
   *sv_tail = sv;
@@ -1722,7 +1722,7 @@ ksba_cms_set_content_enc_algo (ksba_cms_t cms,
                                const void *iv, size_t ivlen)
 {
   if (!cms || !oid)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   xfree (cms->encr_iv);
   cms->encr_iv = NULL;
@@ -1730,13 +1730,13 @@ ksba_cms_set_content_enc_algo (ksba_cms_t cms,
 
   cms->encr_algo_oid = xtrystrdup (oid);
   if (!cms->encr_algo_oid)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
 
   if (iv)
     {
       cms->encr_iv = xtrymalloc (ivlen);
       if (!cms->encr_iv)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       memcpy (cms->encr_iv, iv, ivlen);
       cms->encr_ivlen = ivlen;
     }
@@ -1764,49 +1764,49 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
   unsigned long n;
 
   if (!cms)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (idx < 0)
-    return gpg_error (GPG_ERR_INV_INDEX);
+    return GPG_ERR_INV_INDEX;
   for (cl=cms->cert_list; cl && idx; cl = cl->next, idx--)
     ;
   if (!cl)
-    return gpg_error (GPG_ERR_INV_INDEX); /* no certificate to store the value */
+    return GPG_ERR_INV_INDEX; /* no certificate to store the value */
 
   s = encval;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
 
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s!=':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
+    return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
   if (n != 7 || memcmp (s, "enc-val", 7))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   s += 7;
   if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+    return digitp (s) ? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
   s++;
 
   /* break out the algorithm ID */
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP); /* we don't allow empty lengths */
+    return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
   xfree (cl->enc_val.algo);
   if (n==3 && s[0] == 'r' && s[1] == 's' && s[2] == 'a')
     { /* kludge to allow "rsa" to be passed as algorithm name */
       cl->enc_val.algo = xtrystrdup ("1.2.840.113549.1.1.1");
       if (!cl->enc_val.algo)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
     }
   else
     {
       cl->enc_val.algo = xtrymalloc (n+1);
       if (!cl->enc_val.algo)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       memcpy (cl->enc_val.algo, s, n);
       cl->enc_val.algo[n] = 0;
     }
@@ -1815,21 +1815,21 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
   /* And now the values - FIXME: For now we only support one */
   /* fixme: start loop */
   if (*s != '(')
-    return gpg_error (digitp (s)? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP);
+    return digitp (s) ? GPG_ERR_UNKNOWN_SEXP : GPG_ERR_INV_SEXP;
   s++;
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   s += n; /* ignore the name of the parameter */
 
   if (!digitp(s))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
+    return GPG_ERR_UNKNOWN_SEXP; /* but may also be an invalid one */
   n = strtoul (s, (char**)&endp, 10);
   s = endp;
   if (!n || *s != ':')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   if (n > 1 && !*s)
     { /* We might have a leading zero due to the way we encode
@@ -1840,18 +1840,18 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
   xfree (cl->enc_val.value);
   cl->enc_val.value = xtrymalloc (n);
   if (!cl->enc_val.value)
-    return gpg_error (GPG_ERR_ENOMEM);
+    return GPG_ERR_ENOMEM;
   memcpy (cl->enc_val.value, s, n);
   cl->enc_val.valuelen = n;
   s += n;
   if ( *s != ')')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP); /* but may also be an invalid one */
+    return GPG_ERR_UNKNOWN_SEXP; /* but may also be an invalid one */
   s++;
   /* fixme: end loop over parameters */
 
   /* we need 2 closing parenthesis */
   if ( *s != ')' || s[1] != ')')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   return 0;
 }
@@ -1890,7 +1890,7 @@ static gpg_error_t
 ct_parse_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -1920,7 +1920,7 @@ ct_parse_signed_data (ksba_cms_t cms)
   else if (stop_reason == KSBA_SR_BEGIN_DATA)
     {
       if (!cms->hash_fnc)
-        err = gpg_error (GPG_ERR_MISSING_ACTION);
+        err = GPG_ERR_MISSING_ACTION;
       else
         state = sIN_DATA;
     }
@@ -1929,9 +1929,9 @@ ct_parse_signed_data (ksba_cms_t cms)
       state = sGOT_HASH;
     }
   else if (stop_reason == KSBA_SR_RUNNING)
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
   else if (stop_reason)
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 
   if (err)
     return err;
@@ -1944,7 +1944,7 @@ ct_parse_signed_data (ksba_cms_t cms)
   else if (state == sIN_DATA)
     err = read_and_hash_cont (cms);
   else
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
 
   if (err)
     return err;
@@ -2006,9 +2006,9 @@ ct_parse_enveloped_data (ksba_cms_t cms)
       state = sREST;
     }
   else if (stop_reason == KSBA_SR_RUNNING)
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
   else if (stop_reason)
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 
   if (err)
     return err;
@@ -2021,7 +2021,7 @@ ct_parse_enveloped_data (ksba_cms_t cms)
   else if (state == sINDATA)
     err = read_encrypted_cont (cms);
   else
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
 
   if (err)
     return err;
@@ -2046,7 +2046,7 @@ static gpg_error_t
 ct_parse_digested_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -2054,7 +2054,7 @@ static gpg_error_t
 ct_parse_encrypted_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -2067,7 +2067,7 @@ static gpg_error_t
 ct_build_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -2162,7 +2162,7 @@ build_signed_data_header (ksba_cms_t cms)
     ksba_writer_release (tmpwrt);
     if (!value)
       {
-        err = gpg_error (GPG_ERR_ENOMEM);
+        err = GPG_ERR_ENOMEM;
         return err;
       }
     err = _ksba_ber_write_tl (cms->writer, TYPE_SET, CLASS_UNIVERSAL,
@@ -2214,7 +2214,7 @@ set_issuer_serial (AsnNode info, ksba_cert_t cert, int mode)
   AsnNode dst, src;
 
   if (!info || !cert)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   src = _ksba_asn_find_node (cert->root,
                              "Certificate.tbsCertificate.serialNumber");
@@ -2291,7 +2291,7 @@ store_smime_capability_sequence (AsnNode node,
 
   value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
   if (!value)
-    err = gpg_error (GPG_ERR_ENOMEM);
+    err = GPG_ERR_ENOMEM;
   if (!err)
     err = _ksba_der_store_sequence (node, value, valuelen);
   xfree (value);
@@ -2356,7 +2356,7 @@ build_signed_data_attributes (ksba_cms_t cms)
     return err;
 
   if (cms->signer_info)
-    return gpg_error (GPG_ERR_CONFLICT); /* This list must be empty at
+    return GPG_ERR_CONFLICT; /* This list must be empty at
                                             this point. */
 
   /* Write optional certificates */
@@ -2369,7 +2369,7 @@ build_signed_data_attributes (ksba_cms_t cms)
       for (certlist = cms->cert_info_list; certlist; certlist = certlist->next)
         {
           if (!ksba_cert_get_image (certlist->cert, &n))
-            return gpg_error (GPG_ERR_GENERAL); /* User passed an
+            return GPG_ERR_GENERAL; /* User passed an
                                                    unitialized cert */
           totallen += n;
         }
@@ -2381,7 +2381,7 @@ build_signed_data_attributes (ksba_cms_t cms)
       for (certlist = cms->cert_info_list; certlist; certlist = certlist->next)
         {
           if (!(der=ksba_cert_get_image (certlist->cert, &n)))
-            return gpg_error (GPG_ERR_BUG);
+            return GPG_ERR_BUG;
           err = ksba_writer_write (cms->writer, der, n);
           if (err )
             return err;
@@ -2400,13 +2400,13 @@ build_signed_data_attributes (ksba_cms_t cms)
   certlist = cms->cert_list;
   if (!certlist)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+      err = GPG_ERR_MISSING_VALUE; /* oops */
       goto leave;
     }
   digestlist = cms->digest_algos;
   if (!digestlist)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+      err = GPG_ERR_MISSING_VALUE; /* oops */
       goto leave;
     }
 
@@ -2429,13 +2429,13 @@ build_signed_data_attributes (ksba_cms_t cms)
 
       if (!digestlist)
         {
-	  err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+	  err = GPG_ERR_MISSING_VALUE; /* oops */
 	  goto leave;
 	}
 
       if (!certlist->cert || !digestlist->oid)
 	{
-	  err = gpg_error (GPG_ERR_BUG);
+	  err = GPG_ERR_BUG;
 	  goto leave;
 	}
 
@@ -2444,13 +2444,13 @@ build_signed_data_attributes (ksba_cms_t cms)
                                     "CryptographicMessageSyntax.Attribute");
       if (!attr)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       n = _ksba_asn_find_node (attr, "Attribute.attrType");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_oid (n, oidstr_messageDigest);
@@ -2458,7 +2458,7 @@ build_signed_data_attributes (ksba_cms_t cms)
         goto leave;
       n = _ksba_asn_find_node (attr, "Attribute.attrValues");
       if (!n || !n->down)
-        return gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+        return GPG_ERR_ELEMENT_NOT_FOUND;
       n = n->down; /* fixme: ugly hack */
       assert (certlist && certlist->msg_digest_len);
       err = _ksba_der_store_octet_string (n, certlist->msg_digest,
@@ -2478,13 +2478,13 @@ build_signed_data_attributes (ksba_cms_t cms)
                                     "CryptographicMessageSyntax.Attribute");
       if (!attr)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       n = _ksba_asn_find_node (attr, "Attribute.attrType");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_oid (n, oidstr_contentType);
@@ -2493,7 +2493,7 @@ build_signed_data_attributes (ksba_cms_t cms)
       n = _ksba_asn_find_node (attr, "Attribute.attrValues");
       if (!n || !n->down)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       n = n->down; /* fixme: ugly hack */
@@ -2515,13 +2515,13 @@ build_signed_data_attributes (ksba_cms_t cms)
                                      "CryptographicMessageSyntax.Attribute");
           if (!attr)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           n = _ksba_asn_find_node (attr, "Attribute.attrType");
           if (!n)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           err = _ksba_der_store_oid (n, oidstr_signingTime);
@@ -2530,7 +2530,7 @@ build_signed_data_attributes (ksba_cms_t cms)
           n = _ksba_asn_find_node (attr, "Attribute.attrValues");
           if (!n || !n->down)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           n = n->down; /* fixme: ugly hack */
@@ -2554,13 +2554,13 @@ build_signed_data_attributes (ksba_cms_t cms)
                                     "CryptographicMessageSyntax.Attribute");
           if (!attr)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           n = _ksba_asn_find_node (attr, "Attribute.attrType");
           if (!n)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           err = _ksba_der_store_oid (n, oidstr_smimeCapabilities);
@@ -2569,7 +2569,7 @@ build_signed_data_attributes (ksba_cms_t cms)
           n = _ksba_asn_find_node (attr, "Attribute.attrValues");
           if (!n || !n->down)
             {
-	      err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	      err = GPG_ERR_ELEMENT_NOT_FOUND;
 	      goto leave;
 	    }
           n = n->down; /* fixme: ugly hack */
@@ -2597,7 +2597,7 @@ build_signed_data_attributes (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.signedAttrs");
       if (!n || !n->down)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       /* This is another ugly hack to move to the element we want */
@@ -2605,7 +2605,7 @@ build_signed_data_attributes (ksba_cms_t cms)
         ;
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
 
@@ -2616,7 +2616,7 @@ build_signed_data_attributes (ksba_cms_t cms)
             {
               if ( !(n=_ksba_asn_insert_copy (n)))
                 {
-		  err = gpg_error (GPG_ERR_ENOMEM);
+		  err = GPG_ERR_ENOMEM;
 		  goto leave;
 		}
             }
@@ -2635,7 +2635,7 @@ build_signed_data_attributes (ksba_cms_t cms)
 
       si = xtrycalloc (1, sizeof *si);
       if (!si)
-        return gpg_error (GPG_ERR_ENOMEM);
+        return GPG_ERR_ENOMEM;
       si->root = root;
       root = NULL;
       si->image = image;
@@ -2682,7 +2682,7 @@ build_signed_data_rest (ksba_cms_t cms)
   certlist = cms->cert_list;
   if (!certlist)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+      err = GPG_ERR_MISSING_VALUE; /* oops */
       return err;
     }
 
@@ -2711,12 +2711,12 @@ build_signed_data_rest (ksba_cms_t cms)
 
       if (!digestlist || !si || !sv)
         {
-	  err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+	  err = GPG_ERR_MISSING_VALUE; /* oops */
 	  goto leave;
 	}
       if (!certlist->cert || !digestlist->oid)
         {
-	  err = gpg_error (GPG_ERR_BUG);
+	  err = GPG_ERR_BUG;
 	  goto leave;
 	}
 
@@ -2727,7 +2727,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.version");
       if (!n)
 	{
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_integer (n, "\x00\x00\x00\x01\x01");
@@ -2738,7 +2738,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.sid");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
 
@@ -2750,7 +2750,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.digestAlgorithm.algorithm");
       if (!n)
 	{
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_oid (n, digestlist->oid);
@@ -2759,7 +2759,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.digestAlgorithm.parameters");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_null (n);
@@ -2770,7 +2770,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "SignerInfo.signedAttrs");
       if (!n || !n->down)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       assert (si->root);
@@ -2778,7 +2778,7 @@ build_signed_data_rest (ksba_cms_t cms)
       n2 = _ksba_asn_find_node (si->root, "SignerInfo.signedAttrs");
       if (!n2 || !n->down)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_copy_tree (n, n2, si->image);
@@ -2791,12 +2791,12 @@ build_signed_data_rest (ksba_cms_t cms)
 			       "SignerInfo.signatureAlgorithm.algorithm");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       if (!sv->algo)
         {
-	  err = gpg_error (GPG_ERR_MISSING_VALUE);
+	  err = GPG_ERR_MISSING_VALUE;
 	  goto leave;
 	}
       err = _ksba_der_store_oid (n, sv->algo);
@@ -2806,7 +2806,7 @@ build_signed_data_rest (ksba_cms_t cms)
 			       "SignerInfo.signatureAlgorithm.parameters");
       if (!n)
         {
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_null (n);
@@ -2816,13 +2816,13 @@ build_signed_data_rest (ksba_cms_t cms)
       /* store the signature  */
       if (!sv->value)
         {
-	  err = gpg_error (GPG_ERR_MISSING_VALUE);
+	  err = GPG_ERR_MISSING_VALUE;
 	  goto leave;
 	}
       n = _ksba_asn_find_node (root, "SignerInfo.signature");
       if (!n)
 	{
-	  err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
       err = _ksba_der_store_octet_string (n, sv->value, sv->valuelen);
@@ -2848,7 +2848,7 @@ build_signed_data_rest (ksba_cms_t cms)
     value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
     if (!value)
       {
-        err = gpg_error (GPG_ERR_ENOMEM);
+        err = GPG_ERR_ENOMEM;
 	goto leave;
       }
     err = _ksba_ber_write_tl (cms->writer, TYPE_SET, CLASS_UNIVERSAL,
@@ -2908,13 +2908,13 @@ ct_build_signed_data (ksba_cms_t cms)
   else if (stop_reason == KSBA_SR_NEED_SIG)
     {
       if (!cms->sig_val)
-        err = gpg_error (GPG_ERR_MISSING_ACTION); /* No ksba_cms_set_sig_val () called */
+        err = GPG_ERR_MISSING_ACTION; /* No ksba_cms_set_sig_val () called */
       state = sGOTSIG;
     }
   else if (stop_reason == KSBA_SR_RUNNING)
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
   else if (stop_reason)
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 
   if (err)
     return err;
@@ -2940,7 +2940,7 @@ ct_build_signed_data (ksba_cms_t cms)
   else if (state == sGOTSIG)
     err = build_signed_data_rest (cms);
   else
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
 
   if (err)
     return err;
@@ -3031,7 +3031,7 @@ build_enveloped_data_header (ksba_cms_t cms)
   certlist = cms->cert_list;
   if (!certlist)
     {
-      err = gpg_error (GPG_ERR_MISSING_VALUE); /* oops */
+      err = GPG_ERR_MISSING_VALUE; /* oops */
       goto leave;
     }
 
@@ -3051,7 +3051,7 @@ build_enveloped_data_header (ksba_cms_t cms)
 
       if (!certlist->cert)
         {
-          err = gpg_error (GPG_ERR_BUG);
+          err = GPG_ERR_BUG;
           goto leave;
         }
 
@@ -3063,7 +3063,7 @@ build_enveloped_data_header (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "RecipientInfo.ktri.version");
       if (!n)
         {
-          err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+          err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
       err = _ksba_der_store_integer (n, "\x00\x00\x00\x01\x00");
@@ -3074,7 +3074,7 @@ build_enveloped_data_header (ksba_cms_t cms)
       n = _ksba_asn_find_node (root, "RecipientInfo.ktri.rid");
       if (!n)
         {
-          err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+          err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
 
@@ -3084,12 +3084,12 @@ build_enveloped_data_header (ksba_cms_t cms)
 
       /* store the keyEncryptionAlgorithm */
       if (!certlist->enc_val.algo || !certlist->enc_val.value)
-        return gpg_error (GPG_ERR_MISSING_VALUE);
+        return GPG_ERR_MISSING_VALUE;
       n = _ksba_asn_find_node (root,
                   "RecipientInfo.ktri.keyEncryptionAlgorithm.algorithm");
       if (!n)
         {
-          err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+          err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
       err = _ksba_der_store_oid (n, certlist->enc_val.algo);
@@ -3099,7 +3099,7 @@ build_enveloped_data_header (ksba_cms_t cms)
                   "RecipientInfo.ktri.keyEncryptionAlgorithm.parameters");
       if (!n)
         {
-          err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+          err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
 
@@ -3135,13 +3135,13 @@ build_enveloped_data_header (ksba_cms_t cms)
       /* store the encryptedKey  */
       if (!certlist->enc_val.value)
         {
-          err = gpg_error (GPG_ERR_MISSING_VALUE);
+          err = GPG_ERR_MISSING_VALUE;
           goto leave;
         }
       n = _ksba_asn_find_node (root, "RecipientInfo.ktri.encryptedKey");
       if (!n)
         {
-          err = gpg_error (GPG_ERR_ELEMENT_NOT_FOUND);
+          err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
       err = _ksba_der_store_octet_string (n,
@@ -3175,7 +3175,7 @@ build_enveloped_data_header (ksba_cms_t cms)
     value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
     if (!value)
       {
-        err = gpg_error (GPG_ERR_ENOMEM);
+        err = GPG_ERR_ENOMEM;
         goto leave;
       }
     ksba_writer_release (tmpwrt);
@@ -3251,9 +3251,9 @@ ct_build_enveloped_data (ksba_cms_t cms)
   else if (stop_reason == KSBA_SR_END_DATA)
     state = sREST;
   else if (stop_reason == KSBA_SR_RUNNING)
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
   else if (stop_reason)
-    err = gpg_error (GPG_ERR_BUG);
+    err = GPG_ERR_BUG;
 
   if (err)
     return err;
@@ -3277,7 +3277,7 @@ ct_build_enveloped_data (ksba_cms_t cms)
         err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
     }
   else
-    err = gpg_error (GPG_ERR_INV_STATE);
+    err = GPG_ERR_INV_STATE;
 
   if (err)
     return err;
@@ -3305,7 +3305,7 @@ static gpg_error_t
 ct_build_digested_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
@@ -3313,5 +3313,5 @@ static gpg_error_t
 ct_build_encrypted_data (ksba_cms_t cms)
 {
   (void)cms;
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 }

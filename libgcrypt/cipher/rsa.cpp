@@ -205,7 +205,7 @@ check_exponent (void *arg, gcry_mpi_t a)
  * TRANSIENT_KEY:  If true, generate the primes using the standard RNG.
  * Returns: 2 structures filled with all needed values
  */
-static gpg_err_code_t
+static gpg_error_t
 generate_std (RSA_secret_key *sk, unsigned int nbits, unsigned long use_e,
               int transient_key)
 {
@@ -368,7 +368,7 @@ generate_std (RSA_secret_key *sk, unsigned int nbits, unsigned long use_e,
  * TRANSIENT_KEY:  If true, generate the primes using the standard RNG.
  * Returns: 2 structures filled with all needed values
  */
-static gpg_err_code_t
+static gpg_error_t
 generate_fips (RSA_secret_key *sk, unsigned int nbits, unsigned long use_e,
                gcry_sexp_t testparms, int transient_key)
 {
@@ -385,7 +385,7 @@ generate_fips (RSA_secret_key *sk, unsigned int nbits, unsigned long use_e,
   unsigned int pbits = nbits/2;
   unsigned int i;
   int pqswitch;
-  gpg_err_code_t ec = GPG_ERR_NO_PRIME;
+  gpg_error_t ec = GPG_ERR_NO_PRIME;
 
   if (nbits < 1024 || (nbits & 0x1FF))
     return GPG_ERR_INV_VALUE;
@@ -680,7 +680,7 @@ gen_x931_parm_xi (void)
    from X9.31.  Using this algorithm has the advantage that the
    generation can be made deterministic which is required for CAVS
    testing.  */
-static gpg_err_code_t
+static gpg_error_t
 generate_x931 (RSA_secret_key *sk, unsigned int nbits, unsigned long e_value,
                gcry_sexp_t deriveparms, int *swapped)
 {
@@ -1137,10 +1137,10 @@ secret_blinded (gcry_mpi_t output, gcry_mpi_t input,
  **************  interface  ******************
  *********************************************/
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   unsigned int nbits;
   unsigned long evalue;
   RSA_secret_key sk;
@@ -1245,10 +1245,10 @@ rsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_check_secret_key (gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   RSA_secret_key sk = {NULL, NULL, NULL, NULL, NULL, NULL};
 
   /* To check the key we need the optional parameters. */
@@ -1274,10 +1274,10 @@ rsa_check_secret_key (gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t data = NULL;
   RSA_public_key pk = {NULL, NULL};
@@ -1342,11 +1342,11 @@ rsa_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t data = NULL;
@@ -1460,10 +1460,10 @@ rsa_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gpg_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_mpi_t data = NULL;
   RSA_secret_key sk = {NULL, NULL, NULL, NULL, NULL, NULL};
@@ -1562,10 +1562,10 @@ rsa_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 rsa_verify (gcry_sexp_t s_sig, gcry_sexp_t s_data, gcry_sexp_t keyparms)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   struct pk_encoding_ctx ctx;
   gcry_sexp_t l1 = NULL;
   gcry_mpi_t sig = NULL;
@@ -1675,7 +1675,7 @@ rsa_get_nbits (gcry_sexp_t parms)
    however, it is not clear whether this is meant to use the raw bytes
    (assuming this is an unsigned integer) or whether the DER required
    0 should be prefixed.  We hash the raw bytes.  */
-static gpg_err_code_t
+static gpg_error_t
 compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparam)
 {
   gcry_sexp_t l1;
@@ -1719,7 +1719,7 @@ selftest_sign_2048 (gcry_sexp_t pkey, gcry_sexp_t skey)
     /**/           "802030405060708090a0b0c0d0f01121#))";
 
   const char *errtxt = NULL;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t data = NULL;
   gcry_sexp_t data_bad = NULL;
   gcry_sexp_t sig = NULL;
@@ -1780,7 +1780,7 @@ selftest_sign_2048 (gcry_sexp_t pkey, gcry_sexp_t skey)
       goto leave;
     }
   err = _gcry_pk_verify (sig, data_bad, pkey);
-  if (gcry_err_code (err) != GPG_ERR_BAD_SIGNATURE)
+  if (err != GPG_ERR_BAD_SIGNATURE)
     {
       errtxt = "bad signature not detected";
       goto leave;
@@ -1834,7 +1834,7 @@ static const char *
 selftest_encr_2048 (gcry_sexp_t pkey, gcry_sexp_t skey)
 {
   const char *errtxt = NULL;
-  gcry_error_t err;
+  gpg_error_t err;
   static const char plaintext[] =
     "Jim quickly realized that the beautiful gowns are expensive.";
   gcry_sexp_t plain = NULL;
@@ -1941,12 +1941,12 @@ selftest_encr_2048 (gcry_sexp_t pkey, gcry_sexp_t skey)
 }
 
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_rsa (selftest_report_func_t report)
 {
   const char *what;
   const char *errtxt;
-  gcry_error_t err;
+  gpg_error_t err;
   gcry_sexp_t skey = NULL;
   gcry_sexp_t pkey = NULL;
 
@@ -1958,7 +1958,7 @@ selftests_rsa (selftest_report_func_t report)
                       sample_public_key, strlen (sample_public_key));
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -1966,7 +1966,7 @@ selftests_rsa (selftest_report_func_t report)
   err = _gcry_pk_testkey (skey);
   if (err)
     {
-      errtxt = _gcry_strerror (err);
+      errtxt = gpg_strerror (err);
       goto failed;
     }
 
@@ -1994,10 +1994,10 @@ selftests_rsa (selftest_report_func_t report)
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   (void)extended;
 

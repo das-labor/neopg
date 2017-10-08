@@ -367,7 +367,7 @@ chacha20_ivsetup (CHACHA20_context_t * ctx, const byte * iv, size_t ivlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 chacha20_do_setkey (CHACHA20_context_t * ctx,
                     const byte * key, unsigned int keylen)
 {
@@ -418,11 +418,11 @@ chacha20_do_setkey (CHACHA20_context_t * ctx,
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 chacha20_setkey (void *context, const byte * key, unsigned int keylen)
 {
   CHACHA20_context_t *ctx = (CHACHA20_context_t *) context;
-  gcry_err_code_t rc = chacha20_do_setkey (ctx, key, keylen);
+  gpg_error_t rc = chacha20_do_setkey (ctx, key, keylen);
   _gcry_burn_stack (4 + sizeof (void *) + 4 * sizeof (void *));
   return rc;
 }

@@ -1004,7 +1004,7 @@ keccak_extract (void *context, void *out, size_t outlen)
  */
 
 
-static gpg_err_code_t
+static gpg_error_t
 selftests_keccak (int algo, int extended, selftest_report_func_t report)
 {
   const char *what;
@@ -1141,10 +1141,10 @@ failed:
 
 
 /* Run a full self-test for ALGO and return 0 on success.  */
-static gpg_err_code_t
+static gpg_error_t
 run_selftests (int algo, int extended, selftest_report_func_t report)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   switch (algo)
     {

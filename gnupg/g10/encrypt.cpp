@@ -227,7 +227,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
                                    NULL, &canceled);
       if ( !cfx.dek || !cfx.dek->keylen )
         {
-          rc = gpg_error (canceled? GPG_ERR_CANCELED:GPG_ERR_INV_PASSPHRASE);
+          rc = canceled? GPG_ERR_CANCELED:GPG_ERR_INV_PASSPHRASE;
           xfree (cfx.dek);
           xfree (s2k);
           iobuf_close (inp);
@@ -420,7 +420,7 @@ setup_symkey (STRING2KEY **symkey_s2k,DEK **symkey_dek)
     {
       xfree(*symkey_dek);
       xfree(*symkey_s2k);
-      return gpg_error (canceled?GPG_ERR_CANCELED:GPG_ERR_BAD_PASSPHRASE);
+      return canceled?GPG_ERR_CANCELED:GPG_ERR_BAD_PASSPHRASE;
     }
 
   return 0;
@@ -489,7 +489,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
   int compliant;
 
   if (filefd != -1 && filename)
-    return gpg_error (GPG_ERR_INV_ARG);  /* Both given.  */
+    return GPG_ERR_INV_ARG;  /* Both given.  */
 
   do_compress = !!opt.compress_algo;
 
@@ -622,7 +622,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
 		   " while in %s mode\n"),
 		 openpgp_cipher_algo_name (cfx.dek->algo),
 		 gnupg_compliance_option_string (opt.compliance));
-      rc = gpg_error (GPG_ERR_CIPHER_ALGO);
+      rc = GPG_ERR_CIPHER_ALGO;
       goto leave;
     }
 
@@ -644,7 +644,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
                          " while in %s mode\n"),
                        keystr_from_pk (pk),
                        gnupg_compliance_option_string (opt.compliance));
-            rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+            rc = GPG_ERR_PUBKEY_ALGO;
             goto leave;
           }
 

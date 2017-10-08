@@ -370,7 +370,7 @@ __assuan_spawn (assuan_context_t ctx, pid_t *r_pid, const char *name,
       /* oops - use the pipe to tell the parent about it */
       snprintf (errbuf, sizeof(errbuf)-1,
 		"ERR %d can't exec `%s': %.50s\n",
-		_assuan_error (ctx, GPG_ERR_ASS_SERVER_START),
+		GPG_ERR_ASS_SERVER_START,
 		name, strerror (errno));
       errbuf[sizeof(errbuf)-1] = 0;
       writen (1, errbuf, strlen (errbuf));

@@ -311,7 +311,7 @@ get_cached_data (app_t app, int tag,
               {
                 p = xtrymalloc (c->length);
                 if (!p)
-                  return gpg_error (gpg_err_code_from_errno (errno));
+                  return gpg_error_from_errno (errno);
                 memcpy (p, c->data, c->length);
                 *result = p;
               }
@@ -531,7 +531,7 @@ dump_all_do (int slot)
       /* We don't try extended length APDU because such large DO would
          be pretty useless in a log file.  */
       rc = iso7816_get_data (slot, 0, data_objects[i].tag, &buffer, &buflen);
-      if (gpg_err_code (rc) == GPG_ERR_NO_OBJ)
+      if (rc == GPG_ERR_NO_OBJ)
         ;
       else if (rc)
         log_info ("DO '%s' not available: %s\n",
@@ -973,7 +973,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
   for (idx=0; table[idx].name && strcmp (table[idx].name, name); idx++)
     ;
   if (!table[idx].name)
-    return gpg_error (GPG_ERR_INV_NAME);
+    return GPG_ERR_INV_NAME;
 
   if (table[idx].special == -1)
     {
@@ -1033,7 +1033,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
             }
           xfree (serial);
         }
-      return gpg_error (GPG_ERR_INV_NAME);
+      return GPG_ERR_INV_NAME;
     }
   if (table[idx].special == -5)
     {
@@ -1199,7 +1199,7 @@ retrieve_fpr_from_card (app_t app, int keyno, char *fpr)
   if (relptr && valuelen >= 60)
     bin2hex (value+keyno*20, 20, fpr);
   else
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
   xfree (relptr);
   return err;
 }
@@ -1252,7 +1252,7 @@ retrieve_key_material (FILE *fp, const char *hexkeyid,
         }
       if (!max_length)
         {
-          err = gpg_error (GPG_ERR_TRUNCATED);
+          err = GPG_ERR_TRUNCATED;
           goto leave;  /* Line truncated - we better stop processing.  */
         }
 
@@ -1283,7 +1283,7 @@ retrieve_key_material (FILE *fp, const char *hexkeyid,
       if ( nfields < 4 || (i = atoi (fields[1])) < 0 || i > 1
            || (!i && m_new) || (i && e_new))
         {
-          err = gpg_error (GPG_ERR_GENERAL);
+          err = GPG_ERR_GENERAL;
           goto leave; /* Error: Invalid key data record or not an RSA key.  */
         }
 
@@ -1309,7 +1309,7 @@ retrieve_key_material (FILE *fp, const char *hexkeyid,
       e_new = NULL;
     }
   else
-    err = gpg_error (GPG_ERR_GENERAL);
+    err = GPG_ERR_GENERAL;
 
  leave:
   xfree (m_new);
@@ -1333,14 +1333,14 @@ rsa_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at,  int keyno,
   if (!m)
     {
       log_error (_("response does not contain the RSA modulus\n"));
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
 
   e = find_tlv (data, datalen, 0x0082, &elen);
   if (!e)
     {
       log_error (_("response does not contain the RSA public exponent\n"));
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
 
   if (ctrl)
@@ -1450,7 +1450,7 @@ ecc_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
   if (!ecc_q)
     {
       log_error (_("response does not contain the EC public key\n"));
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
 
   curve = app->app_local->keyattr[keyno].ecc.curve;
@@ -1550,7 +1550,7 @@ read_public_key (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
   if (!data)
     {
       log_error (_("response does not contain the public key data\n"));
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
 
   if (app->app_local->keyattr[keyno].key_type == KEY_TYPE_RSA)
@@ -1560,7 +1560,7 @@ read_public_key (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
     err = ecc_read_pubkey (app, ctrl, created_at, keyno,
                            data, datalen, &s_pkey);
   else
-    err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    err = GPG_ERR_NOT_IMPLEMENTED;
 
   if (!err)
     {
@@ -1613,7 +1613,7 @@ get_public_key (app_t app, int keyno)
   size_t len;
 
   if (keyno < 0 || keyno > 2)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   /* Already cached? */
   if (app->app_local->pk[keyno].read_done)
@@ -1842,7 +1842,7 @@ do_readkey (app_t app, int advanced, const char *keyid,
   else if (!strcmp (keyid, "OPENPGP.3"))
     keyno = 2;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   err = get_public_key (app, keyno);
   if (err)
@@ -1850,7 +1850,7 @@ do_readkey (app_t app, int advanced, const char *keyid,
 
   buf = app->app_local->pk[keyno].key;
   if (!buf)
-    return gpg_error (GPG_ERR_NO_PUBKEY);
+    return GPG_ERR_NO_PUBKEY;
 
   if (advanced)
     {
@@ -1889,7 +1889,7 @@ do_readkey (app_t app, int advanced, const char *keyid,
 
   return 0;
 #else
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -1910,16 +1910,16 @@ do_readcert (app_t app, const char *certid,
   *cert = NULL;
   *certlen = 0;
   if (strcmp (certid, "OPENPGP.3"))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   if (!app->app_local->extcap.is_v2)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   relptr = get_one_do (app, 0x7F21, &buffer, &buflen, NULL);
   if (!relptr)
-    return gpg_error (GPG_ERR_NOT_FOUND);
+    return GPG_ERR_NOT_FOUND;
 
   if (!buflen)
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
   else if (!(*cert = xtrymalloc (buflen)))
     err = gpg_error_from_syserror ();
   else
@@ -1931,7 +1931,7 @@ do_readcert (app_t app, const char *certid,
   xfree (relptr);
   return err;
 #else
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -2067,7 +2067,7 @@ verify_a_chv (app_t app,
 
   remaining = get_remaining_tries (app, 0);
   if (remaining == -1)
-    return gpg_error (GPG_ERR_CARD);
+    return GPG_ERR_CARD;
 
   if (chvno == 2 && app->app_local->flags.def_chv2)
     {
@@ -2149,7 +2149,7 @@ verify_a_chv (app_t app,
                        " minimum length is %d\n"), chvno, minlen);
           xfree (*pinvalue);
           *pinvalue = NULL;
-          return gpg_error (GPG_ERR_BAD_PIN);
+          return GPG_ERR_BAD_PIN;
         }
 
       rc = iso7816_verify (app->slot, 0x80+chvno,
@@ -2193,8 +2193,8 @@ verify_chv2 (app_t app,
          each CHV1 controlled operation (force_chv1) and if we are not
          using the pinpad (PINVALUE == NULL). */
       rc = iso7816_verify (app->slot, 0x81, pinvalue, strlen (pinvalue));
-      if (gpg_err_code (rc) == GPG_ERR_BAD_PIN)
-        rc = gpg_error (GPG_ERR_PIN_NOT_SYNCED);
+      if (rc == GPG_ERR_BAD_PIN)
+        rc = GPG_ERR_PIN_NOT_SYNCED;
       if (rc)
         {
           log_error (_("verify CHV%d failed: %s\n"), 1, gpg_strerror (rc));
@@ -2223,11 +2223,11 @@ build_enter_admin_pin_prompt (app_t app, char **r_prompt)
 
   remaining = get_remaining_tries (app, 1);
   if (remaining == -1)
-    return gpg_error (GPG_ERR_CARD);
+    return GPG_ERR_CARD;
   if (!remaining)
     {
       log_info (_("card is permanently locked!\n"));
-      return gpg_error (GPG_ERR_BAD_PIN);
+      return GPG_ERR_BAD_PIN;
     }
 
   log_info (ngettext("%d Admin PIN attempt remaining before card"
@@ -2263,7 +2263,7 @@ verify_chv3 (app_t app,
   if (!opt.allow_admin)
     {
       log_info (_("access to admin commands is not configured\n"));
-      return gpg_error (GPG_ERR_EACCES);
+      return GPG_ERR_EACCES;
     }
 #endif
 
@@ -2318,7 +2318,7 @@ verify_chv3 (app_t app,
               log_error (_("PIN for CHV%d is too short;"
                            " minimum length is %d\n"), 3, minlen);
               xfree (pinvalue);
-              return gpg_error (GPG_ERR_BAD_PIN);
+              return GPG_ERR_BAD_PIN;
             }
 
           rc = iso7816_verify (app->slot, 0x83, pinvalue, strlen (pinvalue));
@@ -2379,9 +2379,9 @@ do_setattr (app_t app, const char *name,
   for (idx=0; table[idx].name && strcmp (table[idx].name, name); idx++)
     ;
   if (!table[idx].name)
-    return gpg_error (GPG_ERR_INV_NAME);
+    return GPG_ERR_INV_NAME;
   if (table[idx].need_v2 && !app->app_local->extcap.is_v2)
-    return gpg_error (GPG_ERR_NOT_SUPPORTED); /* Not yet supported.  */
+    return GPG_ERR_NOT_SUPPORTED; /* Not yet supported.  */
 
   if (table[idx].special == 3)
     return change_keyattr_from_string (app, pincb, pincb_arg, value, valuelen);
@@ -2438,16 +2438,16 @@ do_writecert (app_t app, ctrl_t ctrl,
   (void)ctrl;
 #if GNUPG_MAJOR_VERSION > 1
   if (strcmp (certidstr, "OPENPGP.3"))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   if (!certdata || !certdatalen)
-    return gpg_error (GPG_ERR_INV_ARG);
+    return GPG_ERR_INV_ARG;
   if (!app->app_local->extcap.is_v2)
-    return gpg_error (GPG_ERR_NOT_SUPPORTED);
+    return GPG_ERR_NOT_SUPPORTED;
   if (certdatalen > app->app_local->extcap.max_certlen_3)
-    return gpg_error (GPG_ERR_TOO_LARGE);
+    return GPG_ERR_TOO_LARGE;
   return do_setattr (app, "CERT-3", pincb, pincb_arg, certdata, certdatalen);
 #else
-  return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+  return GPG_ERR_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -2492,7 +2492,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
 
   if (reset_mode && chvno == 3)
     {
-      rc = gpg_error (GPG_ERR_INV_ID);
+      rc = GPG_ERR_INV_ID;
       goto leave;
     }
 
@@ -2524,7 +2524,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
         }
       else
         {
-          rc = gpg_error (GPG_ERR_INV_ID);
+          rc = GPG_ERR_INV_ID;
           goto leave;
         }
     }
@@ -2581,7 +2581,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
                 {
                   log_info (_("PIN for CHV%d is too short;"
                               " minimum length is %d\n"), chvno, minlen);
-                  rc = gpg_error (GPG_ERR_BAD_PIN);
+                  rc = GPG_ERR_BAD_PIN;
                   goto leave;
                 }
             }
@@ -2602,7 +2602,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
             {
               log_error (_("error retrieving CHV status from card\n"));
               xfree (relptr);
-              rc = gpg_error (GPG_ERR_CARD);
+              rc = GPG_ERR_CARD;
               goto leave;
             }
           remaining = value[5];
@@ -2610,7 +2610,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
           if (!remaining)
             {
               log_error (_("Reset Code not or not anymore available\n"));
-              rc = gpg_error (GPG_ERR_BAD_PIN);
+              rc = GPG_ERR_BAD_PIN;
               goto leave;
             }
 
@@ -2627,13 +2627,13 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
             {
               log_info (_("Reset Code is too short; minimum length is %d\n"),
                         minlen);
-              rc = gpg_error (GPG_ERR_BAD_PIN);
+              rc = GPG_ERR_BAD_PIN;
               goto leave;
             }
         }
       else
         {
-          rc = gpg_error (GPG_ERR_INV_ID);
+          rc = GPG_ERR_INV_ID;
           goto leave;
         }
     }
@@ -2680,7 +2680,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
       if (strlen (pinvalue) < 8)
         {
           log_error (_("Reset Code is too short; minimum length is %d\n"), 8);
-          rc = gpg_error (GPG_ERR_BAD_PIN);
+          rc = GPG_ERR_BAD_PIN;
         }
       else
         rc = iso7816_put_data (app->slot, 0, 0xD3,
@@ -2778,14 +2778,14 @@ does_key_exist (app_t app, int keyidx, int generating, int force)
   if (iso7816_get_data (app->slot, 0, 0x006E, &buffer, &buflen))
     {
       log_error (_("error reading application data\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   fpr = find_tlv (buffer, buflen, 0x00C5, &n);
   if (!fpr || n < 60)
     {
       log_error (_("error reading fingerprint DO\n"));
       xfree (buffer);
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   fpr += 20*keyidx;
   for (i=0; i < 20 && !fpr[i]; i++)
@@ -2794,7 +2794,7 @@ does_key_exist (app_t app, int keyidx, int generating, int force)
   if (i!=20 && !force)
     {
       log_error (_("key already exists\n"));
-      return gpg_error (GPG_ERR_EEXIST);
+      return GPG_ERR_EEXIST;
     }
   else if (i!=20)
     log_info (_("existing key will be replaced\n"));
@@ -2872,7 +2872,7 @@ build_privkey_template (app_t app, int keyno,
       break;
 
     default:
-      return gpg_error (GPG_ERR_INV_VALUE);
+      return GPG_ERR_INV_VALUE;
     }
 
   /* Get the required length for E. Rounded up to the nearest byte  */
@@ -3116,12 +3116,12 @@ change_rsa_keyattr (app_t app, int keyno, unsigned int nbits,
   /* Read the current attributes into a buffer.  */
   relptr = get_one_do (app, 0xC1+keyno, &buf, &buflen, NULL);
   if (!relptr)
-    err = gpg_error (GPG_ERR_CARD);
+    err = GPG_ERR_CARD;
   else if (buflen < 6 || buf[0] != PUBKEY_ALGO_RSA)
     {
       /* Attriutes too short or not an RSA key.  */
       xfree (relptr);
-      err = gpg_error (GPG_ERR_CARD);
+      err = GPG_ERR_CARD;
     }
   else
     {
@@ -3170,13 +3170,13 @@ change_keyattr_from_string (app_t app,
   sscanf (string, "--force %d %d %n", &key, &algo, &n);
   if (n < 12)
     {
-      err = gpg_error (GPG_ERR_INV_DATA);
+      err = GPG_ERR_INV_DATA;
       goto leave;
     }
 
   keyno = key - 1;
   if (keyno < 0 || keyno > 2)
-    err = gpg_error (GPG_ERR_INV_ID);
+    err = GPG_ERR_INV_ID;
   else if (algo == PUBKEY_ALGO_RSA)
     {
       unsigned int nbits;
@@ -3184,11 +3184,11 @@ change_keyattr_from_string (app_t app,
       errno = 0;
       nbits = strtoul (string+n+3, NULL, 10);
       if (errno)
-        err = gpg_error (GPG_ERR_INV_DATA);
+        err = GPG_ERR_INV_DATA;
       else if (nbits < 1024)
-        err = gpg_error (GPG_ERR_TOO_SHORT);
+        err = GPG_ERR_TOO_SHORT;
       else if (nbits > 4096)
-        err = gpg_error (GPG_ERR_TOO_LARGE);
+        err = GPG_ERR_TOO_LARGE;
       else
         err = change_rsa_keyattr (app, keyno, nbits, pincb, pincb_arg);
     }
@@ -3203,7 +3203,7 @@ change_keyattr_from_string (app_t app,
       oidstr = openpgp_curve_to_oid (string+n, NULL);
       if (!oidstr)
         {
-          err = gpg_error (GPG_ERR_INV_DATA);
+          err = GPG_ERR_INV_DATA;
           goto leave;
         }
 
@@ -3221,7 +3221,7 @@ change_keyattr_from_string (app_t app,
       gcry_mpi_release (oid);
     }
   else
-    err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+    err = GPG_ERR_PUBKEY_ALGO;
 
  leave:
   xfree (string);
@@ -3254,7 +3254,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   if (app->app_local->keyattr[keyno].key_type != KEY_TYPE_RSA)
     {
       log_error (_("unsupported algorithm: %s"), "RSA");
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
 
@@ -3264,7 +3264,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       if (tok)
         {
-          err = gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          err = GPG_ERR_UNKNOWN_SEXP;
           goto leave;
         }
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3284,7 +3284,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
             }
           if (mpi && *mpi)
             {
-              err = gpg_error (GPG_ERR_DUP_VALUE);
+              err = GPG_ERR_DUP_VALUE;
               goto leave;
             }
           if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3313,7 +3313,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       if (tok)
         {
-          err = gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          err = GPG_ERR_UNKNOWN_SEXP;
           goto leave;
         }
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3344,7 +3344,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   if (!created_at)
     {
       log_error (_("creation timestamp missing\n"));
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
 
@@ -3364,7 +3364,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       log_error (_("RSA modulus missing or not of size %d bits\n"),
                  (int)maxbits);
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       goto leave;
     }
 
@@ -3376,7 +3376,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       log_error (_("RSA public exponent missing or larger than %d bits\n"),
                  (int)maxbits);
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       goto leave;
     }
 
@@ -3386,7 +3386,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       log_error (_("RSA prime %s missing or not of size %d bits\n"),
                  "P", (int)maxbits);
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       goto leave;
     }
   nbits = rsa_q? count_bits (rsa_q, rsa_q_len) : 0;
@@ -3394,7 +3394,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       log_error (_("RSA prime %s missing or not of size %d bits\n"),
                  "Q", (int)maxbits);
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       goto leave;
     }
 
@@ -3576,7 +3576,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       if (tok)
         {
-          err = gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          err = GPG_ERR_UNKNOWN_SEXP;
           goto leave;
         }
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3627,7 +3627,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
             }
           if (buf2 && *buf2)
             {
-              err = gpg_error (GPG_ERR_DUP_VALUE);
+              err = GPG_ERR_DUP_VALUE;
               goto leave;
             }
           if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3658,7 +3658,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
     {
       if (tok)
         {
-          err = gpg_error (GPG_ERR_UNKNOWN_SEXP);
+          err = GPG_ERR_UNKNOWN_SEXP;
           goto leave;
         }
       if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3689,13 +3689,13 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   if (!curve)
     {
       log_error (_("unsupported curve\n"));
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
   if (!created_at)
     {
       log_error (_("creation timestamp missing\n"));
-      err = gpg_error (GPG_ERR_INV_VALUE);
+      err = GPG_ERR_INV_VALUE;
       goto leave;
     }
   if (flag_djb_tweak && keyno != 1)
@@ -3728,7 +3728,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
 
           if (!oid_len)
             {
-              err = gpg_error (GPG_ERR_INTERNAL);
+              err = GPG_ERR_INTERNAL;
               goto leave;
             }
           keyattr = xtrymalloc (oid_len);
@@ -3747,7 +3747,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       else
         {
           log_error ("key attribute on card doesn't match\n");
-          err = gpg_error (GPG_ERR_INV_VALUE);
+          err = GPG_ERR_INV_VALUE;
           goto leave;
         }
     }
@@ -3796,7 +3796,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       xfree (template_x);
     }
   else
-    err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+    err = GPG_ERR_NOT_SUPPORTED;
 
   if (err)
     {
@@ -3842,7 +3842,7 @@ do_writekey (app_t app, ctrl_t ctrl,
   else if (!strcmp (keyid, "OPENPGP.3"))
     keyno = 2;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   err = does_key_exist (app, keyno, 0, force);
   if (err)
@@ -3867,7 +3867,7 @@ do_writekey (app_t app, ctrl_t ctrl,
         log_info ("protected-private-key passed to writekey\n");
       else if (toklen == 20 && !memcmp ("shadowed-private-key", tok, toklen))
         log_info ("shadowed-private-key passed to writekey\n");
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      err = GPG_ERR_BAD_SECKEY;
       goto leave;
     }
   if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
@@ -3880,7 +3880,7 @@ do_writekey (app_t app, ctrl_t ctrl,
     err = ecc_writekey (app, pincb, pincb_arg, keyno, buf, buflen, depth);
   else
     {
-      err = gpg_error (GPG_ERR_WRONG_PUBKEY_ALGO);
+      err = GPG_ERR_WRONG_PUBKEY_ALGO;
       goto leave;
     }
 
@@ -3910,7 +3910,7 @@ do_genkey (app_t app, ctrl_t ctrl,  const char *keynostr, unsigned int flags,
   int le_value = 256; /* Use legacy value. */
 
   if (keyno < 0 || keyno > 2)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   /* We flush the cache to increase the traffic before a key
      generation.  This _might_ help a card to gather more entropy. */
@@ -3936,7 +3936,7 @@ do_genkey (app_t app, ctrl_t ctrl,  const char *keynostr, unsigned int flags,
          already lead to a 527 byte long status line and thus a 4096 bit
          key would exceed the Assuan line length limit.  */
       if (keybits > 4096)
-        return gpg_error (GPG_ERR_TOO_LARGE);
+        return GPG_ERR_TOO_LARGE;
 
       if (app->app_local->cardcap.ext_lc_le && keybits > RSA_SMALL_SIZE_KEY
           && app->app_local->keyattr[keyno].key_type == KEY_TYPE_RSA)
@@ -3964,7 +3964,7 @@ do_genkey (app_t app, ctrl_t ctrl,  const char *keynostr, unsigned int flags,
   if (err)
     {
       log_error (_("generating key failed\n"));
-      return gpg_error (GPG_ERR_CARD);
+      return GPG_ERR_CARD;
     }
 
   {
@@ -3977,7 +3977,7 @@ do_genkey (app_t app, ctrl_t ctrl,  const char *keynostr, unsigned int flags,
   keydata = find_tlv (buffer, buflen, 0x7F49, &keydatalen);
   if (!keydata)
     {
-      err = gpg_error (GPG_ERR_CARD);
+      err = GPG_ERR_CARD;
       log_error (_("response does not contain the public key data\n"));
       goto leave;
     }
@@ -4039,14 +4039,14 @@ compare_fingerprint (app_t app, int keyno, unsigned char *sha1fpr)
   if (rc)
     {
       log_error (_("error reading application data\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   fpr = find_tlv (buffer, buflen, 0x00C5, &n);
   if (!fpr || n != 60)
     {
       xfree (buffer);
       log_error (_("error reading fingerprint DO\n"));
-      return gpg_error (GPG_ERR_GENERAL);
+      return GPG_ERR_GENERAL;
     }
   fpr += keyno*20;
   for (i=0; i < 20; i++)
@@ -4054,7 +4054,7 @@ compare_fingerprint (app_t app, int keyno, unsigned char *sha1fpr)
       {
         xfree (buffer);
         log_info (_("fingerprint on card does not match requested one\n"));
-        return gpg_error (GPG_ERR_WRONG_SECKEY);
+        return GPG_ERR_WRONG_SECKEY;
       }
   xfree (buffer);
   return 0;
@@ -4076,11 +4076,11 @@ check_against_given_fingerprint (app_t app, const char *fpr, int key)
   for (s=fpr, n=0; hexdigitp (s); s++, n++)
     ;
   if (n != 40)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   else if (!*s)
     ; /* okay */
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   for (s=fpr, n=0; n < 20; s += 2, n++)
         tmp[n] = xtoi_2 (s);
@@ -4142,7 +4142,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   int exmode, le_value;
 
   if (!keyidstr || !*keyidstr)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Strip off known prefixes.  */
 #define X(a,b,c,d) \
@@ -4172,7 +4172,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       log_error (_("card does not support digest algorithm %s\n"),
                  gcry_md_algo_name (hashalgo));
       /* Or the supplied digest length does not match an algorithm.  */
-      return gpg_error (GPG_ERR_INV_VALUE);
+      return GPG_ERR_INV_VALUE;
     }
 #undef X
 
@@ -4182,27 +4182,27 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
   else if (!strcmp (keyidstr, "OPENPGP.3"))
     use_auth = 1;
   else if (strlen (keyidstr) < 32 || strncmp (keyidstr, "D27600012401", 12))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   else
     {
       for (s=keyidstr, n=0; hexdigitp (s); s++, n++)
         ;
       if (n != 32)
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
       else if (!*s)
         ; /* no fingerprint given: we allow this for now. */
       else if (*s == '/')
         fpr = s + 1;
       else
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
 
       for (s=keyidstr, n=0; n < 16; s += 2, n++)
         tmp_sn[n] = xtoi_2 (s);
 
       if (app->serialnolen != 16)
-        return gpg_error (GPG_ERR_INV_CARD);
+        return GPG_ERR_INV_CARD;
       if (memcmp (app->serialno, tmp_sn, 16))
-        return gpg_error (GPG_ERR_WRONG_CARD);
+        return GPG_ERR_WRONG_CARD;
     }
 
   /* If a fingerprint has been specified check it against the one on
@@ -4235,7 +4235,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       else X(SHA384, sha384, app->app_local->extcap.is_v2)
       else X(SHA512, sha512, app->app_local->extcap.is_v2)
       else
-        return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+        return GPG_ERR_UNSUPPORTED_ALGORITHM;
     }
   else
     {
@@ -4275,8 +4275,8 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
       if (!app->did_chv2 && pinvalue && !app->app_local->extcap.is_v2)
         {
           rc = iso7816_verify (app->slot, 0x82, pinvalue, strlen (pinvalue));
-          if (gpg_err_code (rc) == GPG_ERR_BAD_PIN)
-            rc = gpg_error (GPG_ERR_PIN_NOT_SYNCED);
+          if (rc == GPG_ERR_BAD_PIN)
+            rc = GPG_ERR_PIN_NOT_SYNCED;
           if (rc)
             {
               log_error (_("verify CHV%d failed: %s\n"), 2, gpg_strerror (rc));
@@ -4331,10 +4331,10 @@ do_auth (app_t app, const char *keyidstr,
   const char *fpr = NULL;
 
   if (!keyidstr || !*keyidstr)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (app->app_local->keyattr[2].key_type == KEY_TYPE_RSA
       && indatalen > 101) /* For a 2048 bit key. */
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (app->app_local->keyattr[2].key_type == KEY_TYPE_ECC)
     {
@@ -4357,27 +4357,27 @@ do_auth (app_t app, const char *keyidstr,
   if (!strcmp (keyidstr, "OPENPGP.3"))
     ;
   else if (strlen (keyidstr) < 32 || strncmp (keyidstr, "D27600012401", 12))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   else
     {
       for (s=keyidstr, n=0; hexdigitp (s); s++, n++)
         ;
       if (n != 32)
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
       else if (!*s)
         ; /* no fingerprint given: we allow this for now. */
       else if (*s == '/')
         fpr = s + 1;
       else
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
 
       for (s=keyidstr, n=0; n < 16; s += 2, n++)
         tmp_sn[n] = xtoi_2 (s);
 
       if (app->serialnolen != 16)
-        return gpg_error (GPG_ERR_INV_CARD);
+        return GPG_ERR_INV_CARD;
       if (memcmp (app->serialno, tmp_sn, 16))
-        return gpg_error (GPG_ERR_WRONG_CARD);
+        return GPG_ERR_WRONG_CARD;
     }
 
   /* If a fingerprint has been specified check it against the one on
@@ -4434,33 +4434,33 @@ do_decipher (app_t app, const char *keyidstr,
   int fixuplen = 0;
 
   if (!keyidstr || !*keyidstr || !indatalen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Check whether an OpenPGP card of any version has been requested. */
   if (!strcmp (keyidstr, "OPENPGP.2"))
     ;
   else if (strlen (keyidstr) < 32 || strncmp (keyidstr, "D27600012401", 12))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   else
     {
       for (s=keyidstr, n=0; hexdigitp (s); s++, n++)
         ;
       if (n != 32)
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
       else if (!*s)
         ; /* no fingerprint given: we allow this for now. */
       else if (*s == '/')
         fpr = s + 1;
       else
-        return gpg_error (GPG_ERR_INV_ID);
+        return GPG_ERR_INV_ID;
 
       for (s=keyidstr, n=0; n < 16; s += 2, n++)
         tmp_sn[n] = xtoi_2 (s);
 
       if (app->serialnolen != 16)
-        return gpg_error (GPG_ERR_INV_CARD);
+        return GPG_ERR_INV_CARD;
       if (memcmp (app->serialno, tmp_sn, 16))
-        return gpg_error (GPG_ERR_WRONG_CARD);
+        return GPG_ERR_WRONG_CARD;
     }
 
   /* If a fingerprint has been specified check it against the one on
@@ -4587,7 +4587,7 @@ do_decipher (app_t app, const char *keyidstr,
       padind = -1;
     }
   else
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (app->app_local->cardcap.ext_lc_le
       && (indatalen > 254
@@ -4634,7 +4634,7 @@ do_decipher (app_t app, const char *keyidstr,
         }
     }
 
-  if (gpg_err_code (rc) == GPG_ERR_CARD /* actual SW is 0x640a */
+  if (rc == GPG_ERR_CARD /* actual SW is 0x640a */
       && app->app_local->manufacturer == 5
       && app->card_version == 0x0200)
     log_info ("NOTE: Cards with manufacturer id 5 and s/n <= 346 (0x15a)"
@@ -4667,16 +4667,16 @@ do_check_pin (app_t app, const char *keyidstr,
   int admin_pin = 0;
 
   if (!keyidstr || !*keyidstr)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Check whether an OpenPGP card of any version has been requested. */
   if (strlen (keyidstr) < 32 || strncmp (keyidstr, "D27600012401", 12))
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   for (s=keyidstr, n=0; hexdigitp (s); s++, n++)
     ;
   if (n != 32)
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
   else if (!*s)
     ; /* No fingerprint given: we allow this for now. */
   else if (*s == '/')
@@ -4684,15 +4684,15 @@ do_check_pin (app_t app, const char *keyidstr,
   else if (!strcmp (s, "[CHV3]") )
     admin_pin = 1;
   else
-    return gpg_error (GPG_ERR_INV_ID);
+    return GPG_ERR_INV_ID;
 
   for (s=keyidstr, n=0; n < 16; s += 2, n++)
     tmp_sn[n] = xtoi_2 (s);
 
   if (app->serialnolen != 16)
-    return gpg_error (GPG_ERR_INV_CARD);
+    return GPG_ERR_INV_CARD;
   if (memcmp (app->serialno, tmp_sn, 16))
-    return gpg_error (GPG_ERR_WRONG_CARD);
+    return GPG_ERR_WRONG_CARD;
 
   /* Yes, there is a race conditions: The user might pull the card
      right here and we won't notice that.  However this is not a
@@ -4711,7 +4711,7 @@ do_check_pin (app_t app, const char *keyidstr,
         {
           log_error (_("error retrieving CHV status from card\n"));
           xfree (relptr);
-          return gpg_error (GPG_ERR_CARD);
+          return GPG_ERR_CARD;
         }
       count = value[6];
       xfree (relptr);
@@ -4719,13 +4719,13 @@ do_check_pin (app_t app, const char *keyidstr,
       if (!count)
         {
           log_info (_("card is permanently locked!\n"));
-          return gpg_error (GPG_ERR_BAD_PIN);
+          return GPG_ERR_BAD_PIN;
         }
       else if (count < 3)
         {
           log_info (_("verification of Admin PIN is currently prohibited "
                       "through this command\n"));
-          return gpg_error (GPG_ERR_GENERAL);
+          return GPG_ERR_GENERAL;
         }
 
       app->did_chv3 = 0; /* Force verification.  */
@@ -4997,7 +4997,7 @@ app_select_openpgp (app_t app)
       app->app_local = xtrycalloc (1, sizeof *app->app_local);
       if (!app->app_local)
         {
-          rc = gpg_error (gpg_err_code_from_errno (errno));
+          rc = gpg_error_from_errno (errno);
           goto leave;
         }
 

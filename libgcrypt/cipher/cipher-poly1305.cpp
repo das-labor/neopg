@@ -99,7 +99,7 @@ poly1305_aad_finish (gcry_cipher_hd_t c)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 poly1305_set_zeroiv (gcry_cipher_hd_t c)
 {
   byte zero[8] = { 0, };
@@ -108,7 +108,7 @@ poly1305_set_zeroiv (gcry_cipher_hd_t c)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_authenticate (gcry_cipher_hd_t c,
 				    const byte * aadbuf, size_t aadbuflen)
 {
@@ -134,12 +134,12 @@ _gcry_cipher_poly1305_authenticate (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_encrypt (gcry_cipher_hd_t c,
 			       byte *outbuf, size_t outbuflen,
 			       const byte *inbuf, size_t inbuflen)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   if (outbuflen < inbuflen)
     return GPG_ERR_BUFFER_TOO_SHORT;
@@ -172,12 +172,12 @@ _gcry_cipher_poly1305_encrypt (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_decrypt (gcry_cipher_hd_t c,
 			       byte *outbuf, size_t outbuflen,
 			       const byte *inbuf, size_t inbuflen)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   if (outbuflen < inbuflen)
     return GPG_ERR_BUFFER_TOO_SHORT;
@@ -209,11 +209,11 @@ _gcry_cipher_poly1305_decrypt (gcry_cipher_hd_t c,
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 _gcry_cipher_poly1305_tag (gcry_cipher_hd_t c,
 			   byte * outbuf, size_t outbuflen, int check)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   if (outbuflen < POLY1305_TAGLEN)
     return GPG_ERR_BUFFER_TOO_SHORT;
@@ -260,14 +260,14 @@ _gcry_cipher_poly1305_tag (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_get_tag (gcry_cipher_hd_t c, unsigned char *outtag,
                           size_t taglen)
 {
   return _gcry_cipher_poly1305_tag (c, outtag, taglen, 0);
 }
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_check_tag (gcry_cipher_hd_t c, const unsigned char *intag,
                             size_t taglen)
 {
@@ -291,11 +291,11 @@ _gcry_cipher_poly1305_setkey (gcry_cipher_hd_t c)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_poly1305_setiv (gcry_cipher_hd_t c, const byte *iv, size_t ivlen)
 {
   byte tmpbuf[64]; /* size of ChaCha20 block */
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   /* IV must be 96-bits */
   if (!iv && ivlen != (96 / 8))

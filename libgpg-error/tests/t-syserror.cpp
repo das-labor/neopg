@@ -32,7 +32,7 @@ syserror_main (int argc, char *argv[])
 {
   FILE *fp;
   int save_errno;
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   (void)argc;
   (void)argv;
@@ -50,14 +50,14 @@ syserror_main (int argc, char *argv[])
     }
   save_errno = errno;
 
-  ec = gpg_err_code_from_syserror ();
+  ec = gpg_error_from_syserror ();
   if (ec != GPG_ERR_ENOENT)
     {
       fprintf (stderr, "fopen failed with bad code: %d\n", save_errno);
       return 1;
     }
 
-  if (ec != gpg_err_code_from_errno (save_errno))
+  if (ec != gpg_error_from_errno (save_errno))
     {
       fprintf (stderr, "oops at %d\n",__LINE__);
       return 1;
@@ -65,14 +65,14 @@ syserror_main (int argc, char *argv[])
 
   gpg_err_set_errno (0);
 
-  ec = gpg_err_code_from_syserror ();
+  ec = gpg_error_from_syserror ();
   if (ec != GPG_ERR_MISSING_ERRNO)
     {
       fprintf (stderr, "oops at %d\n",__LINE__);
       return 1;
     }
 
-  if ( gpg_err_code_from_errno (0) )
+  if ( gpg_error_from_errno (0) )
     {
       fprintf (stderr, "oops at %d\n",__LINE__);
       return 1;

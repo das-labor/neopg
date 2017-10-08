@@ -47,7 +47,7 @@ keybox_register_file (const char *fname, int secret, void **r_token)
       if (same_file_p (kr->fname, fname) )
         {
           *r_token = kr;
-          return gpg_error (GPG_ERR_EEXIST); /* Already registered. */
+          return GPG_ERR_EEXIST; /* Already registered. */
         }
     }
 
@@ -229,7 +229,7 @@ int
 keybox_set_ephemeral (KEYBOX_HANDLE hd, int yes)
 {
   if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    return GPG_ERR_INV_HANDLE;
   hd->ephemeral = yes;
   return 0;
 }

@@ -91,13 +91,13 @@ ask_for_card (ctrl_t ctrl, const unsigned char *shadow_info, char **r_kid)
               return 0; /* yes, we have the correct card */
             }
         }
-      else if (gpg_err_code (rc) == GPG_ERR_ENODEV)
+      else if (rc == GPG_ERR_ENODEV)
         {
           log_debug ("no device present\n");
           rc = 0;
           no_card = 1;
         }
-      else if (gpg_err_code (rc) == GPG_ERR_CARD_NOT_PRESENT)
+      else if (rc == GPG_ERR_CARD_NOT_PRESENT)
         {
           log_debug ("no card present\n");
           rc = 0;
@@ -125,8 +125,8 @@ ask_for_card (ctrl_t ctrl, const unsigned char *shadow_info, char **r_kid)
             {
               rc = agent_get_confirmation (ctrl, desc, NULL, NULL, 0);
               if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK &&
-                  gpg_err_code (rc) == GPG_ERR_NO_PIN_ENTRY)
-                rc = gpg_error (GPG_ERR_CARD_NOT_PRESENT);
+                  rc == GPG_ERR_NO_PIN_ENTRY)
+                rc = GPG_ERR_CARD_NOT_PRESENT;
 
               xfree (desc);
             }
@@ -156,11 +156,11 @@ encode_md_for_card (const unsigned char *digest, size_t digestlen, int algo,
 
   asnlen = DIM(asn);
   if (!algo || gcry_md_test_algo (algo))
-    return gpg_error (GPG_ERR_DIGEST_ALGO);
+    return GPG_ERR_DIGEST_ALGO;
   if (gcry_md_algo_info (algo, GCRYCTL_GET_ASNOID, asn, &asnlen))
     {
       log_error ("no object identifier for algo %d\n", algo);
-      return gpg_error (GPG_ERR_INTERNAL);
+      return GPG_ERR_INTERNAL;
     }
 
   frame = xtrymalloc (asnlen + digestlen);
@@ -235,7 +235,7 @@ getpin_cb (void *opaque, const char *desc_text, const char *info,
   const char *prompt = "PIN";
 
   if (buf && maxbuf < 2)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   /* Parse the flags. */
   if (info && *info =='|' && (ends=strchr (info+1, '|')))
@@ -304,7 +304,7 @@ getpin_cb (void *opaque, const char *desc_text, const char *info,
             rc = agent_popup_message_start (ctrl, desc_text, NULL);
         }
       else
-        rc = gpg_error (GPG_ERR_INV_VALUE);
+        rc = GPG_ERR_INV_VALUE;
       return rc;
     }
 
@@ -487,60 +487,60 @@ divert_pkdecrypt (ctrl_t ctrl, const char *desc_text,
 
   s = cipher;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "enc-val"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (smatch (&s, n, "rsa"))
     {
       if (*s != '(')
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       if (!smatch (&s, n, "a"))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       n = snext (&s);
     }
   else if (smatch (&s, n, "ecdh"))
     {
       if (*s != '(')
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       if (smatch (&s, n, "s"))
         {
           n = snext (&s);
           s += n;
           if (*s++ != ')')
-            return gpg_error (GPG_ERR_INV_SEXP);
+            return GPG_ERR_INV_SEXP;
           if (*s++ != '(')
-            return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+            return GPG_ERR_UNKNOWN_SEXP;
           n = snext (&s);
           if (!n)
-            return gpg_error (GPG_ERR_INV_SEXP);
+            return GPG_ERR_INV_SEXP;
         }
       if (!smatch (&s, n, "e"))
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       n = snext (&s);
     }
   else
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   if (!n)
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   ciphertext = s;
   ciphertextlen = n;
 

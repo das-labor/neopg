@@ -34,14 +34,14 @@
    must provide an HASHALGO, a valid ALGO and depending on that algo a
    SALT of 8 bytes and the number of ITERATIONS.  Code taken from
    gnupg/agent/protect.c:hash_passphrase.  */
-static gpg_err_code_t
+static gpg_error_t
 openpgp_s2k (const void *passphrase, size_t passphraselen,
              int algo, int hashalgo,
              const void *salt, size_t saltlen,
              unsigned long iterations,
              size_t keysize, void *keybuffer)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   gcry_md_hd_t md;
   char *key = keybuffer;
   int pass, i;
@@ -115,14 +115,14 @@ openpgp_s2k (const void *passphrase, size_t passphraselen,
    use: This shall be the algorithms id of a hash algorithm; it is
    used in HMAC mode.  SALT is a salt of length SALTLEN and ITERATIONS
    gives the number of iterations.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
                  int hashalgo,
                  const void *salt, size_t saltlen,
                  unsigned long iterations,
                  size_t keysize, void *keybuffer)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   gcry_md_hd_t md;
   int secmode;
   unsigned long dklen = keysize;
@@ -170,7 +170,7 @@ _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
           ? xtrymalloc_secure (saltlen + 4 + hlen + hlen)
           : xtrymalloc (saltlen + 4 + hlen + hlen));
   if (!sbuf)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
   tbuf = sbuf + saltlen + 4;
   ubuf = tbuf + hlen;
 
@@ -241,14 +241,14 @@ _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
    is a salt as needed by most KDF algorithms.  ITERATIONS is a
    positive integer parameter to most KDFs.  0 is returned on success,
    or an error code on failure.  */
-gpg_err_code_t
+gpg_error_t
 _gcry_kdf_derive (const void *passphrase, size_t passphraselen,
                   int algo, int subalgo,
                   const void *salt, size_t saltlen,
                   unsigned long iterations,
                   size_t keysize, void *keybuffer)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
 
   if (!passphrase)
     {

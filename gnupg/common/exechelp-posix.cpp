@@ -76,19 +76,6 @@
 #include "exechelp.h"
 
 
-/* Helper */
-static inline gpg_error_t
-my_error_from_syserror (void)
-{
-  return gpg_error (gpg_err_code_from_syserror ());
-}
-
-static inline gpg_error_t
-my_error (int errcode)
-{
-  return gpg_error (errcode);
-}
-
 
 /* Return the maximum number of currently allowed open file
    descriptors.  Only useful on POSIX systems but returns a value on
@@ -339,7 +326,7 @@ do_create_pipe (int filedes[2])
 
   if (pipe (filedes) == -1)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       filedes[0] = filedes[1] = -1;
     }
 
@@ -355,7 +342,7 @@ create_pipe_and_estream (int filedes[2], estream_t *r_fp,
 
   if (pipe (filedes) == -1)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       log_error (_("error creating a pipe: %s\n"), gpg_strerror (err));
       filedes[0] = filedes[1] = -1;
       *r_fp = NULL;
@@ -368,7 +355,7 @@ create_pipe_and_estream (int filedes[2], estream_t *r_fp,
     *r_fp = es_fdopen (filedes[1], nonblock? "w,nonblock" : "w");
   if (!*r_fp)
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       log_error (_("error creating a stream for a pipe: %s\n"),
                  gpg_strerror (err));
       close (filedes[0]);
@@ -491,7 +478,7 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
   *pid = fork ();
   if (*pid == (pid_t)(-1))
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       log_error (_("error forking process: %s\n"), gpg_strerror (err));
 
       if (infp)
@@ -566,7 +553,7 @@ gnupg_spawn_process_fd (const char *pgmname, const char *argv[],
   *pid = fork ();
   if (*pid == (pid_t)(-1))
     {
-      err = my_error_from_syserror ();
+      err = gpg_error_from_syserror ();
       log_error (_("error forking process: %s\n"), strerror (errno));
       return err;
     }
@@ -612,7 +599,7 @@ store_result (pid_t pid, int exitcode)
 
   c = xtrymalloc (sizeof *c);
   if (c == NULL)
-    return gpg_err_code_from_syserror ();
+    return gpg_error_from_syserror ();
 
   c->pid = pid;
   c->exitcode = exitcode;
@@ -647,14 +634,14 @@ get_result (pid_t pid, int *r_exitcode)
 gpg_error_t
 gnupg_wait_process (const char *pgmname, pid_t pid, int hang, int *r_exitcode)
 {
-  gpg_err_code_t ec;
+  gpg_error_t ec;
   int i, status;
 
   if (r_exitcode)
     *r_exitcode = -1;
 
   if (pid == (pid_t)(-1))
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
 #ifdef USE_NPTH
   i = npth_waitpid (pid, &status, hang? 0:WNOHANG);
@@ -665,7 +652,7 @@ gnupg_wait_process (const char *pgmname, pid_t pid, int hang, int *r_exitcode)
 
   if (i == (pid_t)(-1))
     {
-      ec = gpg_err_code_from_errno (errno);
+      ec = gpg_error_from_errno (errno);
       log_error (_("waiting for process %d to terminate failed: %s\n"),
                  (int)pid, strerror (errno));
     }
@@ -699,7 +686,7 @@ gnupg_wait_process (const char *pgmname, pid_t pid, int hang, int *r_exitcode)
       ec = 0;
     }
 
-  return gpg_error (ec);
+  return ec;
 }
 
 /* See exechelp.h for a description.  */
@@ -707,7 +694,7 @@ gpg_error_t
 gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
                       int hang, int *r_exitcodes)
 {
-  gpg_err_code_t ec = 0;
+  gpg_error_t ec = 0;
   size_t i, left;
   int *dummy = NULL;
 
@@ -715,7 +702,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
     {
       dummy = r_exitcodes = xtrymalloc (sizeof *r_exitcodes * count);
       if (dummy == NULL)
-        return gpg_err_code_from_syserror ();
+        return gpg_error_from_syserror ();
     }
 
   for (i = 0, left = count; i < count; i++)
@@ -723,7 +710,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
       int status = -1;
 
       if (pids[i] == (pid_t)(-1))
-        return my_error (GPG_ERR_INV_VALUE);
+        return GPG_ERR_INV_VALUE;
 
       /* See if there was a previously stored result for this pid.  */
       if (get_result (pids[i], &status))
@@ -746,7 +733,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
 
       if (pid == (pid_t)(-1))
         {
-          ec = gpg_err_code_from_errno (errno);
+          ec = gpg_error_from_errno (errno);
           log_error (_("waiting for processes to terminate failed: %s\n"),
                      strerror (errno));
           break;
@@ -810,7 +797,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
       }
 
   xfree (dummy);
-  return gpg_error (ec);
+  return ec;
 }
 
 
@@ -837,16 +824,16 @@ gnupg_spawn_process_detached (const char *pgmname, const char *argv[],
   int i;
 
   if (getuid() != geteuid())
-    return my_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   if (access (pgmname, X_OK))
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
 
   pid = fork ();
   if (pid == (pid_t)(-1))
     {
       log_error (_("error forking process: %s\n"), strerror (errno));
-      return my_error_from_syserror ();
+      return gpg_error_from_syserror ();
     }
   if (!pid)
     {

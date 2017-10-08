@@ -203,7 +203,7 @@ extern void _gcry_camellia_aesni_avx2_ocb_auth(CAMELLIA_context *ctx,
 
 static const char *selftest(void);
 
-static gcry_err_code_t
+static gpg_error_t
 camellia_setkey(void *c, const byte *key, unsigned keylen)
 {
   CAMELLIA_context *ctx=c;

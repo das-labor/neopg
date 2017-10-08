@@ -278,7 +278,7 @@ disable_cipher_algo (int algo)
 /* Return 0 if the cipher algorithm with identifier ALGORITHM is
    available. Returns a basic error code value if it is not
    available.  */
-static gcry_err_code_t
+static gpg_error_t
 check_cipher_algo (int algorithm)
 {
   gcry_cipher_spec_t *spec;
@@ -345,11 +345,11 @@ cipher_get_blocksize (int algorithm)
 
    Values for these flags may be combined using OR.
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_open (gcry_cipher_hd_t *handle,
                    int algo, int mode, unsigned int flags)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
   gcry_cipher_hd_t h = NULL;
 
   if (mode >= GCRY_CIPHER_MODE_INTERNAL)
@@ -363,14 +363,14 @@ _gcry_cipher_open (gcry_cipher_hd_t *handle,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
 			    int algo, int mode, unsigned int flags)
 {
   int secure = (flags & GCRY_CIPHER_SECURE);
   gcry_cipher_spec_t *spec;
   gcry_cipher_hd_t h = NULL;
-  gcry_err_code_t err;
+  gpg_error_t err;
 
   /* If the application missed to call the random poll function, we do
      it here to ensure that it is used once in a while. */
@@ -494,7 +494,7 @@ _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
 	h = xtrycalloc (1, size);
 
       if (! h)
-	err = gpg_err_code_from_syserror ();
+	err = gpg_error_from_syserror ();
       else
 	{
           size_t off = 0;
@@ -653,10 +653,10 @@ _gcry_cipher_close (gcry_cipher_hd_t h)
 
 /* Set the key to be used for the encryption context C to KEY with
    length KEYLEN.  The length should match the required length. */
-static gcry_err_code_t
+static gpg_error_t
 cipher_setkey (gcry_cipher_hd_t c, byte *key, size_t keylen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   if (c->mode == GCRY_CIPHER_MODE_XTS)
     {
@@ -725,7 +725,7 @@ cipher_setkey (gcry_cipher_hd_t c, byte *key, size_t keylen)
 
 /* Set the IV to be used for the encryption context C to IV with
    length IVLEN.  The length should match the required length. */
-static gcry_err_code_t
+static gpg_error_t
 cipher_setiv (gcry_cipher_hd_t c, const byte *iv, size_t ivlen)
 {
   /* If the cipher has its own IV handler, we use only this one.  This
@@ -823,7 +823,7 @@ cipher_reset (gcry_cipher_hd_t c)
 
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_ecb_crypt (gcry_cipher_hd_t c,
               unsigned char *outbuf, size_t outbuflen,
               const unsigned char *inbuf, size_t inbuflen,
@@ -855,7 +855,7 @@ do_ecb_crypt (gcry_cipher_hd_t c,
   return 0;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 do_ecb_encrypt (gcry_cipher_hd_t c,
                 unsigned char *outbuf, size_t outbuflen,
                 const unsigned char *inbuf, size_t inbuflen)
@@ -863,7 +863,7 @@ do_ecb_encrypt (gcry_cipher_hd_t c,
   return do_ecb_crypt (c, outbuf, outbuflen, inbuf, inbuflen, c->spec->encrypt);
 }
 
-static gcry_err_code_t
+static gpg_error_t
 do_ecb_decrypt (gcry_cipher_hd_t c,
                 unsigned char *outbuf, size_t outbuflen,
                 const unsigned char *inbuf, size_t inbuflen)
@@ -877,11 +877,11 @@ do_ecb_decrypt (gcry_cipher_hd_t c,
  * inbuf and outbuf may overlap or be the same.
  * Depending on the mode some constraints apply to INBUFLEN.
  */
-static gcry_err_code_t
+static gpg_error_t
 cipher_encrypt (gcry_cipher_hd_t c, byte *outbuf, size_t outbuflen,
 		const byte *inbuf, size_t inbuflen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   if (c->mode != GCRY_CIPHER_MODE_NONE && !c->marks.key)
     {
@@ -979,11 +979,11 @@ cipher_encrypt (gcry_cipher_hd_t c, byte *outbuf, size_t outbuflen,
  * Encrypt IN and write it to OUT.  If IN is NULL, in-place encryption has
  * been requested.
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_encrypt (gcry_cipher_hd_t h, void *out, size_t outsize,
                       const void *in, size_t inlen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   if (!in)  /* Caller requested in-place encryption.  */
     {
@@ -1008,11 +1008,11 @@ _gcry_cipher_encrypt (gcry_cipher_hd_t h, void *out, size_t outsize,
  * inbuf and outbuf may overlap or be the same.
  * Depending on the mode some some constraints apply to INBUFLEN.
  */
-static gcry_err_code_t
+static gpg_error_t
 cipher_decrypt (gcry_cipher_hd_t c, byte *outbuf, size_t outbuflen,
                 const byte *inbuf, size_t inbuflen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   if (c->mode != GCRY_CIPHER_MODE_NONE && !c->marks.key)
     {
@@ -1106,7 +1106,7 @@ cipher_decrypt (gcry_cipher_hd_t c, byte *outbuf, size_t outbuflen,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_decrypt (gcry_cipher_hd_t h, void *out, size_t outsize,
                       const void *in, size_t inlen)
 {
@@ -1139,17 +1139,17 @@ cipher_sync (gcry_cipher_hd_t c)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_setkey (gcry_cipher_hd_t hd, const void *key, size_t keylen)
 {
   return cipher_setkey (hd, (void*)key, keylen);
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_setiv (gcry_cipher_hd_t hd, const void *iv, size_t ivlen)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (hd->mode)
     {
@@ -1179,7 +1179,7 @@ _gcry_cipher_setiv (gcry_cipher_hd_t hd, const void *iv, size_t ivlen)
 /* Set counter for CTR mode.  (CTR,CTRLEN) must denote a buffer of
    block size length, or (NULL,0) to set the CTR to the all-zero
    block. */
-gpg_err_code_t
+gpg_error_t
 _gcry_cipher_setctr (gcry_cipher_hd_t hd, const void *ctr, size_t ctrlen)
 {
   if (ctr && ctrlen == hd->spec->blocksize)
@@ -1198,7 +1198,7 @@ _gcry_cipher_setctr (gcry_cipher_hd_t hd, const void *ctr, size_t ctrlen)
   return 0;
 }
 
-gpg_err_code_t
+gpg_error_t
 _gcry_cipher_getctr (gcry_cipher_hd_t hd, void *ctr, size_t ctrlen)
 {
   if (ctr && ctrlen == hd->spec->blocksize)
@@ -1209,11 +1209,11 @@ _gcry_cipher_getctr (gcry_cipher_hd_t hd, void *ctr, size_t ctrlen)
   return 0;
 }
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf,
                            size_t abuflen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   switch (hd->mode)
     {
@@ -1247,10 +1247,10 @@ _gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag, size_t taglen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   switch (hd->mode)
     {
@@ -1284,10 +1284,10 @@ _gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag, size_t taglen)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag, size_t taglen)
 {
-  gcry_err_code_t rc;
+  gpg_error_t rc;
 
   switch (hd->mode)
     {
@@ -1321,10 +1321,10 @@ _gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag, size_t taglen)
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer, size_t buflen)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (cmd)
     {
@@ -1478,10 +1478,10 @@ _gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer, size_t buflen)
  *
  * The function returns 0 on success or an error code.
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_info (gcry_cipher_hd_t h, int cmd, void *buffer, size_t *nbytes)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
 
   switch (cmd)
     {
@@ -1546,10 +1546,10 @@ _gcry_cipher_info (gcry_cipher_hd_t h, int cmd, void *buffer, size_t *nbytes)
    and thereby detecting whether a error occurred or not (i.e. while
    checking the block size)
  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_algo_info (int algo, int what, void *buffer, size_t *nbytes)
 {
-  gcry_err_code_t rc = 0;
+  gpg_error_t rc = 0;
   unsigned int ui;
 
   switch (what)
@@ -1637,7 +1637,7 @@ _gcry_cipher_get_algo_blklen (int algo)
 
 
 /* Explicitly initialize this module.  */
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_init (void)
 {
   if (fips_mode())
@@ -1660,7 +1660,7 @@ _gcry_cipher_init (void)
 gpg_error_t
 _gcry_cipher_selftest (int algo, int extended, selftest_report_func_t report)
 {
-  gcry_err_code_t ec = 0;
+  gpg_error_t ec = 0;
   gcry_cipher_spec_t *spec;
 
   spec = spec_from_algo (algo);
@@ -1676,5 +1676,5 @@ _gcry_cipher_selftest (int algo, int extended, selftest_report_func_t report)
                 spec? "algorithm disabled" : "algorithm not found");
     }
 
-  return gpg_error (ec);
+  return ec;
 }

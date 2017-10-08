@@ -72,7 +72,7 @@ test_b64dec_string (const char *string, const char *expected)
   err = gpgrt_b64dec_proc (state, buffer, len, &len);
   if (err)
     {
-      if (gpg_err_code (err) != GPG_ERR_EOF)
+      if (err != GPG_ERR_EOF)
         {
           free (buffer);
           free (state);

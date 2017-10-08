@@ -87,7 +87,7 @@ test_1 (void)
   for (i=0; empty_elements[i]; i++)
     {
       err = ksba_dn_str2der (empty_elements[i], &buf, &len);
-      if (gpg_err_code (err) != GPG_ERR_SYNTAX)
+      if (err != GPG_ERR_SYNTAX)
         fail ("empty element not detected");
       err = ksba_dn_teststr (empty_elements[i], 0, &off, &len);
       if (!err)
@@ -115,7 +115,7 @@ test_2 (void)
   for (i=0; invalid_labels[i]; i++)
     {
       err = ksba_dn_str2der (invalid_labels[i], &buf, &len);
-      if (gpg_err_code (err) != GPG_ERR_UNKNOWN_NAME)
+      if (err != GPG_ERR_UNKNOWN_NAME)
         fail ("invalid label not detected");
       err = ksba_dn_teststr (invalid_labels[i], 0, &off, &len);
       if (!err)

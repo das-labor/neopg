@@ -40,7 +40,7 @@ check_one_mac (int algo,
   unsigned char *p;
   int mdlen;
   int i;
-  gcry_error_t err = 0;
+  gpg_error_t err = 0;
 
   err = gcry_md_open (&hd, algo, GCRY_MD_FLAG_HMAC);
   if (err)

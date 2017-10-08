@@ -514,7 +514,7 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
     rc = keydb_search_first (hd);
   if (rc)
     {
-      if (gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+      if (rc != GPG_ERR_NOT_FOUND)
 	log_error ("keydb_search_first failed: %s\n", gpg_strerror (rc));
       goto leave;
     }
@@ -525,7 +525,7 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
       rc = keydb_get_keyblock (hd, &keyblock);
       if (rc)
 	{
-          if (gpg_err_code (rc) == GPG_ERR_LEGACY_KEY)
+          if (rc == GPG_ERR_LEGACY_KEY)
             continue;  /* Skip legacy keys.  */
 	  log_error ("keydb_get_keyblock failed: %s\n", gpg_strerror (rc));
 	  goto leave;
@@ -563,7 +563,7 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
     }
   while (!(rc = keydb_search_next (hd)));
   es_fflush (es_stdout);
-  if (rc && gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
+  if (rc && rc != GPG_ERR_NOT_FOUND)
     log_error ("keydb_search_next failed: %s\n", gpg_strerror (rc));
   if (keydb_get_skipped_counter (hd))
     log_info (ngettext("Warning: %lu key skipped due to its large size\n",
@@ -655,7 +655,7 @@ locate_one (ctrl_t ctrl, strlist_t names)
       rc = get_best_pubkey_byname (ctrl, &ctx, NULL, sl->d, &keyblock, 1, 0);
       if (rc)
 	{
-	  if (gpg_err_code (rc) != GPG_ERR_NO_PUBKEY)
+	  if (rc != GPG_ERR_NO_PUBKEY)
 	    log_error ("error reading key: %s\n", gpg_strerror (rc));
           else if (opt.verbose)
             log_info (_("key \"%s\" not found: %s\n"),
@@ -1043,7 +1043,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	  if (listctx->check_sigs)
 	    {
 	      rc = check_key_signature (ctrl, keyblock, node, NULL);
-	      switch (gpg_err_code (rc))
+	      switch (rc)
 		{
 		case 0:
 		  listctx->good_sigs++;
@@ -1496,7 +1496,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 
 	      rc = check_key_signature2 (ctrl, keyblock, node, NULL, signer_pk,
 					 NULL, NULL, NULL);
-	      switch (gpg_err_code (rc))
+	      switch (rc)
 		{
 		case 0:
 		  sigrc = '!';

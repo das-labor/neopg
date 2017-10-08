@@ -57,16 +57,16 @@ _gpgrt_lock_set_lock_clamp (void (*pre)(void), void (*post)(void))
   post_lock_func = post;
 }
 
-gpg_err_code_t
+gpg_error_t
 _gpgrt_lock_init (gpgrt_lock_t *lockhd)
 {
    int  rc = pthread_mutex_init (lockhd, NULL);
    if (rc)
-        rc = gpg_err_code_from_errno (rc);
+        rc = gpg_error_from_errno (rc);
    return rc;
 }
 
-gpg_err_code_t
+gpg_error_t
 _gpgrt_lock_lock (gpgrt_lock_t *lockhd)
 {
    int rc;
@@ -74,7 +74,7 @@ _gpgrt_lock_lock (gpgrt_lock_t *lockhd)
      pre_lock_func ();
    rc = pthread_mutex_lock (lockhd);
    if (rc)
-     rc = gpg_err_code_from_errno (rc);
+     rc = gpg_error_from_errno (rc);
    if (post_lock_func)
      post_lock_func ();
 
@@ -82,25 +82,25 @@ _gpgrt_lock_lock (gpgrt_lock_t *lockhd)
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gpgrt_lock_trylock (gpgrt_lock_t *lockhd)
 {
   int rc;
       rc = pthread_mutex_trylock (lockhd);
       if (rc)
-        rc = gpg_err_code_from_errno (rc);
+        rc = gpg_error_from_errno (rc);
   return rc;
 }
 
 
-gpg_err_code_t
+gpg_error_t
 _gpgrt_lock_unlock (gpgrt_lock_t *lockhd)
 {
   int rc;
 
       rc = pthread_mutex_unlock (lockhd);
       if (rc)
-        rc = gpg_err_code_from_errno (rc);
+        rc = gpg_error_from_errno (rc);
 
   return rc;
 }
@@ -108,13 +108,13 @@ _gpgrt_lock_unlock (gpgrt_lock_t *lockhd)
 
 /* Note: Use this function only if no other thread holds or waits for
    this lock.  */
-gpg_err_code_t
+gpg_error_t
 _gpgrt_lock_destroy (gpgrt_lock_t *lockhd)
 {
   int rc;
       rc = pthread_mutex_destroy (lockhd);
       if (rc)
-        rc = gpg_err_code_from_errno (rc);
+        rc = gpg_error_from_errno (rc);
       else
         {
           /* Re-init the mutex so that it can be re-used.  */

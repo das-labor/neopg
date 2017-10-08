@@ -86,7 +86,7 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
     {
       if (n + 7 > seskeylen )
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+          rc = GPG_ERR_INV_SESSION_KEY;
           goto leave;
         }
 
@@ -100,7 +100,7 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
 
       if (seskey[n] != 2 )  /* Wrong block type version. */
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+          rc = GPG_ERR_INV_SESSION_KEY;
           goto leave;
         }
 
@@ -109,7 +109,7 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
       n++; /* and the zero byte */
       if (n >= seskeylen )
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+          rc = GPG_ERR_INV_SESSION_KEY;
           goto leave;
         }
     }
@@ -125,7 +125,7 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
     }
 
   rc = gcry_cipher_setkey (parm->hd, seskey+n, seskeylen-n);
-  if (gpg_err_code (rc) == GPG_ERR_WEAK_KEY)
+  if (rc == GPG_ERR_WEAK_KEY)
     {
       log_info (_("WARNING: message was encrypted with "
                   "a weak key in the symmetric cipher.\n"));
@@ -163,10 +163,10 @@ decrypt_filter (void *arg,
 
   /* fixme: Should we issue an error when we have not seen one full block? */
   if (!inlen)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   if (maxoutlen < 2*parm->blklen)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   /* Make some space because we will later need an extra block at the end.  */
   maxoutlen -= blklen;
 
@@ -178,7 +178,7 @@ decrypt_filter (void *arg,
         parm->helpblock[i] = ((const char*)inbuf)[j];
       inlen -= j;
       if (blklen > maxoutlen)
-        return gpg_error (GPG_ERR_BUG);
+        return GPG_ERR_BUG;
       if (i < blklen)
         {
           parm->helpblocklen = i;
@@ -263,7 +263,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   if (!kh)
     {
       log_error (_("failed to allocate keyDB handle\n"));
-      rc = gpg_error (GPG_ERR_GENERAL);
+      rc = GPG_ERR_GENERAL;
       goto leave;
     }
 
@@ -335,7 +335,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
           mode = gcry_cipher_mode_from_oid (algoid);
           if (!algo || !mode)
             {
-              rc = gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+              rc = GPG_ERR_UNSUPPORTED_ALGORITHM;
               log_error ("unsupported algorithm '%s'\n", algoid? algoid:"?");
               if (algoid && !strcmp (algoid, "1.2.840.113549.3.2"))
                 log_info (_("(this is the RC2 algorithm)\n"));
@@ -353,7 +353,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
               /* If it seems that this is not an encrypted message we
                  return a more sensible error code. */
               if (!algoid)
-                rc = gpg_error (GPG_ERR_NO_DATA);
+                rc = GPG_ERR_NO_DATA;
 
               goto leave;
             }
@@ -365,7 +365,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                            " while in %s mode\n"),
                          gcry_cipher_algo_name (algo),
                          gnupg_compliance_option_string (opt.compliance));
-              rc = gpg_error (GPG_ERR_CIPHER_ALGO);
+              rc = GPG_ERR_CIPHER_ALGO;
               goto leave;
             }
 
@@ -377,7 +377,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
           dfparm.mode = mode;
           dfparm.blklen = gcry_cipher_get_algo_blklen (algo);
           if (dfparm.blklen > sizeof (dfparm.helpblock))
-            return gpg_error (GPG_ERR_BUG);
+            return GPG_ERR_BUG;
 
           rc = ksba_cms_get_content_enc_iv (cms,
                                             dfparm.iv,
@@ -489,7 +489,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                                    "decryption while in %s mode\n",
                                    gpgsm_get_short_fingerprint (cert, NULL),
                                    gnupg_compliance_option_string (opt.compliance));
-                        rc = gpg_error (GPG_ERR_PUBKEY_ALGO);
+                        rc = GPG_ERR_PUBKEY_ALGO;
                         goto oops;
                       }
 
@@ -524,7 +524,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                     {
                       log_info ("decrypting session key failed: %s\n",
                                 gpg_strerror (rc));
-                      if (gpg_err_code (rc) == GPG_ERR_NO_SECKEY && *kidbuf)
+                      if (rc == GPG_ERR_NO_SECKEY && *kidbuf)
                         gpgsm_status2 (ctrl, STATUS_NO_SECKEY, kidbuf, NULL);
                     }
                   else
@@ -576,7 +576,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
 
           if (!any_key)
             {
-              rc = gpg_error (GPG_ERR_NO_SECKEY);
+              rc = GPG_ERR_NO_SECKEY;
               goto leave;
             }
         }
@@ -589,7 +589,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
               if (!npadding || npadding > dfparm.blklen)
                 {
                   log_error ("invalid padding with value %d\n", npadding);
-                  rc = gpg_error (GPG_ERR_INV_DATA);
+                  rc = GPG_ERR_INV_DATA;
                   goto leave;
                 }
               rc = ksba_writer_write (writer,
@@ -603,7 +603,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                   if (dfparm.lastblock[i] != npadding)
                     {
                       log_error ("inconsistent padding\n");
-                      rc = gpg_error (GPG_ERR_INV_DATA);
+                      rc = GPG_ERR_INV_DATA;
                       goto leave;
                     }
                 }

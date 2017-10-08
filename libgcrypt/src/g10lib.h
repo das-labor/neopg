@@ -99,7 +99,7 @@
 
 /*-- src/global.c -*/
 int _gcry_global_is_operational (void);
-gcry_err_code_t _gcry_vcontrol (enum gcry_ctl_cmds cmd, va_list arg_ptr);
+gpg_error_t _gcry_vcontrol (enum gcry_ctl_cmds cmd, va_list arg_ptr);
 void _gcry_check_heap (const void *a);
 void _gcry_pre_syscall (void);
 void _gcry_post_syscall (void);
@@ -231,7 +231,7 @@ char **_gcry_strtokenize (const char *string, const char *delim);
 
 
 
-gpg_err_code_t _gcry_disable_hw_feature (const char *name);
+gpg_error_t _gcry_disable_hw_feature (const char *name);
 void _gcry_detect_hw_features (void);
 unsigned int _gcry_get_hw_features (void);
 const char *_gcry_enum_hw_features (int idx, unsigned int *r_feature);
@@ -249,7 +249,7 @@ const char *_gcry_mpi_get_hw_config (void);
 #endif
 
 /*-- primegen.c --*/
-gcry_err_code_t _gcry_primegen_init (void);
+gpg_error_t _gcry_primegen_init (void);
 gcry_mpi_t _gcry_generate_secret_prime (unsigned int nbits,
                                  gcry_random_level_t random_level,
                                  int (*extra_check)(void*, gcry_mpi_t),
@@ -258,7 +258,7 @@ gcry_mpi_t _gcry_generate_public_prime (unsigned int nbits,
                                  gcry_random_level_t random_level,
                                  int (*extra_check)(void*, gcry_mpi_t),
                                  void *extra_check_arg);
-gcry_err_code_t _gcry_generate_elg_prime (int mode,
+gpg_error_t _gcry_generate_elg_prime (int mode,
                                           unsigned int pbits,
                                           unsigned int qbits,
                                           gcry_mpi_t g,
@@ -268,20 +268,20 @@ gcry_mpi_t _gcry_derive_x931_prime (const gcry_mpi_t xp,
                                     const gcry_mpi_t xp1, const gcry_mpi_t xp2,
                                     const gcry_mpi_t e,
                                     gcry_mpi_t *r_p1, gcry_mpi_t *r_p2);
-gpg_err_code_t _gcry_generate_fips186_2_prime
+gpg_error_t _gcry_generate_fips186_2_prime
                  (unsigned int pbits, unsigned int qbits,
                   const void *seed, size_t seedlen,
                   gcry_mpi_t *r_q, gcry_mpi_t *r_p,
                   int *r_counter,
                   void **r_seed, size_t *r_seedlen);
-gpg_err_code_t _gcry_generate_fips186_3_prime
+gpg_error_t _gcry_generate_fips186_3_prime
                  (unsigned int pbits, unsigned int qbits,
                   const void *seed, size_t seedlen,
                   gcry_mpi_t *r_q, gcry_mpi_t *r_p,
                   int *r_counter,
                   void **r_seed, size_t *r_seedlen, int *r_hashalgo);
 
-gpg_err_code_t _gcry_fips186_4_prime_check (const gcry_mpi_t x,
+gpg_error_t _gcry_fips186_4_prime_check (const gcry_mpi_t x,
                                             unsigned int bits);
 
 
@@ -368,12 +368,12 @@ typedef struct fast_wipememory_s
 
 /* Init functions.  */
 
-gcry_err_code_t _gcry_cipher_init (void);
-gcry_err_code_t _gcry_md_init (void);
-gcry_err_code_t _gcry_mac_init (void);
-gcry_err_code_t _gcry_pk_init (void);
-gcry_err_code_t _gcry_secmem_module_init (void);
-gcry_err_code_t _gcry_mpi_init (void);
+gpg_error_t _gcry_cipher_init (void);
+gpg_error_t _gcry_md_init (void);
+gpg_error_t _gcry_mac_init (void);
+gpg_error_t _gcry_pk_init (void);
+gpg_error_t _gcry_secmem_module_init (void);
+gpg_error_t _gcry_mpi_init (void);
 
 /* Memory management.  */
 #define GCRY_ALLOC_FLAG_SECURE (1 << 0)
@@ -381,10 +381,10 @@ gcry_err_code_t _gcry_mpi_init (void);
 
 
 /*-- sexp.c --*/
-gcry_err_code_t _gcry_sexp_vbuild (gcry_sexp_t *retsexp, size_t *erroff,
+gpg_error_t _gcry_sexp_vbuild (gcry_sexp_t *retsexp, size_t *erroff,
                                    const char *format, va_list arg_ptr);
 char *_gcry_sexp_nth_string (const gcry_sexp_t list, int number);
-gpg_err_code_t _gcry_sexp_vextract_param (gcry_sexp_t sexp, const char *path,
+gpg_error_t _gcry_sexp_vextract_param (gcry_sexp_t sexp, const char *path,
                                           const char *list, va_list arg_ptr);
 
 
@@ -427,7 +427,7 @@ int _gcry_fips_is_operational (void);
 int _gcry_fips_test_operational (void);
 int _gcry_fips_test_error_or_operational (void);
 
-gpg_err_code_t _gcry_fips_run_selftests (int extended);
+gpg_error_t _gcry_fips_run_selftests (int extended);
 
 void _gcry_fips_noreturn (void);
 #define fips_noreturn()  (_gcry_fips_noreturn ())

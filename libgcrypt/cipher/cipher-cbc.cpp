@@ -31,7 +31,7 @@
 
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cbc_encrypt (gcry_cipher_hd_t c,
                           unsigned char *outbuf, size_t outbuflen,
                           const unsigned char *inbuf, size_t inbuflen)
@@ -126,7 +126,7 @@ _gcry_cipher_cbc_encrypt (gcry_cipher_hd_t c,
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_cipher_cbc_decrypt (gcry_cipher_hd_t c,
                           unsigned char *outbuf, size_t outbuflen,
                           const unsigned char *inbuf, size_t inbuflen)

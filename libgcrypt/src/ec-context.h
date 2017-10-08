@@ -76,18 +76,18 @@ void _gcry_mpi_ec_get_reset (mpi_ec_t ec);
 /*-- cipher/ecc-curves.c --*/
 gcry_mpi_t       _gcry_ecc_get_mpi (const char *name, mpi_ec_t ec, int copy);
 gcry_mpi_point_t _gcry_ecc_get_point (const char *name, mpi_ec_t ec);
-gpg_err_code_t   _gcry_ecc_set_mpi (const char *name,
+gpg_error_t   _gcry_ecc_set_mpi (const char *name,
                                     gcry_mpi_t newvalue, mpi_ec_t ec);
-gpg_err_code_t   _gcry_ecc_set_point (const char *name,
+gpg_error_t   _gcry_ecc_set_point (const char *name,
                                       gcry_mpi_point_t newvalue, mpi_ec_t ec);
 
 /*-- cipher/ecc-misc.c --*/
-gcry_err_code_t _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value);
-gpg_err_code_t _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
+gpg_error_t _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value);
+gpg_error_t _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
                                            mpi_point_t result);
 
 /*-- cipher/ecc-eddsa.c --*/
-gpg_err_code_t _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
+gpg_error_t _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
                                             mpi_point_t result,
                                             unsigned char **r_encpk,
                                             unsigned int *r_encpklen);

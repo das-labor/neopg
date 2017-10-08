@@ -248,26 +248,26 @@ calculate_mic (const unsigned char *plainkey, unsigned char *sha1hash)
 
   s = plainkey;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (smatch (&s, n, "private-key"))
     is_shared_secret = 0;
   else if (smatch (&s, n, "shared-secret"))
     is_shared_secret = 1;
   else
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   hash_begin = s;
   if (!is_shared_secret)
     {
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s += n; /* Skip the algorithm name.  */
     }
 
@@ -276,18 +276,18 @@ calculate_mic (const unsigned char *plainkey, unsigned char *sha1hash)
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s += n;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s += n;
       if ( *s != ')' )
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s++;
     }
   if (*s != ')')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   hash_end = s;
 
@@ -592,28 +592,28 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   /* Parse original key.  */
   s = plainkey;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   depth++;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "private-key"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   depth++;
   hash_begin = s;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   for (infidx=0; protect_info[infidx].algo
               && !smatch (&s, n, protect_info[infidx].algo); infidx++)
     ;
   if (!protect_info[infidx].algo)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   /* The parser below is a complete mess: To make it robust for ECC
      use we should reorder the s-expression to include only what we
@@ -629,12 +629,12 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
       if (i == prot_from_idx)
         prot_begin = s;
       if (*s != '(')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth++;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       if (n != 1 || c != *s)
         {
           if (n == 5 && !memcmp (s, "curve", 5)
@@ -657,22 +657,22 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
               prot_to_idx = 3;
             }
           else
-            return gpg_error (GPG_ERR_INV_SEXP);
+            return GPG_ERR_INV_SEXP;
         }
       s += n;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s +=n; /* skip value */
       if (*s != ')')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth--;
       if (i == prot_to_idx)
         prot_end = s;
       s++;
     }
   if (*s != ')' || !prot_begin || !prot_end )
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   depth--;
   hash_end = s;
   s++;
@@ -751,12 +751,12 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
        * check that it is long enough for the 128 bit tag and that we
        * have the 96 bit nonce.  */
       if (protectedlen < (4 + 16) || ivlen != 12)
-        return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+        return GPG_ERR_CORRUPTED_PROTECTION;
     }
   else
     {
       if (protectedlen < 4 || (protectedlen%blklen))
-        return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+        return GPG_ERR_CORRUPTED_PROTECTION;
     }
 
   rc = gcry_cipher_open (&hd, prot_cipher,
@@ -836,7 +836,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
       /* Note that in OCB mode this is actually invalid _encrypted_
        * data and not a bad passphrase.  */
       xfree (outbuf);
-      return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+      return GPG_ERR_BAD_PASSPHRASE;
     }
 
   /* Check that we have a consistent S-Exp. */
@@ -844,7 +844,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
   if (!reallen || (reallen + blklen < protectedlen) )
     {
       xfree (outbuf);
-      return gpg_error (GPG_ERR_BAD_PASSPHRASE);
+      return GPG_ERR_BAD_PASSPHRASE;
     }
   *result = outbuf;
   return 0;
@@ -878,17 +878,17 @@ merge_lists (const unsigned char *protectedkey,
   *cutlen = 0;
 
   if (replacepos < 26)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
 
   /* Estimate the required size of the resulting list.  We have a large
      safety margin of >20 bytes (FIXME: MIC hash from CLEARTEXT and the
      removed "protected-" */
   newlistlen = gcry_sexp_canon_len (protectedkey, 0, NULL, NULL);
   if (!newlistlen)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   n = gcry_sexp_canon_len (cleartext, 0, NULL, NULL);
   if (!n)
-    return gpg_error (GPG_ERR_BUG);
+    return GPG_ERR_BUG;
   newlistlen += n;
   newlist = gcry_malloc_secure (newlistlen);
   if (!newlist)
@@ -903,7 +903,7 @@ merge_lists (const unsigned char *protectedkey,
   /* Copy the cleartext.  */
   s = cleartext;
   if (*s != '(' && s[1] != '(')
-    return gpg_error (GPG_ERR_BUG);  /*we already checked this */
+    return GPG_ERR_BUG;  /*we already checked this */
   s += 2;
   startpos = s;
   while ( *s == '(' )
@@ -1003,7 +1003,7 @@ merge_lists (const unsigned char *protectedkey,
  invalid_sexp:
   wipememory (newlist, newlistlen);
   xfree (newlist);
-  return gpg_error (GPG_ERR_INV_SEXP);
+  return GPG_ERR_INV_SEXP;
 }
 
 
@@ -1051,15 +1051,15 @@ agent_unprotect (ctrl_t ctrl,
 
   s = protectedkey;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "protected-private-key"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   {
     aad_begin = aad_end = s;
     aad_end++;
@@ -1072,13 +1072,13 @@ agent_unprotect (ctrl_t ctrl,
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   for (infidx=0; protect_info[infidx].algo
               && !smatch (&s, n, protect_info[infidx].algo); infidx++)
     ;
   if (!protect_info[infidx].algo)
-    return gpg_error (GPG_ERR_UNSUPPORTED_ALGORITHM);
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   /* See wether we have a protected-at timestamp.  */
   protect_list = s;  /* Save for later.  */
@@ -1090,14 +1090,14 @@ agent_unprotect (ctrl_t ctrl,
           s++;
           n = snext (&s);
           if (!n)
-            return gpg_error (GPG_ERR_INV_SEXP);
+            return GPG_ERR_INV_SEXP;
           if (smatch (&s, n, "protected-at"))
             {
               n = snext (&s);
               if (!n)
-                return gpg_error (GPG_ERR_INV_SEXP);
+                return GPG_ERR_INV_SEXP;
               if (n != 15)
-                return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+                return GPG_ERR_UNKNOWN_SEXP;
               memcpy (protected_at, s, 15);
               protected_at[15] = 0;
               break;
@@ -1120,12 +1120,12 @@ agent_unprotect (ctrl_t ctrl,
   for (;;)
     {
       if (*s != '(')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       prot_begin = s;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       if (smatch (&s, n, "protected"))
         break;
       s += n;
@@ -1145,7 +1145,7 @@ agent_unprotect (ctrl_t ctrl,
   }
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   /* Lookup the protection algo.  */
   prot_cipher = 0;        /* (avoid gcc warning) */
@@ -1160,7 +1160,7 @@ agent_unprotect (ctrl_t ctrl,
         break;
       }
   if (i == DIM (algotable))
-    return gpg_error (GPG_ERR_UNSUPPORTED_PROTECTION);
+    return GPG_ERR_UNSUPPORTED_PROTECTION;
 
   if (!prot_cipher)  /* This is "openpgp-native".  */
     {
@@ -1183,26 +1183,26 @@ agent_unprotect (ctrl_t ctrl,
     }
 
   if (*s != '(' || s[1] != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s += 2;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "sha1"))
-    return gpg_error (GPG_ERR_UNSUPPORTED_PROTECTION);
+    return GPG_ERR_UNSUPPORTED_PROTECTION;
   n = snext (&s);
   if (n != 8)
-    return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+    return GPG_ERR_CORRUPTED_PROTECTION;
   s2ksalt = s;
   s += n;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+    return GPG_ERR_CORRUPTED_PROTECTION;
   /* We expect a list close as next, so we can simply use strtoul()
      here.  We might want to check that we only have digits - but this
      is nothing we should worry about */
   if (s[n] != ')' )
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   /* Old versions of gpg-agent used the funny floating point number in
      a byte encoding as specified by OpenPGP.  However this is not
@@ -1214,11 +1214,11 @@ agent_unprotect (ctrl_t ctrl,
      should have a lower limit.  */
   s2kcount = strtoul ((const char*)s, NULL, 10);
   if (!s2kcount)
-    return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+    return GPG_ERR_CORRUPTED_PROTECTION;
   if (s2kcount < 256)
     s2kcount = (16ul + (s2kcount & 15)) << ((s2kcount >> 4) + 6);
   if (s2kcount < 65536)
-    return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+    return GPG_ERR_CORRUPTED_PROTECTION;
 
   s += n;
   s++; /* skip list end */
@@ -1227,21 +1227,21 @@ agent_unprotect (ctrl_t ctrl,
   if (is_ocb)
     {
       if (n != 12) /* Wrong size of the nonce. */
-        return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+        return GPG_ERR_CORRUPTED_PROTECTION;
     }
   else
     {
       if (n != 16) /* Wrong blocksize for IV (we support only 128 bit). */
-        return gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+        return GPG_ERR_CORRUPTED_PROTECTION;
     }
   iv = s;
   s += n;
   if (*s != ')' )
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   cleartext = NULL; /* Avoid cc warning. */
   rc = do_decryption (aad_begin, aad_end - aad_begin,
@@ -1269,7 +1269,7 @@ agent_unprotect (ctrl_t ctrl,
     {
       rc = calculate_mic (final, sha1hash2);
       if (!rc && memcmp (sha1hash, sha1hash2, 20))
-        rc = gpg_error (GPG_ERR_CORRUPTED_PROTECTION);
+        rc = GPG_ERR_CORRUPTED_PROTECTION;
       if (rc)
         {
           wipememory (final, finallen);
@@ -1408,7 +1408,7 @@ hash_passphrase (const char *passphrase, int hashalgo,
      the passphrase in the S2K modes.  Return a better suited error
      code than GPG_ERR_INV_DATA.  */
   if (!passphrase || !*passphrase)
-    return gpg_error (GPG_ERR_NO_PASSPHRASE);
+    return GPG_ERR_NO_PASSPHRASE;
   return gcry_kdf_derive (passphrase, strlen (passphrase),
                           s2kmode == 3? GCRY_KDF_ITERSALTED_S2K :
                           s2kmode == 1? GCRY_KDF_SALTED_S2K :
@@ -1482,42 +1482,42 @@ agent_shadow_key (const unsigned char *pubkey,
   size_t shadow_info_len = gcry_sexp_canon_len (shadow_info, 0, NULL,NULL);
 
   if (!pubkey_len || !shadow_info_len)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   s = pubkey;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   depth++;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "public-key"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   depth++;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s += n; /* skip over the algorithm name */
 
   while (*s != ')')
     {
       if (*s != '(')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth++;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s += n;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s +=n; /* skip value */
       if (*s != ')')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth--;
       s++;
     }
@@ -1559,58 +1559,58 @@ agent_get_shadow_info (const unsigned char *shadowkey,
 
   s = shadowkey;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   depth++;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (!smatch (&s, n, "shadowed-private-key"))
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   if (*s != '(')
-    return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+    return GPG_ERR_UNKNOWN_SEXP;
   depth++;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s += n; /* skip over the algorithm name */
 
   for (;;)
     {
       if (*s == ')')
-        return gpg_error (GPG_ERR_UNKNOWN_SEXP);
+        return GPG_ERR_UNKNOWN_SEXP;
       if (*s != '(')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth++;
       s++;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       if (smatch (&s, n, "shadowed"))
         break;
       s += n;
       n = snext (&s);
       if (!n)
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       s +=n; /* skip value */
       if (*s != ')')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       depth--;
       s++;
     }
   /* Found the shadowed list, S points to the protocol */
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   if (smatch (&s, n, "t1-v1"))
     {
       if (*s != '(')
-        return gpg_error (GPG_ERR_INV_SEXP);
+        return GPG_ERR_INV_SEXP;
       *shadow_info = s;
     }
   else
-    return gpg_error (GPG_ERR_UNSUPPORTED_PROTOCOL);
+    return GPG_ERR_UNSUPPORTED_PROTOCOL;
   return 0;
 }
 
@@ -1637,11 +1637,11 @@ parse_shadow_info (const unsigned char *shadow_info,
 
   s = shadow_info;
   if (*s != '(')
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
   s++;
   n = snext (&s);
   if (!n)
-    return gpg_error (GPG_ERR_INV_SEXP);
+    return GPG_ERR_INV_SEXP;
 
   if (r_hexsn)
     {
@@ -1659,7 +1659,7 @@ parse_shadow_info (const unsigned char *shadow_info,
           xfree (*r_hexsn);
           *r_hexsn = NULL;
         }
-      return gpg_error (GPG_ERR_INV_SEXP);
+      return GPG_ERR_INV_SEXP;
     }
 
   if (r_idstr)

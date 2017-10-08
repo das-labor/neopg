@@ -390,9 +390,9 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
                 }
               ksba_cert_release (cert2);
             }
-          err = gpg_error (GPG_ERR_AMBIGUOUS_NAME);
+          err = GPG_ERR_AMBIGUOUS_NAME;
         }
-      else if (err == -1 || gpg_err_code (err) == GPG_ERR_EOF)
+      else if (err == -1 || err == GPG_ERR_EOF)
         err = 0;
       if (err)
         {
@@ -406,7 +406,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
   if (!keygrip || gpgsm_agent_havekey (ctrl, keygrip))
     {
       /* Note, that the !keygrip case indicates a bad certificate. */
-      err = gpg_error (GPG_ERR_NO_SECKEY);
+      err = GPG_ERR_NO_SECKEY;
       log_error ("can't export key '%s': %s\n", name, gpg_strerror (err));
       goto leave;
     }
@@ -659,7 +659,7 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
 
   if (wrappedkeylen < 24)
     {
-      err = gpg_error (GPG_ERR_INV_LENGTH);
+      err = GPG_ERR_INV_LENGTH;
       goto leave;
     }
   keylen = wrappedkeylen - 8;
@@ -700,7 +700,7 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
       /* Export in raw mode, that is only the pkcs#1/#8 private key. */
       result = p12_raw_build (kparms, rawmode, &resultlen);
       if (!result)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
   else
     {
@@ -717,7 +717,7 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
       xfree (passphrase);
       passphrase = NULL;
       if (!result)
-        err = gpg_error (GPG_ERR_GENERAL);
+        err = GPG_ERR_GENERAL;
     }
 
  leave:
@@ -733,7 +733,7 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
   xfree (wrappedkey);
   xfree (kek);
 
-  if (gpg_err_code (err) == GPG_ERR_BAD_PASSPHRASE)
+  if (err == GPG_ERR_BAD_PASSPHRASE)
     {
       /* During export this is the passphrase used to unprotect the
          key and not the pkcs#12 thing as in export.  Therefore we can

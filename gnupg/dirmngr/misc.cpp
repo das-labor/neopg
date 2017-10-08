@@ -170,10 +170,10 @@ canon_sexp_to_gcry (const unsigned char *canon, gcry_sexp_t *r_sexp)
   if (!n)
     {
       log_error (_("invalid canonical S-expression found\n"));
-      err = gpg_error (GPG_ERR_INV_SEXP);
+      err = GPG_ERR_INV_SEXP;
     }
   else if ((err = gcry_sexp_sscan (&sexp, NULL, canon, n)))
-    log_error (_("converting S-expression failed: %s\n"), gcry_strerror (err));
+    log_error (_("converting S-expression failed: %s\n"), gpg_strerror (err));
   else
     *r_sexp = sexp;
   return err;
@@ -550,7 +550,7 @@ my_estream_ksba_reader_cb (void *cb_value, char *buffer, size_t count,
   estream_t fp = cb_value;
 
   if (!fp)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
 
   if (!buffer && !count && !r_nread)
     {

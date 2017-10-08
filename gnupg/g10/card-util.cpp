@@ -51,7 +51,7 @@
 static void
 write_sc_op_status (gpg_error_t err)
 {
-  switch (gpg_err_code (err))
+  switch (err)
     {
     case 0:
       write_status (STATUS_SC_OP_SUCCESS);
@@ -649,7 +649,7 @@ card_status (ctrl_t ctrl, estream_t fp, const char *serialno)
   err = agent_scd_serialno (&serialno0, NULL);
   if (err)
     {
-      if (gpg_err_code (err) != GPG_ERR_ENODEV && opt.verbose)
+      if (err != GPG_ERR_ENODEV && opt.verbose)
         log_info (_("error getting serial number of card: %s\n"),
                   gpg_strerror (err));
       /* Nothing available.  */
@@ -1538,7 +1538,7 @@ card_generate_subkey (ctrl_t ctrl, kbnode_t pub_keyblock)
       if (*answer == CONTROL_D)
         {
           xfree (answer);
-          err = gpg_error (GPG_ERR_CANCELED);
+          err = GPG_ERR_CANCELED;
           goto leave;
         }
       keyno = *answer? atoi(answer): 0;
@@ -1550,7 +1550,7 @@ card_generate_subkey (ctrl_t ctrl, kbnode_t pub_keyblock)
 
   if (replace_existing_key_p (&info, keyno) < 0)
     {
-      err = gpg_error (GPG_ERR_CANCELED);
+      err = GPG_ERR_CANCELED;
       goto leave;
     }
 
@@ -1714,10 +1714,10 @@ send_apdu (const char *hexapdu, const char *desc, unsigned int ignore)
     {
       switch (sw)
         {
-        case 0x6285: err = gpg_error (GPG_ERR_OBJ_TERM_STATE); break;
-        case 0x6982: err = gpg_error (GPG_ERR_BAD_PIN); break;
-        case 0x6985: err = gpg_error (GPG_ERR_USE_CONDITIONS); break;
-        default: err = gpg_error (GPG_ERR_CARD);
+        case 0x6285: err = GPG_ERR_OBJ_TERM_STATE; break;
+        case 0x6982: err = GPG_ERR_BAD_PIN; break;
+        case 0x6985: err = GPG_ERR_USE_CONDITIONS; break;
+        default: err = GPG_ERR_CARD;
         }
       if (!(ignore && ignore == sw))
         tty_printf ("card command %s failed: %s (0x%04x)\n", desc,
@@ -1762,7 +1762,7 @@ factory_reset (void)
    */
 
   err = agent_scd_learn (&info, 0);
-  if (gpg_err_code (err) == GPG_ERR_OBJ_TERM_STATE)
+  if (err == GPG_ERR_OBJ_TERM_STATE)
     termstate = 1;
   else if (err)
     {

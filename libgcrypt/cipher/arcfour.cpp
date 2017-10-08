@@ -139,7 +139,7 @@ encrypt_stream (void *context,
 #endif /*!USE_AMD64_ASM*/
 
 
-static gcry_err_code_t
+static gpg_error_t
 do_arcfour_setkey (void *context, const byte *key, unsigned int keylen)
 {
   static int initialized;
@@ -183,11 +183,11 @@ do_arcfour_setkey (void *context, const byte *key, unsigned int keylen)
   return GPG_ERR_NO_ERROR;
 }
 
-static gcry_err_code_t
+static gpg_error_t
 arcfour_setkey ( void *context, const byte *key, unsigned int keylen )
 {
   ARCFOUR_context *ctx = (ARCFOUR_context *) context;
-  gcry_err_code_t rc = do_arcfour_setkey (ctx, key, keylen );
+  gpg_error_t rc = do_arcfour_setkey (ctx, key, keylen );
   return rc;
 }
 

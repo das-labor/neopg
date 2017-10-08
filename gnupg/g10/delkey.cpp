@@ -94,7 +94,7 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
   if (!node)
     {
       log_error ("Oops; key not found anymore!\n");
-      err = gpg_error (GPG_ERR_GENERAL);
+      err = GPG_ERR_GENERAL;
       goto leave;
     }
   pk = node->pkt->pkt.public_key;
@@ -105,7 +105,7 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
       if (have_secret_key_with_kid (keyid))
         {
           *r_sec_avail = 1;
-          err = gpg_error (GPG_ERR_EOF);
+          err = GPG_ERR_EOF;
           goto leave;
         }
       else
@@ -114,7 +114,7 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
 
   if (secret && !have_secret_key_with_kid (keyid))
     {
-      err = gpg_error (GPG_ERR_NOT_FOUND);
+      err = GPG_ERR_NOT_FOUND;
       log_error (_("key \"%s\" not found\n"), username);
       write_status_text (STATUS_DELETE_PROBLEM, "1");
       goto leave;
@@ -197,7 +197,7 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
               xfree (hexgrip);
               if (err)
                 {
-                  if (gpg_err_code (err) == GPG_ERR_KEY_ON_CARD)
+                  if (err == GPG_ERR_KEY_ON_CARD)
                     write_status_text (STATUS_DELETE_PROBLEM, "1");
                   log_error (_("deleting secret %s failed: %s\n"),
                              (node->pkt->pkttype == PKT_PUBLIC_KEY
@@ -205,8 +205,8 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
                              gpg_strerror (err));
                   if (!firsterr)
                     firsterr = err;
-                  if (gpg_err_code (err) == GPG_ERR_CANCELED
-                      || gpg_err_code (err) == GPG_ERR_FULLY_CANCELED)
+                  if (err == GPG_ERR_CANCELED
+                      || err == GPG_ERR_FULLY_CANCELED)
 		    {
 		      write_status_error ("delete_key.secret", err);
 		      break;

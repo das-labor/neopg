@@ -70,21 +70,6 @@ struct recsel_expr_s
 };
 
 
-/* Helper */
-static inline gpg_error_t
-my_error_from_syserror (void)
-{
-  return gpg_error(gpg_err_code_from_syserror ());
-}
-
-/* Helper */
-static inline gpg_error_t
-my_error (gpg_err_code_t ec)
-{
-  return gpg_error (ec);
-}
-
-
 /* This is a case-sensitive version of our memistr.  I wonder why no
  * standard function memstr exists but I better do not use the name
  * memstr to avoid future conflicts.
@@ -211,7 +196,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
 
   expr_buffer = xtrystrdup (expression);
   if (!expr_buffer)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
   expr = expr_buffer;
 
   if (*expr == '|' && expr[1] == '|')
@@ -236,7 +221,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
           log_error ("invalid flag '-%c' in expression\n", *expr);
           recsel_release (se_head);
           xfree (expr_buffer);
-          return my_error (GPG_ERR_INV_FLAG);
+          return GPG_ERR_INV_FLAG;
         }
       expr++;
       while (*expr == ' ' || *expr == '\t')
@@ -249,7 +234,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
 
   se = xtrymalloc (sizeof *se + strlen (expr));
   if (!se)
-    return my_error_from_syserror ();
+    return gpg_error_from_syserror ();
   strcpy (se->name, expr);
   se->next = NULL;
   se->nonono = 0;
@@ -272,7 +257,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
       log_error ("no field name given in expression\n");
       recsel_release (se_head);
       xfree (expr_buffer);
-      return my_error (GPG_ERR_NO_NAME);
+      return GPG_ERR_NO_NAME;
     }
   s0 = s;
 
@@ -376,7 +361,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
       log_error ("invalid operator in expression\n");
       recsel_release (se_head);
       xfree (expr_buffer);
-      return my_error (GPG_ERR_INV_OP);
+      return GPG_ERR_INV_OP;
     }
 
   /* We require that a space is used if the value starts with any of
@@ -388,7 +373,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
       log_error ("invalid operator in expression\n");
       recsel_release (se_head);
       xfree (expr_buffer);
-      return my_error (GPG_ERR_INV_OP);
+      return GPG_ERR_INV_OP;
     }
 
   while (*s == ' ' || *s == '\t')
@@ -401,7 +386,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
           log_error ("value given for -n or -z\n");
           recsel_release (se_head);
           xfree (expr_buffer);
-          return my_error (GPG_ERR_SYNTAX);
+          return GPG_ERR_SYNTAX;
         }
     }
   else
@@ -411,7 +396,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
           log_error ("no value given in expression\n");
           recsel_release (se_head);
           xfree (expr_buffer);
-          return my_error (GPG_ERR_MISSING_VALUE);
+          return GPG_ERR_MISSING_VALUE;
         }
     }
 
@@ -422,7 +407,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
       log_error ("no field name given in expression\n");
       recsel_release (se_head);
       xfree (expr_buffer);
-      return my_error (GPG_ERR_NO_NAME);
+      return GPG_ERR_NO_NAME;
     }
 
   trim_spaces (se->name + (s - expr));
@@ -432,7 +417,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
       log_error ("no value given in expression\n");
       recsel_release (se_head);
       xfree (expr_buffer);
-      return my_error (GPG_ERR_MISSING_VALUE);
+      return GPG_ERR_MISSING_VALUE;
     }
 
   se->numvalue = strtol (se->value, NULL, 0);

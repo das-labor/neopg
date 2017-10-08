@@ -75,10 +75,10 @@ map_mac_algo_to_md (int mac_algo)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_open (gcry_mac_hd_t h)
 {
-  gcry_err_code_t err;
+  gpg_error_t err;
   gcry_md_hd_t hd;
   int secure = (h->magic == CTX_MAGIC_SECURE);
   unsigned int flags;
@@ -107,14 +107,14 @@ hmac_close (gcry_mac_hd_t h)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_setkey (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
 {
   return _gcry_md_setkey (h->u.hmac.md_ctx, key, keylen);
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_reset (gcry_mac_hd_t h)
 {
   _gcry_md_reset (h->u.hmac.md_ctx);
@@ -122,7 +122,7 @@ hmac_reset (gcry_mac_hd_t h)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   _gcry_md_write (h->u.hmac.md_ctx, buf, buflen);
@@ -130,7 +130,7 @@ hmac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t * outlen)
 {
   unsigned int dlen;
@@ -151,7 +151,7 @@ hmac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t * outlen)
 }
 
 
-static gcry_err_code_t
+static gpg_error_t
 hmac_verify (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
 {
   unsigned int dlen;

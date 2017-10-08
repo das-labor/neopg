@@ -42,22 +42,22 @@ struct poly1305mac_context_s;
 
 
 /* MAC module functions. */
-typedef gcry_err_code_t (*gcry_mac_open_func_t)(gcry_mac_hd_t h);
+typedef gpg_error_t (*gcry_mac_open_func_t)(gcry_mac_hd_t h);
 typedef void (*gcry_mac_close_func_t)(gcry_mac_hd_t h);
-typedef gcry_err_code_t (*gcry_mac_setkey_func_t)(gcry_mac_hd_t h,
+typedef gpg_error_t (*gcry_mac_setkey_func_t)(gcry_mac_hd_t h,
 						  const unsigned char *key,
 						  size_t keylen);
-typedef gcry_err_code_t (*gcry_mac_setiv_func_t)(gcry_mac_hd_t h,
+typedef gpg_error_t (*gcry_mac_setiv_func_t)(gcry_mac_hd_t h,
 						 const unsigned char *iv,
 						 size_t ivlen);
-typedef gcry_err_code_t (*gcry_mac_reset_func_t)(gcry_mac_hd_t h);
-typedef gcry_err_code_t (*gcry_mac_write_func_t)(gcry_mac_hd_t h,
+typedef gpg_error_t (*gcry_mac_reset_func_t)(gcry_mac_hd_t h);
+typedef gpg_error_t (*gcry_mac_write_func_t)(gcry_mac_hd_t h,
 						 const unsigned char *inbuf,
 						 size_t inlen);
-typedef gcry_err_code_t (*gcry_mac_read_func_t)(gcry_mac_hd_t h,
+typedef gpg_error_t (*gcry_mac_read_func_t)(gcry_mac_hd_t h,
 						unsigned char *outbuf,
 						size_t *outlen);
-typedef gcry_err_code_t (*gcry_mac_verify_func_t)(gcry_mac_hd_t h,
+typedef gpg_error_t (*gcry_mac_verify_func_t)(gcry_mac_hd_t h,
 						  const unsigned char *inbuf,
 						  size_t inlen);
 typedef unsigned int (*gcry_mac_get_maclen_func_t)(int algo);

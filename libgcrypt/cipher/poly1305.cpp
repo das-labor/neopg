@@ -452,7 +452,7 @@ _gcry_poly1305_finish (poly1305_context_t * ctx, byte mac[POLY1305_TAGLEN])
 }
 
 
-gcry_err_code_t
+gpg_error_t
 _gcry_poly1305_init (poly1305_context_t * ctx, const byte * key,
 		     size_t keylen)
 {

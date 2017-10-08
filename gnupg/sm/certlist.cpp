@@ -56,7 +56,7 @@ cert_usage_p (ksba_cert_t cert, int mode)
   int have_ocsp_signing = 0;
 
   err = ksba_cert_get_ext_key_usages (cert, &extkeyusages);
-  if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+  if (err == GPG_ERR_NO_DATA)
     err = 0; /* no policy given */
   if (!err)
     {
@@ -115,7 +115,7 @@ cert_usage_p (ksba_cert_t cert, int mode)
 
 
       err = ksba_cert_get_key_usage (cert, &use);
-      if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+      if (err == GPG_ERR_NO_DATA)
         {
           err = 0;
           if (opt.verbose && mode < 2)
@@ -141,7 +141,7 @@ cert_usage_p (ksba_cert_t cert, int mode)
         return 0;
       log_info (_("certificate should not have "
                   "been used for certification\n"));
-      return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
+      return GPG_ERR_WRONG_KEY_USAGE;
     }
 
   if (mode == 5)
@@ -153,7 +153,7 @@ cert_usage_p (ksba_cert_t cert, int mode)
         return 0;
       log_info (_("certificate should not have "
                   "been used for OCSP response signing\n"));
-      return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
+      return GPG_ERR_WRONG_KEY_USAGE;
     }
 
   if ((use & ((mode&1)?
@@ -166,7 +166,7 @@ cert_usage_p (ksba_cert_t cert, int mode)
             mode==2? _("certificate should not have been used for signing\n"):
             mode==1? _("certificate is not usable for encryption\n"):
                      _("certificate is not usable for signing\n"));
-  return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
+  return GPG_ERR_WRONG_KEY_USAGE;
 }
 
 
@@ -321,7 +321,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
     {
       kh = sm_keydb_new ();
       if (!kh)
-        rc = gpg_error (GPG_ERR_ENOMEM);
+        rc = GPG_ERR_ENOMEM;
       else
         {
           int wrong_usage = 0;
@@ -343,7 +343,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                 }
               rc = secret? gpgsm_cert_use_sign_p (cert)
                          : gpgsm_cert_use_encrypt_p (cert);
-              if (gpg_err_code (rc) == GPG_ERR_WRONG_KEY_USAGE)
+              if (rc == GPG_ERR_WRONG_KEY_USAGE)
                 {
                   /* There might be another certificate with the
                      correct usage, so we try again */
@@ -402,11 +402,11 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                       int tmp = (same_subject_issuer (first_subject,
                                                       first_issuer,
                                                       cert2)
-                                 && ((gpg_err_code (
+                                 && ((
                                       secret? gpgsm_cert_use_sign_p (cert2)
                                       : gpgsm_cert_use_encrypt_p (cert2)
                                       )
-                                     )  == GPG_ERR_WRONG_KEY_USAGE));
+                                       == GPG_ERR_WRONG_KEY_USAGE));
                       if (tmp)
                         gpgsm_add_cert_to_certlist (ctrl, cert2,
                                                     &dup_certs, 0);
@@ -420,7 +420,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                       if (tmp)
                         goto next_ambigious;
                     }
-                  rc = gpg_error (GPG_ERR_AMBIGUOUS_NAME);
+                  rc = GPG_ERR_AMBIGUOUS_NAME;
                 }
               gpgsm_release_certlist (dup_certs);
             }
@@ -435,7 +435,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                 {
                   char *p;
 
-                  rc = gpg_error (GPG_ERR_NO_SECKEY);
+                  rc = GPG_ERR_NO_SECKEY;
                   p = gpgsm_get_keygrip_hexstring (cert);
                   if (p)
                     {
@@ -466,7 +466,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
 
   sm_keydb_release (kh);
   ksba_cert_release (cert);
-  return rc == -1? gpg_error (GPG_ERR_NO_PUBKEY): rc;
+  return rc == -1? GPG_ERR_NO_PUBKEY: rc;
 }
 
 
@@ -501,7 +501,7 @@ gpgsm_find_cert (ctrl_t ctrl,
     {
       kh = sm_keydb_new ();
       if (!kh)
-        rc = gpg_error (GPG_ERR_ENOMEM);
+        rc = GPG_ERR_ENOMEM;
       else
         {
         nextone:
@@ -526,7 +526,7 @@ gpgsm_find_cert (ctrl_t ctrl,
                          subjectKeyIdentifier matches the requested
                          one. */
                     }
-                  else if (gpg_err_code (rc) == GPG_ERR_NO_DATA)
+                  else if (rc == GPG_ERR_NO_DATA)
                     goto nextone;
                 }
             }
@@ -556,7 +556,7 @@ gpgsm_find_cert (ctrl_t ctrl,
                             }
                           ksba_cert_release (cert2);
                         }
-                      rc = gpg_error (GPG_ERR_AMBIGUOUS_NAME);
+                      rc = GPG_ERR_AMBIGUOUS_NAME;
                     }
                   ksba_cert_release (*r_cert);
                   *r_cert = NULL;
@@ -566,5 +566,5 @@ gpgsm_find_cert (ctrl_t ctrl,
     }
 
   sm_keydb_release (kh);
-  return rc == -1? gpg_error (GPG_ERR_NO_PUBKEY): rc;
+  return rc == -1? GPG_ERR_NO_PUBKEY: rc;
 }

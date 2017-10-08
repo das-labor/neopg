@@ -187,7 +187,7 @@ assuan_client_parse_response (assuan_context_t ctx, char *line, int linelen,
       *off = 1;
     }
   else
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_RESPONSE);
+    return GPG_ERR_ASS_INV_RESPONSE;
 
   return 0;
 }
@@ -270,7 +270,7 @@ assuan_transact (assuan_context_t ctx,
   else if (response == ASSUAN_RESPONSE_DATA)
     {
       if (!data_cb)
-        rc = _assuan_error (ctx, GPG_ERR_ASS_NO_DATA_CB);
+        rc = GPG_ERR_ASS_NO_DATA_CB;
       else
         {
           rc = data_cb (data_cb_arg, line, linelen);
@@ -284,7 +284,7 @@ assuan_transact (assuan_context_t ctx,
         {
           assuan_write_line (ctx, "END"); /* get out of inquire mode */
           _assuan_read_from_server (ctx, &response, &off, 0); /* dummy read */
-          rc = _assuan_error (ctx, GPG_ERR_ASS_NO_INQUIRE_CB);
+          rc = GPG_ERR_ASS_NO_INQUIRE_CB;
         }
       else
         {
@@ -322,7 +322,7 @@ assuan_transact (assuan_context_t ctx,
   else if (response == ASSUAN_RESPONSE_END)
     {
       if (!data_cb)
-        rc = _assuan_error (ctx, GPG_ERR_ASS_NO_DATA_CB);
+        rc = GPG_ERR_ASS_NO_DATA_CB;
       else
         {
           rc = data_cb (data_cb_arg, NULL, 0);

@@ -99,7 +99,7 @@ initial_handshake (assuan_context_t ctx)
     {
       TRACE1 (ctx, ASSUAN_LOG_SYSIO, "initial_handshake", ctx,
 	      "can't connect server: `%s'", ctx->inbound.line);
-      err = _assuan_error (ctx, GPG_ERR_ASS_CONNECT_FAILED);
+      err = GPG_ERR_ASS_CONNECT_FAILED;
     }
 
   return err;
@@ -161,19 +161,19 @@ pipe_connect (assuan_context_t ctx,
   atp.parent_pid = getpid ();
 
   if (!ctx || !name || !argv || !argv[0])
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (! ctx->flags.no_fixsignals)
     fix_signals ();
 
   if (_assuan_pipe (ctx, rp, 1) < 0)
-    return _assuan_error (ctx, gpg_err_code_from_syserror ());
+    return gpg_error_from_syserror ();
 
   if (_assuan_pipe (ctx, wp, 0) < 0)
     {
       _assuan_close (ctx, rp[0]);
       _assuan_close_inheritable (ctx, rp[1]);
-      return _assuan_error (ctx, gpg_err_code_from_syserror ());
+      return gpg_error_from_syserror ();
     }
 
   spawn_flags = 0;
@@ -185,12 +185,12 @@ pipe_connect (assuan_context_t ctx,
 		       fd_child_list, at_pipe_fork_cb, &atp, spawn_flags);
   if (res < 0)
     {
-      rc = gpg_err_code_from_syserror ();
+      rc = gpg_error_from_syserror ();
       _assuan_close (ctx, rp[0]);
       _assuan_close_inheritable (ctx, rp[1]);
       _assuan_close_inheritable (ctx, wp[0]);
       _assuan_close (ctx, wp[1]);
-      return _assuan_error (ctx, rc);
+      return rc;
     }
 
   /* Close the stdin/stdout child fds in the parent.  */
@@ -289,7 +289,7 @@ socketpair_connect (assuan_context_t ctx,
   if (!ctx
       || (name && (!argv || !argv[0]))
       || (!name && !argv))
-    return _assuan_error (ctx, GPG_ERR_ASS_INV_VALUE);
+    return GPG_ERR_ASS_INV_VALUE;
 
   if (! ctx->flags.no_fixsignals)
     fix_signals ();
@@ -301,7 +301,7 @@ socketpair_connect (assuan_context_t ctx,
       child_fds_cnt++;
   child_fds = _assuan_malloc (ctx, (child_fds_cnt + 2) * sizeof (int));
   if (! child_fds)
-    return TRACE_ERR (gpg_err_code_from_syserror ());
+    return TRACE_ERR (gpg_error_from_syserror ());
   child_fds[1] = ASSUAN_INVALID_FD;
   if (fd_child_list)
     memcpy (&child_fds[1], fd_child_list, (child_fds_cnt + 1) * sizeof (int));
@@ -320,7 +320,7 @@ socketpair_connect (assuan_context_t ctx,
 		      &atp, 0);
   if (rc < 0)
     {
-      err = gpg_err_code_from_syserror ();
+      err = gpg_error_from_syserror ();
       _assuan_close (ctx, fds[0]);
       _assuan_close (ctx, fds[1]);
       _assuan_free (ctx, child_fds);
@@ -407,7 +407,7 @@ assuan_pipe_connect (assuan_context_t ctx,
   if (flags & ASSUAN_PIPE_CONNECT_FDPASSING)
     {
 #ifdef _WIN32
-      return _assuan_error (ctx, GPG_ERR_NOT_IMPLEMENTED);
+      return GPG_ERR_NOT_IMPLEMENTED;
 #else
       return socketpair_connect (ctx, name, argv, fd_child_list,
                                  atfork, atforkvalue);

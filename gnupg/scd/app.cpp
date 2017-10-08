@@ -122,7 +122,7 @@ check_conflict (app_t app, const char *name)
   log_info ("application '%s' in use - can't switch\n",
             app->apptype? app->apptype : "<null>");
 
-  return gpg_error (GPG_ERR_CONFLICT);
+  return GPG_ERR_CONFLICT;
 }
 
 /* This function is used by the serialno command to check for an
@@ -148,7 +148,7 @@ app_reset (app_t app, ctrl_t ctrl, int send_reset)
       lock_app (app, ctrl);
       sw = apdu_reset (app->slot);
       if (sw)
-        err = gpg_error (GPG_ERR_CARD_RESET);
+        err = GPG_ERR_CARD_RESET;
 
       app->reset_requested = 1;
       unlock_app (app);
@@ -250,8 +250,8 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
     }
 
   /* For certain error codes, there is no need to try more.  */
-  if (gpg_err_code (err) == GPG_ERR_CARD_NOT_PRESENT
-      || gpg_err_code (err) == GPG_ERR_ENODEV)
+  if (err == GPG_ERR_CARD_NOT_PRESENT
+      || err == GPG_ERR_ENODEV)
     goto leave;
 
   /* Figure out the application to use.  */
@@ -263,7 +263,7 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
       err = 0;
     }
   else
-    err = gpg_error (GPG_ERR_NOT_FOUND);
+    err = GPG_ERR_NOT_FOUND;
 
   if (err && is_app_allowed ("openpgp")
           && (!name || !strcmp (name, "openpgp")))
@@ -279,8 +279,8 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
     err = app_select_dinsig (app);
   if (err && is_app_allowed ("sc-hsm") && (!name || !strcmp (name, "sc-hsm")))
     err = app_select_sc_hsm (app);
-  if (err && name && gpg_err_code (err) != GPG_ERR_OBJ_TERM_STATE)
-    err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+  if (err && name && err != GPG_ERR_OBJ_TERM_STATE)
+    err = GPG_ERR_NOT_SUPPORTED;
 
  leave:
   if (err)
@@ -343,7 +343,7 @@ select_application (ctrl_t ctrl, const char *name, app_t *r_app,
           if (periodical_check_needed_this < 0)
             {
               /* We close a reader with no card.  */
-              err = gpg_error (GPG_ERR_ENODEV);
+              err = GPG_ERR_ENODEV;
             }
           else
             {
@@ -395,7 +395,7 @@ select_application (ctrl_t ctrl, const char *name, app_t *r_app,
       unlock_app (a);
     }
   else
-    err = gpg_error (GPG_ERR_ENODEV);
+    err = GPG_ERR_ENODEV;
 
   npth_mutex_unlock (&app_list_lock);
 
@@ -571,9 +571,9 @@ app_write_learn_status (app_t app, ctrl_t ctrl, unsigned int flags)
   gpg_error_t err;
 
   if (!app)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->fnc.learn_status)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
 
   /* We do not send APPTYPE if only keypairinfo is requested.  */
   if (app->apptype && !(flags & 1))
@@ -598,11 +598,11 @@ app_readcert (app_t app, ctrl_t ctrl, const char *certid,
   gpg_error_t err;
 
   if (!app)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.readcert)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -631,11 +631,11 @@ app_readkey (app_t app, ctrl_t ctrl, int advanced, const char *keyid,
     *pklen = 0;
 
   if (!app || !keyid || !pk || !pklen)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.readkey)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -652,9 +652,9 @@ app_getattr (app_t app, ctrl_t ctrl, const char *name)
   gpg_error_t err;
 
   if (!app || !name || !*name)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
 
   if (app->apptype && name && !strcmp (name, "APPTYPE"))
     {
@@ -667,7 +667,7 @@ app_getattr (app_t app, ctrl_t ctrl, const char *name)
 
       serial = app_get_serialno (app);
       if (!serial)
-        return gpg_error (GPG_ERR_INV_VALUE);
+        return GPG_ERR_INV_VALUE;
 
       send_status_direct (ctrl, "SERIALNO", serial);
       xfree (serial);
@@ -675,7 +675,7 @@ app_getattr (app_t app, ctrl_t ctrl, const char *name)
     }
 
   if (!app->fnc.getattr)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -694,11 +694,11 @@ app_setattr (app_t app, ctrl_t ctrl, const char *name,
   gpg_error_t err;
 
   if (!app || !name || !*name || !value)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.setattr)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -720,11 +720,11 @@ app_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
   gpg_error_t err;
 
   if (!app || !indata || !indatalen || !outdata || !outdatalen || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.sign)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -752,11 +752,11 @@ app_auth (app_t app, ctrl_t ctrl, const char *keyidstr,
   gpg_error_t err;
 
   if (!app || !indata || !indatalen || !outdata || !outdatalen || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.auth)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -787,11 +787,11 @@ app_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
   *r_info = 0;
 
   if (!app || !indata || !indatalen || !outdata || !outdatalen || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.decipher)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -818,11 +818,11 @@ app_writecert (app_t app, ctrl_t ctrl,
   gpg_error_t err;
 
   if (!app || !certidstr || !*certidstr || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.writecert)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -846,11 +846,11 @@ app_writekey (app_t app, ctrl_t ctrl,
   gpg_error_t err;
 
   if (!app || !keyidstr || !*keyidstr || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.writekey)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -873,11 +873,11 @@ app_genkey (app_t app, ctrl_t ctrl, const char *keynostr, unsigned int flags,
   gpg_error_t err;
 
   if (!app || !keynostr || !*keynostr || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.genkey)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -899,9 +899,9 @@ app_get_challenge (app_t app, ctrl_t ctrl, size_t nbytes, unsigned char *buffer)
   gpg_error_t err;
 
   if (!app || !nbytes || !buffer)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -921,11 +921,11 @@ app_change_pin (app_t app, ctrl_t ctrl, const char *chvnostr, int reset_mode,
   gpg_error_t err;
 
   if (!app || !chvnostr || !*chvnostr || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.change_pin)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -949,11 +949,11 @@ app_check_pin (app_t app, ctrl_t ctrl, const char *keyidstr,
   gpg_error_t err;
 
   if (!app || !keyidstr || !*keyidstr || !pincb)
-    return gpg_error (GPG_ERR_INV_VALUE);
+    return GPG_ERR_INV_VALUE;
   if (!app->ref_count)
-    return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
+    return GPG_ERR_CARD_NOT_INITIALIZED;
   if (!app->fnc.check_pin)
-    return gpg_error (GPG_ERR_UNSUPPORTED_OPERATION);
+    return GPG_ERR_UNSUPPORTED_OPERATION;
   err = lock_app (app, ctrl);
   if (err)
     return err;
@@ -1014,7 +1014,7 @@ report_change (int slot, int old_status, int cur_status)
 
       fname = make_filename (gnupg_homedir (), "scd-event", NULL);
       err = gnupg_spawn_process_detached (fname, args, envs);
-      if (err && gpg_err_code (err) != GPG_ERR_ENOENT)
+      if (err && err != GPG_ERR_ENOENT)
         log_error ("failed to run event handler '%s': %s\n",
                    fname, gpg_strerror (err));
       xfree (fname);
