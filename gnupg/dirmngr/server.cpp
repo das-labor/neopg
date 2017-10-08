@@ -2319,23 +2319,6 @@ cmd_ks_put (assuan_context_t ctx, char *line)
 
 
 
-static const char hlp_loadswdb[] =
-  "LOADSWDB [--force]\n"
-  "\n"
-  "Load and verify the swdb.lst from the Net.";
-static gpg_error_t
-cmd_loadswdb (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = assuan_get_pointer (ctx);
-  gpg_error_t err;
-
-  err = dirmngr_load_swdb (ctrl, has_option (line, "--force"));
-
-  return leave_cmd (ctx, err);
-}
-
-
-
 static const char hlp_getinfo[] =
   "GETINFO <what>\n"
   "\n"
@@ -2468,7 +2451,6 @@ register_commands (assuan_context_t ctx)
     { "KS_FETCH",   cmd_ks_fetch,   hlp_ks_fetch },
     { "KS_PUT",     cmd_ks_put,     hlp_ks_put },
     { "GETINFO",    cmd_getinfo,    hlp_getinfo },
-    { "LOADSWDB",   cmd_loadswdb,   hlp_loadswdb },
     { "KILLDIRMNGR",cmd_killdirmngr,hlp_killdirmngr },
     { "RELOADDIRMNGR",cmd_reloaddirmngr,hlp_reloaddirmngr },
     { NULL, NULL }

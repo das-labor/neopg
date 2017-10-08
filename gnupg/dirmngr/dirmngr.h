@@ -240,8 +240,5 @@ gpg_error_t gnupg_http_tls_verify_cb (void *opaque,
                                       void *tls_context);
 
 
-/*-- loadswdb.c --*/
-gpg_error_t dirmngr_load_swdb (ctrl_t ctrl, int force);
-
 
 #endif /*DIRMNGR_H*/

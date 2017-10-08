@@ -625,7 +625,6 @@ add_executable(neopg
   ../gnupg/dirmngr/ldap.cpp
   ../gnupg/dirmngr/ldap-wrapper-ce.cpp
   ../gnupg/dirmngr/ldapserver.cpp
-  ../gnupg/dirmngr/loadswdb.cpp
   ../gnupg/dirmngr/misc.cpp
   ../gnupg/dirmngr/ocsp.cpp
   ../gnupg/dirmngr/server.cpp
