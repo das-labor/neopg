@@ -1270,7 +1270,7 @@ ask_marktrusted (ctrl_t ctrl, ksba_cert_t cert, int listmode)
    VALIDATE_FLAG_STEED       - Check according to the STEED model.
 */
 static int
-do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
+do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime_arg,
                    ksba_isotime_t r_exptime,
                    int listmode, estream_t listfp, unsigned int flags,
                    struct rootca_flags_s *rootca_flags)
@@ -1885,7 +1885,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime_arg,
    date of the signature is not known use the special date
    "19700101T000000" which is treated in a special way here. */
 int
-gpgsm_validate_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t checktime,
+gpgsm_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime,
                       ksba_isotime_t r_exptime,
                       int listmode, estream_t listfp, unsigned int flags,
                       unsigned int *retflags)

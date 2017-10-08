@@ -589,9 +589,10 @@ use_hardlinks_p (const char *tname)
   strcat (lname, "x");
 
   /* We ignore the return value of link() because it is unreliable.  */
-  (void) link (tname, lname);
-
-  if (stat (tname, &sb))
+  res = link (tname, lname);
+  if (!res)
+    res = 1;
+  else if (stat (tname, &sb))
     res = -1;  /* Ooops.  */
   else if (sb.st_nlink == nlink + 1)
     res = 0;   /* Yeah, hardlinks are supported.  */
@@ -1034,14 +1035,16 @@ dotlock_take_unix (dotlock_t h, long timeout)
   else /* Standard method:  Use hardlinks.  */
     {
       struct stat sb;
-
+      int res;
+      
       /* We ignore the return value of link() because it is unreliable.  */
-      (void) link (h->tname, h->lockname);
-
-      if (stat (h->tname, &sb))
+      res = link (h->tname, h->lockname);
+      if (!res)
+	res = stat (h->tname, &sb);
+      if (res)
         {
           saveerrno = errno;
-          my_error_1 ("lock not made: Oops: stat of tmp file failed: %s\n",
+          my_error_1 ("lock not made: Oops: link or stat of tmp file failed: %s\n",
                       strerror (errno));
           /* In theory this might be a severe error: It is possible
              that link succeeded but stat failed due to changed

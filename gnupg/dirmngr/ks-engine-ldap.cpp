@@ -458,7 +458,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
 
   char *basedn = NULL;
   /* Whether to look for the pgpKey or pgpKeyv2 attribute.  */
-  char *pgpkeyattr = "pgpKey";
+  const char *pgpkeyattr = "pgpKey";
   int real_ldap = 0;
 
   log_debug ("my_ldap_connect(%s:%d/%s????%s%s%s%s%s)\n",
@@ -584,7 +584,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
     {
       LDAPMessage *res = NULL;
       /* Look for namingContexts.  */
-      char *attr[] = { "namingContexts", NULL };
+      const char *attr[] = { "namingContexts", NULL };
 
       err = ldap_search_s (ldap_conn, "", LDAP_SCOPE_BASE,
 			   "(objectClass=*)", attr, 0, &res);
@@ -598,7 +598,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
 	       server and not an LDAP keyserver.  */
 	    {
 	      int i;
-	      char *attr2[] =
+	      const char *attr2[] =
 		{ "pgpBaseKeySpaceDN", "pgpVersion", "pgpSoftware", NULL };
 
 	      real_ldap = 1;
@@ -660,7 +660,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
 	  char **vals;
 	  LDAPMessage *si_res = NULL;
 
-	  char *attr2[] = { "pgpBaseKeySpaceDN", "version", "software", NULL };
+	  const char *attr2[] = { "pgpBaseKeySpaceDN", "version", "software", NULL };
 
 	  err = ldap_search_s (ldap_conn, "cn=pgpServerInfo", LDAP_SCOPE_BASE,
 			       "(objectClass=*)", attr2, 0, &si_res);
@@ -883,7 +883,7 @@ ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec,
     /* The ordering is significant.  Specifically, "pgpcertid" needs
        to be the second item in the list, since everything after it
        may be discarded we aren't in verbose mode. */
-    char *attrs[] =
+    const char *attrs[] =
       {
 	pgpkeyattr,
 	"pgpcertid", "pgpuserid", "pgpkeyid", "pgprevoked", "pgpdisabled",
@@ -1081,7 +1081,7 @@ ks_ldap_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
 
     /* The maximum size of the search, including the optional stuff
        and the trailing \0 */
-    char *attrs[] =
+    const char *attrs[] =
       {
 	"pgpcertid", "pgpuserid", "pgprevoked", "pgpdisabled",
 	"pgpkeycreatetime", "pgpkeyexpiretime", "modifytimestamp",
@@ -1344,7 +1344,7 @@ ks_ldap_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
    Note: this function does NOT copy or free ATTR.  It does copy
    VALUE.  */
 static void
-modlist_add (LDAPMod ***modlistp, char *attr, const char *value)
+modlist_add (LDAPMod ***modlistp, const char *attr, const char *value)
 {
   LDAPMod **modlist = *modlistp;
 
@@ -1722,7 +1722,7 @@ extract_attributes (LDAPMod ***modlist, char *line)
 
   if (is_pub)
     {
-      char *algo = fields[3];
+      const char *algo = fields[3];
       int val = atoi (algo);
       switch (val)
 	{

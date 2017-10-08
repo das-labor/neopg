@@ -72,7 +72,7 @@ struct options
   int quiet;
   unsigned debug;
   int armor;
-  char *outfile;
+  const char *outfile;
   estream_t outfp;  /* Hack, sometimes used in place of outfile.  */
   off_t max_output;
 

@@ -461,7 +461,7 @@ get_pubkeys (ctrl_t ctrl,
   static strlist_t key_dups;
 
   /* USE transformed to a string.  */
-  char *use_str;
+  const char *use_str;
 
   gpg_error_t err;
 

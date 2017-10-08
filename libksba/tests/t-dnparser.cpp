@@ -31,7 +31,7 @@
 static void
 test_0 (void)
 {
-  static char *good_strings[] = {
+  static const char *good_strings[] = {
     "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko",
     "C= de,   O=g10 Code  ,  OU=qa ,CN=Pépé le Moko",
     "CN=www.gnupg.org",
@@ -68,7 +68,7 @@ test_0 (void)
 static void
 test_1 (void)
 {
-  static char *empty_elements[] = {
+  static const char *empty_elements[] = {
     "C=de,O=foo,OU=,CN=joe",
     "C=de,O=foo,OU= ,CN=joe",
     "C=de,O=foo,OU=\"\" ,CN=joe",
@@ -102,7 +102,7 @@ test_1 (void)
 static void
 test_2 (void)
 {
-  static char *invalid_labels[] = {
+  static const char *invalid_labels[] = {
     "C=de,FOO=something,O=bar",
     "Y=foo, C=baz",
     NULL
@@ -136,10 +136,12 @@ dnparser_main (int argc, char **argv)
   unsigned char *buf;
   size_t len;
   gpg_error_t err;
-
+  size_t amt;
+  
   if (argc == 2 && !strcmp (argv[1], "--to-str") )
     { /* Read the DER encoded DN from stdin write the string to stdout */
-      fread (inputbuf, 1, sizeof inputbuf, stdin);
+      amt = fread (inputbuf, 1, sizeof inputbuf, stdin);
+      assert (amt == sizeof(inputbuf));
       if (!feof (stdin))
         fail ("read error or input too large");
 
@@ -148,7 +150,8 @@ dnparser_main (int argc, char **argv)
     }
   else if (argc == 2 && !strcmp (argv[1], "--to-der") )
     { /* Read the String from stdin write the DER encoding to stdout */
-      fread (inputbuf, 1, sizeof inputbuf, stdin);
+      amt = fread (inputbuf, 1, sizeof inputbuf, stdin);
+      assert (amt == sizeof(inputbuf));
       if (!feof (stdin))
         fail ("read error or input too large");
 

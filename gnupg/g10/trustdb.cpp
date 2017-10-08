@@ -1145,7 +1145,7 @@ tdb_get_validity_core (ctrl_t ctrl,
             {
               if (DBG_TRUST)
                 {
-                  char *s;
+                  const char *s;
                   if (user_id->flags.revoked && user_id->flags.expired)
                     s = "revoked and expired";
                   else if (user_id->flags.revoked)

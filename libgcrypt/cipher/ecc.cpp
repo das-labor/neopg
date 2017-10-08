@@ -1792,15 +1792,15 @@ static gpg_error_t
 compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparms)
 {
 #define N_COMPONENTS 7
-  static const char names[N_COMPONENTS] = "pabgnhq";
+  static const char names[N_COMPONENTS] = { 'p', 'a', 'b', 'g', 'n', 'h', 'q' };
   gpg_error_t rc;
   gcry_sexp_t l1;
   gcry_mpi_t values[N_COMPONENTS];
   int idx;
   char *curvename = NULL;
   int flags = 0;
-  enum gcry_mpi_ec_models model = 0;
-  enum ecc_dialects dialect = 0;
+  enum gcry_mpi_ec_models model = (enum gcry_mpi_ec_models) 0;
+  enum ecc_dialects dialect = (enum ecc_dialects) 0;
 
   /* Clear the values first.  */
   for (idx=0; idx < N_COMPONENTS; idx++)

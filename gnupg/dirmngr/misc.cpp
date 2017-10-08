@@ -478,6 +478,8 @@ remove_percent_escapes (unsigned char *string)
 }
 
 #include <ctype.h>
+
+char *
 x_strlwr(char *s)
 {
     char *p;

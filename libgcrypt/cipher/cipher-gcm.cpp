@@ -561,7 +561,7 @@ _gcry_cipher_gcm_encrypt (gcry_cipher_hd_t c,
                           byte *outbuf, size_t outbuflen,
                           const byte *inbuf, size_t inbuflen)
 {
-  static const unsigned char zerobuf[MAX_BLOCKSIZE];
+  static unsigned char zerobuf[MAX_BLOCKSIZE];
   gpg_error_t err;
 
   if (c->spec->blocksize != GCRY_GCM_BLOCK_LEN)
@@ -610,7 +610,7 @@ _gcry_cipher_gcm_decrypt (gcry_cipher_hd_t c,
                           byte *outbuf, size_t outbuflen,
                           const byte *inbuf, size_t inbuflen)
 {
-  static const unsigned char zerobuf[MAX_BLOCKSIZE];
+  static unsigned char zerobuf[MAX_BLOCKSIZE];
 
   if (c->spec->blocksize != GCRY_GCM_BLOCK_LEN)
     return GPG_ERR_CIPHER_ALGO;
@@ -650,7 +650,7 @@ gpg_error_t
 _gcry_cipher_gcm_authenticate (gcry_cipher_hd_t c,
                                const byte * aadbuf, size_t aadbuflen)
 {
-  static const unsigned char zerobuf[MAX_BLOCKSIZE];
+  static unsigned char zerobuf[MAX_BLOCKSIZE];
 
   if (c->spec->blocksize != GCRY_GCM_BLOCK_LEN)
     return GPG_ERR_CIPHER_ALGO;

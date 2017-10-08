@@ -1654,12 +1654,12 @@ ask_about_binding (ctrl_t ctrl,
           * small, medium or large units?  (Note: whatever we do, we \
           * keep the value in seconds.  Then when we group, everything \
           * that rounds to the same number of seconds is grouped.)  */ \
-         "      when delta < -("STRINGIFY (TIME_AGO_FUTURE_IGNORE)") then 2\n" \
-         "      when delta < ("STRINGIFY (TIME_AGO_SMALL_THRESHOLD)")\n" \
+         "      when delta < -(" STRINGIFY (TIME_AGO_FUTURE_IGNORE) ") then 2\n" \
+         "      when delta < (" STRINGIFY (TIME_AGO_SMALL_THRESHOLD) ")\n" \
          "       then 3\n" \
-         "      when delta < ("STRINGIFY (TIME_AGO_MEDIUM_THRESHOLD)")\n" \
+         "      when delta < (" STRINGIFY (TIME_AGO_MEDIUM_THRESHOLD) ")\n" \
          "       then 4\n" \
-         "      when delta < ("STRINGIFY (TIME_AGO_LARGE_THRESHOLD)")\n" \
+         "      when delta < (" STRINGIFY (TIME_AGO_LARGE_THRESHOLD) ")\n" \
          "       then 5\n" \
          "      else 6\n" \
          "     end time_ago,\n" \

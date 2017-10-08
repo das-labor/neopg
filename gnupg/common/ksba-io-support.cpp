@@ -116,10 +116,10 @@ struct gnupg_ksba_io_s {
 
 
 /* The base-64 character list */
-static char bintoasc[64] =
-       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-       "abcdefghijklmnopqrstuvwxyz"
-       "0123456789+/";
+static char bintoasc[64] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+			     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+			     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/' };
+
 /* The reverse base-64 list */
 static unsigned char asctobin[256] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,

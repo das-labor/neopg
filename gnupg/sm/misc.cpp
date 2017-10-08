@@ -42,7 +42,7 @@ void
 setup_pinentry_env (void)
 {
 #ifndef HAVE_W32_SYSTEM
-  char *lc;
+  const char *lc;
   const char *name, *value;
   int iterator;
 

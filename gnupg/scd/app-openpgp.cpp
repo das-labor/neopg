@@ -87,7 +87,7 @@ static struct {
                                  status bytes. */
   int try_extlen:1;           /* Large object; try to use an extended
                                  length APDU.  */
-  char *desc;
+  const char *desc;
 } data_objects[] = {
   { 0x005E, 0,    0, 1, 0, 0, 0, 0, "Login Data" },
   { 0x5F50, 0,    0, 0, 0, 0, 0, 0, "URL" },

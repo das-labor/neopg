@@ -1690,7 +1690,7 @@ verify_pin (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   gpg_error_t err;
   pininfo_t pininfo;
   char *pinvalue;
-  char *prompt;
+  const char *prompt;
   int sw;
 
   sw = apdu_send_simple (app->slot, 0, 0x00, ISO7816_VERIFY, 0x00, 0x81,

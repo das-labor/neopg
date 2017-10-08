@@ -128,7 +128,7 @@ gpgsql_stepx (sqlite3 *db,
     {
       for (i = 1; i <= args; i ++)
         {
-          t = va_arg (va, enum gpgsql_arg_type);
+          t = va_arg (va, int /* enum gpgsql_arg_type */);
           switch (t)
             {
             case GPGSQL_ARG_INT:
@@ -169,7 +169,7 @@ gpgsql_stepx (sqlite3 *db,
         }
 
     }
-  t = va_arg (va, enum gpgsql_arg_type);
+  t = va_arg (va, int /* enum gpgsql_arg_type */);
   log_assert (t == GPGSQL_ARG_END);
   va_end (va);
 

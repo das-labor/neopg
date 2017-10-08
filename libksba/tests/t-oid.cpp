@@ -76,8 +76,8 @@ test_oid_to_str (void)
 {
   struct {
     unsigned int binlen;
-    unsigned char *bin;
-    char *str;
+    const char *bin;
+    const char *str;
   } tests[] = {
 
     {  7, "\x02\x82\x06\x01\x0A\x0C\x00",

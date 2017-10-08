@@ -235,7 +235,7 @@ int parse_image_header(const struct user_attribute *attr,byte *type,u32 *len)
    compatibility. */
 char *image_type_to_string(byte type,int style)
 {
-  char *string;
+  const char *string;
 
   switch(type)
     {

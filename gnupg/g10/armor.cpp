@@ -88,7 +88,7 @@ typedef enum {
  * into a mode which fakes packets and wait for the next armor */
 #define BEGIN_SIGNATURE 2
 #define BEGIN_SIGNED_MSG_IDX 3
-static char *head_strings[] = {
+static const char *head_strings[] = {
     "BEGIN PGP MESSAGE",
     "BEGIN PGP PUBLIC KEY BLOCK",
     "BEGIN PGP SIGNATURE",
@@ -98,7 +98,7 @@ static char *head_strings[] = {
     "BEGIN PGP SECRET KEY BLOCK",   /* only used by pgp2 */
     NULL
 };
-static char *tail_strings[] = {
+static const char *tail_strings[] = {
     "END PGP MESSAGE",
     "END PGP PUBLIC KEY BLOCK",
     "END PGP SIGNATURE",

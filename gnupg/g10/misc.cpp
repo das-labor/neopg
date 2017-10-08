@@ -1242,7 +1242,7 @@ default_compress_algo(void)
 void
 compliance_failure(void)
 {
-  char *ver="???";
+  const char *ver="???";
 
   switch(opt.compliance)
     {

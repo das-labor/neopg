@@ -160,10 +160,10 @@ void compliance_failure(void);
 
 struct parse_options
 {
-  char *name;
+  const char *name;
   unsigned int bit;
   char **value;
-  char *help;
+  const char *help;
 };
 
 char *optsep(char **stringp);

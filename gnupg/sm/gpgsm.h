@@ -303,7 +303,7 @@ int gpgsm_walk_cert_chain (ctrl_t ctrl,
                            ksba_cert_t start, ksba_cert_t *r_next);
 int gpgsm_is_root_cert (ksba_cert_t cert);
 int gpgsm_validate_chain (ctrl_t ctrl, ksba_cert_t cert,
-                          ksba_isotime_t checktime,
+                          const ksba_isotime_t checktime,
                           ksba_isotime_t r_exptime,
                           int listmode, estream_t listfp,
                           unsigned int flags, unsigned int *retflags);

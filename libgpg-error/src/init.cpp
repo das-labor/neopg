@@ -57,7 +57,7 @@ static void
 real_init (void)
 {
 #ifdef ENABLE_NLS
-  char *locale_dir;
+  const char *locale_dir;
 
   /* We only have to bind our locale directory to our text domain.  */
   locale_dir = get_locale_dir ();

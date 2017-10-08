@@ -140,8 +140,8 @@ set_exec_path(const char *path)
 static int
 make_tempdir(struct exec_info *info)
 {
-  char *tmp=opt.temp_dir,*namein=info->name,*nameout;
-
+  const char *tmp=opt.temp_dir,*namein=info->name,*nameout;
+  
   if(!namein)
     namein=info->flags.binary?"tempin" EXTSEP_S "bin":"tempin" EXTSEP_S "txt";
 
@@ -232,7 +232,7 @@ expand_args(struct exec_info *info,const char *args_in)
     {
       if(*ch=='%')
 	{
-	  char *append=NULL;
+	  const char *append=NULL;
 
 	  ch++;
 
@@ -375,7 +375,7 @@ exec_write(struct exec_info **info,const char *program,
 
       if((*info)->child==0)
 	{
-	  char *shell=getenv("SHELL");
+	  const char *shell=getenv("SHELL");
 
 	  if(shell==NULL)
 	    shell="/bin/sh";

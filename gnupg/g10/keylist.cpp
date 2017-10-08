@@ -1043,7 +1043,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	{
 	  PKT_signature *sig = node->pkt->pkt.signature;
 	  int sigrc;
-	  char *sigstr;
+	  const char *sigstr;
 
 	  if (listctx->check_sigs)
 	    {
@@ -1469,7 +1469,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	{
 	  PKT_signature *sig = node->pkt->pkt.signature;
 	  int sigrc, fprokay = 0;
-	  char *sigstr;
+	  const char *sigstr;
 	  size_t fplen;
 	  byte fparray[MAX_FINGERPRINT_LEN];
           char *siguid;

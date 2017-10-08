@@ -1214,7 +1214,7 @@ clearsign_file (ctrl_t ctrl,
 
     if( opt.not_dash_escaped )
       iobuf_writestr( out,
-                      "NotDashEscaped: You need "GPG_NAME
+                      "NotDashEscaped: You need " GPG_NAME
                       " to verify this message" LF );
     iobuf_writestr(out, LF );
 

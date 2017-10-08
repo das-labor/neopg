@@ -516,7 +516,7 @@ start_cert_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
   char *user = NULL;
   char *pass = NULL;
   const char *base;
-  char *argv[50];
+  const char *argv[50];
   int argc = 0;
   int argc_malloced = 0;
   char portbuf[30], timeoutbuf[30];

@@ -1894,7 +1894,7 @@ parse_subpacket_list(char *list)
 static int
 parse_list_options(char *str)
 {
-  char *subpackets=""; /* something that isn't NULL */
+  const char *subpackets=""; /* something that isn't NULL */
   struct parse_options lopts[]=
     {
       {"show-photos",LIST_SHOW_PHOTOS,NULL,
@@ -3720,7 +3720,7 @@ gpg_main (int argc, char **argv)
     /* We don't support all possible commands with multifile yet */
     if(multifile)
       {
-	char *cmdname;
+	const char *cmdname;
 
 	switch(cmd)
 	  {

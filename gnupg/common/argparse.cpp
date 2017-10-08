@@ -1027,7 +1027,8 @@ arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
 		    argc--; argv++; idx++; /* Skip one.  */
                   }
               }
-	    s = "x"; /* This is so that !s[1] yields false.  */
+	    // s = "x"; /* This is so that !s[1] yields false.  */
+	    goto skipthis;
           }
 	else
           {
@@ -1041,6 +1042,8 @@ arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
 	    arg->internal.inarg = 0;
 	    argc--; argv++; idx++;
           }
+      skipthis:
+	;
       }
   else if ( arg->flags & ARGPARSE_FLAG_MIXED )
     {

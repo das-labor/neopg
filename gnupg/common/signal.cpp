@@ -98,7 +98,8 @@ static RETSIGTYPE
 got_fatal_signal (int sig)
 {
   const char *s;
-
+  size_t amt;
+  
   if (caught_fatal_sig)
     raise (sig);
   caught_fatal_sig = 1;
@@ -106,14 +107,22 @@ got_fatal_signal (int sig)
   if (cleanup_fnc)
     cleanup_fnc ();
   /* Better don't translate these messages. */
-  (void)write (2, "\n", 1 );
+  amt = write (2, "\n", 1 );
+  assert(amt == 1);
   s = log_get_prefix (NULL);
   if (s)
-    (void)write(2, s, strlen (s));
-  (void)write (2, ": signal ", 9 );
+    {
+      amt = write(2, s, strlen (s));
+      assert (amt == strlen(s));
+    }
+  amt = write (2, ": signal ", 9 );
+  assert (amt == 9);
   s = get_signal_name(sig);
   if (s)
-    (void) write (2, s, strlen(s) );
+    {
+      amt = write (2, s, strlen(s) );
+      assert (amt == strlen(s));
+    }
   else
     {
       /* We are in a signal handler so we can't use any kind of printf
@@ -123,7 +132,10 @@ got_fatal_signal (int sig)
          things are messed up because we modify its value.  Although
          this is a bug in that system, we will protect against it.  */
       if (sig < 0 || sig >= 100000)
-        (void)write (2, "?", 1);
+        {
+	  amt  = write (2, "?", 1);
+	  assert (amt == 1);
+	}
       else
         {
           int i, value, any=0;
@@ -132,7 +144,8 @@ got_fatal_signal (int sig)
             {
               if (value >= i || ((any || i==1) && !(value/i)))
                 {
-                  (void)write (2, &"0123456789"[value/i], 1);
+                  amt = write (2, &"0123456789"[value/i], 1);
+		  assert (amt == 1);
                   if ((value/i))
                     any = 1;
                   value %= i;
@@ -140,7 +153,8 @@ got_fatal_signal (int sig)
             }
         }
     }
-  (void)write (2, " caught ... exiting\n", 20);
+  amt = write (2, " caught ... exiting\n", 20);
+  assert (amt == 20);
 
   /* Reset action to default action and raise signal again */
   init_one_signal (sig, SIG_DFL, 0);
