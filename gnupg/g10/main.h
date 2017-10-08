@@ -112,11 +112,11 @@ const byte *get_session_marker( size_t *rlen );
 
 enum gcry_cipher_algos map_cipher_openpgp_to_gcry (cipher_algo_t algo);
 #define openpgp_cipher_open(_a,_b,_c,_d) \
-  gcry_cipher_open((_a),map_cipher_openpgp_to_gcry((_b)),(_c),(_d))
+  gcry_cipher_open((_a),map_cipher_openpgp_to_gcry((cipher_algo_t)(_b)),(_c),(_d))
 #define openpgp_cipher_get_algo_keylen(_a) \
-  gcry_cipher_get_algo_keylen(map_cipher_openpgp_to_gcry((_a)))
+  gcry_cipher_get_algo_keylen((cipher_algo_t)map_cipher_openpgp_to_gcry((cipher_algo_t)(_a)))
 #define openpgp_cipher_get_algo_blklen(_a) \
-  gcry_cipher_get_algo_blklen(map_cipher_openpgp_to_gcry((_a)))
+  gcry_cipher_get_algo_blklen((cipher_algo_t)map_cipher_openpgp_to_gcry((cipher_algo_t)(_a)))
 int openpgp_cipher_blocklen (cipher_algo_t algo);
 int openpgp_cipher_test_algo(cipher_algo_t algo);
 const char *openpgp_cipher_algo_name (cipher_algo_t algo);

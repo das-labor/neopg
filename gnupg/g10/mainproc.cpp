@@ -648,7 +648,7 @@ proc_encrypted (CTX c, PACKET *pkt)
   else if (!result
            && !opt.ignore_mdc_error
            && !pkt->pkt.encrypted->mdc_method
-           && openpgp_cipher_get_algo_blklen (c->dek->algo) != 8
+           && openpgp_cipher_get_algo_blklen ((cipher_algo_t)c->dek->algo) != 8
            && c->dek->algo != CIPHER_ALGO_TWOFISH)
     {
       /* The message has been decrypted but has no MDC despite that a

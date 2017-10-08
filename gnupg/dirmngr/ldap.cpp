@@ -328,7 +328,7 @@ parse_one_pattern (const char *pattern)
     case '<':			/* Email. */
       {
         pattern++;
-	result = xmalloc (sizeof *result + 5 + strlen (pattern));
+	result = (strlist_t) xmalloc (sizeof *result + 5 + strlen (pattern));
         result->next = NULL;
         result->flags = 0;
 	p = stpcpy (stpcpy (result->d, "mail="), pattern);
@@ -647,7 +647,7 @@ start_cert_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
 
  leave:
   for (; argc_malloced < argc; argc_malloced++)
-    xfree (argv[argc_malloced]);
+    xfree ((void*)argv[argc_malloced]);
   xfree (proxy);
   xfree (host);
   xfree (user);

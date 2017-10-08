@@ -114,7 +114,7 @@ key_present_value_new (void)
 {
   struct key_present *k;
 
-  k = xmalloc_clear (sizeof *k);
+  k = (struct key_present *) xmalloc_clear (sizeof *k);
   return k;
 }
 
@@ -124,7 +124,7 @@ key_present_hash_new (void)
 {
   struct key_present **tbl;
 
-  tbl = xmalloc_clear (KEY_PRESENT_HASH_BUCKETS * sizeof *tbl);
+  tbl = (struct key_present **) xmalloc_clear (KEY_PRESENT_HASH_BUCKETS * sizeof *tbl);
   return tbl;
 }
 
@@ -204,7 +204,7 @@ keyring_register_filename (const char *fname, int read_only, void **ptr)
 	  }
       }
 
-    kr = xmalloc (sizeof *kr + strlen (fname));
+    kr = (KR_RESOURCE) xmalloc (sizeof *kr + strlen (fname));
     strcpy (kr->fname, fname);
     kr->read_only = read_only;
     kr->lockhd = NULL;
@@ -226,7 +226,7 @@ keyring_register_filename (const char *fname, int read_only, void **ptr)
 int
 keyring_is_writable (void *token)
 {
-  KR_RESOURCE r = token;
+  KR_RESOURCE r = (KR_RESOURCE) token;
 
   return r? (r->read_only || !access (r->fname, W_OK)) : 0;
 }
@@ -240,11 +240,11 @@ KEYRING_HANDLE
 keyring_new (void *token)
 {
   KEYRING_HANDLE hd;
-  KR_RESOURCE resource = token;
+  KR_RESOURCE resource = (KR_RESOURCE) token;
 
   log_assert (resource);
 
-  hd = xtrycalloc (1, sizeof *hd);
+  hd = (KEYRING_HANDLE) xtrycalloc (1, sizeof *hd);
   if (!hd)
     return hd;
   hd->resource = resource;
@@ -406,7 +406,7 @@ keyring_get_keyblock (KEYRING_HANDLE hd, KBNODE *ret_kb)
 	return GPG_ERR_KEYRING_OPEN;
     }
 
-    pkt = xmalloc (sizeof *pkt);
+    pkt = (PACKET*)xmalloc (sizeof *pkt);
     init_packet (pkt);
     init_parse_packet (&parsectx, a);
     hd->found.n_packets = 0;
@@ -497,7 +497,7 @@ keyring_get_keyblock (KEYRING_HANDLE hd, KBNODE *ret_kb)
             break;
           }
 
-        pkt = xmalloc (sizeof *pkt);
+        pkt = (PACKET*) xmalloc (sizeof *pkt);
         init_packet(pkt);
     }
     set_packet_list_mode(save_mode);
@@ -814,11 +814,11 @@ static const byte word_match_chars[256] = {
  *	 UTF-8 encoding)
  */
 static int
-word_match( const byte *uid, size_t uidlen, const byte *pattern )
+word_match( const char *uid, size_t uidlen, const char *pattern )
 {
     size_t wlen, n;
-    const byte *p;
-    const byte *s;
+    const char *p;
+    const char *s;
 
     for( s=pattern; *s; ) {
 	do {
@@ -858,13 +858,13 @@ word_match( const byte *uid, size_t uidlen, const byte *pattern )
  * caller has to free the returned pattern
  */
 static char*
-prepare_word_match (const byte *name)
+prepare_word_match (const char *name)
 {
-    byte *pattern, *p;
+    char *pattern, *p;
     int c;
 
     /* the original length is always enough for the pattern */
-    p = pattern = xmalloc(strlen(name)+1);
+    p = pattern = (char*) xmalloc(strlen(name)+1);
     do {
 	/* skip leading delimiters */
 	while( *name && !word_match_chars[*name] )
@@ -1100,7 +1100,7 @@ keyring_search (KEYRING_HANDLE hd, KEYDB_SEARCH_DESC *desc,
   init_parse_packet (&parsectx, hd->current.iobuf);
   while (1)
     {
-      byte afp[MAX_FINGERPRINT_LEN];
+      char afp[MAX_FINGERPRINT_LEN];
       size_t an;
 
       rc = search_packet (&parsectx, &pkt, &offset, need_uid);
@@ -1135,7 +1135,7 @@ keyring_search (KEYRING_HANDLE hd, KEYDB_SEARCH_DESC *desc,
           ++pk_no;
 
           if (need_fpr) {
-            fingerprint_from_pk (pk, afp, &an);
+            fingerprint_from_pk (pk, (byte*) afp, &an);
             while (an < 20) /* fill up to 20 bytes */
               afp[an++] = 0;
           }
@@ -1522,8 +1522,8 @@ keyring_rebuild_cache (ctrl_t ctrl, void *token, int noisy)
                   PKT_signature *sig=node->pkt->pkt.signature;
 
                   if(!opt.no_sig_cache && sig->flags.checked && sig->flags.valid
-                     && (openpgp_md_test_algo(sig->digest_algo)
-                         || openpgp_pk_test_algo(sig->pubkey_algo)))
+                     && (openpgp_md_test_algo((digest_algo_t)sig->digest_algo)
+                         || openpgp_pk_test_algo((pubkey_algo_t)sig->pubkey_algo)))
                     sig->flags.checked=sig->flags.valid=0;
                   else
                     check_key_signature (ctrl, keyblock, node, NULL);

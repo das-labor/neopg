@@ -51,7 +51,7 @@ static const struct {
               */
   const char *description;
   size_t      oidlen;
-  const unsigned char *oid;  /* DER encoded OID.  */
+  const char *oid;  /* DER encoded OID.  */
   const char *oidstr;        /* OID as dotted string.  */
 } oid_name_tbl[] = {
 {"CN", 1, "CommonName",            3, "\x55\x04\x03", "2.5.4.3" },

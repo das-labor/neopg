@@ -866,7 +866,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
   int no_protection;
   unsigned char *value;
   size_t valuelen;
-  unsigned char *newpasswd = NULL;
+  char *newpasswd = NULL;
   membuf_t outbuf;
   char *cache_nonce = NULL;
   char *passwd_nonce = NULL;

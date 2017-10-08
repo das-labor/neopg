@@ -549,7 +549,7 @@ struct packet_struct {
     } pkt;
 };
 
-#define init_packet(a) do { (a)->pkttype = 0;		\
+#define init_packet(a) do { (a)->pkttype = (pkttype_t) 0;		\
 			    (a)->pkt.generic = NULL;	\
 		       } while(0)
 
@@ -630,7 +630,7 @@ typedef struct parse_packet_ctx_s *parse_packet_ctx_t;
 
 #define init_parse_packet(a,i) do { \
     (a)->inp = (i);                 \
-    (a)->last_pkt.pkttype = 0;      \
+    (a)->last_pkt.pkttype = (pkttype_t) 0;      \
     (a)->last_pkt.pkt.generic= NULL;\
     (a)->free_last_pkt = 0;         \
     (a)->skip_meta = 0;             \

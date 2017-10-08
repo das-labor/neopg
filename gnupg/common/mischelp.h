@@ -51,7 +51,7 @@ time_t timegm (struct tm *tm);
    macros may be used instead. */
 #define wipememory2(_ptr,_set,_len) do { \
               volatile char *_vptr=(volatile char *)(_ptr); \
-              size_t _vlen=(_len); \
+              size_t _vlen=(size_t)(_len);			\
               while(_vlen) { *_vptr=(_set); _vptr++; _vlen--; } \
                   } while(0)
 #define wipememory(_ptr,_len) wipememory2(_ptr,0,_len)

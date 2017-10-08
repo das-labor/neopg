@@ -342,7 +342,7 @@ get_it (ctrl_t ctrl,
       dek->algo = 0;
       goto leave;
     }
-  if (dek->keylen != openpgp_cipher_get_algo_keylen (dek->algo))
+  if (dek->keylen != openpgp_cipher_get_algo_keylen ((cipher_algo_t)dek->algo))
     {
       err = GPG_ERR_WRONG_SECKEY;
       goto leave;

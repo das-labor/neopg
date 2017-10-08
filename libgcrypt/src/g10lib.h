@@ -348,7 +348,7 @@ typedef struct fast_wipememory_s
               _vset_long *= FASTWIPE_MULT; \
               do { \
                 volatile fast_wipememory_t *_vptr_long = \
-                  (volatile void *)_vptr; \
+                  (volatile fast_wipememory_t *)_vptr; \
                 _vptr_long->a = _vset_long; \
                 _vlen -= sizeof(FASTWIPE_T); \
                 _vptr += sizeof(FASTWIPE_T); \

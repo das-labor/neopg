@@ -2193,7 +2193,7 @@ validate_keys (ctrl_t ctrl, int interactive)
 			kar->keyblock->pkt->pkt.public_key->trust_value;
 		      if(kar->keyblock->pkt->pkt.public_key->trust_regexp)
 			k->trust_regexp=
-			  xstrdup(kar->keyblock->pkt->
+			  xstrdup((const char *) kar->keyblock->pkt->
 				   pkt.public_key->trust_regexp);
 		      k->next = klist;
 		      klist = k;

@@ -143,7 +143,7 @@ _ksba_asn_set_value (AsnNode node,
       node->value.v_bool = !!(const unsigned *)value;
       break;
     case VALTYPE_CSTR:
-      node->value.v_cstr = xstrdup (value);
+      node->value.v_cstr = xstrdup ((const char*)value);
       break;
     case VALTYPE_MEM:
       node->value.v_mem.len = len;
