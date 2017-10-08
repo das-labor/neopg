@@ -1,4 +1,3 @@
-#define strsep(a,b) 0
 /* keyserver.c - generic keyserver code
  * Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
  *               2009, 2011, 2012 Free Software Foundation, Inc.
@@ -593,7 +592,7 @@ parse_keyrec(char *keystring)
 
   trim_trailing_ws (keystring, strlen (keystring));
 
-  if((record=strsep(&keystring,":"))==NULL)
+  if((record=gpg_strsep(&keystring,":"))==NULL)
     return ret;
 
   if(ascii_strcasecmp("pub",record)==0)
@@ -608,7 +607,7 @@ parse_keyrec(char *keystring)
 	  work->uidbuf=iobuf_temp();
 	}
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       err = classify_user_id (tok, &work->desc, 1);
@@ -626,17 +625,17 @@ parse_keyrec(char *keystring)
 
       work->lines++;
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       work->type=atoi(tok);
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       work->size=atoi(tok);
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       if(atoi(tok)<=0)
@@ -644,7 +643,7 @@ parse_keyrec(char *keystring)
       else
 	work->createtime=atoi(tok);
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       if(atoi(tok)<=0)
@@ -657,7 +656,7 @@ parse_keyrec(char *keystring)
 	    work->flags|=4;
 	}
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       while(*tok)
@@ -683,7 +682,7 @@ parse_keyrec(char *keystring)
     {
       char *userid,*tok,*decoded;
 
-      if((tok=strsep(&keystring,":"))==NULL)
+      if((tok=gpg_strsep(&keystring,":"))==NULL)
 	return ret;
 
       if(strlen(tok)==0)
@@ -770,7 +769,7 @@ show_prompt (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int numdesc,
       int numidx = 0;
       int idx;
 
-      while ((num = strsep (&split, " ,")))
+      while ((num = gpg_strsep (&split, " ,")))
 	if (atoi (num) >= 1 && atoi (num) <= numdesc)
           {
             if (numidx >= DIM (numarray))
@@ -849,7 +848,7 @@ search_line_handler (void *opaque, int special, char *line)
       char *str = line + 5;
       char *tok;
 
-      if ((tok = strsep (&str, ":")))
+      if ((tok = gpg_strsep (&str, ":")))
         {
           int version;
 
@@ -864,7 +863,7 @@ search_line_handler (void *opaque, int special, char *line)
             }
         }
 
-      if ((tok = strsep (&str, ":"))
+      if ((tok = gpg_strsep (&str, ":"))
           && sscanf (tok, "%d", &parm->count) == 1)
         {
           if (!parm->count)

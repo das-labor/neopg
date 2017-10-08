@@ -1,5 +1,3 @@
-#define strsep(a,b) 0
-
 /* misc.c - miscellaneous functions
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
  *               2008, 2009, 2010 Free Software Foundation, Inc.
@@ -1513,7 +1511,7 @@ path_access(const char *file,int mode)
 
       split=path;
 
-      while((item=strsep(&split,PATHSEP_S)))
+      while((item=gpg_strsep(&split,PATHSEP_S)))
 	{
 	  strcpy(buffer,item);
 	  strcat(buffer,"/");
