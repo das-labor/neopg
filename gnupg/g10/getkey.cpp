@@ -235,7 +235,7 @@ cache_public_key (PKT_public_key * pk)
       log_assert (pk_cache_entries < MAX_PK_CACHE_ENTRIES);
     }
   pk_cache_entries++;
-  ce = xmalloc (sizeof *ce);
+  ce = (pk_cache_entry_t) xmalloc (sizeof *ce);
   ce->next = pk_cache;
   pk_cache = ce;
   ce->pk = copy_public_key (NULL, pk);
@@ -315,7 +315,7 @@ cache_user_id (KBNODE keyblock)
       if (k->pkt->pkttype == PKT_PUBLIC_KEY
 	  || k->pkt->pkttype == PKT_PUBLIC_SUBKEY)
 	{
-	  keyid_list_t a = xmalloc_clear (sizeof *a);
+	  keyid_list_t a = (keyid_list_t) xmalloc_clear (sizeof *a);
 	  /* Hmmm: For a long list of keyids it might be an advantage
 	   * to append the keys.  */
           fingerprint_from_pk (k->pkt->pkt.public_key, a->fpr, NULL);
@@ -357,7 +357,7 @@ cache_user_id (KBNODE keyblock)
       xfree (r);
       uid_cache_entries--;
     }
-  r = xmalloc (sizeof *r + uidlen - 1);
+  r = (user_id_db_t) xmalloc (sizeof *r + uidlen - 1);
   r->keyids = keyids;
   r->len = uidlen;
   memcpy (r->name, uid, r->len);
@@ -524,7 +524,7 @@ get_pubkeys (ctrl_t ctrl,
   count = 0;
   do
     {
-      PKT_public_key *pk = xmalloc_clear (sizeof *pk);
+      PKT_public_key *pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
       KBNODE kb;
       pk->req_usage = use;
 
@@ -552,7 +552,7 @@ get_pubkeys (ctrl_t ctrl,
       /* Another result!  */
       count ++;
 
-      r = xmalloc_clear (sizeof (*r));
+      r = (pubkey_t) xmalloc_clear (sizeof (*r));
       r->pk = pk;
       r->keyblock = kb;
       r->next = results;
@@ -724,7 +724,7 @@ get_pubkey (ctrl_t ctrl, PKT_public_key * pk, u32 * keyid)
   /* More init stuff.  */
   if (!pk)
     {
-      pk = xmalloc_clear (sizeof *pk);
+      pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
       internal++;
     }
 
@@ -945,7 +945,7 @@ get_seckey (ctrl_t ctrl, PKT_public_key *pk, u32 *keyid)
 static int
 skip_unusable (void *opaque, u32 * keyid, int uid_no)
 {
-  ctrl_t ctrl = opaque;
+  ctrl_t ctrl = (ctrl_t) opaque;
   int unusable = 0;
   KBNODE keyblock;
   PKT_public_key *pk;
@@ -1068,7 +1068,7 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
   if (!namelist)
     /* No search terms: iterate over the whole DB.  */
     {
-      ctx = xmalloc_clear (sizeof *ctx);
+      ctx = (GETKEY_CTX) xmalloc_clear (sizeof *ctx);
       ctx->nitems = 1;
       ctx->items[0].mode = KEYDB_SEARCH_MODE_FIRST;
       if (!include_unusable)
@@ -1086,7 +1086,7 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
       /* CTX has space for a single search term at the end.  Thus, we
 	 need to allocate sizeof *CTX plus (n - 1) sizeof
 	 CTX->ITEMS.  */
-      ctx = xmalloc_clear (sizeof *ctx + (n - 1) * sizeof ctx->items);
+      ctx = (GETKEY_CTX) xmalloc_clear (sizeof *ctx + (n - 1) * sizeof ctx->items);
       ctx->nitems = n;
 
       for (n = 0, r = namelist; r; r = r->next, n++)
@@ -1646,7 +1646,7 @@ get_best_pubkey_byname (ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
         {
           if (retctx || ret_keyblock)
             {
-              ctx = xtrycalloc (1, sizeof **retctx);
+              ctx = (getkey_ctx_s*) xtrycalloc (1, sizeof **retctx);
               if (! ctx)
                 rc = gpg_error_from_syserror ();
               else
@@ -2447,7 +2447,7 @@ fixup_uidnode (KBNODE uidnode, KBNODE signode, u32 keycreated)
     uid->prefs = NULL;
   else
     {
-      uid->prefs = xmalloc (sizeof (*uid->prefs) * (n + 1));
+      uid->prefs = (prefitem_t*) xmalloc (sizeof (*uid->prefs) * (n + 1));
       n = 0;
       for (; nsym; nsym--, n++)
 	{
@@ -2631,7 +2631,7 @@ merge_selfsigs_main (ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
 		      int i;
 
 		      pk->revkey =
-			xrealloc (pk->revkey, sizeof (struct revocation_key) *
+ (revocation_key*) 			xrealloc (pk->revkey, sizeof (struct revocation_key) *
 				  (pk->numrevkeys + sig->numrevkeys));
 
 		      for (i = 0; i < sig->numrevkeys; i++)
@@ -2684,7 +2684,7 @@ merge_selfsigs_main (ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
 	}
 
       if (changed)
-	pk->revkey = xrealloc (pk->revkey,
+	pk->revkey = (revocation_key*) xrealloc (pk->revkey,
 			       pk->numrevkeys *
 			       sizeof (struct revocation_key));
     }
@@ -2841,7 +2841,7 @@ merge_selfsigs_main (ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
 		{
 		  PKT_public_key *ultimate_pk;
 
-		  ultimate_pk = xmalloc_clear (sizeof (*ultimate_pk));
+		  ultimate_pk = (PKT_public_key*) xmalloc_clear (sizeof (*ultimate_pk));
 
 		  /* We don't want to use the full get_pubkey to
 		     avoid infinite recursion in certain cases.
@@ -3053,7 +3053,7 @@ merge_selfsigs_main (ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
 static PKT_signature *
 buf_to_sig (const byte * buf, size_t len)
 {
-  PKT_signature *sig = xmalloc_clear (sizeof (PKT_signature));
+  PKT_signature *sig = (PKT_signature*) xmalloc_clear (sizeof (PKT_signature));
   IOBUF iobuf = iobuf_temp_with_content (buf, len);
   int save_mode = set_packet_list_mode (0);
 
@@ -3842,7 +3842,7 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
   gpg_error_t err = 0;
   const char *name;
   kbnode_t keyblock;
-  struct
+  struct ctx
   {
     int eof;
     int state;
@@ -3850,12 +3850,13 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
     kbnode_t keyblock;
     kbnode_t node;
     getkey_ctx_t ctx;
-  } *c = *context;
+  };
+  struct ctx *c = (struct ctx *) *context;
 
   if (!c)
     {
       /* Make a new context.  */
-      c = xtrycalloc (1, sizeof *c);
+      c = (struct ctx *) xtrycalloc (1, sizeof *c);
       if (!c)
         return gpg_error_from_syserror ();
       *context = c;
@@ -4059,7 +4060,7 @@ get_user_id_string (ctrl_t ctrl, u32 * keyid, int mode, size_t *r_len)
                       /* An empty string as user id is possible.  Make
                          sure that the malloc allocates one byte and
                          does not bail out.  */
-                      p = xmalloc (r->len? r->len : 1);
+                      p = (char*) xmalloc (r->len? r->len : 1);
                       memcpy (p, r->name, r->len);
                       if (r_len)
                         *r_len = r->len;
@@ -4159,7 +4160,7 @@ get_user_id_byfpr (ctrl_t ctrl, const byte *fpr, size_t *rn)
                   /* An empty string as user id is possible.  Make
                      sure that the malloc allocates one byte and does
                      not bail out.  */
-		  p = xmalloc (r->len? r->len : 1);
+		  p = (char*) xmalloc (r->len? r->len : 1);
 		  memcpy (p, r->name, r->len);
 		  *rn = r->len;
 		  return p;
@@ -4233,7 +4234,7 @@ parse_auto_key_locate (char *options)
       if (tok[0] == '\0')
 	continue;
 
-      akl = xmalloc_clear (sizeof (*akl));
+      akl = (struct akl*) xmalloc_clear (sizeof (*akl));
 
       if (ascii_strcasecmp (tok, "clear") == 0)
 	{

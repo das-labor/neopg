@@ -244,12 +244,12 @@ b64enc_write (struct b64state *state, const void *buffer, size_t nbytes)
       size_t n;
       u32 crc = state->crc;
 
-      for (p=buffer, n=nbytes; n; p++, n-- )
+      for (p= (const unsigned char*) buffer, n=nbytes; n; p++, n-- )
         crc = ((u32)crc << 8) ^ crc_table[((crc >> 16)&0xff) ^ *p];
       state->crc = (crc & 0x00ffffff);
     }
 
-  for (p=buffer; nbytes; p++, nbytes--)
+  for (p= (const unsigned char*) buffer; nbytes; p++, nbytes--)
     {
       radbuf[idx++] = *p;
       if (idx > 2)

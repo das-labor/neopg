@@ -45,7 +45,7 @@ struct revocation_reason_info {
 int
 revocation_reason_build_cb( PKT_signature *sig, void *opaque )
 {
-    struct revocation_reason_info *reason = opaque;
+    struct revocation_reason_info *reason = (revocation_reason_info*) opaque;
     char *ud = NULL;
     byte *buffer;
     size_t buflen = 1;
@@ -57,7 +57,7 @@ revocation_reason_build_cb( PKT_signature *sig, void *opaque )
 	ud = native_to_utf8( reason->desc );
 	buflen += strlen(ud);
     }
-    buffer = xmalloc( buflen );
+    buffer = (byte*) xmalloc( buflen );
     *buffer = reason->code;
     if( ud ) {
 	memcpy(buffer+1, ud, strlen(ud) );
@@ -293,7 +293,7 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 	  }
 	else
 	  {
-	    pk2 = xmalloc_clear (sizeof *pk2);
+	    pk2 = (PKT_public_key*) xmalloc_clear (sizeof *pk2);
 	    rc = get_pubkey_byfprint (ctrl, pk2, NULL,
                                       pk->revkey[i].fpr, MAX_FINGERPRINT_LEN);
 	  }
@@ -841,7 +841,7 @@ ask_revocation_reason( int key_rev, int cert_rev, int hint )
 	    if( !description )
 		description = xstrdup(answer);
 	    else {
-		char *p = xmalloc( strlen(description) + strlen(answer) + 2 );
+		char *p = (char*) xmalloc( strlen(description) + strlen(answer) + 2 );
 		strcpy(stpcpy(stpcpy( p, description),"\n"),answer);
 		xfree(description);
 		description = p;
@@ -858,7 +858,7 @@ ask_revocation_reason( int key_rev, int cert_rev, int hint )
     } while( !cpr_get_answer_is_yes("ask_revocation_reason.okay",
 					    _("Is this okay? (y/N) "))  );
 
-    reason = xmalloc( sizeof *reason );
+    reason = (revocation_reason_info*) xmalloc( sizeof *reason );
     reason->code = code;
     reason->desc = description;
     return reason;
@@ -868,7 +868,7 @@ struct revocation_reason_info *
 get_default_uid_revocation_reason(void)
 {
   struct revocation_reason_info *reason;
-  reason = xmalloc( sizeof *reason );
+  reason = (revocation_reason_info*) xmalloc( sizeof *reason );
   reason->code = 0x20; /* uid is no longer valid */
   reason->desc = strdup(""); /* no text */
   return reason;

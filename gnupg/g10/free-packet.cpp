@@ -155,7 +155,7 @@ cp_subpktarea (subpktarea_t *s )
 
     if( !s )
 	return NULL;
-    d = xmalloc (sizeof (*d) + s->size - 1 );
+    d = (subpktarea_t*) xmalloc (sizeof (*d) + s->size - 1 );
     d->size = s->size;
     d->len = s->len;
     memcpy (d->data, s->data, s->len);
@@ -176,7 +176,7 @@ copy_prefs (const prefitem_t *prefs)
 
     for (n=0; prefs[n].type; n++)
         ;
-    neu = xmalloc ( sizeof (*neu) * (n+1));
+    neu = (prefitem_t*) xmalloc ( sizeof (*neu) * (n+1));
     for (n=0; prefs[n].type; n++) {
         neu[n].type = prefs[n].type;
         neu[n].value = prefs[n].value;
@@ -197,7 +197,7 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
   int n, i;
 
   if (!d)
-    d = xmalloc (sizeof *d);
+    d = (PKT_public_key*) xmalloc (sizeof *d);
   memcpy (d, s, sizeof *d);
   d->seckey_info = NULL;
   d->user_id = scopy_user_id (s->user_id);
@@ -219,7 +219,7 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
     BUG();
   if (s->numrevkeys)
     {
-      d->revkey = xmalloc(sizeof(struct revocation_key)*s->numrevkeys);
+      d->revkey = (revocation_key*) xmalloc(sizeof(struct revocation_key)*s->numrevkeys);
       memcpy(d->revkey,s->revkey,sizeof(struct revocation_key)*s->numrevkeys);
     }
   else
@@ -232,7 +232,7 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
 static pka_info_t *
 cp_pka_info (const pka_info_t *s)
 {
-  pka_info_t *d = xmalloc (sizeof *s + strlen (s->email));
+  pka_info_t *d = (pka_info_t*) xmalloc (sizeof *s + strlen (s->email));
 
   d->valid = s->valid;
   d->checked = s->checked;
@@ -249,7 +249,7 @@ copy_signature( PKT_signature *d, PKT_signature *s )
     int n, i;
 
     if( !d )
-	d = xmalloc(sizeof *d);
+	d = (PKT_signature*) xmalloc(sizeof *d);
     memcpy( d, s, sizeof *d );
     n = pubkey_get_nsig( s->pubkey_algo );
     if( !n )
@@ -416,7 +416,7 @@ free_packet (PACKET *pkt, parse_packet_ctx_t parsectx)
               free_packet (&parsectx->last_pkt, NULL);
               parsectx->free_last_pkt = 0;
             }
-          parsectx->last_pkt.pkttype = 0;
+          parsectx->last_pkt.pkttype = (pkttype_t) 0;
           parsectx->last_pkt.pkt.generic = NULL;
         }
       return;

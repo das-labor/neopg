@@ -74,7 +74,7 @@ static estream_t test_stderr;
 static THREAD_RET_TYPE
 producer_thread (void *argaddr)
 {
-  struct thread_arg *arg = argaddr;
+  struct thread_arg *arg = (thread_arg*) argaddr;
   int i = 0;
 
   (void)arg;
@@ -93,7 +93,7 @@ producer_thread (void *argaddr)
 static THREAD_RET_TYPE
 consumer_thread (void *argaddr)
 {
-  struct thread_arg *arg = argaddr;
+  struct thread_arg *arg = (thread_arg*) argaddr;
   char buf[15];
 
   (void)arg;

@@ -170,7 +170,7 @@ unlock_pinentry (gpg_error_t rc)
 static void
 atfork_cb (void *opaque, int where)
 {
-  ctrl_t ctrl = opaque;
+  ctrl_t ctrl = (ctrl_t) opaque;
 
   if (!where)
     {
@@ -226,7 +226,7 @@ getinfo_features_cb (void *opaque, const char *line)
 static gpg_error_t
 getinfo_pid_cb (void *opaque, const void *buffer, size_t length)
 {
-  unsigned long *pid = opaque;
+  unsigned long *pid = (long unsigned int*) opaque;
   char pidbuf[50];
 
   /* There is only the pid in the server's response.  */
@@ -570,7 +570,7 @@ start_pinentry (ctrl_t ctrl)
                          put_membuf_cb, &mb, NULL, NULL, NULL, NULL))
       put_membuf_str (&mb, "? ? ?");
     put_membuf (&mb, "", 1);
-    flavor_version = get_membuf (&mb, NULL);
+    flavor_version = (char*) get_membuf (&mb, NULL);
   }
 
 
@@ -647,7 +647,7 @@ pinentry_active_p (ctrl_t ctrl, int waitseconds)
 static gpg_error_t
 getpin_cb (void *opaque, const void *buffer, size_t length)
 {
-  struct entry_parm_s *parm = opaque;
+  struct entry_parm_s *parm = (entry_parm_s*) opaque;
 
   if (!buffer)
     return 0;
@@ -684,7 +684,7 @@ unescape_passphrase_string (const unsigned char *s)
 {
   char *buffer, *d;
 
-  buffer = d = xtrymalloc_secure (strlen ((const char*)s)+1);
+  buffer = d = (char*) xtrymalloc_secure (strlen ((const char*)s)+1);
   if (!buffer)
     return NULL;
   while (*s && !spacep (s))
@@ -737,7 +737,7 @@ estimate_passphrase_quality (const char *pw)
 static gpg_error_t
 inq_quality (void *opaque, const char *line)
 {
-  assuan_context_t ctx = opaque;
+  assuan_context_t ctx = (assuan_context_t) opaque;
   const char *s;
   char *pin;
   int rc;
@@ -835,7 +835,7 @@ enum
 static gpg_error_t
 pinentry_status_cb (void *opaque, const char *line)
 {
-  unsigned int *flag = opaque;
+  unsigned int *flag = (unsigned int*) opaque;
   const char *args;
 
   if ((args = has_leading_keyword (line, "BUTTON_INFO")))
@@ -1202,7 +1202,7 @@ agent_get_passphrase (ctrl_t ctrl,
 
   memset (&parm, 0, sizeof parm);
   parm.size = ASSUAN_LINELENGTH/2 - 5;
-  parm.buffer = gcry_malloc_secure (parm.size+10);
+  parm.buffer = (unsigned char*) gcry_malloc_secure (parm.size+10);
   if (!parm.buffer)
     return unlock_pinentry (out_of_core ());
 
@@ -1227,7 +1227,7 @@ agent_get_passphrase (ctrl_t ctrl,
   if (rc)
     xfree (parm.buffer);
   else
-    *retpass = parm.buffer;
+    *retpass = (char*) parm.buffer;
   return unlock_pinentry (rc);
 }
 

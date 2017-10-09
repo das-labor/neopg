@@ -206,7 +206,7 @@ static const char *selftest(void);
 static gpg_error_t
 camellia_setkey(void *c, const byte *key, unsigned keylen)
 {
-  CAMELLIA_context *ctx=c;
+  CAMELLIA_context *ctx= (CAMELLIA_context*) c;
   static int initialized=0;
   static const char *selftest_failed=NULL;
 #if defined(USE_AESNI_AVX) || defined(USE_AESNI_AVX2)
@@ -314,7 +314,7 @@ camellia_decrypt(void *c, byte *outbuf, const byte *inbuf)
 static unsigned int
 camellia_encrypt(void *c, byte *outbuf, const byte *inbuf)
 {
-  CAMELLIA_context *ctx=c;
+  CAMELLIA_context *ctx= (CAMELLIA_context*) c;
 
   Camellia_EncryptBlock(ctx->keybitlength,inbuf,ctx->keytable,outbuf);
 
@@ -331,7 +331,7 @@ camellia_encrypt(void *c, byte *outbuf, const byte *inbuf)
 static unsigned int
 camellia_decrypt(void *c, byte *outbuf, const byte *inbuf)
 {
-  CAMELLIA_context *ctx=c;
+  CAMELLIA_context *ctx= (CAMELLIA_context*) c;
 
   Camellia_DecryptBlock(ctx->keybitlength,inbuf,ctx->keytable,outbuf);
 
@@ -355,9 +355,9 @@ _gcry_camellia_ctr_enc(void *context, unsigned char *ctr,
                        void *outbuf_arg, const void *inbuf_arg,
                        size_t nblocks)
 {
-  CAMELLIA_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAMELLIA_context *ctx = (CAMELLIA_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[CAMELLIA_BLOCK_SIZE];
   int burn_stack_depth = CAMELLIA_encrypt_stack_burn_size;
   int i;
@@ -450,9 +450,9 @@ _gcry_camellia_cbc_dec(void *context, unsigned char *iv,
                        void *outbuf_arg, const void *inbuf_arg,
                        size_t nblocks)
 {
-  CAMELLIA_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAMELLIA_context *ctx = (CAMELLIA_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[CAMELLIA_BLOCK_SIZE];
   int burn_stack_depth = CAMELLIA_decrypt_stack_burn_size;
 
@@ -536,9 +536,9 @@ _gcry_camellia_cfb_dec(void *context, unsigned char *iv,
                        void *outbuf_arg, const void *inbuf_arg,
                        size_t nblocks)
 {
-  CAMELLIA_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAMELLIA_context *ctx = (CAMELLIA_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   int burn_stack_depth = CAMELLIA_decrypt_stack_burn_size;
 
 #ifdef USE_AESNI_AVX2

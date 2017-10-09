@@ -55,7 +55,7 @@ transform ( void *ctx, const unsigned char *data, size_t datalen );
 static void
 md5_init( void *context, unsigned int flags)
 {
-  MD5_CONTEXT *ctx = context;
+  MD5_CONTEXT *ctx = (MD5_CONTEXT*) context;
 
   (void)flags;
 
@@ -88,7 +88,7 @@ md5_init( void *context, unsigned int flags)
 static unsigned int
 transform_blk ( void *c, const unsigned char *data )
 {
-  MD5_CONTEXT *ctx = c;
+  MD5_CONTEXT *ctx = (MD5_CONTEXT*) c;
   u32 correct_words[16];
   register u32 A = ctx->A;
   register u32 B = ctx->B;
@@ -232,7 +232,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 md5_final( void *context)
 {
-  MD5_CONTEXT *hd = context;
+  MD5_CONTEXT *hd = (MD5_CONTEXT*) context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;

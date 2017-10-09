@@ -431,7 +431,7 @@ resolve_name_standard (const char *name, unsigned short port,
       if (opt_disable_ipv6 && ai->ai_family == AF_INET6)
         continue;
 
-      dai = xtrymalloc (sizeof *dai);
+      dai = (dns_addrinfo_t) xtrymalloc (sizeof *dai);
       dai->family = ai->ai_family;
       dai->socktype = ai->ai_socktype;
       dai->protocol = ai->ai_protocol;
@@ -498,7 +498,7 @@ resolve_addr_standard (const struct sockaddr_storage *addr, int addrlen,
   *r_name = NULL;
 
   buflen = NI_MAXHOST;
-  buffer = xtrymalloc (buflen + 2 + 1);
+  buffer = (char*) xtrymalloc (buflen + 2 + 1);
   if (!buffer)
     return gpg_error_from_syserror ();
 
@@ -528,7 +528,7 @@ resolve_addr_standard (const struct sockaddr_storage *addr, int addrlen,
     err = map_eai_to_gpg_error(ec);
   else
     {
-      p = xtryrealloc (buffer, strlen (buffer)+1);
+      p = (char*) xtryrealloc (buffer, strlen (buffer)+1);
       if (!p)
         err = gpg_error_from_syserror ();
       else
@@ -659,7 +659,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
   u16 count;
 
   /* Allocate a 64k buffer which is the limit for an DNS response.  */
-  answer = xtrymalloc (65536);
+  answer = (unsigned char*) xtrymalloc (65536);
   if (!answer)
     return gpg_error_from_syserror ();
 
@@ -787,7 +787,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
                   *r_fprlen = pt[0];
                   if (*r_fprlen)
                     {
-                      *r_fpr = xtrymalloc (*r_fprlen);
+                      *r_fpr = (unsigned char*) xtrymalloc (*r_fprlen);
                       if (!*r_fpr)
                         {
                           err = gpg_error_from_syserror ();
@@ -800,7 +800,7 @@ get_dns_cert_standard (const char *name, int want_certtype,
 
                   if (dlen > *r_fprlen + 1)
                     {
-                      *r_url = xtrymalloc (dlen - (*r_fprlen + 1) + 1);
+                      *r_url = (char*) xtrymalloc (dlen - (*r_fprlen + 1) + 1);
                       if (!*r_url)
                         {
                           err = gpg_error_from_syserror ();
@@ -886,7 +886,7 @@ get_dns_cert (const char *name, int want_certtype,
 static int
 priosort(const void *a,const void *b)
 {
-  const struct srventry *sa=a,*sb=b;
+  const struct srventry *sa= (const srventry*) a,*sb= (const srventry*) b;
   if(sa->priority>sb->priority)
     return 1;
   else if(sa->priority<sb->priority)
@@ -949,7 +949,7 @@ getsrv_standard (const char *name,
       u16 type, klasse;
       struct srventry *newlist;
 
-      newlist = xtryrealloc (*list, (srvcount+1)*sizeof(struct srventry));
+      newlist = (srventry*) xtryrealloc (*list, (srvcount+1)*sizeof(struct srventry));
       if (!newlist)
         goto fail;
       *list = newlist;
@@ -1208,7 +1208,7 @@ get_dns_cname_standard (const char *name, char **r_cname)
     return GPG_ERR_SERVER_FAILED;
   pt += 2;  /* Skip rdlen */
 
-  cname = xtrymalloc (cnamesize);
+  cname = (char*) xtrymalloc (cnamesize);
   if (!cname)
     return gpg_error_from_syserror ();
 
@@ -1218,7 +1218,7 @@ get_dns_cname_standard (const char *name, char **r_cname)
       xfree (cname);
       return GPG_ERR_SERVER_FAILED;
     }
-  *r_cname = xtryrealloc (cname, strlen (cname)+1);
+  *r_cname = (char*) xtryrealloc (cname, strlen (cname)+1);
   if (!*r_cname)
     {
       err = gpg_error_from_syserror ();

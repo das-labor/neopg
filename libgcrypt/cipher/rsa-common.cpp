@@ -85,7 +85,7 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
       return GPG_ERR_TOO_SHORT; /* The key is too short.  */
     }
 
-  if ( !(frame = xtrymalloc_secure (nframe)))
+  if ( !(frame = (unsigned char*) xtrymalloc_secure (nframe)))
     return gpg_error_from_syserror ();
 
   n = 0;
@@ -115,7 +115,7 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
     }
   else
     {
-      p = _gcry_random_bytes_secure (i, GCRY_STRONG_RANDOM);
+      p = (unsigned char*) _gcry_random_bytes_secure (i, GCRY_STRONG_RANDOM);
       /* Replace zero bytes by new values. */
       for (;;)
         {
@@ -132,7 +132,7 @@ _gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
             break; /* Okay: no (more) zero bytes. */
 
           k += k/128 + 3; /* Better get some more. */
-          pp = _gcry_random_bytes_secure (k, GCRY_STRONG_RANDOM);
+          pp = (unsigned char*) _gcry_random_bytes_secure (k, GCRY_STRONG_RANDOM);
           for (j=0; j < i && k; )
             {
               if (!p[j])
@@ -176,7 +176,7 @@ _gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
 
   *r_result = NULL;
 
-  if ( !(frame = xtrymalloc_secure (nframe)))
+  if ( !(frame = (unsigned char*) xtrymalloc_secure (nframe)))
     return gpg_error_from_syserror ();
 
   err = _gcry_mpi_print (GCRYMPI_FMT_USG, frame, nframe, &n, value);
@@ -292,7 +292,7 @@ _gcry_rsa_pkcs1_encode_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
       return GPG_ERR_TOO_SHORT;
     }
 
-  if ( !(frame = xtrymalloc (nframe)) )
+  if ( !(frame = (byte*) xtrymalloc (nframe)) )
     return gpg_error_from_syserror ();
 
   /* Assemble the pkcs#1 block type 1. */
@@ -357,7 +357,7 @@ _gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
       return GPG_ERR_TOO_SHORT;
     }
 
-  if ( !(frame = xtrymalloc (nframe)) )
+  if ( !(frame = (byte*) xtrymalloc (nframe)) )
     return gpg_error_from_syserror ();
 
   /* Assemble the pkcs#1 block type 1. */
@@ -501,7 +501,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
     }
 
   /* Allocate the frame.  */
-  frame = xtrycalloc_secure (1, nframe);
+  frame = (unsigned char*) xtrycalloc_secure (1, nframe);
   if (!frame)
     return gpg_error_from_syserror ();
 
@@ -535,7 +535,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
   {
     unsigned char *dmask;
 
-    dmask = xtrymalloc_secure (nframe - hlen - 1);
+    dmask = (unsigned char*) xtrymalloc_secure (nframe - hlen - 1);
     if (!dmask)
       {
         rc = gpg_error_from_syserror ();
@@ -558,7 +558,7 @@ _gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
   {
     unsigned char *smask;
 
-    smask = xtrymalloc_secure (hlen);
+    smask = (unsigned char*) xtrymalloc_secure (hlen);
     if (!smask)
       {
         rc = gpg_error_from_syserror ();
@@ -633,7 +633,7 @@ _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
   hlen = _gcry_md_get_algo_dlen (algo);
 
   /* Hash the label right away.  */
-  lhash = xtrymalloc (hlen);
+  lhash = (unsigned char*) xtrymalloc (hlen);
   if (!lhash)
     return gpg_error_from_syserror ();
   _gcry_md_hash_buffer (algo, lhash, label, labellen);
@@ -665,7 +665,7 @@ _gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
      gcry_mpi_aprint above.  */
 
   /* Allocate space for SEED and DB.  */
-  seed = xtrymalloc_secure (nframe - 1);
+  seed = (unsigned char*) xtrymalloc_secure (nframe - 1);
   if (!seed)
     {
       rc = gpg_error_from_syserror ();
@@ -801,7 +801,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
 
   /* Allocate a help buffer and setup some pointers.  */
   buflen = 8 + hlen + saltlen + (emlen - hlen - 1);
-  buf = xtrymalloc (buflen);
+  buf = (unsigned char*) xtrymalloc (buflen);
   if (!buf)
     {
       rc = gpg_error_from_syserror ();
@@ -828,7 +828,7 @@ _gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
     }
 
   /* Allocate space for EM.  */
-  em = xtrymalloc (emlen);
+  em = (unsigned char*) xtrymalloc (emlen);
   if (!em)
     {
       rc = gpg_error_from_syserror ();
@@ -941,7 +941,7 @@ _gcry_rsa_pss_verify (gcry_mpi_t value, gcry_mpi_t encoded,
   if (buflen < emlen - hlen - 1)
     buflen = emlen - hlen - 1;
   buflen += hlen;
-  buf = xtrymalloc (buflen);
+  buf = (unsigned char*) xtrymalloc (buflen);
   if (!buf)
     {
       rc = gpg_error_from_syserror ();

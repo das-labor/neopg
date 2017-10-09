@@ -48,7 +48,7 @@ store_key (gcry_sexp_t privater, const char *passphrase, int force,
 
   len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, NULL, 0);
   assert (len);
-  buf = gcry_malloc_secure (len);
+  buf = (unsigned char*) gcry_malloc_secure (len);
   if (!buf)
       return out_of_core ();
   len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, buf, len);
@@ -329,7 +329,7 @@ check_passphrase_constraints (ctrl_t ctrl, const char *pw,
 static gpg_error_t
 reenter_compare_cb (struct pin_entry_info_s *pi)
 {
-  const char *pin1 = pi->check_cb_arg;
+  const char *pin1 = (const char*) pi->check_cb_arg;
 
   if (!strcmp (pin1, pi->pin))
     return 0; /* okay */
@@ -366,7 +366,7 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
 	    if (size)
 	      {
 		buffer[size] = 0;
-		*r_passphrase = buffer;
+		*r_passphrase = (char*) buffer;
 	      }
 	    else
 	        *r_passphrase = NULL;
@@ -374,10 +374,10 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
 	return err;
     }
 
-  pi = gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
+  pi = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
   if (!pi)
     return gpg_error_from_syserror ();
-  pi2 = gcry_calloc_secure (1, sizeof (*pi2) + MAX_PASSPHRASE_LEN + 1);
+  pi2 = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi2) + MAX_PASSPHRASE_LEN + 1);
   if (!pi2)
     {
       err = gpg_error_from_syserror ();
@@ -558,7 +558,7 @@ agent_genkey (ctrl_t ctrl, const char *cache_nonce,
     log_debug ("returning public key\n");
   len = gcry_sexp_sprint (s_public, GCRYSEXP_FMT_CANON, NULL, 0);
   assert (len);
-  buf = xtrymalloc (len);
+  buf = (char*) xtrymalloc (len);
   if (!buf)
     {
       gpg_error_t tmperr = out_of_core ();

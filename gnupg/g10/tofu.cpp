@@ -464,7 +464,7 @@ static int
 get_single_unsigned_long_cb (void *cookie, int argc, char **argv,
 			     char **azColName)
 {
-  unsigned long int *count = cookie;
+  unsigned long int *count = (long unsigned int*) cookie;
 
   (void) azColName;
 
@@ -489,7 +489,7 @@ get_single_unsigned_long_cb2 (void *cookie, int argc, char **argv,
 static int
 version_check_cb (void *cookie, int argc, char **argv, char **azColName)
 {
-  int *version = cookie;
+  int *version = (int*) cookie;
 
   if (argc != 1 || strcmp (azColName[0], "version") != 0)
     {
@@ -551,7 +551,7 @@ check_utks (sqlite3 *db)
       int len = (1 + 16 + 1 + 1) * utk_count;
       int o = 0;
 
-      utks_string = xmalloc (len);
+      utks_string = (char*) xmalloc (len);
       *utks_string = 0;
       for (ki = utks, utk_count = 0; ki; ki = ki->next, utk_count ++)
         {
@@ -907,7 +907,7 @@ initdb (sqlite3 *db)
 static int
 busy_handler (void *cookie, int call_count)
 {
-  ctrl_t ctrl = cookie;
+  ctrl_t ctrl = (ctrl_t) cookie;
   tofu_dbs_t dbs = ctrl->tofu.dbs;
 
   (void) call_count;
@@ -975,7 +975,7 @@ opendbs (ctrl_t ctrl)
 
       if (db)
         {
-          ctrl->tofu.dbs = xmalloc_clear (sizeof *ctrl->tofu.dbs);
+          ctrl->tofu.dbs = (tofu_dbs_t) xmalloc_clear (sizeof *ctrl->tofu.dbs);
           ctrl->tofu.dbs->db = db;
           ctrl->tofu.dbs->want_lock_file = xasprintf ("%s-want-lock", filename);
         }
@@ -1005,7 +1005,7 @@ tofu_closedbs (ctrl_t ctrl)
   end_transaction (ctrl, 2);
 
   /* Arghh, that is a surprising use of the struct.  */
-  for (statements = (void *) &dbs->s;
+  for (statements = (sqlite3_stmt**) (void *) &dbs->s;
        (void *) statements < (void *) &(&dbs->s)[1];
        statements ++)
     sqlite3_finalize (*statements);
@@ -1022,7 +1022,7 @@ tofu_closedbs (ctrl_t ctrl)
 static int
 get_single_long_cb (void *cookie, int argc, char **argv, char **azColName)
 {
-  long *count = cookie;
+  long *count = (long int*) cookie;
 
   (void) azColName;
 
@@ -1179,7 +1179,7 @@ static int
 strings_collect_cb (void *cookie, int argc, char **argv, char **azColName)
 {
   int i;
-  strlist_t *strlist = cookie;
+  strlist_t *strlist = (string_list**) cookie;
 
   (void) azColName;
 
@@ -1240,7 +1240,7 @@ signature_stats_prepend (struct signature_stats **statsp,
 			 unsigned long count)
 {
   struct signature_stats *stats =
-    xmalloc_clear (sizeof (*stats) + strlen (fingerprint));
+ (signature_stats*)    xmalloc_clear (sizeof (*stats) + strlen (fingerprint));
 
   stats->next = *statsp;
   *statsp = stats;
@@ -1259,7 +1259,7 @@ static int
 signature_stats_collect_cb (void *cookie, int argc, char **argv,
 			    char **azColName, sqlite3_stmt *stmt)
 {
-  struct signature_stats **statsp = cookie;
+  struct signature_stats **statsp = (signature_stats**) cookie;
   int i = 0;
   enum tofu_policy policy;
   long time_ago;
@@ -1273,7 +1273,7 @@ signature_stats_collect_cb (void *cookie, int argc, char **argv,
 
   if (string_to_long (&along, argv[i], 0, __LINE__))
     return 1;  /* Abort */
-  policy = along;
+  policy = (tofu_policy) along;
   i ++;
 
   if (! argv[i])
@@ -1628,7 +1628,7 @@ ask_about_binding (ctrl_t ctrl,
           strlist_iter = strlist_iter->next;
           other_thing = strlist_iter->d;
 
-          other_policy = atoi (other_thing);
+          other_policy = (tofu_policy) atoi (other_thing);
 
           es_fprintf (fp, "  %s (", other_user_id);
           es_fprintf (fp, _("policy: %s"), tofu_policy_str (other_policy));
@@ -1978,7 +1978,7 @@ ask_about_binding (ctrl_t ctrl,
         }
       else if (!response[1])
         {
-          char *choice = strchr (choices, *response);
+          char *choice = (char*) strchr (choices, *response);
 
           if (choice)
             {
@@ -2127,7 +2127,7 @@ build_conflict_set (ctrl_t ctrl, tofu_dbs_t dbs,
 
   /* If two keys have cross signatures, then they are controlled by
    * the same person and thus are not in conflict.  */
-  kb_all = xcalloc (sizeof (kb_all[0]), conflict_set_count);
+  kb_all = (kbnode_struct**) xcalloc (sizeof (kb_all[0]), conflict_set_count);
   hd = keydb_new ();
   for (i = 0, iter = conflict_set;
        i < conflict_set_count;
@@ -2238,7 +2238,7 @@ build_conflict_set (ctrl_t ctrl, tofu_dbs_t dbs,
     int *die;
 
     log_assert (conflict_set_count > 0);
-    die = xtrycalloc (conflict_set_count, sizeof *die);
+    die = (int*) xtrycalloc (conflict_set_count, sizeof *die);
     if (!die)
       {
         /*err = gpg_error_from_syserror ();*/
@@ -2373,7 +2373,7 @@ get_policy (ctrl_t ctrl, tofu_dbs_t dbs, PKT_public_key *pk,
           print_further_info ("bad value for policy: %s", results->d);
           goto out;
         }
-      policy = along;
+      policy = (tofu_policy) along;
 
       if (! (policy == TOFU_POLICY_AUTO
              || policy == TOFU_POLICY_GOOD
@@ -2399,7 +2399,7 @@ get_policy (ctrl_t ctrl, tofu_dbs_t dbs, PKT_public_key *pk,
                               results->next->next->d);
           goto out;
         }
-      effective_policy = along;
+      effective_policy = (tofu_policy) along;
 
       if (! (effective_policy == TOFU_POLICY_NONE
              || effective_policy == TOFU_POLICY_AUTO
@@ -2847,7 +2847,7 @@ get_trust (ctrl_t ctrl, PKT_public_key *pk,
   else
     free_strlist (conflict_set);
 
-  return trust_level;
+  return (tofu_policy) trust_level;
 }
 
 

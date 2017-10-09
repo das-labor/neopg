@@ -126,12 +126,12 @@ keybox_tmp_names (const char *filename, int for_keyring,
   }
 # else /* Posix file names */
   (void)for_keyring;
-  bak_name = xtrymalloc (strlen (filename) + 2);
+  bak_name = (char*) xtrymalloc (strlen (filename) + 2);
   if (!bak_name)
     return gpg_error_from_syserror ();
   strcpy (stpcpy (bak_name, filename), "~");
 
-  tmp_name = xtrymalloc (strlen (filename) + 5);
+  tmp_name = (char*) xtrymalloc (strlen (filename) + 5);
   if (!tmp_name)
     {
       err = gpg_error_from_syserror ();

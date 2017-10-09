@@ -360,7 +360,7 @@ fd_cache_close (const char *fname, gnupg_fd_t fp)
   /* add a new one */
   if (DBG_IOBUF)
     log_debug ("fd_cache_close (%s) new slot created\n", fname);
-  cc = xcalloc (1, sizeof *cc + strlen (fname));
+  cc = (close_cache_t) xcalloc (1, sizeof *cc + strlen (fname));
   strcpy (cc->fname, fname);
   cc->fp = fp;
   cc->next = close_cache;
@@ -411,7 +411,7 @@ static int
 file_filter (void *opaque, int control, iobuf_t chain, byte * buf,
 	     size_t * ret_len)
 {
-  file_filter_ctx_t *a = opaque;
+  file_filter_ctx_t *a = (file_filter_ctx_t*) opaque;
   gnupg_fd_t f = a->fp;
   size_t size = *ret_len;
   size_t nbytes = 0;
@@ -567,7 +567,7 @@ static int
 file_es_filter (void *opaque, int control, iobuf_t chain, byte * buf,
                 size_t * ret_len)
 {
-  file_es_filter_ctx_t *a = opaque;
+  file_es_filter_ctx_t *a = (file_es_filter_ctx_t*) opaque;
   estream_t f = a->fp;
   size_t size = *ret_len;
   size_t nbytes = 0;
@@ -752,7 +752,7 @@ static int
 block_filter (void *opaque, int control, iobuf_t chain, byte * buffer,
 	      size_t * ret_len)
 {
-  block_filter_ctx_t *a = opaque;
+  block_filter_ctx_t *a = (block_filter_ctx_t*) opaque;
   char *buf = (char *)buffer;
   size_t size = *ret_len;
   int c, needed, rc = 0;
@@ -890,7 +890,7 @@ block_filter (void *opaque, int control, iobuf_t chain, byte * buffer,
 	    {
 	      /* not enough to write a partial block out; so we store it */
 	      if (!a->buffer)
-		a->buffer = xmalloc (OP_MIN_PARTIAL_CHUNK);
+		a->buffer = (char*) xmalloc (OP_MIN_PARTIAL_CHUNK);
 	      memcpy (a->buffer + a->buflen, buf, size);
 	      a->buflen += size;
 	    }
@@ -934,7 +934,7 @@ block_filter (void *opaque, int control, iobuf_t chain, byte * buffer,
 		  assert (!a->buflen);
 		  assert (nbytes < OP_MIN_PARTIAL_CHUNK);
 		  if (!a->buffer)
-		    a->buffer = xmalloc (OP_MIN_PARTIAL_CHUNK);
+		    a->buffer = (char*) xmalloc (OP_MIN_PARTIAL_CHUNK);
 		  memcpy (a->buffer, p, nbytes);
 		  a->buflen = nbytes;
 		}
@@ -1039,7 +1039,7 @@ iobuf_desc (iobuf_t a, byte *buf)
   else
     a->filter (a->filter_ov, IOBUFCTRL_DESC, NULL, buf, &len);
 
-  return buf;
+  return (const char*) buf;
 }
 
 static void
@@ -1078,9 +1078,9 @@ iobuf_alloc (int use, size_t bufsize)
       bufsize = IOBUF_BUFFER_SIZE;
     }
 
-  a = xcalloc (1, sizeof *a);
-  a->use = use;
-  a->d.buf = xmalloc (bufsize);
+  a = (iobuf_t) xcalloc (1, sizeof *a);
+  a->use = (iobuf_use) use;
+  a->d.buf = (byte*) xmalloc (bufsize);
   a->d.size = bufsize;
   a->no = ++number;
   a->subno = 0;
@@ -1252,7 +1252,7 @@ do_open (const char *fname, int special_filenames,
     }
 
   a = iobuf_alloc (use, IOBUF_BUFFER_SIZE);
-  fcx = xmalloc (sizeof *fcx + strlen (fname));
+  fcx = (file_filter_ctx_t*) xmalloc (sizeof *fcx + strlen (fname));
   fcx->fp = fp;
   fcx->print_only_name = print_only;
   strcpy (fcx->fname, fname);
@@ -1299,7 +1299,7 @@ do_iobuf_fdopen (int fd, const char *mode, int keep_open)
 
   a = iobuf_alloc (strchr (mode, 'w') ? IOBUF_OUTPUT : IOBUF_INPUT,
 		   IOBUF_BUFFER_SIZE);
-  fcx = xmalloc (sizeof *fcx + 20);
+  fcx = (file_filter_ctx_t*) xmalloc (sizeof *fcx + 20);
   fcx->fp = fp;
   fcx->print_only_name = 1;
   fcx->keep_open = keep_open;
@@ -1337,7 +1337,7 @@ iobuf_esopen (estream_t estream, const char *mode, int keep_open)
 
   a = iobuf_alloc (strchr (mode, 'w') ? IOBUF_OUTPUT : IOBUF_INPUT,
 		   IOBUF_BUFFER_SIZE);
-  fcx = xtrymalloc (sizeof *fcx + 30);
+  fcx = (file_es_filter_ctx_t*) xtrymalloc (sizeof *fcx + 30);
   fcx->fp = estream;
   fcx->print_only_name = 1;
   fcx->keep_open = keep_open;
@@ -1395,7 +1395,7 @@ iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval)
       for (; a; a = a->chain)
 	if (!a->chain && a->filter == file_filter)
 	  {
-	    file_filter_ctx_t *b = a->filter_ov;
+	    file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
 	    b->keep_open = intval;
 	    return 0;
 	  }
@@ -1429,7 +1429,7 @@ iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval)
       for (; a; a = a->chain)
 	if (!a->chain && a->filter == file_filter)
 	  {
-	    file_filter_ctx_t *b = a->filter_ov;
+	    file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
 	    b->no_cache = intval;
 	    return 0;
 	  }
@@ -1537,7 +1537,7 @@ iobuf_push_filter2 (iobuf_t a,
      points to the head of the pipeline.
   */
 
-  b = xmalloc (sizeof *b);
+  b = (iobuf_t) xmalloc (sizeof *b);
   memcpy (b, a, sizeof *b);
   /* fixme: it is stupid to keep a copy of the name at every level
    * but we need the name somewhere because the name known by file_filter
@@ -1582,7 +1582,7 @@ iobuf_push_filter2 (iobuf_t a,
      the new filter (A) means that data that has read from (B), but
      not yet read from the pipeline won't be processed by the new
      filter (A)!  That's certainly not what we want.  */
-  a->d.buf = xmalloc (a->d.size);
+  a->d.buf = (byte*) xmalloc (a->d.size);
   a->d.len = 0;
   a->d.start = 0;
 
@@ -1891,7 +1891,7 @@ filter_flush (iobuf_t a)
 	log_debug ("increasing temp iobuf from %lu to %lu\n",
 		   (unsigned long) a->d.size, (unsigned long) newsize);
 
-      a->d.buf = xrealloc (a->d.buf, newsize);
+      a->d.buf = (byte*) xrealloc (a->d.buf, newsize);
       a->d.size = newsize;
       return 0;
     }
@@ -2187,7 +2187,7 @@ iobuf_copy (iobuf_t dest, iobuf_t source)
   if (iobuf_error (dest))
     return -1;
 
-  temp = xmalloc (temp_size);
+  temp = (char*) xmalloc (temp_size);
   while (1)
     {
       nread = iobuf_read (source, temp, temp_size);
@@ -2247,7 +2247,7 @@ iobuf_get_filelength (iobuf_t a, int *overflow)
     return 0;
 
   {
-    file_filter_ctx_t *b = a->filter_ov;
+    file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
     gnupg_fd_t fp = b->fp;
 
 #if defined(HAVE_W32_SYSTEM)
@@ -2318,7 +2318,7 @@ iobuf_get_fd (iobuf_t a)
     return -1;
 
   {
-    file_filter_ctx_t *b = a->filter_ov;
+    file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
     gnupg_fd_t fp = b->fp;
 
     return FD2INT (fp);
@@ -2347,7 +2347,7 @@ iobuf_seek (iobuf_t a, off_t newpos)
       if (a->filter != file_filter)
 	return -1;
 
-      b = a->filter_ov;
+      b = (file_filter_ctx_t*) a->filter_ov;
 
 #ifdef HAVE_W32_SYSTEM
       if (SetFilePointer (b->fp, newpos, NULL, FILE_BEGIN) == 0xffffffff)
@@ -2402,7 +2402,7 @@ iobuf_get_real_fname (iobuf_t a)
   for (; a; a = a->chain)
     if (!a->chain && a->filter == file_filter)
       {
-	file_filter_ctx_t *b = a->filter_ov;
+	file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
 	return b->print_only_name ? NULL : b->fname;
       }
 
@@ -2415,7 +2415,7 @@ iobuf_get_fname (iobuf_t a)
   for (; a; a = a->chain)
     if (!a->chain && a->filter == file_filter)
       {
-	file_filter_ctx_t *b = a->filter_ov;
+	file_filter_ctx_t *b = (file_filter_ctx_t*) a->filter_ov;
 	return b->fname;
       }
   return NULL;
@@ -2459,7 +2459,7 @@ iobuf_set_partial_body_length_mode (iobuf_t a, size_t len)
   else
     /* Enabled partial body length mode.  */
     {
-      block_filter_ctx_t *ctx = xcalloc (1, sizeof *ctx);
+      block_filter_ctx_t *ctx = (block_filter_ctx_t*) xcalloc (1, sizeof *ctx);
       ctx->use = a->use;
       ctx->partial = 1;
       ctx->size = 0;
@@ -2491,7 +2491,7 @@ iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
     /* must allocate a new buffer */
     {
       length = 256 <= maxlen ? 256 : maxlen;
-      buffer = xrealloc (buffer, length);
+      buffer = (char*) xrealloc (buffer, length);
       *addr_of_buffer = (unsigned char *)buffer;
       *length_of_buffer = length;
     }
@@ -2530,7 +2530,7 @@ iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
 	  if (length > maxlen)
 	    length = maxlen;
 
-	  buffer = xrealloc (buffer, length);
+	  buffer = (char*) xrealloc (buffer, length);
 	  *addr_of_buffer = (unsigned char *)buffer;
 	  *length_of_buffer = length;
 	  p = buffer + nbytes;

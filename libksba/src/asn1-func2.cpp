@@ -203,7 +203,7 @@ ksba_asn_create_tree (const char *mod_name, ksba_asn_tree_t *result)
 
       _ksba_asn_change_integer_value (pointer);
       _ksba_asn_expand_object_id (pointer);
-      tree = xtrymalloc (sizeof *tree + strlen (mod_name));
+      tree = (ksba_asn_tree_t) xtrymalloc (sizeof *tree + strlen (mod_name));
       if (!tree)
         rc = GPG_ERR_ENOMEM;
       else

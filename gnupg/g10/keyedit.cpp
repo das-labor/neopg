@@ -326,7 +326,7 @@ print_and_check_one_sig (ctrl_t ctrl, kbnode_t keyblock, kbnode_t node,
 static int
 sign_mk_attrib (PKT_signature * sig, void *opaque)
 {
-  struct sign_attrib *attrib = opaque;
+  struct sign_attrib *attrib = (sign_attrib*) opaque;
   byte buf[8];
 
   if (attrib->non_exportable)
@@ -430,7 +430,7 @@ trustsig_prompt (byte * trust_value, byte * trust_depth, char **regexp)
       char *q = p;
       int regexplen = 100, ind;
 
-      *regexp = xmalloc (regexplen);
+      *regexp = (char*) xmalloc (regexplen);
 
       /* Now mangle the domain the user entered into a regexp.  To do
          this, \-escape everything that isn't alphanumeric, and attach
@@ -450,7 +450,7 @@ trustsig_prompt (byte * trust_value, byte * trust_depth, char **regexp)
 	  if ((regexplen - ind) < 3)
 	    {
 	      regexplen += 100;
-	      *regexp = xrealloc (*regexp, regexplen);
+	      *regexp = (char*) xrealloc (*regexp, regexplen);
 	    }
 
 	  q++;
@@ -1029,7 +1029,7 @@ sign_uids (ctrl_t ctrl, estream_t fp,
 	      *ret_modified = 1;	/* We changed the keyblock. */
 	      update_trust = 1;
 
-	      pkt = xmalloc_clear (sizeof *pkt);
+	      pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
 	      pkt->pkttype = PKT_SIGNATURE;
 	      pkt->pkt.signature = sig;
 	      insert_kbnode (node, new_kbnode (pkt), PKT_SIGNATURE);
@@ -1397,7 +1397,7 @@ void
 keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
 	      strlist_t commands, int quiet, int seckey_check)
 {
-  enum cmdids cmd = 0;
+  enum cmdids cmd = (cmdids) 0;
   gpg_error_t err = 0;
   KBNODE keyblock = NULL;
   KEYDB_HANDLE kdbhd = NULL;
@@ -1851,7 +1851,7 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
               }
 
 	    /* Parse and check that file.  */
-	    pkt = xmalloc (sizeof *pkt);
+	    pkt = (PACKET*) xmalloc (sizeof *pkt);
 	    init_packet (pkt);
             init_parse_packet (&parsectx, a);
 	    err = parse_packet (&parsectx, pkt);
@@ -2225,7 +2225,7 @@ keyedit_passwd (ctrl_t ctrl, const char *username)
   PKT_public_key *pk;
   kbnode_t keyblock = NULL;
 
-  pk = xtrycalloc (1, sizeof *pk);
+  pk = (PKT_public_key*) xtrycalloc (1, sizeof *pk);
   if (!pk)
     {
       err = gpg_error_from_syserror ();
@@ -3885,7 +3885,7 @@ menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
     }
 
   /* Insert/append to public keyblock */
-  pkt = xmalloc_clear (sizeof *pkt);
+  pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
   pkt->pkttype = PKT_USER_ID;
   pkt->pkt.user_id = uid;
   node = new_kbnode (pkt);
@@ -3893,7 +3893,7 @@ menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
     insert_kbnode (pub_where, node, 0);
   else
     add_kbnode (pub_keyblock, node);
-  pkt = xmalloc_clear (sizeof *pkt);
+  pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
   pkt->pkttype = PKT_SIGNATURE;
   pkt->pkt.signature = sig;
   if (pub_where)
@@ -4155,7 +4155,7 @@ menu_addrevoker (ctrl_t ctrl, kbnode_t pub_keyblock, int sensitive)
       char *answer;
 
       free_public_key (revoker_pk);
-      revoker_pk = xmalloc_clear (sizeof (*revoker_pk));
+      revoker_pk = (PKT_public_key*) xmalloc_clear (sizeof (*revoker_pk));
 
       tty_printf ("\n");
 
@@ -4266,7 +4266,7 @@ menu_addrevoker (ctrl_t ctrl, kbnode_t pub_keyblock, int sensitive)
     }
 
   /* Insert into public keyblock.  */
-  pkt = xmalloc_clear (sizeof *pkt);
+  pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
   pkt->pkttype = PKT_SIGNATURE;
   pkt->pkt.signature = sig;
   insert_kbnode (pub_keyblock, new_kbnode (pkt), PKT_SIGNATURE);
@@ -4397,7 +4397,7 @@ menu_expire (ctrl_t ctrl, kbnode_t pub_keyblock,
 		}
 
 	      /* Replace the packet.  */
-	      newpkt = xmalloc_clear (sizeof *newpkt);
+	      newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 	      newpkt->pkttype = PKT_SIGNATURE;
 	      newpkt->pkt.signature = newsig;
 	      free_packet (node->pkt, NULL);
@@ -4505,7 +4505,7 @@ menu_changeusage (ctrl_t ctrl, kbnode_t keyblock)
 		}
 
 	      /* Replace the packet.  */
-	      newpkt = xmalloc_clear (sizeof *newpkt);
+	      newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 	      newpkt->pkttype = PKT_SIGNATURE;
 	      newpkt->pkt.signature = newsig;
 	      free_packet (node->pkt, NULL);
@@ -4606,7 +4606,7 @@ menu_backsign (ctrl_t ctrl, kbnode_t pub_keyblock)
 	  if (!rc)
 	    {
 	      /* Put the new sig into place on the pubkey */
-	      newpkt = xmalloc_clear (sizeof (*newpkt));
+	      newpkt = (PACKET*) xmalloc_clear (sizeof (*newpkt));
 	      newpkt->pkttype = PKT_SIGNATURE;
 	      newpkt->pkt.signature = newsig;
 	      free_packet (sig_pk->pkt, NULL);
@@ -4764,7 +4764,7 @@ menu_set_primary_uid (ctrl_t ctrl, kbnode_t pub_keyblock)
 			  return 0;
 			}
 		      /* replace the packet */
-		      newpkt = xmalloc_clear (sizeof *newpkt);
+		      newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 		      newpkt->pkttype = PKT_SIGNATURE;
 		      newpkt->pkt.signature = newsig;
 		      free_packet (node->pkt, NULL);
@@ -4853,7 +4853,7 @@ menu_set_preferences (ctrl_t ctrl, kbnode_t pub_keyblock)
 		      return 0;
 		    }
 		  /* replace the packet */
-		  newpkt = xmalloc_clear (sizeof *newpkt);
+		  newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 		  newpkt->pkttype = PKT_SIGNATURE;
 		  newpkt->pkt.signature = newsig;
 		  free_packet (node->pkt, NULL);
@@ -4989,7 +4989,7 @@ menu_set_keyserver_url (ctrl_t ctrl, const char *url, kbnode_t pub_keyblock)
 		      return 0;
 		    }
 		  /* replace the packet */
-		  newpkt = xmalloc_clear (sizeof *newpkt);
+		  newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 		  newpkt->pkttype = PKT_SIGNATURE;
 		  newpkt->pkt.signature = newsig;
 		  free_packet (node->pkt, NULL);
@@ -5191,7 +5191,7 @@ menu_set_notation (ctrl_t ctrl, const char *string, KBNODE pub_keyblock)
 		    }
 
 		  /* replace the packet */
-		  newpkt = xmalloc_clear (sizeof *newpkt);
+		  newpkt = (PACKET*) xmalloc_clear (sizeof *newpkt);
 		  newpkt->pkttype = PKT_SIGNATURE;
 		  newpkt->pkt.signature = newsig;
 		  free_packet (node->pkt, NULL);
@@ -5763,7 +5763,7 @@ reloop:			/* (must use this, because we are modifying the list) */
       attrib.non_exportable = !node->pkt->pkt.signature->flags.exportable;
 
       node->flag &= ~NODFLG_MARK_A;
-      signerkey = xmalloc_secure_clear (sizeof *signerkey);
+      signerkey = (PKT_public_key*) xmalloc_secure_clear (sizeof *signerkey);
       if (get_seckey (ctrl, signerkey, node->pkt->pkt.signature->keyid))
 	{
 	  log_info (_("no secret key\n"));
@@ -5788,7 +5788,7 @@ reloop:			/* (must use this, because we are modifying the list) */
       if (primary_pk->keyid[0] == sig->keyid[0] &&
 	  primary_pk->keyid[1] == sig->keyid[1])
 	unode->pkt->pkt.user_id->flags.revoked = 1;
-      pkt = xmalloc_clear (sizeof *pkt);
+      pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
       pkt->pkttype = PKT_SIGNATURE;
       pkt->pkt.signature = sig;
       insert_kbnode (unode, new_kbnode (pkt), 0);
@@ -5866,7 +5866,7 @@ core_revuid (ctrl_t ctrl, kbnode_t keyblock, KBNODE node,
             }
           else
             {
-              pkt = xmalloc_clear (sizeof *pkt);
+              pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
               pkt->pkttype = PKT_SIGNATURE;
               pkt->pkt.signature = sig;
               insert_kbnode (node, new_kbnode (pkt), 0);
@@ -5996,7 +5996,7 @@ menu_revkey (ctrl_t ctrl, kbnode_t pub_keyblock)
 
   changed = 1;			/* we changed the keyblock */
 
-  pkt = xmalloc_clear (sizeof *pkt);
+  pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
   pkt->pkttype = PKT_SIGNATURE;
   pkt->pkt.signature = sig;
   insert_kbnode (pub_keyblock, new_kbnode (pkt), 0);
@@ -6058,7 +6058,7 @@ menu_revsubkey (ctrl_t ctrl, kbnode_t pub_keyblock)
 	    }
 	  changed = 1;		/* we changed the keyblock */
 
-	  pkt = xmalloc_clear (sizeof *pkt);
+	  pkt = (PACKET*) xmalloc_clear (sizeof *pkt);
 	  pkt->pkttype = PKT_SIGNATURE;
 	  pkt->pkt.signature = sig;
 	  insert_kbnode (node, new_kbnode (pkt), 0);

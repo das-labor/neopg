@@ -38,8 +38,8 @@
 static int
 pss_verify_cmp (void *opaque, gcry_mpi_t tmp)
 {
-  struct pk_encoding_ctx *ctx = opaque;
-  gcry_mpi_t hash = ctx->verify_arg;
+  struct pk_encoding_ctx *ctx = (pk_encoding_ctx*) opaque;
+  gcry_mpi_t hash = (gcry_mpi_t) ctx->verify_arg;
 
   return _gcry_rsa_pss_verify (hash, tmp, ctx->nbits - 1,
                                ctx->hash_algo, ctx->saltlen);
@@ -195,7 +195,7 @@ _gcry_pk_util_parse_flaglist (gcry_sexp_t list,
   if (r_flags)
     *r_flags = flags;
   if (r_encoding)
-    *r_encoding = encoding;
+    *r_encoding = (pk_encoding) encoding;
 
   return rc;
 }
@@ -242,7 +242,7 @@ get_hash_algo (const char *s, size_t n)
 	 algorithm names. */
       char *tmpname;
 
-      tmpname = xtrymalloc (n+1);
+      tmpname = (char*) xtrymalloc (n+1);
       if (!tmpname)
 	algo = 0;  /* Out of core - silently give up.  */
       else
@@ -544,7 +544,7 @@ _gcry_pk_util_preparse_encval (gcry_sexp_t sexp, const char **algo_names,
 		rc = GPG_ERR_NO_OBJ;
 	      else if (n > 0)
 		{
-		  ctx->label = xtrymalloc (n);
+		  ctx->label = (unsigned char*) xtrymalloc (n);
 		  if (!ctx->label)
 		    rc = gpg_error_from_syserror ();
 		  else
@@ -937,7 +937,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
 		rc = GPG_ERR_NO_OBJ;
 	      else if (n > 0)
 		{
-		  ctx->label = xtrymalloc (n);
+		  ctx->label = (unsigned char*) xtrymalloc (n);
 		  if (!ctx->label)
 		    rc = gpg_error_from_syserror ();
 		  else

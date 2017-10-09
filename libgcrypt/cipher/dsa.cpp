@@ -315,10 +315,10 @@ generate (DSA_secret_key *sk, unsigned int nbits, unsigned int qbits,
       if( DBG_CIPHER )
         progress('.');
       if( !rndbuf )
-        rndbuf = _gcry_random_bytes_secure ((qbits+7)/8, random_level);
+        rndbuf = (unsigned char*) _gcry_random_bytes_secure ((qbits+7)/8, random_level);
       else
         { /* Change only some of the higher bits (= 2 bytes)*/
-          char *r = _gcry_random_bytes_secure (2, random_level);
+          char *r = (char*) _gcry_random_bytes_secure (2, random_level);
           memcpy(rndbuf, r, 2 );
           xfree(r);
         }
@@ -916,7 +916,7 @@ dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
       /* Allocate space for the format string:
          "(misc-key-info%S(pm1-factors%m))"
          with one "%m" for each factor and construct it.  */
-      format = xtrymalloc (50 + 2*nfactors);
+      format = (char*) xtrymalloc (50 + 2*nfactors);
       if (!format)
         rc = gpg_error_from_syserror ();
       else
@@ -936,7 +936,7 @@ dsa_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
           /* Allocate space for the list of factors plus one for the
              seedinfo s-exp plus an extra NULL entry for safety and
              fill it with the factors.  */
-          arg_list = xtrycalloc (nfactors+1+1, sizeof *arg_list);
+          arg_list = (void**) xtrycalloc (nfactors+1+1, sizeof *arg_list);
           if (!arg_list)
             rc = gpg_error_from_syserror ();
           else

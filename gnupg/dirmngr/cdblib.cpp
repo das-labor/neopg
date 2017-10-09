@@ -876,7 +876,7 @@ cdb_make_finish_internal(struct cdb_make *cdbmp)
       ewrite(cdbmp->cdb_fd, cdbmp->cdb_buf,
 	     cdbmp->cdb_bpos - cdbmp->cdb_buf) != 0)
       return -1;
-  p = cdbmp->cdb_buf;
+  p = (unsigned char*) cdbmp->cdb_buf;
   for (t = 0; t < 256; ++t) {
     cdb_pack(hpos[t], p + (t << 3));
     cdb_pack(hcnt[t], p + (t << 3) + 4);

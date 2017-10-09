@@ -259,7 +259,7 @@ agent_write_private_key (const unsigned char *grip,
 static gpg_error_t
 try_unprotect_cb (struct pin_entry_info_s *pi)
 {
-  struct try_unprotect_arg_s *arg = pi->check_cb_arg;
+  struct try_unprotect_arg_s *arg = (try_unprotect_arg_s*) pi->check_cb_arg;
   ctrl_t ctrl = arg->ctrl;
   size_t dummy;
   gpg_error_t err;
@@ -431,7 +431,7 @@ agent_modify_description (const char *in, const char *comment,
 
       if (!pass)
         {
-          *result = out = xtrymalloc (out_len + 1);
+          *result = out = (char*) xtrymalloc (out_len + 1);
           if (!out)
             {
               return gpg_error_from_syserror ();
@@ -586,7 +586,7 @@ unprotect (ctrl_t ctrl, const char *cache_nonce, const char *desc_text,
         }
     }
 
-  pi = gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
+  pi = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
   if (!pi)
     return gpg_error_from_syserror ();
   pi->max_length = MAX_PASSPHRASE_LEN + 1;
@@ -740,7 +740,7 @@ read_key_file (const unsigned char *grip, gcry_sexp_t *result)
     }
 
   buflen = st.st_size;
-  buf = xtrymalloc (buflen+1);
+  buf = (unsigned char*) xtrymalloc (buflen+1);
   if (!buf)
     {
       rc = gpg_error_from_syserror ();
@@ -913,7 +913,7 @@ agent_key_from_file (ctrl_t ctrl, const char *cache_nonce,
             {
               n = gcry_sexp_canon_len (s, 0, NULL,NULL);
               assert (n);
-              *shadow_info = xtrymalloc (n);
+              *shadow_info = (unsigned char*) xtrymalloc (n);
               if (!*shadow_info)
                 rc = out_of_core ();
               else
@@ -1239,7 +1239,7 @@ agent_public_key_from_file (ctrl_t ctrl,
      them.  */
   assert (sizeof (size_t) <= sizeof (void*));
 
-  format = xtrymalloc (15+4+7*npkey+10+15+1+1);
+  format = (char*) xtrymalloc (15+4+7*npkey+10+15+1+1);
   if (!format)
     {
       err = gpg_error_from_syserror ();
@@ -1380,7 +1380,7 @@ agent_key_info_from_file (ctrl_t ctrl, const unsigned char *grip,
             {
               n = gcry_sexp_canon_len (s, 0, NULL, NULL);
               assert (n);
-              *r_shadow_info = xtrymalloc (n);
+              *r_shadow_info = (unsigned char*) xtrymalloc (n);
               if (!*r_shadow_info)
                 err = gpg_error_from_syserror ();
               else

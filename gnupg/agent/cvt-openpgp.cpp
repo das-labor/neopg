@@ -269,7 +269,7 @@ hash_passphrase_and_set_key (const char *passphrase,
   if (!keylen)
     return GPG_ERR_INTERNAL;
 
-  key = xtrymalloc_secure (keylen);
+  key = (unsigned char*) xtrymalloc_secure (keylen);
   if (!key)
     return gpg_error_from_syserror ();
 
@@ -415,7 +415,7 @@ do_unprotect (const char *passphrase,
             {
               unsigned int nbits;
               const unsigned char *buffer;
-              buffer = gcry_mpi_get_opaque (skey[i], &nbits);
+              buffer = (const unsigned char*) gcry_mpi_get_opaque (skey[i], &nbits);
               nbytes = (nbits+7)/8;
               actual_csum += checksum (buffer, nbytes);
             }
@@ -493,12 +493,12 @@ do_unprotect (const char *passphrase,
           gcry_cipher_close (cipher_hd);
           return GPG_ERR_BAD_SECKEY;
         }
-      p = gcry_mpi_get_opaque (skey[npkey], &ndatabits);
+      p = (const unsigned char*) gcry_mpi_get_opaque (skey[npkey], &ndatabits);
       ndata = (ndatabits+7)/8;
 
       if (ndata > 1)
         csum_pgp7 = buf16_to_u16 (p+ndata-2);
-      data = xtrymalloc_secure (ndata);
+      data = (unsigned char*) xtrymalloc_secure (ndata);
       if (!data)
         {
           err = gpg_error_from_syserror ();
@@ -593,7 +593,7 @@ do_unprotect (const char *passphrase,
               gcry_cipher_close (cipher_hd);
               return GPG_ERR_BAD_SECKEY;
             }
-          p = gcry_mpi_get_opaque (skey[i], &ndatabits);
+          p = (const unsigned char*) gcry_mpi_get_opaque (skey[i], &ndatabits);
           ndata = (ndatabits+7)/8;
 
           if (!(ndata >= 2) || !(ndata == (buf16_to_ushort (p) + 7)/8 + 2))
@@ -602,7 +602,7 @@ do_unprotect (const char *passphrase,
               return GPG_ERR_BAD_SECKEY;
             }
 
-          buffer = xtrymalloc_secure (ndata);
+          buffer = (unsigned char*) xtrymalloc_secure (ndata);
           if (!buffer)
             {
               err = gpg_error_from_syserror ();
@@ -661,7 +661,7 @@ static gpg_error_t
 try_do_unprotect_cb (struct pin_entry_info_s *pi)
 {
   gpg_error_t err;
-  struct try_do_unprotect_arg_s *arg = pi->check_cb_arg;
+  struct try_do_unprotect_arg_s *arg = (try_do_unprotect_arg_s*) pi->check_cb_arg;
 
   err = do_unprotect (pi->pin,
                       arg->is_v4? 4:3,
@@ -916,7 +916,7 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
       struct pin_entry_info_s *pi;
       struct try_do_unprotect_arg_s pi_arg;
 
-      pi = xtrycalloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
+      pi = (pin_entry_info_s*) xtrycalloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);
       if (!pi)
         return gpg_error_from_syserror ();
       pi->max_length = MAX_PASSPHRASE_LEN + 1;
@@ -1124,7 +1124,7 @@ apply_protection (gcry_mpi_t *array, int npkey, int nskey,
     }
 
   /* Allocate data buffer and stuff it with the secret key parameters.  */
-  data = xtrymalloc_secure (ndata);
+  data = (unsigned char*) xtrymalloc_secure (ndata);
   if (!data)
     {
       err = gpg_error_from_syserror ();
@@ -1375,7 +1375,7 @@ convert_to_openpgp (ctrl_t ctrl, gcry_sexp_t s_key, const char *passphrase,
 
       tmpkey = NULL;
       {
-        char *format = get_membuf (&mbuf, NULL);
+        char *format = (char*) get_membuf (&mbuf, NULL);
         if (!format)
           err = gpg_error_from_syserror ();
         else

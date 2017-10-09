@@ -281,7 +281,7 @@ do_printhex (const char *text, const char *text2,
     }
   if (length && buffer)
     {
-      const unsigned char *p = buffer;
+      const unsigned char *p = (const unsigned char*) buffer;
       for (; length--; p++)
         {
           log_printf ("%02x", *p);
@@ -328,7 +328,7 @@ _gcry_log_printmpi (const char *text, gcry_mpi_t mpi)
       const unsigned char *p;
       char prefix[30];
 
-      p = mpi_get_opaque (mpi, &nbits);
+      p = (const unsigned char*) mpi_get_opaque (mpi, &nbits);
       snprintf (prefix, sizeof prefix, " [%u bit]", nbits);
       do_printhex (text? text:" ", prefix, p, (nbits+7)/8);
     }
@@ -388,7 +388,7 @@ _gcry_log_printsxp (const char *text, gcry_sexp_t sexp)
       size_t size;
 
       size = sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, NULL, 0);
-      p = buf = xmalloc (size);
+      p = buf = (char*) xmalloc (size);
       sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, buf, size);
 
       do
@@ -397,7 +397,7 @@ _gcry_log_printsxp (const char *text, gcry_sexp_t sexp)
             log_debug ("%*s  ", text?(int)strlen(text):0, "");
           else
             any = 1;
-          pend = strchr (p, '\n');
+          pend = (char*) strchr (p, '\n');
           size = pend? (pend - p) : strlen (p);
           if (with_lf)
             log_debug ("%.*s", (int)size, p);
@@ -466,7 +466,7 @@ _gcry_strtokenize (const char *string, const char *delim)
       gpg_err_set_errno (ENOMEM);
       return NULL;
     }
-  result = xtrymalloc (bytes);
+  result = (char**) xtrymalloc (bytes);
   if (!result)
     return NULL;
   buffer = (char*)(result + fields);

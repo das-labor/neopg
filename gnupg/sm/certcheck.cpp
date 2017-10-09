@@ -113,7 +113,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
             return GPG_ERR_INTERNAL;
         }
 
-      frame = xtrymalloc (nframe);
+      frame = (unsigned char*) xtrymalloc (nframe);
       if (!frame)
         return out_of_core ();
       memcpy (frame, gcry_md_read (md, algo), nframe);
@@ -155,7 +155,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
        *
        * PAD consists of FF bytes.
        */
-      frame = xtrymalloc (nframe);
+      frame = (unsigned char*) xtrymalloc (nframe);
       if (!frame)
         return out_of_core ();
       n = 0;

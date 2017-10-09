@@ -535,7 +535,7 @@ make_libversion (const char *libname, const char *(*getfnc)(const char*))
       maybe_setuid = 0;
     }
   s = getfnc (NULL);
-  result = xmalloc (strlen (libname) + 1 + strlen (s) + 1);
+  result = (char*) xmalloc (strlen (libname) + 1 + strlen (s) + 1);
   strcpy (stpcpy (stpcpy (result, libname), " "), s);
   return result;
 }
@@ -605,7 +605,7 @@ build_list (const char *text, const char * (*mapf)(int), int (*chkf)(int))
   for (i=1; i < 400; i++ )
     if (!chkf(i))
       n += strlen(mapf(i)) + 2;
-  list = xmalloc (21 + n);
+  list = (char*) xmalloc (21 + n);
   *list = 0;
   for (p=NULL, i=1; i < 400; i++)
     {
@@ -800,7 +800,7 @@ parse_keyserver_line (char *line,
   int fail = 0;
 
   /* Parse the colon separated fields.  */
-  server = xcalloc (1, sizeof *server);
+  server = (keyserver_spec*) xcalloc (1, sizeof *server);
   for (fieldno = 1, p = line; p; p = endp, fieldno++ )
     {
       endp = strchr (p, ':');
@@ -892,7 +892,7 @@ gpgsm_main ( int argc, char **argv)
   int with_fpr = 0;
   const char *forced_digest_algo = NULL;
   const char *extra_digest_algo = NULL;
-  enum cmd_and_opt_values cmd = 0;
+  enum cmd_and_opt_values cmd = (cmd_and_opt_values) 0;
   struct server_control_s ctrl;
   certlist_t recplist = NULL;
   certlist_t signerlist = NULL;
@@ -1438,7 +1438,7 @@ gpgsm_main ( int argc, char **argv)
                                                             opt.quiet);
             if (compliance < 0)
               gpgsm_exit (1);
-            opt.compliance = compliance;
+            opt.compliance = (gnupg_compliance_mode) compliance;
           }
           break;
 
@@ -2242,8 +2242,8 @@ run_protect_tool (int argc, char **argv)
   else
     pgm = opt.protect_tool_program;
 
-  av = xcalloc (argc+2, sizeof *av);
-  av[0] = strrchr (pgm, '/');
+  av = (char**) xcalloc (argc+2, sizeof *av);
+  av[0] = (char*) strrchr (pgm, '/');
   if (!av[0])
     av[0] = xstrdup (pgm);
   for (i=1; argc; i++, argc--, argv++)

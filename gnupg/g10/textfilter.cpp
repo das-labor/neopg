@@ -135,7 +135,7 @@ text_filter( void *opaque, int control,
 	     IOBUF a, byte *buf, size_t *ret_len)
 {
     size_t size = *ret_len;
-    text_filter_context_t *tfx = opaque;
+    text_filter_context_t *tfx = (text_filter_context_t*) opaque;
     int rc=0;
 
     if( control == IOBUFCTRL_UNDERFLOW ) {

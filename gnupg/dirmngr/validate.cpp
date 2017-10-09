@@ -598,7 +598,7 @@ validate_cert_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t r_exptime,
           {
             chain_item_t ci;
 
-            ci = xtrycalloc (1, sizeof *ci);
+            ci = (chain_item_t) xtrycalloc (1, sizeof *ci);
             if (!ci)
               {
                 err = gpg_error_from_errno (errno);
@@ -730,7 +730,7 @@ validate_cert_chain (ctrl_t ctrl, ksba_cert_t cert, ksba_isotime_t r_exptime,
       {
         chain_item_t ci;
 
-        ci = xtrycalloc (1, sizeof *ci);
+        ci = (chain_item_t) xtrycalloc (1, sizeof *ci);
         if (!ci)
           {
             err = gpg_error_from_errno (errno);

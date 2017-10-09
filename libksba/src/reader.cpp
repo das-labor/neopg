@@ -50,7 +50,7 @@
 gpg_error_t
 ksba_reader_new (ksba_reader_t *r_r)
 {
-  *r_r = xtrycalloc (1, sizeof **r_r);
+  *r_r = (ksba_reader_t) xtrycalloc (1, sizeof **r_r);
   if (!*r_r)
     return gpg_error_from_errno (errno);
   return 0;
@@ -127,7 +127,7 @@ ksba_reader_clear (ksba_reader_t r, unsigned char **buffer, size_t *buflen)
       *buflen = 0;
       if (n)
         {
-          *buffer = xtrymalloc (n);
+          *buffer = (unsigned char*) xtrymalloc (n);
           if (!*buffer)
             return gpg_error_from_errno (errno);
           memcpy (*buffer, r->unread.buf, n);
@@ -173,12 +173,12 @@ ksba_reader_set_mem (ksba_reader_t r, const void *buffer, size_t length)
   if (r->type == READER_TYPE_MEM)
     { /* Reuse this reader */
       xfree (r->u.mem.buffer);
-      r->type = 0;
+      r->type = (reader_type) 0;
     }
   if (r->type)
     return GPG_ERR_CONFLICT;
 
-  r->u.mem.buffer = xtrymalloc (length);
+  r->u.mem.buffer = (unsigned char*) xtrymalloc (length);
   if (!r->u.mem.buffer)
     return GPG_ERR_ENOMEM;
   memcpy (r->u.mem.buffer, buffer, length);
@@ -429,7 +429,7 @@ ksba_reader_unread (ksba_reader_t r, const void *buffer, size_t count)
   if (!r->unread.buf)
     {
       r->unread.size = count + 100;
-      r->unread.buf = xtrymalloc (r->unread.size);
+      r->unread.buf = (unsigned char*) xtrymalloc (r->unread.size);
       if (!r->unread.buf)
         return GPG_ERR_ENOMEM;
       r->unread.length = count;

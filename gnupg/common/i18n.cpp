@@ -208,7 +208,7 @@ i18n_localegettext (const char *lc_messages, const char *string)
   if (!mh)
     {
       /* First use of this locale - create an entry.  */
-      mh = xtrymalloc (sizeof *mh + strlen (lc_messages));
+      mh = (msg_cache_heads_s*) xtrymalloc (sizeof *mh + strlen (lc_messages));
       if (!mh)
         goto leave;
       strcpy (mh->lc_messages, lc_messages);
@@ -216,7 +216,7 @@ i18n_localegettext (const char *lc_messages, const char *string)
       mh->next = msgcache;
       msgcache = mh;
     }
-  mc = xtrymalloc (sizeof *mc);
+  mc = (msg_cache_s*) xtrymalloc (sizeof *mc);
   if (!mc)
     goto leave;
   mc->key = string;

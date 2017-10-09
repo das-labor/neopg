@@ -287,7 +287,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 	}
       else  /* Binary mode.  */
 	{
-	  byte *buffer = xmalloc (32768);
+	  byte *buffer = (byte*) xmalloc (32768);
 	  while (pt->len)
 	    {
 	      int len = pt->len > 32768 ? 32768 : pt->len;
@@ -365,7 +365,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 	  byte *buffer;
 	  int eof_seen = 0;
 
-          buffer = xtrymalloc (32768);
+          buffer = (byte*) xtrymalloc (32768);
           if (!buffer)
             {
               err = gpg_error_from_syserror ();
@@ -755,7 +755,7 @@ setup_plaintext_name (const char *filename, IOBUF iobuf)
       else
 	s = make_basename (filename);
 
-      pt = xmalloc (sizeof *pt + strlen (s) - 1);
+      pt = (PKT_plaintext*) xmalloc (sizeof *pt + strlen (s) - 1);
       pt->namelen = strlen (s);
       memcpy (pt->name, s, pt->namelen);
       xfree (s);
@@ -763,7 +763,7 @@ setup_plaintext_name (const char *filename, IOBUF iobuf)
   else
     {
       /* no filename */
-      pt = xmalloc (sizeof *pt - 1);
+      pt = (PKT_plaintext*) xmalloc (sizeof *pt - 1);
       pt->namelen = 0;
     }
 

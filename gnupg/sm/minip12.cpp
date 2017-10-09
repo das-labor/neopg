@@ -290,7 +290,7 @@ cram_octet_string (const unsigned char *input, size_t *length,
 
   /* Allocate output buf.  We know that it won't be longer than the
      input buffer. */
-  d = output = gcry_malloc (n);
+  d = output = (unsigned char*) gcry_malloc (n);
   if (!output)
     goto bailout;
 
@@ -465,7 +465,7 @@ set_key_iv_pbes2 (gcry_cipher_hd_t chd, char *salt, size_t saltlen, int iter,
   keylen = gcry_cipher_get_algo_keylen (algo);
   if (!keylen)
     return -1;
-  keybuf = gcry_malloc_secure (keylen);
+  keybuf = (unsigned char*) gcry_malloc_secure (keylen);
   if (!keybuf)
     return -1;
 
@@ -593,7 +593,7 @@ decrypt_block (const void *ciphertext, unsigned char *plaintext, size_t length,
                  passphrase; the result will actually be shorter
                  then.  */
               convertedpwsize = strlen (pw) + 1;
-              convertedpw = gcry_malloc_secure (convertedpwsize);
+              convertedpw = (char*) gcry_malloc_secure (convertedpwsize);
               if (!convertedpw)
                 {
                   log_info ("out of secure memory while"
@@ -637,7 +637,7 @@ static int
 bag_decrypted_data_p (const void *plaintext, size_t length)
 {
   struct tag_info ti;
-  const unsigned char *p = plaintext;
+  const unsigned char *p = (const unsigned char*) plaintext;
   size_t n = length;
 
   /*   { */
@@ -872,7 +872,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
   log_info ("%lu bytes of %s encrypted text\n",ti.length,
             is_pbes2?"AES128":is_3des?"3DES":"RC2");
 
-  plain = gcry_malloc_secure (ti.length);
+  plain = (unsigned char*) gcry_malloc_secure (ti.length);
   if (!plain)
     {
       log_error ("error allocating decryption buffer\n");
@@ -1006,7 +1006,7 @@ parse_bag_encrypted_data (const unsigned char *buffer, size_t length,
             goto bailout;
           len = ti.length;
 
-          result = gcry_calloc (10, sizeof *result);
+          result = (gcry_mpi**) gcry_calloc (10, sizeof *result);
           if (!result)
             {
               log_error ( "error allocating result array\n");
@@ -1153,7 +1153,7 @@ static int
 bag_data_p (const void *plaintext, size_t length)
 {
   struct tag_info ti;
-  const unsigned char *p = plaintext;
+  const unsigned char *p = (const unsigned char*) plaintext;
   size_t n = length;
 
 /*   { */
@@ -1379,7 +1379,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
   log_info ("%lu bytes of %s encrypted text\n",
             ti.length, is_pbes2? "AES128":"3DES");
 
-  plain = gcry_malloc_secure (ti.length);
+  plain = (unsigned char*) gcry_malloc_secure (ti.length);
   if (!plain)
     {
       log_error ("error allocating decryption buffer\n");
@@ -1429,7 +1429,7 @@ parse_bag_data (const unsigned char *buffer, size_t length, int startoffset,
     goto bailout;
   len = ti.length;
 
-  result = gcry_calloc (10, sizeof *result);
+  result = (gcry_mpi**) gcry_calloc (10, sizeof *result);
   if (!result)
     {
       log_error ( "error allocating result array\n");
@@ -1783,7 +1783,7 @@ create_final (struct buffer_s *sequences, const char *pw, size_t *r_length)
   needed += n;
 
   /* Allocate a buffer. */
-  result = gcry_malloc (needed);
+  result = (unsigned char*) gcry_malloc (needed);
   if (!result)
     {
       log_error ("error allocating buffer\n");
@@ -1958,7 +1958,7 @@ build_key_sequence (gcry_mpi_t *kparms, int mode, size_t *r_length)
     }
 
   /* allocate 8 extra bytes for padding */
-  plain = gcry_malloc_secure (needed+8);
+  plain = (unsigned char*) gcry_malloc_secure (needed+8);
   if (!plain)
     {
       log_error ("error allocating encryption buffer\n");
@@ -2087,7 +2087,7 @@ build_key_bag (unsigned char *buffer, size_t buflen, char *salt,
   needed += compute_tag_length (needed);
 
   /* Now that we have all length information, allocate a buffer. */
-  p = keybag = gcry_malloc (needed);
+  p = keybag = (unsigned char*) gcry_malloc (needed);
   if (!keybag)
     {
       log_error ("error allocating buffer\n");
@@ -2204,7 +2204,7 @@ build_cert_bag (unsigned char *buffer, size_t buflen, char *salt,
   needed += compute_tag_length (needed);
 
   /* Now that we have all length information, allocate a buffer. */
-  p = certbag = gcry_malloc (needed);
+  p = certbag = (unsigned char*) gcry_malloc (needed);
   if (!certbag)
     {
       log_error ("error allocating buffer\n");
@@ -2309,7 +2309,7 @@ build_cert_sequence (const unsigned char *buffer, size_t buflen,
   needed += compute_tag_length (needed);
 
   /* Now that we have all length information, allocate a buffer. */
-  p = certseq = gcry_malloc (needed + 8 /*(for padding)*/);
+  p = certseq = (unsigned char*) gcry_malloc (needed + 8 /*(for padding)*/);
   if (!certseq)
     {
       log_error ("error allocating buffer\n");
@@ -2408,7 +2408,7 @@ p12_build (gcry_mpi_t *kparms, const void *cert, size_t certlen,
       /* We assume that the converted passphrase is at max 2 times
          longer than its utf-8 encoding. */
       pwbufsize = strlen (pw)*2 + 1;
-      pwbuf = gcry_malloc_secure (pwbufsize);
+      pwbuf = (char*) gcry_malloc_secure (pwbufsize);
       if (!pwbuf)
         {
           log_error ("out of secure memory while converting passphrase\n");

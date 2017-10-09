@@ -87,7 +87,7 @@ store_mapping (const char *string, char *newstring)
 {
   struct mapping_s *m;
 
-  m = xmalloc (sizeof *m);
+  m = (mapping_s*) xmalloc (sizeof *m);
   m->key = string;
   m->value = newstring;
   m->next = mappings;
@@ -158,7 +158,7 @@ map_static_macro_string (const char *string)
   put_membuf_str (&mb, s);
   put_membuf (&mb, "", 1);
 
-  p = get_membuf_shrink (&mb, NULL);
+  p = (char*) get_membuf_shrink (&mb, NULL);
   if (!p)
     log_fatal ("map_static_macro_string failed: %s\n", strerror (errno));
 

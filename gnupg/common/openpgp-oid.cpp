@@ -119,7 +119,7 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
     return GPG_ERR_INV_VALUE;
 
   /* We can safely assume that the encoded OID is shorter than the string. */
-  buf = xtrymalloc (1 + strlen (string) + 2);
+  buf = (unsigned char*) xtrymalloc (1 + strlen (string) + 2);
   if (!buf)
     return gpg_error_from_syserror ();
   /* Save the first byte for the length.  */
@@ -200,13 +200,13 @@ openpgp_oid_to_str (gcry_mpi_t a)
 
   if (!a
       || !gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE)
-      || !(buf = gcry_mpi_get_opaque (a, &lengthi)))
+      || !(buf = (const unsigned char*) gcry_mpi_get_opaque (a, &lengthi)))
     {
       gpg_err_set_errno (EINVAL);
       return NULL;
     }
 
-  buf = gcry_mpi_get_opaque (a, &lengthi);
+  buf = (const unsigned char*) gcry_mpi_get_opaque (a, &lengthi);
   length = (lengthi+7)/8;
 
   /* The first bytes gives the length; check consistency.  */
@@ -222,7 +222,7 @@ openpgp_oid_to_str (gcry_mpi_t a)
   /* To calculate the length of the string we can safely assume an
      upper limit of 3 decimal characters per byte.  Two extra bytes
      account for the special first octect */
-  string = p = xtrymalloc (length*(1+3)+2+1);
+  string = p = (char*) xtrymalloc (length*(1+3)+2+1);
   if (!string)
     return NULL;
   if (!length)
@@ -290,7 +290,7 @@ openpgp_oid_is_ed25519 (gcry_mpi_t a)
   if (!a || !gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE))
     return 0;
 
-  buf = gcry_mpi_get_opaque (a, &nbits);
+  buf = (const unsigned char*) gcry_mpi_get_opaque (a, &nbits);
   n = (nbits+7)/8;
   return (n == DIM (oid_ed25519)
           && !memcmp (buf, oid_ed25519, DIM (oid_ed25519)));
@@ -307,7 +307,7 @@ openpgp_oid_is_cv25519 (gcry_mpi_t a)
   if (!a || !gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE))
     return 0;
 
-  buf = gcry_mpi_get_opaque (a, &nbits);
+  buf = (const unsigned char*) gcry_mpi_get_opaque (a, &nbits);
   n = (nbits+7)/8;
   return (n == DIM (oid_cv25519)
           && !memcmp (buf, oid_cv25519, DIM (oid_cv25519)));

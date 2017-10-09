@@ -423,7 +423,7 @@ do_get( const char *prompt, int hidden )
 
     last_prompt_len = 0;
     tty_printf( "%s", prompt );
-    buf = xmalloc((n=50));
+    buf = (char*) xmalloc((n=50));
     i = 0;
 
 #ifdef USE_W32_CONSOLE
@@ -492,7 +492,7 @@ do_get( const char *prompt, int hidden )
 	    continue;
 	if( !(i < n-1) ) {
 	    n += 50;
-	    buf = xrealloc (buf, n );
+	    buf = (char*) xrealloc (buf, n );
 	}
 	buf[i++] = c;
     }
@@ -532,7 +532,7 @@ tty_get( const char *prompt )
       /* We need to copy it to memory controlled by our malloc
          implementations; further we need to convert an EOF to our
          convention. */
-      buf = xmalloc(line? strlen(line)+1:2);
+      buf = (char*) xmalloc(line? strlen(line)+1:2);
       if (line)
         {
           strcpy (buf, line);

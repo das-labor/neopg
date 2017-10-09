@@ -100,7 +100,7 @@ get_file_reader (ksba_reader_t reader)
 static int
 my_es_read (void *opaque, char *buffer, size_t nbytes, size_t *nread)
 {
-  struct reader_cb_context_s *cb_ctx = opaque;
+  struct reader_cb_context_s *cb_ctx = (reader_cb_context_s*) opaque;
   int result;
 
   result = es_read (cb_ctx->fp, buffer, nbytes, nread);
@@ -172,7 +172,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
        * scheme and it is frankly not useful for CRL retrieval anyway.
        * We resort to using http, assuming that the server also
        * provides plain http access.  */
-      free_this = xtrymalloc (strlen (url) + 1);
+      free_this = (char*) xtrymalloc (strlen (url) + 1);
       if (free_this)
         {
           strcpy (stpcpy (free_this,"http:"), url+6);
@@ -212,7 +212,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
             estream_t fp = http_get_read_ptr (hd);
             struct reader_cb_context_s *cb_ctx;
 
-            cb_ctx = xtrycalloc (1, sizeof *cb_ctx);
+            cb_ctx = (reader_cb_context_s*) xtrycalloc (1, sizeof *cb_ctx);
             if (!cb_ctx)
               err = gpg_error_from_syserror ();
             if (!err)
@@ -513,7 +513,7 @@ fetch_cert_by_url (ctrl_t ctrl, const char *url,
       goto leave;
     }
 
-  *value = xtrymalloc (cert_image_n);
+  *value = (unsigned char*) xtrymalloc (cert_image_n);
   if (!*value)
     {
       err = gpg_error_from_syserror ();

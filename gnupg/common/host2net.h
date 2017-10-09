@@ -47,7 +47,7 @@
 static inline unsigned long
 buf16_to_ulong (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((unsigned long)p[0] << 8) | p[1]);
 }
@@ -55,7 +55,7 @@ buf16_to_ulong (const void *buffer)
 static inline unsigned int
 buf16_to_uint (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((unsigned int)p[0] << 8) | p[1]);
 }
@@ -63,7 +63,7 @@ buf16_to_uint (const void *buffer)
 static inline unsigned short
 buf16_to_ushort (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((unsigned short)p[0] << 8) | p[1]);
 }
@@ -71,7 +71,7 @@ buf16_to_ushort (const void *buffer)
 static inline u16
 buf16_to_u16 (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((u16)p[0] << 8) | p[1]);
 }
@@ -79,7 +79,7 @@ buf16_to_u16 (const void *buffer)
 static inline size_t
 buf32_to_size_t (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((size_t)p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
 }
@@ -87,7 +87,7 @@ buf32_to_size_t (const void *buffer)
 static inline unsigned long
 buf32_to_ulong (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((unsigned long)p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
 }
@@ -95,7 +95,7 @@ buf32_to_ulong (const void *buffer)
 static inline unsigned int
 buf32_to_uint (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((unsigned int)p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
 }
@@ -103,7 +103,7 @@ buf32_to_uint (const void *buffer)
 static inline u32
 buf32_to_u32 (const void *buffer)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   return (((u32)p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
 }

@@ -229,7 +229,7 @@ kid_not_found_insert (u32 *kid)
   if (DBG_CACHE)
     log_debug ("keydb: kid_not_found_insert (%08lx%08lx)\n",
                (unsigned long)kid[0], (unsigned long)kid[1]);
-  k = xmalloc (sizeof *k);
+  k = (kid_not_found_cache_bucket*) xmalloc (sizeof *k);
   k->kid[0] = kid[0];
   k->kid[1] = kid[1];
   k->next = kid_not_found_cache[kid[0] % KID_NOT_FOUND_CACHE_BUCKETS];
@@ -895,7 +895,7 @@ keydb_new (void)
   if (DBG_CLOCK)
     log_clock ("keydb_new");
 
-  hd = xtrycalloc (1, sizeof *hd);
+  hd = (KEYDB_HANDLE) xtrycalloc (1, sizeof *hd);
   if (!hd)
     goto leave;
   hd->found = -1;
@@ -1207,7 +1207,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
 
   *r_keyblock = NULL;
 
-  pkt = xtrymalloc (sizeof *pkt);
+  pkt = (PACKET*) xtrymalloc (sizeof *pkt);
   if (!pkt)
     return gpg_error_from_syserror ();
   init_packet (pkt);
@@ -1299,7 +1299,7 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
       else
         *tail = node;
       tail = &node->next;
-      pkt = xtrymalloc (sizeof *pkt);
+      pkt = (PACKET*) xtrymalloc (sizeof *pkt);
       if (!pkt)
         {
           err = gpg_error_from_syserror ();

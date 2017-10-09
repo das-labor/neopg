@@ -75,7 +75,7 @@ close_message_fd (ctrl_t ctrl)
 static gpg_error_t
 option_handler (assuan_context_t ctx, const char *key, const char *value)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)value;
 
@@ -120,7 +120,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
 static gpg_error_t
 reset_notify (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)line;
 
@@ -191,7 +191,7 @@ output_notify (assuan_context_t ctx, char *line)
 static gpg_error_t
 cmd_recipient (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int hidden, file;
 
@@ -263,7 +263,7 @@ cmd_signer (assuan_context_t ctx, char *line)
 static gpg_error_t
 cmd_encrypt (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int inp_fd, out_fd;
 
@@ -325,7 +325,7 @@ cmd_encrypt (assuan_context_t ctx, char *line)
 static gpg_error_t
 cmd_decrypt (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int inp_fd, out_fd;
 
@@ -373,7 +373,7 @@ cmd_verify (assuan_context_t ctx, char *line)
   (void)line;
   rc = GPG_ERR_NOT_IMPLEMENTED;
 #else
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gnupg_fd_t fd = assuan_get_input_fd (ctx);
   gnupg_fd_t out_fd = assuan_get_output_fd (ctx);
   estream_t out_fp = NULL;
@@ -492,7 +492,7 @@ cmd_message (assuan_context_t ctx, char *line)
 {
   int rc;
   gnupg_fd_t fd;
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   rc = assuan_command_parse_fd (ctx, line, &fd);
   if (rc)
@@ -718,7 +718,7 @@ gpg_server (ctrl_t ctrl)
   assuan_register_output_notify (ctx, output_notify);
   assuan_register_option_handler (ctx, option_handler);
 
-  ctrl->server_local = xtrycalloc (1, sizeof *ctrl->server_local);
+  ctrl->server_local = (server_local_s*) xtrycalloc (1, sizeof *ctrl->server_local);
   if (!ctrl->server_local)
     {
       rc = gpg_error_from_syserror ();
@@ -776,7 +776,7 @@ gpg_proxy_pinentry_notify (ctrl_t ctrl, const unsigned char *line)
       && !strncmp (line, "PINENTRY_LAUNCHED", 17)
       && (line[17]==' '||!line[17]))
     {
-      for (s = line + 17; *s && spacep (s); s++)
+      for (s = (const char*) line + 17; *s && spacep (s); s++)
         ;
       log_info (_("pinentry launched (%s)\n"), s);
     }

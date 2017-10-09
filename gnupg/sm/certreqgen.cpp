@@ -233,27 +233,26 @@ read_parameters (ctrl_t ctrl, estream_t fp, estream_t out_fp)
     enum para_name key;
     int allow_dups;
   } keywords[] = {
-    { "Key-Type",       pKEYTYPE},
-    { "Key-Length",     pKEYLENGTH },
-    { "Key-Grip",       pKEYGRIP },
-    { "Key-Usage",      pKEYUSAGE },
-    { "Name-DN",        pNAMEDN },
-    { "Name-Email",     pNAMEEMAIL, 1 },
-    { "Name-DNS",       pNAMEDNS, 1 },
-    { "Name-URI",       pNAMEURI, 1 },
-    { "Serial",         pSERIAL },
-    { "Issuer-DN",      pISSUERDN },
-    { "Creation-Date",  pNOTBEFORE },
-    { "Not-Before",     pNOTBEFORE },
-    { "Expire-Date",    pNOTAFTER },
-    { "Not-After",      pNOTAFTER },
-    { "Signing-Key",    pSIGNINGKEY },
-    { "Hash-Algo",      pHASHALGO },
-    { "Authority-Key-Id", pAUTHKEYID },
-    { "Subject-Key-Id", pSUBJKEYID },
-    { "Extension",      pEXTENSION, 1 },
-    { NULL, 0 }
-  };
+    { "Key-Type",       (para_name) pKEYTYPE},
+    { "Key-Length",     (para_name) pKEYLENGTH },
+    { "Key-Grip",       (para_name) pKEYGRIP },
+    { "Key-Usage",      (para_name) pKEYUSAGE },
+    { "Name-DN",        (para_name) pNAMEDN },
+    { "Name-Email",     (para_name) pNAMEEMAIL, 1 },
+    { "Name-DNS",       (para_name) pNAMEDNS, 1 },
+    { "Name-URI",       (para_name) pNAMEURI, 1 },
+    { "Serial",         (para_name) pSERIAL },
+    { "Issuer-DN",      (para_name) pISSUERDN },
+    { "Creation-Date",  (para_name) pNOTBEFORE },
+    { "Not-Before",     (para_name) pNOTBEFORE },
+    { "Expire-Date",    (para_name) pNOTAFTER },
+    { "Not-After",      (para_name) pNOTAFTER },
+    { "Signing-Key",    (para_name) pSIGNINGKEY },
+    { "Hash-Algo",      (para_name) pHASHALGO },
+    { "Authority-Key-Id", (para_name) pAUTHKEYID },
+    { "Subject-Key-Id", (para_name) pSUBJKEYID },
+    { "Extension",      (para_name) pEXTENSION, 1 },
+    { NULL, (para_name) 0 } };
   char line[1024], *p;
   const char *err = NULL;
   struct para_data_s *para, *r;
@@ -362,7 +361,7 @@ read_parameters (ctrl_t ctrl, estream_t fp, estream_t out_fp)
 	    }
 	}
 
-      r = xtrycalloc (1, sizeof *r + strlen( value ));
+      r = (para_data_s*) xtrycalloc (1, sizeof *r + strlen( value ));
       if (!r)
         {
           err = "out of core";
@@ -835,7 +834,7 @@ create_request (ctrl_t ctrl,
 
   for (seq=0; (s = get_parameter_value (para, pNAMEEMAIL, seq)); seq++)
     {
-      buf = xtrymalloc (strlen (s) + 3);
+      buf = (char*) xtrymalloc (strlen (s) + 3);
       if (!buf)
         {
           rc = out_of_core ();
@@ -860,7 +859,7 @@ create_request (ctrl_t ctrl,
       len = strlen (s);
       assert (len);
       snprintf (numbuf, DIM(numbuf), "%u:", (unsigned int)len);
-      buf = p = xtrymalloc (11 + strlen (numbuf) + len + 3);
+      buf = p = (char*) xtrymalloc (11 + strlen (numbuf) + len + 3);
       if (!buf)
         {
           rc = out_of_core ();
@@ -887,7 +886,7 @@ create_request (ctrl_t ctrl,
       len = strlen (s);
       assert (len);
       snprintf (numbuf, DIM(numbuf), "%u:", (unsigned int)len);
-      buf = p = xtrymalloc (6 + strlen (numbuf) + len + 3);
+      buf = p = (char*) xtrymalloc (6 + strlen (numbuf) + len + 3);
       if (!buf)
         {
           rc = out_of_core ();
@@ -999,7 +998,7 @@ create_request (ctrl_t ctrl,
              0 byte and thus can't be the representation of a negative
              number.  Note that ksba_certreq_set_serial strips all
              unneeded leading 0 bytes.  */
-          hexbuf = p = xtrymalloc (2 + 1 + strlen (string) + 1);
+          hexbuf = p = (char*) xtrymalloc (2 + 1 + strlen (string) + 1);
           if (!hexbuf)
             {
               err = gpg_error_from_syserror ();
@@ -1014,7 +1013,7 @@ create_request (ctrl_t ctrl,
             ((unsigned char*)hexbuf)[len++] = xtoi_2 (p);
           /* Now build the S-expression.  */
           snprintf (numbuf, DIM(numbuf), "%u:", (unsigned int)len);
-          buf = p = xtrymalloc (1 + strlen (numbuf) + len + 1 + 1);
+          buf = p = (char*) xtrymalloc (1 + strlen (numbuf) + len + 1 + 1);
           if (!buf)
             {
               err = gpg_error_from_syserror ();
@@ -1140,7 +1139,7 @@ create_request (ctrl_t ctrl,
 
           /* Allocate a buffer for in-place conversion.  We also add 4
              extra bytes space for the tags and lengths fields.  */
-          hexbuf = xtrymalloc (4 + strlen (string) + 1);
+          hexbuf = (char*) xtrymalloc (4 + strlen (string) + 1);
           if (!hexbuf)
             {
               err = gpg_error_from_syserror ();
@@ -1179,7 +1178,7 @@ create_request (ctrl_t ctrl,
 
           /* Allocate a buffer for in-place conversion.  We also add 2
              extra bytes space for the tag and length field.  */
-          hexbuf = xtrymalloc (2 + strlen (string) + 1);
+          hexbuf = (char*) xtrymalloc (2 + strlen (string) + 1);
           if (!hexbuf)
             {
               err = gpg_error_from_syserror ();
@@ -1221,7 +1220,7 @@ create_request (ctrl_t ctrl,
               goto leave;
             }
 
-          oidstr = xtrymalloc (s - string + 1);
+          oidstr = (char*) xtrymalloc (s - string + 1);
           if (!oidstr)
             {
               err = gpg_error_from_syserror ();

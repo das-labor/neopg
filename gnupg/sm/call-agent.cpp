@@ -188,7 +188,7 @@ static gpg_error_t
 default_inq_cb (void *opaque, const char *line)
 {
   gpg_error_t err = 0;
-  struct default_inq_parm_s *parm = opaque;
+  struct default_inq_parm_s *parm = (default_inq_parm_s*) opaque;
   ctrl_t ctrl = parm->ctrl;
 
   if (has_leading_keyword (line, "PINENTRY_LAUNCHED"))
@@ -274,7 +274,7 @@ gpgsm_agent_pksign (ctrl_t ctrl, const char *keygrip, const char *desc,
       xfree (get_membuf (&data, &len));
       return rc;
     }
-  *r_buf = get_membuf (&data, r_buflen);
+  *r_buf = (unsigned char*) get_membuf (&data, r_buflen);
 
   if (!gcry_sexp_canon_len (*r_buf, *r_buflen, NULL, NULL))
     {
@@ -343,13 +343,13 @@ gpgsm_scd_pksign (ctrl_t ctrl, const char *keyid, const char *desc,
       xfree (get_membuf (&data, &len));
       return rc;
     }
-  sigbuf = get_membuf (&data, &sigbuflen);
+  sigbuf = (unsigned char*) get_membuf (&data, &sigbuflen);
 
   /* Create an S-expression from it which is formatted like this:
      "(7:sig-val(3:rsa(1:sSIGBUFLEN:SIGBUF)))" Fixme: If a card ever
      creates non-RSA keys we need to change things. */
   *r_buflen = 21 + 11 + sigbuflen + 4;
-  p = xtrymalloc (*r_buflen);
+  p = (char*) xtrymalloc (*r_buflen);
   *r_buf = (unsigned char*)p;
   if (!p)
     {
@@ -376,7 +376,7 @@ gpgsm_scd_pksign (ctrl_t ctrl, const char *keyid, const char *desc,
 static gpg_error_t
 inq_ciphertext_cb (void *opaque, const char *line)
 {
-  struct cipher_parm_s *parm = opaque;
+  struct cipher_parm_s *parm = (cipher_parm_s*) opaque;
   int rc;
 
   if (has_leading_keyword (line, "CIPHERTEXT"))
@@ -456,7 +456,7 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
     }
 
   put_membuf (&data, "", 1); /* Make sure it is 0 terminated. */
-  buf = get_membuf (&data, &len);
+  buf = (char*) get_membuf (&data, &len);
   if (!buf)
     return GPG_ERR_ENOMEM;
   assert (len); /* (we forced Nul termination.)  */
@@ -499,7 +499,7 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
 static gpg_error_t
 inq_genkey_parms (void *opaque, const char *line)
 {
-  struct genkey_parm_s *parm = opaque;
+  struct genkey_parm_s *parm = (genkey_parm_s*) opaque;
   int rc;
 
   if (has_leading_keyword (line, "KEYPARAM"))
@@ -552,7 +552,7 @@ gpgsm_agent_genkey (ctrl_t ctrl,
       xfree (get_membuf (&data, &len));
       return rc;
     }
-  buf = get_membuf (&data, &len);
+  buf = (unsigned char*) get_membuf (&data, &len);
   if (!buf)
     return GPG_ERR_ENOMEM;
   if (!gcry_sexp_canon_len (buf, len, NULL, NULL))
@@ -603,7 +603,7 @@ gpgsm_agent_readkey (ctrl_t ctrl, int fromcard, const char *hexkeygrip,
       xfree (get_membuf (&data, &len));
       return rc;
     }
-  buf = get_membuf (&data, &len);
+  buf = (unsigned char*) get_membuf (&data, &len);
   if (!buf)
     return GPG_ERR_ENOMEM;
   if (!gcry_sexp_canon_len (buf, len, NULL, NULL))
@@ -628,7 +628,7 @@ store_serialno (const char *line)
 
   for (s=line; hexdigitp (s); s++)
     ;
-  p = xtrymalloc (s + 1 - line);
+  p = (char*) xtrymalloc (s + 1 - line);
   if (p)
     {
       memcpy (p, line, s-line);
@@ -642,7 +642,7 @@ store_serialno (const char *line)
 static gpg_error_t
 scd_serialno_status_cb (void *opaque, const char *line)
 {
-  char **r_serialno = opaque;
+  char **r_serialno = (char**) opaque;
   const char *keyword = line;
   int keywordlen;
 
@@ -697,7 +697,7 @@ gpgsm_agent_scd_serialno (ctrl_t ctrl, char **r_serialno)
 static gpg_error_t
 scd_keypairinfo_status_cb (void *opaque, const char *line)
 {
-  strlist_t *listaddr = opaque;
+  strlist_t *listaddr = (string_list**) opaque;
   const char *keyword = line;
   int keywordlen;
   strlist_t sl;
@@ -768,7 +768,7 @@ gpgsm_agent_scd_keypairinfo (ctrl_t ctrl, strlist_t *r_list)
 static gpg_error_t
 istrusted_status_cb (void *opaque, const char *line)
 {
-  struct rootca_flags_s *flags = opaque;
+  struct rootca_flags_s *flags = (rootca_flags_s*) opaque;
   const char *s;
 
   if ((s = has_leading_keyword (line, "TRUSTLISTFLAG")))
@@ -898,7 +898,7 @@ gpgsm_agent_havekey (ctrl_t ctrl, const char *hexkeygrip)
 static gpg_error_t
 learn_status_cb (void *opaque, const char *line)
 {
-  struct learn_parm_s *parm = opaque;
+  struct learn_parm_s *parm = (learn_parm_s*) opaque;
   const char *s;
 
   /* Pass progress data to the caller.  */
@@ -917,7 +917,7 @@ learn_status_cb (void *opaque, const char *line)
 static gpg_error_t
 learn_cb (void *opaque, const void *buffer, size_t length)
 {
-  struct learn_parm_s *parm = opaque;
+  struct learn_parm_s *parm = (learn_parm_s*) opaque;
   size_t len;
   char *buf;
   ksba_cert_t cert;
@@ -932,7 +932,7 @@ learn_cb (void *opaque, const void *buffer, size_t length)
       return 0;
     }
   /* END encountered - process what we have */
-  buf = get_membuf (parm->data, &len);
+  buf = (char*) get_membuf (parm->data, &len);
   if (!buf)
     {
       parm->error = GPG_ERR_ENOMEM;
@@ -1096,7 +1096,7 @@ gpgsm_agent_send_nop (ctrl_t ctrl)
 static gpg_error_t
 keyinfo_status_cb (void *opaque, const char *line)
 {
-  char **serialno = opaque;
+  char **serialno = (char**) opaque;
   const char *s, *s2;
 
   if ((s = has_leading_keyword (line, "KEYINFO")) && !*serialno)
@@ -1108,7 +1108,7 @@ keyinfo_status_cb (void *opaque, const char *line)
           s2 = strchr (s, ' ');
           if ( s2 > s )
             {
-              *serialno = xtrymalloc ((s2 - s)+1);
+              *serialno = (char*) xtrymalloc ((s2 - s)+1);
               if (*serialno)
                 {
                   memcpy (*serialno, s, s2 - s);
@@ -1199,7 +1199,7 @@ gpgsm_agent_ask_passphrase (ctrl_t ctrl, const char *desc_msg, int repeat,
   else
     {
       put_membuf (&data, "", 1);
-      *r_passphrase = get_membuf (&data, NULL);
+      *r_passphrase = (char*) get_membuf (&data, NULL);
       if (!*r_passphrase)
         err = gpg_error_from_syserror ();
     }
@@ -1241,7 +1241,7 @@ gpgsm_agent_keywrap_key (ctrl_t ctrl, int forexport,
       xfree (get_membuf (&data, &len));
       return err;
     }
-  buf = get_membuf (&data, &len);
+  buf = (unsigned char*) get_membuf (&data, &len);
   if (!buf)
     return gpg_error_from_syserror ();
   *r_kek = buf;
@@ -1256,7 +1256,7 @@ gpgsm_agent_keywrap_key (ctrl_t ctrl, int forexport,
 static gpg_error_t
 inq_import_key_parms (void *opaque, const char *line)
 {
-  struct import_key_parm_s *parm = opaque;
+  struct import_key_parm_s *parm = (import_key_parm_s*) opaque;
   gpg_error_t err;
 
   if (has_leading_keyword (line, "KEYDATA"))
@@ -1341,7 +1341,7 @@ gpgsm_agent_export_key (ctrl_t ctrl, const char *keygrip, const char *desc,
       xfree (get_membuf (&data, &len));
       return err;
     }
-  buf = get_membuf (&data, &len);
+  buf = (unsigned char*) get_membuf (&data, &len);
   if (!buf)
     return gpg_error_from_syserror ();
   *r_result = buf;

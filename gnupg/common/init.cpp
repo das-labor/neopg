@@ -92,7 +92,7 @@ register_mem_cleanup_func (void (*func)(void))
     if (item->func == func)
       return; /* Function has already been registered.  */
 
-  item = malloc (sizeof *item);
+  item = (mem_cleanup_item_t) malloc (sizeof *item);
   if (item)
     {
       item->func = func;

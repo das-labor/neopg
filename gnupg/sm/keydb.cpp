@@ -401,7 +401,7 @@ sm_keydb_new (void)
   KEYDB_HANDLE hd;
   int i, j;
 
-  hd = xcalloc (1, sizeof *hd);
+  hd = (KEYDB_HANDLE) xcalloc (1, sizeof *hd);
   hd->found = -1;
   hd->saved_found = -1;
 
@@ -1300,7 +1300,7 @@ sm_keydb_clear_some_cert_flags (ctrl_t ctrl, strlist_t names)
         ;
     }
 
-  desc = xtrycalloc (ndesc, sizeof *desc);
+  desc = (KEYDB_SEARCH_DESC*) xtrycalloc (ndesc, sizeof *desc);
   if (!ndesc)
     {
       log_error ("allocating memory failed: %s\n",

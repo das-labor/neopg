@@ -335,7 +335,7 @@ email_kludge (const char *name)
     ;
   if (!n)
     return NULL;
-  buf = xtrymalloc (n+3);
+  buf = (unsigned char*) xtrymalloc (n+3);
   if (!buf)
     return NULL; /* oops, out of core */
   *buf = '<';
@@ -1358,7 +1358,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
         ;
     }
 
-  desc = xtrycalloc (ndesc, sizeof *desc);
+  desc = (KEYDB_SEARCH_DESC*) xtrycalloc (ndesc, sizeof *desc);
   if (!ndesc)
     {
       rc = gpg_error_from_syserror ();
@@ -1517,7 +1517,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
 static void
 list_external_cb (void *cb_value, ksba_cert_t cert)
 {
-  struct list_external_parm_s *parm = cb_value;
+  struct list_external_parm_s *parm = (list_external_parm_s*) cb_value;
 
   if (sm_keydb_store_cert (parm->ctrl, cert, 1, NULL))
     log_error ("error storing certificate as ephemeral\n");

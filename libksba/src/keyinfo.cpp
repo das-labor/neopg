@@ -58,7 +58,7 @@ pkalgo_t;
 
 struct algo_table_s {
   const char *oidstring;
-  const unsigned char *oid;  /* NULL indicattes end of table */
+  const char *oid;  /* NULL indicattes end of table */
   int                  oidlen;
   int supported;
   pkalgo_t pkalgo;
@@ -344,7 +344,7 @@ get_ecc_curve_oid (const unsigned char *buf, size_t buflen, size_t *r_oidlen)
           break;
       if (!curve_names[i].oid)
         return NULL; /* Not found.  */
-      buf = curve_names[i].oid;
+      buf = (const unsigned char*) curve_names[i].oid;
       buflen = strlen (curve_names[i].oid);
     }
 
@@ -564,7 +564,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
     {
       if (off2 && len2)
         {
-          *r_parm = xtrymalloc (len2);
+          *r_parm = (char*) xtrymalloc (len2);
           if (!*r_parm)
             {
               xfree (*r_oid);
@@ -592,7 +592,7 @@ init_stringbuf (struct stringbuf *sb, int initiallen)
   sb->size = initiallen;
   sb->out_of_core = 0;
   /* allocate one more, so that get_stringbuf can append a nul */
-  sb->buf = xtrymalloc (initiallen+1);
+  sb->buf = (char*) xtrymalloc (initiallen+1);
   if (!sb->buf)
       sb->out_of_core = 1;
 }
@@ -608,7 +608,7 @@ put_stringbuf_mem (struct stringbuf *sb, const char *text, size_t n)
       char *p;
 
       sb->size += n + 100;
-      p = xtryrealloc (sb->buf, sb->size);
+      p = (char*) xtryrealloc (sb->buf, sb->size);
       if ( !p)
         {
           sb->out_of_core = 1;
@@ -771,7 +771,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
       && pk_algo_table[algoidx].parmctrl_string)
     {
       elem = pk_algo_table[algoidx].parmelem_string;
-      ctrl = pk_algo_table[algoidx].parmctrl_string;
+      ctrl = (const unsigned char*) pk_algo_table[algoidx].parmctrl_string;
       for (; *elem; ctrl++, elem++)
         {
           int is_int;
@@ -817,7 +817,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
   /* FIXME: We don't release the stringbuf in case of error
      better let the macro jump to a label */
   elem = pk_algo_table[algoidx].elem_string;
-  ctrl = pk_algo_table[algoidx].ctrl_string;
+  ctrl = (const unsigned char*) pk_algo_table[algoidx].ctrl_string;
   for (; *elem; ctrl++, elem++)
     {
       int is_int;
@@ -860,7 +860,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
   put_stringbuf (&sb, "))");
   xfree (parm_oid);
 
-  *r_string = get_stringbuf (&sb);
+  *r_string = (ksba_sexp_t) get_stringbuf (&sb);
   if (!*r_string)
     return GPG_ERR_ENOMEM;
 
@@ -905,7 +905,7 @@ oid_from_buffer (const unsigned char *buf, int buflen, int *oidlen,
         {
           *r_pkalgo = sig_algo_table[i].pkalgo;
           *oidlen = sig_algo_table[i].oidlen;
-          return sig_algo_table[i].oid;
+          return (const unsigned char*) sig_algo_table[i].oid;
         }
     }
 
@@ -926,7 +926,7 @@ oid_from_buffer (const unsigned char *buf, int buflen, int *oidlen,
 
   *r_pkalgo = pk_algo_table[i].pkalgo;
   *oidlen = pk_algo_table[i].oidlen;
-  return pk_algo_table[i].oid;
+  return (const unsigned char*) pk_algo_table[i].oid;
 }
 
 
@@ -971,7 +971,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   s++;
 
   n = strtoul (s, &endp, 10);
-  s = endp;
+  s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
@@ -984,7 +984,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
 
   /* Break out the algorithm ID */
   n = strtoul (s, &endp, 10);
-  s = endp;
+  s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
   s++;
@@ -1002,18 +1002,18 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
         return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
       n = strtoul (s, &endp, 10);
-      s = endp;
+      s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
       s++;
-      parm[parmidx].name = s;
+      parm[parmidx].name = (const char*) s;
       parm[parmidx].namelen = n;
       s += n;
       if (!digitp(s))
         return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
       n = strtoul (s, &endp, 10);
-      s = endp;
+      s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
       s++;
@@ -1043,7 +1043,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
     }
 
   idxtbllen = 0;
-  for (s = parmdesc; *s; s++)
+  for (s = (const unsigned char*) parmdesc; *s; s++)
     {
       for (i=0; i < parmidx; i++)
         {
@@ -1167,7 +1167,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   if (algoparmdesc)
     {
       idxtbllen = 0;
-      for (s = algoparmdesc; *s; s++)
+      for (s = (const unsigned char*) algoparmdesc; *s; s++)
         {
           for (i=0; i < parmidx; i++)
             {
@@ -1290,7 +1290,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
     goto leave;
 
   /* Get the result. */
-  *r_der = ksba_writer_snatch_mem (writer, r_derlen);
+  *r_der = (unsigned char*) ksba_writer_snatch_mem (writer, r_derlen);
   if (!*r_der)
     err = GPG_ERR_ENOMEM;
 
@@ -1342,7 +1342,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
   s++;
 
   n = strtoul (s, &endp, 10);
-  s = endp;
+  s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
   s++;
@@ -1359,7 +1359,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
 
   /* Break out the algorithm ID */
   n = strtoul (s, &endp, 10);
-  s = endp;
+  s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
   s++;
@@ -1377,18 +1377,18 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
         return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
       n = strtoul (s, &endp, 10);
-      s = endp;
+      s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
       s++;
-      parm[parmidx].name = s;
+      parm[parmidx].name = (const char*) s;
       parm[parmidx].namelen = n;
       s += n;
       if (!digitp(s))
         return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
       n = strtoul (s, &endp, 10);
-      s = endp;
+      s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
       s++;
@@ -1418,7 +1418,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
     }
 
   idxtbllen = 0;
-  for (s = parmdesc; *s; s++)
+  for (s = (const unsigned char*) parmdesc; *s; s++)
     {
       for (i=0; i < parmidx; i++)
         {
@@ -1470,7 +1470,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
   if (algoparmdesc)
     {
       idxtbllen = 0;
-      for (s = algoparmdesc; *s; s++)
+      for (s = (const unsigned char*) algoparmdesc; *s; s++)
         {
           for (i=0; i < parmidx; i++)
             {
@@ -1579,7 +1579,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
     goto leave;
 
   /* Get the result. */
-  *r_der = ksba_writer_snatch_mem (writer, r_derlen);
+  *r_der = (unsigned char*) ksba_writer_snatch_mem (writer, r_derlen);
   if (!*r_der)
     err = GPG_ERR_ENOMEM;
 
@@ -1656,7 +1656,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
   /* FIXME: We don't release the stringbuf in case of error
      better let the macro jump to a label */
   elem = algo_table[algoidx].elem_string;
-  ctrl = algo_table[algoidx].ctrl_string;
+  ctrl = (const unsigned char*) algo_table[algoidx].ctrl_string;
   for (; *elem; ctrl++, elem++)
     {
       int is_int;
@@ -1699,7 +1699,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
     }
   put_stringbuf (&sb, ")");
 
-  *r_string = get_stringbuf (&sb);
+  *r_string = (ksba_sexp_t) get_stringbuf (&sb);
   if (!*r_string)
     return GPG_ERR_ENOMEM;
 

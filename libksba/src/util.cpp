@@ -159,7 +159,7 @@ ksba_realloc (void *mem, size_t n)
 char *
 ksba_strdup (const char *str)
 {
-  char *p = ksba_malloc (strlen(str)+1);
+  char *p = (char*) ksba_malloc (strlen(str)+1);
   if (p)
     strcpy (p, str);
   return p;
@@ -233,8 +233,8 @@ ascii_toupper (int c)
 int
 _ksba_ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n)
 {
-  const char *a = a_arg;
-  const char *b = b_arg;
+  const char *a = (const char*) a_arg;
+  const char *b = (const char*) b_arg;
 
   if (a == b)
     return 0;

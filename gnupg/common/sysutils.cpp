@@ -879,7 +879,7 @@ gnupg_getcwd (void)
 
   for (;;)
     {
-      buffer = xtrymalloc (size+1);
+      buffer = (char*) xtrymalloc (size+1);
       if (!buffer)
         return NULL;
       if (getcwd (buffer, size) == buffer)
@@ -1133,7 +1133,7 @@ gnupg_get_socket_name (int fd)
 
       /* log_debug ("file descriptor %d has path %s (%zu octets)\n", fd, */
       /*            un.sun_path, namelen); */
-      name = xtrymalloc (namelen + 1);
+      name = (char*) xtrymalloc (namelen + 1);
       if (!name)
         log_error ("failed to allocate memory for name of fd %d: %s\n",
                    fd, gpg_strerror (gpg_error_from_syserror ()));

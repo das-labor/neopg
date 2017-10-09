@@ -128,7 +128,7 @@ set_next_passphrase( const char *s )
   next_pw = NULL;
   if ( s )
     {
-      next_pw = xmalloc_secure( strlen(s)+1 );
+      next_pw = (char*) xmalloc_secure( strlen(s)+1 );
       strcpy (next_pw, s );
     }
 }
@@ -155,7 +155,7 @@ void
 set_passphrase_from_string(const char *pass)
 {
   xfree (fd_passwd);
-  fd_passwd = xmalloc_secure(strlen(pass)+1);
+  fd_passwd = (char*) xmalloc_secure(strlen(pass)+1);
   strcpy (fd_passwd, pass);
 }
 
@@ -187,7 +187,7 @@ read_passphrase_from_fd( int fd )
         {
           char *pw2 = pw;
           len += 100;
-          pw = xmalloc_secure( len );
+          pw = (char*) xmalloc_secure( len );
           if( pw2 )
             {
               memcpy(pw, pw2, i );
@@ -364,7 +364,7 @@ passphrase_to_dek (int cipher_algo, STRING2KEY *s2k,
   else if ( have_static_passphrase () )
     {
       /* Return the passphrase we have stored in FD_PASSWD. */
-      pw = xmalloc_secure ( strlen(fd_passwd)+1 );
+      pw = (char*) xmalloc_secure ( strlen(fd_passwd)+1 );
       strcpy ( pw, fd_passwd );
     }
   else
@@ -403,7 +403,7 @@ passphrase_to_dek (int cipher_algo, STRING2KEY *s2k,
   /* Hash the passphrase and store it in a newly allocated DEK object.
      Keep a copy of the passphrase in LAST_PW for use by
      get_last_passphrase(). */
-  dek = xmalloc_secure_clear ( sizeof *dek );
+  dek = (DEK*) xmalloc_secure_clear ( sizeof *dek );
   dek->algo = cipher_algo;
   if ( (!pw || !*pw) && create)
     dek->keylen = 0;

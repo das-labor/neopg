@@ -53,7 +53,7 @@ struct ksba_name_s {
 gpg_error_t
 ksba_name_new (ksba_name_t *r_name)
 {
-  *r_name = xtrycalloc (1, sizeof **r_name);
+  *r_name = (ksba_name_t) xtrycalloc (1, sizeof **r_name);
   if (!*r_name)
     return gpg_error_from_errno (errno);
   (*r_name)->ref_count++;
@@ -151,7 +151,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
     return err;
   if (!n)
     return 0; /* empty GeneralNames */
-  name->names = xtrycalloc (n, sizeof *name->names);
+  name->names = (char**) xtrycalloc (n, sizeof *name->names);
   if (!name->names)
     {
       ksba_name_release (name);
@@ -172,7 +172,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
       switch (ti.tag)
         {
         case 1: /* rfc822Name - this is an imlicit IA5_STRING */
-          p = name->names[n] = xtrymalloc (ti.length+3);
+          p = name->names[n] = (char*) xtrymalloc (ti.length+3);
           if (!p)
             {
               ksba_name_release (name);
@@ -193,7 +193,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
           break;
         case 6: /* URI */
           sprintf (numbuf, "%u:", (unsigned int)ti.length);
-          p = name->names[n] = xtrymalloc (1+5+strlen (numbuf)
+          p = name->names[n] = (char*) xtrymalloc (1+5+strlen (numbuf)
                                            + ti.length +1+1);
           if (!p)
             {
@@ -265,7 +265,7 @@ ksba_name_get_uri (ksba_name_t name, int idx)
   if (!n || *s != ':')
     return NULL; /* oops */
   s++;
-  buf = xtrymalloc (n+1);
+  buf = (char*) xtrymalloc (n+1);
   if (buf)
     {
       memcpy (buf, s, n);

@@ -176,7 +176,7 @@ is_empty_line (const unsigned char *line, int linelen)
 static int
 base64_reader_cb (void *cb_value, char *buffer, size_t count, size_t *nread)
 {
-  struct reader_cb_parm_s *parm = cb_value;
+  struct reader_cb_parm_s *parm = (reader_cb_parm_s*) cb_value;
   size_t n;
   int c, c2;
 
@@ -385,7 +385,7 @@ base64_reader_cb (void *cb_value, char *buffer, size_t count, size_t *nread)
 static int
 simple_reader_cb (void *cb_value, char *buffer, size_t count, size_t *nread)
 {
-  struct reader_cb_parm_s *parm = cb_value;
+  struct reader_cb_parm_s *parm = (reader_cb_parm_s*) cb_value;
   size_t n;
   int c = 0;
 
@@ -418,7 +418,7 @@ simple_reader_cb (void *cb_value, char *buffer, size_t count, size_t *nread)
 static int
 base64_writer_cb (void *cb_value, const void *buffer, size_t count)
 {
-  struct writer_cb_parm_s *parm = cb_value;
+  struct writer_cb_parm_s *parm = (writer_cb_parm_s*) cb_value;
   unsigned char radbuf[4];
   int i, c, idx, quad_count;
   const unsigned char *p;
@@ -445,7 +445,7 @@ base64_writer_cb (void *cb_value, const void *buffer, size_t count)
   for (i=0; i < idx; i++)
     radbuf[i] = parm->base64.radbuf[i];
 
-  for (p=buffer; count; p++, count--)
+  for (p= (const unsigned char*) buffer; count; p++, count--)
     {
       radbuf[idx++] = *p;
       if (idx > 2)
@@ -480,7 +480,7 @@ base64_writer_cb (void *cb_value, const void *buffer, size_t count)
 static int
 plain_writer_cb (void *cb_value, const void *buffer, size_t count)
 {
-  struct writer_cb_parm_s *parm = cb_value;
+  struct writer_cb_parm_s *parm = (writer_cb_parm_s*) cb_value;
   estream_t stream = parm->stream;
 
   if (!count)
@@ -579,7 +579,7 @@ gnupg_ksba_create_reader (gnupg_ksba_io_t *ctx,
   ksba_reader_t r;
 
   *r_reader = NULL;
-  *ctx = xtrycalloc (1, sizeof **ctx);
+  *ctx = (gnupg_ksba_io_t) xtrycalloc (1, sizeof **ctx);
   if (!*ctx)
     return out_of_core ();
   (*ctx)->u.rparm.allow_multi_pem = !!(flags & GNUPG_KSBA_IO_MULTIPEM);
@@ -671,7 +671,7 @@ gnupg_ksba_create_writer (gnupg_ksba_io_t *ctx, unsigned int flags,
   ksba_writer_t w;
 
   *r_writer = NULL;
-  *ctx = xtrycalloc (1, sizeof **ctx);
+  *ctx = (gnupg_ksba_io_t) xtrycalloc (1, sizeof **ctx);
   if (!*ctx)
     return gpg_error_from_syserror ();
 

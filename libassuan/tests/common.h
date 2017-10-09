@@ -54,7 +54,7 @@ static int debug;
 static void *
 xmalloc (size_t n)
 {
-  char *p = malloc (n);
+  char *p = (char*) malloc (n);
   if (!p)
     {
       if (log_prefix)
@@ -68,7 +68,7 @@ xmalloc (size_t n)
 static void *
 xcalloc (size_t n, size_t m)
 {
-  char *p = calloc (n, m);
+  char *p = (char*) calloc (n, m);
   if (!p)
     {
       _log_enter ();
@@ -91,7 +91,7 @@ xfree (void *a)
 static void *
 xstrdup (const char *string)
 {
-  char *p = xmalloc (strlen (string) + 1);
+  char *p = (char*) xmalloc (strlen (string) + 1);
   strcpy (p, string);
   return p;
 }
@@ -179,7 +179,7 @@ log_printhex (const char *text, const void *buffer, size_t length)
   if (log_prefix)
     fprintf (stderr, "%s[%u]: ", log_prefix, (unsigned int)getpid ());
   fputs (text, stderr);
-  for (s=buffer; length; s++, length--)
+  for (s= (const unsigned char*) buffer; length; s++, length--)
     fprintf (stderr, "%02X", *s);
   putc ('\n', stderr);
   _log_leave ();
@@ -194,7 +194,7 @@ prepend_srcdir (const char *fname)
   static const char *srcdir = CMAKE_SOURCE_DIR;
   char *result;
 
-  result = xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
+  result = (char*) xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
   strcpy (result, srcdir);
   strcat (result, "/");
   strcat (result, fname);
@@ -224,7 +224,7 @@ do_strconcat (const char *s1, va_list arg_ptr)
       argc++;
     }
   needed++;
-  buffer = xmalloc (needed);
+  buffer = (char*) xmalloc (needed);
   if (buffer)
     {
       for (p = buffer, argc=0; argv[argc]; argc++)
@@ -243,7 +243,7 @@ xstrconcat (const char *s1, ...)
   char *result;
 
   if (!s1)
-    result = xstrdup ("");
+    result = (char*) xstrdup ("");
   else
     {
       va_start (arg_ptr, s1);

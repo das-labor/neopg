@@ -154,7 +154,7 @@ read_and_log_stderr (read_and_log_buffer_t *state, es_poll_t *fderr)
                   char *newbuffer;
                   size_t newsize = state->buffer_size + 256;
 
-                  newbuffer = xtrymalloc (newsize);
+                  newbuffer = (char*) xtrymalloc (newsize);
                   if (!newbuffer)
                     {
                       log_error ("error allocating memory for status cb: %s\n",
@@ -328,7 +328,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   memset (fds, 0, sizeof fds);
   memset (&fderrstate, 0, sizeof fderrstate);
 
-  cpbuf_in = xtrymalloc (sizeof *cpbuf_in);
+  cpbuf_in = (copy_buffer*) xtrymalloc (sizeof *cpbuf_in);
   if (cpbuf_in == NULL)
     {
       err = gpg_error_from_syserror ();
@@ -336,7 +336,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
     }
   copy_buffer_init (cpbuf_in);
 
-  cpbuf_out = xtrymalloc (sizeof *cpbuf_out);
+  cpbuf_out = (copy_buffer*) xtrymalloc (sizeof *cpbuf_out);
   if (cpbuf_out == NULL)
     {
       err = gpg_error_from_syserror ();
@@ -344,7 +344,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
     }
   copy_buffer_init (cpbuf_out);
 
-  cpbuf_extra = xtrymalloc (sizeof *cpbuf_extra);
+  cpbuf_extra = (copy_buffer*) xtrymalloc (sizeof *cpbuf_extra);
   if (cpbuf_extra == NULL)
     {
       err = gpg_error_from_syserror ();
@@ -356,7 +356,7 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   fderrstate.status_cb = status_cb;
   fderrstate.status_cb_value = status_cb_value;
   fderrstate.buffer_size = 256;
-  fderrstate.buffer = xtrymalloc (fderrstate.buffer_size);
+  fderrstate.buffer = (char*) xtrymalloc (fderrstate.buffer_size);
   if (!fderrstate.buffer)
     {
       err = gpg_error_from_syserror ();
@@ -609,7 +609,7 @@ gnupg_exec_tool (const char *pgmname, const char *argv[],
   if (err)
     goto leave;
 
-  *result = xtrymalloc (len + 1);
+  *result = (char*) xtrymalloc (len + 1);
   if (!*result)
     {
       err = gpg_error_from_syserror ();

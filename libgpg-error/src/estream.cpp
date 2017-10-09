@@ -2700,7 +2700,7 @@ es_write_fbf (estream_t _GPGRT__RESTRICT stream,
 static void *
 memrchr (const void *buffer, int c, size_t n)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   for (p += n; n ; n--)
     if (*--p == c)
@@ -3337,7 +3337,7 @@ do_fdopen (int filedes, const char *mode, int no_close, int with_locked_list)
     {
       if ((modeflags & O_NONBLOCK))
         err = stream->intern->func_ioctl (cookie, COOKIE_IOCTL_NONBLOCK,
-                                          "", NULL);
+ (void*)                                          "", NULL);
     }
 
  out:
@@ -4725,7 +4725,7 @@ _gpgrt_set_nonblock (estream_t stream, int onoff)
         stream->intern->modeflags &= ~O_NONBLOCK;
 
       ret = func_ioctl (stream->intern->cookie, COOKIE_IOCTL_NONBLOCK,
-                        onoff?"":NULL, NULL);
+			(void*) (onoff?"":NULL), NULL);
       if (ret)
         stream->intern->modeflags = save_flags;
     }

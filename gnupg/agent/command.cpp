@@ -219,7 +219,7 @@ clear_nonce_cache (ctrl_t ctrl)
 static gpg_error_t
 reset_notify (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void) line;
 
@@ -407,7 +407,7 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
          error code; map it back if needed.  */
       if (err == GPG_ERR_FULLY_CANCELED)
         {
-          ctrl_t ctrl = assuan_get_pointer (ctx);
+          ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
           if (!ctrl->server_local->allow_fully_canceled)
             err = GPG_ERR_CANCELED;
@@ -437,7 +437,7 @@ static const char hlp_geteventcounter[] =
 static gpg_error_t
 cmd_geteventcounter (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)line;
 
@@ -480,7 +480,7 @@ static const char hlp_istrusted[] =
 static gpg_error_t
 cmd_istrusted (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc, n, i;
   char *p;
   char fpr[41];
@@ -516,7 +516,7 @@ static const char hlp_listtrusted[] =
 static gpg_error_t
 cmd_listtrusted (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
 
   (void)line;
@@ -533,7 +533,7 @@ static const char hlp_martrusted[] =
 static gpg_error_t
 cmd_marktrusted (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc, n, i;
   char *p;
   char fpr[41];
@@ -611,7 +611,7 @@ static gpg_error_t
 cmd_sigkey (assuan_context_t ctx, char *line)
 {
   int rc;
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   rc = parse_keygrip (ctx, line, ctrl->keygrip);
   if (rc)
@@ -638,7 +638,7 @@ static const char hlp_setkeydesc[] =
 static gpg_error_t
 cmd_setkeydesc (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   char *desc, *p;
 
   for (p=line; *p == ' '; p++)
@@ -677,7 +677,7 @@ cmd_sethash (assuan_context_t ctx, char *line)
   int rc;
   size_t n;
   char *p;
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   unsigned char *buf;
   char *endp;
   int algo;
@@ -757,7 +757,7 @@ cmd_pksign (assuan_context_t ctx, char *line)
 {
   int rc;
   cache_mode_t cache_mode = CACHE_MODE_NORMAL;
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   membuf_t outbuf;
   char *cache_nonce = NULL;
   char *p;
@@ -800,7 +800,7 @@ static gpg_error_t
 cmd_pkdecrypt (assuan_context_t ctx, char *line)
 {
   int rc;
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   unsigned char *value;
   size_t valuelen;
   membuf_t outbuf;
@@ -861,7 +861,7 @@ static const char hlp_genkey[] =
 static gpg_error_t
 cmd_genkey (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
   int no_protection;
   unsigned char *value;
@@ -966,7 +966,7 @@ static const char hlp_readkey[] =
 static gpg_error_t
 cmd_readkey (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
   unsigned char grip[20];
   gcry_sexp_t s_pkey = NULL;
@@ -1024,7 +1024,7 @@ cmd_readkey (assuan_context_t ctx, char *line)
         {
           pkbuflen = gcry_sexp_sprint (s_pkey, GCRYSEXP_FMT_CANON, NULL, 0);
           log_assert (pkbuflen);
-          pkbuf = xtrymalloc (pkbuflen);
+          pkbuf = (unsigned char*) xtrymalloc (pkbuflen);
           if (!pkbuf)
             rc = gpg_error_from_syserror ();
           else
@@ -1206,7 +1206,7 @@ do_one_keyinfo (ctrl_t ctrl, const unsigned char *grip, assuan_context_t ctx,
 static gpg_error_t
 cmd_keyinfo (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int err;
   unsigned char grip[20];
   DIR *dir = NULL;
@@ -1294,7 +1294,7 @@ send_back_passphrase (assuan_context_t ctx, int via_data, const char *pw)
     rc = assuan_send_data (ctx, pw, n);
   else
     {
-      char *p = xtrymalloc_secure (n*2+1);
+      char *p = (char*) xtrymalloc_secure (n*2+1);
       if (!p)
         rc = gpg_error_from_syserror ();
       else
@@ -1338,7 +1338,7 @@ static const char hlp_get_passphrase[] =
 static gpg_error_t
 cmd_get_passphrase (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
   char *pw;
   char *response;
@@ -1493,7 +1493,7 @@ static const char hlp_clear_passphrase[] =
 static gpg_error_t
 cmd_clear_passphrase (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   char *cacheid = NULL;
   char *p;
   int opt_normal;
@@ -1535,7 +1535,7 @@ static const char hlp_get_confirmation[] =
 static gpg_error_t
 cmd_get_confirmation (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
   char *desc = NULL;
   char *p;
@@ -1577,7 +1577,7 @@ static const char hlp_learn[] =
 static gpg_error_t
 cmd_learn (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int send, sendinfo, force;
 
@@ -1602,7 +1602,7 @@ static const char hlp_passwd[] =
 static gpg_error_t
 cmd_passwd (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int c;
   char *cache_nonce = NULL;
@@ -1775,7 +1775,7 @@ static const char hlp_preset_passphrase[] =
 static gpg_error_t
 cmd_preset_passphrase (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
   char *grip_clear = NULL;
   unsigned char *passphrase = NULL;
@@ -1826,7 +1826,7 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
 	}
 
       /* Do in-place conversion.  */
-      passphrase = line;
+      passphrase = (unsigned char*) line;
       if (!hex2str (passphrase, passphrase, strlen (passphrase)+1, NULL))
         rc = set_error (GPG_ERR_ASS_PARAMETER, "invalid hexstring");
     }
@@ -1864,7 +1864,7 @@ static const char hlp_scd[] =
 static gpg_error_t
 cmd_scd (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
 
   rc = divert_generic_cmd (ctrl, line, ctx);
@@ -1892,7 +1892,7 @@ static const char hlp_keywrap_key[] =
 static gpg_error_t
 cmd_keywrap_key (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   int clearopt = has_option (line, "--clear");
 
@@ -1943,7 +1943,7 @@ static const char hlp_import_key[] =
 static gpg_error_t
 cmd_import_key (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int opt_unattended;
   int force;
@@ -1988,7 +1988,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
       goto leave;
     }
   keylen = wrappedkeylen - 8;
-  key = xtrymalloc_secure (keylen);
+  key = (unsigned char*) xtrymalloc_secure (keylen);
   if (!key)
     {
       err = gpg_error_from_syserror ();
@@ -2138,7 +2138,7 @@ static const char hlp_export_key[] =
 static gpg_error_t
 cmd_export_key (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   unsigned char grip[20];
   gcry_sexp_t s_skey = NULL;
@@ -2257,7 +2257,7 @@ cmd_export_key (assuan_context_t ctx, char *line)
     goto leave;
 
   wrappedkeylen = keylen + 8;
-  wrappedkey = xtrymalloc (wrappedkeylen);
+  wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
   if (!wrappedkey)
     {
       err = gpg_error_from_syserror ();
@@ -2303,7 +2303,7 @@ static const char hlp_delete_key[] =
 static gpg_error_t
 cmd_delete_key (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   int force, stub_only;
   unsigned char grip[20];
@@ -2342,7 +2342,7 @@ static const char hlp_keytocard[] =
 static gpg_error_t
 cmd_keytocard (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int force;
   gpg_error_t err = 0;
   unsigned char grip[20];
@@ -2424,7 +2424,7 @@ cmd_keytocard (assuan_context_t ctx, char *line)
     }
 
   keydatalen =  gcry_sexp_sprint (s_skey, GCRYSEXP_FMT_CANON, NULL, 0);
-  keydata = xtrymalloc_secure (keydatalen + 30);
+  keydata = (unsigned char*) xtrymalloc_secure (keydatalen + 30);
   if (keydata == NULL)
     {
       err = gpg_error_from_syserror ();
@@ -2455,7 +2455,7 @@ static const char hlp_getval[] =
 static gpg_error_t
 cmd_getval (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc = 0;
   char *key = NULL;
   char *p;
@@ -2511,7 +2511,7 @@ static const char hlp_putval[] =
 static gpg_error_t
 cmd_putval (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc = 0;
   char *key = NULL;
   char *value = NULL;
@@ -2556,7 +2556,7 @@ cmd_putval (assuan_context_t ctx, char *line)
 
   if (valuelen) /* Add entry. */
     {
-      vl = xtrymalloc (sizeof *vl + strlen (key) + valuelen);
+      vl = (putval_item_s*) xtrymalloc (sizeof *vl + strlen (key) + valuelen);
       if (!vl)
         rc = gpg_error_from_syserror ();
       else
@@ -2581,7 +2581,7 @@ static const char hlp_killagent[] =
 static gpg_error_t
 cmd_killagent (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)line;
 
@@ -2611,7 +2611,7 @@ static const char hlp_getinfo[] =
 static gpg_error_t
 cmd_getinfo (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc = 0;
 
   if (!strcmp (line, "version"))
@@ -2732,7 +2732,7 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 static gpg_error_t
 option_handler (assuan_context_t ctx, const char *key, const char *value)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
 
   if (!strcmp (key, "agent-awareness"))
@@ -2798,7 +2798,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       if (tmp == -1)
         err = GPG_ERR_INV_VALUE;
       else
-        ctrl->pinentry_mode = tmp;
+        ctrl->pinentry_mode = (pinentry_mode_t) tmp;
     }
   else if (!strcmp (key, "cache-ttl-opt-preset"))
     {
@@ -2826,7 +2826,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
 static void
 post_cmd_notify (assuan_context_t ctx, gpg_error_t err)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)err;
 
@@ -2843,7 +2843,7 @@ static unsigned int
 io_monitor (assuan_context_t ctx, void *hook, int direction,
             const char *line, size_t linelen)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void) hook;
 
@@ -2993,7 +2993,7 @@ start_command_handler (ctrl_t ctrl)
     }
 
   assuan_set_pointer (ctx, ctrl);
-  ctrl->server_local = xcalloc (1, sizeof *ctrl->server_local);
+  ctrl->server_local = (server_local_s*) xcalloc (1, sizeof *ctrl->server_local);
   ctrl->server_local->assuan_ctx = ctx;
   ctrl->server_local->use_cache_for_signing = 1;
 

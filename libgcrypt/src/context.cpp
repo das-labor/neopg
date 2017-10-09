@@ -67,7 +67,7 @@ _gcry_ctx_alloc (int type, size_t length, void (*deinit)(void*))
   if (length < sizeof (PROPERLY_ALIGNED_TYPE))
     length = sizeof (PROPERLY_ALIGNED_TYPE);
 
-  ctx = xtrycalloc (1, sizeof *ctx - sizeof (PROPERLY_ALIGNED_TYPE) + length);
+  ctx = (gcry_ctx_t) xtrycalloc (1, sizeof *ctx - sizeof (PROPERLY_ALIGNED_TYPE) + length);
   if (!ctx)
     return NULL;
   memcpy (ctx->magic, CTX_MAGIC, CTX_MAGIC_LEN);

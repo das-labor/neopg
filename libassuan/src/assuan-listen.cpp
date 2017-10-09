@@ -39,7 +39,7 @@ assuan_set_hello_line (assuan_context_t ctx, const char *line)
     }
   else
     {
-      char *buf = _assuan_malloc (ctx, 3 + strlen (line) + 1);
+      char *buf = (char*) _assuan_malloc (ctx, 3 + strlen (line) + 1);
       if (!buf)
 	return gpg_error_from_syserror ();
       if (strchr (line, '\n'))

@@ -107,7 +107,7 @@ encode_session_key (int openpgp_pk_algo, DEK *dek, unsigned int nbits)
       /* alg+key+csum fit and the size is congruent to 8.  */
       log_assert (!(nframe%8) && nframe > 1 + dek->keylen + 2 );
 
-      frame = xmalloc_secure (nframe);
+      frame = (byte*) xmalloc_secure (nframe);
       n = 0;
       frame[n++] = dek->algo;
       memcpy (frame+n, dek->key, dek->keylen);
@@ -153,7 +153,7 @@ encode_session_key (int openpgp_pk_algo, DEK *dek, unsigned int nbits)
    * CSUM is the 16 bit checksum over the DEK
    */
 
-  frame = xmalloc_secure( nframe );
+  frame = (byte*) xmalloc_secure( nframe );
   n = 0;
   frame[n++] = 0;
   frame[n++] = 2;
@@ -161,7 +161,7 @@ encode_session_key (int openpgp_pk_algo, DEK *dek, unsigned int nbits)
      bytes.  See diagram above.  */
   i = nframe - 6 - dek->keylen;
   log_assert( i > 0 );
-  p = gcry_random_bytes_secure (i, GCRY_STRONG_RANDOM);
+  p = (byte*) gcry_random_bytes_secure (i, GCRY_STRONG_RANDOM);
   /* Replace zero bytes by new values.  */
   for (;;)
     {
@@ -175,7 +175,7 @@ encode_session_key (int openpgp_pk_algo, DEK *dek, unsigned int nbits)
       if (!k)
         break; /* Okay: no zero bytes. */
       k += k/128 + 3; /* Better get some more. */
-      pp = gcry_random_bytes_secure (k, GCRY_STRONG_RANDOM);
+      pp = (byte*) gcry_random_bytes_secure (k, GCRY_STRONG_RANDOM);
       for (j=0; j < i && k ;)
         {
           if (!p[j])
@@ -224,7 +224,7 @@ do_encode_md( gcry_md_hd_t md, int algo, size_t len, unsigned nbits,
      *
      * PAD consists of FF bytes.
      */
-    frame = gcry_md_is_secure (md)? xmalloc_secure (nframe) : xmalloc (nframe);
+    frame = (byte*) (gcry_md_is_secure (md)? xmalloc_secure (nframe) : xmalloc (nframe));
     n = 0;
     frame[n++] = 0;
     frame[n++] = 1; /* block type */
@@ -345,7 +345,7 @@ encode_md_value (PKT_public_key *pk, gcry_md_hd_t md, int hash_algo)
       if (rc)
         log_fatal ("can't get OID of digest algorithm %d: %s\n",
                    hash_algo, gpg_strerror (rc));
-      asn = xtrymalloc (asnlen);
+      asn = (byte*) xtrymalloc (asnlen);
       if (!asn)
         return NULL;
       if ( gcry_md_algo_info (hash_algo, GCRYCTL_GET_ASNOID, asn, &asnlen) )

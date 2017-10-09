@@ -56,7 +56,7 @@ init_compress( compress_filter_context_t *zfx, bz_stream *bzs )
     log_fatal("bz2lib problem: %d\n",rc);
 
   zfx->outbufsize = 8192;
-  zfx->outbuf = xmalloc( zfx->outbufsize );
+  zfx->outbuf = (byte*) xmalloc( zfx->outbufsize );
 }
 
 static int
@@ -68,7 +68,7 @@ do_compress(compress_filter_context_t *zfx, bz_stream *bzs, int flush, IOBUF a)
 
   do
     {
-      bzs->next_out = zfx->outbuf;
+      bzs->next_out = (char*) zfx->outbuf;
       bzs->avail_out = zfx->outbufsize;
       if( DBG_FILTER )
 	log_debug("enter bzCompress: avail_in=%u, avail_out=%u, flush=%d\n",
@@ -106,7 +106,7 @@ init_uncompress( compress_filter_context_t *zfx, bz_stream *bzs )
     log_fatal("bz2lib problem: %d\n",rc);
 
   zfx->inbufsize = 2048;
-  zfx->inbuf = xmalloc( zfx->inbufsize );
+  zfx->inbuf = (byte*) xmalloc( zfx->inbufsize );
   bzs->avail_in = 0;
 }
 
@@ -131,7 +131,7 @@ do_uncompress( compress_filter_context_t *zfx, bz_stream *bzs,
 	{
 	  n = bzs->avail_in;
 	  if( !n )
-	    bzs->next_in = zfx->inbuf;
+	    bzs->next_in = (char*) zfx->inbuf;
 	  count = zfx->inbufsize - n;
 	  nread = iobuf_read( a, zfx->inbuf + n, count );
 	  if( nread == -1 )
@@ -182,20 +182,20 @@ compress_filter_bz2( void *opaque, int control,
 		     IOBUF a, byte *buf, size_t *ret_len)
 {
   size_t size = *ret_len;
-  compress_filter_context_t *zfx = opaque;
-  bz_stream *bzs = zfx->opaque;
+  compress_filter_context_t *zfx = (compress_filter_context_t*) opaque;
+  bz_stream *bzs = (bz_stream*) zfx->opaque;
   int rc=0;
 
   if( control == IOBUFCTRL_UNDERFLOW )
     {
       if( !zfx->status )
 	{
-	  bzs = zfx->opaque = xmalloc_clear( sizeof *bzs );
+	  bzs = zfx->opaque = (bz_stream*) xmalloc_clear( sizeof *bzs );
 	  init_uncompress( zfx, bzs );
 	  zfx->status = 1;
 	}
 
-      bzs->next_out = buf;
+      bzs->next_out = (char*) buf;
       bzs->avail_out = size;
       zfx->outbufsize = size; /* needed only for calculation */
       rc = do_uncompress( zfx, bzs, a, ret_len );
@@ -217,12 +217,12 @@ compress_filter_bz2( void *opaque, int control,
 	  pkt.pkt.compressed = &cd;
 	  if( build_packet( a, &pkt ))
 	    log_bug("build_packet(PKT_COMPRESSED) failed\n");
-	  bzs = zfx->opaque = xmalloc_clear( sizeof *bzs );
+	  bzs = zfx->opaque = (bz_stream*) xmalloc_clear( sizeof *bzs );
 	  init_compress( zfx, bzs );
 	  zfx->status = 2;
 	}
 
-      bzs->next_in = buf;
+      bzs->next_in = (char*) buf;
       bzs->avail_in = size;
       rc = do_compress( zfx, bzs, BZ_RUN, a );
     }
@@ -237,7 +237,7 @@ compress_filter_bz2( void *opaque, int control,
 	}
       else if( zfx->status == 2 )
 	{
-	  bzs->next_in = buf;
+	  bzs->next_in = (char*) buf;
 	  bzs->avail_in = 0;
 	  do_compress( zfx, bzs, BZ_FINISH, a );
 	  BZ2_bzCompressEnd(bzs);

@@ -251,7 +251,7 @@ save_and_clear_import_filter (void)
 {
   import_filter_t filt;
 
-  filt = xtrycalloc (1, sizeof *filt);
+  filt = (import_filter_t) xtrycalloc (1, sizeof *filt);
   if (!filt)
     return NULL;
   *filt = import_filter;
@@ -278,7 +278,7 @@ restore_import_filter (import_filter_t filt)
 import_stats_t
 import_new_stats_handle (void)
 {
-  return xmalloc_clear ( sizeof (struct import_stats_s) );
+  return (import_stats_t) xmalloc_clear ( sizeof (struct import_stats_s) );
 }
 
 
@@ -778,7 +778,7 @@ read_block( IOBUF a, int with_meta,
   else
     in_cert = 0;
 
-  pkt = xmalloc (sizeof *pkt);
+  pkt = (PACKET*) xmalloc (sizeof *pkt);
   init_packet (pkt);
   init_parse_packet (&parsectx, a);
   if (!with_meta)
@@ -841,7 +841,7 @@ read_block( IOBUF a, int with_meta,
 	      }
 	    else
 	      {
-		compress_filter_context_t *cfx = xmalloc_clear( sizeof *cfx );
+		compress_filter_context_t *cfx = (compress_filter_context_t*) xmalloc_clear( sizeof *cfx );
 		pkt->pkt.compressed->buf = NULL;
 		push_compress_filter2(a,cfx,pkt->pkt.compressed->algorithm,1);
 	      }
@@ -874,7 +874,7 @@ read_block( IOBUF a, int with_meta,
                   root = new_kbnode (pkt);
 		else
                   add_kbnode (root, new_kbnode (pkt));
-		pkt = xmalloc (sizeof *pkt);
+		pkt = (PACKET*) xmalloc (sizeof *pkt);
               }
 	    init_packet(pkt);
 	    break;
@@ -1036,7 +1036,7 @@ print_import_check (PKT_public_key * pk, PKT_user_id * id)
   size_t i, n;
   size_t pos = 0;
 
-  buf = xmalloc (17+41+id->len+32);
+  buf = (char*) xmalloc (17+41+id->len+32);
   keyid_from_pk (pk, keyid);
   sprintf (buf, "%08X%08X ", keyid[0], keyid[1]);
   pos = 17;
@@ -1173,7 +1173,7 @@ const char *
 impex_filter_getval (void *cookie, const char *propname)
 {
   /* FIXME: Malloc our static buffers and access them via PARM.  */
-  struct impex_filter_parm_s *parm = cookie;
+  struct impex_filter_parm_s *parm = (impex_filter_parm_s*) cookie;
   ctrl_t ctrl = parm->ctrl;
   kbnode_t node = parm->node;
   static char numbuf[20];
@@ -1586,7 +1586,7 @@ import_one (ctrl_t ctrl,
     goto leave;
 
   /* Do we have this key already in one of our pubrings ? */
-  pk_orig = xmalloc_clear( sizeof *pk_orig );
+  pk_orig = (PKT_public_key*) xmalloc_clear( sizeof *pk_orig );
   rc = get_pubkey_byfprint_fast (pk_orig, fpr2, fpr2len);
   if (rc && rc != GPG_ERR_NO_PUBKEY
       && rc != GPG_ERR_UNUSABLE_PUBKEY )
@@ -2019,7 +2019,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
         xfree (get_membuf (&mbuf, NULL));
       else
         {
-          char *format = get_membuf (&mbuf, NULL);
+          char *format = (char*) get_membuf (&mbuf, NULL);
           if (!format)
             err = gpg_error_from_syserror ();
           else
@@ -2085,7 +2085,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
       /* Wrap the key.  */
       wrappedkeylen = transferkeylen + 8;
       xfree (wrappedkey);
-      wrappedkey = xtrymalloc (wrappedkeylen);
+      wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
       if (!wrappedkey)
         err = gpg_error_from_syserror ();
       else
@@ -2164,7 +2164,7 @@ sec_to_pub_keyblock (kbnode_t sec_keyblock)
 	  PACKET *pkt;
           PKT_public_key *pk;
 
-	  pkt = xtrycalloc (1, sizeof *pkt);
+	  pkt = (PACKET*) xtrycalloc (1, sizeof *pkt);
           pk = pkt? copy_public_key (NULL, secnode->pkt->pkt.public_key): NULL;
           if (!pk)
             {
@@ -2394,7 +2394,7 @@ import_revoke_cert (ctrl_t ctrl, kbnode_t node, struct import_stats_s *stats)
   keyid[0] = node->pkt->pkt.signature->keyid[0];
   keyid[1] = node->pkt->pkt.signature->keyid[1];
 
-  pk = xmalloc_clear( sizeof *pk );
+  pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
   rc = get_pubkey (ctrl, pk, keyid );
   if (rc == GPG_ERR_NO_PUBKEY )
     {

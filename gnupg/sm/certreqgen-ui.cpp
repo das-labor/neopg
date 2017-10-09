@@ -76,7 +76,7 @@ store_mb_lines (membuf_t *mb, membuf_t *lines)
   if (get_membuf_len (lines))
     {
       put_membuf (lines, "", 1);
-      p = get_membuf (lines, NULL);
+      p = (char*) get_membuf (lines, NULL);
       if (!p)
         return -1;
       put_membuf_str (mb, p);
@@ -371,7 +371,7 @@ gpgsm_gencertreq_tty (ctrl_t ctrl, estream_t output_stream)
   if (store_mb_lines (&mb_result, &mb_uri))
     goto mem_error;
   put_membuf (&mb_result, "", 1);
-  result = get_membuf (&mb_result, NULL);
+  result = (char*) get_membuf (&mb_result, NULL);
   if (!result)
     goto mem_error;
 

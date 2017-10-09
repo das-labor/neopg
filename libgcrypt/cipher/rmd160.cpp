@@ -153,7 +153,7 @@ transform ( void *ctx, const unsigned char *data, size_t nblks );
 static void
 rmd160_init (void *context, unsigned int flags)
 {
-  RMD160_CONTEXT *hd = context;
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
 
   (void)flags;
 
@@ -177,7 +177,7 @@ rmd160_init (void *context, unsigned int flags)
 static unsigned int
 transform_blk ( void *ctx, const unsigned char *data )
 {
-  RMD160_CONTEXT *hd = ctx;
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) ctx;
   register u32 al, ar, bl, br, cl, cr, dl, dr, el, er;
   u32 x[16];
   int i;
@@ -405,7 +405,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 rmd160_final( void *context )
 {
-  RMD160_CONTEXT *hd = context;
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
@@ -464,7 +464,7 @@ rmd160_final( void *context )
 static byte *
 rmd160_read( void *context )
 {
-  RMD160_CONTEXT *hd = context;
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
 
   return hd->bctx.buf;
 }

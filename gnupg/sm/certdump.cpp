@@ -123,7 +123,7 @@ gpgsm_format_serial (ksba_const_sexp_t sn)
     BUG (); /* Not a valid S-expression. */
   p++;
 
-  buffer = xtrymalloc (n*2+1);
+  buffer = (char*) xtrymalloc (n*2+1);
   if (buffer)
     {
       for (i=0; n; n--, p++, i+=2)
@@ -239,7 +239,7 @@ gpgsm_format_sn_issuer (ksba_sexp_t sn, const char *issuer)
         p = xtrystrdup ("[invalid SN]");
       else
         {
-          p = xtrymalloc (strlen (p1) + strlen (issuer) + 2 + 1);
+          p = (char*) xtrymalloc (strlen (p1) + strlen (issuer) + 2 + 1);
           if (p)
             {
               *p = '#';
@@ -326,7 +326,7 @@ parse_dn_part (struct dn_array_s *array, const unsigned char *string)
 
   /* We need to allocate a few bytes more due to the possible mapping
      from the shorter OID to the longer label. */
-  array->key = p = xtrymalloc (n+10);
+  array->key = p = (char*) xtrymalloc (n+10);
   if (!array->key)
     return NULL;
   memcpy (p, string, n);
@@ -353,7 +353,7 @@ parse_dn_part (struct dn_array_s *array, const unsigned char *string)
       if (!n || (n & 1))
         return NULL; /* Empty or odd number of digits. */
       n /= 2;
-      array->value = p = xtrymalloc (n+1);
+      array->value = p = (char*) xtrymalloc (n+1);
       if (!p)
         return NULL;
       for (s1=string; n; s1 += 2, n--, p++)
@@ -393,7 +393,7 @@ parse_dn_part (struct dn_array_s *array, const unsigned char *string)
             n++;
         }
 
-      array->value = p = xtrymalloc (n+1);
+      array->value = p = (char*) xtrymalloc (n+1);
       if (!p)
         return NULL;
       for (s=string; n; s++, n--)
@@ -430,7 +430,7 @@ parse_dn (const unsigned char *string)
 
   arraysize = 7; /* C,ST,L,O,OU,CN,email */
   arrayidx = 0;
-  array = xtrymalloc ((arraysize+1) * sizeof *array);
+  array = (dn_array_s*) xtrymalloc ((arraysize+1) * sizeof *array);
   if (!array)
     return NULL;
   while (*string)
@@ -444,7 +444,7 @@ parse_dn (const unsigned char *string)
           struct dn_array_s *a2;
 
           arraysize += 5;
-          a2 = xtryrealloc (array, (arraysize+1) * sizeof *array);
+          a2 = (dn_array_s*) xtryrealloc (array, (arraysize+1) * sizeof *array);
           if (!a2)
             goto failure;
           array = a2;
@@ -554,7 +554,7 @@ pretty_es_print_sexp (estream_t fp, const unsigned char *buf, size_t buflen)
     }
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, NULL, 0);
   assert (len);
-  result = xtrymalloc (len);
+  result = (char*) xtrymalloc (len);
   if (!result)
     {
       es_fputs (_("[Error - out of core]"), fp);
@@ -655,12 +655,12 @@ struct format_name_cookie
 static gpgrt_ssize_t
 format_name_writer (void *cookie, const void *buffer, size_t size)
 {
-  struct format_name_cookie *c = cookie;
+  struct format_name_cookie *c = (format_name_cookie*) cookie;
   char *p;
 
   if (!c->buffer)
     {
-      p = xtrymalloc (size + 1 + 1);
+      p = (char*) xtrymalloc (size + 1 + 1);
       if (p)
         {
           c->size = size + 1;
@@ -675,7 +675,7 @@ format_name_writer (void *cookie, const void *buffer, size_t size)
     }
   else if (c->size < c->len + size)
     {
-      p = xtryrealloc (c->buffer, c->len + size + 1);
+      p = (char*) xtryrealloc (c->buffer, c->len + size + 1);
       if (p)
         {
           c->size = c->len + size;
@@ -771,7 +771,7 @@ gpgsm_fpr_and_name_for_status (ksba_cert_t cert)
       return NULL;
     }
 
-  buffer = xtrymalloc (strlen (fpr) + 1 + 3*strlen (name) + 1);
+  buffer = (char*) xtrymalloc (strlen (fpr) + 1 + 3*strlen (name) + 1);
   if (buffer)
     {
       const char *s;

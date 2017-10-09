@@ -371,14 +371,14 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
       /*       ((            )) */
       outlen = 2 + protlen + 2 ;
       enclen = outlen + 16 /* taglen */;
-      outbuf = gcry_malloc_secure (enclen);
+      outbuf = (char*) gcry_malloc_secure (enclen);
     }
   else
     {
       /*       ((            )( 4:hash 4:sha1 20:<hash> ))  <padding>  */
       outlen = 2 + protlen + 2 + 6   + 6    + 23      + 2 + blklen;
       enclen = outlen/blklen * blklen;
-      outbuf = gcry_malloc_secure (outlen);
+      outbuf = (char*) gcry_malloc_secure (outlen);
     }
   if (!outbuf)
     {
@@ -393,7 +393,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
        * or in OCB mode for a nonce and the s2k salt.  The IV/nonce is
        * set later because for OCB we need to set the key first.  */
       ivsize = (use_ocb? 12 : (blklen*2)) + 8;
-      iv = xtrymalloc (ivsize);
+      iv = (unsigned char*) xtrymalloc (ivsize);
       if (!iv)
         rc = gpg_error_from_syserror ();
       else
@@ -409,7 +409,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
       unsigned char *key;
       size_t keylen = PROT_CIPHER_KEYLEN;
 
-      key = gcry_malloc_secure (keylen);
+      key = (unsigned char*) gcry_malloc_secure (keylen);
       if (!key)
         rc = out_of_core ();
       else
@@ -700,7 +700,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
                 + protectedlen
                 + 35
                 + (real_end-prot_end));
-  *result = p = xtrymalloc (*resultlen);
+  *result = p = (unsigned char*) xtrymalloc (*resultlen);
   if (!p)
     {
       gpg_error_t tmperr = out_of_core ();
@@ -766,7 +766,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
   if (rc)
     return rc;
 
-  outbuf = gcry_malloc_secure (protectedlen);
+  outbuf = (unsigned char*) gcry_malloc_secure (protectedlen);
   if (!outbuf)
     rc = out_of_core ();
 
@@ -775,7 +775,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
     {
       unsigned char *key;
 
-      key = gcry_malloc_secure (prot_cipher_keylen);
+      key = (unsigned char*) gcry_malloc_secure (prot_cipher_keylen);
       if (!key)
         rc = out_of_core ();
       else
@@ -890,7 +890,7 @@ merge_lists (const unsigned char *protectedkey,
   if (!n)
     return GPG_ERR_BUG;
   newlistlen += n;
-  newlist = gcry_malloc_secure (newlistlen);
+  newlist = (unsigned char*) gcry_malloc_secure (newlistlen);
   if (!newlist)
     return out_of_core ();
 
@@ -1446,7 +1446,7 @@ make_shadow_info (const char *serialno, const char *idstring)
   for (s=serialno, n=0; *s && s[1]; s += 2)
     n++;
 
-  info = p = xtrymalloc (1 + sizeof numbuf + n
+  info = p = (char*) xtrymalloc (1 + sizeof numbuf + n
                            + sizeof numbuf + strlen (idstring) + 1 + 1);
   if (!info)
     return NULL;
@@ -1529,7 +1529,7 @@ agent_shadow_key (const unsigned char *pubkey,
   /* Calculate required length by taking in account: the "shadowed-"
      prefix, the "shadowed", "t1-v1" as well as some parenthesis */
   n = 12 + pubkey_len + 1 + 3+8 + 2+5 + shadow_info_len + 1;
-  *result = xtrymalloc (n);
+  *result = (unsigned char*) xtrymalloc (n);
   p = (char*)*result;
   if (!p)
       return out_of_core ();
@@ -1664,7 +1664,7 @@ parse_shadow_info (const unsigned char *shadow_info,
 
   if (r_idstr)
     {
-      *r_idstr = xtrymalloc (n+1);
+      *r_idstr = (char*) xtrymalloc (n+1);
       if (!*r_idstr)
         {
           if (r_hexsn)
@@ -1685,7 +1685,7 @@ parse_shadow_info (const unsigned char *shadow_info,
 
   if (r_pinlen)
     {
-      char *tmpstr = xtrymalloc (n+1);
+      char *tmpstr = (char*) xtrymalloc (n+1);
       if (!tmpstr)
         {
           if (r_hexsn)

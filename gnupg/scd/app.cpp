@@ -37,7 +37,7 @@ static app_t app_top;
 static void
 print_progress_line (void *opaque, const char *what, int pc, int cur, int tot)
 {
-  ctrl_t ctrl = opaque;
+  ctrl_t ctrl = (ctrl_t) opaque;
   char line[100];
 
   if (ctrl)
@@ -176,7 +176,7 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
   int want_undefined;
 
   /* Need to allocate a new one.  */
-  app = xtrycalloc (1, sizeof *app);
+  app = (app_t) xtrycalloc (1, sizeof *app);
   if (!app)
     {
       err = gpg_error_from_syserror ();
@@ -424,7 +424,7 @@ get_supported_applications (void)
   for (nbytes=1, idx=0; list[idx]; idx++)
     nbytes += strlen (list[idx]) + 1 + 1;
 
-  buffer = xtrymalloc (nbytes);
+  buffer = (char*) xtrymalloc (nbytes);
   if (!buffer)
     return NULL;
 
@@ -519,7 +519,7 @@ app_munge_serialno (app_t app)
     {
       /* The serial number starts with our special prefix.  This
          requires that we put our default prefix "FF0000" in front. */
-      unsigned char *p = xtrymalloc (app->serialnolen + 3);
+      unsigned char *p = (unsigned char*) xtrymalloc (app->serialnolen + 3);
       if (!p)
         return gpg_error_from_syserror ();
       memcpy (p, "\xff\0", 3);
@@ -530,7 +530,7 @@ app_munge_serialno (app_t app)
     }
   else if (!app->serialnolen)
     {
-      unsigned char *p = xtrymalloc (3);
+      unsigned char *p = (unsigned char*) xtrymalloc (3);
       if (!p)
         return gpg_error_from_syserror ();
       memcpy (p, "\xff\x7f", 3);

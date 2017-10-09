@@ -308,7 +308,7 @@ next_line_from_file (estream_t fp, gpg_error_t *r_err)
   char *tmpbuf;
 
   *r_err = 0;
-  p = buf;
+  p = (unsigned char*) buf;
   buflen = sizeof buf - 1;
   while ((c=es_getc (fp)) != EOF && c != '\n')
     {
@@ -317,7 +317,7 @@ next_line_from_file (estream_t fp, gpg_error_t *r_err)
           if (!largebuf)
             {
               buflen += 1024;
-              largebuf = xtrymalloc ( buflen + 1 );
+              largebuf = (char*) xtrymalloc ( buflen + 1 );
               if (!largebuf)
                 {
                   *r_err = gpg_error_from_syserror ();
@@ -328,7 +328,7 @@ next_line_from_file (estream_t fp, gpg_error_t *r_err)
           else
             {
               buflen += 1024;
-              tmpbuf = xtryrealloc (largebuf, buflen + 1);
+              tmpbuf = (char*) xtryrealloc (largebuf, buflen + 1);
               if (!tmpbuf)
                 {
                   *r_err = gpg_error_from_syserror ();
@@ -337,7 +337,7 @@ next_line_from_file (estream_t fp, gpg_error_t *r_err)
                 }
               largebuf = tmpbuf;
             }
-          p = largebuf;
+          p = (unsigned char*) largebuf;
         }
       p[len++] = c;
     }
@@ -346,7 +346,7 @@ next_line_from_file (estream_t fp, gpg_error_t *r_err)
   p[len] = 0;
 
   if (largebuf)
-    tmpbuf = xtryrealloc (largebuf, len+1);
+    tmpbuf = (char*) xtryrealloc (largebuf, len+1);
   else
     tmpbuf = xtrystrdup (buf);
   if (!tmpbuf)
@@ -528,7 +528,7 @@ open_dir (crl_cache_t *r_cache)
   gpg_error_t err = 0;
   int anyerr = 0;
 
-  cache = xtrycalloc (1, sizeof *cache);
+  cache = (crl_cache_t) xtrycalloc (1, sizeof *cache);
   if (!cache)
     return gpg_error_from_syserror ();
 
@@ -559,7 +559,7 @@ open_dir (crl_cache_t *r_cache)
       lineno++;
       if ( *line == 'c' || *line == 'u' || *line == 'i' )
         {
-          entry = xtrycalloc (1, sizeof *entry);
+          entry = (crl_cache_entry_t) xtrycalloc (1, sizeof *entry);
           if (!entry)
             {
               err = gpg_error_from_syserror ();
@@ -996,7 +996,7 @@ hash_dbfile (const char *fname, unsigned char *md5buffer)
   gcry_md_hd_t md5;
   gpg_error_t err;
 
-  buffer = xtrymalloc (65536);
+  buffer = (char*) xtrymalloc (65536);
   fp = buffer? es_fopen (fname, "rb") : NULL;
   if (!fp)
     {
@@ -1133,7 +1133,7 @@ lock_db_file (crl_cache_t cache, crl_cache_entry_t entry)
          let require the caller to do that check. */
     }
 
-  entry->cdb = xtrycalloc (1, sizeof *entry->cdb);
+  entry->cdb = (cdb*) xtrycalloc (1, sizeof *entry->cdb);
   if (!entry->cdb)
     {
       xfree (fname);
@@ -1429,7 +1429,7 @@ crl_cache_isvalid (ctrl_t ctrl, const char *issuer_hash, const char *serialno,
     snbuf = snbuf_buffer;
   else
     {
-      snbuf = xtrymalloc (n);
+      snbuf = (unsigned char*) xtrymalloc (n);
       if (!snbuf)
         return CRL_CACHE_DONTKNOW;
     }
@@ -1492,7 +1492,7 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
     }
   sn++;
   snlen = strtoul (sn, &endp, 10);
-  sn = endp;
+  sn = (unsigned char*) endp;
   if (*sn != ':')
     {
       log_error ("oops: invalid S/N\n");
@@ -1934,7 +1934,7 @@ get_auth_key_id (ksba_crl_t crl, char **serialno)
       length += strlen (p?p:s) + 1;
       xfree (p);
     }
-  string = xtrymalloc (length+1);
+  string = (char*) xtrymalloc (length+1);
   if (string)
     {
       *string = 0;
@@ -2147,13 +2147,13 @@ crl_cache_insert (ctrl_t ctrl, const char *url, ksba_reader_t reader)
   issuer_hash = hashify_data (issuer, strlen (issuer));
 
   /* Create an ENTRY. */
-  entry = xtrycalloc (1, sizeof *entry);
+  entry = (crl_cache_entry_t) xtrycalloc (1, sizeof *entry);
   if (!entry)
     {
       err = gpg_error_from_syserror ();
       goto leave;
     }
-  entry->release_ptr = xtrymalloc (strlen (issuer_hash) + 1
+  entry->release_ptr = (char*) xtrymalloc (strlen (issuer_hash) + 1
                                    + strlen (issuer) + 1
                                    + strlen (url) + 1
                                    + strlen (checksum) + 1);
@@ -2282,7 +2282,7 @@ list_one_crl_entry (crl_cache_t cache, crl_cache_entry_t e, estream_t fp)
   if (e->authority_serialno && e->authority_issuer)
     {
       es_fputs ("             \t", fp);
-      for (s=e->authority_issuer; *s; s++)
+      for (s= (const unsigned char*) e->authority_issuer; *s; s++)
         if (*s == '\x01')
           es_fputs ("\n             \t", fp);
         else

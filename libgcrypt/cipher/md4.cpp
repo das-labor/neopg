@@ -71,7 +71,7 @@ transform ( void *c, const unsigned char *data, size_t nblks );
 static void
 md4_init (void *context, unsigned int flags)
 {
-  MD4_CONTEXT *ctx = context;
+  MD4_CONTEXT *ctx = (MD4_CONTEXT*) context;
 
   (void)flags;
 
@@ -98,7 +98,7 @@ md4_init (void *context, unsigned int flags)
 static unsigned int
 transform_blk ( void *c, const unsigned char *data )
 {
-  MD4_CONTEXT *ctx = c;
+  MD4_CONTEXT *ctx = (MD4_CONTEXT*) c;
   u32 in[16];
   register u32 A = ctx->A;
   register u32 B = ctx->B;
@@ -208,7 +208,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 md4_final( void *context )
 {
-  MD4_CONTEXT *hd = context;
+  MD4_CONTEXT *hd = (MD4_CONTEXT*) context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
@@ -267,7 +267,7 @@ md4_final( void *context )
 static byte *
 md4_read (void *context)
 {
-  MD4_CONTEXT *hd = context;
+  MD4_CONTEXT *hd = (MD4_CONTEXT*) context;
   return hd->bctx.buf;
 }
 

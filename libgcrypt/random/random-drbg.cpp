@@ -594,7 +594,7 @@ static void
 drbg_read_cb (const void *buffer, size_t length,
               enum random_origins origin)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   (void) origin;
   gcry_assert (read_cb_buffer);
@@ -1355,7 +1355,7 @@ drbg_seed (drbg_state_t drbg, drbg_string_t *pers, int reseed)
 	 * case it is not divisible by 2 */
 	entropylen = ((entropylen + 1) / 2) * 3;
       dbg (("DRBG: (re)seeding with %lu bytes of entropy\n", entropylen));
-      entropy = xcalloc_secure (1, entropylen);
+      entropy = (unsigned char*) xcalloc_secure (1, entropylen);
       if (!entropy)
 	return GPG_ERR_ENOMEM;
       ret = drbg_get_entropy (drbg, entropy, entropylen);
@@ -1618,10 +1618,10 @@ drbg_instantiate (drbg_state_t drbg,
   if (ret)
     goto err;
 
-  drbg->V = xcalloc_secure (1, drbg_statelen (drbg));
+  drbg->V = (unsigned char*) xcalloc_secure (1, drbg_statelen (drbg));
   if (!drbg->V)
     goto fini;
-  drbg->C = xcalloc_secure (1, drbg_statelen (drbg));
+  drbg->C = (unsigned char*) xcalloc_secure (1, drbg_statelen (drbg));
   if (!drbg->C)
     goto fini;
   /* scratchpad is only generated for CTR and Hash */
@@ -1638,7 +1638,7 @@ drbg_instantiate (drbg_state_t drbg,
 
   if (0 < sb_size)
     {
-      drbg->scratchpad = xcalloc_secure (1, sb_size);
+      drbg->scratchpad = (unsigned char*) xcalloc_secure (1, sb_size);
       if (!drbg->scratchpad)
 	goto fini;
     }
@@ -1779,7 +1779,7 @@ _drbg_init_internal (u32 flags, drbg_string_t *pers)
     }
   else
     {
-      drbg_state = xtrycalloc_secure (1, sizeof *drbg_state);
+      drbg_state = (drbg_state_t) xtrycalloc_secure (1, sizeof *drbg_state);
       if (!drbg_state)
 	return gpg_error_from_syserror ();
     }
@@ -2310,7 +2310,7 @@ _gcry_rngdrbg_cavs_test (struct gcry_drbg_test_vector *test, unsigned char *buf)
   if (ret)
     goto outbuf;
 
-  drbg = xtrycalloc_secure (1, sizeof *drbg);
+  drbg = (drbg_state_t) xtrycalloc_secure (1, sizeof *drbg);
   if (!drbg)
     {
       ret = gpg_error_from_syserror ();
@@ -2371,7 +2371,7 @@ gpg_error_t
 _gcry_rngdrbg_healthcheck_one (struct gcry_drbg_test_vector * test)
 {
   gpg_error_t ret = GPG_ERR_ENOMEM;
-  unsigned char *buf = xcalloc_secure (1, test->expectedlen);
+  unsigned char *buf = (unsigned char*) xcalloc_secure (1, test->expectedlen);
   if (!buf)
     return GPG_ERR_ENOMEM;
 
@@ -2413,13 +2413,13 @@ drbg_healthcheck_sanity (struct gcry_drbg_test_vector *test)
     return ret;
   ret = GPG_ERR_GENERAL; /* Fixme: Improve handling of RET.  */
 
-  buf = xtrycalloc_secure (1, test->expectedlen);
+  buf = (unsigned char*) xtrycalloc_secure (1, test->expectedlen);
   if (!buf)
     return gpg_error_from_syserror ();
   tmpret = drbg_algo_available (flags, &coreref);
   if (tmpret)
     goto outbuf;
-  drbg = xtrycalloc_secure (1, sizeof *drbg);
+  drbg = (drbg_state_t) xtrycalloc_secure (1, sizeof *drbg);
   if (!drbg)
     {
       ret = gpg_error_from_syserror ();
@@ -2592,7 +2592,7 @@ drbg_sym_init (drbg_state_t drbg)
   gcry_cipher_hd_t hd;
   gpg_error_t err;
 
-  drbg->ctr_null = calloc(1, DRBG_CTR_NULL_LEN);
+  drbg->ctr_null = (unsigned char*) calloc(1, DRBG_CTR_NULL_LEN);
   if (!drbg->ctr_null)
     return GPG_ERR_ENOMEM;
 

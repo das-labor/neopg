@@ -120,12 +120,12 @@ session_env_new (void)
 {
   session_env_t se;
 
-  se = xtrycalloc (1, sizeof *se);
+  se = (session_env_t) xtrycalloc (1, sizeof *se);
   if (se)
     {
       se->arraysize = (lastallocatedarraysize?
                        lastallocatedarraysize : INITIAL_ARRAYSIZE);
-      se->array = xtrycalloc (se->arraysize, sizeof *se->array);
+      se->array = (variable_s**) xtrycalloc (se->arraysize, sizeof *se->array);
       if (!se->array)
         {
           xfree (se);
@@ -219,7 +219,7 @@ update_var (session_env_t se, const char *string, size_t namelen,
           struct variable_s **newarray;
 
           newsize = se->arraysize + CHUNK_ARRAYSIZE;
-          newarray = xtrycalloc (newsize, sizeof *newarray);
+          newarray = (variable_s**) xtrycalloc (newsize, sizeof *newarray);
           if (!newarray)
             return gpg_error_from_syserror ();
           for (idx=0; idx < se->arrayused; idx++)
@@ -235,7 +235,7 @@ update_var (session_env_t se, const char *string, size_t namelen,
      Allocating it first allows us to keep the old value; it doesn't
      matter that arrayused has already been incremented in case of a
      new entry - it will then pint to a NULL slot.  */
-  var = xtrymalloc (sizeof *var + namelen + 1 + valuelen);
+  var = (variable_s*) xtrymalloc (sizeof *var + namelen + 1 + valuelen);
   if (!var)
     return gpg_error_from_syserror ();
   var->is_default = !!set_default;

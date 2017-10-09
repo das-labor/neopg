@@ -221,7 +221,7 @@ copy_bcd (const unsigned char *string, size_t length)
   if (!needed) /* If it is all zero, print a "0". */
     needed++;
 
-  buffer = dst = xtrymalloc (needed+1);
+  buffer = dst = (char*) xtrymalloc (needed+1);
   if (!buffer)
     return NULL;
 
@@ -318,7 +318,7 @@ app_select_geldkarte (app_t app)
   /* If we don't have a serialno yet construct it from the EF_ID.  */
   if (!app->serialno)
     {
-      app->serialno = xtrymalloc (10);
+      app->serialno = (unsigned char*) xtrymalloc (10);
       if (!app->serialno)
         {
           err = gpg_error_from_syserror ();
@@ -332,7 +332,7 @@ app_select_geldkarte (app_t app)
     }
 
 
-  app->app_local = ld = xtrycalloc (1, sizeof *app->app_local);
+  app->app_local = ld = (app_local_s*) xtrycalloc (1, sizeof *app->app_local);
   if (!app->app_local)
     {
       err = gpg_error_from_syserror ();

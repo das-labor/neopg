@@ -138,7 +138,7 @@ new_decoder_state (void)
 {
   DECODER_STATE ds;
 
-  ds = xmalloc (sizeof (*ds) + 99*sizeof(DECODER_STATE_ITEM));
+  ds = (DECODER_STATE) xmalloc (sizeof (*ds) + 99*sizeof(DECODER_STATE_ITEM));
   ds->stacksize = 100;
   ds->idx = 0;
   ds->cur.node = NULL;
@@ -345,7 +345,7 @@ _ksba_ber_decoder_new (void)
 {
   BerDecoder d;
 
-  d = xtrycalloc (1, sizeof *d);
+  d = (BerDecoder) xtrycalloc (1, sizeof *d);
   if (!d)
     return NULL;
 
@@ -874,7 +874,7 @@ decoder_next (BerDecoder d)
             return GPG_ERR_BAD_BER;
           if (d->image.length > MAX_IMAGE_LENGTH)
             return GPG_ERR_TOO_LARGE;
-          d->image.buf = xtrycalloc (1, d->image.length);
+          d->image.buf = (unsigned char*) xtrycalloc (1, d->image.length);
           if (!d->image.buf)
             return GPG_ERR_ENOMEM;
         }
@@ -1126,7 +1126,7 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
                 err = GPG_ERR_TOO_LARGE;
               else
                 {
-                  buf = xtrymalloc (buflen);
+                  buf = (unsigned char*) xtrymalloc (buflen);
                   if (!buf)
                     err = gpg_error_from_syserror ();
                 }
@@ -1230,7 +1230,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
               node->nhdr = d->val.nhdr;
               node->len = d->val.length;
               if (node->type == TYPE_ANY)
-                node->actual_type = d->val.tag;
+                node->actual_type = (node_type_t) d->val.tag;
             }
           if (sum_a1_a2_gt_b (d->image.used, d->val.length, d->image.length))
             err = set_error(d, NULL, "TLV length too large");
@@ -1265,7 +1265,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
                 err = GPG_ERR_TOO_LARGE;
               else
                 {
-                  buf = xtrymalloc (buflen);
+                  buf = (unsigned char*) xtrymalloc (buflen);
                   if (!buf)
                     err = gpg_error_from_syserror ();
                 }

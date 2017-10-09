@@ -252,7 +252,7 @@ gpg_mpi_write (iobuf_t out, gcry_mpi_t a)
       unsigned char lenhdr[2];
 
       /* gcry_log_debugmpi ("a", a); */
-      p = gcry_mpi_get_opaque (a, &nbits);
+      p = (const unsigned char*) gcry_mpi_get_opaque (a, &nbits);
       if (p)
         {
           /* Strip leading zero bits.  */
@@ -570,7 +570,7 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
           unsigned int ndatabits;
 
           log_assert (gcry_mpi_get_flag (pk->pkey[npkey], GCRYMPI_FLAG_OPAQUE));
-          p = gcry_mpi_get_opaque (pk->pkey[npkey], &ndatabits);
+          p = (byte*) gcry_mpi_get_opaque (pk->pkey[npkey], &ndatabits);
           if (p)
             iobuf_write (a, p, (ndatabits+7)/8 );
         }
@@ -880,7 +880,7 @@ delete_sig_subpkt (subpktarea_t *area, sigsubpkttype_t reqtype )
 	if( buflen < n )
 	    break;
 
-	type = *buffer & 0x7f;
+	type = (sigsubpkttype_t) *buffer & 0x7f;
 	if( type == reqtype ) {
 	    buffer++;
             buflen--;
@@ -925,7 +925,7 @@ build_sig_subpkt (PKT_signature *sig, sigsubpkttype_t type,
     size_t nlen, n, n0;
 
     critical = (type & SIGSUBPKT_FLAG_CRITICAL);
-    type &= ~SIGSUBPKT_FLAG_CRITICAL;
+    type &= (sigsubpkttype_t) ~SIGSUBPKT_FLAG_CRITICAL;
 
     /* Sanity check buffer sizes */
     if(parse_one_sig_subpkt(buffer,buflen,type)<0)
@@ -1022,7 +1022,7 @@ build_sig_subpkt (PKT_signature *sig, sigsubpkttype_t type,
       }
 
     if( critical )
-	type |= SIGSUBPKT_FLAG_CRITICAL;
+      type |= (sigsubpkttype_t) SIGSUBPKT_FLAG_CRITICAL;
 
     oldarea = hashed? sig->hashed : sig->unhashed;
 
@@ -1034,12 +1034,12 @@ build_sig_subpkt (PKT_signature *sig, sigsubpkttype_t type,
         /*log_debug ("updating area for type %d\n", type );*/
     }
     else if (oldarea) {
-        newarea = xrealloc (oldarea, sizeof (*newarea) + n - 1);
+        newarea = (subpktarea_t*) xrealloc (oldarea, sizeof (*newarea) + n - 1);
         newarea->size = n;
         /*log_debug ("reallocating area for type %d\n", type );*/
     }
     else {
-        newarea = xmalloc (sizeof (*newarea) + n - 1);
+        newarea = (subpktarea_t*) xmalloc (sizeof (*newarea) + n - 1);
         newarea->size = n;
         /*log_debug ("allocating area for type %d\n", type );*/
     }
@@ -1157,7 +1157,7 @@ build_attribute_subpkt(PKT_user_id *uid,byte type,
 
   /* realloc uid->attrib_data to the right size */
 
-  uid->attrib_data=xrealloc(uid->attrib_data,
+  uid->attrib_data= (byte*) xrealloc(uid->attrib_data,
 			     uid->attrib_len+idx+1+headerlen+buflen);
 
   attrib=&uid->attrib_data[uid->attrib_len];
@@ -1231,7 +1231,7 @@ string_to_notation(const char *string,int is_utf8)
   int saw_at=0;
   struct notation *notation;
 
-  notation=xmalloc_clear(sizeof(*notation));
+  notation = (struct notation*) xmalloc_clear(sizeof(*notation));
 
   if(*string=='-')
     {
@@ -1265,7 +1265,7 @@ string_to_notation(const char *string,int is_utf8)
 	}
     }
 
-  notation->name=xmalloc((s-string)+1);
+  notation->name= (char*) xmalloc((s-string)+1);
   strncpy(notation->name,string,s-string);
   notation->name[s-string]='\0';
 
@@ -1323,7 +1323,7 @@ blob_to_notation(const char *name, const char *data, size_t len)
   int saw_at=0;
   struct notation *notation;
 
-  notation=xmalloc_clear(sizeof(*notation));
+  notation = (struct notation *) xmalloc_clear(sizeof(*notation));
 
   if(*name=='-')
     {
@@ -1378,7 +1378,7 @@ blob_to_notation(const char *name, const char *data, size_t len)
       goto fail;
     }
 
-  notation->bdat = xmalloc (len);
+  notation->bdat = (unsigned char*) xmalloc (len);
   memcpy (notation->bdat, data, len);
   notation->blen = len;
 
@@ -1431,8 +1431,8 @@ sig_to_notation(PKT_signature *sig)
 	  continue;
 	}
 
-      n=xmalloc_clear(sizeof(*n));
-      n->name=xmalloc(n1+1);
+      n= (notation*) xmalloc_clear(sizeof(*n));
+      n->name= (char*) xmalloc(n1+1);
 
       memcpy(n->name,&p[8],n1);
       n->name[n1]='\0';
@@ -1440,7 +1440,7 @@ sig_to_notation(PKT_signature *sig)
       if(p[0]&0x80)
         /* The value is human-readable.  */
 	{
-	  n->value=xmalloc(n2+1);
+	  n->value= (char*) xmalloc(n2+1);
 	  memcpy(n->value,&p[8+n1],n2);
 	  n->value[n2]='\0';
           n->flags.human = 1;
@@ -1448,7 +1448,7 @@ sig_to_notation(PKT_signature *sig)
       else
         /* Binary data.  */
 	{
-	  n->bdat=xmalloc(n2);
+	  n->bdat= (unsigned char*) xmalloc(n2);
 	  n->blen=n2;
 	  memcpy(n->bdat,&p[8+n1],n2);
 

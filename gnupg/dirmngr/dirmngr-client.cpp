@@ -431,7 +431,7 @@ static gpg_error_t
 data_cb (void *opaque, const void *buffer, size_t length)
 {
   gpg_error_t err;
-  struct b64state *state = opaque;
+  struct b64state *state = (b64state*) opaque;
 
   if (buffer)
     {
@@ -472,7 +472,7 @@ read_pem_certificate (const char *fname, unsigned char **rbuf, size_t *rbuflen)
   pos = 0;
   value = 0;
   bufsize = 8192;
-  buf = xmalloc (bufsize);
+  buf = (unsigned char*) xmalloc (bufsize);
   buflen = 0;
   while ((c=getc (fp)) != EOF)
     {
@@ -535,7 +535,7 @@ read_pem_certificate (const char *fname, unsigned char **rbuf, size_t *rbuflen)
             if (buflen >= bufsize)
               {
                 bufsize += 8192;
-                buf = xrealloc (buf, bufsize);
+                buf = (unsigned char*) xrealloc (buf, bufsize);
               }
 
             if (c == '-')
@@ -637,9 +637,9 @@ read_certificate (const char *fname, unsigned char **rbuf, size_t *rbuflen)
     {
       bufsize += NCHUNK;
       if (!buf)
-        buf = xmalloc (bufsize);
+        buf = (unsigned char*) xmalloc (bufsize);
       else
-        buf = xrealloc (buf, bufsize);
+        buf = (unsigned char*) xrealloc (buf, bufsize);
 
       nread = fread (buf+buflen, 1, NCHUNK, fp);
       if (nread < NCHUNK && ferror (fp))
@@ -666,7 +666,7 @@ read_certificate (const char *fname, unsigned char **rbuf, size_t *rbuflen)
 static gpg_error_t
 inq_cert (void *opaque, const char *line)
 {
-  struct inq_cert_parm_s *parm = opaque;
+  struct inq_cert_parm_s *parm = (inq_cert_parm_s*) opaque;
   gpg_error_t err;
 
   if (!strncmp (line, "TARGETCERT", 10) && (line[10] == ' ' || !line[10]))
@@ -802,7 +802,7 @@ do_loadcrl (assuan_context_t ctx, const char *filename)
         }
     }
 
-  line = xmalloc (8 + 6 + strlen (fname) * 3 + 1);
+  line = (char*) xmalloc (8 + 6 + strlen (fname) * 3 + 1);
   p = stpcpy (line, "LOADCRL ");
   if (opt.url)
     p = stpcpy (p, "--url ");
@@ -848,14 +848,14 @@ do_lookup (assuan_context_t ctx, const char *pattern)
   if (err)
     return err;
 
-  line = xmalloc (10 + 6 + 13 + strlen (pattern)*3 + 1);
+  line = (char*) xmalloc (10 + 6 + 13 + strlen (pattern)*3 + 1);
 
   p = stpcpy (line, "LOOKUP ");
   if (opt.url)
     p = stpcpy (p, "--url ");
   if (opt.local)
     p = stpcpy (p, "--cache-only ");
-  for (s=pattern; *s; s++)
+  for (s= (const unsigned char*) pattern; *s; s++)
     {
       if (*s < ' ' || *s == '+')
         {

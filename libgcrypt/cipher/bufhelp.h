@@ -116,9 +116,9 @@ do_bytes:
 static inline void
 buf_xor(void *_dst, const void *_src1, const void *_src2, size_t len)
 {
-  byte *dst = _dst;
-  const byte *src1 = _src1;
-  const byte *src2 = _src2;
+  byte *dst = (byte*) _dst;
+  const byte *src1 = (const byte*) _src1;
+  const byte *src2 = (const byte*) _src2;
   bufhelp_int_t *ldst;
   const bufhelp_int_t *lsrc1, *lsrc2;
 #ifndef BUFHELP_FAST_UNALIGNED_ACCESS
@@ -153,8 +153,8 @@ do_bytes:
 static inline void
 buf_xor_1(void *_dst, const void *_src, size_t len)
 {
-  byte *dst = _dst;
-  const byte *src = _src;
+  byte *dst = (byte*) _dst;
+  const byte *src = (const byte*) _src;
   bufhelp_int_t *ldst;
   const bufhelp_int_t *lsrc;
 #ifndef BUFHELP_FAST_UNALIGNED_ACCESS
@@ -188,9 +188,9 @@ do_bytes:
 static inline void
 buf_xor_2dst(void *_dst1, void *_dst2, const void *_src, size_t len)
 {
-  byte *dst1 = _dst1;
-  byte *dst2 = _dst2;
-  const byte *src = _src;
+  byte *dst1 = (byte*) _dst1;
+  byte *dst2 = (byte*) _dst2;
+  const byte *src = (const byte*) _src;
   bufhelp_int_t *ldst1, *ldst2;
   const bufhelp_int_t *lsrc;
 #ifndef BUFHELP_FAST_UNALIGNED_ACCESS
@@ -227,10 +227,10 @@ static inline void
 buf_xor_n_copy_2(void *_dst_xor, const void *_src_xor, void *_srcdst_cpy,
 		 const void *_src_cpy, size_t len)
 {
-  byte *dst_xor = _dst_xor;
-  byte *srcdst_cpy = _srcdst_cpy;
-  const byte *src_xor = _src_xor;
-  const byte *src_cpy = _src_cpy;
+  byte *dst_xor = (byte*) _dst_xor;
+  byte *srcdst_cpy = (byte*) _srcdst_cpy;
+  const byte *src_xor = (const byte*) _src_xor;
+  const byte *src_cpy = (const byte*) _src_cpy;
   byte temp;
   bufhelp_int_t *ldst_xor, *lsrcdst_cpy;
   const bufhelp_int_t *lsrc_cpy, *lsrc_xor;
@@ -288,8 +288,8 @@ buf_xor_n_copy(void *_dst_xor, void *_srcdst_cpy, const void *_src, size_t len)
 static inline int
 buf_eq_const(const void *_a, const void *_b, size_t len)
 {
-  const byte *a = _a;
-  const byte *b = _b;
+  const byte *a = (const byte*) _a;
+  const byte *b = (const byte*) _b;
   size_t diff, i;
 
   /* Constant-time compare. */
@@ -306,21 +306,21 @@ buf_eq_const(const void *_a, const void *_b, size_t len)
    endianness.  */
 static inline u32 buf_get_be32(const void *_buf)
 {
-  const byte *in = _buf;
+  const byte *in = (const byte*) _buf;
   return ((u32)in[0] << 24) | ((u32)in[1] << 16) | \
          ((u32)in[2] << 8) | (u32)in[3];
 }
 
 static inline u32 buf_get_le32(const void *_buf)
 {
-  const byte *in = _buf;
+  const byte *in = (const byte*) _buf;
   return ((u32)in[3] << 24) | ((u32)in[2] << 16) | \
          ((u32)in[1] << 8) | (u32)in[0];
 }
 
 static inline void buf_put_be32(void *_buf, u32 val)
 {
-  byte *out = _buf;
+  byte *out = (byte*) _buf;
   out[0] = val >> 24;
   out[1] = val >> 16;
   out[2] = val >> 8;
@@ -329,7 +329,7 @@ static inline void buf_put_be32(void *_buf, u32 val)
 
 static inline void buf_put_le32(void *_buf, u32 val)
 {
-  byte *out = _buf;
+  byte *out = (byte*) _buf;
   out[3] = val >> 24;
   out[2] = val >> 16;
   out[1] = val >> 8;
@@ -341,7 +341,7 @@ static inline void buf_put_le32(void *_buf, u32 val)
    endianness.  */
 static inline u64 buf_get_be64(const void *_buf)
 {
-  const byte *in = _buf;
+  const byte *in = (const byte*) _buf;
   return ((u64)in[0] << 56) | ((u64)in[1] << 48) | \
          ((u64)in[2] << 40) | ((u64)in[3] << 32) | \
          ((u64)in[4] << 24) | ((u64)in[5] << 16) | \
@@ -350,7 +350,7 @@ static inline u64 buf_get_be64(const void *_buf)
 
 static inline u64 buf_get_le64(const void *_buf)
 {
-  const byte *in = _buf;
+  const byte *in = (const byte*) _buf;
   return ((u64)in[7] << 56) | ((u64)in[6] << 48) | \
          ((u64)in[5] << 40) | ((u64)in[4] << 32) | \
          ((u64)in[3] << 24) | ((u64)in[2] << 16) | \
@@ -359,7 +359,7 @@ static inline u64 buf_get_le64(const void *_buf)
 
 static inline void buf_put_be64(void *_buf, u64 val)
 {
-  byte *out = _buf;
+  byte *out = (byte*) _buf;
   out[0] = val >> 56;
   out[1] = val >> 48;
   out[2] = val >> 40;
@@ -372,7 +372,7 @@ static inline void buf_put_be64(void *_buf, u64 val)
 
 static inline void buf_put_le64(void *_buf, u64 val)
 {
-  byte *out = _buf;
+  byte *out = (byte*) _buf;
   out[7] = val >> 56;
   out[6] = val >> 48;
   out[5] = val >> 40;

@@ -288,7 +288,7 @@ struct startup_s
 static void *
 thread_start (void *startup_arg)
 {
-  struct startup_s *startup = startup_arg;
+  struct startup_s *startup = (startup_s*) startup_arg;
   void *(*start_routine) (void *);
   void *arg;
   void *result;
@@ -314,7 +314,7 @@ npth_create (npth_t *thread, const npth_attr_t *attr,
   int err;
   struct startup_s *startup;
 
-  startup = malloc (sizeof (*startup));
+  startup = (startup_s*) malloc (sizeof (*startup));
   if (!startup)
     return errno;
 

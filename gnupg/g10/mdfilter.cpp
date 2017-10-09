@@ -39,7 +39,7 @@ md_filter( void *opaque, int control,
 	       IOBUF a, byte *buf, size_t *ret_len)
 {
     size_t size = *ret_len;
-    md_filter_context_t *mfx = opaque;
+    md_filter_context_t *mfx = (md_filter_context_t*) opaque;
     int i, rc=0;
 
     if( control == IOBUFCTRL_UNDERFLOW ) {

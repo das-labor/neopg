@@ -47,7 +47,7 @@ string_count_chr (const char *string, int c)
 static int
 mem_count_chr (const void *buffer, int c, size_t length)
 {
-  const char *s = buffer;
+  const char *s = (const char*) buffer;
   int count;
 
   for (count=0; length; length--, s++)
@@ -63,7 +63,7 @@ mem_count_chr (const void *buffer, int c, size_t length)
 static const char *
 my_memstr (const void *buffer, size_t buflen, const char *sub)
 {
-  const unsigned char *buf = buffer;
+  const unsigned char *buf = (const unsigned char*) buffer;
   const unsigned char *t = (const unsigned char *)buf;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
@@ -124,7 +124,7 @@ has_dotdot_after_at (const char *string)
 int
 has_invalid_email_chars (const void *buffer, size_t length)
 {
-  const unsigned char *s = buffer;
+  const unsigned char *s = (const unsigned char*) buffer;
   int at_seen=0;
   const char *valid_chars=
     "01234567890_-.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -150,7 +150,7 @@ has_invalid_email_chars (const void *buffer, size_t length)
 int
 is_valid_mailbox_mem (const void *name_arg, size_t namelen)
 {
-  const char *name = name_arg;
+  const char *name = (const char*) name_arg;
 
   return !( !name
             || !namelen
@@ -192,7 +192,7 @@ mailbox_from_userid (const char *userid)
       if (s_end && s_end > s)
         {
           len = s_end - s;
-          result = xtrymalloc (len + 1);
+          result = (char*) xtrymalloc (len + 1);
           if (!result)
             return NULL; /* Ooops - out of core.  */
           strncpy (result, s, len);

@@ -183,7 +183,7 @@ test_keys (RSA_secret_key *sk, unsigned int nbits)
 static int
 check_exponent (void *arg, gcry_mpi_t a)
 {
-  gcry_mpi_t e = arg;
+  gcry_mpi_t e = (gcry_mpi_t) arg;
   gcry_mpi_t tmp;
   int result;
 

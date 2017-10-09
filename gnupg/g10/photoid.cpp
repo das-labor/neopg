@@ -68,7 +68,7 @@ generate_photo_id (ctrl_t ctrl, PKT_public_key *pk,const char *photo_name)
     header[i]=0;
 
 #define EXTRA_UID_NAME_SPACE 71
-  uid=xmalloc_clear(sizeof(*uid)+71);
+  uid= (PKT_user_id*) xmalloc_clear(sizeof(*uid)+71);
 
   if(photo_name && *photo_name)
     filename=make_filename(photo_name,(void *)NULL);
@@ -139,7 +139,7 @@ generate_photo_id (ctrl_t ctrl, PKT_public_key *pk,const char *photo_name)
 	  }
 	}
 
-      photo=xmalloc(len);
+      photo= (byte*) xmalloc(len);
       iobuf_read(file,photo,len);
       iobuf_close(file);
 
@@ -258,7 +258,7 @@ char *image_type_to_string(byte type,int style)
       break;
     }
 
-  return string;
+  return (char*) string;
 }
 
 #if !defined(FIXED_PHOTO_VIEWER) && !defined(DISABLE_PHOTO_VIEWER)
@@ -330,7 +330,7 @@ show_photos (ctrl_t ctrl, const struct user_attribute *attrs, int count,
 	if(!command)
 	  goto fail;
 
-	name=xmalloc(16+strlen(EXTSEP_S)+
+	name= (char*) xmalloc(16+strlen(EXTSEP_S)+
 		     strlen(image_type_to_string(args.imagetype,0))+1);
 
 	/* Make the filename.  Notice we are not using the image

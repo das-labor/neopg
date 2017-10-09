@@ -57,7 +57,7 @@ gpgsm_get_fingerprint (ksba_cert_t cert, int algo,
   len = gcry_md_get_algo_dlen (algo);
   assert (len);
   if (!array)
-    array = xmalloc (len);
+    array = (unsigned char*) xmalloc (len);
 
   if (r_len)
     *r_len = len;
@@ -117,7 +117,7 @@ gpgsm_get_fingerprint_string (ksba_cert_t cert, int algo)
   len = gcry_md_get_algo_dlen (algo);
   assert (len <= MAX_DIGEST_LEN );
   gpgsm_get_fingerprint (cert, algo, digest, NULL);
-  buf = xmalloc (len*3+1);
+  buf = (char*) xmalloc (len*3+1);
   bin2hexcolon (digest, len, buf);
   return buf;
 }
@@ -137,7 +137,7 @@ gpgsm_get_fingerprint_hexstring (ksba_cert_t cert, int algo)
   len = gcry_md_get_algo_dlen (algo);
   assert (len <= MAX_DIGEST_LEN );
   gpgsm_get_fingerprint (cert, algo, digest, NULL);
-  buf = xmalloc (len*2+1);
+  buf = (char*) xmalloc (len*2+1);
   bin2hex (digest, len, buf);
   return buf;
 }
@@ -211,7 +211,7 @@ gpgsm_get_keygrip_hexstring (ksba_cert_t cert)
 
   if (!gpgsm_get_keygrip (cert, grip))
     return NULL;
-  buf = xtrymalloc (20*2+1);
+  buf = (char*) xtrymalloc (20*2+1);
   if (buf)
     bin2hex (grip, 20, buf);
   return buf;
@@ -326,7 +326,7 @@ gpgsm_get_certid (ksba_cert_t cert)
     }
   p++;
 
-  certid = xtrymalloc ( 40 + 1 + n*2 + 1);
+  certid = (char*) xtrymalloc ( 40 + 1 + n*2 + 1);
   if (!certid)
     {
       xfree (serial);

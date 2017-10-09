@@ -308,10 +308,10 @@ initialize(void)
       /* The data buffer is allocated somewhat larger, so that we can
          use this extra space (which is allocated in secure memory) as
          a temporary hash buffer */
-      rndpool = (secure_alloc
+      rndpool = (unsigned char*) (secure_alloc
                  ? xcalloc_secure (1, POOLSIZE + BLOCKLEN)
                  : xcalloc (1, POOLSIZE + BLOCKLEN));
-      keypool = (secure_alloc
+      keypool = (unsigned char*) (secure_alloc
                  ? xcalloc_secure (1, POOLSIZE + BLOCKLEN)
                  : xcalloc (1, POOLSIZE + BLOCKLEN));
 
@@ -471,7 +471,7 @@ _gcry_rngcsprng_add_bytes (const void *buf, size_t buflen, int quality)
      external source.  This limited entropy estimation also means that
      we can't take QUALITY into account.  */
   initialize_basics ();
-  bufptr = buf;
+  bufptr = (const char*) buf;
   while (buflen)
     {
       nbytes = buflen > POOLSIZE? POOLSIZE : buflen;
@@ -505,7 +505,7 @@ _gcry_rngcsprng_randomize (void *buffer, size_t length,
     level = GCRY_STRONG_RANDOM;
 
   /* Make sure the level is okay. */
-  level &= 3;
+  level &= (gcry_random_level) 3;
 
 #ifdef USE_RANDOM_DAEMON
   if (allow_daemon
@@ -530,7 +530,7 @@ _gcry_rngcsprng_randomize (void *buffer, size_t length,
     }
 
   /* Read the random into the provided buffer. */
-  for (p = buffer; length > 0;)
+  for (p = (unsigned char*) buffer; length > 0;)
     {
       size_t n;
 
@@ -1060,7 +1060,7 @@ read_pool (byte *buffer, size_t length, int level)
 static void
 add_randomness (const void *buffer, size_t length, enum random_origins origin)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
   size_t count = 0;
 
   gcry_assert (pool_is_locked);

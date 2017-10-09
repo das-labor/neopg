@@ -63,7 +63,7 @@ alloc_node (void)
           cleanup_registered = 1;
           register_mem_cleanup_func (release_unused_nodes);
         }
-      n = xmalloc (sizeof *n);
+      n = (kbnode_t) xmalloc (sizeof *n);
     }
   n->next = NULL;
   n->pkt = NULL;

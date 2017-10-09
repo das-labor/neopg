@@ -1119,8 +1119,8 @@ build_list (const char *text, char letter,
     put_membuf_str (&mb, "\n");
   put_membuf (&mb, "", 1);
 
-  string = get_membuf (&mb, NULL);
-  return xrealloc (string, strlen (string)+1);
+  string = (char*) get_membuf (&mb, NULL);
+  return (char*) xrealloc (string, strlen (string)+1);
 }
 
 
@@ -1344,7 +1344,7 @@ add_group(char *string)
 
   if(!item)
     {
-      item=xmalloc(sizeof(struct groupitem));
+      item= (groupitem*) xmalloc(sizeof(struct groupitem));
       item->name=name;
       item->next=opt.grouplist;
       item->values=NULL;
@@ -1880,7 +1880,7 @@ parse_subpacket_list(char *list)
     }
 
   xfree(opt.show_subpackets);
-  opt.show_subpackets=xmalloc(count+1);
+  opt.show_subpackets= (byte*) xmalloc(count+1);
   opt.show_subpackets[count--]=0;
 
   for(i=1;i<128 && count>=0;i++)
@@ -1932,7 +1932,7 @@ parse_list_options(char *str)
      compile everywhere, so fill in the show-sig-subpackets argument
      here.  Note that if the parse_options array changes, we'll have
      to change the subscript here. */
-  lopts[13].value=&subpackets;
+  lopts[13].value= (char**) &subpackets;
 
   if(parse_options(str,&opt.list_options,lopts,1))
     {
@@ -1967,7 +1967,7 @@ collapse_args(int argc,char *argv[])
   for(i=0;i<argc;i++)
     {
       len+=strlen(argv[i])+2;
-      str=xrealloc(str,len);
+      str= (char*) xrealloc(str,len);
       if(first)
 	{
 	  str[0]='\0';
@@ -2236,7 +2236,7 @@ gpg_main (int argc, char **argv)
     int nogreeting = 0;
     char *logfile = NULL;
     int use_random_seed = 1;
-    enum cmd_and_opt_values cmd = 0;
+    enum cmd_and_opt_values cmd = (cmd_and_opt_values) 0;
     const char *debug_level = NULL;
 #ifndef NO_TRUST_MODELS
     const char *trustdb_name = NULL;
@@ -2786,7 +2786,7 @@ gpg_main (int argc, char **argv)
 	    break;
 #endif /*!NO_TRUST_MODELS*/
 	  case oTOFUDefaultPolicy:
-	    opt.tofu_default_policy = parse_tofu_policy (pargs.r.ret_str);
+	    opt.tofu_default_policy = (tofu_policy) parse_tofu_policy (pargs.r.ret_str);
 	    break;
 	  case oTOFUDBFormat:
 	    obsolete_option (configname, configlineno, "tofu-db-format");
@@ -3072,7 +3072,7 @@ gpg_main (int argc, char **argv)
 
 	      if(*pt=='\0')
 		{
-		  compress_algo_string=xmalloc(strlen(pargs.r.ret_str)+2);
+		  compress_algo_string= (char*) xmalloc(strlen(pargs.r.ret_str)+2);
 		  strcpy(compress_algo_string,"Z");
 		  strcat(compress_algo_string,pargs.r.ret_str);
 		}
@@ -3915,7 +3915,7 @@ gpg_main (int argc, char **argv)
     if(fname && utf8_strings)
       opt.flags.utf8_filename=1;
 
-    ctrl = xcalloc (1, sizeof *ctrl);
+    ctrl = (ctrl_t) xcalloc (1, sizeof *ctrl);
     gpg_init_default_ctrl (ctrl);
 
 #ifndef NO_TRUST_MODELS
@@ -4089,7 +4089,7 @@ gpg_main (int argc, char **argv)
 	    if( argc > 1 )
 		wrong_args("--sign [filename]");
 	    if( argc ) {
-		sl = xmalloc_clear( sizeof *sl + strlen(fname));
+		sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
 		strcpy(sl->d, fname);
 	    }
 	}
@@ -4105,7 +4105,7 @@ gpg_main (int argc, char **argv)
 	if( argc > 1 )
 	    wrong_args("--sign --encrypt [filename]");
 	if( argc ) {
-	    sl = xmalloc_clear( sizeof *sl + strlen(fname));
+	    sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
 	    strcpy(sl->d, fname);
 	}
 	else
@@ -4133,7 +4133,7 @@ gpg_main (int argc, char **argv)
 	  {
 	    if( argc )
 	      {
-		sl = xmalloc_clear( sizeof *sl + strlen(fname));
+		sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
 		strcpy(sl->d, fname);
 	      }
 	    else
@@ -4670,7 +4670,7 @@ gpg_main (int argc, char **argv)
                    other tools */
 		size_t n = !endless && count < 99? count : 99;
 
-		p = gcry_random_bytes (n, level);
+		p = (byte*) gcry_random_bytes (n, level);
 #ifdef HAVE_DOSISH_SYSTEM
 		setmode ( fileno(stdout), O_BINARY );
 #endif
@@ -5091,7 +5091,7 @@ print_hashline( gcry_md_hd_t md, int algo, const char *fname )
 
   if ( fname )
     {
-      for (p = fname; *p; p++ )
+      for (p = (const byte*) fname; *p; p++ )
         {
           if ( *p <= 32 || *p > 127 || *p == ':' || *p == '%' )
             es_printf ("%%%02X", *p );
@@ -5324,7 +5324,7 @@ read_sessionkey_from_fd (int fd)
         {
           char *tmp = line;
           len += 100;
-          line = xmalloc_secure (len);
+          line = (char*) xmalloc_secure (len);
           if (tmp)
             {
               memcpy (line, tmp, i);

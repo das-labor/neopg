@@ -299,7 +299,7 @@ open_context (ctrl_t ctrl, assuan_context_t *r_ctx)
           return 0;
         }
 
-      dml = xtrycalloc (1, sizeof *dml);
+      dml = (dirmngr_local_t) xtrycalloc (1, sizeof *dml);
       if (!dml)
         return gpg_error_from_syserror ();
       err = create_context (ctrl, &dml->ctx);
@@ -371,7 +371,7 @@ clear_context_flags (ctrl_t ctrl, assuan_context_t ctx)
 static gpg_error_t
 ks_status_cb (void *opaque, const char *line)
 {
-  struct ks_status_parm_s *parm = opaque;
+  struct ks_status_parm_s *parm = (ks_status_parm_s*) opaque;
   gpg_error_t err = 0;
   const char *s, *s2;
   const char *warn;
@@ -462,7 +462,7 @@ static gpg_error_t
 ks_search_data_cb (void *opaque, const void *data, size_t datalen)
 {
   gpg_error_t err = 0;
-  struct ks_search_parm_s *parm = opaque;
+  struct ks_search_parm_s *parm = (ks_search_parm_s*) opaque;
   const char *line, *s;
   size_t rawlen, linelen;
   char fixedbuf[256];
@@ -492,13 +492,13 @@ ks_search_data_cb (void *opaque, const void *data, size_t datalen)
   put_membuf (&parm->saveddata, data, datalen);
 
  again:
-  line = peek_membuf (&parm->saveddata, &rawlen);
+  line = (const char*) peek_membuf (&parm->saveddata, &rawlen);
   if (!line)
     {
       parm->lasterr = gpg_error_from_syserror ();
       return parm->lasterr; /* Tell the server about our problem.  */
     }
-  if ((s = memchr (line, '\n', rawlen)))
+  if ((s = (const char*) memchr (line, '\n', rawlen)))
     {
       linelen = s - line;  /* That is the length excluding the LF.  */
       if (linelen + 1 < sizeof fixedbuf)
@@ -516,7 +516,7 @@ ks_search_data_cb (void *opaque, const void *data, size_t datalen)
             {
               xfree (parm->helpbuf);
               parm->helpbufsize = linelen + 1 + 1024;
-              parm->helpbuf = xtrymalloc (parm->helpbufsize);
+              parm->helpbuf = (char*) xtrymalloc (parm->helpbufsize);
               if (!parm->helpbuf)
                 {
                   parm->lasterr = gpg_error_from_syserror ();
@@ -602,7 +602,7 @@ static gpg_error_t
 ks_get_data_cb (void *opaque, const void *data, size_t datalen)
 {
   gpg_error_t err = 0;
-  struct ks_get_parm_s *parm = opaque;
+  struct ks_get_parm_s *parm = (ks_get_parm_s*) opaque;
   size_t nwritten;
 
   if (!data)
@@ -688,7 +688,7 @@ gpg_dirmngr_ks_get (ctrl_t ctrl, char **pattern,
       put_membuf_str (&mb, pattern[idx]);
     }
   put_membuf (&mb, "", 1); /* Append Nul.  */
-  line = get_membuf (&mb, &linelen);
+  line = (char*) get_membuf (&mb, &linelen);
   if (!line)
     {
       err = gpg_error_from_syserror ();
@@ -859,7 +859,7 @@ record_output (estream_t output,
 	len = 100 * 1024;
 
       /* The minimum amount of space that we need.  */
-      userid_escaped = xmalloc (len * 3 + 1);
+      userid_escaped = (char*) xmalloc (len * 3 + 1);
 
       for (r = 0; r < len; r++)
 	{
@@ -905,7 +905,7 @@ record_output (estream_t output,
 static gpg_error_t
 ks_put_inq_cb (void *opaque, const char *line)
 {
-  struct ks_put_parm_s *parm = opaque;
+  struct ks_put_parm_s *parm = (ks_put_parm_s*) opaque;
   gpg_error_t err = 0;
 
   if (has_leading_keyword (line, "KEYBLOCK"))
@@ -1092,7 +1092,7 @@ gpg_dirmngr_ks_put (ctrl_t ctrl, void *data, size_t datalen, kbnode_t keyblock)
 static gpg_error_t
 dns_cert_data_cb (void *opaque, const void *data, size_t datalen)
 {
-  struct dns_cert_parm_s *parm = opaque;
+  struct dns_cert_parm_s *parm = (dns_cert_parm_s*) opaque;
   gpg_error_t err = 0;
   size_t nwritten;
 
@@ -1112,7 +1112,7 @@ dns_cert_data_cb (void *opaque, const void *data, size_t datalen)
 static gpg_error_t
 dns_cert_status_cb (void *opaque, const char *line)
 {
-  struct dns_cert_parm_s *parm = opaque;
+  struct dns_cert_parm_s *parm = (dns_cert_parm_s*) opaque;
   gpg_error_t err = 0;
   const char *s;
   size_t nbytes;
@@ -1131,7 +1131,7 @@ dns_cert_status_cb (void *opaque, const char *line)
         err = GPG_ERR_TOO_SHORT;
       else
         {
-          parm->fpr = xtrymalloc (nbytes);
+          parm->fpr = (unsigned char*) xtrymalloc (nbytes);
           if (!parm->fpr)
             err = gpg_error_from_syserror ();
           else

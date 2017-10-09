@@ -157,7 +157,7 @@ _gcry_ecc_eddsa_ensure_compact (gcry_mpi_t value, unsigned int nbits)
 
   if (!mpi_is_opaque (value))
     return GPG_ERR_INV_OBJ;
-  buf = mpi_get_opaque (value, &rawmpilen);
+  buf = (const unsigned char*) mpi_get_opaque (value, &rawmpilen);
   if (!buf)
     return GPG_ERR_INV_OBJ;
   rawmpilen = (rawmpilen + 7)/8;
@@ -300,7 +300,7 @@ _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
     {
       const unsigned char *buf;
 
-      buf = mpi_get_opaque (pk, &rawmpilen);
+      buf = (const unsigned char*) mpi_get_opaque (pk, &rawmpilen);
       if (!buf)
         return GPG_ERR_INV_OBJ;
       rawmpilen = (rawmpilen + 7)/8;
@@ -356,7 +356,7 @@ _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result,
         }
 
       /* EdDSA compressed point.  */
-      rawmpi = xtrymalloc (rawmpilen? rawmpilen:1);
+      rawmpi = (unsigned char*) xtrymalloc (rawmpilen? rawmpilen:1);
       if (!rawmpi)
         return gpg_error_from_syserror ();
       memcpy (rawmpi, buf, rawmpilen);
@@ -428,7 +428,7 @@ _gcry_ecc_eddsa_compute_h_d (unsigned char **r_digest,
 
   /* Note that we clear DIGEST so we can use it as input to left pad
      the key with zeroes for hashing.  */
-  digest = xtrycalloc_secure (2, b);
+  digest = (unsigned char*) xtrycalloc_secure (2, b);
   if (!digest)
     return gpg_error_from_syserror ();
 
@@ -505,14 +505,14 @@ _gcry_ecc_eddsa_genkey (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
   y = mpi_new (0);
 
   /* Generate a secret.  */
-  hash_d = xtrymalloc_secure (2*b);
+  hash_d = (unsigned char*) xtrymalloc_secure (2*b);
   if (!hash_d)
     {
       rc = gpg_error_from_syserror ();
       goto leave;
     }
   dlen = b;
-  dbuf = _gcry_random_bytes_secure (dlen, random_level);
+  dbuf = (char*) _gcry_random_bytes_secure (dlen, random_level);
 
   /* Compute the A value.  */
   hvec[0].data = dbuf;

@@ -241,7 +241,7 @@ do_encode_raw_pkcs1 (const byte *md, size_t mdlen, unsigned int nbits,
       return GPG_ERR_TOO_SHORT;
     }
 
-  frame = xtrymalloc (nframe);
+  frame = (unsigned char*) xtrymalloc (nframe);
   if (!frame)
     return gpg_error_from_syserror ();
 
@@ -297,7 +297,7 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
 
   if (overridedata)
     {
-      data = overridedata;
+      data = (const unsigned char*) overridedata;
       datalen = overridedatalen;
     }
   else
@@ -371,7 +371,7 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
           if (*buf & 0x80)
             {
               len++;
-              buf = xtryrealloc (buf, len);
+              buf = (unsigned char*) xtryrealloc (buf, len);
               if (!buf)
                 goto leave;
 
@@ -399,7 +399,7 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
           if (*buf & 0x80)
             {
               r_buflen++;
-              r_buf_allocated = xtrymalloc (r_buflen);
+              r_buf_allocated = (unsigned char*) xtrymalloc (r_buflen);
               if (!r_buf_allocated)
                 goto leave;
 
@@ -413,7 +413,7 @@ agent_pksign_do (ctrl_t ctrl, const char *cache_nonce,
           if (*(buf + len/2) & 0x80)
             {
               s_buflen++;
-              s_buf_allocated = xtrymalloc (s_buflen);
+              s_buf_allocated = (unsigned char*) xtrymalloc (s_buflen);
               if (!s_buf_allocated)
                 {
                   xfree (r_buf_allocated);
@@ -552,7 +552,7 @@ agent_pksign (ctrl_t ctrl, const char *cache_nonce, const char *desc_text,
 
   len = gcry_sexp_sprint (s_sig, GCRYSEXP_FMT_CANON, NULL, 0);
   assert (len);
-  buf = xmalloc (len);
+  buf = (char*) xmalloc (len);
   len = gcry_sexp_sprint (s_sig, GCRYSEXP_FMT_CANON, buf, len);
   assert (len);
 

@@ -118,8 +118,8 @@ _gcry_hash_selftest_check_one (int algo,
 void
 _gcry_md_block_write (void *context, const void *inbuf_arg, size_t inlen)
 {
-  const unsigned char *inbuf = inbuf_arg;
-  gcry_md_block_ctx_t *hd = context;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
+  gcry_md_block_ctx_t *hd = (gcry_md_block_ctx_t*) context;
   unsigned int stack_burn = 0;
   const unsigned int blocksize = hd->blocksize;
   size_t inblocks;

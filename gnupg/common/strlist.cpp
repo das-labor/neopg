@@ -73,7 +73,7 @@ add_to_strlist( strlist_t *list, const char *string )
 {
     strlist_t sl;
 
-    sl = xmalloc( sizeof *sl + strlen(string));
+    sl = (strlist_t) xmalloc( sizeof *sl + strlen(string));
     sl->flags = 0;
     strcpy(sl->d, string);
     sl->next = *list;
@@ -89,7 +89,7 @@ add_to_strlist_try (strlist_t *list, const char *string)
 {
   strlist_t sl;
 
-  sl = xtrymalloc (sizeof *sl + strlen (string));
+  sl = (strlist_t) xtrymalloc (sizeof *sl + strlen (string));
   if (sl)
     {
       sl->flags = 0;
@@ -140,7 +140,7 @@ append_to_strlist_try (strlist_t *list, const char *string)
 {
     strlist_t r, sl;
 
-    sl = xtrymalloc( sizeof *sl + strlen(string));
+    sl = (strlist_t) xtrymalloc( sizeof *sl + strlen(string));
     if (sl == NULL)
       return NULL;
 
@@ -185,7 +185,7 @@ strlist_copy (strlist_t list)
   last = &newlist;
   for (; list; list = list->next)
     {
-      sl = xmalloc (sizeof *sl + strlen (list->d));
+      sl = (strlist_t) xmalloc (sizeof *sl + strlen (list->d));
       sl->flags = list->flags;
       strcpy(sl->d, list->d);
       sl->next = NULL;
@@ -228,7 +228,7 @@ strlist_pop (strlist_t *list)
 
   if(sl)
     {
-      str = xmalloc(strlen(sl->d)+1);
+      str = (char*) xmalloc(strlen(sl->d)+1);
       strcpy(str,sl->d);
 
       *list=sl->next;

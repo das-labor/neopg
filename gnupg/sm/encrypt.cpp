@@ -152,7 +152,7 @@ encode_session_key (DEK dek, gcry_sexp_t * r_data)
   char *p;
   int rc;
 
-  p = xtrymalloc (64 + 2 * dek->keylen);
+  p = (char*) xtrymalloc (64 + 2 * dek->keylen);
   if (!p)
     return gpg_error_from_syserror ();
   strcpy (p, "(data\n (flags pkcs1)\n (value #");
@@ -227,7 +227,7 @@ encrypt_dek (const DEK dek, ksba_cert_t cert, unsigned char **encval)
 static int
 encrypt_cb (void *cb_value, char *buffer, size_t count, size_t *nread)
 {
-  struct encrypt_cb_parm_s *parm = cb_value;
+  struct encrypt_cb_parm_s *parm = (encrypt_cb_parm_s*) cb_value;
   int blklen = parm->dek->ivlen;
   unsigned char *p;
   size_t n;
@@ -421,7 +421,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
     }
 
   /* Create a session key */
-  dek = xtrycalloc_secure (1, sizeof *dek);
+  dek = (DEK) xtrycalloc_secure (1, sizeof *dek);
   if (!dek)
     rc = out_of_core ();
   else
@@ -448,7 +448,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   encparm.dek = dek;
   /* Use a ~8k (AES) or ~4k (3DES) buffer */
   encparm.bufsize = 500 * dek->ivlen;
-  encparm.buffer = xtrymalloc (encparm.bufsize);
+  encparm.buffer = (unsigned char*) xtrymalloc (encparm.bufsize);
   if (!encparm.buffer)
     {
       rc = out_of_core ();

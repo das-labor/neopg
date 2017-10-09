@@ -127,7 +127,7 @@ check_signature2 (ctrl_t ctrl,
     if (r_pk)
       *r_pk = NULL;
 
-    pk = xtrycalloc (1, sizeof *pk);
+    pk = (PKT_public_key*) xtrycalloc (1, sizeof *pk);
     if (!pk)
       return gpg_error_from_syserror ();
 
@@ -250,7 +250,7 @@ check_signature2 (ctrl_t ctrl,
         nbytes += 10;  /* Safety margin.  */
 
         /* Fill and hash buffer.  */
-        buffer = p = xmalloc (nbytes);
+        buffer = p = (unsigned char*) xmalloc (nbytes);
 	*p++ = sig->pubkey_algo;
 	*p++ = sig->digest_algo;
 	*p++ = (a >> 24) & 0xff;
@@ -267,7 +267,7 @@ check_signature2 (ctrl_t ctrl,
           }
         gcry_md_hash_buffer (GCRY_MD_SHA1, hashbuf, buffer, p-buffer);
 
-	p = make_radix64_string (hashbuf, 20);
+	p = (unsigned char*) make_radix64_string (hashbuf, 20);
 	sprintf (buffer, "%s %s %lu",
 		 p, strtimestamp (sig->timestamp), (unsigned long)sig->timestamp);
 	xfree (p);
@@ -884,7 +884,7 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
                 }
               else
                 {
-                  signer = xmalloc_clear (sizeof (*signer));
+                  signer = (PKT_public_key*) xmalloc_clear (sizeof (*signer));
                   signer_alloced = 2;
                 }
 

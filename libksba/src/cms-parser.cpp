@@ -544,7 +544,7 @@ _ksba_cms_parse_signed_data_part_1 (ksba_cms_t cms)
   if (algo_set_ndef)
     return GPG_ERR_UNSUPPORTED_ENCODING;
   /* read the entire sequence into a buffer (add one to avoid malloc(0)) */
-  buffer = xtrymalloc (algo_set_len + 1);
+  buffer = (char*) xtrymalloc (algo_set_len + 1);
   if (!buffer)
     return GPG_ERR_ENOMEM;
   if (read_buffer (cms->reader, buffer, algo_set_len))
@@ -569,7 +569,7 @@ _ksba_cms_parse_signed_data_part_1 (ksba_cms_t cms)
       algo_set_len -= nread;
       p += nread;
       /* store the oid */
-      ol = xtrymalloc (sizeof *ol);
+      ol = (oidlist_s*) xtrymalloc (sizeof *ol);
       if (!ol)
         {
           xfree (oid);
@@ -679,7 +679,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
               ksba_cert_release (cert);
               return err;
             }
-          cl = xtrycalloc (1, sizeof *cl);
+          cl = (certlist_s*) xtrycalloc (1, sizeof *cl);
           if (!cl)
             {
               ksba_cert_release (cert);
@@ -752,7 +752,7 @@ _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms)
       size_t off1, off2;
 
       off1 = ksba_reader_tell (cms->reader);
-      si = xtrycalloc (1, sizeof *si);
+      si = (signer_info_s*) xtrycalloc (1, sizeof *si);
       if (!si)
         return GPG_ERR_ENOMEM;
 
@@ -875,7 +875,7 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
           if (err)
             return err;
 
-          vt = xtrycalloc (1, sizeof *vt);
+          vt = (value_tree_s*) xtrycalloc (1, sizeof *vt);
           if (!vt)
             return gpg_error_from_syserror ();
 
@@ -901,7 +901,7 @@ _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms)
           size_t off1, off2;
 
           off1 = ksba_reader_tell (cms->reader);
-          vt = xtrycalloc (1, sizeof *vt);
+          vt = (value_tree_s*) xtrycalloc (1, sizeof *vt);
           if (!vt)
             return gpg_error_from_syserror ();
 

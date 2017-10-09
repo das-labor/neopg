@@ -113,7 +113,7 @@ has_leading_keyword (const char *string, const char *keyword)
 const char *
 memistr (const void *buffer, size_t buflen, const char *sub)
 {
-  const unsigned char *buf = buffer;
+  const unsigned char *buf = (const unsigned char*) buffer;
   const unsigned char *t = (const unsigned char *)buffer;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
@@ -138,7 +138,7 @@ memistr (const void *buffer, size_t buflen, const char *sub)
 const char *
 ascii_memistr ( const void *buffer, size_t buflen, const char *sub )
 {
-  const unsigned char *buf = buffer;
+  const unsigned char *buf = (const unsigned char*) buffer;
   const unsigned char *t = (const unsigned char *)buf;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
@@ -175,9 +175,9 @@ mem2str( char *dest , const void *src , size_t n )
 
     if( n ) {
 	if( !dest )
-	    dest = xmalloc( n ) ;
+	    dest = (char*) xmalloc( n ) ;
 	d = dest;
-	s = src ;
+	s = (const char*) src ;
 	for(n--; n && *s; n-- )
 	    *d++ = *s++;
 	*d = '\0' ;
@@ -310,7 +310,7 @@ make_basename(const char *filepath)
 {
     char *p;
 
-    if ( !(p=strrchr(filepath, '/')) )
+    if ( !(p= (char*) strrchr(filepath, '/')) )
 #ifdef HAVE_DOSISH_SYSTEM
 	if ( !(p=strrchr(filepath, '\\')) )
 #endif
@@ -338,7 +338,7 @@ make_dirname(const char *filepath)
     int  dirname_length;
     char *p;
 
-    if ( !(p=strrchr(filepath, '/')) )
+    if ( !(p= (char*) strrchr(filepath, '/')) )
 #ifdef HAVE_DOSISH_SYSTEM
 	if ( !(p=strrchr(filepath, '\\')) )
 #endif
@@ -350,7 +350,7 @@ make_dirname(const char *filepath)
 	      }
 
     dirname_length = p-filepath;
-    dirname = xmalloc(dirname_length+1);
+    dirname = (char*) xmalloc(dirname_length+1);
     strncpy(dirname, filepath, dirname_length);
     dirname[dirname_length] = 0;
 
@@ -471,10 +471,10 @@ do_make_filename (int xmode, const char *first_part, va_list arg_ptr)
     }
 
   if (xmode)
-    name = xmalloc (n);
+    name = (char*) xmalloc (n);
   else
     {
-      name = xtrymalloc (n);
+      name = (char*) xtrymalloc (n);
       if (!name)
         {
           xfree (home_buffer);
@@ -528,10 +528,10 @@ do_make_filename (int xmode, const char *first_part, va_list arg_ptr)
             }
           n = strlen (home) + 1 + strlen (name) + 1;
           if (xmode)
-            home_buffer = xmalloc (n);
+            home_buffer = (char*) xmalloc (n);
           else
             {
-              home_buffer = xtrymalloc (n);
+              home_buffer = (char*) xtrymalloc (n);
               if (!home_buffer)
                 {
                   xfree (home);
@@ -847,8 +847,8 @@ ascii_strncasecmp (const char *a, const char *b, size_t n)
 int
 ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n )
 {
-  const char *a = a_arg;
-  const char *b = b_arg;
+  const char *a = (const char*) a_arg;
+  const char *b = (const char*) b_arg;
 
   if (a == b)
     return 0;
@@ -883,7 +883,7 @@ ascii_memcasemem (const void *haystack, size_t nhaystack,
     return (void*)haystack; /* finding an empty needle is really easy */
   if (nneedle <= nhaystack)
     {
-      const char *a = haystack;
+      const char *a = (const char*) haystack;
       const char *b = a + nhaystack - nneedle;
 
       for (; a <= b; a++)
@@ -913,10 +913,10 @@ do_percent_escape (const char *str, const char *extra, int die)
         || (extra && strchr (extra, str[i])))
       j++;
   if (die)
-    ptr = xmalloc (i + 2 * j + 1);
+    ptr = (char*) xmalloc (i + 2 * j + 1);
   else
     {
-      ptr = xtrymalloc (i + 2 * j + 1);
+      ptr = (char*) xtrymalloc (i + 2 * j + 1);
       if (!ptr)
         return NULL;
     }
@@ -998,7 +998,7 @@ do_strconcat (const char *s1, va_list arg_ptr)
       argc++;
     }
   needed++;
-  buffer = xtrymalloc (needed);
+  buffer = (char*) xtrymalloc (needed);
   if (buffer)
     {
       for (p = buffer, argc=0; argv[argc]; argc++)
@@ -1073,7 +1073,7 @@ strsplit (char *string, char delim, char replacement, int *count)
   for (t = strchr (string, delim); t; t = strchr (t + 1, delim))
     fields ++;
 
-  result = xtrycalloc ((fields + 1), sizeof (*result));
+  result = (char**) xtrycalloc ((fields + 1), sizeof (*result));
   if (! result)
     return NULL;
 
@@ -1129,7 +1129,7 @@ strtokenize (const char *string, const char *delim)
       gpg_err_set_errno (ENOMEM);
       return NULL;
     }
-  result = xtrymalloc (bytes);
+  result = (char**) xtrymalloc (bytes);
   if (!result)
     return NULL;
   buffer = (char*)(result + fields);

@@ -43,7 +43,7 @@ openpgp_s2k (const void *passphrase, size_t passphraselen,
 {
   gpg_error_t ec;
   gcry_md_hd_t md;
-  char *key = keybuffer;
+  char *key = (char*) keybuffer;
   int pass, i;
   int used = 0;
   int secmode;
@@ -126,7 +126,7 @@ _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
   gcry_md_hd_t md;
   int secmode;
   unsigned long dklen = keysize;
-  char *dk = keybuffer;
+  char *dk = (char*) keybuffer;
   unsigned int hlen;   /* Output length of the digest function.  */
   unsigned int l;      /* Rounded up number of blocks.  */
   unsigned int r;      /* Number of octets in the last block.  */
@@ -166,7 +166,7 @@ _gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
   r = dklen - (l - 1) * hlen;
 
   /* Setup buffers and prepare a hash context.  */
-  sbuf = (secmode
+  sbuf = (char*) (secmode
           ? xtrymalloc_secure (saltlen + 4 + hlen + hlen)
           : xtrymalloc (saltlen + 4 + hlen + hlen));
   if (!sbuf)

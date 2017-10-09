@@ -491,7 +491,7 @@ read_lockfile (dotlock_t h, int *same_node )
   expected_len = 10 + 1 + h->nodename_len + 1;
   if ( expected_len >= sizeof buffer_space)
     {
-      buffer = xtrymalloc (expected_len);
+      buffer = (char*) xtrymalloc (expected_len);
       if (!buffer)
         return -1;
     }
@@ -582,7 +582,7 @@ use_hardlinks_p (const char *tname)
     return -1;
   nlink = (unsigned int)sb.st_nlink;
 
-  lname = xtrymalloc (strlen (tname) + 1 + 1);
+  lname = (char*) xtrymalloc (strlen (tname) + 1 + 1);
   if (!lname)
     return -1;
   strcpy (lname, tname);
@@ -645,7 +645,7 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
   all_lockfiles = h;
 
   tnamelen = dirpartlen + 6 + 30 + strlen(nodename) + 10 + 1;
-  h->tname = xtrymalloc (tnamelen + 1);
+  h->tname = (char*) xtrymalloc (tnamelen + 1);
   if (!h->tname)
     {
       all_lockfiles = h->next;
@@ -713,7 +713,7 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
       goto write_failed;
     }
 
-  h->lockname = xtrymalloc (strlen (file_to_lock) + 6 );
+  h->lockname = (char*) xtrymalloc (strlen (file_to_lock) + 6 );
   if (!h->lockname)
     {
       int saveerrno = errno;
@@ -858,7 +858,7 @@ dotlock_create (const char *file_to_lock, unsigned int flags)
       return NULL;
     }
 
-  h = xtrycalloc (1, sizeof *h);
+  h = (dotlock_t) xtrycalloc (1, sizeof *h);
   if (!h)
     return NULL;
   h->extra_fd = -1;

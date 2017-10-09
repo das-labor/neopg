@@ -427,7 +427,7 @@ classify_user_id (const char *name, KEYDB_SEARCH_DESC *desc, int openpgp_hack)
         }
     }
 
-  desc->mode = mode;
+  desc->mode = (KeydbSearchMode) mode;
  out:
   xfree (s2);
   return rc;

@@ -133,7 +133,7 @@ transform (void *context, const unsigned char *data, size_t nblks);
 static void
 sha512_init (void *context, unsigned int flags)
 {
-  SHA512_CONTEXT *ctx = context;
+  SHA512_CONTEXT *ctx = (SHA512_CONTEXT*) context;
   SHA512_STATE *hd = &ctx->state;
   unsigned int features = _gcry_get_hw_features ();
 
@@ -173,7 +173,7 @@ sha512_init (void *context, unsigned int flags)
 static void
 sha384_init (void *context, unsigned int flags)
 {
-  SHA512_CONTEXT *ctx = context;
+  SHA512_CONTEXT *ctx = (SHA512_CONTEXT*) context;
   SHA512_STATE *hd = &ctx->state;
   unsigned int features = _gcry_get_hw_features ();
 
@@ -604,7 +604,7 @@ unsigned int _gcry_sha512_transform_amd64_avx2(const void *input_data,
 static unsigned int
 transform (void *context, const unsigned char *data, size_t nblks)
 {
-  SHA512_CONTEXT *ctx = context;
+  SHA512_CONTEXT *ctx = (SHA512_CONTEXT*) context;
   unsigned int burn;
 
 #ifdef USE_AVX2
@@ -670,7 +670,7 @@ transform (void *context, const unsigned char *data, size_t nblks)
 static void
 sha512_final (void *context)
 {
-  SHA512_CONTEXT *hd = context;
+  SHA512_CONTEXT *hd = (SHA512_CONTEXT*) context;
   unsigned int stack_burn_depth;
   u64 t, th, msb, lsb;
   byte *p;

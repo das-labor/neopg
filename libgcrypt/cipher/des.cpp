@@ -907,9 +907,9 @@ void
 _gcry_3des_ctr_enc(void *context, unsigned char *ctr, void *outbuf_arg,
                    const void *inbuf_arg, size_t nblocks)
 {
-  struct _tripledes_ctx *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  struct _tripledes_ctx *ctx = (_tripledes_ctx*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[DES_BLOCKSIZE];
   int burn_stack_depth = TRIPLEDES_ECB_BURN_STACK;
   int i;
@@ -963,9 +963,9 @@ void
 _gcry_3des_cbc_dec(void *context, unsigned char *iv, void *outbuf_arg,
                    const void *inbuf_arg, size_t nblocks)
 {
-  struct _tripledes_ctx *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  struct _tripledes_ctx *ctx = (_tripledes_ctx*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[DES_BLOCKSIZE];
   int burn_stack_depth = TRIPLEDES_ECB_BURN_STACK;
 
@@ -1012,9 +1012,9 @@ void
 _gcry_3des_cfb_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		   const void *inbuf_arg, size_t nblocks)
 {
-  struct _tripledes_ctx *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  struct _tripledes_ctx *ctx = (_tripledes_ctx*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   int burn_stack_depth = TRIPLEDES_ECB_BURN_STACK;
 
 #ifdef USE_AMD64_ASM

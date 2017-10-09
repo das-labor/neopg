@@ -130,7 +130,7 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
       return 0; /* No signatures at all.  */
 
     /* Add them all to the SIGS array.  */
-    sigs = xtrycalloc (nsigs, sizeof *sigs);
+    sigs = (kbnode_struct**) xtrycalloc (nsigs, sizeof *sigs);
     if (!sigs)
       {
         log_error (_("error allocating memory: %s\n"),
@@ -306,7 +306,7 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
               if (only_selfsigs)
                 continue;
 
-              issuer = xmalloc (sizeof (*issuer));
+              issuer = (PKT_public_key*) xmalloc (sizeof (*issuer));
               err = get_pubkey (ctrl, issuer, sig->keyid);
               if (err)
                 {

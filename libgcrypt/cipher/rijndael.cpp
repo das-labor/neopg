@@ -505,7 +505,7 @@ do_setkey (RIJNDAEL_context *ctx, const byte *key, const unsigned keylen)
 static gpg_error_t
 rijndael_setkey (void *context, const byte *key, const unsigned keylen)
 {
-  RIJNDAEL_context *ctx = context;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
   return do_setkey (ctx, key, keylen);
 }
 
@@ -767,7 +767,7 @@ do_encrypt (const RIJNDAEL_context *ctx,
 static unsigned int
 rijndael_encrypt (void *context, byte *b, const byte *a)
 {
-  RIJNDAEL_context *ctx = context;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
 
   if (ctx->prefetch_enc_fn)
     ctx->prefetch_enc_fn();
@@ -785,9 +785,9 @@ _gcry_aes_cfb_enc (void *context, unsigned char *iv,
                    void *outbuf_arg, const void *inbuf_arg,
                    size_t nblocks)
 {
-  RIJNDAEL_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn_depth = 0;
 
   if (ctx->prefetch_enc_fn)
@@ -845,9 +845,9 @@ _gcry_aes_cbc_enc (void *context, unsigned char *iv,
                    void *outbuf_arg, const void *inbuf_arg,
                    size_t nblocks, int cbc_mac)
 {
-  RIJNDAEL_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char *last_iv;
   unsigned int burn_depth = 0;
 
@@ -914,9 +914,9 @@ _gcry_aes_ctr_enc (void *context, unsigned char *ctr,
                    void *outbuf_arg, const void *inbuf_arg,
                    size_t nblocks)
 {
-  RIJNDAEL_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn_depth = 0;
   int i;
 
@@ -1162,7 +1162,7 @@ check_decryption_preparation (RIJNDAEL_context *ctx)
 static unsigned int
 rijndael_decrypt (void *context, byte *b, const byte *a)
 {
-  RIJNDAEL_context *ctx = context;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
 
   check_decryption_preparation (ctx);
 
@@ -1182,9 +1182,9 @@ _gcry_aes_cfb_dec (void *context, unsigned char *iv,
                    void *outbuf_arg, const void *inbuf_arg,
                    size_t nblocks)
 {
-  RIJNDAEL_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn_depth = 0;
 
   if (ctx->prefetch_enc_fn)
@@ -1240,9 +1240,9 @@ _gcry_aes_cbc_dec (void *context, unsigned char *iv,
                    void *outbuf_arg, const void *inbuf_arg,
                    size_t nblocks)
 {
-  RIJNDAEL_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn_depth = 0;
 
   check_decryption_preparation (ctx);
@@ -1304,9 +1304,9 @@ size_t
 _gcry_aes_ocb_crypt (gcry_cipher_hd_t c, void *outbuf_arg,
                      const void *inbuf_arg, size_t nblocks, int encrypt)
 {
-  RIJNDAEL_context *ctx = (void *)&c->context.c;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) (void *)&c->context.c;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn_depth = 0;
 
   if (encrypt)
@@ -1407,8 +1407,8 @@ _gcry_aes_ocb_crypt (gcry_cipher_hd_t c, void *outbuf_arg,
 size_t
 _gcry_aes_ocb_auth (gcry_cipher_hd_t c, const void *abuf_arg, size_t nblocks)
 {
-  RIJNDAEL_context *ctx = (void *)&c->context.c;
-  const unsigned char *abuf = abuf_arg;
+  RIJNDAEL_context *ctx = (RIJNDAEL_context*) (void *)&c->context.c;
+  const unsigned char *abuf = (const unsigned char*) abuf_arg;
   unsigned int burn_depth = 0;
 
   if (ctx->prefetch_enc_fn)
@@ -1518,7 +1518,7 @@ selftest_basic_128 (void)
 
   /* Because gcc/ld can only align the CTX struct on 8 bytes on the
      stack, we need to allocate that context on the heap.  */
-  ctx = _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
+  ctx = (RIJNDAEL_context*) _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
   if (!ctx)
     return "failed to allocate memory";
 
@@ -1562,7 +1562,7 @@ selftest_basic_192 (void)
       0x12,0x13,0x1A,0xC7,0xC5,0x47,0x88,0xAA
     };
 
-  ctx = _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
+  ctx = (RIJNDAEL_context*) _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
   if (!ctx)
     return "failed to allocate memory";
   rijndael_setkey (ctx, key_192, sizeof(key_192));
@@ -1607,7 +1607,7 @@ selftest_basic_256 (void)
       0x9A,0xCF,0x72,0x80,0x86,0x04,0x0A,0xE3
     };
 
-  ctx = _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
+  ctx = (RIJNDAEL_context*) _gcry_cipher_selftest_alloc_ctx (sizeof *ctx, &ctxmem);
   if (!ctx)
     return "failed to allocate memory";
   rijndael_setkey (ctx, key_256, sizeof(key_256));

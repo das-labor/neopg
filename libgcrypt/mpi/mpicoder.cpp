@@ -234,7 +234,7 @@ do_get_buffer (gcry_mpi_t a, unsigned int fill_le, int extraalloc,
   else
     n2 = n + extraalloc;
 
-  retbuffer = (force_secure || mpi_is_secure(a))? xtrymalloc_secure (n2)
+  retbuffer = (unsigned char*) (force_secure || mpi_is_secure(a))? xtrymalloc_secure (n2)
                                                 : xtrymalloc (n2);
   if (!retbuffer)
     return NULL;
@@ -872,7 +872,7 @@ _gcry_mpi_aprint (enum gcry_mpi_format format,
   if (rc)
     return rc;
 
-  *buffer = mpi_is_secure(a) ? xtrymalloc_secure (n?n:1) : xtrymalloc (n?n:1);
+  *buffer = (unsigned char*) mpi_is_secure(a) ? xtrymalloc_secure (n?n:1) : xtrymalloc (n?n:1);
   if (!*buffer)
     return gpg_error_from_syserror ();
   /* If the returned buffer will have a length of 0, we nevertheless
@@ -921,10 +921,10 @@ _gcry_mpi_to_octet_string (unsigned char **r_frame, void *space,
   noff = (nframe < nbytes)? nbytes - nframe : 0;
   n = nframe + noff;
   if (space)
-    frame = space;
+    frame = (unsigned char*) space;
   else
     {
-      frame = mpi_is_secure (value)? xtrymalloc_secure (n) : xtrymalloc (n);
+      frame = (unsigned char*) mpi_is_secure (value)? xtrymalloc_secure (n) : xtrymalloc (n);
       if (!frame)
         {
           rc = gpg_error_from_syserror ();

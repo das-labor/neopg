@@ -230,7 +230,7 @@ get_all_open_fds (void)
 
   max_fd = get_max_fds ();
   narray = 32;  /* If you change this change also t-exechelp.c.  */
-  array = calloc (narray, sizeof *array);
+  array = (int*) calloc (narray, sizeof *array);
   if (!array)
     return NULL;
 
@@ -243,7 +243,7 @@ get_all_open_fds (void)
             int *tmp;
 
             narray += (narray < 256)? 32:256;
-            tmp = realloc (array, narray * sizeof *array);
+            tmp = (int*) realloc (array, narray * sizeof *array);
             if (!tmp)
               {
                 free (array);
@@ -278,8 +278,8 @@ do_exec (const char *pgmname, const char *argv[],
   if (argv)
     while (argv[i])
       i++;
-  arg_list = xcalloc (i+2, sizeof *arg_list);
-  arg_list[0] = strrchr (pgmname, '/');
+  arg_list = (char**) xcalloc (i+2, sizeof *arg_list);
+  arg_list[0] = (char*) strrchr (pgmname, '/');
   if (arg_list[0])
     arg_list[0]++;
   else
@@ -597,7 +597,7 @@ store_result (pid_t pid, int exitcode)
 {
   struct terminated_child *c;
 
-  c = xtrymalloc (sizeof *c);
+  c = (terminated_child*) xtrymalloc (sizeof *c);
   if (c == NULL)
     return gpg_error_from_syserror ();
 
@@ -700,7 +700,7 @@ gnupg_wait_processes (const char **pgmnames, pid_t *pids, size_t count,
 
   if (r_exitcodes == NULL)
     {
-      dummy = r_exitcodes = xtrymalloc (sizeof *r_exitcodes * count);
+      dummy = r_exitcodes = (int*) xtrymalloc (sizeof *r_exitcodes * count);
       if (dummy == NULL)
         return gpg_error_from_syserror ();
     }

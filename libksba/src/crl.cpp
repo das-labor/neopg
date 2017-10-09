@@ -184,7 +184,7 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
 gpg_error_t
 ksba_crl_new (ksba_crl_t *r_crl)
 {
-  *r_crl = xtrycalloc (1, sizeof **r_crl);
+  *r_crl = (ksba_crl_t) xtrycalloc (1, sizeof **r_crl);
   if (!*r_crl)
     return gpg_error_from_errno (errno);
   return 0;
@@ -472,7 +472,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
 
   sprintf (numbuf,"(%u:", (unsigned int)ti.length);
   numbuflen = strlen (numbuf);
-  *r_serial = xtrymalloc (numbuflen + ti.length + 2);
+  *r_serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_serial)
     return gpg_error_from_errno (errno);
   strcpy (*r_serial, numbuf);
@@ -485,7 +485,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
     {
       sprintf (numbuf,"(%u:", (unsigned int)keyid_derlen);
       numbuflen = strlen (numbuf);
-      *r_keyid = xtrymalloc (numbuflen + keyid_derlen + 2);
+      *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + keyid_derlen + 2);
       if (!*r_keyid)
         return GPG_ERR_ENOMEM;
       strcpy (*r_keyid, numbuf);
@@ -539,7 +539,7 @@ ksba_crl_get_crl_number (ksba_crl_t crl, ksba_sexp_t *number)
 
   sprintf (numbuf,"(%u:", (unsigned int)ti.length);
   numbuflen = strlen (numbuf);
-  *number = xtrymalloc (numbuflen + ti.length + 2);
+  *number = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*number)
     return gpg_error_from_errno (errno);
   strcpy (*number, numbuf);
@@ -811,7 +811,7 @@ store_one_extension (ksba_crl_t crl, const unsigned char *der, size_t derlen)
   err = parse_one_extension (der, derlen, &oid, &critical, &off, &len);
   if (err)
     return err;
-  e = xtrymalloc (sizeof *e + len - 1);
+  e = (crl_extn_t) xtrymalloc (sizeof *e + len - 1);
   if (!e)
     {
       err = gpg_error_from_errno (errno);
@@ -1222,7 +1222,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   xfree (crl->item.serial);
   sprintf (numbuf,"(%u:", (unsigned int)ti.length);
   numbuflen = strlen (numbuf);
-  crl->item.serial = xtrymalloc (numbuflen + ti.length + 2);
+  crl->item.serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!crl->item.serial)
     return GPG_ERR_ENOMEM;
   strcpy (crl->item.serial, numbuf);
@@ -1467,7 +1467,7 @@ ksba_crl_parse (ksba_crl_t crl, ksba_stop_reason_t *r_stopreason)
 
   if (!crl->any_parse_done)
     { /* first time initialization of the stop reason */
-      *r_stopreason = 0;
+      *r_stopreason = (ksba_stop_reason_t) 0;
       crl->any_parse_done = 1;
     }
 

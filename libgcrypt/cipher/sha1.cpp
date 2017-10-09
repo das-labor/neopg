@@ -110,7 +110,7 @@ transform (void *c, const unsigned char *data, size_t nblks);
 static void
 sha1_init (void *context, unsigned int flags)
 {
-  SHA1_CONTEXT *hd = context;
+  SHA1_CONTEXT *hd = (SHA1_CONTEXT*) context;
   unsigned int features = _gcry_get_hw_features ();
 
   (void)flags;
@@ -199,8 +199,8 @@ _gcry_sha1_transform_armv8_ce (void *state, const unsigned char *data,
 static unsigned int
 transform_blk (void *ctx, const unsigned char *data)
 {
-  SHA1_CONTEXT *hd = ctx;
-  const u32 *idata = (const void *)data;
+  SHA1_CONTEXT *hd = (SHA1_CONTEXT*) ctx;
+  const u32 *idata = (const u32*) (const void *)data;
   register u32 a, b, c, d, e; /* Local copies of the chaining variables.  */
   register u32 tm;            /* Helper.  */
   u32 x[16];                  /* The array we work on. */
@@ -344,7 +344,7 @@ _gcry_sha1_transform_amd64_avx_bmi2 (void *state, const unsigned char *data,
 static unsigned int
 transform (void *ctx, const unsigned char *data, size_t nblks)
 {
-  SHA1_CONTEXT *hd = ctx;
+  SHA1_CONTEXT *hd = (SHA1_CONTEXT*) ctx;
   unsigned int burn;
 
 #ifdef USE_BMI2
@@ -404,7 +404,7 @@ transform (void *ctx, const unsigned char *data, size_t nblks)
 unsigned int
 _gcry_sha1_mixblock (SHA1_CONTEXT *hd, void *blockof64byte)
 {
-  u32 *p = blockof64byte;
+  u32 *p = (u32*) blockof64byte;
   unsigned int nburn;
 
   nburn = transform (hd, blockof64byte, 1);
@@ -428,7 +428,7 @@ _gcry_sha1_mixblock (SHA1_CONTEXT *hd, void *blockof64byte)
 static void
 sha1_final(void *context)
 {
-  SHA1_CONTEXT *hd = context;
+  SHA1_CONTEXT *hd = (SHA1_CONTEXT*) context;
   u32 t, th, msb, lsb;
   unsigned char *p;
   unsigned int burn;
@@ -488,7 +488,7 @@ sha1_final(void *context)
 static unsigned char *
 sha1_read( void *context )
 {
-  SHA1_CONTEXT *hd = context;
+  SHA1_CONTEXT *hd = (SHA1_CONTEXT*) context;
 
   return hd->bctx.buf;
 }

@@ -342,7 +342,7 @@ get_validity (ctrl_t ctrl, kbnode_t kb, PKT_public_key *pk, PKT_user_id *uid,
         main_pk = kb->pkt->pkt.public_key;
       else
         {
-          main_pk = xmalloc_clear (sizeof *main_pk);
+          main_pk = (PKT_public_key*) xmalloc_clear (sizeof *main_pk);
           rc = get_pubkey (ctrl, main_pk, pk->main_keyid);
           if (rc)
             {

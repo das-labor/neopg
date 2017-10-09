@@ -69,7 +69,7 @@ static const char oidstr_subjectInfoAccess[]   = "1.3.6.1.5.5.7.1.11";
 gpg_error_t
 ksba_cert_new (ksba_cert_t *acert)
 {
-  *acert = xtrycalloc (1, sizeof **acert);
+  *acert = (ksba_cert_t) xtrycalloc (1, sizeof **acert);
   if (!*acert)
     return gpg_error_from_errno (errno);
   (*acert)->ref_count++;
@@ -183,7 +183,7 @@ ksba_cert_set_user_data (ksba_cert_t cert,
     }
   else if (data) /* Insert as a new item. */
     {
-      ud = xtrycalloc (1, sizeof *ud + strlen (key));
+      ud = (cert_user_data*) xtrycalloc (1, sizeof *ud + strlen (key));
       if (!ud)
         return gpg_error_from_errno (errno);
       strcpy (ud->key, key);
@@ -517,14 +517,14 @@ ksba_cert_get_serial (ksba_cert_t cert)
 
   sprintf (numbuf,"(%u:", (unsigned int)n->len);
   numbuflen = strlen (numbuf);
-  p = xtrymalloc (numbuflen + n->len + 2);
+  p = (char*) xtrymalloc (numbuflen + n->len + 2);
   if (!p)
     return NULL;
   strcpy (p, numbuf);
   memcpy (p+numbuflen, cert->image + n->off + n->nhdr, n->len);
   p[numbuflen + n->len] = ')';
   p[numbuflen + n->len + 1] = 0;
-  return p;
+  return (ksba_sexp_t) p;
 }
 
 
@@ -666,7 +666,7 @@ get_name (ksba_cert_t cert, int idx, int use_subject, char **result)
         ; /* not yet at the desired index */
       else if (ti.tag == 1)
         { /* rfc822Name - this is an implicit IA5_STRING */
-          p = xtrymalloc (ti.length+3);
+          p = (char*) xtrymalloc (ti.length+3);
           if (!p)
             return GPG_ERR_ENOMEM;
           *p = '<';
@@ -682,7 +682,7 @@ get_name (ksba_cert_t cert, int idx, int use_subject, char **result)
           size_t numbuflen;
 
           numbufp = smklen (numbuf, DIM(numbuf), ti.length, &numbuflen);
-          p = xtrymalloc (11 + numbuflen + ti.length + 3);
+          p = (char*) xtrymalloc (11 + numbuflen + ti.length + 3);
           if (!p)
             return GPG_ERR_ENOMEM;
           *result = p;
@@ -944,7 +944,7 @@ read_extensions (ksba_cert_t cert)
       cert->cache.extns_valid = 1;
       return 0; /* no extensions at all */
     }
-  cert->cache.extns = xtrycalloc (count, sizeof *cert->cache.extns);
+  cert->cache.extns = (cert_extn_info*) xtrycalloc (count, sizeof *cert->cache.extns);
   if (!cert->cache.extns)
     return GPG_ERR_ENOMEM;
   cert->cache.n_extns = count;
@@ -1251,14 +1251,14 @@ append_cert_policy (char **policies, const char *oid, int crit)
 
   if (!*policies)
     {
-      *policies = xtrymalloc (strlen (oid) + 4);
+      *policies = (char*) xtrymalloc (strlen (oid) + 4);
       if (!*policies)
         return GPG_ERR_ENOMEM;
       p = *policies;
     }
   else
     {
-      char *tmp = xtryrealloc (*policies,
+      char *tmp = (char*) xtryrealloc (*policies,
                                strlen(*policies) + 1 + strlen (oid) + 4);
       if (!tmp)
         return GPG_ERR_ENOMEM;
@@ -1895,7 +1895,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
 
   sprintf (numbuf,"(%u:", (unsigned int)ti.length);
   numbuflen = strlen (numbuf);
-  *r_serial = xtrymalloc (numbuflen + ti.length + 2);
+  *r_serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_serial)
     return GPG_ERR_ENOMEM;
   strcpy (*r_serial, numbuf);
@@ -1908,7 +1908,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
     {
       sprintf (numbuf,"(%u:", (unsigned int)keyid_derlen);
       numbuflen = strlen (numbuf);
-      *r_keyid = xtrymalloc (numbuflen + keyid_derlen + 2);
+      *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + keyid_derlen + 2);
       if (!*r_keyid)
         return GPG_ERR_ENOMEM;
       strcpy (*r_keyid, numbuf);
@@ -1983,7 +1983,7 @@ get_simple_octet_string_ext (ksba_cert_t cert, const char *oid,
 
   sprintf (numbuf,"(%u:", (unsigned int)ti.length);
   numbuflen = strlen (numbuf);
-  *r_data = xtrymalloc (numbuflen + ti.length + 2);
+  *r_data = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_data)
     return GPG_ERR_ENOMEM;
   strcpy (*r_data, numbuf);

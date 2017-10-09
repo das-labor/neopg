@@ -68,7 +68,7 @@ static gpg_error_t export_p12 (ctrl_t ctrl,
 static duptable_t *
 create_duptable (void)
 {
-  return xtrycalloc (DUPTABLE_SIZE, sizeof (duptable_t));
+  return (duptable_s**) xtrycalloc (DUPTABLE_SIZE, sizeof (duptable_t));
 }
 
 static void
@@ -115,7 +115,7 @@ insert_duptable (duptable_t *table, unsigned char *fpr, int *exists)
       return 0;
     }
   /* Insert that fingerprint. */
-  t = xtrymalloc (sizeof *t);
+  t = (duptable_t) xtrymalloc (sizeof *t);
   if (!t)
     return gpg_error_from_syserror ();
   memcpy (t->fpr, fpr+1, 19);
@@ -165,7 +165,7 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
         ;
     }
 
-  desc = xtrycalloc (ndesc, sizeof *desc);
+  desc = (KEYDB_SEARCH_DESC*) xtrycalloc (ndesc, sizeof *desc);
   if (!ndesc)
     {
       log_error ("allocating memory for export failed: %s\n",
@@ -348,7 +348,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
       goto leave;
     }
 
-  desc = xtrycalloc (1, sizeof *desc);
+  desc = (KEYDB_SEARCH_DESC*) xtrycalloc (1, sizeof *desc);
   if (!desc)
     {
       log_error ("allocating memory for export failed: %s\n",
@@ -570,7 +570,7 @@ sexp_to_kparms (gcry_sexp_t sexp)
 
   /* Parameter names used with RSA in the pkcs#12 order. */
   elems = "nedqp--u";
-  array = xtrycalloc (strlen(elems) + 1, sizeof *array);
+  array = (gcry_mpi**) xtrycalloc (strlen(elems) + 1, sizeof *array);
   if (!array)
     {
       gcry_sexp_release (list);
@@ -663,7 +663,7 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
       goto leave;
     }
   keylen = wrappedkeylen - 8;
-  key = xtrymalloc_secure (keylen);
+  key = (unsigned char*) xtrymalloc_secure (keylen);
   if (!key)
     {
       err = gpg_error_from_syserror ();

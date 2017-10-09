@@ -402,7 +402,7 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
             }
           else
             {
-              u = xtrycalloc (1, sizeof *u);
+              u = (_keybox_openpgp_uid_info*) xtrycalloc (1, sizeof *u);
               if (!u)
                 {
                   err = gpg_error_from_syserror ();
@@ -447,7 +447,7 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
             }
           else
             {
-              k = xtrycalloc (1, sizeof *k);
+              k = (_keybox_openpgp_key_info*) xtrycalloc (1, sizeof *k);
               if (!k)
                 {
                   err = gpg_error_from_syserror ();

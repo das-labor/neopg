@@ -61,7 +61,7 @@ sexp_to_string (gcry_sexp_t sexp)
   n = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, NULL, 0);
   if (!n)
     return NULL;
-  result = xtrymalloc (n);
+  result = (char*) xtrymalloc (n);
   if (!result)
     return NULL;
   n = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, result, n);
@@ -153,7 +153,7 @@ make_canon_sexp (gcry_sexp_t sexp, unsigned char **r_buffer, size_t *r_buflen)
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, NULL, 0);
   if (!len)
     return GPG_ERR_BUG;
-  buf = xtrymalloc (len);
+  buf = (unsigned char*) xtrymalloc (len);
   if (!buf)
     return gpg_error_from_syserror ();
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, buf, len);
@@ -185,7 +185,7 @@ make_canon_sexp_pad (gcry_sexp_t sexp, int secure,
   if (!len)
     return GPG_ERR_BUG;
   len += (8 - len % 8) % 8;
-  buf = secure? xtrycalloc_secure (1, len) : xtrycalloc (1, len);
+  buf = (unsigned char*) (secure? xtrycalloc_secure (1, len) : xtrycalloc (1, len));
   if (!buf)
     return gpg_error_from_syserror ();
   if (!gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, buf, len))
@@ -288,7 +288,7 @@ make_simple_sexp_from_hexstr (const char *line, size_t *nscanned)
     return NULL;
   len = ((n+1) & ~0x01)/2;
   numbufp = smklen (numbuf, sizeof numbuf, len, &numbuflen);
-  buf = xtrymalloc (1 + numbuflen + len + 1 + 1);
+  buf = (unsigned char*) xtrymalloc (1 + numbuflen + len + 1 + 1);
   if (!buf)
     return NULL;
   buf[0] = '(';
@@ -364,8 +364,8 @@ make_canon_sexp_from_rsa_pk (const void *m_arg, size_t mlen,
                              const void *e_arg, size_t elen,
                              size_t *r_len)
 {
-  const unsigned char *m = m_arg;
-  const unsigned char *e = e_arg;
+  const unsigned char *m = (const unsigned char*) m_arg;
+  const unsigned char *e = (const unsigned char*) e_arg;
   int m_extra = 0;
   int e_extra = 0;
   char mlen_str[35];
@@ -392,25 +392,25 @@ make_canon_sexp_from_rsa_pk (const void *m_arg, size_t mlen,
   snprintf (mlen_str, sizeof mlen_str, "%u:", (unsigned int)mlen+m_extra);
   snprintf (elen_str, sizeof elen_str, "%u:", (unsigned int)elen+e_extra);
 
-  keybuf = xtrymalloc (strlen (part1) + strlen (mlen_str) + mlen + m_extra
+  keybuf = (unsigned char*) xtrymalloc (strlen (part1) + strlen (mlen_str) + mlen + m_extra
                        + strlen (part2) + strlen (elen_str) + elen + e_extra
                        + strlen (part3) + 1);
   if (!keybuf)
     return NULL;
 
-  p = stpcpy (keybuf, part1);
-  p = stpcpy (p, mlen_str);
+  p = (unsigned char*) stpcpy (keybuf, part1);
+  p = (unsigned char*) stpcpy (p, mlen_str);
   if (m_extra)
     *p++ = 0;
   memcpy (p, m, mlen);
   p += mlen;
-  p = stpcpy (p, part2);
-  p = stpcpy (p, elen_str);
+  p = (unsigned char*) stpcpy (p, part2);
+  p = (unsigned char*) stpcpy (p, elen_str);
   if (e_extra)
     *p++ = 0;
   memcpy (p, e, elen);
   p += elen;
-  p = stpcpy (p, part3);
+  p = (unsigned char*) stpcpy (p, part3);
 
   if (r_len)
     *r_len = p - keybuf;

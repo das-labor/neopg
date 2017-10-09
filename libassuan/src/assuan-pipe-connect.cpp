@@ -117,7 +117,7 @@ struct at_pipe_fork
 static void
 at_pipe_fork_cb (void *opaque, int reserved)
 {
-  struct at_pipe_fork *atp = opaque;
+  struct at_pipe_fork *atp = (at_pipe_fork*) opaque;
 
   if (atp->user_atfork)
     atp->user_atfork (atp->user_atforkvalue, reserved);
@@ -233,7 +233,7 @@ struct at_socketpair_fork
 static void
 at_socketpair_fork_cb (void *opaque, int reserved)
 {
-  struct at_socketpair_fork *atp = opaque;
+  struct at_socketpair_fork *atp = (at_socketpair_fork*) opaque;
 
   if (atp->user_atfork)
     atp->user_atfork (atp->user_atforkvalue, reserved);
@@ -299,7 +299,7 @@ socketpair_connect (assuan_context_t ctx,
   if (fd_child_list)
     while (fd_child_list[child_fds_cnt] != ASSUAN_INVALID_FD)
       child_fds_cnt++;
-  child_fds = _assuan_malloc (ctx, (child_fds_cnt + 2) * sizeof (int));
+  child_fds = (int*) _assuan_malloc (ctx, (child_fds_cnt + 2) * sizeof (int));
   if (! child_fds)
     return TRACE_ERR (gpg_error_from_syserror ());
   child_fds[1] = ASSUAN_INVALID_FD;

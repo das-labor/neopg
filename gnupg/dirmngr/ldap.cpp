@@ -93,7 +93,7 @@ add_server_to_servers (const char *host, int port)
       }
 
   log_info (_("adding '%s:%d' to the ldap server list\n"), host, port);
-  server = xtrycalloc (1, sizeof *s);
+  server = (ldap_server_t) xtrycalloc (1, sizeof *s);
   if (!server)
     log_error (_("malloc failed: %s\n"), strerror (errno));
   else
@@ -345,7 +345,7 @@ parse_one_pattern (const char *pattern)
       pattern++;
       if (*pattern)
         {
-          result = xmalloc (sizeof *result + strlen (pattern));
+          result = (strlist_t) xmalloc (sizeof *result + strlen (pattern));
           result->next = NULL;
           result->flags = 1; /* Base spec. */
           strcpy (result->d, pattern);
@@ -369,7 +369,7 @@ parse_one_pattern (const char *pattern)
 
         if (*pattern)
           {
-            result = xmalloc (sizeof *result
+            result = (strlist_t) xmalloc (sizeof *result
                               + strlen (format) + 3 * strlen (pattern));
             result->next = NULL;
             result->flags = 0;
@@ -400,7 +400,7 @@ escape4url (const char *string)
     else
       n += 3;
 
-  buf = malloc (n+1);
+  buf = (char*) malloc (n+1);
   if (!buf)
     return NULL;
 
@@ -468,7 +468,7 @@ start_default_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
   gpg_error_t err;
   struct ldapserver_iter iter;
 
-  *context = xtrycalloc (1, sizeof **context);
+  *context = (cert_fetch_context_t) xtrycalloc (1, sizeof **context);
   if (!*context)
     return gpg_error_from_errno (errno);
 
@@ -630,7 +630,7 @@ start_cert_fetch_ldap (ctrl_t ctrl, cert_fetch_context_t *context,
     }
   argv[argc] = NULL;
 
-  *context = xtrycalloc (1, sizeof **context);
+  *context = (cert_fetch_context_t) xtrycalloc (1, sizeof **context);
   if (!*context)
     {
       err = gpg_error_from_errno (errno);
@@ -752,7 +752,7 @@ fetch_next_cert_ldap (cert_fetch_context_t context,
           else
 #endif
             {
-              *value = xtrymalloc (n);
+              *value = (unsigned char*) xtrymalloc (n);
               if (!*value)
                 return gpg_error_from_errno (errno);
               *valuelen = n;
@@ -768,7 +768,7 @@ fetch_next_cert_ldap (cert_fetch_context_t context,
             {
               xfree (context->tmpbuf);
               context->tmpbufsize = 0;
-              context->tmpbuf = xtrymalloc (n+1);
+              context->tmpbuf = (unsigned char*) xtrymalloc (n+1);
               if (!context->tmpbuf)
                 return gpg_error_from_errno (errno);
               context->tmpbufsize = n;
@@ -778,7 +778,7 @@ fetch_next_cert_ldap (cert_fetch_context_t context,
             break;
           if (*hdr == 'A')
             {
-              p = context->tmpbuf;
+              p = (char*) context->tmpbuf;
               p[n] = 0; /*(we allocated one extra byte for this.)*/
               /* fixme: is_cms = 0; */
               if ( (pend = strchr (p, ';')) )
@@ -822,7 +822,7 @@ fetch_next_cert_ldap (cert_fetch_context_t context,
             }
           else if (*hdr == 'E')
             {
-              p = context->tmpbuf;
+              p = (char*) context->tmpbuf;
               p[n] = 0; /*(we allocated one extra byte for this.)*/
               if (!strcmp (p, "truncated"))
                 {

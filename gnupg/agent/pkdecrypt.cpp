@@ -120,7 +120,7 @@ agent_pkdecrypt (ctrl_t ctrl, const char *desc_text,
         }
       len = gcry_sexp_sprint (s_plain, GCRYSEXP_FMT_CANON, NULL, 0);
       assert (len);
-      buf = xmalloc (len);
+      buf = (char*) xmalloc (len);
       len = gcry_sexp_sprint (s_plain, GCRYSEXP_FMT_CANON, buf, len);
       assert (len);
       if (*buf == '(')

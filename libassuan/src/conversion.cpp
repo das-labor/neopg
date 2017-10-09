@@ -58,7 +58,7 @@ _assuan_encode_c_string (assuan_context_t ctx, const char *src)
   char *res;
   char *ostr;
   
-  ostr = _assuan_malloc (ctx, 4 * strlen (src) + 1);
+  ostr = (char*) _assuan_malloc (ctx, 4 * strlen (src) + 1);
   if (! *ostr)
     return NULL;
 

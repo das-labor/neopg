@@ -90,7 +90,7 @@ _gcry_mpi_point_new (unsigned int nbits)
 
   (void)nbits;  /* Currently not used.  */
 
-  p = xmalloc (sizeof *p);
+  p = (mpi_point_t) xmalloc (sizeof *p);
   _gcry_mpi_point_init (p);
   return p;
 }
@@ -447,7 +447,7 @@ ec_p_init (mpi_ec_t ctx, enum gcry_mpi_ec_models model,
 static void
 ec_deinit (void *opaque)
 {
-  mpi_ec_t ctx = opaque;
+  mpi_ec_t ctx = (mpi_ec_t) opaque;
   int i;
 
   _gcry_mpi_barrett_free (ctx->t.p_barrett);
@@ -500,7 +500,7 @@ _gcry_mpi_ec_p_internal_new (enum gcry_mpi_ec_models model,
 {
   mpi_ec_t ctx;
 
-  ctx = xcalloc (1, sizeof *ctx);
+  ctx = (mpi_ec_t) xcalloc (1, sizeof *ctx);
   ec_p_init (ctx, model, dialect, flags, p, a, b);
 
   return ctx;
@@ -531,7 +531,7 @@ _gcry_mpi_ec_p_new (gcry_ctx_t *r_ctx,
   ctx = _gcry_ctx_alloc (CONTEXT_TYPE_EC, sizeof *ec, ec_deinit);
   if (!ctx)
     return gpg_error_from_syserror ();
-  ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
+  ec = (mpi_ec_t) _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
   ec_p_init (ec, model, dialect, flags, p, a, b);
 
   *r_ctx = ctx;
@@ -553,7 +553,7 @@ _gcry_mpi_ec_free (mpi_ec_t ctx)
 gcry_mpi_t
 _gcry_mpi_ec_get_mpi (const char *name, gcry_ctx_t ctx, int copy)
 {
-  mpi_ec_t ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
+  mpi_ec_t ec = (mpi_ec_t) _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
 
   return _gcry_ecc_get_mpi (name, ec, copy);
 }
@@ -562,7 +562,7 @@ _gcry_mpi_ec_get_mpi (const char *name, gcry_ctx_t ctx, int copy)
 gcry_mpi_point_t
 _gcry_mpi_ec_get_point (const char *name, gcry_ctx_t ctx, int copy)
 {
-  mpi_ec_t ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
+  mpi_ec_t ec = (mpi_ec_t) _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
 
   (void)copy;  /* Not used.  */
 
@@ -574,7 +574,7 @@ gpg_error_t
 _gcry_mpi_ec_set_mpi (const char *name, gcry_mpi_t newvalue,
                       gcry_ctx_t ctx)
 {
-  mpi_ec_t ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
+  mpi_ec_t ec = (mpi_ec_t) _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
 
   return _gcry_ecc_set_mpi (name, newvalue, ec);
 }
@@ -584,7 +584,7 @@ gpg_error_t
 _gcry_mpi_ec_set_point (const char *name, gcry_mpi_point_t newvalue,
                         gcry_ctx_t ctx)
 {
-  mpi_ec_t ec = _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
+  mpi_ec_t ec = (mpi_ec_t) _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC);
 
   return _gcry_ecc_set_point (name, newvalue, ec);
 }

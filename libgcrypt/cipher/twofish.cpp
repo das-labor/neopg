@@ -736,7 +736,7 @@ do_twofish_setkey (TWOFISH_context *ctx, const byte *key, const unsigned keylen)
 static gpg_error_t
 twofish_setkey (void *context, const byte *key, unsigned int keylen)
 {
-  TWOFISH_context *ctx = context;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
   unsigned int hwfeatures = _gcry_get_hw_features ();
   int rc;
 
@@ -1100,7 +1100,7 @@ do_twofish_encrypt (const TWOFISH_context *ctx, byte *out, const byte *in)
 static unsigned int
 twofish_encrypt (void *context, byte *out, const byte *in)
 {
-  TWOFISH_context *ctx = context;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
   do_twofish_encrypt (ctx, out, in);
   return /*burn_stack*/ (24+3*sizeof (void*));
 }
@@ -1167,7 +1167,7 @@ do_twofish_decrypt (const TWOFISH_context *ctx, byte *out, const byte *in)
 static unsigned int
 twofish_decrypt (void *context, byte *out, const byte *in)
 {
-  TWOFISH_context *ctx = context;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
 
   do_twofish_decrypt (ctx, out, in);
   return /*burn_stack*/ (24+3*sizeof (void*));
@@ -1184,9 +1184,9 @@ void
 _gcry_twofish_ctr_enc(void *context, unsigned char *ctr, void *outbuf_arg,
 		      const void *inbuf_arg, size_t nblocks)
 {
-  TWOFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[TWOFISH_BLOCKSIZE];
   unsigned int burn, burn_stack_depth = 0;
   int i;
@@ -1268,9 +1268,9 @@ void
 _gcry_twofish_cbc_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		      const void *inbuf_arg, size_t nblocks)
 {
-  TWOFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[TWOFISH_BLOCKSIZE];
   unsigned int burn, burn_stack_depth = 0;
 
@@ -1343,9 +1343,9 @@ void
 _gcry_twofish_cfb_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		    const void *inbuf_arg, size_t nblocks)
 {
-  TWOFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  TWOFISH_context *ctx = (TWOFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned int burn, burn_stack_depth = 0;
 
 #ifdef USE_AVX2

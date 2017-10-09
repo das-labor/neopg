@@ -46,7 +46,7 @@ void sha1_hash_buffer (char *outbuf, const char *buffer, size_t length);
 static void *
 xmalloc (size_t n)
 {
-  char *p = ksba_malloc (n);
+  char *p = (char*) ksba_malloc (n);
   if (!p)
     {
       fprintf (stderr, "out of core\n");
@@ -68,7 +68,7 @@ prepend_srcdir (const char *fname)
     if(!(srcdir = getenv ("srcdir")))
       srcdir = ".";
 
-  result = xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
+  result = (char*) xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
   strcpy (result, srcdir);
   strcat (result, "/");
   strcat (result, fname);
@@ -126,7 +126,7 @@ print_sexp (ksba_const_sexp_t p)
               unsigned long len, n;
 
               len = strtoul (p, &endp, 10);
-              p = endp;
+              p = (ksba_const_sexp_t) endp;
               if (*p != ':')
                 {
                   fputs ("[invalid s-exp]", stdout);
@@ -192,7 +192,7 @@ print_sexp_hex (ksba_const_sexp_t p)
               unsigned long len, n;
 
               len = strtoul (p, &endp, 10);
-              p = endp;
+              p = (ksba_const_sexp_t) endp;
               if (*p != ':')
                 {
                   fputs ("[invalid s-exp]", stdout);

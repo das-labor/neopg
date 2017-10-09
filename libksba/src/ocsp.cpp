@@ -266,7 +266,7 @@ parse_context_tag (unsigned char const **buf, size_t *len, struct tag_info *ti,
 gpg_error_t
 ksba_ocsp_new (ksba_ocsp_t *r_ocsp)
 {
-  *r_ocsp = xtrycalloc (1, sizeof **r_ocsp);
+  *r_ocsp = (ksba_ocsp_t) xtrycalloc (1, sizeof **r_ocsp);
   if (!*r_ocsp)
     return gpg_error_from_syserror ();
   return 0;
@@ -366,7 +366,7 @@ ksba_ocsp_add_target (ksba_ocsp_t ocsp,
   if (!ocsp || !cert || !issuer_cert)
     return GPG_ERR_INV_VALUE;
 
-  ri = xtrycalloc (1, sizeof *ri);
+  ri = (ocsp_reqitem_s*) xtrycalloc (1, sizeof *ri);
   if (!ri)
     return gpg_error_from_syserror ();
   ksba_cert_ref (cert);
@@ -494,7 +494,7 @@ write_request_extensions (ksba_ocsp_t ocsp, ksba_writer_t wout)
     err = ksba_writer_write (w1, ocsp->nonce, ocsp->noncelen);
 
   /* Put a sequence around. */
-  p = ksba_writer_snatch_mem (w1, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w1, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w1);
@@ -509,7 +509,7 @@ write_request_extensions (ksba_ocsp_t ocsp, ksba_writer_t wout)
   err = ksba_writer_set_mem (w1, 256);
   if (err)
     goto leave;
-  p = ksba_writer_snatch_mem (w2, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w2, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w2);
@@ -521,7 +521,7 @@ write_request_extensions (ksba_ocsp_t ocsp, ksba_writer_t wout)
   xfree (p); p = NULL;
 
   /* And put a context tag around everything.  */
-  p = ksba_writer_snatch_mem (w1, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w1, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w1);
@@ -622,7 +622,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
       if (err)
         goto leave;
       xfree (ri->serialno);
-      ri->serialno = xtrymalloc (derlen);
+      ri->serialno = (unsigned char*) xtrymalloc (derlen);
       if (!ri->serialno)
         {
           err = gpg_error_from_syserror ();
@@ -633,7 +633,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
 
 
       /* Now write it out as a sequence to the outer certID object. */
-      p = ksba_writer_snatch_mem (w1, &derlen);
+      p = (unsigned char*) ksba_writer_snatch_mem (w1, &derlen);
       if (!p)
         {
           err = ksba_writer_error (w1);
@@ -650,7 +650,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
       /* Here we would write singleRequestExtensions. */
 
       /* Now write it out as a sequence to the outer Request object. */
-      p = ksba_writer_snatch_mem (w2, &derlen);
+      p = (unsigned char*) ksba_writer_snatch_mem (w2, &derlen);
       if (!p)
         {
           err = ksba_writer_error (w2);
@@ -676,7 +676,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
     goto leave;
 
   /* Put a sequence tag before the requestList. */
-  p = ksba_writer_snatch_mem (w3, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w3, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w3);
@@ -700,7 +700,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
   /* The requesterName would go here. */
 
   /* Write the requestList. */
-  p = ksba_writer_snatch_mem (w4, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w4, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w4);
@@ -724,7 +724,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
     goto leave;
 
   /* Prepend a sequence tag. */
-  p = ksba_writer_snatch_mem (w5, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w5, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w5);
@@ -760,7 +760,7 @@ ksba_ocsp_prepare_request (ksba_ocsp_t ocsp)
 
 
   /* Read out the entire request. */
-  p = ksba_writer_snatch_mem (w6, &derlen);
+  p = (unsigned char*) ksba_writer_snatch_mem (w6, &derlen);
   if (!p)
     {
       err = ksba_writer_error (w6);
@@ -912,7 +912,7 @@ parse_response_extensions (ksba_ocsp_t ocsp,
           else
             ocsp->good_nonce = 1;
         }
-      ex = xtrymalloc (sizeof *ex + strlen (oid) + ti.length);
+      ex = (ocsp_extension_s*) xtrymalloc (sizeof *ex + strlen (oid) + ti.length);
       if (!ex)
         {
           err = gpg_error_from_syserror ();
@@ -979,7 +979,7 @@ parse_single_extensions (struct ocsp_reqitem_s *ri,
       err = parse_octet_string (&data, &datalen, &ti);
       if (err)
         goto leave;
-      ex = xtrymalloc (sizeof *ex + strlen (oid) + ti.length);
+      ex = (ocsp_extension_s*) xtrymalloc (sizeof *ex + strlen (oid) + ti.length);
       if (!ex)
         {
           err = gpg_error_from_syserror ();
@@ -1422,7 +1422,7 @@ parse_response_data (ksba_ocsp_t ocsp,
         return err;
       if (!ti.length)
         return GPG_ERR_INV_OBJ; /* Zero length key id.  */
-      ocsp->responder_id.keyid = xtrymalloc (ti.length);
+      ocsp->responder_id.keyid = (char*) xtrymalloc (ti.length);
       if (!ocsp->responder_id.keyid)
         return gpg_error_from_syserror ();
       memcpy (ocsp->responder_id.keyid, *data, ti.length);
@@ -1523,7 +1523,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
   /* The signatureAlgorithm and the signature. We only need to get the
      length of both objects and let a specialized function do the
      actual parsing. */
-  s = msg;
+  s = (const char*) msg;
   len = msglen;
   err = parse_sequence (&msg, &msglen, &ti);
   if (err)
@@ -1570,7 +1570,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
     while (msg < endptr)
       {
         /* Find the length of the certificate. */
-        s = msg;
+        s = (const char*) msg;
         err = parse_sequence (&msg, &msglen, &ti);
         if (err)
           return err;
@@ -1585,7 +1585,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
             return err;
           }
         parse_skip (&msg, &msglen, &ti);
-        cl = xtrycalloc (1, sizeof *cl);
+        cl = (ocsp_certlist_s*) xtrycalloc (1, sizeof *cl);
         if (!cl)
           {
             err = gpg_error_from_syserror ();
@@ -1755,7 +1755,7 @@ ksba_ocsp_get_responder_id (ksba_ocsp_t ocsp,
 
       sprintf (numbuf,"(%lu:", (unsigned long)ocsp->responder_id.keyidlen);
       numbuflen = strlen (numbuf);
-      *r_keyid = xtrymalloc (numbuflen + ocsp->responder_id.keyidlen + 2);
+      *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + ocsp->responder_id.keyidlen + 2);
       if (!*r_keyid)
         return gpg_error_from_syserror ();
       strcpy (*r_keyid, numbuf);
@@ -1893,7 +1893,7 @@ ksba_ocsp_get_extension (ksba_ocsp_t ocsp, ksba_cert_t cert, int idx,
   if (r_crit)
     *r_crit = ex->crit;
   if (r_der)
-    *r_der = ex->data + ex->off;
+    *r_der = (const unsigned char*) ex->data + ex->off;
   if (r_derlen)
     *r_derlen = ex->len;
 

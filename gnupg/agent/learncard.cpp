@@ -128,7 +128,7 @@ release_sinfo (SINFO info)
 static void
 kpinfo_cb (void *opaque, const char *line)
 {
-  struct kpinfo_cb_parm_s *parm = opaque;
+  struct kpinfo_cb_parm_s *parm = (kpinfo_cb_parm_s*) opaque;
   KEYPAIR_INFO item;
   char *p;
 
@@ -139,7 +139,7 @@ kpinfo_cb (void *opaque, const char *line)
                                          "learncard", "k", "0", "0", NULL)))
     return;
 
-  item = xtrycalloc (1, sizeof *item + strlen (line));
+  item = (KEYPAIR_INFO) xtrycalloc (1, sizeof *item + strlen (line));
   if (!item)
     {
       parm->error = out_of_core ();
@@ -184,7 +184,7 @@ kpinfo_cb (void *opaque, const char *line)
 static void
 certinfo_cb (void *opaque, const char *line)
 {
-  struct certinfo_cb_parm_s *parm = opaque;
+  struct certinfo_cb_parm_s *parm = (certinfo_cb_parm_s*) opaque;
   CERTINFO item;
   int type;
   char *p, *pend;
@@ -208,7 +208,7 @@ certinfo_cb (void *opaque, const char *line)
     }
   *pend = 0; /* ignore trailing stuff */
 
-  item = xtrycalloc (1, sizeof *item + strlen (p));
+  item = (CERTINFO) xtrycalloc (1, sizeof *item + strlen (p));
   if (!item)
     {
       parm->error = out_of_core ();
@@ -228,13 +228,13 @@ static void
 sinfo_cb (void *opaque, const char *keyword, size_t keywordlen,
           const char *data)
 {
-  struct sinfo_cb_parm_s *sparm = opaque;
+  struct sinfo_cb_parm_s *sparm = (sinfo_cb_parm_s*) opaque;
   SINFO item;
 
   if (sparm->error)
     return; /* no need to gather data after an error occurred */
 
-  item = xtrycalloc (1, sizeof *item + keywordlen + 1 + strlen (data));
+  item = (SINFO) xtrycalloc (1, sizeof *item + keywordlen + 1 + strlen (data));
   if (!item)
     {
       sparm->error = out_of_core ();

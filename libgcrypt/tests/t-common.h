@@ -150,7 +150,7 @@ info (const char *format, ...)
 /* Convenience macro for initializing gcrypt with error checking.  */
 #define xgcry_control(cmd...)                                   \
   do {                                                          \
-    gpg_error_t err__ = gcry_control (cmd);                    \
+    gpg_error_t err__ = gcry_control ((gcry_ctl_cmds) cmd);                    \
     if (err__)                                                  \
       die ("line %d: gcry_control (%s) failed: %s",             \
            __LINE__, #cmd, gpg_strerror (err__));              \

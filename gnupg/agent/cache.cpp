@@ -144,12 +144,12 @@ new_data (const char *string, struct secret_data_s **r_data)
      extra bytes as well. */
   total = (length + 8) + 32 - ((length+8) % 32);
 
-  d = xtrymalloc_secure (sizeof *d + total - 1);
+  d = (secret_data_s*) xtrymalloc_secure (sizeof *d + total - 1);
   if (!d)
     return gpg_error_from_syserror ();
   memcpy (d->data, string, length);
 
-  d_enc = xtrymalloc (sizeof *d_enc + total - 1);
+  d_enc = (secret_data_s*) xtrymalloc (sizeof *d_enc + total - 1);
   if (!d_enc)
     {
       err = gpg_error_from_syserror ();
@@ -339,7 +339,7 @@ agent_put_cache (const char *key, cache_mode_t cache_mode,
     }
   else if (data) /* Insert.  */
     {
-      r = xtrycalloc (1, sizeof *r + strlen (key));
+      r = (ITEM) xtrycalloc (1, sizeof *r + strlen (key));
       if (!r)
         err = gpg_error_from_syserror ();
       else
@@ -419,7 +419,7 @@ agent_get_cache (const char *key, cache_mode_t cache_mode)
             err = GPG_ERR_INV_LENGTH;
           else if ((err = init_encryption ()))
             ;
-          else if (!(value = xtrymalloc_secure (r->pw->totallen - 8)))
+          else if (!(value = (char*) xtrymalloc_secure (r->pw->totallen - 8)))
             err = gpg_error_from_syserror ();
           else
             {

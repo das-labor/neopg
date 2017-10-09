@@ -74,7 +74,7 @@ struct name_value_entry
 nvc_t
 nvc_new (void)
 {
-  return xtrycalloc (1, sizeof (struct name_value_container));
+  return (nvc_t) xtrycalloc (1, sizeof (struct name_value_container));
 }
 
 
@@ -284,7 +284,7 @@ assert_value (nve_t entry)
   /* Add one for the terminating zero.  */
   len += 1;
 
-  entry->value = p = xtrymalloc (len);
+  entry->value = p = (char*) xtrymalloc (len);
   if (entry->value == NULL)
     return gpg_error_from_syserror ();
 
@@ -354,7 +354,7 @@ _nvc_add (nvc_t pk, char *name, char *value, strlist_t raw_value,
       goto leave;
     }
 
-  e = xtrycalloc (1, sizeof *e);
+  e = (nve_t) xtrycalloc (1, sizeof *e);
   if (e == NULL)
     {
       err = gpg_error_from_syserror ();
@@ -582,11 +582,11 @@ nvc_set_private_key (nvc_t pk, gcry_sexp_t sexp)
 
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_ADVANCED, NULL, 0);
 
-  raw = xtrymalloc (len);
+  raw = (char*) xtrymalloc (len);
   if (raw == NULL)
     return gpg_error_from_syserror ();
 
-  clean = xtrymalloc (len);
+  clean = (char*) xtrymalloc (len);
   if (clean == NULL)
     {
       xfree (raw);

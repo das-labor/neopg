@@ -489,9 +489,9 @@ _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
 	}
 
       if (secure)
-	h = xtrycalloc_secure (1, size);
+	h = (gcry_cipher_hd_t) xtrycalloc_secure (1, size);
       else
-	h = xtrycalloc (1, size);
+	h = (gcry_cipher_hd_t) xtrycalloc (1, size);
 
       if (! h)
 	err = gpg_error_from_syserror ();
@@ -506,7 +506,7 @@ _gcry_cipher_open_internal (gcry_cipher_hd_t *handle,
               /* The malloced block is not aligned on a 16 byte
                  boundary.  Correct for this.  */
               off = 16 - ((uintptr_t)h & 0x0f);
-              h = (void*)((char*)h + off);
+              h = (gcry_cipher_hd_t) (void*)((char*)h + off);
             }
 #endif /*NEED_16BYTE_ALIGNED_CONTEXT*/
 
@@ -788,7 +788,7 @@ cipher_reset (gcry_cipher_hd_t c)
     case GCRY_CIPHER_MODE_GCM:
       /* Only clear head of u_mode, keep ghash_key and gcm_table. */
       {
-        byte *u_mode_pos = (void *)&c->u_mode;
+        byte *u_mode_pos = (byte*) (void *)&c->u_mode;
         byte *ghash_key_pos = c->u_mode.gcm.u_ghash_key.key;
         size_t u_mode_head_length = ghash_key_pos - u_mode_pos;
 
@@ -1436,7 +1436,7 @@ _gcry_cipher_ctl (gcry_cipher_hd_t h, int cmd, void *buffer, size_t buflen)
       else
         {
           unsigned char *ivp;
-          unsigned char *dst = buffer;
+          unsigned char *dst = (unsigned char*) buffer;
           int n = h->unused;
 
           if (!n)

@@ -63,7 +63,7 @@ percent_plus_escape (const char *string)
         length++;
     }
 
-  buffer = p = xtrymalloc (length);
+  buffer = p = (char*) xtrymalloc (length);
   if (!buffer)
     return NULL;
 
@@ -149,7 +149,7 @@ do_plus_or_plain_unescape (const char *string, int withplus, int nulrepl)
   char *newstring;
 
   nbytes = count_unescape (string);
-  newstring = xtrymalloc (nbytes+1);
+  newstring = (char*) xtrymalloc (nbytes+1);
   if (newstring)
     {
       n = do_unescape (newstring, string, withplus, nulrepl);
@@ -187,7 +187,7 @@ do_unescape_inplace (char *string, int withplus, int nulrepl)
 {
   unsigned char *p, *p0;
 
-  p = p0 = string;
+  p = p0 = (unsigned char*) string;
   while (*string)
     {
       if (*string == '%' && string[1] && string[2])

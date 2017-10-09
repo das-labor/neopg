@@ -226,7 +226,7 @@ gpgsm_qualified_consent (ctrl_t ctrl, ksba_cert_t cert)
   if (err)
     return err;
 
-  buffer = p = xtrymalloc (strlen (name) * 3 + 1);
+  buffer = p = (char*) xtrymalloc (strlen (name) * 3 + 1);
   if (!buffer)
     {
       err = gpg_error_from_syserror ();
@@ -295,7 +295,7 @@ gpgsm_not_qualified_warning (ctrl_t ctrl, ksba_cert_t cert)
   if (err)
     return err;
 
-  buffer = p = xtrymalloc (strlen (name) * 3 + 1);
+  buffer = p = (char*) xtrymalloc (strlen (name) * 3 + 1);
   if (!buffer)
     {
       err = gpg_error_from_syserror ();

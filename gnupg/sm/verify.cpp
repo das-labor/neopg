@@ -38,7 +38,7 @@
 static char *
 strtimestamp_r (ksba_isotime_t atime)
 {
-  char *buffer = xmalloc (15);
+  char *buffer = (char*) xmalloc (15);
 
   if (!atime || !*atime)
     strcpy (buffer, "none");

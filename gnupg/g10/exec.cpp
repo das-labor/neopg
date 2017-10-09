@@ -118,7 +118,7 @@ set_exec_path(const char *path)
 #else
   char *p;
 
-  p=xmalloc(5+strlen(path)+1);
+  p= (char*) xmalloc(5+strlen(path)+1);
   strcpy(p,"PATH=");
   strcat(p,path);
 
@@ -182,7 +182,7 @@ make_tempdir(struct exec_info *info)
 #endif
     }
 
-  info->tempdir=xmalloc(strlen(tmp)+strlen(DIRSEP_S)+10+1);
+  info->tempdir= (char*) xmalloc(strlen(tmp)+strlen(DIRSEP_S)+10+1);
 
   sprintf(info->tempdir,"%s" DIRSEP_S "gpg-XXXXXX",tmp);
 
@@ -197,13 +197,13 @@ make_tempdir(struct exec_info *info)
     {
       info->flags.madedir=1;
 
-      info->tempfile_in=xmalloc(strlen(info->tempdir)+
+      info->tempfile_in= (char*) xmalloc(strlen(info->tempdir)+
 				strlen(DIRSEP_S)+strlen(namein)+1);
       sprintf(info->tempfile_in,"%s" DIRSEP_S "%s",info->tempdir,namein);
 
       if(!info->flags.writeonly)
 	{
-	  info->tempfile_out=xmalloc(strlen(info->tempdir)+
+	  info->tempfile_out= (char*) xmalloc(strlen(info->tempdir)+
 				     strlen(DIRSEP_S)+strlen(nameout)+1);
 	  sprintf(info->tempfile_out,"%s" DIRSEP_S "%s",info->tempdir,nameout);
 	}
@@ -282,7 +282,7 @@ expand_args(struct exec_info *info,const char *args_in)
 
   put_membuf (&command, "", 1);  /* Terminate string.  */
 
-  info->command = get_membuf (&command, NULL);
+  info->command = (char*) get_membuf (&command, NULL);
   if (!info->command)
     return gpg_error_from_syserror ();
 
@@ -327,7 +327,7 @@ exec_write(struct exec_info **info,const char *program,
   if(program==NULL && args_in==NULL)
     BUG();
 
-  *info=xmalloc_clear(sizeof(struct exec_info));
+  *info= (exec_info*) xmalloc_clear(sizeof(struct exec_info));
 
   if(name)
     (*info)->name=xstrdup(name);

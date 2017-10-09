@@ -62,7 +62,7 @@ read_response (estream_t fp, unsigned char **r_buffer, size_t *r_buflen)
   *r_buflen = 0;
 
   bufsize = 4096;
-  buffer = xtrymalloc (bufsize);
+  buffer = (unsigned char*) xtrymalloc (bufsize);
   if (!buffer)
     return gpg_error_from_errno (errno);
 
@@ -102,7 +102,7 @@ read_response (estream_t fp, unsigned char **r_buffer, size_t *r_buflen)
         }
 
       bufsize += 4096;
-      tmp = xtryrealloc (buffer, bufsize);
+      tmp = (unsigned char*) xtryrealloc (buffer, bufsize);
       if (!tmp)
         {
           err = gpg_error_from_errno (errno);
@@ -461,7 +461,7 @@ check_signature (ctrl_t ctrl,
         {
           cert_ref_t cref;
 
-          cref = xtrymalloc (sizeof *cref);
+          cref = (cert_ref_t) xtrymalloc (sizeof *cref);
           if (!cref)
             log_error (_("allocating list item failed: %s\n"),
                        gpg_strerror (err));

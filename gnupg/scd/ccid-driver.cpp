@@ -992,7 +992,7 @@ get_escaped_usb_string (libusb_device_handle *idev, int idx,
         n++;
     }
 
-  result = malloc (strlen (prefix) + n + strlen (suffix) + 1);
+  result = (char*) malloc (strlen (prefix) + n + strlen (suffix) + 1);
   if (!result)
     return NULL;
 
@@ -1030,7 +1030,7 @@ make_reader_id (libusb_device_handle *idev,
   rid = get_escaped_usb_string (idev, serialno_index, prefix, ":0");
   if (!rid)
     {
-      rid = malloc (strlen (prefix) + 3 + 1);
+      rid = (char*) malloc (strlen (prefix) + 3 + 1);
       if (!rid)
         return NULL;
       strcpy (rid, prefix);
@@ -1134,7 +1134,7 @@ scan_usb_device (int *count, char **rid_list, struct libusb_device *dev)
             /* We are collecting infos about all available CCID
                readers.  Store them and continue.  */
             DEBUGOUT_2 ("found CCID reader %d (ID=%s)\n", *count, rid);
-            p = malloc ((*rid_list? strlen (*rid_list):0) + 1
+            p = (char*) malloc ((*rid_list? strlen (*rid_list):0) + 1
                         + strlen (rid) + 1);
             if (p)
               {
@@ -1351,7 +1351,7 @@ ccid_dev_scan (int *idx_max_p, struct ccid_dev_table **t_p)
                 /* Found a reader.  */
                 unsigned char *ifcdesc_extra;
 
-                ifcdesc_extra = malloc (ifcdesc->extra_length);
+                ifcdesc_extra = (unsigned char*) malloc (ifcdesc->extra_length);
                 if (!ifcdesc_extra)
                   {
                     err = gpg_error_from_syserror ();
@@ -1463,7 +1463,7 @@ ccid_compare_BAI (ccid_driver_t handle, unsigned int bai)
 static void
 intr_cb (struct libusb_transfer *transfer)
 {
-  ccid_driver_t handle = transfer->user_data;
+  ccid_driver_t handle = (ccid_driver_t) transfer->user_data;
 
   DEBUGOUT_1 ("CCID: interrupt callback %d\n", transfer->status);
 
@@ -1525,7 +1525,7 @@ ccid_setup_intr  (ccid_driver_t handle)
 static void *
 ccid_usb_thread (void *arg)
 {
-  libusb_context *ctx = arg;
+  libusb_context *ctx = (libusb_context*) arg;
 
   while (ccid_usb_thread_is_alive)
     {
@@ -1693,7 +1693,7 @@ ccid_open_reader (const char *spec_reader_name, int idx,
                   struct ccid_dev_table *ccid_table,
                   ccid_driver_t *handle, char **rdrname_p)
 {
-  *handle = calloc (1, sizeof **handle);
+  *handle = (ccid_driver_t) calloc (1, sizeof **handle);
   if (!*handle)
     {
       DEBUGOUT ("out of memory\n");

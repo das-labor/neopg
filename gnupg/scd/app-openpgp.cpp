@@ -309,7 +309,7 @@ get_cached_data (app_t app, int tag,
           {
             if(c->length)
               {
-                p = xtrymalloc (c->length);
+                p = (unsigned char*) xtrymalloc (c->length);
                 if (!p)
                   return gpg_error_from_errno (errno);
                 memcpy (p, c->data, c->length);
@@ -349,7 +349,7 @@ get_cached_data (app_t app, int tag,
   for (c=app->app_local->cache; c; c = c->next)
     assert (c->tag != tag);
 
-  c = xtrymalloc (sizeof *c + len);
+  c = (cache_s*) xtrymalloc (sizeof *c + len);
   if (c)
     {
       memcpy (c->data, p, len);
@@ -706,7 +706,7 @@ parse_login_data (app_t app)
                     break;
 
                   buflen -= ((unsigned char *)q - buffer);
-                  buffer = q;
+                  buffer = (unsigned char*) q;
 
                   if (buflen && !(*buffer == '\n' || *buffer == '\x18'))
                     goto next;
@@ -761,7 +761,7 @@ store_fpr (app_t app, int keynumber, u32 timestamp, unsigned char *fpr,
     }
   va_end (ap);
 
-  p = buffer = xtrymalloc (3 + n);
+  p = buffer = (unsigned char*) xtrymalloc (3 + n);
   if (!buffer)
     return gpg_error_from_syserror ();
 
@@ -1100,7 +1100,7 @@ get_disp_name (app_t app)
   if (!relptr)
     return NULL;
 
-  string = xtrymalloc (valuelen + 1);
+  string = (char*) xtrymalloc (valuelen + 1);
   if (!string)
     {
       xfree (relptr);
@@ -1366,7 +1366,7 @@ rsa_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at,  int keyno,
       send_fpr_if_not_null (ctrl, "KEY-FPR", -1, fprbuf);
     }
 
-  mbuf = xtrymalloc (mlen + 1);
+  mbuf = (unsigned char*) xtrymalloc (mlen + 1);
   if (!mbuf)
     {
       err = gpg_error_from_syserror ();
@@ -1382,7 +1382,7 @@ rsa_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at,  int keyno,
   else
     memcpy (mbuf, m, mlen);
 
-  ebuf = xtrymalloc (elen + 1);
+  ebuf = (unsigned char*) xtrymalloc (elen + 1);
   if (!ebuf)
     {
       err = gpg_error_from_syserror ();
@@ -1458,7 +1458,7 @@ ecc_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
   err = openpgp_oid_from_str (oidstr, &oid);
   if (err)
     return err;
-  oidbuf = gcry_mpi_get_opaque (oid, &n);
+  oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, &n);
   if (!oidbuf)
     {
       err = gpg_error_from_syserror ();
@@ -1466,7 +1466,7 @@ ecc_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
     }
   oid_len = (n+7)/8;
 
-  qbuf = xtrymalloc (ecc_q_len + 1);
+  qbuf = (unsigned char*) xtrymalloc (ecc_q_len + 1);
   if (!qbuf)
     {
       err = gpg_error_from_syserror ();
@@ -1568,7 +1568,7 @@ read_public_key (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
       size_t len;
 
       len = gcry_sexp_sprint (s_pkey, GCRYSEXP_FMT_CANON, NULL, 0);
-      keybuf = xtrymalloc (len);
+      keybuf = (unsigned char*) xtrymalloc (len);
       if (!data)
         {
           err = gpg_error_from_syserror ();
@@ -2663,7 +2663,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
     {
       char *buffer;
 
-      buffer = xtrymalloc (strlen (resetcode) + strlen (pinvalue) + 1);
+      buffer = (char*) xtrymalloc (strlen (resetcode) + strlen (pinvalue) + 1);
       if (!buffer)
         rc = gpg_error_from_syserror ();
       else
@@ -2929,7 +2929,7 @@ build_privkey_template (app_t app, int keyno,
                    + privkey_len
                    + suffix_len
                    + datalen);
-  tp = template_x = xtrymalloc_secure (template_size);
+  tp = template_x = (unsigned char*) xtrymalloc_secure (template_size);
   if (!template_x)
     return gpg_error_from_syserror ();
 
@@ -3043,7 +3043,7 @@ build_ecc_privkey_template (app_t app, int keyno,
                    + datalen);
   if (exthdr_len + privkey_len + suffix_len + datalen >= 128)
     template_size++;
-  tp = template_x = xtrymalloc_secure (template_size);
+  tp = template_x = (unsigned char*) xtrymalloc_secure (template_size);
   if (!template_x)
     return gpg_error_from_syserror ();
 
@@ -3158,7 +3158,7 @@ change_keyattr_from_string (app_t app,
 
   /* VALUE is expected to be a string but not guaranteed to be
      terminated.  Thus copy it to an allocated buffer first. */
-  string = xtrymalloc (valuelen+1);
+  string = (char*) xtrymalloc (valuelen+1);
   if (!string)
     return gpg_error_from_syserror ();
   memcpy (string, value, valuelen);
@@ -3211,7 +3211,7 @@ change_keyattr_from_string (app_t app,
       if (err)
         goto leave;
 
-      oidbuf = gcry_mpi_get_opaque (oid, &n);
+      oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, &n);
       oid_len = (n+7)/8;
 
       /* We have enough room at STRING.  */
@@ -3484,7 +3484,7 @@ rsa_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
       template_len = (1 + 1 + 4
                       + 1 + 1 + rsa_p_len
                       + 1 + 1 + rsa_q_len);
-      template_x = tp = xtrymalloc_secure (template_len);
+      template_x = tp = (unsigned char*) xtrymalloc_secure (template_len);
       if (!template_x)
         {
           err = gpg_error_from_syserror ();
@@ -3589,7 +3589,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
           if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
             goto leave;
 
-          curve_name = xtrymalloc (toklen+1);
+          curve_name = (char*) xtrymalloc (toklen+1);
           if (!curve_name)
             {
               err = gpg_error_from_syserror ();
@@ -3709,7 +3709,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
   err = openpgp_oid_from_str (oidstr, &oid);
   if (err)
     goto leave;
-  oidbuf = gcry_mpi_get_opaque (oid, &n);
+  oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, &n);
   if (!oidbuf)
     {
       err = gpg_error_from_syserror ();
@@ -3731,7 +3731,7 @@ ecc_writekey (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
               err = GPG_ERR_INTERNAL;
               goto leave;
             }
-          keyattr = xtrymalloc (oid_len);
+          keyattr = (unsigned char*) xtrymalloc (oid_len);
           if (!keyattr)
             {
               err = gpg_error_from_syserror ();
@@ -4519,7 +4519,7 @@ do_decipher (app_t app, const char *keyidstr,
              does not need to do another data mangling.  */
           fixuplen++;
 
-          fixbuf = xtrymalloc (fixuplen + indatalen);
+          fixbuf = (unsigned char*) xtrymalloc (fixuplen + indatalen);
           if (!fixbuf)
             return gpg_error_from_syserror ();
 
@@ -4559,7 +4559,7 @@ do_decipher (app_t app, const char *keyidstr,
         }
 
       fixuplen = 7;
-      fixbuf = xtrymalloc (fixuplen + indatalen);
+      fixbuf = (unsigned char*) xtrymalloc (fixuplen + indatalen);
       if (!fixbuf)
         return gpg_error_from_syserror ();
 
@@ -4620,7 +4620,7 @@ do_decipher (app_t app, const char *keyidstr,
 
       if (prefix)
         { /* Add the prefix */
-          fixbuf = xtrymalloc (*outdatalen + 1);
+          fixbuf = (unsigned char*) xtrymalloc (*outdatalen + 1);
           if (!fixbuf)
             {
               xfree (*outdata);
@@ -4827,7 +4827,7 @@ ecc_curve (unsigned char *buf, size_t buflen)
   const char *result;
   unsigned char *oidbuf;
 
-  oidbuf = xtrymalloc (buflen + 1);
+  oidbuf = (unsigned char*) xtrymalloc (buflen + 1);
   if (!oidbuf)
     return NULL;
 
@@ -4885,7 +4885,7 @@ parse_algorithm_attribute (app_t app, int keyno)
     {
       app->app_local->keyattr[keyno].rsa.n_bits = (buffer[1]<<8 | buffer[2]);
       app->app_local->keyattr[keyno].rsa.e_bits = (buffer[3]<<8 | buffer[4]);
-      app->app_local->keyattr[keyno].rsa.format = 0;
+      app->app_local->keyattr[keyno].rsa.format = (rsa_key_format_t) 0;
       if (buflen < 6)
         app->app_local->keyattr[keyno].rsa.format = RSA_STD;
       else
@@ -4994,7 +4994,7 @@ app_select_openpgp (app_t app)
       app->serialno = buffer;
       app->serialnolen = buflen;
       buffer = NULL;
-      app->app_local = xtrycalloc (1, sizeof *app->app_local);
+      app->app_local = (app_local_s*) xtrycalloc (1, sizeof *app->app_local);
       if (!app->app_local)
         {
           rc = gpg_error_from_errno (errno);

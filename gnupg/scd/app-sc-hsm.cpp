@@ -291,7 +291,7 @@ parse_certid (const char *certid, unsigned char **r_objid, size_t *r_objidlen)
   if (*s || !objidlen || (objidlen%2))
     return GPG_ERR_INV_ID;
   objidlen /= 2;
-  objid = xtrymalloc (objidlen);
+  objid = (unsigned char*) xtrymalloc (objidlen);
   if (!objid)
     return gpg_error_from_syserror ();
   for (s=certid, i=0; i < objidlen; i++, s+=2)
@@ -749,7 +749,7 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
     }
 
   /* Create a new PrKDF list item. */
-  prkdf = xtrycalloc (1, sizeof *prkdf);
+  prkdf = (prkdf_object_t) xtrycalloc (1, sizeof *prkdf);
   if (!prkdf)
     {
       err = gpg_error_from_syserror ();
@@ -758,7 +758,7 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
   prkdf->keytype = keytype;
   prkdf->keysize = keysize;
   prkdf->objidlen = objidlen;
-  prkdf->objid = xtrymalloc (objidlen);
+  prkdf->objid = (unsigned char*) xtrymalloc (objidlen);
   if (!prkdf->objid)
     {
       err = gpg_error_from_syserror ();
@@ -838,14 +838,14 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
   if (!err && buffer[0] == 0x30)
     {
       /* Create a matching CDF list item. */
-      cdf = xtrycalloc (1, sizeof *cdf);
+      cdf = (cdf_object_t) xtrycalloc (1, sizeof *cdf);
       if (!cdf)
         {
           err = gpg_error_from_syserror ();
           goto leave;
         }
       cdf->objidlen = prkdf->objidlen;
-      cdf->objid = xtrymalloc (cdf->objidlen);
+      cdf->objid = (unsigned char*) xtrymalloc (cdf->objidlen);
       if (!cdf->objid)
         {
           err = gpg_error_from_syserror ();
@@ -1068,14 +1068,14 @@ read_ef_cd (app_t app, unsigned short fid, cdf_object_t *result)
       goto parse_error;
     }
   /* Create a new CDF list item. */
-  cdf = xtrycalloc (1, sizeof *cdf);
+  cdf = (cdf_object_t) xtrycalloc (1, sizeof *cdf);
   if (!cdf)
     {
       err = gpg_error_from_syserror ();
       goto leave;
     }
   cdf->objidlen = objidlen;
-  cdf->objid = xtrymalloc (objidlen);
+  cdf->objid = (unsigned char*) xtrymalloc (objidlen);
   if (!cdf->objid)
     {
       err = gpg_error_from_syserror ();
@@ -1229,7 +1229,7 @@ read_serialno(app_t app)
     }
   chrlen -= 5;
 
-  app->serialno = xtrymalloc (chrlen);
+  app->serialno = (unsigned char*) xtrymalloc (chrlen);
   if (!app->serialno)
     {
       err = gpg_error_from_syserror ();
@@ -1307,7 +1307,7 @@ send_certinfo (ctrl_t ctrl, const char *certtype, cdf_object_t certinfo)
     {
       char *buf, *p;
 
-      buf = xtrymalloc (4 + certinfo->objidlen*2 + 1);
+      buf = (char*) xtrymalloc (4 + certinfo->objidlen*2 + 1);
       if (!buf)
         return gpg_error_from_syserror ();
       p = stpcpy (buf, "HSM.");
@@ -1374,7 +1374,7 @@ send_keypairinfo (app_t app, ctrl_t ctrl, prkdf_object_t keyinfo)
       char gripstr[40+1];
       char *buf, *p;
 
-      buf = xtrymalloc (4 + keyinfo->objidlen*2 + 1);
+      buf = (char*) xtrymalloc (4 + keyinfo->objidlen*2 + 1);
       if (!buf)
         return gpg_error_from_syserror ();
       p = stpcpy (buf, "HSM.");
@@ -1446,7 +1446,7 @@ readcert_by_cdf (app_t app, cdf_object_t cdf,
   /* First check whether it has been cached. */
   if (cdf->image)
     {
-      *r_cert = xtrymalloc (cdf->imagelen);
+      *r_cert = (unsigned char*) xtrymalloc (cdf->imagelen);
       if (!*r_cert)
         return gpg_error_from_syserror ();
       memcpy (*r_cert, cdf->image, cdf->imagelen);
@@ -1523,7 +1523,7 @@ readcert_by_cdf (app_t app, cdf_object_t cdf,
   *r_certlen = totobjlen;
 
   /* Try to cache it. */
-  if (!cdf->image && (cdf->image = xtrymalloc (*r_certlen)))
+  if (!cdf->image && (cdf->image = (unsigned char*) xtrymalloc (*r_certlen)))
     {
       memcpy (cdf->image, *r_cert, *r_certlen);
       cdf->imagelen = *r_certlen;
@@ -1579,7 +1579,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
           break;
       if (prkdf)
         {
-          buf = xtrymalloc (4 + prkdf->objidlen*2 + 1);
+          buf = (char*) xtrymalloc (4 + prkdf->objidlen*2 + 1);
           if (!buf)
             return gpg_error_from_syserror ();
           p = stpcpy (buf, "HSM.");
@@ -1954,7 +1954,7 @@ strip_PKCS15_padding(unsigned char *src, int srclen, unsigned char **dst,
   src++;
   srclen--;
 
-  p = xtrymalloc (srclen);
+  p = (unsigned char*) xtrymalloc (srclen);
   if (!p)
     return gpg_error_from_syserror ();
 
@@ -2052,7 +2052,7 @@ app_select_sc_hsm (app_t app)
     {
       app->apptype = "SC-HSM";
 
-      app->app_local = xtrycalloc (1, sizeof *app->app_local);
+      app->app_local = (app_local_s*) xtrycalloc (1, sizeof *app->app_local);
       if (!app->app_local)
         {
           rc = gpg_error_from_syserror ();

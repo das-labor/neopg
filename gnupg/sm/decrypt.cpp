@@ -157,7 +157,7 @@ decrypt_filter (void *arg,
                 const void *inbuf, size_t inlen, size_t *inused,
                 void *outbuf, size_t maxoutlen, size_t *outlen)
 {
-  struct decrypt_filter_parm_s *parm = arg;
+  struct decrypt_filter_parm_s *parm = (decrypt_filter_parm_s*) arg;
   int blklen = parm->blklen;
   size_t orig_inlen = inlen;
 

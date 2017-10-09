@@ -86,7 +86,7 @@ get_session_key (ctrl_t ctrl, PKT_pubkey_enc * k, DEK * dek)
 
   if ((k->keyid[0] || k->keyid[1]) && !opt.try_all_secrets)
     {
-      sk = xmalloc_clear (sizeof *sk);
+      sk = (PKT_public_key*) xmalloc_clear (sizeof *sk);
       sk->pubkey_algo = k->pubkey_algo; /* We want a pubkey with this algo.  */
       if (!(rc = get_seckey (ctrl, sk, k->keyid)))
         {
@@ -115,7 +115,7 @@ get_session_key (ctrl_t ctrl, PKT_pubkey_enc * k, DEK * dek)
       for (;;)
         {
           free_public_key (sk);
-          sk = xmalloc_clear (sizeof *sk);
+          sk = (PKT_public_key*) xmalloc_clear (sizeof *sk);
           rc = enum_secret_keys (ctrl, &enum_context, sk);
           if (rc)
             {

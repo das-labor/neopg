@@ -656,9 +656,9 @@ void
 _gcry_blowfish_ctr_enc(void *context, unsigned char *ctr, void *outbuf_arg,
 		       const void *inbuf_arg, size_t nblocks)
 {
-  BLOWFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  BLOWFISH_context *ctx = (BLOWFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[BLOWFISH_BLOCKSIZE];
   int burn_stack_depth = (64) + 2 * BLOWFISH_BLOCKSIZE;
   int i;
@@ -726,9 +726,9 @@ void
 _gcry_blowfish_cbc_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		       const void *inbuf_arg, size_t nblocks)
 {
-  BLOWFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  BLOWFISH_context *ctx = (BLOWFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[BLOWFISH_BLOCKSIZE];
   int burn_stack_depth = (64) + 2 * BLOWFISH_BLOCKSIZE;
 
@@ -787,9 +787,9 @@ void
 _gcry_blowfish_cfb_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		       const void *inbuf_arg, size_t nblocks)
 {
-  BLOWFISH_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  BLOWFISH_context *ctx = (BLOWFISH_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   int burn_stack_depth = (64) + 2 * BLOWFISH_BLOCKSIZE;
 
 #ifdef USE_AMD64_ASM

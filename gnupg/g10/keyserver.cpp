@@ -246,7 +246,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
 
   log_assert (string);
 
-  keyserver=xmalloc_clear(sizeof(struct keyserver_spec));
+  keyserver= (keyserver_spec*) xmalloc_clear(sizeof(struct keyserver_spec));
 
   duped_uri = uri = xstrdup (string);
 
@@ -293,7 +293,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
       assume_hkp=1;
       keyserver->scheme=xstrdup("hkp");
 
-      keyserver->uri=xmalloc(strlen(keyserver->scheme)+3+strlen(uri)+1);
+      keyserver->uri= (char*) xmalloc(strlen(keyserver->scheme)+3+strlen(uri)+1);
       strcpy(keyserver->uri,keyserver->scheme);
       strcat(keyserver->uri,"://");
       strcat(keyserver->uri,uri);
@@ -304,7 +304,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
 
       keyserver->uri=xstrdup(uri);
 
-      keyserver->scheme=xmalloc(count+1);
+      keyserver->scheme= (char*) xmalloc(count+1);
 
       /* Force to lowercase */
       for(i=0;i<count;i++)
@@ -356,7 +356,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
 	  if(count==0)
 	    goto fail;
 
-	  keyserver->auth=xmalloc(count+1);
+	  keyserver->auth= (char*) xmalloc(count+1);
 	  strncpy(keyserver->auth,uri,count);
 	  keyserver->auth[count]='\0';
 	  uri+=count+1;
@@ -383,7 +383,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
       if(count==0)
 	goto fail;
 
-      keyserver->host=xmalloc(count+1);
+      keyserver->host= (char*) xmalloc(count+1);
       strncpy(keyserver->host,uri,count);
       keyserver->host[count]='\0';
 
@@ -406,7 +406,7 @@ parse_keyserver_uri (const char *string,int require_scheme)
 		goto fail;
 	    }
 
-	  keyserver->port=xmalloc(count+1);
+	  keyserver->port= (char*) xmalloc(count+1);
 	  strncpy(keyserver->port,uri+1,count);
 	  keyserver->port[count]='\0';
 
@@ -456,7 +456,7 @@ parse_preferred_keyserver(PKT_signature *sig)
   p=parse_sig_subpkt(sig->hashed,SIGSUBPKT_PREF_KS,&plen);
   if(p && plen)
     {
-      byte *dupe=xmalloc(plen+1);
+      byte *dupe= (byte*) xmalloc(plen+1);
 
       memcpy(dupe,p,plen);
       dupe[plen]='\0';
@@ -586,7 +586,7 @@ parse_keyrec(char *keystring)
 
   if(work==NULL)
     {
-      work=xmalloc_clear(sizeof(struct keyrec));
+      work= (keyrec*) xmalloc_clear(sizeof(struct keyrec));
       work->uidbuf=iobuf_temp();
     }
 
@@ -603,7 +603,7 @@ parse_keyrec(char *keystring)
       if(work->desc.mode)
 	{
 	  ret=work;
-	  work=xmalloc_clear(sizeof(struct keyrec));
+	  work= (keyrec*) xmalloc_clear(sizeof(struct keyrec));
 	  work->uidbuf=iobuf_temp();
 	}
 
@@ -786,7 +786,7 @@ show_prompt (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int numdesc,
       {
         KEYDB_SEARCH_DESC *selarray;
 
-        selarray = xtrymalloc (numidx * sizeof *selarray);
+        selarray = (KEYDB_SEARCH_DESC*) xtrymalloc (numidx * sizeof *selarray);
         if (!selarray)
           {
             err = gpg_error_from_syserror ();
@@ -814,7 +814,7 @@ show_prompt (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int numdesc,
 static gpg_error_t
 search_line_handler (void *opaque, int special, char *line)
 {
-  struct search_line_handler_parm_s *parm = opaque;
+  struct search_line_handler_parm_s *parm = (search_line_handler_parm_s*) opaque;
   gpg_error_t err = 0;
   struct keyrec *keyrec;
 
@@ -917,7 +917,7 @@ search_line_handler (void *opaque, int special, char *line)
               parm->count = 10;
               parm->validcount = 0;
             }
-          parm->desc = xtrymalloc (parm->count * sizeof *parm->desc);
+          parm->desc = (KEYDB_SEARCH_DESC*) xtrymalloc (parm->count * sizeof *parm->desc);
           if (!parm->desc)
             {
               err = gpg_error_from_syserror ();
@@ -932,7 +932,7 @@ search_line_handler (void *opaque, int special, char *line)
           KEYDB_SEARCH_DESC *tmp;
           int newcount = parm->count + 10;
 
-          tmp = xtryrealloc (parm->desc, newcount * sizeof *parm->desc);
+          tmp = (KEYDB_SEARCH_DESC*) xtryrealloc (parm->desc, newcount * sizeof *parm->desc);
           if (!tmp)
             {
               err = gpg_error_from_syserror ();
@@ -1028,7 +1028,7 @@ struct ks_retrieval_screener_arg_s
 static gpg_error_t
 keyserver_retrieval_screener (kbnode_t keyblock, void *opaque)
 {
-  struct ks_retrieval_screener_arg_s *arg = opaque;
+  struct ks_retrieval_screener_arg_s *arg = (ks_retrieval_screener_arg_s*) opaque;
   KEYDB_SEARCH_DESC *desc = arg->desc;
   int ndesc = arg->ndesc;
   kbnode_t node;
@@ -1103,7 +1103,7 @@ keyserver_import (ctrl_t ctrl, strlist_t users)
   int rc=0;
 
   /* Build a list of key ids */
-  desc=xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
+  desc= (KEYDB_SEARCH_DESC*) xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
 
   for(;users;users=users->next)
     {
@@ -1121,7 +1121,7 @@ keyserver_import (ctrl_t ctrl, strlist_t users)
       if(count==num)
 	{
 	  num+=100;
-	  desc=xrealloc(desc,sizeof(KEYDB_SEARCH_DESC)*num);
+	  desc= (KEYDB_SEARCH_DESC*) xrealloc(desc,sizeof(KEYDB_SEARCH_DESC)*num);
 	}
     }
 
@@ -1213,7 +1213,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
 
   *count=0;
 
-  *klist=xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
+  *klist= (KEYDB_SEARCH_DESC*) xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
 
   kdbhd = keydb_new ();
   if (!kdbhd)
@@ -1226,14 +1226,14 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
   if(!users)
     {
       ndesc = 1;
-      desc = xmalloc_clear ( ndesc * sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xmalloc_clear ( ndesc * sizeof *desc);
       desc[0].mode = KEYDB_SEARCH_MODE_FIRST;
     }
   else
     {
       for (ndesc=0, sl=users; sl; sl = sl->next, ndesc++)
 	;
-      desc = xmalloc ( ndesc * sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xmalloc ( ndesc * sizeof *desc);
 
       for (ndesc=0, sl=users; sl; sl = sl->next)
 	{
@@ -1283,7 +1283,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
 	      if(*count==num)
 		{
 		  num+=100;
-		  *klist=xrealloc(*klist,sizeof(KEYDB_SEARCH_DESC)*num);
+		  *klist= (KEYDB_SEARCH_DESC*) xrealloc(*klist,sizeof(KEYDB_SEARCH_DESC)*num);
 		}
 	    }
 
@@ -1348,7 +1348,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
 	  if(*count==num)
 	    {
 	      num+=100;
-	      *klist=xrealloc(*klist,sizeof(KEYDB_SEARCH_DESC)*num);
+	      *klist= (KEYDB_SEARCH_DESC*) xrealloc(*klist,sizeof(KEYDB_SEARCH_DESC)*num);
 	    }
 	}
     }
@@ -1417,7 +1417,7 @@ keyserver_refresh (ctrl_t ctrl, strlist_t users)
 	{
 	  if(desc[i].skipfncvalue)
 	    {
-	      struct keyserver_spec *keyserver=desc[i].skipfncvalue;
+	      struct keyserver_spec *keyserver= (keyserver_spec*) desc[i].skipfncvalue;
 
               if (!opt.quiet)
                 log_info (_("refreshing %d key from %s\n"), 1, keyserver->uri);
@@ -1512,7 +1512,7 @@ keyserver_search (ctrl_t ctrl, strlist_t tokens)
       put_membuf_str (&mb, item->d);
     }
     put_membuf (&mb, "", 1); /* Append Nul.  */
-    searchstr = get_membuf (&mb, NULL);
+    searchstr = (char*) get_membuf (&mb, NULL);
     if (!searchstr)
       {
         err = gpg_error_from_syserror ();
@@ -1602,7 +1602,7 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
 
   /* Create an array filled with a search pattern for each key.  The
      array is delimited by a NULL entry.  */
-  pattern = xtrycalloc (ndesc+1, sizeof *pattern);
+  pattern = (char**) xtrycalloc (ndesc+1, sizeof *pattern);
   if (!pattern)
     return gpg_error_from_syserror ();
 
@@ -1625,7 +1625,7 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
             break; /* Declare end of this chunk.  */
           linelen += n;
 
-          pattern[npat] = xtrymalloc (n);
+          pattern[npat] = (char*) xtrymalloc (n);
           if (!pattern[npat])
             err = gpg_error_from_syserror ();
           else

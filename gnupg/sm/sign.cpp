@@ -408,7 +408,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
         }
 
       /* That one is fine - create signerlist. */
-      signerlist = xtrycalloc (1, sizeof *signerlist);
+      signerlist = (certlist_t) xtrycalloc (1, sizeof *signerlist);
       if (!signerlist)
         {
           rc = out_of_core ();

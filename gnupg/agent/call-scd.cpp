@@ -640,7 +640,7 @@ inq_needpin (void *opaque, const char *line)
     {
       line = s;
       pinlen = 90;
-      pin = gcry_malloc_secure (pinlen);
+      pin = (char*) gcry_malloc_secure (pinlen);
       if (!pin)
         return out_of_core ();
 
@@ -808,7 +808,7 @@ agent_card_pksign (ctrl_t ctrl,
       return unlock_scd (ctrl, rc);
     }
 
-  *r_buf = get_membuf (&data, r_buflen);
+  *r_buf = (unsigned char*) get_membuf (&data, r_buflen);
   return unlock_scd (ctrl, 0);
 }
 
@@ -819,7 +819,7 @@ agent_card_pksign (ctrl_t ctrl,
 static gpg_error_t
 padding_info_cb (void *opaque, const char *line)
 {
-  int *r_padding = opaque;
+  int *r_padding = (int*) opaque;
   const char *s;
 
   if ((s=has_leading_keyword (line, "PADDING")))
@@ -899,7 +899,7 @@ agent_card_pkdecrypt (ctrl_t ctrl,
       xfree (get_membuf (&data, &len));
       return unlock_scd (ctrl, rc);
     }
-  *r_buf = get_membuf (&data, r_buflen);
+  *r_buf = (char*) get_membuf (&data, r_buflen);
   if (!*r_buf)
     return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
@@ -934,7 +934,7 @@ agent_card_readcert (ctrl_t ctrl,
       xfree (get_membuf (&data, &len));
       return unlock_scd (ctrl, rc);
     }
-  *r_buf = get_membuf (&data, r_buflen);
+  *r_buf = (char*) get_membuf (&data, r_buflen);
   if (!*r_buf)
     return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
@@ -969,7 +969,7 @@ agent_card_readkey (ctrl_t ctrl, const char *id, unsigned char **r_buf)
       xfree (get_membuf (&data, &len));
       return unlock_scd (ctrl, rc);
     }
-  *r_buf = get_membuf (&data, &buflen);
+  *r_buf = (unsigned char*) get_membuf (&data, &buflen);
   if (!*r_buf)
     return unlock_scd (ctrl, GPG_ERR_ENOMEM);
 
@@ -988,7 +988,7 @@ agent_card_readkey (ctrl_t ctrl, const char *id, unsigned char **r_buf)
 static gpg_error_t
 inq_writekey_parms (void *opaque, const char *line)
 {
-  struct inq_needpin_parm_s *parm = opaque;
+  struct inq_needpin_parm_s *parm = (inq_needpin_parm_s*) opaque;
 
   if (has_leading_keyword (line, "KEYDATA"))
     return assuan_send_data (parm->ctx, parm->keydata, parm->keydatalen);
@@ -1020,7 +1020,7 @@ agent_card_writekey (ctrl_t ctrl,  int force, const char *serialno,
   parms.getpin_cb_desc= NULL;
   parms.passthru = 0;
   parms.any_inq_seen = 0;
-  parms.keydata = keydata;
+  parms.keydata = (const unsigned char*) keydata;
   parms.keydatalen = keydatalen;
 
   rc = assuan_transact (ctrl->scd_local->ctx, line, NULL, NULL,
@@ -1045,7 +1045,7 @@ struct card_getattr_parm_s {
 static gpg_error_t
 card_getattr_cb (void *opaque, const char *line)
 {
-  struct card_getattr_parm_s *parm = opaque;
+  struct card_getattr_parm_s *parm = (card_getattr_parm_s*) opaque;
   const char *keyword = line;
   int keywordlen;
 
@@ -1126,7 +1126,7 @@ struct card_cardlist_parm_s {
 static gpg_error_t
 card_cardlist_cb (void *opaque, const char *line)
 {
-  struct card_cardlist_parm_s *parm = opaque;
+  struct card_cardlist_parm_s *parm = (card_cardlist_parm_s*) opaque;
   const char *keyword = line;
   int keywordlen;
 
@@ -1190,7 +1190,7 @@ agent_card_cardlist (ctrl_t ctrl, strlist_t *result)
 static gpg_error_t
 pass_status_thru (void *opaque, const char *line)
 {
-  assuan_context_t ctx = opaque;
+  assuan_context_t ctx = (assuan_context_t) opaque;
   char keyword[200];
   int i;
 
@@ -1222,7 +1222,7 @@ pass_status_thru (void *opaque, const char *line)
 static gpg_error_t
 pass_data_thru (void *opaque, const void *buffer, size_t length)
 {
-  assuan_context_t ctx = opaque;
+  assuan_context_t ctx = (assuan_context_t) opaque;
 
   assuan_send_data (ctx, buffer, length);
   return 0;
@@ -1251,7 +1251,7 @@ agent_card_scd (ctrl_t ctrl, const char *cmdline,
   inqparm.getpin_cb = getpin_cb;
   inqparm.getpin_cb_arg = getpin_cb_arg;
   inqparm.getpin_cb_desc = NULL;
-  inqparm.passthru = assuan_context;
+  inqparm.passthru = (assuan_context_t) assuan_context;
   inqparm.any_inq_seen = 0;
   inqparm.keydata = NULL;
   inqparm.keydatalen = 0;

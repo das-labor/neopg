@@ -152,7 +152,7 @@ struct fun_cookie_s
 static int
 writen (int fd, const void *buffer, size_t nbytes, int is_socket)
 {
-  const char *buf = buffer;
+  const char *buf = (const char*) buffer;
   size_t nleft = nbytes;
   int nwritten;
 #ifndef HAVE_W32_SYSTEM
@@ -204,7 +204,7 @@ parse_portno (const char *str, unsigned short *r_port)
 static gpgrt_ssize_t
 fun_writer (void *cookie_arg, const void *buffer, size_t size)
 {
-  struct fun_cookie_s *cookie = cookie_arg;
+  struct fun_cookie_s *cookie = (fun_cookie_s*) cookie_arg;
 
   /* FIXME: Use only estream with a callback for socket writing.  This
      avoids the ugly mix of fd and estream code.  */
@@ -287,7 +287,7 @@ fun_writer (void *cookie_arg, const void *buffer, size_t size)
           void *addrbuf = NULL;
 #endif /*HAVE_INET_PTON*/
 
-          addrstr = xtrymalloc (strlen (name) + 1);
+          addrstr = (char*) xtrymalloc (strlen (name) + 1);
           if (!addrstr)
             addrlen = 0; /* This indicates an error.  */
           else if (*name == '[')
@@ -447,7 +447,7 @@ fun_writer (void *cookie_arg, const void *buffer, size_t size)
 static int
 fun_closer (void *cookie_arg)
 {
-  struct fun_cookie_s *cookie = cookie_arg;
+  struct fun_cookie_s *cookie = (fun_cookie_s*) cookie_arg;
 
   if (cookie->fd != -1 && cookie->fd != 2)
     sock_close (cookie->fd);
@@ -513,7 +513,7 @@ set_file_fd (const char *name, int fd)
   /* The xmalloc below is justified because we can expect that this
      function is called only during initialization and there is no
      easy way out of this error condition.  */
-  cookie = xmalloc (sizeof *cookie + (name? strlen (name):0));
+  cookie = (fun_cookie_s*) xmalloc (sizeof *cookie + (name? strlen (name):0));
   strcpy (cookie->name, name? name:"");
   cookie->quiet = 0;
   cookie->is_socket = 0;
@@ -1016,7 +1016,7 @@ log_printhex (const char *text, const void *buffer, size_t length)
     log_debug ("%s ", text);
   if (length)
     {
-      const unsigned char *p = buffer;
+      const unsigned char *p = (const unsigned char*) buffer;
       log_printf ("%02X", *p);
       for (length--, p++; length--; p++)
         log_printf (" %02X", *p);

@@ -179,7 +179,7 @@ hexsn_to_sexp (const char *hexsn)
 
   len = unhexify (NULL, hexsn);
   snprintf (numbuf, sizeof numbuf, "(%u:", (unsigned int)len);
-  buffer = xtrymalloc (strlen (numbuf) + len + 2 );
+  buffer = (char*) xtrymalloc (strlen (numbuf) + len + 2 );
   if (!buffer)
     return NULL;
   p = stpcpy (buffer, numbuf);
@@ -187,7 +187,7 @@ hexsn_to_sexp (const char *hexsn)
   p[len] = ')';
   p[len+1] = 0;
 
-  return buffer;
+  return (ksba_sexp_t) buffer;
 }
 
 
@@ -266,7 +266,7 @@ put_cert (ksba_cert_t cert, int permanent, unsigned int trustclass,
   unsigned char help_fpr_buffer[20], *fpr;
   cert_item_t ci;
 
-  fpr = fpr_buffer? fpr_buffer : &help_fpr_buffer;
+  fpr = (unsigned char*) fpr_buffer? fpr_buffer : &help_fpr_buffer;
 
   /* If we already reached the caching limit, drop a couple of certs
    * from the cache.  Our dropping strategy is simple: We keep a
@@ -322,7 +322,7 @@ put_cert (ksba_cert_t cert, int permanent, unsigned int trustclass,
       break;
   if (!ci)
     { /* No: Create a new entry.  */
-      ci = xtrycalloc (1, sizeof *ci);
+      ci = (cert_item_t) xtrycalloc (1, sizeof *ci);
       if (!ci)
         return gpg_error_from_errno (errno);
       ci->next = cert_cache[*fpr];
@@ -1759,7 +1759,7 @@ read_certlist_from_stream (certlist_t *r_certlist, estream_t fp)
        * in that case the cached certificate is put into the list to
        * take advantage of a validation result which might be stored
        * in the cached certificate.  */
-      cl = xtrycalloc (1, sizeof *cl);
+      cl = (certlist_t) xtrycalloc (1, sizeof *cl);
       if (!cl)
         {
           err = gpg_error_from_syserror ();

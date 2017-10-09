@@ -482,7 +482,7 @@ _gcry_sexp_find_token( const gcry_sexp_t list, const char *tok, size_t toklen )
 		}
               n = p - head;
 
-              newlist = xtrymalloc ( sizeof *newlist + n );
+              newlist = (gcry_sexp_t) xtrymalloc ( sizeof *newlist + n );
               if (!newlist)
                 {
                   /* No way to return an error code, so we can only
@@ -636,7 +636,7 @@ _gcry_sexp_nth (const gcry_sexp_t list, int number)
   if (*p == ST_DATA)
     {
       memcpy (&n, p+1, sizeof n);
-      newlist = xtrymalloc (sizeof *newlist + 1 + 1 + sizeof n + n + 1);
+      newlist = (gcry_sexp_t) xtrymalloc (sizeof *newlist + 1 + 1 + sizeof n + n + 1);
       if (!newlist)
         return NULL;
       d = newlist->d;
@@ -674,7 +674,7 @@ _gcry_sexp_nth (const gcry_sexp_t list, int number)
       } while (level);
       n = p + 1 - head;
 
-      newlist = xtrymalloc (sizeof *newlist + n);
+      newlist = (gcry_sexp_t) xtrymalloc (sizeof *newlist + n);
       if (!newlist)
         return NULL;
       d = newlist->d;
@@ -779,7 +779,7 @@ _gcry_sexp_nth_buffer (const gcry_sexp_t list, int number, size_t *rlength)
   s = do_sexp_nth_data (list, number, &n);
   if (!s || !n)
     return NULL;
-  buf = xtrymalloc (n);
+  buf = (char*) xtrymalloc (n);
   if (!buf)
     return NULL;
   memcpy (buf, s, n);
@@ -800,7 +800,7 @@ _gcry_sexp_nth_string (const gcry_sexp_t list, int number)
   s = do_sexp_nth_data (list, number, &n);
   if (!s || n < 1 || (n+1) < 1)
     return NULL;
-  buf = xtrymalloc (n+1);
+  buf = (char*) xtrymalloc (n+1);
   if (!buf)
     return NULL;
   memcpy (buf, s, n);
@@ -822,7 +822,7 @@ _gcry_sexp_nth_mpi (gcry_sexp_t list, int number, int mpifmt)
     {
       char *p;
 
-      p = _gcry_sexp_nth_buffer (list, number, &n);
+      p = (char*) _gcry_sexp_nth_buffer (list, number, &n);
       if (!p)
         return NULL;
 
@@ -922,7 +922,7 @@ _gcry_sexp_cdr(const gcry_sexp_t list)
   } while (level);
   n = p - head;
 
-  newlist = xtrymalloc (sizeof *newlist + n + 2);
+  newlist = (gcry_sexp_t) xtrymalloc (sizeof *newlist + n + 2);
   if (!newlist)
     return NULL;
   d = newlist->d;
@@ -984,7 +984,7 @@ make_space ( struct make_space_ctx *c, size_t n )
       newsize = c->allocated + 2*(n+sizeof(DATALEN)+1);
       if (newsize <= c->allocated)
         return GPG_ERR_TOO_LARGE;
-      newsexp = xtryrealloc ( c->sexp, sizeof *newsexp + newsize - 1);
+      newsexp = (gcry_sexp_t) xtryrealloc ( c->sexp, sizeof *newsexp + newsize - 1);
       if (!newsexp)
         return gpg_error_from_errno (errno);
       c->allocated = newsize;
@@ -1167,9 +1167,9 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
      that the code which does the ST_CLOSE can use MAKE_SPACE */
   c.allocated = length + sizeof(DATALEN);
   if (length && _gcry_is_secure (buffer))
-    c.sexp = xtrymalloc_secure (sizeof *c.sexp + c.allocated - 1);
+    c.sexp = (gcry_sexp_t) xtrymalloc_secure (sizeof *c.sexp + c.allocated - 1);
   else
-    c.sexp = xtrymalloc (sizeof *c.sexp + c.allocated - 1);
+    c.sexp = (gcry_sexp_t) xtrymalloc (sizeof *c.sexp + c.allocated - 1);
   if (!c.sexp)
     {
       err = gpg_error_from_errno (errno);
@@ -1406,7 +1406,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                           gcry_sexp_t newsexp;
                           byte *newhead;
 
-                          newsexp = xtrymalloc_secure (sizeof *newsexp
+                          newsexp = (gcry_sexp_t) xtrymalloc_secure (sizeof *newsexp
                                                        + c.allocated - 1);
                           if (!newsexp)
                             {
@@ -1439,7 +1439,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                       gcry_sexp_t newsexp;
                       byte *newhead;
 
-                      newsexp = xtrymalloc_secure (sizeof *newsexp
+                      newsexp = (gcry_sexp_t) xtrymalloc_secure (sizeof *newsexp
                                                    + c.allocated - 1);
                       if (!newsexp)
                         {
@@ -1493,7 +1493,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
 		  gcry_sexp_t newsexp;
 		  byte *newhead;
 
-		  newsexp = xtrymalloc_secure (sizeof *newsexp
+		  newsexp = (gcry_sexp_t) xtrymalloc_secure (sizeof *newsexp
                                                + c.allocated - 1);
                   if (!newsexp)
                     {
@@ -1905,7 +1905,7 @@ _gcry_sexp_sprint (const gcry_sexp_t list, int mode,
   int i, indent = 0;
 
   s = list? list->d : empty;
-  d = buffer;
+  d = (char*) buffer;
   while ( *s != ST_STOP )
     {
       switch ( *s )

@@ -385,7 +385,7 @@ eval_redirection (const char *fname, int *r_redirect)
 
   *r_redirect = 1;
 
-  addr = calloc (1, sizeof *addr);
+  addr = (sockaddr_un*) calloc (1, sizeof *addr);
   if (!addr)
     return NULL;
   addr->sun_family = AF_LOCAL;
@@ -555,7 +555,7 @@ static int
 do_readn (assuan_context_t ctx, assuan_fd_t sockfd,
           void *buffer, size_t nbytes)
 {
-  char *p = buffer;
+  char *p = (char*) buffer;
   ssize_t n;
 
   while (nbytes)

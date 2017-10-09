@@ -32,7 +32,7 @@
 static void *
 memrchr (const void *buffer, int c, size_t n)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   for (p += n; n ; n--)
     if (*--p == c)
@@ -108,7 +108,7 @@ readline (assuan_context_t ctx, char *buf, size_t buflen,
       buf += n;
       *r_nread += n;
 
-      p = memrchr (p, '\n', n);
+      p = (char*) memrchr (p, '\n', n);
       if (p)
         break; /* at least one full line available - that's enough for now */
     }
@@ -135,7 +135,7 @@ _assuan_read_line (assuan_context_t ctx)
       memcpy (line, ctx->inbound.attic.line, atticlen);
       ctx->inbound.attic.linelen = 0;
 
-      endp = memchr (line, '\n', atticlen);
+      endp = (char*) memchr (line, '\n', atticlen);
       if (endp)
 	{
 	  /* Found another line in the attic.  */
@@ -186,7 +186,7 @@ _assuan_read_line (assuan_context_t ctx)
   nread += atticlen;
 
   if (! endp)
-    endp = memchr (line, '\n', nread);
+    endp = (char*) memchr (line, '\n', nread);
 
   if (endp)
     {
@@ -357,7 +357,7 @@ assuan_write_line (assuan_context_t ctx, const char *line)
 int
 _assuan_cookie_write_data (void *cookie, const char *buffer, size_t orig_size)
 {
-  assuan_context_t ctx = cookie;
+  assuan_context_t ctx = (assuan_context_t) cookie;
   size_t size = orig_size;
   char *line;
   size_t linelen;
@@ -434,7 +434,7 @@ _assuan_cookie_write_data (void *cookie, const char *buffer, size_t orig_size)
 int
 _assuan_cookie_write_flush (void *cookie)
 {
-  assuan_context_t ctx = cookie;
+  assuan_context_t ctx = (assuan_context_t) cookie;
   char *line;
   size_t linelen;
   unsigned int monitor_result;

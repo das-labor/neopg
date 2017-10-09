@@ -116,7 +116,7 @@ transform (void *c, const unsigned char *data, size_t nblks);
 static void
 sha256_init (void *context, unsigned int flags)
 {
-  SHA256_CONTEXT *hd = context;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) context;
   unsigned int features = _gcry_get_hw_features ();
 
   (void)flags;
@@ -157,7 +157,7 @@ sha256_init (void *context, unsigned int flags)
 static void
 sha224_init (void *context, unsigned int flags)
 {
-  SHA256_CONTEXT *hd = context;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) context;
   unsigned int features = _gcry_get_hw_features ();
 
   (void)flags;
@@ -230,7 +230,7 @@ sha224_init (void *context, unsigned int flags)
 static unsigned int
 transform_blk (void *ctx, const unsigned char *data)
 {
-  SHA256_CONTEXT *hd = ctx;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) ctx;
   static const u32 K[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
     0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -388,7 +388,7 @@ unsigned int _gcry_sha256_transform_armv8_ce(u32 state[8],
 static unsigned int
 transform (void *ctx, const unsigned char *data, size_t nblks)
 {
-  SHA256_CONTEXT *hd = ctx;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) ctx;
   unsigned int burn;
 
 #ifdef USE_AVX2
@@ -441,7 +441,7 @@ transform (void *ctx, const unsigned char *data, size_t nblks)
 static void
 sha256_final(void *context)
 {
-  SHA256_CONTEXT *hd = context;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
@@ -503,7 +503,7 @@ sha256_final(void *context)
 static byte *
 sha256_read (void *context)
 {
-  SHA256_CONTEXT *hd = context;
+  SHA256_CONTEXT *hd = (SHA256_CONTEXT*) context;
 
   return hd->bctx.buf;
 }

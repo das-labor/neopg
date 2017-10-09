@@ -51,7 +51,7 @@ keybox_register_file (const char *fname, int secret, void **r_token)
         }
     }
 
-  kr = xtrymalloc (sizeof *kr + strlen (fname));
+  kr = (KB_NAME) xtrymalloc (sizeof *kr + strlen (fname));
   if (!kr)
     return gpg_error_from_syserror ();
   strcpy (kr->fname, fname);
@@ -78,7 +78,7 @@ keybox_register_file (const char *fname, int secret, void **r_token)
 int
 keybox_is_writable (void *token)
 {
-  KB_NAME r = token;
+  KB_NAME r = (KB_NAME) token;
 
   return r? !access (r->fname, W_OK) : 0;
 }
@@ -92,7 +92,7 @@ do_keybox_new (KB_NAME resource, int secret, int for_openpgp)
   int idx;
 
   assert (resource && !resource->secret == !secret);
-  hd = xtrycalloc (1, sizeof *hd);
+  hd = (KEYBOX_HANDLE) xtrycalloc (1, sizeof *hd);
   if (hd)
     {
       hd->kb = resource;
@@ -101,7 +101,7 @@ do_keybox_new (KB_NAME resource, int secret, int for_openpgp)
       if (!resource->handle_table)
         {
           resource->handle_table_size = 3;
-          resource->handle_table = xtrycalloc (resource->handle_table_size,
+          resource->handle_table = (keybox_handle**) xtrycalloc (resource->handle_table_size,
                                                sizeof *resource->handle_table);
           if (!resource->handle_table)
             {
@@ -122,7 +122,7 @@ do_keybox_new (KB_NAME resource, int secret, int for_openpgp)
           size_t newsize;
 
           newsize = resource->handle_table_size + 5;
-          tmptbl = xtryrealloc (resource->handle_table,
+          tmptbl = (keybox_handle**) xtryrealloc (resource->handle_table,
                                 newsize * sizeof (*tmptbl));
           if (!tmptbl)
             {
@@ -146,7 +146,7 @@ do_keybox_new (KB_NAME resource, int secret, int for_openpgp)
 KEYBOX_HANDLE
 keybox_new_openpgp (void *token, int secret)
 {
-  KB_NAME resource = token;
+  KB_NAME resource = (KB_NAME) token;
 
   return do_keybox_new (resource, secret, 1);
 }
@@ -157,7 +157,7 @@ keybox_new_openpgp (void *token, int secret)
 KEYBOX_HANDLE
 keybox_new_x509 (void *token, int secret)
 {
-  KB_NAME resource = token;
+  KB_NAME resource = (KB_NAME) token;
 
   return do_keybox_new (resource, secret, 0);
 }

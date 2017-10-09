@@ -278,7 +278,7 @@ _my_socket_new (int lnr, assuan_fd_t fd)
 {
   my_socket_t so;
 
-  so = xtrymalloc (sizeof *so);
+  so = (my_socket_t) xtrymalloc (sizeof *so);
   if (!so)
     {
       int save_errno = errno;
@@ -337,13 +337,13 @@ _my_socket_unref (int lnr, my_socket_t so,
 static ssize_t
 my_gnutls_read (gnutls_transport_ptr_t ptr, void *buffer, size_t size)
 {
-  my_socket_t sock = ptr;
+  my_socket_t sock = (my_socket_t) ptr;
   return npth_read (sock->fd, buffer, size);
 }
 static ssize_t
 my_gnutls_write (gnutls_transport_ptr_t ptr, const void *buffer, size_t size)
 {
-  my_socket_t sock = ptr;
+  my_socket_t sock = (my_socket_t) ptr;
   return npth_write (sock->fd, buffer, size);
 }
 
@@ -359,7 +359,7 @@ my_gnutls_write (gnutls_transport_ptr_t ptr, const void *buffer, size_t size)
 static void
 fp_onclose_notification (estream_t stream, void *opaque)
 {
-  http_t hd = opaque;
+  http_t hd = (http_t) opaque;
 
   log_assert (hd->magic == HTTP_CONTEXT_MAGIC);
   if (hd->fp_read && hd->fp_read == stream)
@@ -383,10 +383,10 @@ make_header_line (const char *prefix, const char *suffix,
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
-  const unsigned char *s = data;
+  const unsigned char *s = (const unsigned char*) data;
   char *buffer, *p;
 
-  buffer = xtrymalloc (strlen (prefix) + (len+2)/3*4 + strlen (suffix) + 1);
+  buffer = (char*) xtrymalloc (strlen (prefix) + (len+2)/3*4 + strlen (suffix) + 1);
   if (!buffer)
     return NULL;
   p = stpcpy (buffer, prefix);
@@ -492,7 +492,7 @@ close_tls_session (http_session_t sess)
 {
   if (sess->tls_session)
     {
-      my_socket_t sock = gnutls_transport_get_ptr (sess->tls_session);
+      my_socket_t sock = (my_socket_t) gnutls_transport_get_ptr (sess->tls_session);
       my_socket_unref (sock, NULL, NULL);
       gnutls_deinit (sess->tls_session);
       if (sess->certcred)
@@ -550,7 +550,7 @@ http_session_new (http_session_t *r_session,
 
   *r_session = NULL;
 
-  sess = xtrycalloc (1, sizeof *sess);
+  sess = (http_session_t) xtrycalloc (1, sizeof *sess);
   if (!sess)
     return gpg_error_from_syserror ();
   sess->magic = HTTP_SESSION_MAGIC;
@@ -737,7 +737,7 @@ http_open (http_t *r_hd, http_req_t reqtype, const char *url,
     return GPG_ERR_INV_ARG;
 
   /* Create the handle. */
-  hd = xtrycalloc (1, sizeof *hd);
+  hd = (http_t) xtrycalloc (1, sizeof *hd);
   if (!hd)
     return gpg_error_from_syserror ();
   hd->magic = HTTP_CONTEXT_MAGIC;
@@ -792,7 +792,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
     }
 
   /* Create the handle. */
-  hd = xtrycalloc (1, sizeof *hd);
+  hd = (http_t) xtrycalloc (1, sizeof *hd);
   if (!hd)
     return gpg_error_from_syserror ();
   hd->magic = HTTP_CONTEXT_MAGIC;
@@ -819,7 +819,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
   }
 
   /* Setup estreams for reading and writing.  */
-  cookie = xtrycalloc (1, sizeof *cookie);
+  cookie = (cookie_t) xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
       err = gpg_error_from_syserror ();
@@ -836,7 +836,7 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
     }
   hd->write_cookie = cookie; /* Cookie now owned by FP_WRITE.  */
 
-  cookie = xtrycalloc (1, sizeof *cookie);
+  cookie = (cookie_t) xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     {
       err = gpg_error_from_syserror ();
@@ -904,7 +904,7 @@ http_wait_response (http_t hd)
 
   /* Close the write stream.  Note that the reference counted socket
      object keeps the actual system socket open.  */
-  cookie = hd->write_cookie;
+  cookie = (cookie_t) hd->write_cookie;
   if (!cookie)
     return GPG_ERR_INTERNAL;
 
@@ -921,7 +921,7 @@ http_wait_response (http_t hd)
   hd->in_data = 0;
 
   /* Create a new cookie and a stream for reading.  */
-  cookie = xtrycalloc (1, sizeof *cookie);
+  cookie = (cookie_t) xtrycalloc (1, sizeof *cookie);
   if (!cookie)
     return gpg_error_from_syserror ();
   cookie->sock = my_socket_ref (hd->sock);
@@ -1053,7 +1053,7 @@ parse_uri (parsed_uri_t *ret_uri, const char *uri,
 {
   gpg_error_t ec;
 
-  *ret_uri = xtrycalloc (1, sizeof **ret_uri + strlen (uri));
+  *ret_uri = (parsed_uri_t) xtrycalloc (1, sizeof **ret_uri + strlen (uri));
   if (!*ret_uri)
     return gpg_error_from_syserror ();
   strcpy ((*ret_uri)->buffer, uri);
@@ -1318,7 +1318,7 @@ escape_data (char *buffer, const void *data, size_t datalen,
   if (forms)
     special = "%;?&=";
 
-  for (s = data; datalen; s++, datalen--)
+  for (s = (const unsigned char*) data; datalen; s++, datalen--)
     {
       if (forms && *s == ' ')
         {
@@ -1381,7 +1381,7 @@ http_escape_string (const char *string, const char *specials)
   char *buf;
 
   n = insert_escapes (NULL, string, specials);
-  buf = xtrymalloc (n+1);
+  buf = (char*) xtrymalloc (n+1);
   if (buf)
     {
       insert_escapes (buf, string, specials);
@@ -1403,7 +1403,7 @@ http_escape_data (const void *data, size_t datalen, const char *specials)
   char *buf;
 
   n = escape_data (NULL, data, datalen, specials);
-  buf = xtrymalloc (n+1);
+  buf = (char*) xtrymalloc (n+1);
   if (buf)
     {
       escape_data (buf, data, datalen, specials);
@@ -1427,7 +1427,7 @@ parse_tuple (char *string)
     return NULL; /* Bad URI. */
   if (n != strlen (p))
     return NULL; /* Name with a Nul in it. */
-  tuple = xtrycalloc (1, sizeof *tuple);
+  tuple = (uri_tuple_t) xtrycalloc (1, sizeof *tuple);
   if (!tuple)
     return NULL; /* Out of core. */
   tuple->name = p;
@@ -1758,7 +1758,7 @@ send_request (http_t hd, const char *httphost, const char *auth,
   {
     cookie_t cookie;
 
-    cookie = xtrycalloc (1, sizeof *cookie);
+    cookie = (cookie_t) xtrycalloc (1, sizeof *cookie);
     if (!cookie)
       {
         err = gpg_error_from_syserror ();
@@ -1835,7 +1835,7 @@ build_rel_path (parsed_uri_t uri)
   n++;
 
   /* Now allocate and copy. */
-  p = rel_path = xtrymalloc (n);
+  p = rel_path = (char*) xtrymalloc (n);
   if (!p)
     return NULL;
   n = insert_escapes (p, uri->path, "%;?&");
@@ -1909,7 +1909,7 @@ store_header (http_t hd, char *line)
       if (!hd->headers)
         return GPG_ERR_PROTOCOL_VIOLATION;
       n += strlen (hd->headers->value);
-      p = xtrymalloc (n+1);
+      p = (char*) xtrymalloc (n+1);
       if (!p)
         return gpg_error_from_syserror ();
       strcpy (stpcpy (p, hd->headers->value), line);
@@ -1943,11 +1943,11 @@ store_header (http_t hd, char *line)
     }
 
   /* Append a new header. */
-  h = xtrymalloc (sizeof *h + strlen (line));
+  h = (header_t) xtrymalloc (sizeof *h + strlen (line));
   if (!h)
     return gpg_error_from_syserror ();
   strcpy (h->name, line);
-  h->value = xtrymalloc (strlen (value)+1);
+  h->value = (char*) xtrymalloc (strlen (value)+1);
   if (!h->value)
     {
       xfree (h);
@@ -1991,7 +1991,7 @@ http_get_header_names (http_t hd)
 
   for (n=0, h = hd->headers; h; h = h->next)
     n++;
-  array = xtrycalloc (n+1, sizeof *array);
+  array = (const char**) xtrycalloc (n+1, sizeof *array);
   if (array)
     {
       for (n=0, h = hd->headers; h; h = h->next)
@@ -2011,7 +2011,7 @@ parse_response (http_t hd)
 {
   char *line, *p, *p2;
   size_t maxlen, len;
-  cookie_t cookie = hd->read_cookie;
+  cookie_t cookie = (cookie_t) hd->read_cookie;
   const char *s;
 
   /* Delete old header lines.  */
@@ -2459,7 +2459,7 @@ connect_server (const char *server, unsigned short port,
     {
       /* Either we're not using SRV, or the SRV lookup failed.  Make
 	 up a fake SRV record. */
-      serverlist = xtrycalloc (1, sizeof *serverlist);
+      serverlist = (srventry*) xtrycalloc (1, sizeof *serverlist);
       if (!serverlist)
         return gpg_error_from_syserror ();
 
@@ -2647,7 +2647,7 @@ write_server (assuan_fd_t sock, const char *data, size_t length)
 static gpgrt_ssize_t
 cookie_read (void *cookie, void *buffer, size_t size)
 {
-  cookie_t c = cookie;
+  cookie_t c = (cookie_t) cookie;
   int nread;
 
   if (c->content_length_valid)
@@ -2709,8 +2709,8 @@ cookie_read (void *cookie, void *buffer, size_t size)
 static gpgrt_ssize_t
 cookie_write (void *cookie, const void *buffer_arg, size_t size)
 {
-  const char *buffer = buffer_arg;
-  cookie_t c = cookie;
+  const char *buffer = (const char*) buffer_arg;
+  cookie_t c = (cookie_t) cookie;
   int nwritten = 0;
 
   if (c->use_tls && c->session && c->session->tls_session)
@@ -2762,7 +2762,7 @@ cookie_write (void *cookie, const void *buffer_arg, size_t size)
 static void
 send_gnutls_bye (void *opaque)
 {
-  tls_session_t tls_session = opaque;
+  tls_session_t tls_session = (tls_session_t) opaque;
   int ret;
 
  again:
@@ -2784,7 +2784,7 @@ send_gnutls_bye (void *opaque)
 static int
 cookie_close (void *cookie)
 {
-  cookie_t c = cookie;
+  cookie_t c = (cookie_t) cookie;
 
   if (!c)
     return 0;

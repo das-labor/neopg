@@ -117,7 +117,7 @@ static size_t         read_cb_len;      /* Used length.  */
 static void
 read_cb (const void *buffer, size_t length, enum random_origins origin)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   (void)origin;
 
@@ -143,7 +143,7 @@ get_random (void *buffer, size_t length, int level)
 
   gcry_assert (buffer);
 
-  read_cb_buffer = buffer;
+  read_cb_buffer = (unsigned char*) buffer;
   read_cb_size   = length;
   read_cb_len    = 0;
 

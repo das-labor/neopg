@@ -224,7 +224,7 @@ gen_k( gcry_mpi_t p, int small_k )
       if( !rndbuf || nbits < 32 )
         {
           xfree(rndbuf);
-          rndbuf = _gcry_random_bytes_secure( nbytes, GCRY_STRONG_RANDOM );
+          rndbuf = (char*) _gcry_random_bytes_secure( nbytes, GCRY_STRONG_RANDOM );
         }
       else
         {
@@ -233,7 +233,7 @@ gen_k( gcry_mpi_t p, int small_k )
              to get_random_bytes() and use this the here maybe it is
              easier to do this directly in random.c Anyway, it is
              highly inlikely that we will ever reach this code. */
-          char *pp = _gcry_random_bytes_secure( 4, GCRY_STRONG_RANDOM );
+          char *pp = (char*) _gcry_random_bytes_secure( 4, GCRY_STRONG_RANDOM );
           memcpy( rndbuf, pp, 4 );
           xfree(pp);
 	}
@@ -330,19 +330,19 @@ generate ( ELG_secret_key *sk, unsigned int nbits, gcry_mpi_t **ret_factors )
           if( xbits < 16 ) /* should never happen ... */
             {
               xfree(rndbuf);
-              rndbuf = _gcry_random_bytes_secure ((xbits+7)/8,
+              rndbuf = (byte*) _gcry_random_bytes_secure ((xbits+7)/8,
                                                   GCRY_VERY_STRONG_RANDOM);
             }
           else
             {
-              char *r = _gcry_random_bytes_secure (2, GCRY_VERY_STRONG_RANDOM);
+              char *r = (char*) _gcry_random_bytes_secure (2, GCRY_VERY_STRONG_RANDOM);
               memcpy(rndbuf, r, 2 );
               xfree (r);
             }
 	}
       else
         {
-          rndbuf = _gcry_random_bytes_secure ((xbits+7)/8,
+          rndbuf = (byte*) _gcry_random_bytes_secure ((xbits+7)/8,
                                               GCRY_VERY_STRONG_RANDOM );
 	}
       _gcry_mpi_set_buffer( x, rndbuf, (xbits+7)/8, 0 );
@@ -728,13 +728,13 @@ elg_generate (const gcry_sexp_t genparms, gcry_sexp_t *r_skey)
 
       for (nfac = 0; factors[nfac]; nfac++)
         ;
-      arg_list = xtrycalloc (nfac+1, sizeof *arg_list);
+      arg_list = (void**) xtrycalloc (nfac+1, sizeof *arg_list);
       if (!arg_list)
         {
           rc = gpg_error_from_syserror ();
           goto leave;
         }
-      buffer = xtrymalloc (30 + nfac*2 + 2 + 1);
+      buffer = (char*) xtrymalloc (30 + nfac*2 + 2 + 1);
       if (!buffer)
         {
           rc = gpg_error_from_syserror ();

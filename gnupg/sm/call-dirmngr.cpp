@@ -102,7 +102,7 @@ init_membuf (struct membuf *mb, int initiallen)
   mb->len = 0;
   mb->size = initiallen;
   mb->out_of_core = 0;
-  mb->buf = xtrymalloc (initiallen);
+  mb->buf = (char*) xtrymalloc (initiallen);
   if (!mb->buf)
       mb->out_of_core = 1;
 }
@@ -118,7 +118,7 @@ put_membuf (struct membuf *mb, const void *buf, size_t len)
       char *p;
 
       mb->size += len + 1024;
-      p = xtryrealloc (mb->buf, mb->size);
+      p = (char*) xtryrealloc (mb->buf, mb->size);
       if (!p)
         {
           mb->out_of_core = 1;
@@ -212,9 +212,9 @@ prepare_dirmngr (ctrl_t ctrl, assuan_context_t ctx, gpg_error_t err)
   while (server)
     {
       char line[ASSUAN_LINELENGTH];
-      char *user = server->user ? server->user : "";
-      char *pass = server->pass ? server->pass : "";
-      char *base = server->base ? server->base : "";
+      char *user = (char*) server->user ? server->user : "";
+      char *pass = (char*) server->pass ? server->pass : "";
+      char *base = (char*) server->base ? server->base : "";
 
       snprintf (line, DIM (line), "LDAPSERVER %s:%i:%s:%s:%s",
 		server->host, server->port, user, pass, base);
@@ -331,7 +331,7 @@ release_dirmngr2 (ctrl_t ctrl)
 static gpg_error_t
 inq_certificate (void *opaque, const char *line)
 {
-  struct inq_certificate_parm_s *parm = opaque;
+  struct inq_certificate_parm_s *parm = (inq_certificate_parm_s*) opaque;
   const char *s;
   int rc;
   size_t n;
@@ -451,7 +451,7 @@ unhexify_fpr (const char *hexstr, unsigned char *fpr)
 static gpg_error_t
 isvalid_status_cb (void *opaque, const char *line)
 {
-  struct isvalid_status_parm_s *parm = opaque;
+  struct isvalid_status_parm_s *parm = (isvalid_status_parm_s*) opaque;
   const char *s;
 
   if ((s = has_leading_keyword (line, "PROGRESS")))
@@ -625,7 +625,7 @@ gpgsm_dirmngr_isvalid (ctrl_t ctrl,
 static gpg_error_t
 lookup_cb (void *opaque, const void *buffer, size_t length)
 {
-  struct lookup_parm_s *parm = opaque;
+  struct lookup_parm_s *parm = (lookup_parm_s*) opaque;
   size_t len;
   char *buf;
   ksba_cert_t cert;
@@ -640,7 +640,7 @@ lookup_cb (void *opaque, const void *buffer, size_t length)
       return 0;
     }
   /* END encountered - process what we have */
-  buf = get_membuf (&parm->data, &len);
+  buf = (char*) get_membuf (&parm->data, &len);
   if (!buf)
     {
       parm->error = GPG_ERR_ENOMEM;
@@ -688,7 +688,7 @@ pattern_from_strlist (strlist_t names)
       n++;
     }
 
-  p = pattern = xtrymalloc (n+1);
+  p = pattern = (char*) xtrymalloc (n+1);
   if (!pattern)
     return NULL;
 
@@ -731,7 +731,7 @@ pattern_from_strlist (strlist_t names)
 static gpg_error_t
 lookup_status_cb (void *opaque, const char *line)
 {
-  struct lookup_parm_s *parm = opaque;
+  struct lookup_parm_s *parm = (lookup_parm_s*) opaque;
   const char *s;
 
   if ((s = has_leading_keyword (line, "PROGRESS")))
@@ -832,7 +832,7 @@ gpgsm_dirmngr_lookup (ctrl_t ctrl, strlist_t names, int cache_only,
 static gpg_error_t
 get_cached_cert_data_cb (void *opaque, const void *buffer, size_t length)
 {
-  struct membuf *mb = opaque;
+  struct membuf *mb = (membuf*) opaque;
 
   if (buffer)
     put_membuf (mb, buffer, length);
@@ -864,7 +864,7 @@ get_cached_cert (assuan_context_t ctx,
   init_membuf (&mb, 4096);
   err = assuan_transact (ctx, line, get_cached_cert_data_cb, &mb,
                          NULL, NULL, NULL, NULL);
-  buf = get_membuf (&mb, &buflen);
+  buf = (char*) get_membuf (&mb, &buflen);
   if (err)
     {
       xfree (buf);
@@ -914,7 +914,7 @@ run_command_cb (void *opaque, const void *buffer, size_t length)
 static gpg_error_t
 run_command_inq_cb (void *opaque, const char *line)
 {
-  struct run_command_parm_s *parm = opaque;
+  struct run_command_parm_s *parm = (run_command_parm_s*) opaque;
   const char *s;
   int rc = 0;
 
@@ -962,7 +962,7 @@ run_command_inq_cb (void *opaque, const char *line)
 static gpg_error_t
 run_command_status_cb (void *opaque, const char *line)
 {
-  ctrl_t ctrl = opaque;
+  ctrl_t ctrl = (ctrl_t) opaque;
   const char *s;
 
   if (opt.verbose)
@@ -1009,7 +1009,7 @@ gpgsm_dirmngr_run_command (ctrl_t ctrl, const char *command,
   len = strlen (command) + 1;
   for (i=0; i < argc; i++)
     len += 1 + 3*strlen (argv[i]); /* enough space for percent escaping */
-  line = xtrymalloc (len);
+  line = (char*) xtrymalloc (len);
   if (!line)
     {
       release_dirmngr (ctrl);

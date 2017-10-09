@@ -223,7 +223,7 @@ read_one_trustfile (const char *fname, int allow_include,
           size_t tmplen;
 
           tmplen = tablesize + 20;
-          tmp = xtryrealloc (table, tmplen * sizeof *table);
+          tmp = (trustitem_t*) xtryrealloc (table, tmplen * sizeof *table);
           if (!tmp)
             {
               err = gpg_error_from_syserror ();
@@ -339,7 +339,7 @@ read_trustfiles (void)
   int allow_include = 1;
 
   tablesize = 20;
-  table = xtrycalloc (tablesize, sizeof *table);
+  table = (trustitem_t*) xtrycalloc (tablesize, sizeof *table);
   if (!table)
     return gpg_error_from_syserror ();
   tableidx = 0;
@@ -382,7 +382,7 @@ read_trustfiles (void)
     }
 
   /* Fixme: we should drop duplicates and sort the table. */
-  ti = xtryrealloc (table, (tableidx?tableidx:1) * sizeof *table);
+  ti = (trustitem_t*) xtryrealloc (table, (tableidx?tableidx:1) * sizeof *table);
   if (!ti)
     {
       err = gpg_error_from_syserror ();
@@ -536,7 +536,7 @@ insert_colons (const char *string)
   size_t n = strlen (string);
   size_t nnew = n + (n+1)/2;
 
-  p = buffer = xtrymalloc ( nnew + 1 );
+  p = buffer = (char*) xtrymalloc ( nnew + 1 );
   if (!buffer)
     return NULL;
   while (*string)
@@ -579,7 +579,7 @@ reformat_name (const char *name, const char *replstring)
   for (s=name+1, count=0; *s; s++)
     if (*s == '/')
       count++;
-  newname = xtrymalloc (strlen (name) + count*replstringlen + 1);
+  newname = (char*) xtrymalloc (strlen (name) + count*replstringlen + 1);
   if (!newname)
     return NULL;
   for (s=name+1, d=newname; *s; s++)

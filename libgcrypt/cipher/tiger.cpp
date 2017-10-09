@@ -592,7 +592,7 @@ transform ( void *ctx, const unsigned char *data, size_t nblks );
 static void
 do_init (void *context, int variant)
 {
-  TIGER_CONTEXT *hd = context;
+  TIGER_CONTEXT *hd = (TIGER_CONTEXT*) context;
 
   hd->a = 0x0123456789abcdefLL;
   hd->b = 0xfedcba9876543210LL;
@@ -676,7 +676,7 @@ tiger2_init (void *context, unsigned int flags)
 static unsigned int
 transform_blk ( void *ctx, const unsigned char *data )
 {
-  TIGER_CONTEXT *hd = ctx;
+  TIGER_CONTEXT *hd = (TIGER_CONTEXT*) ctx;
   u64 a,b,c,aa,bb,cc;
   u64 x[8];
   int i;
@@ -730,7 +730,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 tiger_final( void *context )
 {
-  TIGER_CONTEXT *hd = context;
+  TIGER_CONTEXT *hd = (TIGER_CONTEXT*) context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
@@ -799,7 +799,7 @@ tiger_final( void *context )
 static byte *
 tiger_read( void *context )
 {
-  TIGER_CONTEXT *hd = context;
+  TIGER_CONTEXT *hd = (TIGER_CONTEXT*) context;
 
   return hd->bctx.buf;
 }

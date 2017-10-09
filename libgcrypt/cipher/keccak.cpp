@@ -625,10 +625,10 @@ static const keccak_ops_t keccak_bmi2_32bi_ops =
 static void
 keccak_write (void *context, const void *inbuf_arg, size_t inlen)
 {
-  KECCAK_CONTEXT *ctx = context;
+  KECCAK_CONTEXT *ctx = (KECCAK_CONTEXT*) context;
   const size_t bsize = ctx->blocksize;
   const size_t blocklanes = bsize / 8;
-  const byte *inbuf = inbuf_arg;
+  const byte *inbuf = (const byte*) inbuf_arg;
   unsigned int nburn, burn = 0;
   unsigned int count, i;
   unsigned int pos, nlanes;
@@ -703,7 +703,7 @@ keccak_write (void *context, const void *inbuf_arg, size_t inlen)
 static void
 keccak_init (int algo, void *context, unsigned int flags)
 {
-  KECCAK_CONTEXT *ctx = context;
+  KECCAK_CONTEXT *ctx = (KECCAK_CONTEXT*) context;
   KECCAK_STATE *hd = &ctx->state;
   unsigned int features = _gcry_get_hw_features ();
 
@@ -825,7 +825,7 @@ shake256_init (void *context, unsigned int flags)
 static void
 keccak_final (void *context)
 {
-  KECCAK_CONTEXT *ctx = context;
+  KECCAK_CONTEXT *ctx = (KECCAK_CONTEXT*) context;
   KECCAK_STATE *hd = &ctx->state;
   const size_t bsize = ctx->blocksize;
   const byte suffix = ctx->suffix;
@@ -855,7 +855,7 @@ keccak_final (void *context)
       burn = nburn > burn ? nburn : burn;
 
       /* Squeeze out the SHA3 digest. */
-      nburn = ctx->ops->extract(hd, 0, (void *)hd, ctx->outlen);
+      nburn = ctx->ops->extract(hd, 0, (byte*)hd, ctx->outlen);
       burn = nburn > burn ? nburn : burn;
     }
   else
@@ -883,11 +883,11 @@ keccak_read (void *context)
 static void
 keccak_extract (void *context, void *out, size_t outlen)
 {
-  KECCAK_CONTEXT *ctx = context;
+  KECCAK_CONTEXT *ctx = (KECCAK_CONTEXT*) context;
   KECCAK_STATE *hd = &ctx->state;
   const size_t bsize = ctx->blocksize;
   unsigned int nburn, burn = 0;
-  byte *outbuf = out;
+  byte *outbuf = (byte*) out;
   unsigned int nlanes;
   unsigned int nleft;
   unsigned int count;

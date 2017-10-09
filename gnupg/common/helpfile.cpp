@@ -149,7 +149,7 @@ findkey_fname (const char *key, const char *fname)
       else
         {
           put_membuf (&mb, "", 1);  /* Terminate string.  */
-          return get_membuf (&mb, NULL);
+          return (char*) get_membuf (&mb, NULL);
         }
     }
   else
@@ -166,7 +166,7 @@ findkey_locale (const char *key, const char *locname,
   char *fname, *ext, *p;
   char *result;
 
-  fname = xtrymalloc (strlen (dirname) + 6 + strlen (locname) + 4 + 1);
+  fname = (char*) xtrymalloc (strlen (dirname) + 6 + strlen (locname) + 4 + 1);
   if (!fname)
     return NULL;
   ext = stpcpy (stpcpy (fname, dirname), "/help.");

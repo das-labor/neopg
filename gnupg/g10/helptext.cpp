@@ -39,7 +39,7 @@ get_help_from_file (const char *keyword)
 {
   char *key, *result;
 
-  key = xtrymalloc (4 + strlen (keyword) + 1);
+  key = (char*) xtrymalloc (4 + strlen (keyword) + 1);
   if (key)
     {
       strcpy (stpcpy (key, "gpg."), keyword);

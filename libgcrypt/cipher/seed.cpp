@@ -311,7 +311,7 @@ do_setkey (SEED_context *ctx, const byte *key, const unsigned keylen)
 static gpg_error_t
 seed_setkey (void *context, const byte *key, const unsigned keylen)
 {
-  SEED_context *ctx = context;
+  SEED_context *ctx = (SEED_context*) context;
 
   int rc = do_setkey (ctx, key, keylen);
   _gcry_burn_stack (4*6 + sizeof(void*)*2 + sizeof(int)*2);
@@ -371,7 +371,7 @@ do_encrypt (const SEED_context *ctx, byte *outbuf, const byte *inbuf)
 static unsigned int
 seed_encrypt (void *context, byte *outbuf, const byte *inbuf)
 {
-  SEED_context *ctx = context;
+  SEED_context *ctx = (SEED_context*) context;
 
   do_encrypt (ctx, outbuf, inbuf);
   return /*burn_stack*/ (4*6);
@@ -417,7 +417,7 @@ do_decrypt (SEED_context *ctx, byte *outbuf, const byte *inbuf)
 static unsigned int
 seed_decrypt (void *context, byte *outbuf, const byte *inbuf)
 {
-  SEED_context *ctx = context;
+  SEED_context *ctx = (SEED_context*) context;
 
   do_decrypt (ctx, outbuf, inbuf);
   return /*burn_stack*/ (4*6);

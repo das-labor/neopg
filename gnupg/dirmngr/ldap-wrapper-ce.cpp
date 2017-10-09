@@ -196,13 +196,13 @@ buffer_put_data (struct outstream_cookie_s *cookie, const char *src, int cnt)
 static gpgrt_ssize_t
 outstream_cookie_writer (void *cookie_arg, const void *buffer, size_t size)
 {
-  struct outstream_cookie_s *cookie = cookie_arg;
+  struct outstream_cookie_s *cookie = (outstream_cookie_s*) cookie_arg;
   const char *src;
   ssize_t nwritten = 0;
   int res;
   ssize_t amount = 0;
 
-  src = buffer;
+  src = (const char*) buffer;
   do
     {
       int was_empty = 0;
@@ -255,7 +255,7 @@ outstream_release_cookie (struct outstream_cookie_s *cookie)
 static int
 outstream_cookie_closer (void *cookie_arg)
 {
-  struct outstream_cookie_s *cookie = cookie_arg;
+  struct outstream_cookie_s *cookie = (outstream_cookie_s*) cookie_arg;
 
   if (!cookie)
     return 0;  /* Nothing to do.  */
@@ -275,7 +275,7 @@ static int
 outstream_reader_cb (void *cb_value, char *buffer, size_t count,
                      size_t *r_nread)
 {
-  struct outstream_cookie_s *cookie = cb_value;
+  struct outstream_cookie_s *cookie = (outstream_cookie_s*) cb_value;
   size_t nread = 0;
   int was_full = 0;
 
@@ -312,7 +312,7 @@ outstream_reader_cb (void *cb_value, char *buffer, size_t count,
 static void
 outstream_reader_released (void *cb_value, ksba_reader_t r)
 {
-  struct outstream_cookie_s *cookie = cb_value;
+  struct outstream_cookie_s *cookie = (outstream_cookie_s*) cb_value;
 
   (void)r;
 
@@ -361,7 +361,7 @@ create_arg_list (const char *argv[], char ***r_arg_list)
 
   for (i = 0; argv[i]; i++)
     ;
-  arg_list = xtrycalloc (i + 2, sizeof *arg_list);
+  arg_list = (char**) xtrycalloc (i + 2, sizeof *arg_list);
   if (!arg_list)
     goto outofcore;
 
@@ -402,7 +402,7 @@ struct ldap_wrapper_thread_parms
 static void *
 ldap_wrapper_thread (void *opaque)
 {
-  struct ldap_wrapper_thread_parms *parms = opaque;
+  struct ldap_wrapper_thread_parms *parms = (ldap_wrapper_thread_parms*) opaque;
 
   /*err =*/ ldap_wrapper_main (parms->arg_list, parms->outstream);
 
@@ -435,7 +435,7 @@ ldap_wrapper (ctrl_t ctrl, ksba_reader_t *r_reader, const char *argv[])
 
   *r_reader = NULL;
 
-  parms = xtrycalloc (1, sizeof *parms);
+  parms = (ldap_wrapper_thread_parms*) xtrycalloc (1, sizeof *parms);
   if (!parms)
     return gpg_error_from_syserror ();
 
@@ -446,7 +446,7 @@ ldap_wrapper (ctrl_t ctrl, ksba_reader_t *r_reader, const char *argv[])
       return err;
     }
 
-  outstream_cookie = xtrycalloc (1, sizeof *outstream_cookie);
+  outstream_cookie = (outstream_cookie_s*) xtrycalloc (1, sizeof *outstream_cookie);
   if (!outstream_cookie)
     {
       err = gpg_error_from_syserror ();

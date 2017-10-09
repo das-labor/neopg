@@ -750,7 +750,7 @@ static gpg_error_t
 serpent_setkey (void *ctx,
 		const byte *key, unsigned int key_length)
 {
-  serpent_context_t *context = ctx;
+  serpent_context_t *context = (serpent_context_t*) ctx;
   static const char *serpent_test_ret;
   static int serpent_init_done;
   gpg_error_t ret = GPG_ERR_NO_ERROR;
@@ -879,7 +879,7 @@ serpent_decrypt_internal (serpent_context_t *context,
 static unsigned int
 serpent_encrypt (void *ctx, byte *buffer_out, const byte *buffer_in)
 {
-  serpent_context_t *context = ctx;
+  serpent_context_t *context = (serpent_context_t*) ctx;
 
   serpent_encrypt_internal (context, buffer_in, buffer_out);
   return /*burn_stack*/ (2 * sizeof (serpent_block_t));
@@ -888,7 +888,7 @@ serpent_encrypt (void *ctx, byte *buffer_out, const byte *buffer_in)
 static unsigned int
 serpent_decrypt (void *ctx, byte *buffer_out, const byte *buffer_in)
 {
-  serpent_context_t *context = ctx;
+  serpent_context_t *context = (serpent_context_t*) ctx;
 
   serpent_decrypt_internal (context, buffer_in, buffer_out);
   return /*burn_stack*/ (2 * sizeof (serpent_block_t));
@@ -904,9 +904,9 @@ _gcry_serpent_ctr_enc(void *context, unsigned char *ctr,
                       void *outbuf_arg, const void *inbuf_arg,
                       size_t nblocks)
 {
-  serpent_context_t *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  serpent_context_t *ctx = (serpent_context_t*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[sizeof(serpent_block_t)];
   int burn_stack_depth = 2 * sizeof (serpent_block_t);
   int i;
@@ -1022,9 +1022,9 @@ _gcry_serpent_cbc_dec(void *context, unsigned char *iv,
                       void *outbuf_arg, const void *inbuf_arg,
                       size_t nblocks)
 {
-  serpent_context_t *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  serpent_context_t *ctx = (serpent_context_t*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[sizeof(serpent_block_t)];
   int burn_stack_depth = 2 * sizeof (serpent_block_t);
 
@@ -1130,9 +1130,9 @@ _gcry_serpent_cfb_dec(void *context, unsigned char *iv,
                       void *outbuf_arg, const void *inbuf_arg,
                       size_t nblocks)
 {
-  serpent_context_t *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  serpent_context_t *ctx = (serpent_context_t*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   int burn_stack_depth = 2 * sizeof (serpent_block_t);
 
 #ifdef USE_AVX2

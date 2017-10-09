@@ -409,7 +409,7 @@ salsa20_do_encrypt_stream (SALSA20_context_t *ctx,
 
   if (ctx->unused)
     {
-      unsigned char *p = (void*)ctx->pad;
+      unsigned char *p = (unsigned char*) (void*)ctx->pad;
       size_t n;
 
       gcry_assert (ctx->unused < SALSA20_BLOCK_SIZE);

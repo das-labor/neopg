@@ -153,7 +153,7 @@ mpi_read (iobuf_t inp, unsigned int *ret_nread, int secure)
     }
 
   nbytes = (nbits + 7) / 8;
-  buf = secure ? gcry_xmalloc_secure (nbytes + 2) : gcry_xmalloc (nbytes + 2);
+  buf = (byte*) (secure ? gcry_xmalloc_secure (nbytes + 2) : gcry_xmalloc (nbytes + 2));
   p = buf;
   p[0] = c1;
   p[1] = c2;
@@ -767,7 +767,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
   /* Count it.  */
   ctx->n_parsed_packets++;
 
-  pkt->pkttype = pkttype;
+  pkt->pkttype = (pkttype_t) pkttype;
   rc = GPG_ERR_UNKNOWN_PACKET;	/* default error */
   switch (pkttype)
     {
@@ -775,7 +775,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
     case PKT_PUBLIC_SUBKEY:
     case PKT_SECRET_KEY:
     case PKT_SECRET_SUBKEY:
-      pkt->pkt.public_key = xmalloc_clear (sizeof *pkt->pkt.public_key);
+      pkt->pkt.public_key = (PKT_public_key*) xmalloc_clear (sizeof *pkt->pkt.public_key);
       rc = parse_key (inp, pkttype, pktlen, hdr, hdrlen, pkt);
       break;
     case PKT_SYMKEY_ENC:
@@ -785,18 +785,18 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       rc = parse_pubkeyenc (inp, pkttype, pktlen, pkt);
       break;
     case PKT_SIGNATURE:
-      pkt->pkt.signature = xmalloc_clear (sizeof *pkt->pkt.signature);
+      pkt->pkt.signature = (PKT_signature*) xmalloc_clear (sizeof *pkt->pkt.signature);
       rc = parse_signature (inp, pkttype, pktlen, pkt->pkt.signature);
       break;
     case PKT_ONEPASS_SIG:
-      pkt->pkt.onepass_sig = xmalloc_clear (sizeof *pkt->pkt.onepass_sig);
+      pkt->pkt.onepass_sig = (PKT_onepass_sig*) xmalloc_clear (sizeof *pkt->pkt.onepass_sig);
       rc = parse_onepass_sig (inp, pkttype, pktlen, pkt->pkt.onepass_sig);
       break;
     case PKT_USER_ID:
       rc = parse_user_id (inp, pkttype, pktlen, pkt);
       break;
     case PKT_ATTRIBUTE:
-      pkt->pkttype = pkttype = PKT_USER_ID;	/* we store it in the userID */
+      pkt->pkttype = pkttype = (pkttype_t) PKT_USER_ID;	/* we store it in the userID */
       rc = parse_attribute (inp, pkttype, pktlen, pkt);
       break;
     case PKT_OLD_COMMENT:
@@ -971,7 +971,7 @@ read_rest (IOBUF inp, size_t pktlen)
   int c;
   byte *buf, *p;
 
-  buf = xtrymalloc (pktlen);
+  buf = (byte*) xtrymalloc (pktlen);
   if (!buf)
     {
       gpg_error_t err = gpg_error_from_syserror ();
@@ -1034,7 +1034,7 @@ read_size_body (iobuf_t inp, int pktlen, size_t *r_nread,
       buffer[1+i] = c;
     }
 
-  tmpbuf = xtrymalloc (1 + nbytes);
+  tmpbuf = (char*) xtrymalloc (1 + nbytes);
   if (!tmpbuf)
     return gpg_error_from_syserror ();
   memcpy (tmpbuf, buffer, 1 + nbytes);
@@ -1155,7 +1155,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       goto leave;
     }
   seskeylen = pktlen - minlen;
-  k = packet->pkt.symkey_enc = xmalloc_clear (sizeof *packet->pkt.symkey_enc
+  k = packet->pkt.symkey_enc = (PKT_symkey_enc*) xmalloc_clear (sizeof *packet->pkt.symkey_enc
 					      + seskeylen - 1);
   k->version = version;
   k->cipher_algo = cipher_algo;
@@ -1220,7 +1220,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
   int i, ndata;
   PKT_pubkey_enc *k;
 
-  k = packet->pkt.pubkey_enc = xmalloc_clear (sizeof *packet->pkt.pubkey_enc);
+  k = packet->pkt.pubkey_enc = (PKT_pubkey_enc*) xmalloc_clear (sizeof *packet->pkt.pubkey_enc);
   if (pktlen < 12)
     {
       log_error ("packet(%d) too short\n", pkttype);
@@ -1816,7 +1816,7 @@ parse_revkeys (PKT_signature * sig)
 	  /* 0x80 bit must be set on the class.  */
           && (revkey[0] & 0x80))
 	{
-	  sig->revkey = xrealloc (sig->revkey,
+	  sig->revkey = (revocation_key*) xrealloc (sig->revkey,
 				  sizeof (struct revocation_key) *
 				  (sig->numrevkeys + 1));
 
@@ -1910,7 +1910,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 	}
       if (n)
 	{
-	  sig->hashed = xmalloc (sizeof (*sig->hashed) + n - 1);
+	  sig->hashed = (subpktarea_t*) xmalloc (sizeof (*sig->hashed) + n - 1);
 	  sig->hashed->size = n;
 	  sig->hashed->len = n;
 	  if (iobuf_read (inp, sig->hashed->data, n) != n)
@@ -1940,7 +1940,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 	}
       if (n)
 	{
-	  sig->unhashed = xmalloc (sizeof (*sig->unhashed) + n - 1);
+	  sig->unhashed = (subpktarea_t*) xmalloc (sizeof (*sig->unhashed) + n - 1);
 	  sig->unhashed->size = n;
 	  sig->unhashed->len = n;
 	  if (iobuf_read (inp, sig->unhashed->data, n) != n)
@@ -2356,7 +2356,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
           goto leave;
         }
 
-      pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+      pk->seckey_info = ski = (seckey_info*) xtrycalloc (1, sizeof *ski);
       if (!pk->seckey_info)
         {
           err = gpg_error_from_syserror ();
@@ -2679,7 +2679,7 @@ parse_attribute_subpkts (PKT_user_id * uid)
           break;
         }
 
-      attribs = xrealloc (attribs,
+      attribs = (user_attribute*) xrealloc (attribs,
                           (count + 1) * sizeof (struct user_attribute));
       memset (&attribs[count], 0, sizeof (struct user_attribute));
 
@@ -2730,11 +2730,11 @@ parse_user_id (IOBUF inp, int pkttype, unsigned long pktlen, PACKET * packet)
       return GPG_ERR_INV_PACKET;
     }
 
-  packet->pkt.user_id = xmalloc_clear (sizeof *packet->pkt.user_id + pktlen);
+  packet->pkt.user_id = (PKT_user_id*) xmalloc_clear (sizeof *packet->pkt.user_id + pktlen);
   packet->pkt.user_id->len = pktlen;
   packet->pkt.user_id->ref = 1;
 
-  p = packet->pkt.user_id->name;
+  p = (byte*) packet->pkt.user_id->name;
   for (; pktlen; pktlen--, p++)
     *p = iobuf_get_noeof (inp);
   *p = 0;
@@ -2744,7 +2744,7 @@ parse_user_id (IOBUF inp, int pkttype, unsigned long pktlen, PACKET * packet)
       int n = packet->pkt.user_id->len;
       es_fprintf (listfp, ":user ID packet: \"");
       /* fixme: Hey why don't we replace this with es_write_sanitized?? */
-      for (p = packet->pkt.user_id->name; n; p++, n--)
+      for (p = (byte*) packet->pkt.user_id->name; n; p++, n--)
 	{
 	  if (*p >= ' ' && *p <= 'z')
 	    es_putc (*p, listfp);
@@ -2812,10 +2812,10 @@ parse_attribute (IOBUF inp, int pkttype, unsigned long pktlen,
     }
 
 #define EXTRA_UID_NAME_SPACE 71
-  packet->pkt.user_id = xmalloc_clear (sizeof *packet->pkt.user_id
+  packet->pkt.user_id = (PKT_user_id*) xmalloc_clear (sizeof *packet->pkt.user_id
 				       + EXTRA_UID_NAME_SPACE);
   packet->pkt.user_id->ref = 1;
-  packet->pkt.user_id->attrib_data = xmalloc (pktlen? pktlen:1);
+  packet->pkt.user_id->attrib_data = (byte*) xmalloc (pktlen? pktlen:1);
   packet->pkt.user_id->attrib_len = pktlen;
 
   p = packet->pkt.user_id->attrib_data;
@@ -2855,9 +2855,9 @@ parse_comment (IOBUF inp, int pkttype, unsigned long pktlen, PACKET * packet)
       iobuf_skip_rest (inp, pktlen, 0);
       return GPG_ERR_INV_PACKET;
     }
-  packet->pkt.comment = xmalloc (sizeof *packet->pkt.comment + pktlen - 1);
+  packet->pkt.comment = (PKT_comment*) xmalloc (sizeof *packet->pkt.comment + pktlen - 1);
   packet->pkt.comment->len = pktlen;
-  p = packet->pkt.comment->data;
+  p = (byte*) packet->pkt.comment->data;
   for (; pktlen; pktlen--, p++)
     *p = iobuf_get_noeof (inp);
 
@@ -2866,7 +2866,7 @@ parse_comment (IOBUF inp, int pkttype, unsigned long pktlen, PACKET * packet)
       int n = packet->pkt.comment->len;
       es_fprintf (listfp, ":%scomment packet: \"", pkttype == PKT_OLD_COMMENT ?
                   "OpenPGP draft " : "");
-      for (p = packet->pkt.comment->data; n; p++, n--)
+      for (p = (byte*) packet->pkt.comment->data; n; p++, n--)
 	{
 	  if (*p >= ' ' && *p <= 'z')
 	    es_putc (*p, listfp);
@@ -2947,7 +2947,7 @@ parse_ring_trust (parse_packet_ctx_t ctx, unsigned long pktlen)
       pktlen--;
       if (namelen && pktlen)
         {
-          rt.url = xtrymalloc (namelen + 1);
+          rt.url = (char*) xtrymalloc (namelen + 1);
           if (!rt.url)
             {
               err = gpg_error_from_syserror ();
@@ -2975,7 +2975,7 @@ parse_ring_trust (parse_packet_ctx_t ctx, unsigned long pktlen)
                       (rt.url? " url=":""));
           if (rt.url)
             {
-              for (p = rt.url; *p; p++)
+              for (p = (unsigned char*) rt.url; *p; p++)
                 {
                   if (*p >= ' ' && *p <= 'z')
                     es_putc (*p, listfp);
@@ -3066,7 +3066,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
     pktlen--;
   /* Note that namelen will never exceed 255 bytes. */
   pt = pkt->pkt.plaintext =
-    xmalloc (sizeof *pkt->pkt.plaintext + namelen - 1);
+ (PKT_plaintext*)    xmalloc (sizeof *pkt->pkt.plaintext + namelen - 1);
   pt->new_ctb = new_ctb;
   pt->mode = mode;
   pt->namelen = namelen;
@@ -3096,7 +3096,7 @@ parse_plaintext (IOBUF inp, int pkttype, unsigned long pktlen,
                   "\tmode %c (%X), created %lu, name=\"",
                   mode >= ' ' && mode < 'z' ? mode : '?', mode,
                   (unsigned long) pt->timestamp);
-      for (p = pt->name, i = 0; i < namelen; p++, i++)
+      for (p = (byte*) pt->name, i = 0; i < namelen; p++, i++)
 	{
 	  if (*p >= ' ' && *p <= 'z')
 	    es_putc (*p, listfp);
@@ -3127,7 +3127,7 @@ parse_compressed (IOBUF inp, int pkttype, unsigned long pktlen,
   (void) pkttype;
   (void) pktlen;
 
-  zd = pkt->pkt.compressed = xmalloc (sizeof *pkt->pkt.compressed);
+  zd = pkt->pkt.compressed = (PKT_compressed*) xmalloc (sizeof *pkt->pkt.compressed);
   zd->algorithm = iobuf_get_noeof (inp);
   zd->len = 0;			/* not used */
   zd->new_ctb = new_ctb;
@@ -3146,7 +3146,7 @@ parse_encrypted (IOBUF inp, int pkttype, unsigned long pktlen,
   PKT_encrypted *ed;
   unsigned long orig_pktlen = pktlen;
 
-  ed = pkt->pkt.encrypted = xmalloc (sizeof *pkt->pkt.encrypted);
+  ed = pkt->pkt.encrypted = (PKT_encrypted*) xmalloc (sizeof *pkt->pkt.encrypted);
   /* ed->len is set below.  */
   ed->extralen = 0;  /* Unknown here; only used in build_packet.  */
   ed->buf = NULL;
@@ -3225,7 +3225,7 @@ parse_mdc (IOBUF inp, int pkttype, unsigned long pktlen,
 
   (void) pkttype;
 
-  mdc = pkt->pkt.mdc = xmalloc (sizeof *pkt->pkt.mdc);
+  mdc = pkt->pkt.mdc = (PKT_mdc*) xmalloc (sizeof *pkt->pkt.mdc);
   if (list_mode)
     es_fprintf (listfp, ":mdc packet: length=%lu\n", pktlen);
   if (!new_ctb || pktlen != 20)
@@ -3282,12 +3282,12 @@ parse_gpg_control (IOBUF inp, int pkttype, unsigned long pktlen,
   if (list_mode)
     es_fputs ("- gpg control packet", listfp);
 
-  packet->pkt.gpg_control = xmalloc (sizeof *packet->pkt.gpg_control
+  packet->pkt.gpg_control = (PKT_gpg_control*) xmalloc (sizeof *packet->pkt.gpg_control
 				     + pktlen - 1);
   packet->pkt.gpg_control->control = iobuf_get_noeof (inp);
   pktlen--;
   packet->pkt.gpg_control->datalen = pktlen;
-  p = packet->pkt.gpg_control->data;
+  p = (byte*) packet->pkt.gpg_control->data;
   for (; pktlen; pktlen--, p++)
     *p = iobuf_get_noeof (inp);
 
@@ -3328,14 +3328,14 @@ create_gpg_control (ctrlpkttype_t type, const byte * data, size_t datalen)
   PACKET *packet;
   byte *p;
 
-  packet = xmalloc (sizeof *packet);
+  packet = (PACKET*) xmalloc (sizeof *packet);
   init_packet (packet);
   packet->pkttype = PKT_GPG_CONTROL;
-  packet->pkt.gpg_control = xmalloc (sizeof *packet->pkt.gpg_control
+  packet->pkt.gpg_control = (PKT_gpg_control*) xmalloc (sizeof *packet->pkt.gpg_control
 				     + datalen - 1);
   packet->pkt.gpg_control->control = type;
   packet->pkt.gpg_control->datalen = datalen;
-  p = packet->pkt.gpg_control->data;
+  p = (byte*) packet->pkt.gpg_control->data;
   for (; datalen; datalen--, p++)
     *p = *data++;
 

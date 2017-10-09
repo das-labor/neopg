@@ -61,7 +61,7 @@ init_membuf (assuan_context_t ctx,
   mb->too_large = 0;
   mb->maxlen = maxlen;
   /* we need to allocate one byte more for get_membuf */
-  mb->buf = _assuan_malloc (ctx, initiallen + 1);
+  mb->buf = (char*) _assuan_malloc (ctx, initiallen + 1);
   if (!mb->buf)
       mb->out_of_core = 1;
 }
@@ -85,7 +85,7 @@ put_membuf (assuan_context_t ctx,
 
       mb->size += len + 1024;
       /* we need to allocate one byte more for get_membuf */
-      p = _assuan_realloc (ctx, mb->buf, mb->size + 1);
+      p = (char*) _assuan_realloc (ctx, mb->buf, mb->size + 1);
       if (!p)
         {
           mb->out_of_core = 1;
@@ -245,7 +245,7 @@ assuan_inquire (assuan_context_t ctx, const char *keyword,
         rc = GPG_ERR_ASS_TOO_MUCH_DATA;
       else
         {
-          *r_buffer = get_membuf (ctx, &mb, r_length);
+          *r_buffer = (unsigned char*) get_membuf (ctx, &mb, r_length);
           if (!*r_buffer)
             rc = gpg_error_from_syserror ();
         }
@@ -285,7 +285,7 @@ _assuan_inquire_ext_cb (assuan_context_t ctx)
 
   line = (unsigned char *) ctx->inbound.line;
   linelen = ctx->inbound.linelen;
-  mb = ctx->inquire_membuf;
+  mb = (membuf*) ctx->inquire_membuf;
 
   if ((line[0] == 'C' || line[0] == 'c')
       && (line[1] == 'A' || line[1] == 'a')
@@ -346,7 +346,7 @@ _assuan_inquire_ext_cb (assuan_context_t ctx)
 
     if (mb)
       {
-	buf = get_membuf (ctx, mb, &buf_len);
+	buf = (unsigned char*) get_membuf (ctx, mb, &buf_len);
 	if (!buf)
 	  rc = gpg_error_from_syserror ();
 	free_membuf (ctx, mb);
@@ -389,7 +389,7 @@ assuan_inquire_ext (assuan_context_t ctx, const char *keyword, size_t maxlen,
   if (ctx->in_inquire)
     return GPG_ERR_ASS_NESTED_COMMANDS;
 
-  mb = malloc (sizeof (struct membuf));
+  mb = (membuf*) malloc (sizeof (struct membuf));
   if (!mb)
     return gpg_error_from_syserror ();
   init_membuf (ctx, mb, maxlen ? maxlen : 1024, maxlen);

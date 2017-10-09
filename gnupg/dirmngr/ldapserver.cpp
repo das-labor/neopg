@@ -69,7 +69,7 @@ ldapserver_parse_one (char *line,
   int fail = 0;
 
   /* Parse the colon separated fields.  */
-  server = xcalloc (1, sizeof *server);
+  server = (ldap_server_t) xcalloc (1, sizeof *server);
   for (fieldno = 1, p = line; p; p = endp, fieldno++ )
     {
       endp = strchr (p, ':');

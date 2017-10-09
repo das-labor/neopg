@@ -256,7 +256,7 @@ checksum_mpi (gcry_mpi_t a)
   /* Fixme: For numbers not in secure memory we should use a stack
    * based buffer and only allocate a larger one if mpi_print returns
    * an error. */
-  buffer = (gcry_is_secure(a)?
+  buffer = (byte*) (gcry_is_secure(a)?
             gcry_xmalloc_secure (nbytes) : gcry_xmalloc (nbytes));
   if ( gcry_mpi_print (GCRYMPI_FMT_PGP, buffer, nbytes, NULL, a) )
     BUG ();
@@ -469,7 +469,7 @@ map_cipher_openpgp_to_gcry (cipher_algo_t algo)
 #else
     case CIPHER_ALGO_CAMELLIA256: return 0;
 #endif
-    default: return 0;
+    default: return (gcry_cipher_algos) 0;
     }
 }
 
@@ -491,7 +491,7 @@ map_cipher_gcry_to_openpgp (enum gcry_cipher_algos algo)
     case GCRY_CIPHER_CAMELLIA128: return CIPHER_ALGO_CAMELLIA128;
     case GCRY_CIPHER_CAMELLIA192: return CIPHER_ALGO_CAMELLIA192;
     case GCRY_CIPHER_CAMELLIA256: return CIPHER_ALGO_CAMELLIA256;
-    default: return 0;
+    default: return (cipher_algo_t) 0;
     }
 }
 
@@ -591,7 +591,7 @@ openpgp_pk_test_algo (pubkey_algo_t algo)
 int
 openpgp_pk_test_algo2 (pubkey_algo_t algo, unsigned int use)
 {
-  enum gcry_pk_algos ga = 0;
+  enum gcry_pk_algos ga = (gcry_pk_algos) 0;
   size_t use_buf = use;
 
   switch (algo)
@@ -743,7 +743,7 @@ map_md_openpgp_to_gcry (digest_algo_t algo)
 #else
     case DIGEST_ALGO_SHA512: return 0;
 #endif
-    default: return 0;
+    default: return (gcry_md_algos) 0;
     }
 }
 
@@ -830,7 +830,7 @@ pct_expando(const char *string,struct expando_args *args)
 	    goto fail;
 
 	  maxlen+=1024;
-	  ret=xrealloc(ret,maxlen);
+	  ret= (char*) xrealloc(ret,maxlen);
 	}
 
       done=0;
@@ -923,7 +923,7 @@ pct_expando(const char *string,struct expando_args *args)
                         /* Not the primary key: Find the fingerprint
                            of the primary key.  */
 			PKT_public_key *pk=
-			  xmalloc_clear(sizeof(PKT_public_key));
+ (PKT_public_key*) 			  xmalloc_clear(sizeof(PKT_public_key));
 
 			if (!get_pubkey_fast (pk,args->pksk->main_keyid))
 			  fingerprint_from_pk (pk, array, &len);
@@ -1388,7 +1388,7 @@ argsplit(char *string)
 static size_t
 optlen(const char *s)
 {
-  char *end=strpbrk(s," =");
+  char *end= (char*) strpbrk(s," =");
 
   if(end)
     return end-s;
@@ -1506,7 +1506,7 @@ path_access(const char *file,int mode)
   else
     {
       /* At least as large as, but most often larger than we need. */
-      char *buffer=xmalloc(strlen(envpath)+1+strlen(file)+1);
+      char *buffer= (char*) xmalloc(strlen(envpath)+1+strlen(file)+1);
       char *split,*item,*path=xstrdup(envpath);
 
       split=path;
@@ -1682,7 +1682,7 @@ mpi_print (estream_t fp, gcry_mpi_t a, int mode)
   else if (gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE))
     {
       unsigned int nbits;
-      unsigned char *p = gcry_mpi_get_opaque (a, &nbits);
+      unsigned char *p = (unsigned char*) gcry_mpi_get_opaque (a, &nbits);
       if (!p)
         n += es_fprintf (fp, "[invalid opaque value]");
       else
@@ -1731,7 +1731,7 @@ void
 additional_weak_digest (const char* digestname)
 {
   struct weakhash *weak = NULL;
-  const enum gcry_md_algos algo = string_to_digest_algo(digestname);
+  const enum gcry_md_algos algo = (gcry_md_algos) string_to_digest_algo(digestname);
 
   if (algo == GCRY_MD_NONE)
     {
@@ -1745,7 +1745,7 @@ additional_weak_digest (const char* digestname)
       return;
 
   /* Add it to the head of the list.  */
-  weak = xmalloc(sizeof(*weak));
+  weak = (weakhash*) xmalloc(sizeof(*weak));
   weak->algo = algo;
   weak->rejection_shown = 0;
   weak->next = opt.weak_digests;

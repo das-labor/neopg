@@ -41,7 +41,7 @@ static int const di_table[16] = { -1, 1, 2, 4, 8, 16, -1, -1,
 char *
 atr_dump (const void *buffer, size_t buflen)
 {
-  const unsigned char *atr = buffer;
+  const unsigned char *atr = (const unsigned char*) buffer;
   size_t atrlen = buflen;
   estream_t fp;
   int have_ta, have_tb, have_tc, have_td;

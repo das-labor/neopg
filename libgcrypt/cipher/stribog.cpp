@@ -1200,7 +1200,7 @@ transform (void *context, const unsigned char *inbuf_arg, size_t datalen);
 static void
 stribog_init_512 (void *context, unsigned int flags)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
 
   (void)flags;
 
@@ -1213,7 +1213,7 @@ stribog_init_512 (void *context, unsigned int flags)
 static void
 stribog_init_256 (void *context, unsigned int flags)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
 
   stribog_init_512 (context, flags);
   memset (hd->h, 1, 64);
@@ -1253,7 +1253,7 @@ transform_bits (STRIBOG_CONTEXT *hd, const unsigned char *data, unsigned count)
 static unsigned int
 transform_blk (void *context, const unsigned char *inbuf_arg)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
 
   transform_bits (hd, inbuf_arg, 64 * 8);
 
@@ -1283,7 +1283,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 stribog_final (void *context)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
   u64 Z[8] = {};
   int i;
 
@@ -1308,7 +1308,7 @@ stribog_final (void *context)
 static byte *
 stribog_read_512 (void *context)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
 
   return hd->result;
 }
@@ -1316,7 +1316,7 @@ stribog_read_512 (void *context)
 static byte *
 stribog_read_256 (void *context)
 {
-  STRIBOG_CONTEXT *hd = context;
+  STRIBOG_CONTEXT *hd = (STRIBOG_CONTEXT*) context;
 
   return hd->result + 32;
 }

@@ -62,7 +62,7 @@ _gcry_mpi_barrett_init (gcry_mpi_t m, int copy)
   gcry_mpi_t tmp;
 
   mpi_normalize (m);
-  ctx = xcalloc (1, sizeof *ctx);
+  ctx = (mpi_barrett_t) xcalloc (1, sizeof *ctx);
 
   if (copy)
     {

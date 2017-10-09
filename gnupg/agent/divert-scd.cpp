@@ -163,7 +163,7 @@ encode_md_for_card (const unsigned char *digest, size_t digestlen, int algo,
       return GPG_ERR_INTERNAL;
     }
 
-  frame = xtrymalloc (asnlen + digestlen);
+  frame = (unsigned char*) xtrymalloc (asnlen + digestlen);
   if (!frame)
     return out_of_core ();
   memcpy (frame, asn, asnlen);
@@ -225,7 +225,7 @@ getpin_cb (void *opaque, const char *desc_text, const char *info,
 {
   struct pin_entry_info_s *pi;
   int rc;
-  ctrl_t ctrl = opaque;
+  ctrl_t ctrl = (ctrl_t) opaque;
   const char *ends, *s;
   int any_flags = 0;
   int newpin = 0;
@@ -312,7 +312,7 @@ getpin_cb (void *opaque, const char *desc_text, const char *info,
      mess because we should call the card's verify function from the
      pinentry check pin CB. */
  again:
-  pi = gcry_calloc_secure (1, sizeof (*pi) + maxbuf + 10);
+  pi = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + maxbuf + 10);
   if (!pi)
     return gpg_error_from_syserror ();
   pi->max_length = maxbuf-1;
@@ -340,7 +340,7 @@ getpin_cb (void *opaque, const char *desc_text, const char *info,
       if (!rc && newpin)
         {
           struct pin_entry_info_s *pi2;
-          pi2 = gcry_calloc_secure (1, sizeof (*pi) + maxbuf + 10);
+          pi2 = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + maxbuf + 10);
           if (!pi2)
             {
               rc = gpg_error_from_syserror ();

@@ -239,7 +239,7 @@ init_membuf (struct membuf *mb, int initiallen)
   mb->len = 0;
   mb->size = initiallen;
   mb->out_of_core = 0;
-  mb->buf = xtrymalloc (initiallen);
+  mb->buf = (char*) xtrymalloc (initiallen);
   if (!mb->buf)
       mb->out_of_core = 1;
 }
@@ -255,7 +255,7 @@ put_membuf (struct membuf *mb, const void *buf, size_t len)
       char *p;
 
       mb->size += len + 1024;
-      p = xtryrealloc (mb->buf, mb->size);
+      p = (char*) xtryrealloc (mb->buf, mb->size);
       if (!p)
         {
           mb->out_of_core = 1;
@@ -327,7 +327,7 @@ add_fixup (KEYBOXBLOB blob, u32 off, u32 val)
   if (blob->fixup_out_of_core)
     return;
 
-  fl = xtrycalloc(1, sizeof *fl);
+  fl = (fixup_list*) xtrycalloc(1, sizeof *fl);
   if (!fl)
     blob->fixup_out_of_core = 1;
   else
@@ -355,7 +355,7 @@ pgp_temp_store_kid (KEYBOXBLOB blob, struct _keybox_openpgp_key_info *kinfo)
 {
   struct keyid_list *k, *r;
 
-  k = xtrymalloc (sizeof *k);
+  k = (keyid_list*) xtrymalloc (sizeof *k);
   if (!k)
     return -1;
   memcpy (k->kid, kinfo->keyid, 8);
@@ -649,7 +649,7 @@ create_blob_finish (KEYBOXBLOB blob)
 
   /* get the memory area */
   n = 0; /* (Just to avoid compiler warning.) */
-  p = get_membuf (a, &n);
+  p = (unsigned char*) get_membuf (a, &n);
   if (!p)
     return GPG_ERR_ENOMEM;
   assert (n >= 20);
@@ -682,7 +682,7 @@ create_blob_finish (KEYBOXBLOB blob)
   /* Compute and store the SHA-1 checksum. */
   gcry_md_hash_buffer (GCRY_MD_SHA1, p + n - 20, p, n - 20);
 
-  pp = xtrymalloc (n);
+  pp = (unsigned char*) xtrymalloc (n);
   if ( !pp )
     {
       xfree (p);
@@ -710,12 +710,12 @@ _keybox_create_openpgp_blob (KEYBOXBLOB *r_blob,
 
   *r_blob = NULL;
 
-  blob = xtrycalloc (1, sizeof *blob);
+  blob = (KEYBOXBLOB) xtrycalloc (1, sizeof *blob);
   if (!blob)
     return gpg_error_from_syserror ();
 
   blob->nkeys = 1 + info->nsubkeys;
-  blob->keys = xtrycalloc (blob->nkeys, sizeof *blob->keys );
+  blob->keys = (keyboxblob_key*) xtrycalloc (blob->nkeys, sizeof *blob->keys );
   if (!blob->keys)
     {
       err = gpg_error_from_syserror ();
@@ -725,7 +725,7 @@ _keybox_create_openpgp_blob (KEYBOXBLOB *r_blob,
   blob->nuids = info->nuids;
   if (blob->nuids)
     {
-      blob->uids = xtrycalloc (blob->nuids, sizeof *blob->uids );
+      blob->uids = (keyboxblob_uid*) xtrycalloc (blob->nuids, sizeof *blob->uids );
       if (!blob->uids)
         {
           err = gpg_error_from_syserror ();
@@ -736,7 +736,7 @@ _keybox_create_openpgp_blob (KEYBOXBLOB *r_blob,
   blob->nsigs = info->nsigs;
   if (blob->nsigs)
     {
-      blob->sigs = xtrycalloc (blob->nsigs, sizeof *blob->sigs );
+      blob->sigs = (u32*) xtrycalloc (blob->nsigs, sizeof *blob->sigs );
       if (!blob->sigs)
         {
           err = gpg_error_from_syserror ();
@@ -808,7 +808,7 @@ x509_email_kludge (const char *name)
     ;
   if (!n)
     return NULL;
-  buf = xtrymalloc (n+3);
+  buf = (unsigned char*) xtrymalloc (n+3);
   if (!buf)
     return NULL; /* oops, out of core */
   *buf = '<';
@@ -835,7 +835,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
   size_t max_names;
 
   *r_blob = NULL;
-  blob = xtrycalloc (1, sizeof *blob);
+  blob = (KEYBOXBLOB) xtrycalloc (1, sizeof *blob);
   if( !blob )
     return gpg_error_from_syserror ();
 
@@ -869,7 +869,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
   /* create list of names */
   blob->nuids = 0;
   max_names = 100;
-  names = xtrymalloc (max_names * sizeof *names);
+  names = (char**) xtrymalloc (max_names * sizeof *names);
   if (!names)
     {
       rc = gpg_error_from_syserror ();
@@ -890,7 +890,7 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
           char **tmp;
 
           max_names += 100;
-          tmp = xtryrealloc (names, max_names * sizeof *names);
+          tmp = (char**) xtryrealloc (names, max_names * sizeof *names);
           if (!tmp)
             {
               rc = gpg_error_from_syserror ();
@@ -906,9 +906,9 @@ _keybox_create_x509_blob (KEYBOXBLOB *r_blob, ksba_cert_t cert,
   /* space for signature information */
   blob->nsigs = 1;
 
-  blob->keys = xtrycalloc (blob->nkeys, sizeof *blob->keys );
-  blob->uids = xtrycalloc (blob->nuids, sizeof *blob->uids );
-  blob->sigs = xtrycalloc (blob->nsigs, sizeof *blob->sigs );
+  blob->keys = (keyboxblob_key*) xtrycalloc (blob->nkeys, sizeof *blob->keys );
+  blob->uids = (keyboxblob_uid*) xtrycalloc (blob->nuids, sizeof *blob->uids );
+  blob->sigs = (u32*) xtrycalloc (blob->nsigs, sizeof *blob->sigs );
   if (!blob->keys || !blob->uids || !blob->sigs)
     {
       rc = GPG_ERR_ENOMEM;
@@ -982,7 +982,7 @@ _keybox_new_blob (KEYBOXBLOB *r_blob,
   KEYBOXBLOB blob;
 
   *r_blob = NULL;
-  blob = xtrycalloc (1, sizeof *blob);
+  blob = (KEYBOXBLOB) xtrycalloc (1, sizeof *blob);
   if (!blob)
     return gpg_error_from_syserror ();
 

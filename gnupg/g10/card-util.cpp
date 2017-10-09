@@ -366,7 +366,7 @@ current_card_status (ctrl_t ctrl, estream_t fp,
                      char *serialno, size_t serialnobuflen)
 {
   struct agent_card_info_s info;
-  PKT_public_key *pk = xcalloc (1, sizeof *pk);
+  PKT_public_key *pk = (PKT_public_key*) xcalloc (1, sizeof *pk);
   kbnode_t keyblock = NULL;
   int rc;
   unsigned int uval;
@@ -605,7 +605,7 @@ current_card_status (ctrl_t ctrl, estream_t fp,
                      isotimestamp (info.fpr3time));
       tty_fprintf (fp, "General key info..: ");
 
-      thefpr = (info.fpr1valid? info.fpr1 : info.fpr2valid? info.fpr2 :
+      thefpr = (const unsigned char*) (info.fpr1valid? info.fpr1 : info.fpr2valid? info.fpr2 :
                 info.fpr3valid? info.fpr3 : NULL);
       /* If the fingerprint is all 0xff, the key has no asssociated
          OpenPGP certificate.  */
@@ -740,7 +740,7 @@ change_name (void)
       return -1; /*canceled*/
     }
 
-  isoname = xmalloc ( strlen (surname) + 2 + strlen (givenname) + 1);
+  isoname = (char*) xmalloc ( strlen (surname) + 2 + strlen (givenname) + 1);
   strcpy (stpcpy (stpcpy (isoname, surname), "<<"), givenname);
   xfree (surname);
   xfree (givenname);
@@ -859,7 +859,7 @@ get_data_from_file (const char *fname, size_t maxlen, char **r_buffer)
       return -1;
     }
 
-  data = xtrymalloc (maxlen? maxlen:1);
+  data = (char*) xtrymalloc (maxlen? maxlen:1);
   if (!data)
     {
       tty_printf (_("error allocating enough memory: %s\n"), strerror (errno));
@@ -2085,7 +2085,7 @@ card_edit (ctrl_t ctrl, strlist_t commands)
               /* Force verification of the Admin Command.  However,
                  this is only done if the retry counter is at initial
                  state.  */
-              char *tmp = xmalloc (strlen (serialnobuf) + 6 + 1);
+              char *tmp = (char*) xmalloc (strlen (serialnobuf) + 6 + 1);
               strcpy (stpcpy (tmp, serialnobuf), "[CHV3]");
               allow_admin = !agent_scd_checkpin (tmp);
               xfree (tmp);

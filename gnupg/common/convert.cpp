@@ -128,12 +128,12 @@ do_bin2hex (const void *buffer, size_t length, char *stringbuf, int with_colon)
           gpg_err_set_errno (ENOMEM);
           return NULL;
         }
-      stringbuf = xtrymalloc (nbytes);
+      stringbuf = (char*) xtrymalloc (nbytes);
       if (!stringbuf)
         return NULL;
     }
 
-  for (s = buffer, p = stringbuf; length; length--, s++)
+  for (s = (const unsigned char*) buffer, p = stringbuf; length; length--, s++)
     {
       if (with_colon && s != buffer)
         *p++ = ':';
@@ -257,7 +257,7 @@ hex2str_alloc (const char *hexstring, size_t *r_count)
     }
   if (r_count)
     *r_count = tail - hexstring;
-  result = xtrymalloc (nbytes+1);
+  result = (char*) xtrymalloc (nbytes+1);
   if (!result)
     return NULL;
   if (!hex2str (hexstring, result, nbytes+1, NULL))

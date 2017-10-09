@@ -666,7 +666,7 @@ static void
 store_cert_cb (void *opaque,
                const unsigned char *certdata, size_t certdatalen)
 {
-  struct store_cert_parm_s *parm = opaque;
+  struct store_cert_parm_s *parm = (store_cert_parm_s*) opaque;
   gpg_error_t err;
   ksba_cert_t cert;
 
@@ -742,7 +742,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
     err = 0;
   if (!err)
     {
-      p12buffer = get_membuf (&p12mbuf, &p12buflen);
+      p12buffer = (char*) get_membuf (&p12mbuf, &p12buflen);
       if (!p12buffer)
         err = gpg_error_from_syserror ();
     }
@@ -869,7 +869,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   kek = NULL;
 
   wrappedkeylen = keylen + 8;
-  wrappedkey = xtrymalloc (wrappedkeylen);
+  wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
   if (!wrappedkey)
     {
       err = gpg_error_from_syserror ();

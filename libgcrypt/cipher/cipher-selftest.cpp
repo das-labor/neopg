@@ -52,7 +52,7 @@ _gcry_cipher_selftest_alloc_ctx (const int context_size, unsigned char **r_mem)
 
   memsize = ctx_aligned_size + 16;
 
-  *r_mem = xtrycalloc (1, memsize);
+  *r_mem = (unsigned char*) xtrycalloc (1, memsize);
   if (!*r_mem)
     return NULL;
 
@@ -86,12 +86,12 @@ _gcry_selftest_helper_cbc (const char *cipher, gcry_cipher_setkey_t setkey_func,
 
   memsize = ctx_aligned_size + (blocksize * 2) + (blocksize * nblocks * 3) + 16;
 
-  mem = xtrycalloc (1, memsize);
+  mem = (unsigned char*) xtrycalloc (1, memsize);
   if (!mem)
     return "failed to allocate memory";
 
   offs = (16 - ((uintptr_t)mem & 15)) & 15;
-  ctx = (void*)(mem + offs);
+  ctx = (unsigned char*) (void*)(mem + offs);
   iv = ctx + ctx_aligned_size;
   iv2 = iv + blocksize;
   plaintext = iv2 + blocksize;
@@ -209,12 +209,12 @@ _gcry_selftest_helper_cfb (const char *cipher, gcry_cipher_setkey_t setkey_func,
 
   memsize = ctx_aligned_size + (blocksize * 2) + (blocksize * nblocks * 3) + 16;
 
-  mem = xtrycalloc (1, memsize);
+  mem = (unsigned char*) xtrycalloc (1, memsize);
   if (!mem)
     return "failed to allocate memory";
 
   offs = (16 - ((uintptr_t)mem & 15)) & 15;
-  ctx = (void*)(mem + offs);
+  ctx = (unsigned char*) (void*)(mem + offs);
   iv = ctx + ctx_aligned_size;
   iv2 = iv + blocksize;
   plaintext = iv2 + blocksize;
@@ -331,12 +331,12 @@ _gcry_selftest_helper_ctr (const char *cipher, gcry_cipher_setkey_t setkey_func,
 
   memsize = ctx_aligned_size + (blocksize * 2) + (blocksize * nblocks * 4) + 16;
 
-  mem = xtrycalloc (1, memsize);
+  mem = (unsigned char*) xtrycalloc (1, memsize);
   if (!mem)
     return "failed to allocate memory";
 
   offs = (16 - ((uintptr_t)mem & 15)) & 15;
-  ctx = (void*)(mem + offs);
+  ctx = (unsigned char*) (void*)(mem + offs);
   iv = ctx + ctx_aligned_size;
   iv2 = iv + blocksize;
   plaintext = iv2 + blocksize;

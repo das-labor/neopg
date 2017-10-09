@@ -52,7 +52,7 @@
 gpg_error_t
 ksba_writer_new (ksba_writer_t *r_w)
 {
-  *r_w = xtrycalloc (1, sizeof **r_w);
+  *r_w = (ksba_writer_t) xtrycalloc (1, sizeof **r_w);
   if (!*r_w)
     return gpg_error_from_errno (errno);
 
@@ -218,7 +218,7 @@ ksba_writer_set_mem (ksba_writer_t w, size_t initial_size)
       if (!initial_size)
         initial_size = 1024;
 
-      w->u.mem.buffer = xtrymalloc (initial_size);
+      w->u.mem.buffer = (unsigned char*) xtrymalloc (initial_size);
       if (!w->u.mem.buffer)
         return GPG_ERR_ENOMEM;
       w->u.mem.size = initial_size;
@@ -266,7 +266,7 @@ ksba_writer_snatch_mem (ksba_writer_t w, size_t *nbytes)
     *nbytes = w->nwritten;
   p = w->u.mem.buffer;
   w->u.mem.buffer = NULL;
-  w->type = 0;
+  w->type = (writer_type) 0;
   w->nwritten = 0;
   return p;
 }
@@ -315,7 +315,7 @@ do_writer_write (ksba_writer_t w, const void *buffer, size_t length)
           else
             newsize += 16384;
 
-          p = xtryrealloc (w->u.mem.buffer, newsize);
+          p = (char*) xtryrealloc (w->u.mem.buffer, newsize);
           if (!p)
             {
               /* Keep an error flag so that the user does not need to
@@ -325,7 +325,7 @@ do_writer_write (ksba_writer_t w, const void *buffer, size_t length)
               w->error = ENOMEM;
               return GPG_ERR_ENOMEM;
             }
-          w->u.mem.buffer = p;
+          w->u.mem.buffer = (unsigned char*) p;
           w->u.mem.size = newsize;
           /* Better check again in case of an overwrap. */
           if (w->nwritten + length > w->u.mem.size)
@@ -387,7 +387,7 @@ ksba_writer_write (ksba_writer_t w, const void *buffer, size_t length)
     {
       char outbuf[4096];
       size_t nin, nout;
-      const char *p = buffer;
+      const char *p = (const char*) buffer;
 
       while (length)
         {

@@ -822,7 +822,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
         any_skip = 1;
       if (desc[n].snlen == -1 && !sn_array)
         {
-          sn_array = xtrycalloc (ndesc, sizeof *sn_array);
+          sn_array = (sn_array_s*) xtrycalloc (ndesc, sizeof *sn_array);
           if (!sn_array)
             return (hd->error = gpg_error_from_syserror ());
         }
@@ -863,7 +863,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
                 ;
               odd = (i & 1);
               snlen = (i+1)/2;
-              sn_array[n].sn = xtrymalloc (snlen);
+              sn_array[n].sn = (unsigned char*) xtrymalloc (snlen);
               if (!sn_array[n].sn)
                 {
                   hd->error = gpg_error_from_syserror ();
@@ -887,7 +887,7 @@ keybox_search (KEYBOX_HANDLE hd, KEYBOX_SEARCH_DESC *desc, size_t ndesc,
 
               sn = desc[n].sn;
               snlen = desc[n].snlen;
-              sn_array[n].sn = xtrymalloc (snlen);
+              sn_array[n].sn = (unsigned char*) xtrymalloc (snlen);
               if (!sn_array[n].sn)
                 {
                   hd->error = gpg_error_from_syserror ();

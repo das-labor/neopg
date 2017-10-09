@@ -122,7 +122,7 @@ option_value (const char *line, const char *name)
   char *s;
   int n = strlen (name);
 
-  s = strstr (line, name);
+  s = (char*) strstr (line, name);
   if (s && s >= skip_options (line))
     return NULL;
   if (s && (s == line || spacep (s-1))

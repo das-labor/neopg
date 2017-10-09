@@ -83,7 +83,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
   unsigned blocksize;
   unsigned nprefix;
 
-  dfx = xtrycalloc (1, sizeof *dfx);
+  dfx = (decode_filter_ctx_t) xtrycalloc (1, sizeof *dfx);
   if (!dfx)
     return gpg_error_from_syserror ();
   dfx->refcount = 1;
@@ -313,7 +313,7 @@ static int
 mdc_decode_filter (void *opaque, int control, IOBUF a,
                    byte *buf, size_t *ret_len)
 {
-  decode_filter_ctx_t dfx = opaque;
+  decode_filter_ctx_t dfx = (decode_filter_ctx_t) opaque;
   size_t n, size = *ret_len;
   int rc = 0;
   int c;
@@ -447,7 +447,7 @@ mdc_decode_filter (void *opaque, int control, IOBUF a,
 static int
 decode_filter( void *opaque, int control, IOBUF a, byte *buf, size_t *ret_len)
 {
-  decode_filter_ctx_t fc = opaque;
+  decode_filter_ctx_t fc = (decode_filter_ctx_t) opaque;
   size_t size = *ret_len;
   size_t n;
   int c, rc = 0;

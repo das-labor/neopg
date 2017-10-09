@@ -588,7 +588,7 @@ write_onepass_sig_packets (SK_LIST sk_list, IOBUF out, int sigclass )
         }
 
         pk = sk_rover->pk;
-        ops = xmalloc_clear (sizeof *ops);
+        ops = (PKT_onepass_sig*) xmalloc_clear (sizeof *ops);
         ops->sig_class = sigclass;
         ops->digest_algo = hash_for (pk);
         ops->pubkey_algo = pk->pubkey_algo;
@@ -711,7 +711,7 @@ write_signature_packets (ctrl_t ctrl,
       pk = sk_rover->pk;
 
       /* Build the signature packet.  */
-      sig = xtrycalloc (1, sizeof *sig);
+      sig = (PKT_signature*) xtrycalloc (1, sizeof *sig);
       if (!sig)
         return gpg_error_from_syserror ();
 
@@ -1312,7 +1312,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     handle_progress (pfx, inp, fname);
 
     /* prepare key */
-    s2k = xmalloc_clear( sizeof *s2k );
+    s2k = (STRING2KEY*) xmalloc_clear( sizeof *s2k );
     s2k->mode = opt.s2k_mode;
     s2k->hash_algo = S2K_DIGEST_ALGO;
 
@@ -1355,7 +1355,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     /* Write the symmetric key packet */
     /*(current filters: armor)*/
     {
-	PKT_symkey_enc *enc = xmalloc_clear( sizeof *enc );
+	PKT_symkey_enc *enc = (PKT_symkey_enc*) xmalloc_clear( sizeof *enc );
 	enc->version = 4;
 	enc->cipher_algo = cfx.dek->algo;
 	enc->s2k = *s2k;
@@ -1512,7 +1512,7 @@ make_keysig_packet (ctrl_t ctrl,
         hash_uid (md, sigversion, uid);
       }
     /* and make the signature packet */
-    sig = xmalloc_clear( sizeof *sig );
+    sig = (PKT_signature*) xmalloc_clear( sizeof *sig );
     sig->version = sigversion;
     sig->flags.exportable=1;
     sig->flags.revocable=1;

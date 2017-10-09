@@ -699,7 +699,7 @@ _gcry_pk_get_keygrip (gcry_sexp_t key, unsigned char *array)
 
   if (!array)
     {
-      array = xtrymalloc (20);
+      array = (unsigned char*) xtrymalloc (20);
       if (! array)
         goto fail;
     }
@@ -913,7 +913,7 @@ _gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp, int mode, gcry_ctx_t ctx)
   if (!ctx)
     return GPG_ERR_NO_CRYPT_CTX;
 
-  ec = _gcry_ctx_find_pointer (ctx, CONTEXT_TYPE_EC);
+  ec = (mpi_ec_t) _gcry_ctx_find_pointer (ctx, CONTEXT_TYPE_EC);
   if (ec)
     return _gcry_pk_ecc_get_sexp (r_sexp, mode, ec);
 

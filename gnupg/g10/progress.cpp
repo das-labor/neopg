@@ -50,7 +50,7 @@ new_progress_context (void)
   if (!is_status_enabled ())
     return NULL;
 
-  pfx = xcalloc (1, sizeof *pfx);
+  pfx = (progress_filter_context_t*) xcalloc (1, sizeof *pfx);
   pfx->refcount = 1;
 
   return pfx;
@@ -136,7 +136,7 @@ progress_filter (void *opaque, int control,
 		 IOBUF a, byte *buf, size_t *ret_len)
 {
   int rc = 0;
-  progress_filter_context_t *pfx = opaque;
+  progress_filter_context_t *pfx = (progress_filter_context_t*) opaque;
 
   if (control == IOBUFCTRL_INIT)
     {

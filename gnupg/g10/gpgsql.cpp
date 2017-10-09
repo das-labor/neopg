@@ -128,7 +128,7 @@ gpgsql_stepx (sqlite3 *db,
     {
       for (i = 1; i <= args; i ++)
         {
-          t = va_arg (va, int /* enum gpgsql_arg_type */);
+          t = (gpgsql_arg_type) va_arg (va, int /* enum gpgsql_arg_type */);
           switch (t)
             {
             case GPGSQL_ARG_INT:
@@ -151,7 +151,7 @@ gpgsql_stepx (sqlite3 *db,
               }
             case GPGSQL_ARG_BLOB:
               {
-                char *blob = va_arg (va, void *);
+                char *blob = (char*) va_arg (va, void *);
                 long long length = va_arg (va, long long);
                 err = sqlite3_bind_blob (stmt, i, blob, length, SQLITE_STATIC);
                 break;
@@ -169,7 +169,7 @@ gpgsql_stepx (sqlite3 *db,
         }
 
     }
-  t = va_arg (va, int /* enum gpgsql_arg_type */);
+  t = (gpgsql_arg_type) va_arg (va, int /* enum gpgsql_arg_type */);
   log_assert (t == GPGSQL_ARG_END);
   va_end (va);
 
@@ -187,7 +187,7 @@ gpgsql_stepx (sqlite3 *db,
       if (! callback_initialized)
         {
           cols = sqlite3_column_count (stmt);
-          azColName = xmalloc (2 * cols * sizeof (const char *) + 1);
+          azColName = (const char**) xmalloc (2 * cols * sizeof (const char *) + 1);
 
           for (i = 0; i < cols; i ++)
             azColName[i] = sqlite3_column_name (stmt, i);
@@ -198,7 +198,7 @@ gpgsql_stepx (sqlite3 *db,
       azVals = &azColName[cols];
       for (i = 0; i < cols; i ++)
         {
-          azVals[i] = sqlite3_column_text (stmt, i);
+          azVals[i] = (const char*) sqlite3_column_text (stmt, i);
           if (! azVals[i] && sqlite3_column_type (stmt, i) != SQLITE_NULL)
             /* Out of memory.  */
             {
@@ -230,7 +230,7 @@ gpgsql_stepx (sqlite3 *db,
         {
           const char *e = sqlite3_errstr (err);
           size_t l = strlen (e) + 1;
-          *errmsg = sqlite3_malloc (l);
+          *errmsg = (char*) sqlite3_malloc (l);
           if (! *errmsg)
             log_fatal ("Out of memory.\n");
           memcpy (*errmsg, e, l);
@@ -241,7 +241,7 @@ gpgsql_stepx (sqlite3 *db,
     {
       const char * e = sqlite3_errmsg (db);
       size_t l = strlen (e) + 1;
-      *errmsg = sqlite3_malloc (l);
+      *errmsg = (char*) sqlite3_malloc (l);
       if (! *errmsg)
         log_fatal ("Out of memory.\n");
       memcpy (*errmsg, e, l);

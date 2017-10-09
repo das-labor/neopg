@@ -336,7 +336,7 @@ store_alias( ARGPARSE_ARGS *arg, char *name, char *value )
 static int
 ignore_invalid_option_p (ARGPARSE_ARGS *arg, const char *keyword)
 {
-  IIO_ITEM_DEF item = arg->internal.iio_list;
+  IIO_ITEM_DEF item = (IIO_ITEM_DEF) arg->internal.iio_list;
 
   for (; item; item = item->next)
     if (!strcmp (item->name, keyword))
@@ -405,7 +405,7 @@ ignore_invalid_option_add (ARGPARSE_ARGS *arg, FILE *fp)
           name[namelen] = 0;
           if (!ignore_invalid_option_p (arg, name))
             {
-              item = xtrymalloc (sizeof *item + namelen);
+              item = (IIO_ITEM_DEF) xtrymalloc (sizeof *item + namelen);
               if (!item)
                 return 1;
               strcpy (item->name, name);
@@ -426,7 +426,7 @@ ignore_invalid_option_clear (ARGPARSE_ARGS *arg)
 {
   IIO_ITEM_DEF item, tmpitem;
 
-  for (item = arg->internal.iio_list; item; item = tmpitem)
+  for (item = (IIO_ITEM_DEF) arg->internal.iio_list; item; item = tmpitem)
     {
       tmpitem = item->next;
       xfree (item);
@@ -707,7 +707,7 @@ optfile_parse (FILE *fp, const char *filename, unsigned *lineno,
                   char *tmp;
                   size_t tmplen = buflen + 50;
 
-                  tmp = xtryrealloc (buffer, tmplen);
+                  tmp = (char*) xtryrealloc (buffer, tmplen);
                   if (tmp)
                     {
                       buflen = tmplen;
@@ -727,7 +727,7 @@ optfile_parse (FILE *fp, const char *filename, unsigned *lineno,
           else
             {
               size_t tmplen = DIM(keyword) + 50;
-              buffer = xtrymalloc (tmplen);
+              buffer = (char*) xtrymalloc (tmplen);
               if (buffer)
                 {
                   buflen = tmplen;

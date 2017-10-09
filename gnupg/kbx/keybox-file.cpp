@@ -95,7 +95,7 @@ _keybox_read_blob (KEYBOXBLOB *r_blob, FILE *fp, int *skipped_deleted)
       return 0;
     }
 
-  image = xtrymalloc (imagelen);
+  image = (unsigned char*) xtrymalloc (imagelen);
   if (!image)
     return gpg_error_from_syserror ();
 

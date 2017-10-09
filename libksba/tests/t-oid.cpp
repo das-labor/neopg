@@ -48,7 +48,7 @@ read_into_buffer (FILE *fp, size_t *r_length)
   do
     {
       bufsize += NCHUNK;
-      buffer = realloc (buffer, bufsize);
+      buffer = (char*) realloc (buffer, bufsize);
       if (!buffer)
         {
           perror ("realloc failed");
@@ -193,7 +193,7 @@ oid_main (int argc, char **argv)
 
       argv++;argc--;
 
-      buffer = read_into_buffer (stdin, &buflen);
+      buffer = (char*) read_into_buffer (stdin, &buflen);
       result = ksba_oid_to_str (buffer, buflen);
       free (buffer);
       printf ("%s\n", result? result:"[malloc failed]");

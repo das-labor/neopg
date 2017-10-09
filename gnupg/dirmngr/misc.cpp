@@ -68,7 +68,7 @@ char*
 hexify_data (const unsigned char* data, size_t len, int with_prefix)
 {
   int i;
-  char *result = xmalloc (2*len + (with_prefix?2:0) + 1);
+  char *result = (char*) xmalloc (2*len + (with_prefix?2:0) + 1);
   char *p;
 
   if (with_prefix)
@@ -94,12 +94,12 @@ serial_hex (ksba_sexp_t serial )
   else {
     p++; /* ignore initial '(' */
     n = strtoul (p, (char**)&endp, 10);
-    p = endp;
+    p = (unsigned char*) endp;
     if (*p!=':')
       return NULL;
     else {
       int i = 0;
-      certid = xmalloc( sizeof( char )*(2*n + 1 ) );
+      certid = (char*) xmalloc( sizeof( char )*(2*n + 1 ) );
       for (p++; n; n--, p++) {
 	sprintf ( certid+i , "%02X", *p);
 	i += 2;
@@ -124,7 +124,7 @@ serial_to_buffer (const ksba_sexp_t serial, size_t *length)
     return NULL;
   p++;
   n = strtoul (p, &endp, 10);
-  p = endp;
+  p = (unsigned char*) endp;
   if (*p != ':')
     return NULL;
   p++;
@@ -207,7 +207,7 @@ get_fingerprint_hexstring (ksba_cert_t cert)
       memcpy (digest, gcry_md_read (md, GCRY_MD_SHA1), 20);
     }
   gcry_md_close (md);
-  buf = xmalloc (41);
+  buf = (char*) xmalloc (41);
   *buf = 0;
   for (i=0; i < 20; i++ )
     sprintf (buf+strlen(buf), "%02X", digest[i]);
@@ -241,7 +241,7 @@ get_fingerprint_hexstring_colon (ksba_cert_t cert)
       memcpy (digest, gcry_md_read (md, GCRY_MD_SHA1), 20);
     }
   gcry_md_close (md);
-  buf = xmalloc (61);
+  buf = (char*) xmalloc (61);
   *buf = 0;
   for (i=0; i < 20; i++ )
     sprintf (buf+strlen(buf), "%02X:", digest[i]);
@@ -274,7 +274,7 @@ dump_string (const char *string)
     {
       const unsigned char *s;
 
-      for (s=string; *s; s++)
+      for (s= (const unsigned char*) string; *s; s++)
         {
           if (*s < ' ' || (*s >= 0x7f && *s <= 0xa0))
             break;
@@ -549,7 +549,7 @@ static int
 my_estream_ksba_reader_cb (void *cb_value, char *buffer, size_t count,
                            size_t *r_nread)
 {
-  estream_t fp = cb_value;
+  estream_t fp = (estream_t) cb_value;
 
   if (!fp)
     return GPG_ERR_INV_VALUE;
@@ -624,7 +624,7 @@ armor_data (char **r_string, const void *data, size_t datalen)
       return err;
     }
 
-  buffer = xtrymalloc (length+1);
+  buffer = (char*) xtrymalloc (length+1);
   if (!buffer)
     {
       err = gpg_error_from_syserror ();

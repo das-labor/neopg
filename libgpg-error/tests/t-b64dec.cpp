@@ -54,7 +54,7 @@ test_b64dec_string (const char *string, const char *expected)
   size_t len;
 
   len = strlen (string);
-  buffer = malloc (strlen (string) + 1);
+  buffer = (char*) malloc (strlen (string) + 1);
   if (!buffer)
     {
       err = gpg_error_from_syserror ();

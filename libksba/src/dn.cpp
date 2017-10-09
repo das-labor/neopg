@@ -111,7 +111,7 @@ init_stringbuf (struct stringbuf *sb, int initiallen)
   sb->size = initiallen;
   sb->out_of_core = 0;
   /* allocate one more, so that get_stringbuf can append a nul */
-  sb->buf = xtrymalloc (initiallen+1);
+  sb->buf = (char*) xtrymalloc (initiallen+1);
   if (!sb->buf)
       sb->out_of_core = 1;
 }
@@ -138,7 +138,7 @@ put_stringbuf (struct stringbuf *sb, const char *text)
       char *p;
 
       sb->size += n + 100;
-      p = xtryrealloc (sb->buf, sb->size);
+      p = (char*) xtryrealloc (sb->buf, sb->size);
       if ( !p)
         {
           sb->out_of_core = 1;
@@ -161,7 +161,7 @@ put_stringbuf_mem (struct stringbuf *sb, const char *text, size_t n)
       char *p;
 
       sb->size += n + 100;
-      p = xtryrealloc (sb->buf, sb->size);
+      p = (char*) xtryrealloc (sb->buf, sb->size);
       if ( !p)
         {
           sb->out_of_core = 1;
@@ -191,7 +191,7 @@ put_stringbuf_mem_skip (struct stringbuf *sb, const char *text, size_t n,
     {
       /* Note: we allocate too much here, but we don't care. */
       sb->size += n + 100;
-      p = xtryrealloc (sb->buf, sb->size);
+      p = (char*) xtryrealloc (sb->buf, sb->size);
       if ( !p)
         {
           sb->out_of_core = 1;
@@ -802,7 +802,7 @@ count_quoted_string (const char *string, size_t *result,
   int atsign = 0;
 
   *stringtype = 0;
-  for (s=string; *s; s++)
+  for (s= (const unsigned char*) string; *s; s++)
     {
       if (*s == '\\')
         { /* pair */
@@ -866,7 +866,7 @@ count_quoted_string (const char *string, size_t *result,
     *stringtype = TYPE_PRINTABLE_STRING;
 
   *result = nbytes;
-  return s;
+  return (const char*) s;
 }
 
 
@@ -976,7 +976,7 @@ parse_rdn (const unsigned char *string, const char **endp,
 
       if (writer)
         {
-          p = xtrymalloc (n+1);
+          p = (unsigned char*) xtrymalloc (n+1);
           if (!p)
             return GPG_ERR_ENOMEM;
           memcpy (p, string, n);
@@ -1011,7 +1011,7 @@ parse_rdn (const unsigned char *string, const char **endp,
           *rlen = n;
           return GPG_ERR_UNKNOWN_NAME;
         }
-      oid = oid_name_tbl[i].oid;
+      oid = (const unsigned char*) oid_name_tbl[i].oid;
       oidlen = oid_name_tbl[i].oidlen;
     }
   else
@@ -1052,7 +1052,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       valuelen = n;
       if (writer)
         {
-          valuebuf = xtrymalloc (valuelen);
+          valuebuf = (unsigned char*) xtrymalloc (valuelen);
           if (!valuebuf)
             {
               err = GPG_ERR_ENOMEM;
@@ -1087,7 +1087,7 @@ parse_rdn (const unsigned char *string, const char **endp,
   else if (*s == '\"')
     { /* old style quotation */
       string = s+1;
-      s = count_quoted_string (string, &n, 1, &valuetype);
+      s = (const unsigned char*) count_quoted_string (string, &n, 1, &valuetype);
       if (!s || *s != '\"')
         {
           *rlen = s - orig_string;
@@ -1103,7 +1103,7 @@ parse_rdn (const unsigned char *string, const char **endp,
     }
   else
     { /* regular v3 quoted string */
-      s = count_quoted_string (string, &n, 0, &valuetype);
+      s = (const unsigned char*) count_quoted_string (string, &n, 0, &valuetype);
       if (!s)
         {
           err = GPG_ERR_SYNTAX; /* error */
@@ -1134,7 +1134,7 @@ parse_rdn (const unsigned char *string, const char **endp,
       err = GPG_ERR_NOT_IMPLEMENTED;
       goto leave;
     }
-  *endp = *s? (s+1):s;
+  *endp = (const char*) (*s? (s+1):s);
 
   if (writer)
     { /* write out the data */
@@ -1212,9 +1212,9 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
           char const **tmp;
 
           part_array_size += 2;
-          tmp = part_array_size? xtryrealloc (part_array,
+          tmp = (const char**) (part_array_size? xtryrealloc (part_array,
                                               part_array_size * sizeof *tmp)
-                                : xtrymalloc (part_array_size * sizeof *tmp);
+                                : xtrymalloc (part_array_size * sizeof *tmp));
           if (!tmp)
             {
               err = GPG_ERR_ENOMEM;
@@ -1261,7 +1261,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
     goto leave;
 
   /* and get the result */
-  *rbuf = ksba_writer_snatch_mem (writer, rlength);
+  *rbuf = (char*) ksba_writer_snatch_mem (writer, rlength);
   if (!*rbuf)
     {
       err = GPG_ERR_ENOMEM;

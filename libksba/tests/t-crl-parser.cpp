@@ -32,7 +32,7 @@
 static void
 my_hasher (void *arg, const void *buffer, size_t length)
 {
-  FILE *fp = arg;
+  FILE *fp = (FILE*) arg;
 
   if (fp)
     {
@@ -309,7 +309,7 @@ crl_parser_main (int argc, char **argv)
         {
           char *fname;
 
-          fname = xmalloc (strlen (srcdir) + 1 + strlen (files[idx]) + 1);
+          fname = (char*) xmalloc (strlen (srcdir) + 1 + strlen (files[idx]) + 1);
           strcpy (fname, srcdir);
           strcat (fname, "/");
           strcat (fname, files[idx]);

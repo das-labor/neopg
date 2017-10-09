@@ -732,7 +732,7 @@ thread_init (void)
 int
 dirmngr_main (int argc, char **argv)
 {
-  enum cmd_and_opt_values cmd = 0;
+  enum cmd_and_opt_values cmd = (cmd_and_opt_values) 0;
   ARGPARSE_ARGS pargs;
   int orig_argc;
   char **orig_argv;
@@ -875,7 +875,7 @@ dirmngr_main (int argc, char **argv)
         case aFetchCRL:
 	case aGPGConfList:
 	case aGPGConfTest:
-          cmd = pargs.r_opt;
+          cmd = (cmd_and_opt_values) pargs.r_opt;
           break;
 
         case oQuiet: opt.quiet = 1; break;
@@ -1312,7 +1312,7 @@ parse_ocsp_signer (const char *string)
      fingerprint specification.  */
   if (!strpbrk (string, "/.~\\"))
     {
-      item = xcalloc (1, sizeof *item);
+      item = (fingerprint_list_t) xcalloc (1, sizeof *item);
       for (i=j=0; (string[i] == ':' || hexdigitp (string+i)) && j < 40; i++)
         if ( string[i] != ':' )
           item->hexfpr[j++] = string[i] >= 'a'? (string[i] & 0xdf): string[i];
@@ -1393,7 +1393,7 @@ parse_ocsp_signer (const char *string)
       if (!*p || *p == '\n' || *p == '#')
         continue;
 
-      item = xcalloc (1, sizeof *item);
+      item = (fingerprint_list_t) xcalloc (1, sizeof *item);
       *list_tail = item;
       list_tail = &item->next;
 

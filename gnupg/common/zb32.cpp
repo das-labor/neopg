@@ -60,7 +60,7 @@ zb32_encode (const void *data, unsigned int databits)
       return NULL;
     }
 
-  d = output = xtrymalloc (8 * (datalen / 5)
+  d = output = (char*) xtrymalloc (8 * (datalen / 5)
                            + 2 * (datalen % 5)
                            - ((datalen%5)>2)
                            + 1);
@@ -69,7 +69,7 @@ zb32_encode (const void *data, unsigned int databits)
 
   /* I use straightforward code.  The compiler should be able to do a
      better job on optimization than me and it is easier to read.  */
-  for (s = data; datalen >= 5; s += 5, datalen -= 5)
+  for (s = (const unsigned char*) data; datalen >= 5; s += 5, datalen -= 5)
     {
       *d++ = zb32asc[((s[0]      ) >> 3)               ];
       *d++ = zb32asc[((s[0] &   7) << 2) | (s[1] >> 6) ];

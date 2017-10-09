@@ -84,7 +84,7 @@ encrypt_seskey (DEK *dek, DEK **seskey, byte *enckey)
   log_assert ( dek->keylen <= 32 );
   if (!*seskey)
     {
-      *seskey=xmalloc_clear(sizeof(DEK));
+      *seskey= (DEK*) xmalloc_clear(sizeof(DEK));
       (*seskey)->algo=dek->algo;
       make_session_key(*seskey);
       /*log_hexdump( "thekey", c->key, c->keylen );*/
@@ -220,7 +220,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
     {
       int canceled;
 
-      s2k = xmalloc_clear( sizeof *s2k );
+      s2k = (STRING2KEY*) xmalloc_clear( sizeof *s2k );
       s2k->mode = opt.s2k_mode;
       s2k->hash_algo = S2K_DIGEST_ALGO;
       cfx.dek = passphrase_to_dek (default_cipher_algo (), s2k, 1, 0,
@@ -283,7 +283,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
 
   if ( s2k )
     {
-      PKT_symkey_enc *enc = xmalloc_clear( sizeof *enc + seskeylen + 1 );
+      PKT_symkey_enc *enc = (PKT_symkey_enc*) xmalloc_clear( sizeof *enc + seskeylen + 1 );
       enc->version = 4;
       enc->cipher_algo = cfx.dek->algo;
       enc->s2k = *s2k;
@@ -347,7 +347,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
   else
     {
       cfx.datalen = filesize && !do_compress ? filesize : 0;
-      pkt.pkttype = 0;
+      pkt.pkttype = (pkttype_t) 0;
       pkt.pkt.generic = NULL;
     }
 
@@ -410,7 +410,7 @@ setup_symkey (STRING2KEY **symkey_s2k,DEK **symkey_dek)
 {
   int canceled;
 
-  *symkey_s2k=xmalloc_clear(sizeof(STRING2KEY));
+  *symkey_s2k= (STRING2KEY*) xmalloc_clear(sizeof(STRING2KEY));
   (*symkey_s2k)->mode = opt.s2k_mode;
   (*symkey_s2k)->hash_algo = S2K_DIGEST_ALGO;
 
@@ -437,7 +437,7 @@ write_symkey_enc (STRING2KEY *symkey_s2k, DEK *symkey_dek, DEK *dek,
   byte enckey[33];
   PACKET pkt;
 
-  enc=xmalloc_clear(sizeof(PKT_symkey_enc)+seskeylen+1);
+  enc= (PKT_symkey_enc*) xmalloc_clear(sizeof(PKT_symkey_enc)+seskeylen+1);
   encrypt_seskey(symkey_dek,&dek,enckey);
 
   enc->version = 4;
@@ -575,7 +575,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
     }
 
   /* Create a session key. */
-  cfx.dek = xmalloc_secure_clear (sizeof *cfx.dek);
+  cfx.dek = (DEK*) xmalloc_secure_clear (sizeof *cfx.dek);
   if (!opt.def_cipher_algo)
     {
       /* Try to get it from the prefs.  */
@@ -825,7 +825,7 @@ encrypt_filter (void *opaque, int control,
                 iobuf_t a, byte *buf, size_t *ret_len)
 {
   size_t size = *ret_len;
-  encrypt_filter_context_t *efx = opaque;
+  encrypt_filter_context_t *efx = (encrypt_filter_context_t*) opaque;
   int rc = 0;
 
   if (control == IOBUFCTRL_UNDERFLOW) /* decrypt */
@@ -836,7 +836,7 @@ encrypt_filter (void *opaque, int control,
     {
       if ( !efx->header_okay )
         {
-          efx->cfx.dek = xmalloc_secure_clear ( sizeof *efx->cfx.dek );
+          efx->cfx.dek = (DEK*) xmalloc_secure_clear ( sizeof *efx->cfx.dek );
           if ( !opt.def_cipher_algo  )
             {
               /* Try to get it from the prefs. */
@@ -924,7 +924,7 @@ write_pubkey_enc (ctrl_t ctrl,
   gcry_mpi_t frame;
 
   print_pubkey_algo_note ( pk->pubkey_algo );
-  enc = xmalloc_clear ( sizeof *enc );
+  enc = (PKT_pubkey_enc*) xmalloc_clear ( sizeof *enc );
   enc->pubkey_algo = pk->pubkey_algo;
   keyid_from_pk( pk, enc->keyid );
   enc->throw_keyid = throw_keyid;

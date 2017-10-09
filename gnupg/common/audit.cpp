@@ -89,7 +89,7 @@ add_helptag (audit_ctx_t ctx, const char *name)
   for (item=ctx->helptags; item; item = item->next)
     if (!strcmp (item->name, name))
       return;  /* Already in the list.  */
-  item = xtrycalloc (1, sizeof *item);
+  item = (helptag_t) xtrycalloc (1, sizeof *item);
   if (!item)
     return;  /* Don't care about memory problems.  */
   item->name = name;
@@ -133,7 +133,7 @@ audit_new (void)
 {
   audit_ctx_t ctx;
 
-  ctx = xtrycalloc (1, sizeof *ctx);
+  ctx = (audit_ctx_t) xtrycalloc (1, sizeof *ctx);
 
   return ctx;
 }
@@ -192,7 +192,7 @@ create_log_item (audit_ctx_t ctx)
   if (!ctx->log)
     {
       size = 10;
-      table = xtrymalloc (size * sizeof *table);
+      table = (log_item_t) xtrymalloc (size * sizeof *table);
       if (!table)
         {
           ctx->failure = "Out of memory in create_log_item";
@@ -206,7 +206,7 @@ create_log_item (audit_ctx_t ctx)
   else if (ctx->logused >= ctx->logsize)
     {
       size = ctx->logsize + 10;
-      table = xtryrealloc (ctx->log, size * sizeof *table);
+      table = (log_item_t) xtryrealloc (ctx->log, size * sizeof *table);
       if (!table)
         {
           ctx->failure = "Out of memory while reallocating in create_log_item";
@@ -648,7 +648,7 @@ get_cert_name (ksba_cert_t cert)
         result = xtrystrdup ("[invalid S/N]");
       else
         {
-          result = xtrymalloc (strlen (p) + strlen (issuer) + 2 + 1);
+          result = (char*) xtrymalloc (strlen (p) + strlen (issuer) + 2 + 1);
           if (result)
             {
               *result = '#';
@@ -678,7 +678,7 @@ get_cert_subject (ksba_cert_t cert, int idx)
   subject = ksba_cert_get_subject (cert, idx);
   if (subject)
     {
-      result = xtrymalloc (strlen (subject) + 1 + 1);
+      result = (char*) xtrymalloc (strlen (subject) + 1 + 1);
       if (result)
         {
           *result = '/';

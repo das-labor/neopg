@@ -96,7 +96,7 @@ do_show_revocation_reason( PKT_signature *sig )
 		n--;
 	    }
 	    if( n ) {
-		pp = memchr( p, '\n', n );
+		pp = (const byte*) memchr( p, '\n', n );
 		nn = pp? pp - p : n;
 		log_info ( _("revocation comment: ") );
 		es_write_sanitized (log_get_stream(), p, nn, NULL, NULL);
@@ -545,7 +545,7 @@ write_trust_status (int statuscode, int trustlevel)
 int
 check_signatures_trust (ctrl_t ctrl, PKT_signature *sig)
 {
-  PKT_public_key *pk = xmalloc_clear( sizeof *pk );
+  PKT_public_key *pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
   unsigned int trustlevel = TRUST_UNKNOWN;
   int rc=0;
 
@@ -602,7 +602,7 @@ check_signatures_trust (ctrl_t ctrl, PKT_signature *sig)
       int okay;
 
 
-      primary_pk = xmalloc_clear (sizeof *primary_pk);
+      primary_pk = (PKT_public_key*) xmalloc_clear (sizeof *primary_pk);
       get_pubkey (ctrl, primary_pk, pk->main_keyid);
       fingerprint_from_pk (primary_pk, fpr, &fprlen);
       free_public_key (primary_pk);
@@ -747,7 +747,7 @@ default_recipient(ctrl_t ctrl)
 	return xstrdup( opt.def_recipient );
     if( !opt.def_recipient_self )
 	return NULL;
-    pk = xmalloc_clear( sizeof *pk );
+    pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
     i = get_seckey_default (ctrl, pk);
     if( i ) {
 	free_public_key( pk );
@@ -756,7 +756,7 @@ default_recipient(ctrl_t ctrl)
     n = MAX_FINGERPRINT_LEN;
     fingerprint_from_pk( pk, fpr, &n );
     free_public_key( pk );
-    p = xmalloc( 2*n+3 );
+    p = (char*) xmalloc( 2*n+3 );
     *p++ = '0';
     *p++ = 'x';
     for(i=0; i < n; i++ )
@@ -831,7 +831,7 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
   if (!name || !*name)
     return GPG_ERR_INV_USER_ID;
 
-  pk = xtrycalloc (1, sizeof *pk);
+  pk = (PKT_public_key*) xtrycalloc (1, sizeof *pk);
   if (!pk)
     return gpg_error_from_syserror ();
   pk->req_usage = use;
@@ -904,7 +904,7 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
     {
       pk_list_t r;
 
-      r = xtrymalloc (sizeof *r);
+      r = (pk_list_t) xtrymalloc (sizeof *r);
       if (!r)
         {
           rc = gpg_error_from_syserror ();
@@ -973,9 +973,9 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
       const char *default_key = parse_def_secret_key (ctrl);
       if (default_key)
         {
-          PK_LIST r = xmalloc_clear (sizeof *r);
+          PK_LIST r = (PK_LIST) xmalloc_clear (sizeof *r);
 
-          r->pk = xmalloc_clear (sizeof *r->pk);
+          r->pk = (PKT_public_key*) xmalloc_clear (sizeof *r->pk);
           r->pk->req_usage = PUBKEY_USAGE_ENC;
 
           rc = get_pubkey_byname (ctrl, NULL, r->pk, default_key,
@@ -1038,7 +1038,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
         {
           /* --encrypt-to has not been disabled.  Check this
              encrypt-to key. */
-          pk = xmalloc_clear( sizeof *pk );
+          pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
           pk->req_usage = PUBKEY_USAGE_ENC;
 
           /* We explicitly allow encrypt-to to an disabled key; thus
@@ -1067,7 +1067,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
               else
                 {
                   PK_LIST r;
-                  r = xmalloc( sizeof *r );
+                  r = (PK_LIST) xmalloc( sizeof *r );
                   r->pk = pk; pk = NULL;
                   r->next = pk_list;
                   r->flags = (rov->flags&PK_LIST_HIDDEN)?1:0;
@@ -1180,7 +1180,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
 
           /* Get and check key for the current name. */
           free_public_key (pk);
-          pk = xmalloc_clear( sizeof *pk );
+          pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
           pk->req_usage = PUBKEY_USAGE_ENC;
           rc = get_pubkey_byname (ctrl, NULL, pk, answer, NULL, NULL, 0, 0 );
           if (rc)
@@ -1200,7 +1200,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                     }
                   else
                     {
-                      PK_LIST r = xmalloc (sizeof *r);
+                      PK_LIST r = (PK_LIST) xmalloc (sizeof *r);
                       r->pk = pk; pk = NULL;
                       r->next = pk_list;
                       r->flags = 0; /* No throwing default ids. */
@@ -1232,7 +1232,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                       else
                         {
                           PK_LIST r;
-                          r = xmalloc( sizeof *r );
+                          r = (PK_LIST) xmalloc( sizeof *r );
                           r->pk = pk; pk = NULL;
                           r->next = pk_list;
                           r->flags = 0; /* No throwing interactive ids. */
@@ -1255,7 +1255,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
   else if ( !any_recipients && (def_rec = default_recipient(ctrl)) )
     {
       /* We are in batch mode and have only a default recipient. */
-      pk = xmalloc_clear( sizeof *pk );
+      pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
       pk->req_usage = PUBKEY_USAGE_ENC;
 
       /* The default recipient is allowed to be disabled; thus pass 1
@@ -1276,7 +1276,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                         "as default recipient\n"));
           else
             {
-              PK_LIST r = xmalloc( sizeof *r );
+              PK_LIST r = (PK_LIST) xmalloc( sizeof *r );
               r->pk = pk; pk = NULL;
               r->next = pk_list;
               r->flags = 0; /* No throwing default ids. */

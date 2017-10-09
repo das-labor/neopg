@@ -111,7 +111,7 @@ static inline u32 ror(u32 x, int n)
 static void
 transform (hmac256_context_t hd, const void *data_arg)
 {
-  const unsigned char *data = data_arg;
+  const unsigned char *data = (const unsigned char*) data_arg;
 
 #define Cho(x,y,z) (z ^ (x & (y ^ z)))      /* (4.2) same as SHA-1's F1 */
 #define Maj(x,y,z) ((x & y) | (z & (x|y)))  /* (4.3) same as SHA-1's F3 */
@@ -287,7 +287,7 @@ _gcry_hmac256_new (const void *key, size_t keylen)
 {
   hmac256_context_t hd;
 
-  hd = malloc (sizeof *hd);
+  hd = (hmac256_context_t) malloc (sizeof *hd);
   if (!hd)
     return NULL;
 
@@ -366,7 +366,7 @@ void
 _gcry_hmac256_update (hmac256_context_t hd,
                         const void *buffer, size_t length)
 {
-  const unsigned char *inbuf = buffer;
+  const unsigned char *inbuf = (const unsigned char*) buffer;
 
   if (hd->finalized)
     return; /* Silently ignore a finalized context.  */
@@ -460,7 +460,7 @@ _gcry_hmac256_file (void *result, size_t resultsize, const char *filename,
     }
 
   buffer_size = 32768;
-  buffer = malloc (buffer_size);
+  buffer = (char*) malloc (buffer_size);
   if (!buffer)
     {
       fclose (fp);
@@ -482,7 +482,7 @@ _gcry_hmac256_file (void *result, size_t resultsize, const char *filename,
 
   fclose (fp);
 
-  digest = _gcry_hmac256_finalize (hd, &digestlen);
+  digest = (const unsigned char*) _gcry_hmac256_finalize (hd, &digestlen);
   if (!digest)
     {
       _gcry_hmac256_release (hd);

@@ -281,7 +281,7 @@ put_record_into_cache (unsigned long recno, const char *data)
   if (cache_entries < MAX_CACHE_ENTRIES_SOFT)
     {
       /* No: Put into cache.  */
-      r = xmalloc (sizeof *r);
+      r = (CACHE_CTRL) xmalloc (sizeof *r);
       r->flags.used = 1;
       r->recno = recno;
       memcpy (r->data, data, TRUST_RECORD_LEN);
@@ -337,7 +337,7 @@ put_record_into_cache (unsigned long recno, const char *data)
         {
           if (opt.debug && !(cache_entries % 100))
             log_debug ("increasing tdbio cache size\n");
-          r = xmalloc (sizeof *r);
+          r = (CACHE_CTRL) xmalloc (sizeof *r);
           r->flags.used = 1;
           r->recno = recno;
           memcpy (r->data, data, TRUST_RECORD_LEN);
@@ -1454,7 +1454,7 @@ tdbio_read_record (unsigned long recnum, TRUSTREC *rec, int expected)
   if (db_fd == -1)
     open_db ();
 
-  buf = get_record_from_cache( recnum );
+  buf = (const byte*) get_record_from_cache( recnum );
   if (!buf)
     {
       if (lseek (db_fd, recnum * TRUST_RECORD_LEN, SEEK_SET) == -1)

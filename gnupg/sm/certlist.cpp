@@ -291,7 +291,7 @@ gpgsm_add_cert_to_certlist (ctrl_t ctrl, ksba_cert_t cert,
 
   if (!is_cert_in_certlist (cert, *listaddr))
     {
-      certlist_t cl = xtrycalloc (1, sizeof *cl);
+      certlist_t cl = (certlist_t) xtrycalloc (1, sizeof *cl);
       if (!cl)
         return out_of_core ();
       cl->cert = cert;
@@ -449,7 +449,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                                            0, NULL, 0, NULL);
               if (!rc)
                 {
-                  certlist_t cl = xtrycalloc (1, sizeof *cl);
+                  certlist_t cl = (certlist_t) xtrycalloc (1, sizeof *cl);
                   if (!cl)
                     rc = out_of_core ();
                   else

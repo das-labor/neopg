@@ -213,13 +213,13 @@ _assuan_log_control_channel (assuan_context_t ctx, int outbound,
       const unsigned char *s;
       unsigned int n, x;
 
-      for (n = length1, s = buffer1; n; n--, s++)
+      for (n = length1, s = (const unsigned char*) buffer1; n; n--, s++)
         if ((!isascii (*s) || iscntrl (*s) || !isprint (*s) || !*s)
             && !(*s >= 0x80))
           break;
       if (!n && buffer2)
         {
-          for (n = length2, s = buffer2; n; n--, s++)
+          for (n = length2, s = (const unsigned char*) buffer2; n; n--, s++)
             if ((!isascii (*s) || iscntrl (*s) || !isprint (*s) || !*s)
                 && !(*s >= 0x80))
               break;
@@ -251,7 +251,7 @@ _assuan_log_control_channel (assuan_context_t ctx, int outbound,
           if (nbytes > maxbytes)
             nbytes = maxbytes;
 
-          if (!(outbuf = malloc (50 + 3*nbytes + 60 + 3 + 1)))
+          if (!(outbuf = (char*) malloc (50 + 3*nbytes + 60 + 3 + 1)))
             res = -1;
           else
             {
@@ -261,14 +261,14 @@ _assuan_log_control_channel (assuan_context_t ctx, int outbound,
                         ctx->inbound.fd, outbound? "->":"<-");
               hp += strlen (hp);
               n = 0;
-              for (s = buffer1, x = 0; x < length1 && n < nbytes; x++, n++)
+              for (s = (const unsigned char*) buffer1, x = 0; x < length1 && n < nbytes; x++, n++)
                 {
                   *hp++ = ' ';
                   *hp++ = TOHEX (*s >> 4);
                   *hp++ = TOHEX (*s & 0x0f);
                   s++;
                 }
-              for (s = buffer2, x = 0; x < length2 && n < nbytes; x++, n++)
+              for (s = (const unsigned char*) buffer2, x = 0; x < length2 && n < nbytes; x++, n++)
                 {
                   *hp++ = ' ';
                   *hp++ = TOHEX (*s >> 4);

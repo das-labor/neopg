@@ -112,7 +112,7 @@ _gcry_ecc_ec2os (gcry_mpi_t x, gcry_mpi_t y, gcry_mpi_t p)
   unsigned char *buf, *ptr;
   gcry_mpi_t result;
 
-  buf = xmalloc ( 1 + 2*pbytes );
+  buf = (unsigned char*) xmalloc ( 1 + 2*pbytes );
   *buf = 04; /* Uncompressed point.  */
   ptr = buf+1;
   rc = _gcry_mpi_print (GCRYMPI_FMT_USG, ptr, pbytes, &n, x);
@@ -178,7 +178,7 @@ _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value)
     {
       unsigned int nbits;
 
-      buf = mpi_get_opaque (value, &nbits);
+      buf = (const unsigned char*) mpi_get_opaque (value, &nbits);
       if (!buf)
         return GPG_ERR_INV_OBJ;
       n = (nbits + 7)/8;
@@ -187,7 +187,7 @@ _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value)
   else
     {
       n = (mpi_get_nbits (value)+7)/8;
-      buf_memory = xmalloc (n);
+      buf_memory = (unsigned char*) xmalloc (n);
       rc = _gcry_mpi_print (GCRYMPI_FMT_USG, buf_memory, n, &n, value);
       if (rc)
         {
@@ -300,7 +300,7 @@ _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result)
       const unsigned char *buf;
       unsigned char *p;
 
-      buf = mpi_get_opaque (pk, &rawmpilen);
+      buf = (const unsigned char*) mpi_get_opaque (pk, &rawmpilen);
       if (!buf)
         return GPG_ERR_INV_OBJ;
       rawmpilen = (rawmpilen + 7)/8;
@@ -311,7 +311,7 @@ _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx, mpi_point_t result)
           buf++;
         }
 
-      rawmpi = xtrymalloc (rawmpilen? rawmpilen:1);
+      rawmpi = (unsigned char*) xtrymalloc (rawmpilen? rawmpilen:1);
       if (!rawmpi)
         return gpg_error_from_syserror ();
 

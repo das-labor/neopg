@@ -55,7 +55,7 @@ pk_ecdh_default_params (unsigned int qbits)
   byte *kek_params;
   int i;
 
-  kek_params = xtrymalloc (4);
+  kek_params = (byte*) xtrymalloc (4);
   if (!kek_params)
     return NULL;
   kek_params[0] = 3; /* Number of bytes to follow. */
@@ -118,7 +118,7 @@ pk_ecdh_encrypt_with_shared_point (int is_encrypt, gcry_mpi_t shared_mpi,
     /* Extract x component of the shared point: this is the actual
        shared secret. */
     nbytes = (mpi_get_nbits (pkey[1] /* public point */)+7)/8;
-    secret_x = xtrymalloc_secure (nbytes);
+    secret_x = (byte*) xtrymalloc_secure (nbytes);
     if (!secret_x)
       return gpg_error_from_syserror ();
 
@@ -175,7 +175,7 @@ pk_ecdh_encrypt_with_shared_point (int is_encrypt, gcry_mpi_t shared_mpi,
       xfree (secret_x);
       return GPG_ERR_BUG;
     }
-  kek_params = gcry_mpi_get_opaque (pkey[2], &nbits);
+  kek_params = (const unsigned char*) gcry_mpi_get_opaque (pkey[2], &nbits);
   kek_params_size = (nbits+7)/8;
 
   if (DBG_CRYPTO)
@@ -313,7 +313,7 @@ pk_ecdh_encrypt_with_shared_point (int is_encrypt, gcry_mpi_t shared_mpi,
         return GPG_ERR_BAD_DATA;
       }
 
-    data_buf = xtrymalloc_secure( 1 + 2*data_buf_size + 8);
+    data_buf = (byte*) xtrymalloc_secure( 1 + 2*data_buf_size + 8);
     if (!data_buf)
       {
         err = gpg_error_from_syserror ();

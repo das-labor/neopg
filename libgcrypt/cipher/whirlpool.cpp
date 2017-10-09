@@ -1175,7 +1175,7 @@ whirlpool_transform (void *ctx, const unsigned char *data, size_t nblks);
 static void
 whirlpool_init (void *ctx, unsigned int flags)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
 
   memset (context, 0, sizeof (*context));
 
@@ -1222,7 +1222,7 @@ whirlpool_transform (void *ctx, const unsigned char *data, size_t nblks)
 static unsigned int
 whirlpool_transform_blk (void *ctx, const unsigned char *data)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
   whirlpool_block_t data_block;
   whirlpool_block_t key;
   whirlpool_block_t state;
@@ -1342,7 +1342,7 @@ static void
 whirlpool_add_bugemu (whirlpool_context_t *context,
                       const void *buffer_arg, size_t buffer_n)
 {
-  const unsigned char *buffer = buffer_arg;
+  const unsigned char *buffer = (const unsigned char*) buffer_arg;
   u64 buffer_size;
   unsigned int carry;
   unsigned int i;
@@ -1404,7 +1404,7 @@ whirlpool_add_bugemu (whirlpool_context_t *context,
 static void
 whirlpool_final_bugemu (void *ctx)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
   unsigned int i;
 
   /* Flush.  */
@@ -1436,7 +1436,7 @@ whirlpool_final_bugemu (void *ctx)
 static void
 whirlpool_write (void *ctx, const void *buffer, size_t buffer_n)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
 
   if (context->use_bugemu)
     {
@@ -1455,7 +1455,7 @@ whirlpool_write (void *ctx, const void *buffer, size_t buffer_n)
 static void
 whirlpool_final (void *ctx)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
   unsigned int i;
   u64 t, th, lsb, msb;
   unsigned char *length;
@@ -1516,7 +1516,7 @@ whirlpool_final (void *ctx)
 static byte *
 whirlpool_read (void *ctx)
 {
-  whirlpool_context_t *context = ctx;
+  whirlpool_context_t *context = (whirlpool_context_t*) ctx;
 
   return context->bctx.buf;
 }

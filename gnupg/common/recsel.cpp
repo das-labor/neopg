@@ -80,7 +80,7 @@ struct recsel_expr_s
 static const char *
 my_memstr (const void *buffer, size_t buflen, const char *sub)
 {
-  const unsigned char *buf = buffer;
+  const unsigned char *buf = (const unsigned char*) buffer;
   const unsigned char *t = (const unsigned char *)buf;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
@@ -233,7 +233,7 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   if (next_lc)
     *next_lc = 0;  /* Terminate this term.  */
 
-  se = xtrymalloc (sizeof *se + strlen (expr));
+  se = (recsel_expr_t) xtrymalloc (sizeof *se + strlen (expr));
   if (!se)
     return gpg_error_from_syserror ();
   strcpy (se->name, expr);

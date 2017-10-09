@@ -376,7 +376,7 @@ static void
 crc32_write (void *context, const void *inbuf_arg, size_t inlen)
 {
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
-  const byte *inbuf = inbuf_arg;
+  const byte *inbuf = (const byte*) inbuf_arg;
   u32 crc;
 
 #ifdef USE_INTEL_PCLMUL
@@ -783,7 +783,7 @@ crc24rfc2440_init (void *context, unsigned int flags)
 static void
 crc24rfc2440_write (void *context, const void *inbuf_arg, size_t inlen)
 {
-  const unsigned char *inbuf = inbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   CRC_CONTEXT *ctx = (CRC_CONTEXT *) context;
   u32 crc;
 

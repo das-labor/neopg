@@ -184,7 +184,7 @@ save_pool_prime (gcry_mpi_t prime, gcry_random_level_t randomlevel)
     }
   if (!item)
     {
-      item = xtrycalloc (1, sizeof *item);
+      item = (primepool_s*) xtrycalloc (1, sizeof *item);
       if (!item)
         {
           /* Out of memory.  Silently giving up. */
@@ -382,7 +382,7 @@ prime_generate_internal (int need_q_factor,
     q_factor = gen_prime (req_qbits, is_secret, randomlevel, NULL, NULL);
 
   /* Allocate an array to hold all factors + 2 for later usage.  */
-  factors = xtrycalloc (n + 2, sizeof (*factors));
+  factors = (gcry_mpi**) xtrycalloc (n + 2, sizeof (*factors));
   if (!factors)
     {
       err = gpg_error_from_errno (errno);
@@ -390,7 +390,7 @@ prime_generate_internal (int need_q_factor,
     }
 
   /* Allocate an array to track pool usage. */
-  pool_in_use = xtrymalloc (n * sizeof *pool_in_use);
+  pool_in_use = (int*) xtrymalloc (n * sizeof *pool_in_use);
   if (!pool_in_use)
     {
       err = gpg_error_from_errno (errno);
@@ -409,7 +409,7 @@ prime_generate_internal (int need_q_factor,
     m += 5;
   if (m < 30)
     m = 30;
-  pool = xtrycalloc (m , sizeof (*pool));
+  pool = (gcry_mpi**) xtrycalloc (m , sizeof (*pool));
   if (! pool)
     {
       err = gpg_error_from_errno (errno);
@@ -435,7 +435,7 @@ prime_generate_internal (int need_q_factor,
             }
 
           /* Init m_out_of_n().  */
-          perms = xtrycalloc (1, m);
+          perms = (unsigned char*) xtrycalloc (1, m);
           if (!perms)
             {
               err = gpg_error_from_errno (errno);
@@ -590,7 +590,7 @@ prime_generate_internal (int need_q_factor,
   if (ret_factors)
     {
       /* Caller wants the factors.  */
-      factors_new = xtrycalloc (n + 4, sizeof (*factors_new));
+      factors_new = (gcry_mpi**) xtrycalloc (n + 4, sizeof (*factors_new));
       if (! factors_new)
         {
           err = gpg_error_from_errno (errno);
@@ -758,7 +758,7 @@ gen_prime (unsigned int nbits, int secret, int randomlevel,
   if (nbits < 16)
     log_fatal ("can't generate a prime with less than %d bits\n", 16);
 
-  mods = xmalloc (no_of_small_prime_numbers * sizeof *mods);
+  mods = (int*) xmalloc (no_of_small_prime_numbers * sizeof *mods);
   /* Make nbits fit into gcry_mpi_t implementation. */
   val_2  = mpi_alloc_set_ui( 2 );
   val_3 = mpi_alloc_set_ui( 3);
@@ -1469,7 +1469,7 @@ _gcry_generate_fips186_2_prime (unsigned int pbits, unsigned int qbits,
     return GPG_ERR_INV_ARG;
 
   /* Allocate a buffer to later compute SEED+some_increment. */
-  seed_plus = xtrymalloc (seedlen < 20? 20:seedlen);
+  seed_plus = (unsigned char*) xtrymalloc (seedlen < 20? 20:seedlen);
   if (!seed_plus)
     {
       ec = gpg_error_from_syserror ();
@@ -1703,7 +1703,7 @@ _gcry_generate_fips186_3_prime (unsigned int pbits, unsigned int qbits,
 
   /* Allocate a buffer to later compute SEED+some_increment and a few
      helper variables.  */
-  seed_plus = xtrymalloc (seedlen < sizeof seed_help_buffer?
+  seed_plus = (unsigned char*) xtrymalloc (seedlen < sizeof seed_help_buffer?
                           sizeof seed_help_buffer : seedlen);
   if (!seed_plus)
     {

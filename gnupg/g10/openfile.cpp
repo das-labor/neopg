@@ -140,7 +140,7 @@ ask_outfile_name( const char *name, size_t namelen )
 
   s = _("Enter new filename");
   n = strlen(s) + (defname?strlen (defname):0) + 10;
-  prompt = xmalloc (n);
+  prompt = (char*) xmalloc (n);
   if (defname)
     snprintf (prompt, n, "%s [%s]: ", s, defname );
   else

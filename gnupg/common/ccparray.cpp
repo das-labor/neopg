@@ -77,7 +77,7 @@ ccparray_init (ccparray_t *cpa, unsigned int initialsize)
 
   cpa->count = 0;
   cpa->out_of_core = 0;
-  cpa->array = xtrycalloc (cpa->size, sizeof *cpa->array);
+  cpa->array = (const char**) xtrycalloc (cpa->size, sizeof *cpa->array);
   if (!cpa->array)
     cpa->out_of_core = errno;
 }
@@ -106,7 +106,7 @@ ccparray_put (ccparray_t *cpa, const char *value)
           return;
         }
 
-      newarray = xtrycalloc (newsize, sizeof *newarray);
+      newarray = (const char**) xtrycalloc (newsize, sizeof *newarray);
       if (!newarray)
         {
           cpa->out_of_core = errno ? errno : ENOMEM;

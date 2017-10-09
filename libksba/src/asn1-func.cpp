@@ -56,7 +56,7 @@ add_node (node_type_t type)
 {
   AsnNode punt;
 
-  punt = xmalloc (sizeof *punt);
+  punt = (AsnNode) xmalloc (sizeof *punt);
 
   punt->left = NULL;
   punt->name = NULL;
@@ -131,7 +131,7 @@ _ksba_asn_set_value (AsnNode node,
         xfree (node->value.v_cstr);
       else if (node->valuetype == VALTYPE_MEM)
         xfree (node->value.v_mem.buf);
-      node->valuetype = 0;
+      node->valuetype = (asn_value_type) 0;
     }
 
   switch (vtype)
@@ -149,7 +149,7 @@ _ksba_asn_set_value (AsnNode node,
       node->value.v_mem.len = len;
       if (len)
         {
-          node->value.v_mem.buf = xmalloc (len);
+          node->value.v_mem.buf = (unsigned char*) xmalloc (len);
           memcpy (node->value.v_mem.buf, value, len);
         }
       else
@@ -1082,7 +1082,7 @@ resolve_identifier (AsnNode root, AsnNode node, int nestlevel)
     buf = buf_space;
   else
     {
-      buf = xtrymalloc (bufsize);
+      buf = (char*) xtrymalloc (bufsize);
       return_null_if_fail (buf);
     }
   strcpy (stpcpy (stpcpy (buf, root->name), "."), node->value.v_cstr);

@@ -131,7 +131,7 @@ all_zero_p (void *buffer, size_t length)
 {
   char *p;
 
-  for (p=buffer; length; length--, p++)
+  for (p= (char*) buffer; length; length--, p++)
     if (*p)
       return 0;
   return 1;
@@ -206,7 +206,7 @@ keygripstr_from_pk_file (app_t app, int fid, char *r_gripstr)
           size_t newlen;
 
           newlen = 1 + buflen[i] - offset[i];
-          newbuf = xtrymalloc (newlen);
+          newbuf = (unsigned char*) xtrymalloc (newlen);
           if (!newlen)
             {
               xfree (buffer[0]);
@@ -1177,7 +1177,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *pwidstr,
     {
       /* With the nullpin flag, we do not verify the PIN - it would
          fail if the Nullpin is still set.  */
-      oldpin = xtrycalloc (1, 6);
+      oldpin = (char*) xtrycalloc (1, 6);
       if (!oldpin)
         {
           err = gpg_error_from_syserror ();
@@ -1244,7 +1244,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *pwidstr,
       char *data;
       size_t datalen = oldpinlen + newpinlen;
 
-      data = xtrymalloc (datalen);
+      data = (char*) xtrymalloc (datalen);
       if (!data)
         {
           err = gpg_error_from_syserror ();
@@ -1396,7 +1396,7 @@ app_select_nks (app_t app)
     {
       app->apptype = "NKS";
 
-      app->app_local = xtrycalloc (1, sizeof *app->app_local);
+      app->app_local = (app_local_s*) xtrycalloc (1, sizeof *app->app_local);
       if (!app->app_local)
         {
           rc = gpg_error_from_errno (errno);

@@ -657,7 +657,7 @@ parse_format (const char *format,
           newmax = max_argspecs + ARGSPECS_BUMP_VALUE;
           if (newmax <= max_argspecs)
             goto leave_einval;  /* Too many arguments. */
-          newarg = calloc (newmax, sizeof *newarg);
+          newarg = (argspec_t) calloc (newmax, sizeof *newarg);
           if (!newarg)
             goto leave;
           for (n=0; n < argcount; n++)
@@ -1546,7 +1546,7 @@ _gpgrt_estream_format (estream_printf_out_t outfnc,
      use a stack allocated buffer.  */
   if (max_pos > DIM(valuetable_buffer))
     {
-      valuetable = calloc (max_pos, sizeof *valuetable);
+      valuetable = (valueitem_t) calloc (max_pos, sizeof *valuetable);
       if (!valuetable)
         goto leave_error;
     }
@@ -1673,7 +1673,7 @@ struct fixed_buffer_parm_s
 static int
 fixed_buffer_out (void *outfncarg, const char *buf, size_t buflen)
 {
-  struct fixed_buffer_parm_s *parm = outfncarg;
+  struct fixed_buffer_parm_s *parm = (fixed_buffer_parm_s*) outfncarg;
 
   parm->count += buflen;
 
@@ -1752,7 +1752,7 @@ struct dynamic_buffer_parm_s
 static int
 dynamic_buffer_out (void *outfncarg, const char *buf, size_t buflen)
 {
-  struct dynamic_buffer_parm_s *parm = outfncarg;
+  struct dynamic_buffer_parm_s *parm = (dynamic_buffer_parm_s*) outfncarg;
 
   if (parm->error_flag)
     {
@@ -1767,7 +1767,7 @@ dynamic_buffer_out (void *outfncarg, const char *buf, size_t buflen)
       char *p;
 
       parm->alloced += buflen + 512;
-      p = my_printf_realloc (parm->buffer, parm->alloced);
+      p = (char*) my_printf_realloc (parm->buffer, parm->alloced);
       if (!p)
         {
           parm->error_flag = errno ? errno : ENOMEM;
@@ -1797,7 +1797,7 @@ _gpgrt_estream_vasprintf (char **bufp, const char *format, va_list arg_ptr)
   parm.error_flag = 0;
   parm.alloced = 512;
   parm.used = 0;
-  parm.buffer = my_printf_realloc (NULL, parm.alloced);
+  parm.buffer = (char*) my_printf_realloc (NULL, parm.alloced);
   if (!parm.buffer)
     {
       *bufp = NULL;

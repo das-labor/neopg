@@ -134,7 +134,7 @@ build_sk_list (ctrl_t ctrl,
       char *serialno;
 
       memset (&info, 0, sizeof(info));
-      pk = xmalloc_clear (sizeof *pk);
+      pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
       pk->req_usage = use;
 
       /* Check if a card is available.  If any, use the key as a hint.  */
@@ -179,7 +179,7 @@ build_sk_list (ctrl_t ctrl,
 	    }
 	  else
 	    {
-	      r = xmalloc (sizeof *r);
+	      r = (SK_LIST) xmalloc (sizeof *r);
 	      r->pk = pk;
 	      pk = NULL;
 	      r->next = sk_list;
@@ -205,7 +205,7 @@ build_sk_list (ctrl_t ctrl,
 	      log_info (_("skipped \"%s\": duplicated\n"), locusr->d);
 	      continue;
 	    }
-	  pk = xmalloc_clear (sizeof *pk);
+	  pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
 	  pk->req_usage = use;
           if ((err = getkey_byname (ctrl, NULL, pk, locusr->d, 1, NULL)))
 	    {
@@ -262,7 +262,7 @@ build_sk_list (ctrl_t ctrl,
 		}
 	      else
 		{
-		  r = xmalloc (sizeof *r);
+		  r = (SK_LIST) xmalloc (sizeof *r);
 		  r->pk = pk;
 		  pk = NULL;
 		  r->next = sk_list;

@@ -51,7 +51,7 @@ transform (void *c, const unsigned char *data, size_t nblks);
 static void
 gost3411_init (void *context, unsigned int flags)
 {
-  GOSTR3411_CONTEXT *hd = context;
+  GOSTR3411_CONTEXT *hd = (GOSTR3411_CONTEXT*) context;
 
   (void)flags;
 
@@ -69,7 +69,7 @@ gost3411_init (void *context, unsigned int flags)
 static void
 gost3411_cp_init (void *context, unsigned int flags)
 {
-  GOSTR3411_CONTEXT *hd = context;
+  GOSTR3411_CONTEXT *hd = (GOSTR3411_CONTEXT*) context;
   gost3411_init (context, flags);
   hd->cryptopro = 1;
 }
@@ -241,7 +241,7 @@ do_hash_step (GOSTR3411_CONTEXT *hd, u32 *h, u32 *m)
 static unsigned int
 transform_blk (void *ctx, const unsigned char *data)
 {
-  GOSTR3411_CONTEXT *hd = ctx;
+  GOSTR3411_CONTEXT *hd = (GOSTR3411_CONTEXT*) ctx;
   u32 m[8];
   unsigned int burn;
   int i;
@@ -279,7 +279,7 @@ transform ( void *c, const unsigned char *data, size_t nblks )
 static void
 gost3411_final (void *context)
 {
-  GOSTR3411_CONTEXT *hd = context;
+  GOSTR3411_CONTEXT *hd = (GOSTR3411_CONTEXT*) context;
   size_t padlen = 0;
   u32 l[8];
   int i;
@@ -322,7 +322,7 @@ gost3411_final (void *context)
 static byte *
 gost3411_read (void *context)
 {
-  GOSTR3411_CONTEXT *hd = context;
+  GOSTR3411_CONTEXT *hd = (GOSTR3411_CONTEXT*) context;
 
   return hd->result;
 }

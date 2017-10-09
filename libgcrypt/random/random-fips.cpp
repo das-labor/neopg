@@ -524,7 +524,7 @@ static void
 entropy_collect_cb (const void *buffer, size_t length,
                     enum random_origins origin)
 {
-  const unsigned char *p = buffer;
+  const unsigned char *p = (const unsigned char*) buffer;
 
   (void)origin;
 
@@ -550,7 +550,7 @@ get_entropy (size_t nbytes)
   int rc;
 
   gcry_assert (!entropy_collect_buffer);
-  entropy_collect_buffer = xmalloc_secure (nbytes);
+  entropy_collect_buffer = (unsigned char*) xmalloc_secure (nbytes);
   entropy_collect_buffer_size = nbytes;
   entropy_collect_buffer_len = 0;
 
@@ -748,17 +748,17 @@ _gcry_rngfips_initialize (int full)
   if (!tempvalue_for_x931_aes_driver)
     {
       tempvalue_for_x931_aes_driver
-        = xmalloc_secure (TEMPVALUE_FOR_X931_AES_DRIVER_SIZE);
+        = (unsigned char*) xmalloc_secure (TEMPVALUE_FOR_X931_AES_DRIVER_SIZE);
 
       /* Allocate the random contexts.  Note that we do not need to use
          secure memory for the nonce context.  */
-      nonce_context = xcalloc (1, sizeof *nonce_context);
+      nonce_context = (rng_context_t) xcalloc (1, sizeof *nonce_context);
       setup_guards (nonce_context);
 
-      std_rng_context = xcalloc_secure (1, sizeof *std_rng_context);
+      std_rng_context = (rng_context_t) xcalloc_secure (1, sizeof *std_rng_context);
       setup_guards (std_rng_context);
 
-      strong_rng_context = xcalloc_secure (1, sizeof *strong_rng_context);
+      strong_rng_context = (rng_context_t) xcalloc_secure (1, sizeof *strong_rng_context);
       setup_guards (strong_rng_context);
     }
   else
@@ -911,7 +911,7 @@ selftest_kat (selftest_report_func_t report)
 
   gcry_assert (tempvalue_for_x931_aes_driver);
 
-  test_ctx = xcalloc (1, sizeof *test_ctx);
+  test_ctx = (rng_context_t) xcalloc (1, sizeof *test_ctx);
   setup_guards (test_ctx);
 
   lock_rng ();
@@ -1041,7 +1041,7 @@ _gcry_rngfips_init_external_test (void **r_context, unsigned int flags,
       || !dt   || dtlen   != 16 )
     return GPG_ERR_INV_ARG;
 
-  test_ctx = xtrycalloc (1, sizeof *test_ctx + dtlen);
+  test_ctx = (rng_context_t) xtrycalloc (1, sizeof *test_ctx + dtlen);
   if (!test_ctx)
     return gpg_error_from_syserror ();
   setup_guards (test_ctx);
@@ -1099,7 +1099,7 @@ _gcry_rngfips_init_external_test (void **r_context, unsigned int flags,
 gpg_error_t
 _gcry_rngfips_run_external_test (void *context, char *buffer, size_t buflen)
 {
-  rng_context_t test_ctx = context;
+  rng_context_t test_ctx = (rng_context_t) context;
 
   if (!test_ctx || !buffer || buflen != 16)
     return GPG_ERR_INV_ARG;
@@ -1114,7 +1114,7 @@ _gcry_rngfips_run_external_test (void *context, char *buffer, size_t buflen)
 void
 _gcry_rngfips_deinit_external_test (void *context)
 {
-  rng_context_t test_ctx = context;
+  rng_context_t test_ctx = (rng_context_t) context;
 
   if (test_ctx)
     {

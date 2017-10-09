@@ -555,7 +555,7 @@ _gcry_create_nonce (void *buffer, size_t length)
 
   /* Create the nonce by hashing the entire buffer, returning the hash
      and updating the first 20 bytes of the buffer with this hash. */
-  for (p = buffer; length > 0; length -= n, p += n)
+  for (p = (unsigned char*) buffer; length > 0; length -= n, p += n)
     {
       _gcry_sha1_hash_buffer (nonce_buffer,
                               nonce_buffer, sizeof nonce_buffer);

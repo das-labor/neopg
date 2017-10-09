@@ -176,7 +176,7 @@ do_print_utf8_buffer (estream_t stream,
                       const void *buffer, size_t length,
                       const char *delimiters, size_t *bytes_written)
 {
-  const char *p = buffer;
+  const char *p = (const char*) buffer;
   size_t i;
 
   /* We can handle plain ascii simpler, so check for it first. */
@@ -239,7 +239,7 @@ print_hexstring (FILE *fp, const void *buffer, size_t length, int reserved)
 
   (void)reserved;
 
-  for (s = buffer; length; s++, length--)
+  for (s = (const unsigned char*) buffer; length; s++, length--)
     {
       putc ( tohex ((*s>>4)&15), fp);
       putc ( tohex (*s&15), fp);
@@ -255,7 +255,7 @@ print_hexstring (FILE *fp, const void *buffer, size_t length, int reserved)
 char *
 try_make_printable_string (const void *p_arg, size_t n, int delim)
 {
-  const unsigned char *p = p_arg;
+  const unsigned char *p = (const unsigned char*) p_arg;
   size_t save_n, buflen;
   const unsigned char *save_p;
   char *buffer, *d;
@@ -277,7 +277,7 @@ try_make_printable_string (const void *p_arg, size_t n, int delim)
   p = save_p;
   n = save_n;
   /* And now make the string */
-  d = buffer = xtrymalloc (buflen);
+  d = buffer = (char*) xtrymalloc (buflen);
   for ( ; n; n--, p++ )
     {
       if (*p < 0x20 || *p == 0x7f || *p == delim || (delim && *p=='\\')) {

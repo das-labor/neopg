@@ -99,7 +99,7 @@ _gcry_private_malloc (size_t n)
     {
       char *p;
 
-      if ( !(p = malloc (n + EXTRA_ALIGN+5)) )
+      if ( !(p = (char*) malloc (n + EXTRA_ALIGN+5)) )
         return NULL;
       ((byte*)p)[EXTRA_ALIGN+0] = n;
       ((byte*)p)[EXTRA_ALIGN+1] = n >> 8 ;
@@ -134,7 +134,7 @@ _gcry_private_malloc_secure (size_t n, int xhint)
     {
       char *p;
 
-      if (!(p = _gcry_secmem_malloc (n + EXTRA_ALIGN + 5, xhint)))
+      if (!(p = (char*) _gcry_secmem_malloc (n + EXTRA_ALIGN + 5, xhint)))
         return NULL;
       ((byte*)p)[EXTRA_ALIGN+0] = n;
       ((byte*)p)[EXTRA_ALIGN+1] = n >> 8 ;
@@ -160,7 +160,7 @@ _gcry_private_realloc (void *a, size_t n, int xhint)
 {
   if (use_m_guard)
     {
-      unsigned char *p = a;
+      unsigned char *p = (unsigned char*) a;
       char *b;
       size_t len;
 
@@ -174,9 +174,9 @@ _gcry_private_realloc (void *a, size_t n, int xhint)
       if( len >= n ) /* We don't shrink for now. */
         return a;
       if (p[-1] == MAGIC_SEC_BYTE)
-        b = _gcry_private_malloc_secure (n, xhint);
+        b = (char*) _gcry_private_malloc_secure (n, xhint);
       else
-        b = _gcry_private_malloc(n);
+        b = (char*) _gcry_private_malloc(n);
       if (!b)
         return NULL;
       memcpy (b, a, len);
@@ -200,7 +200,7 @@ _gcry_private_check_heap (const void *a)
 {
   if (use_m_guard)
     {
-      const byte *p = a;
+      const byte *p = (const byte*) a;
       size_t len;
 
       if (!p)
@@ -223,7 +223,7 @@ _gcry_private_check_heap (const void *a)
 void
 _gcry_private_free (void *a)
 {
-  unsigned char *p = a;
+  unsigned char *p = (unsigned char*) a;
 
   if (!p)
     return;

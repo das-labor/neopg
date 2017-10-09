@@ -227,7 +227,7 @@ make_libversion (const char *libname, const char *(*getfnc)(const char*))
       maybe_setuid = 0;
     }
   s = getfnc (NULL);
-  result = xmalloc (strlen (libname) + 1 + strlen (s) + 1);
+  result = (char*) xmalloc (strlen (libname) + 1 + strlen (s) + 1);
   strcpy (stpcpy (stpcpy (result, libname), " "), s);
   return result;
 }
@@ -694,7 +694,7 @@ scd_main (int argc, char **argv )
         }
       npth_attr_setdetachstate (&tattr, NPTH_CREATE_DETACHED);
 
-      ctrl = xtrycalloc (1, sizeof *ctrl);
+      ctrl = (ctrl_t) xtrycalloc (1, sizeof *ctrl);
       if ( !ctrl )
         {
           log_error ("error allocating connection control data: %s\n",

@@ -49,7 +49,7 @@ init_membuf (membuf_t *mb, int initiallen)
   mb->len = 0;
   mb->size = initiallen;
   mb->out_of_core = 0;
-  mb->buf = xtrymalloc (initiallen);
+  mb->buf = (char*) xtrymalloc (initiallen);
   if (!mb->buf)
     mb->out_of_core = errno;
 }
@@ -61,7 +61,7 @@ init_membuf_secure (membuf_t *mb, int initiallen)
   mb->len = 0;
   mb->size = initiallen;
   mb->out_of_core = 0;
-  mb->buf = xtrymalloc_secure (initiallen);
+  mb->buf = (char*) xtrymalloc_secure (initiallen);
   if (!mb->buf)
     mb->out_of_core = errno;
 }
@@ -98,7 +98,7 @@ put_membuf (membuf_t *mb, const void *buf, size_t len)
       char *p;
 
       mb->size += len + 1024;
-      p = xtryrealloc (mb->buf, mb->size);
+      p = (char*) xtryrealloc (mb->buf, mb->size);
       if (!p)
         {
           mb->out_of_core = errno ? errno : ENOMEM;
@@ -122,7 +122,7 @@ put_membuf (membuf_t *mb, const void *buf, size_t len)
 gpg_error_t
 put_membuf_cb (void *opaque, const void *buf, size_t len)
 {
-  membuf_t *data = opaque;
+  membuf_t *data = (membuf_t*) opaque;
 
   if (buf)
     put_membuf (data, buf, len);

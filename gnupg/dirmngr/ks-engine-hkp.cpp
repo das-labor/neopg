@@ -123,7 +123,7 @@ create_new_hostinfo (const char *name)
   int newsize;
   int idx, rc;
 
-  hi = xtrymalloc (sizeof *hi + strlen (name));
+  hi = (hostinfo_t) xtrymalloc (sizeof *hi + strlen (name));
   if (!hi)
     return -1;
   strcpy (hi->name, name);
@@ -155,7 +155,7 @@ create_new_hostinfo (const char *name)
       }
   /* Need to extend the hosttable.  */
   newsize = hosttable_size + INITIAL_HOSTTABLE_SIZE;
-  newtable = xtryrealloc (hosttable, newsize * sizeof *hosttable);
+  newtable = (hostinfo_s**) xtryrealloc (hosttable, newsize * sizeof *hosttable);
   if (!newtable)
     {
       xfree (hi);
@@ -235,7 +235,7 @@ select_random_host (hostinfo_t hi)
   if (!tblsize)
     return -1; /* No hosts.  */
 
-  tbl = xtrymalloc (tblsize * sizeof *tbl);
+  tbl = (int*) xtrymalloc (tblsize * sizeof *tbl);
   if (!tbl)
     return -1;
   for (idx = 0, tblsize = 0;
@@ -407,7 +407,7 @@ add_host (const char *name, int is_pool,
               else
                 new_size = host->pool_size * 2;
 
-              new_pool = xtryrealloc (host->pool,
+              new_pool = (int*) xtryrealloc (host->pool,
                                       new_size * sizeof *new_pool);
 
               if (new_pool == NULL)
@@ -947,7 +947,7 @@ ks_hkp_print_hosttable (ctrl_t ctrl)
                   put_membuf_printf (&mb, "*");
               }
             put_membuf( &mb, "", 1);
-            p = get_membuf (&mb, NULL);
+            p = (char*) get_membuf (&mb, NULL);
             if (!p)
               return gpg_error_from_syserror ();
             err = ks_print_help (ctrl, p);
@@ -1627,7 +1627,7 @@ struct put_post_parm_s
 static gpg_error_t
 put_post_cb (void *opaque, http_t http)
 {
-  struct put_post_parm_s *parm = opaque;
+  struct put_post_parm_s *parm = (put_post_parm_s*) opaque;
   gpg_error_t err = 0;
   estream_t fp;
   size_t len;

@@ -392,7 +392,7 @@ _gcry_get_config (int mode, const char *what)
   if (what && (p = strchr ((char*)data, '\n')))
     *p = 0;
 
-  return data;
+  return (char*) data;
 }
 
 
@@ -1027,9 +1027,9 @@ _gcry_strdup_core (const char *string, int xhint)
   string_n = strlen (string);
 
   if (_gcry_is_secure (string))
-    string_cp = _gcry_malloc_secure_core (string_n + 1, xhint);
+    string_cp = (char*) _gcry_malloc_secure_core (string_n + 1, xhint);
   else
-    string_cp = _gcry_malloc (string_n + 1);
+    string_cp = (char*) _gcry_malloc (string_n + 1);
 
   if (string_cp)
     strcpy (string_cp, string);

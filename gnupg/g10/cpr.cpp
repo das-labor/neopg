@@ -425,7 +425,7 @@ do_get_from_fd ( const char *keyword, int hidden, int getbool )
         {
           char *save = string;
           len += 100;
-          string = hidden? xmalloc_secure ( len ) : xmalloc ( len );
+          string = (char*) (hidden? xmalloc_secure ( len ) : xmalloc ( len ));
           if (save)
             memcpy (string, save, i );
           else

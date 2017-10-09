@@ -42,7 +42,7 @@ static gpg_error_t
 gost_setkey (void *c, const byte *key, unsigned keylen)
 {
   int i;
-  GOST28147_context *ctx = c;
+  GOST28147_context *ctx = (GOST28147_context*) c;
 
   if (keylen != 256 / 8)
     return GPG_ERR_INV_KEYLEN;
@@ -71,7 +71,7 @@ gost_val (GOST28147_context *ctx, u32 cm1, int subkey)
 static unsigned int
 _gost_encrypt_data (void *c, u32 *o1, u32 *o2, u32 n1, u32 n2)
 {
-  GOST28147_context *ctx = c;
+  GOST28147_context *ctx = (GOST28147_context*) c;
 
   n2 ^= gost_val (ctx, n1, 0); n1 ^= gost_val (ctx, n2, 1);
   n2 ^= gost_val (ctx, n1, 2); n1 ^= gost_val (ctx, n2, 3);
@@ -104,7 +104,7 @@ _gost_encrypt_data (void *c, u32 *o1, u32 *o2, u32 n1, u32 n2)
 static unsigned int
 gost_encrypt_block (void *c, byte *outbuf, const byte *inbuf)
 {
-  GOST28147_context *ctx = c;
+  GOST28147_context *ctx = (GOST28147_context*) c;
   u32 n1, n2;
   unsigned int burn;
 
@@ -133,7 +133,7 @@ unsigned int _gcry_gost_enc_data (GOST28147_context *c, const u32 *key,
 static unsigned int
 gost_decrypt_block (void *c, byte *outbuf, const byte *inbuf)
 {
-  GOST28147_context *ctx = c;
+  GOST28147_context *ctx = (GOST28147_context*) c;
   u32 n1, n2;
 
   n1 = buf_get_le32 (inbuf);
@@ -186,7 +186,7 @@ gost_set_sbox (GOST28147_context *ctx, const char *oid)
 static gpg_error_t
 gost_set_extra_info (void *c, int what, const void *buffer, size_t buflen)
 {
-  GOST28147_context *ctx = c;
+  GOST28147_context *ctx = (GOST28147_context*) c;
   gpg_error_t ec = 0;
 
   (void)buffer;

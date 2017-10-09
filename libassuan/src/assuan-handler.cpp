@@ -424,7 +424,7 @@ assuan_register_command (assuan_context_t ctx, const char *cmd_name,
   if (!ctx->cmdtbl)
     {
       ctx->cmdtbl_size = 50;
-      ctx->cmdtbl = _assuan_calloc (ctx, ctx->cmdtbl_size, sizeof *ctx->cmdtbl);
+      ctx->cmdtbl = (cmdtbl_s*) _assuan_calloc (ctx, ctx->cmdtbl_size, sizeof *ctx->cmdtbl);
       if (!ctx->cmdtbl)
 	return gpg_error_from_syserror ();
       ctx->cmdtbl_used = 0;
@@ -433,7 +433,7 @@ assuan_register_command (assuan_context_t ctx, const char *cmd_name,
     {
       struct cmdtbl_s *x;
 
-      x = _assuan_realloc (ctx, ctx->cmdtbl, (ctx->cmdtbl_size+10) * sizeof *x);
+      x = (cmdtbl_s*) _assuan_realloc (ctx, ctx->cmdtbl, (ctx->cmdtbl_size+10) * sizeof *x);
       if (!x)
 	return gpg_error_from_syserror ();
       ctx->cmdtbl = x;
@@ -973,7 +973,7 @@ assuan_set_okay_line (assuan_context_t ctx, const char *line)
     {
       /* FIXME: we need to use gcry_is_secure() to test whether
          we should allocate the entire line in secure memory */
-      char *buf = _assuan_malloc (ctx, 3 + strlen(line) + 1);
+      char *buf = (char*) _assuan_malloc (ctx, 3 + strlen(line) + 1);
       if (!buf)
         return gpg_error_from_syserror ();
       strcpy (buf, "OK ");
@@ -1012,7 +1012,7 @@ assuan_write_status (assuan_context_t ctx,
         }
       ae = assuan_write_line (ctx, buffer);
     }
-  else if ( (helpbuf = _assuan_malloc (ctx, n)) )
+  else if ( (helpbuf = (char*) _assuan_malloc (ctx, n)) )
     {
       strcpy (helpbuf, "S ");
       strcat (helpbuf, keyword);

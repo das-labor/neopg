@@ -125,7 +125,7 @@ static void blake2_write(void *S, const void *inbuf, size_t inlen,
 			 byte *tmpbuf, size_t *tmpbuflen, size_t blkbytes,
 			 blake2_transform_t transform_fn)
 {
-  const byte* in = inbuf;
+  const byte* in = (const byte*) inbuf;
   unsigned int burn = 0;
 
   if (inlen > 0)
@@ -206,8 +206,8 @@ static unsigned int blake2b_transform(void *vS, const void *inblks,
     {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 },
     { 14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3 }
   };
-  BLAKE2B_STATE *S = vS;
-  const byte* in = inblks;
+  BLAKE2B_STATE *S = (BLAKE2B_STATE*) vS;
+  const byte* in = (const byte*) inblks;
   u64 m[16];
   u64 v[16];
 
@@ -308,7 +308,7 @@ static unsigned int blake2b_transform(void *vS, const void *inblks,
 
 static void blake2b_final(void *ctx)
 {
-  BLAKE2B_CONTEXT *c = ctx;
+  BLAKE2B_CONTEXT *c = (BLAKE2B_CONTEXT*) ctx;
   BLAKE2B_STATE *S = &c->state;
   unsigned int burn;
   size_t i;
@@ -337,13 +337,13 @@ static void blake2b_final(void *ctx)
 
 static byte *blake2b_read(void *ctx)
 {
-  BLAKE2B_CONTEXT *c = ctx;
+  BLAKE2B_CONTEXT *c = (BLAKE2B_CONTEXT*) ctx;
   return c->buf;
 }
 
 static void blake2b_write(void *ctx, const void *inbuf, size_t inlen)
 {
-  BLAKE2B_CONTEXT *c = ctx;
+  BLAKE2B_CONTEXT *c = (BLAKE2B_CONTEXT*) ctx;
   BLAKE2B_STATE *S = &c->state;
   blake2_write(S, inbuf, inlen, c->buf, &c->buflen, BLAKE2B_BLOCKBYTES,
 	       blake2b_transform);
@@ -396,7 +396,7 @@ static gpg_error_t blake2b_init_ctx(void *ctx, unsigned int flags,
 					const byte *key, size_t keylen,
 					unsigned int dbits)
 {
-  BLAKE2B_CONTEXT *c = ctx;
+  BLAKE2B_CONTEXT *c = (BLAKE2B_CONTEXT*) ctx;
 
   (void)flags;
 
@@ -439,9 +439,9 @@ static unsigned int blake2s_transform(void *vS, const void *inblks,
     {  6, 15, 14,  9, 11,  3,  0,  8, 12,  2, 13,  7,  1,  4, 10,  5 },
     { 10,  2,  8,  4,  7,  6,  1,  5, 15, 11,  9, 14,  3, 12, 13 , 0 },
   };
-  BLAKE2S_STATE *S = vS;
+  BLAKE2S_STATE *S = (BLAKE2S_STATE*) vS;
   unsigned int burn = 0;
-  const byte* in = inblks;
+  const byte* in = (const byte*) inblks;
   u32 m[16];
   u32 v[16];
 
@@ -540,7 +540,7 @@ static unsigned int blake2s_transform(void *vS, const void *inblks,
 
 static void blake2s_final(void *ctx)
 {
-  BLAKE2S_CONTEXT *c = ctx;
+  BLAKE2S_CONTEXT *c = (BLAKE2S_CONTEXT*) ctx;
   BLAKE2S_STATE *S = &c->state;
   unsigned int burn;
   size_t i;
@@ -569,13 +569,13 @@ static void blake2s_final(void *ctx)
 
 static byte *blake2s_read(void *ctx)
 {
-  BLAKE2S_CONTEXT *c = ctx;
+  BLAKE2S_CONTEXT *c = (BLAKE2S_CONTEXT*) ctx;
   return c->buf;
 }
 
 static void blake2s_write(void *ctx, const void *inbuf, size_t inlen)
 {
-  BLAKE2S_CONTEXT *c = ctx;
+  BLAKE2S_CONTEXT *c = (BLAKE2S_CONTEXT*) ctx;
   BLAKE2S_STATE *S = &c->state;
   blake2_write(S, inbuf, inlen, c->buf, &c->buflen, BLAKE2S_BLOCKBYTES,
 	       blake2s_transform);
@@ -628,7 +628,7 @@ static gpg_error_t blake2s_init_ctx(void *ctx, unsigned int flags,
 					const byte *key, size_t keylen,
 					unsigned int dbits)
 {
-  BLAKE2S_CONTEXT *c = ctx;
+  BLAKE2S_CONTEXT *c = (BLAKE2S_CONTEXT*) ctx;
 
   (void)flags;
 

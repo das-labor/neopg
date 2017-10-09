@@ -183,8 +183,8 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
 static gpg_error_t
 data_line_write (assuan_context_t ctx, const void *buffer_arg, size_t size)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
-  const char *buffer = buffer_arg;
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
+  const char *buffer = (const char*) buffer_arg;
   gpg_error_t err;
 
   /* If we do not want logging, enable it here.  */
@@ -200,7 +200,7 @@ data_line_write (assuan_context_t ctx, const void *buffer_arg, size_t size)
       nbytes = size;
       do
         {
-          p = memchr (buffer, '\n', nbytes);
+          p = (const char*) memchr (buffer, '\n', nbytes);
           n = p ? (p - buffer) + 1 : nbytes;
           err = assuan_send_data (ctx, buffer, n);
           if (err)
@@ -244,7 +244,7 @@ data_line_write (assuan_context_t ctx, const void *buffer_arg, size_t size)
 static gpgrt_ssize_t
 data_line_cookie_write (void *cookie, const void *buffer, size_t size)
 {
-  assuan_context_t ctx = cookie;
+  assuan_context_t ctx = (assuan_context_t) cookie;
 
   if (data_line_write (ctx, buffer, size))
     return -1;
@@ -255,11 +255,11 @@ data_line_cookie_write (void *cookie, const void *buffer, size_t size)
 static int
 data_line_cookie_close (void *cookie)
 {
-  assuan_context_t ctx = cookie;
+  assuan_context_t ctx = (assuan_context_t) cookie;
 
   if (DBG_IPC)
     {
-      ctrl_t ctrl = assuan_get_pointer (ctx);
+      ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
       if (ctrl && ctrl->server_local
           && ctrl->server_local->inhibit_data_logging
@@ -530,7 +530,7 @@ get_istrusted_from_client (ctrl_t ctrl, const char *hexfpr)
 static int
 inquire_cert_and_load_crl (assuan_context_t ctx)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   unsigned char *value = NULL;
   size_t valuelen;
@@ -571,7 +571,7 @@ inquire_cert_and_load_crl (assuan_context_t ctx)
 static gpg_error_t
 option_handler (assuan_context_t ctx, const char *key, const char *value)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
 
   if (!strcmp (key, "force-crl-refresh"))
@@ -798,7 +798,7 @@ static const char hlp_wkd_get[] =
 static gpg_error_t
 cmd_wkd_get (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   char *mbox = NULL;
   char *domainbuf = NULL;
@@ -948,7 +948,7 @@ static gpg_error_t
 cmd_ldapserver (assuan_context_t ctx, char *line)
 {
 #if USE_LDAP
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   ldap_server_t server;
   ldap_server_t *last_next_p;
 
@@ -999,7 +999,7 @@ static const char hlp_isvalid[] =
 static gpg_error_t
 cmd_isvalid (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   char *issuerhash, *serialno;
   gpg_error_t err;
   int did_inquire = 0;
@@ -1146,7 +1146,7 @@ static const char hlp_checkcrl[] =
 static gpg_error_t
 cmd_checkcrl (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   unsigned char fprbuffer[20], *fpr;
   ksba_cert_t cert;
@@ -1228,7 +1228,7 @@ static const char hlp_checkocsp[] =
 static gpg_error_t
 cmd_checkocsp (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   unsigned char fprbuffer[20], *fpr;
   ksba_cert_t cert;
@@ -1285,7 +1285,7 @@ cmd_checkocsp (assuan_context_t ctx, char *line)
 static int
 lookup_cert_by_url (assuan_context_t ctx, const char *url)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   unsigned char *value = NULL;
   size_t valuelen;
@@ -1320,7 +1320,7 @@ lookup_cert_by_url (assuan_context_t ctx, const char *url)
 static gpg_error_t
 return_one_cert (void *opaque, ksba_cert_t cert)
 {
-  assuan_context_t ctx = opaque;
+  assuan_context_t ctx = (assuan_context_t) opaque;
   gpg_error_t err;
   const unsigned char *der;
   size_t derlen;
@@ -1355,7 +1355,7 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
   int count = 0;
   int local_count = 0;
 #if USE_LDAP
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   unsigned char *value = NULL;
   size_t valuelen;
   struct ldapserver_iter ldapserver_iter;
@@ -1373,7 +1373,7 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
 
       if (*line)
         {
-          sl = xtrymalloc (sizeof *sl + strlen (line));
+          sl = (strlist_t) xtrymalloc (sizeof *sl + strlen (line));
           if (!sl)
             {
               err = gpg_error_from_errno (errno);
@@ -1590,7 +1590,7 @@ static const char hlp_loadcrl[] =
 static gpg_error_t
 cmd_loadcrl (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   int use_url = has_leading_option (line, "--url");
 
@@ -1617,7 +1617,7 @@ cmd_loadcrl (assuan_context_t ctx, char *line)
     {
       char *buf;
 
-      buf = xtrymalloc (strlen (line)+1);
+      buf = (char*) xtrymalloc (strlen (line)+1);
       if (!buf)
         err = gpg_error_from_syserror ();
       else
@@ -1675,7 +1675,7 @@ static const char hlp_cachecert[] =
 static gpg_error_t
 cmd_cachecert (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   ksba_cert_t cert = NULL;
   unsigned char *value = NULL;
@@ -1737,7 +1737,7 @@ static const char hlp_validate[] =
 static gpg_error_t
 cmd_validate (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   ksba_cert_t cert = NULL;
   certlist_t certlist = NULL;
@@ -1848,7 +1848,7 @@ make_keyserver_item (const char *uri, uri_item_t *r_item)
   uri_item_t item;
 
   *r_item = NULL;
-  item = xtrymalloc (sizeof *item + strlen (uri));
+  item = (uri_item_t) xtrymalloc (sizeof *item + strlen (uri));
   if (!item)
     return gpg_error_from_syserror ();
 
@@ -1979,7 +1979,7 @@ static const char hlp_keyserver[] =
 static gpg_error_t
 cmd_keyserver (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   int clear_flag, add_flag, help_flag, host_flag, resolve_flag;
   int dead_flag, alive_flag;
@@ -2084,7 +2084,7 @@ static const char hlp_ks_search[] =
 static gpg_error_t
 cmd_ks_search (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   strlist_t list, sl;
   char *p;
@@ -2105,7 +2105,7 @@ cmd_ks_search (assuan_context_t ctx, char *line)
         *p++ = 0;
       if (*line)
         {
-          sl = xtrymalloc (sizeof *sl + strlen (line));
+          sl = (strlist_t) xtrymalloc (sizeof *sl + strlen (line));
           if (!sl)
             {
               err = gpg_error_from_syserror ();
@@ -2149,7 +2149,7 @@ static const char hlp_ks_get[] =
 static gpg_error_t
 cmd_ks_get (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   strlist_t list, sl;
   char *p;
@@ -2172,7 +2172,7 @@ cmd_ks_get (assuan_context_t ctx, char *line)
         *p++ = 0;
       if (*line)
         {
-          sl = xtrymalloc (sizeof *sl + strlen (line));
+          sl = (strlist_t) xtrymalloc (sizeof *sl + strlen (line));
           if (!sl)
             {
               err = gpg_error_from_syserror ();
@@ -2216,7 +2216,7 @@ static const char hlp_ks_fetch[] =
 static gpg_error_t
 cmd_ks_fetch (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   estream_t outfp;
 
@@ -2268,7 +2268,7 @@ static const char hlp_ks_put[] =
 static gpg_error_t
 cmd_ks_put (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
   unsigned char *value = NULL;
   size_t valuelen;
@@ -2332,7 +2332,7 @@ static const char hlp_getinfo[] =
 static gpg_error_t
 cmd_getinfo (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err;
 
   if (!strcmp (line, "version"))
@@ -2398,7 +2398,7 @@ static const char hlp_killdirmngr[] =
 static gpg_error_t
 cmd_killdirmngr (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)line;
 
@@ -2472,7 +2472,7 @@ register_commands (assuan_context_t ctx)
 static gpg_error_t
 reset_notify (assuan_context_t ctx, char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   (void)line;
 
 #if USE_LDAP
@@ -2491,7 +2491,7 @@ int
 dirmngr_assuan_log_monitor (assuan_context_t ctx, unsigned int cat,
                             const char *msg)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
+  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
 
   (void)cat;
   (void)msg;
@@ -2519,9 +2519,9 @@ start_command_handler ()
   ctrl_t ctrl;
   assuan_fd_t filedes[2];
 
-  ctrl = xtrycalloc (1, sizeof *ctrl);
+  ctrl = (ctrl_t) xtrycalloc (1, sizeof *ctrl);
   if (ctrl)
-    ctrl->server_local = xtrycalloc (1, sizeof *ctrl->server_local);
+    ctrl->server_local = (server_local_s*) xtrycalloc (1, sizeof *ctrl->server_local);
   if (!ctrl || !ctrl->server_local)
     {
       log_error (_("can't allocate control structure: %s\n"),

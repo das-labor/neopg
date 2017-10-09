@@ -83,7 +83,7 @@ new_key_item (void)
 {
   struct key_item *k;
 
-  k = xmalloc_clear (sizeof *k);
+  k = (key_item*) xmalloc_clear (sizeof *k);
   return k;
 }
 
@@ -115,7 +115,7 @@ new_key_hash_table (void)
 {
   struct key_item **tbl;
 
-  tbl = xmalloc_clear (KEY_HASH_TABLE_SIZE * sizeof *tbl);
+  tbl = (key_item**) xmalloc_clear (KEY_HASH_TABLE_SIZE * sizeof *tbl);
   return tbl;
 }
 
@@ -791,7 +791,7 @@ update_min_ownertrust (ctrl_t ctrl, u32 *kid, unsigned int new_trust)
   if (trustdb_args.no_trustdb && opt.trust_model == TM_ALWAYS)
     return;
 
-  pk = xmalloc_clear (sizeof *pk);
+  pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
   err = get_pubkey (ctrl, pk, kid);
   if (err)
     {
@@ -1375,7 +1375,7 @@ ask_ownertrust (ctrl_t ctrl, u32 *kid, int minimum)
   int rc;
   int ot;
 
-  pk = xmalloc_clear (sizeof *pk);
+  pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
   rc = get_pubkey (ctrl, pk, kid);
   if (rc)
     {
@@ -1507,7 +1507,7 @@ sanitize_regexp(const char *old)
 {
   size_t start=0,len=strlen(old),idx=0;
   int escaped=0,standard_bracket=0;
-  char *neu=xmalloc((len*2)+1); /* enough to \-escape everything if we
+  char *neu= (char*) xmalloc((len*2)+1); /* enough to \-escape everything if we
 				   have to */
 
   /* There are basically two commonly-used regexps here.  GPG and most
@@ -1807,7 +1807,7 @@ validate_key_list (ctrl_t ctrl, KEYDB_HANDLE hd, KeyHashTable full_trust,
   KEYDB_SEARCH_DESC desc;
 
   maxkeys = 1000;
-  keys = xmalloc ((maxkeys+1) * sizeof *keys);
+  keys = (key_array*) xmalloc ((maxkeys+1) * sizeof *keys);
   nkeys = 0;
 
   rc = keydb_search_reset (hd);
@@ -1875,7 +1875,7 @@ validate_key_list (ctrl_t ctrl, KEYDB_HANDLE hd, KeyHashTable full_trust,
 
           if (nkeys == maxkeys) {
             maxkeys += 1000;
-            keys = xrealloc (keys, (maxkeys+1) * sizeof *keys);
+            keys = (key_array*) xrealloc (keys, (maxkeys+1) * sizeof *keys);
           }
           keys[nkeys++].keyblock = keyblock;
 

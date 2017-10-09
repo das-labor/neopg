@@ -455,7 +455,7 @@ ksba_cms_identify (ksba_reader_t reader)
 gpg_error_t
 ksba_cms_new (ksba_cms_t *r_cms)
 {
-  *r_cms = xtrycalloc (1, sizeof **r_cms);
+  *r_cms = (ksba_cms_t) xtrycalloc (1, sizeof **r_cms);
   if (!*r_cms)
     return gpg_error_from_errno (errno);
   return 0;
@@ -646,7 +646,7 @@ ksba_cms_get_content_type (ksba_cms_t cms, int what)
   int i;
 
   if (!cms)
-    return 0;
+    return (ksba_content_type_t) 0;
   if (!what)
     return cms->content.ct;
 
@@ -658,7 +658,7 @@ ksba_cms_get_content_type (ksba_cms_t cms, int what)
             return content_handlers[i].ct;
         }
     }
-  return 0;
+  return (ksba_content_type_t) 0;
 }
 
 
@@ -824,7 +824,7 @@ ksba_cms_get_issuer_serial (ksba_cms_t cms, int idx,
 
       sprintf (numbuf,"(%u:", (unsigned int)n->len);
       numbuflen = strlen (numbuf);
-      p = xtrymalloc (numbuflen + n->len + 2);
+      p = (unsigned char*) xtrymalloc (numbuflen + n->len + 2);
       if (!p)
         return GPG_ERR_ENOMEM;
       strcpy (p, numbuf);
@@ -961,7 +961,7 @@ ksba_cms_get_message_digest (ksba_cms_t cms, int idx,
     return GPG_ERR_BUG;
 
   *r_digest_len = n->len;
-  *r_digest = xtrymalloc (n->len);
+  *r_digest = (char*) xtrymalloc (n->len);
   if (!*r_digest)
     return GPG_ERR_ENOMEM;
   memcpy (*r_digest, si->image + n->off + n->nhdr, n->len);
@@ -1091,10 +1091,10 @@ ksba_cms_get_sigattr_oids (ksba_cms_t cms, int idx,
         }
 
       if (!retstr)
-        line = retstr = xtrymalloc (strlen (p) + 2);
+        line = retstr = (char*) xtrymalloc (strlen (p) + 2);
       else
         {
-          char *tmp = xtryrealloc (retstr,
+          char *tmp = (char*) xtryrealloc (retstr,
                                    strlen (retstr) + 1 + strlen (p) + 2);
           if (!tmp)
             line = NULL;
@@ -1350,7 +1350,7 @@ ksba_cms_add_digest_algo (ksba_cms_t cms, const char *oid)
   if (!cms || !oid)
     return GPG_ERR_INV_VALUE;
 
-  ol = xtrymalloc (sizeof *ol);
+  ol = (oidlist_s*) xtrymalloc (sizeof *ol);
   if (!ol)
     return GPG_ERR_ENOMEM;
 
@@ -1384,7 +1384,7 @@ ksba_cms_add_signer (ksba_cms_t cms, ksba_cert_t cert)
   if (!cms)
     return GPG_ERR_INV_VALUE;
 
-  cl = xtrycalloc (1,sizeof *cl);
+  cl = (certlist_s*) xtrycalloc (1,sizeof *cl);
   if (!cl)
       return GPG_ERR_ENOMEM;
 
@@ -1428,7 +1428,7 @@ ksba_cms_add_cert (ksba_cms_t cms, ksba_cert_t cert)
     }
 
   /* Okay, add it. */
-  cl = xtrycalloc (1,sizeof *cl);
+  cl = (certlist_s*) xtrycalloc (1,sizeof *cl);
   if (!cl)
       return GPG_ERR_ENOMEM;
 
@@ -1463,7 +1463,7 @@ ksba_cms_add_smime_capability (ksba_cms_t cms, const char *oid,
   if (!der)
     derlen = 0;
 
-  opl = xtrymalloc (sizeof *opl + derlen - 1);
+  opl = (oidparmlist_s*) xtrymalloc (sizeof *opl + derlen - 1);
   if (!opl)
     return gpg_error_from_errno (errno);
   opl->next = NULL;
@@ -1616,7 +1616,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
   if (!(n = snext (&s)))
     return GPG_ERR_INV_SEXP;
 
-  sv = xtrycalloc (1, sizeof *sv);
+  sv = (sig_val_s*) xtrycalloc (1, sizeof *sv);
   if (!sv)
     return GPG_ERR_ENOMEM;
   if (n==3 && s[0] == 'r' && s[1] == 's' && s[2] == 'a')
@@ -1630,7 +1630,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
     }
   else
     {
-      sv->algo = xtrymalloc (n+1);
+      sv->algo = (char*) xtrymalloc (n+1);
       if (!sv->algo)
         {
           xfree (sv);
@@ -1680,7 +1680,7 @@ ksba_cms_set_sig_val (ksba_cms_t cms, int idx, ksba_const_sexp_t sigval)
       s++;
       n--;
     }
-  sv->value = xtrymalloc (n);
+  sv->value = (unsigned char*) xtrymalloc (n);
   if (!sv->value)
     {
       xfree (sv->algo);
@@ -1734,7 +1734,7 @@ ksba_cms_set_content_enc_algo (ksba_cms_t cms,
 
   if (iv)
     {
-      cms->encr_iv = xtrymalloc (ivlen);
+      cms->encr_iv = (char*) xtrymalloc (ivlen);
       if (!cms->encr_iv)
         return GPG_ERR_ENOMEM;
       memcpy (cms->encr_iv, iv, ivlen);
@@ -1772,7 +1772,7 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
   if (!cl)
     return GPG_ERR_INV_INDEX; /* no certificate to store the value */
 
-  s = encval;
+  s = (const char*) encval;
   if (*s != '(')
     return GPG_ERR_INV_SEXP;
   s++;
@@ -1804,7 +1804,7 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
     }
   else
     {
-      cl->enc_val.algo = xtrymalloc (n+1);
+      cl->enc_val.algo = (char*) xtrymalloc (n+1);
       if (!cl->enc_val.algo)
         return GPG_ERR_ENOMEM;
       memcpy (cl->enc_val.algo, s, n);
@@ -1838,7 +1838,7 @@ ksba_cms_set_enc_val (ksba_cms_t cms, int idx, ksba_const_sexp_t encval)
       n--;
     }
   xfree (cl->enc_val.value);
-  cl->enc_val.value = xtrymalloc (n);
+  cl->enc_val.value = (unsigned char*) xtrymalloc (n);
   if (!cl->enc_val.value)
     return GPG_ERR_ENOMEM;
   memcpy (cl->enc_val.value, s, n);
@@ -2158,7 +2158,7 @@ build_signed_data_header (ksba_cms_t cms)
           }
       }
 
-    value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
+    value = (unsigned char*) ksba_writer_snatch_mem (tmpwrt, &valuelen);
     ksba_writer_release (tmpwrt);
     if (!value)
       {
@@ -2289,7 +2289,7 @@ store_smime_capability_sequence (AsnNode node,
         }
     }
 
-  value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
+  value = (unsigned char*) ksba_writer_snatch_mem (tmpwrt, &valuelen);
   if (!value)
     err = GPG_ERR_ENOMEM;
   if (!err)
@@ -2313,8 +2313,8 @@ struct attrarray_s {
 static int
 compare_attrarray (const void *a_v, const void *b_v)
 {
-  const struct attrarray_s *a = a_v;
-  const struct attrarray_s *b = b_v;
+  const struct attrarray_s *a = (const attrarray_s*) a_v;
+  const struct attrarray_s *b = (const attrarray_s*) b_v;
   const unsigned char *ap, *bp;
   size_t an, bn;
 
@@ -2633,7 +2633,7 @@ build_signed_data_attributes (ksba_cms_t cms)
       if (err)
         goto leave;
 
-      si = xtrycalloc (1, sizeof *si);
+      si = (signer_info_s*) xtrycalloc (1, sizeof *si);
       if (!si)
         return GPG_ERR_ENOMEM;
       si->root = root;
@@ -2845,7 +2845,7 @@ build_signed_data_rest (ksba_cms_t cms)
     unsigned char *value;
     size_t valuelen;
 
-    value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
+    value = (unsigned char*) ksba_writer_snatch_mem (tmpwrt, &valuelen);
     if (!value)
       {
         err = GPG_ERR_ENOMEM;
@@ -3172,7 +3172,7 @@ build_enveloped_data_header (ksba_cms_t cms)
     unsigned char *value;
     size_t valuelen;
 
-    value = ksba_writer_snatch_mem (tmpwrt, &valuelen);
+    value = (unsigned char*) ksba_writer_snatch_mem (tmpwrt, &valuelen);
     if (!value)
       {
         err = GPG_ERR_ENOMEM;

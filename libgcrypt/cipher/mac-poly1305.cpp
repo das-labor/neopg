@@ -51,9 +51,9 @@ poly1305mac_open (gcry_mac_hd_t h)
   int cipher_algo;
 
   if (secure)
-    mac_ctx = xtrycalloc_secure (1, sizeof(*mac_ctx));
+    mac_ctx = (poly1305mac_context_s*) xtrycalloc_secure (1, sizeof(*mac_ctx));
   else
-    mac_ctx = xtrycalloc (1, sizeof(*mac_ctx));
+    mac_ctx = (poly1305mac_context_s*) xtrycalloc (1, sizeof(*mac_ctx));
 
   if (!mac_ctx)
     return gpg_error_from_syserror ();

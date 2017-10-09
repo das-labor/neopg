@@ -69,7 +69,7 @@ sm_read_passphrase_from_fd (int fd)
         {
           char *pw2 = pw;
           len += 100;
-          pw = xmalloc_secure (len);
+          pw = (char*) xmalloc_secure (len);
           if (pw2)
             {
               memcpy (pw, pw2, i);

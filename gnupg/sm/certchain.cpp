@@ -91,7 +91,7 @@ set_already_asked_marktrusted (ksba_cert_t cert)
  for (r=marktrusted_info; r; r= r->next)
    if (!memcmp (r->fpr, fpr, 20))
      return; /* Already marked. */
- r = xtrycalloc (1, sizeof *r);
+ r = (marktrusted_info_s*) xtrycalloc (1, sizeof *r);
  if (!r)
    return;
  memcpy (r->fpr, fpr, 20);
@@ -508,7 +508,7 @@ struct find_up_store_certs_s
 static void
 find_up_store_certs_cb (void *cb_value, ksba_cert_t cert)
 {
-  struct find_up_store_certs_s *parm = cb_value;
+  struct find_up_store_certs_s *parm = (find_up_store_certs_s*) cb_value;
 
   if (sm_keydb_store_cert (parm->ctrl, cert, 1, NULL))
     log_error ("error storing issuer certificate as ephemeral\n");
@@ -543,7 +543,7 @@ find_up_external (ctrl_t ctrl, KEYDB_HANDLE kh,
   s = strstr (issuer, "CN=");
   if (!s || s == issuer || s[-1] != ',')
     s = issuer;
-  pattern = xtrymalloc (strlen (s)+2);
+  pattern = (char*) xtrymalloc (strlen (s)+2);
   if (!pattern)
     return gpg_error_from_syserror ();
   strcpy (stpcpy (pattern, "/"), s);
@@ -606,7 +606,7 @@ find_up_dirmngr (ctrl_t ctrl, KEYDB_HANDLE kh,
     log_info (_("looking up issuer from the Dirmngr cache\n"));
   if (subject_mode)
     {
-      pattern = xtrymalloc (strlen (issuer)+2);
+      pattern = (char*) xtrymalloc (strlen (issuer)+2);
       if (pattern)
         strcpy (stpcpy (pattern, "/"), issuer);
     }
@@ -614,7 +614,7 @@ find_up_dirmngr (ctrl_t ctrl, KEYDB_HANDLE kh,
     pattern = gpgsm_format_sn_issuer (serialno, issuer);
   else
     {
-      pattern = xtrymalloc (strlen (issuer)+3);
+      pattern = (char*) xtrymalloc (strlen (issuer)+3);
       if (pattern)
         strcpy (stpcpy (pattern, "#/"), issuer);
     }
@@ -1346,7 +1346,7 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
       {
         chain_item_t ci;
 
-        ci = xtrycalloc (1, sizeof *ci);
+        ci = (chain_item_t) xtrycalloc (1, sizeof *ci);
         if (!ci)
           {
             rc = gpg_error_from_syserror ();

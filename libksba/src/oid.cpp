@@ -62,7 +62,7 @@
 char *
 ksba_oid_to_str (const char *buffer, size_t length)
 {
-  const unsigned char *buf = buffer;
+  const unsigned char *buf = (const unsigned char*) buffer;
   char *string, *p;
   int n = 0;
   unsigned long val, valmask;
@@ -72,7 +72,7 @@ ksba_oid_to_str (const char *buffer, size_t length)
   /* To calculate the length of the string we can safely assume an
      upper limit of 3 decimal characters per byte.  Two extra bytes
      account for the special first octect */
-  string = p = xtrymalloc (length*(1+3)+2+1);
+  string = p = (char*) xtrymalloc (length*(1+3)+2+1);
   if (!string)
     return NULL;
   if (!length)
@@ -201,7 +201,7 @@ ksba_oid_from_str (const char *string, unsigned char **rbuf, size_t *rlength)
     return GPG_ERR_INV_VALUE;
 
   /* we can safely assume that the encoded OID is shorter than the string */
-  buf = xtrymalloc ( strlen(string) + 2);
+  buf = (unsigned char*) xtrymalloc ( strlen(string) + 2);
   if (!buf)
     return GPG_ERR_ENOMEM;
   buflen = 0;
@@ -272,7 +272,7 @@ _ksba_oid_from_buf (const void *buffer, size_t buflen,
   gpg_error_t err;
   char *string;
 
-  string = xtrymalloc (buflen+1);
+  string = (char*) xtrymalloc (buflen+1);
   if (!string)
     {
       *rbuf = NULL;

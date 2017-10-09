@@ -321,7 +321,7 @@ proc_symkey_enc (CTX c, PACKET *pkt)
 
       if (opt.override_session_key)
         {
-          c->dek = xmalloc_clear (sizeof *c->dek);
+          c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
           if (get_override_session_key (c->dek, opt.override_session_key))
             {
               xfree (c->dek);
@@ -396,7 +396,7 @@ proc_pubkey_enc (ctrl_t ctrl, CTX c, PACKET *pkt)
       /* It does not make much sense to store the session key in
        * secure memory because it has already been passed on the
        * command line and the GCHQ knows about it.  */
-      c->dek = xmalloc_clear (sizeof *c->dek);
+      c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
       result = get_override_session_key (c->dek, opt.override_session_key);
       if (result)
         {
@@ -425,7 +425,7 @@ proc_pubkey_enc (ctrl_t ctrl, CTX c, PACKET *pkt)
             result = -1;
           else
             {
-              c->dek = xmalloc_secure_clear (sizeof *c->dek);
+              c->dek = (DEK*) xmalloc_secure_clear (sizeof *c->dek);
               if ((result = get_session_key (ctrl, enc, c->dek)))
                 {
                   /* Error: Delete the DEK. */
@@ -445,7 +445,7 @@ proc_pubkey_enc (ctrl_t ctrl, CTX c, PACKET *pkt)
   else
     {
       /* Store it for later display.  */
-      struct kidlist_item *x = xmalloc (sizeof *x);
+      struct kidlist_item *x = (kidlist_item*) xmalloc (sizeof *x);
       x->kid[0] = enc->keyid[0];
       x->kid[1] = enc->keyid[1];
       x->pubkey_algo = enc->pubkey_algo;
@@ -479,7 +479,7 @@ print_pkenc_list (ctrl_t ctrl, struct kidlist_item *list, int failed)
         continue;
 
       algstr = openpgp_pk_algo_name (list->pubkey_algo);
-      pk = xmalloc_clear (sizeof *pk);
+      pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
 
       if (!algstr)
         algstr = "[?]";
@@ -551,7 +551,7 @@ proc_encrypted (CTX c, PACKET *pkt)
 
       if (opt.override_session_key)
         {
-          c->dek = xmalloc_clear (sizeof *c->dek);
+          c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
           result = get_override_session_key (c->dek, opt.override_session_key);
           if (result)
             {
@@ -612,7 +612,7 @@ proc_encrypted (CTX c, PACKET *pkt)
     {
       struct kidlist_item *i;
       int compliant = 1;
-      PKT_public_key *pk = xmalloc (sizeof *pk);
+      PKT_public_key *pk = (PKT_public_key*) xmalloc (sizeof *pk);
 
       if ( !(c->pkenc_list || c->symkeys) )
         log_debug ("%s: where else did the session key come from?\n", __func__);
@@ -744,7 +744,7 @@ proc_plaintext( CTX c, PACKET *pkt )
         {
           /* The clearsigned message case. */
           size_t datalen = n->pkt->pkt.gpg_control->datalen;
-          const byte *data = n->pkt->pkt.gpg_control->data;
+          const byte *data = (const byte*) n->pkt->pkt.gpg_control->data;
 
           /* Check that we have at least the sigclass and one hash.  */
           if  (datalen < 2)
@@ -845,7 +845,7 @@ proc_compressed_cb (iobuf_t a, void *info)
 static int
 proc_encrypt_cb (iobuf_t a, void *info )
 {
-  CTX c = info;
+  CTX c = (CTX) info;
   return proc_encryption_packets (c->ctrl, info, a );
 }
 
@@ -1224,10 +1224,10 @@ int
 proc_packets (ctrl_t ctrl, void *anchor, iobuf_t a )
 {
   int rc;
-  CTX c = xmalloc_clear (sizeof *c);
+  CTX c = (CTX) xmalloc_clear (sizeof *c);
 
   c->ctrl = ctrl;
-  c->anchor = anchor;
+  c->anchor = (mainproc_context*) anchor;
   rc = do_proc_packets (ctrl, c, a);
   xfree (c);
 
@@ -1239,11 +1239,11 @@ int
 proc_signature_packets (ctrl_t ctrl, void *anchor, iobuf_t a,
 			strlist_t signedfiles, const char *sigfilename )
 {
-  CTX c = xmalloc_clear (sizeof *c);
+  CTX c = (CTX) xmalloc_clear (sizeof *c);
   int rc;
 
   c->ctrl = ctrl;
-  c->anchor = anchor;
+  c->anchor = (mainproc_context*) anchor;
   c->sigs_only = 1;
 
   c->signed_data.data_fd = -1;
@@ -1282,12 +1282,12 @@ proc_signature_packets_by_fd (ctrl_t ctrl,
   int rc;
   CTX c;
 
-  c = xtrycalloc (1, sizeof *c);
+  c = (CTX) xtrycalloc (1, sizeof *c);
   if (!c)
     return gpg_error_from_syserror ();
 
   c->ctrl = ctrl;
-  c->anchor = anchor;
+  c->anchor = (mainproc_context*) anchor;
   c->sigs_only = 1;
 
   c->signed_data.data_fd = signed_data_fd;
@@ -1321,11 +1321,11 @@ proc_signature_packets_by_fd (ctrl_t ctrl,
 int
 proc_encryption_packets (ctrl_t ctrl, void *anchor, iobuf_t a )
 {
-  CTX c = xmalloc_clear (sizeof *c);
+  CTX c = (CTX) xmalloc_clear (sizeof *c);
   int rc;
 
   c->ctrl = ctrl;
-  c->anchor = anchor;
+  c->anchor = (mainproc_context*) anchor;
   c->encrypt_only = 1;
   rc = do_proc_packets (ctrl, c, a);
   xfree (c);
@@ -1365,7 +1365,7 @@ do_proc_packets (ctrl_t ctrl, CTX c, iobuf_t a)
   if (rc)
     return rc;
 
-  pkt = xmalloc( sizeof *pkt );
+  pkt = (PACKET*) xmalloc( sizeof *pkt );
   c->iobuf = a;
   init_packet(pkt);
   init_parse_packet (&parsectx, a);
@@ -1488,7 +1488,7 @@ do_proc_packets (ctrl_t ctrl, CTX c, iobuf_t a)
         ;
       else if (newpkt)
         {
-          pkt = xmalloc (sizeof *pkt);
+          pkt = (PACKET*) xmalloc (sizeof *pkt);
           init_packet (pkt);
 	}
       else
@@ -1535,7 +1535,7 @@ get_pka_address (PKT_signature *sig)
 	 list. */
       if (is_valid_mailbox (nd->value))
 	{
-	  pka = xmalloc (sizeof *pka + strlen(nd->value));
+	  pka = (pka_info_t*) xmalloc (sizeof *pka + strlen(nd->value));
 	  pka->valid = 0;
 	  pka->checked = 0;
 	  pka->uri = NULL;

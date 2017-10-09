@@ -158,7 +158,7 @@ hash_public_key (gcry_md_hd_t md, PKT_public_key *pk)
   if (npkey==0 && pk->pkey[0]
       && gcry_mpi_get_flag (pk->pkey[0], GCRYMPI_FLAG_OPAQUE))
     {
-      pp[0] = gcry_mpi_get_opaque (pk->pkey[0], &nbits);
+      pp[0] = (byte*) gcry_mpi_get_opaque (pk->pkey[0], &nbits);
       nn[0] = (nbits+7)/8;
       n+=nn[0];
     }
@@ -179,7 +179,7 @@ hash_public_key (gcry_md_hd_t md, PKT_public_key *pk)
               const void *p;
 
               p = gcry_mpi_get_opaque (pk->pkey[i], &nbits);
-              pp[i] = xmalloc ((nbits+7)/8);
+              pp[i] = (byte*) xmalloc ((nbits+7)/8);
               if (p)
                 memcpy (pp[i], p, (nbits+7)/8);
               else
@@ -192,7 +192,7 @@ hash_public_key (gcry_md_hd_t md, PKT_public_key *pk)
               if (gcry_mpi_print (GCRYMPI_FMT_PGP, NULL, 0,
                                   &nbytes, pk->pkey[i]))
                 BUG ();
-              pp[i] = xmalloc (nbytes);
+              pp[i] = (byte*) xmalloc (nbytes);
               if (gcry_mpi_print (GCRYMPI_FMT_PGP, pp[i], nbytes,
                                   &nbytes, pk->pkey[i]))
                 BUG ();
@@ -258,7 +258,7 @@ v3_keyid (gcry_mpi_t a, u32 *ki)
   if (gcry_mpi_print (GCRYMPI_FMT_USG, NULL, 0, &nbytes, a ))
     BUG ();
   /* fixme: allocate it on the stack */
-  buffer = xmalloc (nbytes);
+  buffer = (byte*) xmalloc (nbytes);
   if (gcry_mpi_print( GCRYMPI_FMT_USG, buffer, nbytes, NULL, a ))
     BUG ();
   if (nbytes < 8) /* oops */
@@ -599,7 +599,7 @@ namehash_from_uid (PKT_user_id *uid)
         rmd160->update(uid->name, uid->len);
       }
 
-      uid->namehash = xmalloc (rmd160->output_length());
+      uid->namehash = (byte*) xmalloc (rmd160->output_length());
       rmd160->final(uid->namehash);
     }
 
@@ -785,7 +785,7 @@ fingerprint_from_pk (PKT_public_key *pk, byte *array, size_t *ret_len)
   len = gcry_md_get_algo_dlen (gcry_md_get_algo (md));
   log_assert( len <= MAX_FINGERPRINT_LEN );
   if (!array)
-    array = xmalloc ( len );
+    array = (byte*) xmalloc ( len );
   memcpy (array, dp, len );
   pk->keyid[0] = buf32_to_u32 (dp+12);
   pk->keyid[1] = buf32_to_u32 (dp+16);
@@ -812,7 +812,7 @@ hexfingerprint (PKT_public_key *pk, char *buffer, size_t buflen)
 
   fingerprint_from_pk (pk, fpr, &len);
   if (!buffer)
-    buffer = xmalloc (2 * len + 1);
+    buffer = (char*) xmalloc (2 * len + 1);
   else if (buflen < 2*len+1)
     log_fatal ("%s: buffer too short (%zu)\n", __func__, buflen);
   bin2hex (fpr, len, buffer);
@@ -849,7 +849,7 @@ format_hexfingerprint (const char *fingerprint, char *buffer, size_t buflen)
     }
 
   if (!buffer)
-    buffer = xmalloc (space);
+    buffer = (char*) xmalloc (space);
   else if (buflen < space)
     log_fatal ("%s: buffer too short (%zu)\n", __func__, buflen);
 
@@ -973,7 +973,7 @@ hexkeygrip_from_pk (PKT_public_key *pk, char **r_grip)
   err = keygrip_from_pk (pk, grip);
   if (!err)
     {
-      char * buf = xtrymalloc (20*2+1);
+      char * buf = (char*) xtrymalloc (20*2+1);
       if (!buf)
         err = gpg_error_from_syserror ();
       else

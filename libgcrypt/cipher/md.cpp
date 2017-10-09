@@ -323,16 +323,16 @@ md_open (gcry_md_hd_t *h, int algo, unsigned int flags)
 
   /* Allocate and set the Context pointer to the private data */
   if (secure)
-    hd = xtrymalloc_secure (n + sizeof (struct gcry_md_context));
+    hd = (gcry_md_hd_t) xtrymalloc_secure (n + sizeof (struct gcry_md_context));
   else
-    hd = xtrymalloc (n + sizeof (struct gcry_md_context));
+    hd = (gcry_md_hd_t) xtrymalloc (n + sizeof (struct gcry_md_context));
 
   if (! hd)
     err = gpg_error_from_errno (errno);
 
   if (! err)
     {
-      hd->ctx = ctx = (void *) ((char *) hd + n);
+      hd->ctx = ctx = (gcry_md_context*) (void *) ((char *) hd + n);
       /* Setup the globally visible data (bctl in the diagram).*/
       hd->bufsize = n - sizeof (struct gcry_md_handle) + 1;
       hd->bufpos = 0;
@@ -434,9 +434,9 @@ md_enable (gcry_md_hd_t hd, int algorithm)
 
       /* And allocate a new list entry. */
       if (h->flags.secure)
-	entry = xtrymalloc_secure (size);
+	entry = (GcryDigestEntry*) xtrymalloc_secure (size);
       else
-	entry = xtrymalloc (size);
+	entry = (GcryDigestEntry*) xtrymalloc (size);
 
       if (! entry)
 	err = gpg_error_from_errno (errno);
@@ -479,9 +479,9 @@ md_copy (gcry_md_hd_t ahd, gcry_md_hd_t *b_hd)
 
   n = (char *) ahd->ctx - (char *) ahd;
   if (a->flags.secure)
-    bhd = xtrymalloc_secure (n + sizeof (struct gcry_md_context));
+    bhd = (gcry_md_hd_t) xtrymalloc_secure (n + sizeof (struct gcry_md_context));
   else
-    bhd = xtrymalloc (n + sizeof (struct gcry_md_context));
+    bhd = (gcry_md_hd_t) xtrymalloc (n + sizeof (struct gcry_md_context));
 
   if (!bhd)
     {
@@ -489,7 +489,7 @@ md_copy (gcry_md_hd_t ahd, gcry_md_hd_t *b_hd)
       goto leave;
     }
 
-  bhd->ctx = b = (void *) ((char *) bhd + n);
+  bhd->ctx = b = (gcry_md_context*) (void *) ((char *) bhd + n);
   /* No need to copy the buffer due to the write above. */
   gcry_assert (ahd->bufsize == (n - sizeof (struct gcry_md_handle) + 1));
   bhd->bufsize = ahd->bufsize;
@@ -504,9 +504,9 @@ md_copy (gcry_md_hd_t ahd, gcry_md_hd_t *b_hd)
   for (ar = a->list; ar; ar = ar->next)
     {
       if (a->flags.secure)
-        br = xtrymalloc_secure (ar->actual_struct_size);
+        br = (GcryDigestEntry*) xtrymalloc_secure (ar->actual_struct_size);
       else
-        br = xtrymalloc (ar->actual_struct_size);
+        br = (GcryDigestEntry*) xtrymalloc (ar->actual_struct_size);
       if (!br)
         {
           err = gpg_error_from_syserror ();
@@ -664,9 +664,9 @@ md_final (gcry_md_hd_t a)
       p = r->spec->read (&r->context.c);
 
       if (a->ctx->flags.secure)
-        hash = xtrymalloc_secure (dlen);
+        hash = (byte*) xtrymalloc_secure (dlen);
       else
-        hash = xtrymalloc (dlen);
+        hash = (byte*) xtrymalloc (dlen);
       if (!hash)
         {
           err = gpg_error_from_errno (errno);
@@ -799,7 +799,7 @@ prepare_macpads (gcry_md_hd_t a, const unsigned char *key, size_t keylen)
 
       if ( keylen > macpad_Bsize )
         {
-          k = key_allocated = xtrymalloc_secure (r->spec->mdlen);
+          k = key_allocated = (unsigned char*) xtrymalloc_secure (r->spec->mdlen);
           if (!k)
             return gpg_error_from_errno (errno);
           _gcry_md_hash_buffer (r->spec->algo, key_allocated, key, keylen);

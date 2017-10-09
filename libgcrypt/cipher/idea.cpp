@@ -260,7 +260,7 @@ do_setkey( IDEA_context *c, const byte *key, unsigned int keylen )
 static gpg_error_t
 idea_setkey (void *context, const byte *key, unsigned int keylen)
 {
-    IDEA_context *ctx = context;
+    IDEA_context *ctx = (IDEA_context*) context;
     int rc = do_setkey (ctx, key, keylen);
     _gcry_burn_stack (23+6*sizeof(void*));
     return rc;
@@ -275,7 +275,7 @@ encrypt_block( IDEA_context *c, byte *outbuf, const byte *inbuf )
 static unsigned int
 idea_encrypt (void *context, byte *out, const byte *in)
 {
-    IDEA_context *ctx = context;
+    IDEA_context *ctx = (IDEA_context*) context;
     encrypt_block (ctx, out, in);
     return /*burn_stack*/ (24+3*sizeof (void*));
 }
@@ -293,7 +293,7 @@ decrypt_block( IDEA_context *c, byte *outbuf, const byte *inbuf )
 static unsigned int
 idea_decrypt (void *context, byte *out, const byte *in)
 {
-    IDEA_context *ctx = context;
+    IDEA_context *ctx = (IDEA_context*) context;
     decrypt_block (ctx, out, in);
     return /*burn_stack*/ (24+3*sizeof (void*));
 }

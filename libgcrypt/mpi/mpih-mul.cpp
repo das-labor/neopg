@@ -424,7 +424,7 @@ _gcry_mpih_mul_karatsuba_case( mpi_ptr_t prodp,
 	}
 	else {
 	    if( !ctx->next ) {
-		ctx->next = xcalloc( 1, sizeof *ctx );
+		ctx->next = (karatsuba_ctx*) xcalloc( 1, sizeof *ctx );
 	    }
 	    _gcry_mpih_mul_karatsuba_case( ctx->tspace,
 					vp, vsize,

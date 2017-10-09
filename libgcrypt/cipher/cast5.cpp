@@ -623,9 +623,9 @@ void
 _gcry_cast5_ctr_enc(void *context, unsigned char *ctr, void *outbuf_arg,
 		    const void *inbuf_arg, size_t nblocks)
 {
-  CAST5_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAST5_context *ctx = (CAST5_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char tmpbuf[CAST5_BLOCKSIZE];
   int burn_stack_depth = (20 + 4 * sizeof(void*)) + 2 * CAST5_BLOCKSIZE;
 
@@ -694,9 +694,9 @@ void
 _gcry_cast5_cbc_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		    const void *inbuf_arg, size_t nblocks)
 {
-  CAST5_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAST5_context *ctx = (CAST5_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   unsigned char savebuf[CAST5_BLOCKSIZE];
   int burn_stack_depth = (20 + 4 * sizeof(void*)) + 2 * CAST5_BLOCKSIZE;
 
@@ -754,9 +754,9 @@ void
 _gcry_cast5_cfb_dec(void *context, unsigned char *iv, void *outbuf_arg,
 		    const void *inbuf_arg, size_t nblocks)
 {
-  CAST5_context *ctx = context;
-  unsigned char *outbuf = outbuf_arg;
-  const unsigned char *inbuf = inbuf_arg;
+  CAST5_context *ctx = (CAST5_context*) context;
+  unsigned char *outbuf = (unsigned char*) outbuf_arg;
+  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
   int burn_stack_depth = (20 + 4 * sizeof(void*)) + 2 * CAST5_BLOCKSIZE;
 
 #ifdef USE_AMD64_ASM

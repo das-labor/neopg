@@ -166,7 +166,7 @@ nist_generate_key (ECC_secret_key *sk, elliptic_curve_t *E, mpi_ec_t ctx,
       char *rndbuf;
 
       sk->d = mpi_snew (256);
-      rndbuf = _gcry_random_bytes_secure (32, random_level);
+      rndbuf = (char*) _gcry_random_bytes_secure (32, random_level);
       rndbuf[0] &= 0x7f;  /* Clear bit 255. */
       rndbuf[0] |= 0x40;  /* Set bit 254.   */
       rndbuf[31] &= 0xf8; /* Clear bits 2..0 so that d mod 8 == 0  */
@@ -343,7 +343,7 @@ test_ecdh_only_keys (ECC_secret_key *sk, unsigned int nbits, int flags)
       char *rndbuf;
 
       test = mpi_new (256);
-      rndbuf = _gcry_random_bytes (32, GCRY_WEAK_RANDOM);
+      rndbuf = (char*) _gcry_random_bytes (32, GCRY_WEAK_RANDOM);
       rndbuf[0] &= 0x7f;  /* Clear bit 255. */
       rndbuf[0] |= 0x40;  /* Set bit 254.   */
       rndbuf[31] &= 0xf8; /* Clear bits 2..0 so that d mod 8 == 0  */
@@ -1911,7 +1911,7 @@ compute_keygrip (gcry_md_hd_t md, gcry_sexp_t keyparms)
           const unsigned char *raw;
           unsigned int n;
 
-          raw = mpi_get_opaque (values[idx], &n);
+          raw = (const unsigned char*) mpi_get_opaque (values[idx], &n);
           n = (n + 7)/8;
           snprintf (buf, sizeof buf, "(1:%c%u:", names[idx], n);
           _gcry_md_write (md, buf, strlen (buf));

@@ -59,7 +59,7 @@ static const char oidstr_extensionReq[] = "1.2.840.113549.1.9.14";
 gpg_error_t
 ksba_certreq_new (ksba_certreq_t *r_cr)
 {
-  *r_cr = xtrycalloc (1, sizeof **r_cr);
+  *r_cr = (ksba_certreq_t) xtrycalloc (1, sizeof **r_cr);
   if (!*r_cr)
     return gpg_error_from_errno (errno);
 
@@ -155,7 +155,7 @@ ksba_certreq_set_serial (ksba_certreq_t cr, ksba_const_sexp_t sn)
 
   if (cr->x509.serial.der)
     return GPG_ERR_CONFLICT; /* Already set */
-  cr->x509.serial.der = xtrymalloc (n);
+  cr->x509.serial.der = (char*) xtrymalloc (n);
   if (!cr->x509.serial.der)
     return gpg_error_from_syserror ();
   memcpy (cr->x509.serial.der, p, n);
@@ -280,7 +280,7 @@ ksba_certreq_add_subject (ksba_certreq_t cr, const char *name)
   n1  = _ksba_ber_count_tl (tag, CLASS_CONTEXT, 0, namelen);
   n1 += namelen;
 
-  gn = xtrymalloc (sizeof *gn + n1 - 1);
+  gn = (general_names_s*) xtrymalloc (sizeof *gn + n1 - 1);
   if (!gn)
     return gpg_error_from_errno (errno);
   gn->tag = tag;
@@ -320,7 +320,7 @@ add_general_names_to_extn (ksba_certreq_t cr, struct general_names_s *gnames,
   n2 += n1;
 
   /* Allocate memory and encode all. */
-  e = xtrymalloc (sizeof *e + n2 - 1);
+  e = (extn_list_s*) xtrymalloc (sizeof *e + n2 - 1);
   if (!e)
     return gpg_error_from_errno (errno);
   e->oid = oid;
@@ -373,14 +373,14 @@ ksba_certreq_add_extension (ksba_certreq_t cr,
     return GPG_ERR_INV_VALUE;
 
   oidlen = strlen (oid);
-  e = xtrymalloc (sizeof *e + derlen + oidlen);
+  e = (extn_list_s*) xtrymalloc (sizeof *e + derlen + oidlen);
   if (!e)
     return gpg_error_from_errno (errno);
   e->critical = is_crit;
   e->derlen = derlen;
   memcpy (e->der, der, derlen);
   strcpy (e->der+derlen, oid);
-  e->oid = e->der + derlen;
+  e->oid = (const char*) e->der + derlen;
 
   e->next = cr->extn_list;
   cr->extn_list = e;
@@ -412,7 +412,7 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
   if (!cr)
     return GPG_ERR_INV_VALUE;
 
-  s = sigval;
+  s = (const char*) sigval;
   if (*s != '(')
     return GPG_ERR_INV_SEXP;
   s++;
@@ -444,7 +444,7 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
     }
   else
     {
-      cr->sig_val.algo = xtrymalloc (n+1);
+      cr->sig_val.algo = (char*) xtrymalloc (n+1);
       if (!cr->sig_val.algo)
         return GPG_ERR_ENOMEM;
       memcpy (cr->sig_val.algo, s, n);
@@ -478,7 +478,7 @@ ksba_certreq_set_sig_val (ksba_certreq_t cr, ksba_const_sexp_t sigval)
       n--;
     }
   xfree (cr->sig_val.value);
-  cr->sig_val.value = xtrymalloc (n);
+  cr->sig_val.value = (unsigned char*) xtrymalloc (n);
   if (!cr->sig_val.value)
     return GPG_ERR_ENOMEM;
   memcpy (cr->sig_val.value, s, n);
@@ -554,7 +554,7 @@ build_extensions (ksba_certreq_t cr, int certmode,
       if(err)
         goto leave;
 
-      p = ksba_writer_snatch_mem (w, &n);
+      p = (unsigned char*) ksba_writer_snatch_mem (w, &n);
       if (!p)
         {
           err = GPG_ERR_ENOMEM;
@@ -570,7 +570,7 @@ build_extensions (ksba_certreq_t cr, int certmode,
     }
 
   /* Embed all the sequences into another sequence */
-  value = ksba_writer_snatch_mem (writer, &valuelen);
+  value = (unsigned char*) ksba_writer_snatch_mem (writer, &valuelen);
   if (!value)
     {
       err = GPG_ERR_ENOMEM;
@@ -587,7 +587,7 @@ build_extensions (ksba_certreq_t cr, int certmode,
     goto leave;
 
   xfree (value);
-  value = ksba_writer_snatch_mem (writer, &valuelen);
+  value = (unsigned char*) ksba_writer_snatch_mem (writer, &valuelen);
   if (!value)
     {
       err = GPG_ERR_ENOMEM;
@@ -615,7 +615,7 @@ build_extensions (ksba_certreq_t cr, int certmode,
 
       /* Put this all into a SEQUENCE */
       xfree (value);
-      value = ksba_writer_snatch_mem (writer, &valuelen);
+      value = (unsigned char*) ksba_writer_snatch_mem (writer, &valuelen);
       if (!value)
         {
           err = GPG_ERR_ENOMEM;
@@ -632,7 +632,7 @@ build_extensions (ksba_certreq_t cr, int certmode,
         goto leave;
 
       xfree (value);
-      value = ksba_writer_snatch_mem (writer, &valuelen);
+      value = (unsigned char*) ksba_writer_snatch_mem (writer, &valuelen);
       if (!value)
         {
           err = GPG_ERR_ENOMEM;
@@ -887,7 +887,7 @@ build_cri (ksba_certreq_t cr)
     goto leave;
 
   /* and store the final result */
-  cr->cri.der = ksba_writer_snatch_mem (writer, &cr->cri.derlen);
+  cr->cri.der = (unsigned char*) ksba_writer_snatch_mem (writer, &cr->cri.derlen);
   if (!cr->cri.der)
     err = GPG_ERR_ENOMEM;
 
@@ -1009,7 +1009,7 @@ ksba_certreq_build (ksba_certreq_t cr, ksba_stop_reason_t *r_stopreason)
 
   if (!cr->any_build_done)
     { /* first time initialization of the stop reason */
-      *r_stopreason = 0;
+      *r_stopreason = (ksba_stop_reason_t) 0;
       cr->any_build_done = 1;
     }
 

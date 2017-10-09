@@ -106,7 +106,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
     return eof_or_error (reader, ti, 0);
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (c & 0xc0) >> 6;
+  ti->klasse = (tag_class) (c & 0xc0) >> 6;
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
@@ -213,7 +213,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   c = *buf++; length--;
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (c & 0xc0) >> 6;
+  ti->klasse = (tag_class) (c & 0xc0) >> 6;
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 

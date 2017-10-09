@@ -314,7 +314,7 @@ iso7816_change_reference_data (int slot, int chvno,
       || !newchv || !newchvlen )
     return GPG_ERR_INV_VALUE;
 
-  buf = xtrymalloc (oldchvlen + newchvlen);
+  buf = (char*) xtrymalloc (oldchvlen + newchvlen);
   if (!buf)
     return gpg_error_from_errno (errno);
   if (oldchvlen)
@@ -509,7 +509,7 @@ iso7816_decipher (int slot, int extended_mode,
   if (padind >= 0)
     {
       /* We need to prepend the padding indicator. */
-      buf = xtrymalloc (datalen + 1);
+      buf = (unsigned char*) xtrymalloc (datalen + 1);
       if (!buf)
         return gpg_error_from_errno (errno);
 
@@ -729,7 +729,7 @@ iso7816_read_binary (int slot, size_t offset, size_t nmax,
         }
       if (*result) /* Need to extend the buffer. */
         {
-          unsigned char *p = xtryrealloc (*result, *resultlen + bufferlen);
+          unsigned char *p = (unsigned char*) xtryrealloc (*result, *resultlen + bufferlen);
           if (!p)
             {
               gpg_error_t err = gpg_error_from_syserror ();

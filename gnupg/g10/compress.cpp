@@ -76,7 +76,7 @@ init_compress( compress_filter_context_t *zfx, z_stream *zs )
     }
 
     zfx->outbufsize = 8192;
-    zfx->outbuf = xmalloc( zfx->outbufsize );
+    zfx->outbuf = (byte*) xmalloc( zfx->outbufsize );
 }
 
 static int
@@ -140,7 +140,7 @@ init_uncompress( compress_filter_context_t *zfx, z_stream *zs )
     }
 
     zfx->inbufsize = 2048;
-    zfx->inbuf = xmalloc( zfx->inbufsize );
+    zfx->inbuf = (byte*) xmalloc( zfx->inbufsize );
     zs->avail_in = 0;
 }
 
@@ -210,13 +210,13 @@ compress_filter( void *opaque, int control,
 		 IOBUF a, byte *buf, size_t *ret_len)
 {
     size_t size = *ret_len;
-    compress_filter_context_t *zfx = opaque;
-    z_stream *zs = zfx->opaque;
+    compress_filter_context_t *zfx = (compress_filter_context_t*) opaque;
+    z_stream *zs = (z_stream*) zfx->opaque;
     int rc=0;
 
     if( control == IOBUFCTRL_UNDERFLOW ) {
 	if( !zfx->status ) {
-	    zs = zfx->opaque = xmalloc_clear( sizeof *zs );
+	    zs = zfx->opaque = (z_stream*) xmalloc_clear( sizeof *zs );
 	    init_uncompress( zfx, zs );
 	    zfx->status = 1;
 	}
@@ -244,7 +244,7 @@ compress_filter( void *opaque, int control,
 	    pkt.pkt.compressed = &cd;
 	    if( build_packet( a, &pkt ))
 		log_bug("build_packet(PKT_COMPRESSED) failed\n");
-	    zs = zfx->opaque = xmalloc_clear( sizeof *zs );
+	    zs = zfx->opaque = (z_stream*) xmalloc_clear( sizeof *zs );
 	    init_compress( zfx, zs );
 	    zfx->status = 2;
 	}
@@ -300,7 +300,7 @@ handle_compressed (ctrl_t ctrl, void *procctx, PKT_compressed *cd,
 
     if(check_compress_algo(cd->algorithm))
       return GPG_ERR_COMPR_ALGO;
-    cfx = xmalloc_clear (sizeof *cfx);
+    cfx = (compress_filter_context_t*) xmalloc_clear (sizeof *cfx);
     cfx->release = release_context;
     cfx->algo = cd->algorithm;
     push_compress_filter(cd->buf,cfx,cd->algorithm);

@@ -195,7 +195,7 @@ export_new_stats (void)
 {
   export_stats_t stats;
 
-  return xtrycalloc (1, sizeof *stats);
+  return (export_stats_t) xtrycalloc (1, sizeof *stats);
 }
 
 
@@ -410,7 +410,7 @@ subkey_in_list_p (subkey_list_t list, KBNODE node)
 static subkey_list_t
 new_subkey_list_item (KBNODE node)
 {
-  subkey_list_t list = xcalloc (1, sizeof *list);
+  subkey_list_t list = (subkey_list_t) xcalloc (1, sizeof *list);
 
   if (node->pkt->pkttype == PKT_PUBLIC_SUBKEY
       || node->pkt->pkttype == PKT_SECRET_SUBKEY)
@@ -600,11 +600,11 @@ cleartext_secret_key_to_openpgp (gcry_sexp_t s_key, PKT_public_key *pk)
   if (!key)
     goto bad_seckey;
   key_type = gcry_sexp_nth_string(key, 0);
-  pk_algo = gcry_pk_map_name (key_type);
+  pk_algo = (gcry_pk_algos) gcry_pk_map_name (key_type);
 
   log_assert (!pk->seckey_info);
 
-  pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+  pk->seckey_info = ski = (seckey_info*) xtrycalloc (1, sizeof *ski);
   if (!ski)
     {
       err = gpg_error_from_syserror ();
@@ -847,7 +847,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
   string = gcry_sexp_nth_string (list, 1);
   if (!string)
     goto bad_seckey;
-  pk_algo = gcry_pk_map_name (string);
+  pk_algo = (gcry_pk_algos) gcry_pk_map_name (string);
   xfree (string); string = NULL;
   if (gcry_pk_algo_info (pk_algo, GCRYCTL_GET_ALGO_NPKEY, NULL, &npkey)
       || gcry_pk_algo_info (pk_algo, GCRYCTL_GET_ALGO_NSKEY, NULL, &nskey)
@@ -859,15 +859,15 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
     {
     case GCRY_PK_RSA:
       if (!is_RSA (pk->pubkey_algo))
-        pk_algo = 0;  /* Does not match.  */
+        pk_algo = (gcry_pk_algos) 0;  /* Does not match.  */
       break;
     case GCRY_PK_DSA:
       if (!is_DSA (pk->pubkey_algo))
-        pk_algo = 0;  /* Does not match.  */
+        pk_algo = (gcry_pk_algos) 0;  /* Does not match.  */
       break;
     case GCRY_PK_ELG:
       if (!is_ELGAMAL (pk->pubkey_algo))
-        pk_algo = 0;  /* Does not match.  */
+        pk_algo = (gcry_pk_algos) 0;  /* Does not match.  */
       break;
     case GCRY_PK_ECC:
       if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA)
@@ -877,13 +877,13 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
       else if (pk->pubkey_algo == PUBKEY_ALGO_EDDSA)
         ;
       else
-        pk_algo = 0;  /* Does not match.  */
+        pk_algo = (gcry_pk_algos) 0;  /* Does not match.  */
       /* For ECC we do not have the domain parameters thus fix our info.  */
       npkey = 1;
       nskey = 2;
       break;
     default:
-      pk_algo = 0;   /* Oops.  */
+      pk_algo = (gcry_pk_algos) 0;   /* Oops.  */
       break;
     }
   if (!pk_algo)
@@ -1100,7 +1100,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
       goto bad_seckey;
 
   /* Now build the protection info. */
-  pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+  pk->seckey_info = ski = (seckey_info*) xtrycalloc (1, sizeof *ski);
   if (!ski)
     {
       err = gpg_error_from_syserror ();
@@ -1201,7 +1201,7 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
       goto unwraperror;
     }
   keylen = wrappedkeylen - 8;
-  key = xtrymalloc_secure (keylen);
+  key = (unsigned char*) xtrymalloc_secure (keylen);
   if (!key)
     {
       err = gpg_error_from_syserror ();
@@ -1716,7 +1716,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               struct seckey_info *ski;
               const char *s;
 
-              pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+              pk->seckey_info = ski = (seckey_info*) xtrycalloc (1, sizeof *ski);
               if (!ski)
                 {
                   err = gpg_error_from_syserror ();
@@ -1869,14 +1869,14 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
   if (!users)
     {
       ndesc = 1;
-      desc = xcalloc (ndesc, sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xcalloc (ndesc, sizeof *desc);
       desc[0].mode = KEYDB_SEARCH_MODE_FIRST;
     }
   else
     {
       for (ndesc=0, sl=users; sl; sl = sl->next, ndesc++)
         ;
-      desc = xmalloc ( ndesc * sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xmalloc ( ndesc * sizeof *desc);
 
       for (ndesc=0, sl=users; sl; sl = sl->next)
         {

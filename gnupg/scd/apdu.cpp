@@ -1058,7 +1058,7 @@ open_pcsc_reader (const char *portstr)
                            NULL, NULL, &nreader);
   if (!err)
     {
-      list = xtrymalloc (nreader+1); /* Better add 1 for safety reasons. */
+      list = (char*) xtrymalloc (nreader+1); /* Better add 1 for safety reasons. */
       if (!list)
         {
           log_error ("error allocating memory for reader list\n");
@@ -1192,7 +1192,7 @@ pcsc_pinpad_verify (int slot, int klasse, int ins, int p0, int p1,
   if (pininfo->fixedlen < 0 || pininfo->fixedlen >= 16)
     return SW_NOT_SUPPORTED;
 
-  pin_verify = xtrymalloc (len);
+  pin_verify = (unsigned char*) xtrymalloc (len);
   if (!pin_verify)
     return SW_HOST_OUT_OF_CORE;
 
@@ -1267,7 +1267,7 @@ pcsc_pinpad_modify (int slot, int klasse, int ins, int p0, int p1,
   if (pininfo->fixedlen < 0 || pininfo->fixedlen >= 16)
     return SW_NOT_SUPPORTED;
 
-  pin_modify = xtrymalloc (len);
+  pin_modify = (unsigned char*) xtrymalloc (len);
   if (!pin_modify)
     return SW_HOST_OUT_OF_CORE;
 
@@ -1833,7 +1833,7 @@ open_rapdu_reader (int portno,
 gpg_error_t
 apdu_dev_list_start (const char *portstr, struct dev_list **l_p)
 {
-  struct dev_list *dl = xtrymalloc (sizeof (struct dev_list));
+  struct dev_list *dl = (dev_list*) xtrymalloc (sizeof (struct dev_list));
 
   *l_p = NULL;
   if (!dl)
@@ -1921,39 +1921,39 @@ apdu_open_one_reader (const char *portstr)
           return -1;
         }
 
-      pcsc_establish_context = dlsym (handle, "SCardEstablishContext");
-      pcsc_release_context   = dlsym (handle, "SCardReleaseContext");
-      pcsc_list_readers      = dlsym (handle, "SCardListReaders");
+      pcsc_establish_context = (long int (*)(pcsc_dword_t, const void*, const void*, long int*)) dlsym (handle, "SCardEstablishContext");
+      pcsc_release_context   = (long int (*)(long int)) dlsym (handle, "SCardReleaseContext");
+      pcsc_list_readers      = (long int (*)(long int, const char*, char*, pcsc_dword_t*)) dlsym (handle, "SCardListReaders");
 #if defined(_WIN32) || defined(__CYGWIN__)
       if (!pcsc_list_readers)
         pcsc_list_readers    = dlsym (handle, "SCardListReadersA");
 #endif
-      pcsc_get_status_change = dlsym (handle, "SCardGetStatusChange");
+      pcsc_get_status_change = (long int (*)(long int, pcsc_dword_t, pcsc_readerstate_t, pcsc_dword_t)) dlsym (handle, "SCardGetStatusChange");
 #if defined(_WIN32) || defined(__CYGWIN__)
       if (!pcsc_get_status_change)
         pcsc_get_status_change = dlsym (handle, "SCardGetStatusChangeA");
 #endif
-      pcsc_connect           = dlsym (handle, "SCardConnect");
+      pcsc_connect           = (long int (*)(long int, const char*, pcsc_dword_t, pcsc_dword_t, long int*, pcsc_dword_t*)) dlsym (handle, "SCardConnect");
 #if defined(_WIN32) || defined(__CYGWIN__)
       if (!pcsc_connect)
         pcsc_connect         = dlsym (handle, "SCardConnectA");
 #endif
-      pcsc_reconnect         = dlsym (handle, "SCardReconnect");
+      pcsc_reconnect         = (long int (*)(long int, pcsc_dword_t, pcsc_dword_t, pcsc_dword_t, pcsc_dword_t*)) dlsym (handle, "SCardReconnect");
 #if defined(_WIN32) || defined(__CYGWIN__)
       if (!pcsc_reconnect)
         pcsc_reconnect       = dlsym (handle, "SCardReconnectA");
 #endif
-      pcsc_disconnect        = dlsym (handle, "SCardDisconnect");
-      pcsc_status            = dlsym (handle, "SCardStatus");
+      pcsc_disconnect        = (long int (*)(long int, pcsc_dword_t)) dlsym (handle, "SCardDisconnect");
+      pcsc_status            = (long int (*)(long int, char*, pcsc_dword_t*, pcsc_dword_t*, pcsc_dword_t*, unsigned char*, pcsc_dword_t*)) dlsym (handle, "SCardStatus");
 #if defined(_WIN32) || defined(__CYGWIN__)
       if (!pcsc_status)
         pcsc_status          = dlsym (handle, "SCardStatusA");
 #endif
-      pcsc_begin_transaction = dlsym (handle, "SCardBeginTransaction");
-      pcsc_end_transaction   = dlsym (handle, "SCardEndTransaction");
-      pcsc_transmit          = dlsym (handle, "SCardTransmit");
-      pcsc_set_timeout       = dlsym (handle, "SCardSetTimeout");
-      pcsc_control           = dlsym (handle, "SCardControl");
+      pcsc_begin_transaction = (long int (*)(long int)) dlsym (handle, "SCardBeginTransaction");
+      pcsc_end_transaction   = (long int (*)(long int, pcsc_dword_t)) dlsym (handle, "SCardEndTransaction");
+      pcsc_transmit          = (long int (*)(long int, pcsc_io_request_t, const unsigned char*, pcsc_dword_t, pcsc_io_request_t, unsigned char*, pcsc_dword_t*)) dlsym (handle, "SCardTransmit");
+      pcsc_set_timeout       = (long int (*)(long int, pcsc_dword_t)) dlsym (handle, "SCardSetTimeout");
+      pcsc_control           = (long int (*)(long int, pcsc_dword_t, const void*, pcsc_dword_t, void*, pcsc_dword_t, pcsc_dword_t*)) dlsym (handle, "SCardControl");
 
       if (!pcsc_establish_context
           || !pcsc_release_context
@@ -2411,7 +2411,7 @@ apdu_get_atr (int slot, size_t *atrlen)
       return NULL;
     }
 
-  buf = xtrymalloc (reader_table[slot].atrlen);
+  buf = (unsigned char*) xtrymalloc (reader_table[slot].atrlen);
   if (!buf)
     {
       if (DBG_READER)
@@ -2679,7 +2679,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
 
       /* Space for: cls/ins/p1/p2+Z+2_byte_Lc+Lc+2_byte_Le.  */
       apdu_buffer_size = 4 + 1 + (lc >= 0? (2+lc):0) + 2;
-      apdu_buffer = xtrymalloc (apdu_buffer_size + 10);
+      apdu_buffer = (unsigned char*) xtrymalloc (apdu_buffer_size + 10);
       if (!apdu_buffer)
         return SW_HOST_OUT_OF_CORE;
       apdu = apdu_buffer;
@@ -2694,7 +2694,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
     {
       /* Two more bytes are needed for status bytes.  */
       result_buffer_size = le < 0? 4096 : (le + 2);
-      result_buffer = xtrymalloc (result_buffer_size);
+      result_buffer = (unsigned char*) xtrymalloc (result_buffer_size);
       if (!result_buffer)
         {
           xfree (apdu_buffer);
@@ -2824,7 +2824,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
     {
       if (retbuf)
         {
-          *retbuf = xtrymalloc (resultlen? resultlen : 1);
+          *retbuf = (unsigned char*) xtrymalloc (resultlen? resultlen : 1);
           if (!*retbuf)
             {
               unlock_slot (slot);
@@ -2844,7 +2844,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
          start off with a large buffer. */
       if (retbuf)
         {
-          *retbuf = p = xtrymalloc (bufsize);
+          *retbuf = p = (unsigned char*) xtrymalloc (bufsize);
           if (!*retbuf)
             {
               unlock_slot (slot);
@@ -2902,7 +2902,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
                   if (p - *retbuf + resultlen > bufsize)
                     {
                       bufsize += resultlen > 4096? resultlen: 4096;
-                      tmp = xtryrealloc (*retbuf, bufsize);
+                      tmp = (unsigned char*) xtryrealloc (*retbuf, bufsize);
                       if (!tmp)
                         {
                           unlock_slot (slot);
@@ -2926,7 +2926,7 @@ send_le (int slot, int klasse, int ins, int p0, int p1,
       if (retbuf)
         {
           *retbuflen = p - *retbuf;
-          tmp = xtryrealloc (*retbuf, *retbuflen);
+          tmp = (unsigned char*) xtryrealloc (*retbuf, *retbuflen);
           if (tmp)
             *retbuf = tmp;
         }
@@ -3038,7 +3038,7 @@ apdu_send_direct (int slot, size_t extended_length,
 
   if (apdudatalen > sizeof short_apdu_buffer - 5)
     {
-      apdu_buffer = xtrymalloc (apdudatalen + 5);
+      apdu_buffer = (unsigned char*) xtrymalloc (apdudatalen + 5);
       if (!apdu_buffer)
         return SW_HOST_OUT_OF_CORE;
       apdu = apdu_buffer;
@@ -3054,7 +3054,7 @@ apdu_send_direct (int slot, size_t extended_length,
   if (extended_length >= 256 && extended_length <= 65536)
     {
       result_buffer_size = extended_length;
-      result_buffer = xtrymalloc (result_buffer_size + 10);
+      result_buffer = (unsigned char*) xtrymalloc (result_buffer_size + 10);
       if (!result_buffer)
         {
           xfree (apdu_buffer);
@@ -3108,7 +3108,7 @@ apdu_send_direct (int slot, size_t extended_length,
          start off with a large buffer. */
       if (retbuf)
         {
-          *retbuf = p = xtrymalloc (bufsize + 2);
+          *retbuf = p = (unsigned char*) xtrymalloc (bufsize + 2);
           if (!*retbuf)
             {
               unlock_slot (slot);
@@ -3164,7 +3164,7 @@ apdu_send_direct (int slot, size_t extended_length,
                   if (p - *retbuf + resultlen > bufsize)
                     {
                       bufsize += resultlen > 4096? resultlen: 4096;
-                      tmp = xtryrealloc (*retbuf, bufsize + 2);
+                      tmp = (unsigned char*) xtryrealloc (*retbuf, bufsize + 2);
                       if (!tmp)
                         {
                           unlock_slot (slot);
@@ -3188,7 +3188,7 @@ apdu_send_direct (int slot, size_t extended_length,
       if (retbuf)
         {
           *retbuflen = p - *retbuf;
-          tmp = xtryrealloc (*retbuf, *retbuflen + 2);
+          tmp = (unsigned char*) xtryrealloc (*retbuf, *retbuflen + 2);
           if (tmp)
             *retbuf = tmp;
         }
@@ -3197,7 +3197,7 @@ apdu_send_direct (int slot, size_t extended_length,
     {
       if (retbuf)
         {
-          *retbuf = xtrymalloc ((resultlen? resultlen : 1)+2);
+          *retbuf = (unsigned char*) xtrymalloc ((resultlen? resultlen : 1)+2);
           if (!*retbuf)
             {
               unlock_slot (slot);

@@ -632,7 +632,7 @@ _gcry_secmem_malloc_internal (size_t size, int xhint)
        * the mainpool so that the next allocation will happen in that
        * pool and not in one of the older pools.  When this new pool
        * gets full we will try to find space in the older pools.  */
-      pool = calloc (1, sizeof *pool);
+      pool = (pooldesc_t*) calloc (1, sizeof *pool);
       if (!pool)
         return NULL;  /* Not enough memory for a new pool descriptor.  */
       pool->size = STANDARD_POOL_SIZE;

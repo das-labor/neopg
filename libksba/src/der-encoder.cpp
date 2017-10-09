@@ -72,7 +72,7 @@ _ksba_der_encoder_new (void)
 {
   DerEncoder d;
 
-  d = xtrycalloc (1, sizeof *d);
+  d = (DerEncoder) xtrycalloc (1, sizeof *d);
   if (!d)
     return NULL;
 
@@ -590,7 +590,7 @@ _ksba_der_encode_tree (AsnNode root,
 #endif
 
   /* now we can create an encoding in image */
-  image = xtrymalloc (imagelen);
+  image = (unsigned char*) xtrymalloc (imagelen);
   if (!image)
     return GPG_ERR_ENOMEM;
   len = 0;

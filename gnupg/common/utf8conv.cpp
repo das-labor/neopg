@@ -336,7 +336,7 @@ native_to_utf8 (const char *orig_string)
 	  if (*s & 0x80)
 	    length++;
 	}
-      buffer = xmalloc (length + 1);
+      buffer = (char*) xmalloc (length + 1);
       for (p = (unsigned char *)buffer, s = string; *s; s++)
 	{
 	  if ( (*s & 0x80 ))
@@ -370,9 +370,9 @@ native_to_utf8 (const char *orig_string)
           if ((*s & 0x80))
             length += 5; /* We may need up to 6 bytes for the utf8 output. */
         }
-      buffer = xmalloc (length + 1);
+      buffer = (char*) xmalloc (length + 1);
 
-      inptr = string;
+      inptr = (const char*) string;
       inbytes = strlen (string);
       outptr = buffer;
       outbytes = length;
@@ -613,7 +613,7 @@ do_utf8_to_native (const char *string, size_t length, int delim,
       if (!buffer)
 	{
           /* Allocate the buffer after the first pass. */
-	  buffer = p = xmalloc (n + 1);
+	  buffer = p = (char*) xmalloc (n + 1);
 	}
       else if (with_iconv)
         {
@@ -641,7 +641,7 @@ do_utf8_to_native (const char *string, size_t length, int delim,
           outbytes = n * MB_LEN_MAX;
           if (outbytes / MB_LEN_MAX != n)
             BUG (); /* Actually an overflow. */
-          outbuf = outptr = xmalloc (outbytes);
+          outbuf = outptr = (char*) xmalloc (outbytes);
           if ( iconv (cd, (ICONV_CONST char **)&inptr, &inbytes,
                       &outptr, &outbytes) == (size_t)-1)
             {

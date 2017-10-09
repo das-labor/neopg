@@ -1497,7 +1497,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 
 	      es_fflush (es_stdout);
 	      if (opt.no_sig_cache)
-		signer_pk = xmalloc_clear (sizeof (PKT_public_key));
+		signer_pk = (PKT_public_key*) xmalloc_clear (sizeof (PKT_public_key));
 
 	      rc = check_key_signature2 (ctrl, keyblock, node, NULL, signer_pk,
 					 NULL, NULL, NULL);
@@ -1753,7 +1753,7 @@ print_fingerprint (ctrl_t ctrl, estream_t override_fp,
 
   if (!primary && (mode == 1 || mode == 2))
     {
-      PKT_public_key *primary_pk = xmalloc_clear (sizeof (*primary_pk));
+      PKT_public_key *primary_pk = (PKT_public_key*) xmalloc_clear (sizeof (*primary_pk));
       get_pubkey (ctrl, primary_pk, pk->main_keyid);
       print_fingerprint (ctrl, override_fp, primary_pk, (mode | 0x80));
       free_public_key (primary_pk);

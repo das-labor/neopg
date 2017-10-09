@@ -1380,7 +1380,7 @@ modlist_add (LDAPMod ***modlistp, const char *attr, const char *value)
 	}
 
       /* Append the value.  */
-      ptr = xrealloc ((*m)->mod_values, sizeof (char *) * (numvalues + 2));
+      ptr = (char**) xrealloc ((*m)->mod_values, sizeof (char *) * (numvalues + 2));
 
       (*m)->mod_values = ptr;
       ptr[numvalues] = xstrdup (value);
@@ -1394,16 +1394,16 @@ modlist_add (LDAPMod ***modlistp, const char *attr, const char *value)
 
   /* Like attribute values, the list of attributes is NULL terminated
      array of pointers.  */
-  modlist = xrealloc (modlist, sizeof (LDAPMod *) * (nummods + 2));
+  modlist = (LDAPMod**) xrealloc (modlist, sizeof (LDAPMod *) * (nummods + 2));
 
   *modlistp = modlist;
-  modlist[nummods] = xmalloc (sizeof (LDAPMod));
+  modlist[nummods] = (LDAPMod*) xmalloc (sizeof (LDAPMod));
 
   modlist[nummods]->mod_op = LDAP_MOD_REPLACE;
-  modlist[nummods]->mod_type = attr;
+  modlist[nummods]->mod_type = (char*) attr;
   if (value)
     {
-      modlist[nummods]->mod_values = xmalloc (sizeof(char *) * 2);
+      modlist[nummods]->mod_values = (char**) xmalloc (sizeof(char *) * 2);
 
       modlist[nummods]->mod_values[0] = xstrdup (value);
       modlist[nummods]->mod_values[1] = NULL;
@@ -1564,7 +1564,7 @@ modlists_join (LDAPMod ***one, LDAPMod **two)
   for (grow = two; *grow; grow++)
     two_count ++;
 
-  grow = xrealloc (*one, sizeof(LDAPMod *) * (one_count + two_count + 1));
+  grow = (LDAPMod**) xrealloc (*one, sizeof(LDAPMod *) * (one_count + two_count + 1));
 
   for (i = 0; i < two_count; i++)
     grow[one_count + i] = two[i];
@@ -1936,7 +1936,7 @@ ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
        on its own (not just a dumb LDAP server).  */
     {
       LDAPMod mod, *attrs[2];
-      char *key[] = { data, NULL };
+      char *key[] = { (char*) data, NULL };
       char *dn;
 
       memset (&mod, 0, sizeof (mod));
@@ -1959,7 +1959,7 @@ ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
       goto out;
     }
 
-  modlist = xmalloc (sizeof (LDAPMod *));
+  modlist = (LDAPMod**) xmalloc (sizeof (LDAPMod *));
   *modlist = NULL;
 
   if (dump_modlist)
@@ -1999,12 +1999,12 @@ ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
     {
       char *temp = NULL;
 
-      char *newline = memchr (info, '\n', infolen);
+      char *newline = (char*) memchr (info, '\n', infolen);
       if (! newline)
 	/* The last line is not \n terminated!  Make a copy so we can
 	   add a NUL terminator.  */
 	{
-	  temp = xmalloc (infolen + 1);
+	  temp = (char*) xmalloc (infolen + 1);
 	  memcpy (temp, info, infolen);
 	  info = temp;
 	  newline = (char *) info + infolen;

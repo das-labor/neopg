@@ -35,7 +35,7 @@
 int
 ldap_uri_p (const char *url)
 {
-  char *colon = strchr (url, ':');
+  char *colon = (char*) strchr (url, ':');
   if (! colon)
     return 0;
   else
@@ -135,7 +135,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
   add (bindname);
   add (password);
 
-  puri = xtrycalloc (1, sizeof *puri + len);
+  puri = (parsed_uri_t) xtrycalloc (1, sizeof *puri + len);
   if (! puri)
     {
       err = gpg_error_from_syserror ();
@@ -165,7 +165,7 @@ ldap_parse_uri (parsed_uri_t *purip, const char *uri)
 
   if (password)
     {
-      puri->query = calloc (sizeof (*puri->query), 1);
+      puri->query = (uri_tuple_t) calloc (sizeof (*puri->query), 1);
       if (!puri->query)
         {
           err = gpg_error_from_syserror ();
@@ -211,7 +211,7 @@ ldap_escape_filter (const char *filter)
 
   {
     /* In the worst case we need to escape every letter.  */
-    char *escaped = xmalloc (1 + 3 * strlen (filter));
+    char *escaped = (char*) xmalloc (1 + 3 * strlen (filter));
 
     /* Indices into filter and escaped.  */
     int filter_i = 0;

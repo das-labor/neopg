@@ -122,7 +122,7 @@ new_armor_context (void)
 {
   armor_filter_context_t *afx;
 
-  afx = xcalloc (1, sizeof *afx);
+  afx = (armor_filter_context_t*) xcalloc (1, sizeof *afx);
   afx->refcount = 1;
 
   return afx;
@@ -383,7 +383,7 @@ is_armor_header( byte *line, unsigned len )
 	return -1; /* too short */
     if( memcmp( line, "-----", 5 ) )
 	return -1; /* no */
-    p = strstr( (char*)line+5, "-----");
+    p = (byte*) strstr( (char*)line+5, "-----");
     if( !p )
 	return -1;
     save_p = p;
@@ -455,7 +455,7 @@ parse_header_line( armor_filter_context_t *afx, byte *line, unsigned int len )
       makes this strict and enforces the colon-space pair. -dms
     */
 
-    p = strchr( (char*)line, ':');
+    p = (byte*) strchr( (char*)line, ':');
     if( !p || (RFC2440 && p[1]!=' ')
 	|| (!RFC2440 && p[1]!=' ' && p[1]!='\n' && p[1]!='\r'))
       {
@@ -1005,7 +1005,7 @@ armor_filter( void *opaque, int control,
 	     IOBUF a, byte *buf, size_t *ret_len)
 {
     size_t size = *ret_len;
-    armor_filter_context_t *afx = opaque;
+    armor_filter_context_t *afx = (armor_filter_context_t*) opaque;
     int rc=0, i, c;
     byte radbuf[3];
     int  idx, idx2;
@@ -1333,7 +1333,7 @@ make_radix64_string( const byte *data, size_t len )
 {
     char *buffer, *p;
 
-    buffer = p = xmalloc( (len+2)/3*4 + 1 );
+    buffer = p = (char*) xmalloc( (len+2)/3*4 + 1 );
     for( ; len >= 3 ; len -= 3, data += 3 ) {
 	*p++ = bintoasc[(data[0] >> 2) & 077];
 	*p++ = bintoasc[(((data[0] <<4)&060)|((data[1] >> 4)&017))&077];
@@ -1393,7 +1393,7 @@ unarmor_pump_new (void)
 
     if( !is_initialized )
         initialize();
-    x = xmalloc_clear (sizeof *x);
+    x = (UnarmorPump) xmalloc_clear (sizeof *x);
     return x;
 }
 
