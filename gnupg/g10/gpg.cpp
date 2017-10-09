@@ -175,7 +175,6 @@ enum cmd_and_opt_values
     aDeArmor,
     aEnArmor,
     aGenRandom,
-    aRebuildKeydbCaches,
     aCardStatus,
     aCardEdit,
     aChangePIN,
@@ -705,7 +704,6 @@ static ARGPARSE_OPTS opts[] = {
      ARGPARSE_c (aListTrustPath, "list-trust-path", "@"), */
   ARGPARSE_c (aDeleteSecretAndPublicKeys,
               "delete-secret-and-public-keys", "@"),
-  ARGPARSE_c (aRebuildKeydbCaches, "rebuild-keydb-caches", "@"),
 
   ARGPARSE_s_s (oPassphrase,      "passphrase", "@"),
   ARGPARSE_s_i (oPassphraseFD,    "passphrase-fd", "@"),
@@ -2538,7 +2536,6 @@ gpg_main (int argc, char **argv)
 	  case aQuickSetPrimaryUid:
 	  case aExportOwnerTrust:
 	  case aImportOwnerTrust:
-          case aRebuildKeydbCaches:
             set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             break;
 
@@ -3886,7 +3883,7 @@ gpg_main (int argc, char **argv)
             || (cmd != aDeArmor && cmd != aEnArmor && cmd != aGPGConfTest)))
       {
 	if (!nrings || default_keyring > 0)  /* Add default ring. */
-	    keydb_add_resource ("pubring" EXTSEP_S GPGEXT_GPG,
+	    keydb_add_resource ("pubring" EXTSEP_S "kbx",
                                 KEYDB_RESOURCE_FLAG_DEFAULT);
 	for (sl = nrings; sl; sl = sl->next )
           keydb_add_resource (sl->d, sl->flags);
@@ -4771,12 +4768,6 @@ gpg_main (int argc, char **argv)
 	import_ownertrust (ctrl, argc? *argv:NULL );
 	break;
 #endif /*!NO_TRUST_MODELS*/
-
-      case aRebuildKeydbCaches:
-        if (argc)
-            wrong_args ("--rebuild-keydb-caches");
-        keydb_rebuild_caches (ctrl, 1);
-        break;
 
 #ifdef ENABLE_CARD_SUPPORT
       case aCardStatus:

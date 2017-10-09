@@ -183,9 +183,6 @@ gpg_error_t keydb_delete_keyblock (KEYDB_HANDLE hd);
 /* Find the first writable resource.  */
 gpg_error_t keydb_locate_writable (KEYDB_HANDLE hd);
 
-/* Rebuild the on-disk caches of all key resources.  */
-void keydb_rebuild_caches (ctrl_t ctrl, int noisy);
-
 /* Return the number of skipped blocks (because they were to large to
    read from a keybox) since the last search reset.  */
 unsigned long keydb_get_skipped_counter (KEYDB_HANDLE hd);

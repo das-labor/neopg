@@ -1996,13 +1996,6 @@ validate_keys (ctrl_t ctrl, int interactive)
   KeyHashTable stored,used,full_trust;
   u32 start_time, next_expire;
 
-  /* Make sure we have all sigs cached.  TODO: This is going to
-     require some architectural re-thinking, as it is agonizingly slow.
-     Perhaps combine this with reset_trust_records(), or only check
-     the caches on keys that are actually involved in the web of
-     trust. */
-  keydb_rebuild_caches (ctrl, 0);
-
   kdb = keydb_new ();
   if (!kdb)
     return gpg_error_from_syserror ();

@@ -532,7 +532,6 @@ add_executable(neopg
   ../gnupg/g10/photoid.cpp
   ../gnupg/g10/keyid.cpp
   ../gnupg/g10/keyserver.cpp
-  ../gnupg/g10/keyring.cpp
   ../gnupg/g10/pubkey-enc.cpp
   ../gnupg/g10/pkclist.cpp
   ../gnupg/g10/ecdh.cpp
