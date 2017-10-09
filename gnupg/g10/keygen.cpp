@@ -4477,10 +4477,7 @@ card_store_key_with_backup (ctrl_t ctrl, PKT_public_key *sub_psk,
   char *hexgrip;
   int rc;
   struct agent_card_info_s info;
-  gcry_cipher_hd_t cipherhd = NULL;
   char *cache_nonce = NULL;
-  void *kek = NULL;
-  size_t keklen;
 
   sk = copy_public_key (NULL, sub_psk);
   if (!sk)
@@ -4504,25 +4501,7 @@ card_store_key_with_backup (ctrl_t ctrl, PKT_public_key *sub_psk,
       goto leave;
     }
 
-  err = agent_keywrap_key (ctrl, 1, &kek, &keklen);
-  if (err)
-    {
-      log_error ("error getting the KEK: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (!err)
-    err = gcry_cipher_setkey (cipherhd, kek, keklen);
-  if (err)
-    {
-      log_error ("error setting up an encryption context: %s\n",
-                 gpg_strerror (err));
-      goto leave;
-    }
-
-  err = receive_seckey_from_agent (ctrl, cipherhd, 0,
+  err = receive_seckey_from_agent (ctrl, 0,
                                    &cache_nonce, hexgrip, sk);
   if (err)
     {
@@ -4540,8 +4519,6 @@ card_store_key_with_backup (ctrl_t ctrl, PKT_public_key *sub_psk,
 
  leave:
   xfree (cache_nonce);
-  gcry_cipher_close (cipherhd);
-  xfree (kek);
   xfree (hexgrip);
   free_public_key (sk);
   return err;

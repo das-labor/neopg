@@ -709,11 +709,6 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   char *passphrase = NULL;
   unsigned char *key = NULL;
   size_t keylen;
-  void *kek = NULL;
-  size_t keklen;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
-  gcry_cipher_hd_t cipherhd = NULL;
   gcry_sexp_t s_key = NULL;
   unsigned char grip[20];
   int bad_pass = 0;
@@ -849,43 +844,8 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   gcry_sexp_release (s_key);
   s_key = NULL;
 
-  /* Get the current KEK.  */
-  err = gpgsm_agent_keywrap_key (ctrl, 0, &kek, &keklen);
-  if (err)
-    {
-      log_error ("error getting the KEK: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
-  /* Wrap the key.  */
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (err)
-    goto leave;
-  err = gcry_cipher_setkey (cipherhd, kek, keklen);
-  if (err)
-    goto leave;
-  xfree (kek);
-  kek = NULL;
-
-  wrappedkeylen = keylen + 8;
-  wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
-  if (!wrappedkey)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-
-  err = gcry_cipher_encrypt (cipherhd, wrappedkey, wrappedkeylen, key, keylen);
-  if (err)
-    goto leave;
-  xfree (key);
-  key = NULL;
-  gcry_cipher_close (cipherhd);
-  cipherhd = NULL;
-
   /* Send the wrapped key to the agent.  */
-  err = gpgsm_agent_import_key (ctrl, wrappedkey, wrappedkeylen);
+  err = gpgsm_agent_import_key (ctrl, key, keylen);
   if (!err)
     {
       stats->count++;
@@ -918,9 +878,6 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   xfree (key);
   gcry_sexp_release (s_key);
   xfree (passphrase);
-  gcry_cipher_close (cipherhd);
-  xfree (wrappedkey);
-  xfree (kek);
   xfree (get_membuf (&p12mbuf, NULL));
   xfree (p12buffer);
 

@@ -1161,9 +1161,8 @@ print_status_exported (PKT_public_key *pk)
 /*
  * Receive a secret key from agent specified by HEXGRIP.
  *
- * Since the key data from the agent is encrypted, decrypt it using
- * CIPHERHD context.  Then, parse the decrypted key data into transfer
- * format, and put secret parameters into PK.
+ * Then, parse the key data into transfer format, and put secret
+ * parameters into PK.
  *
  * If CLEARTEXT is 0, store the secret key material
  * passphrase-protected.  Otherwise, store secret key material in the
@@ -1172,14 +1171,12 @@ print_status_exported (PKT_public_key *pk)
  * CACHE_NONCE_ADDR is used to share nonce for multple key retrievals.
  */
 gpg_error_t
-receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
+receive_seckey_from_agent (ctrl_t ctrl,
                            int cleartext,
                            char **cache_nonce_addr, const char *hexgrip,
                            PKT_public_key *pk)
 {
   gpg_error_t err = 0;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
   unsigned char *key = NULL;
   size_t keylen, realkeylen;
   gcry_sexp_t s_skey;
@@ -1190,26 +1187,16 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
 
   prompt = gpg_format_keydesc (ctrl, pk, FORMAT_KEYDESC_EXPORT,1);
   err = agent_export_key (ctrl, hexgrip, prompt, !cleartext, cache_nonce_addr,
-                          &wrappedkey, &wrappedkeylen);
+                          &key, &keylen);
   xfree (prompt);
 
   if (err)
     goto unwraperror;
-  if (wrappedkeylen < 24)
+  if (keylen < 16)
     {
       err = GPG_ERR_INV_LENGTH;
       goto unwraperror;
     }
-  keylen = wrappedkeylen - 8;
-  key = (unsigned char*) xtrymalloc_secure (keylen);
-  if (!key)
-    {
-      err = gpg_error_from_syserror ();
-      goto unwraperror;
-    }
-  err = gcry_cipher_decrypt (cipherhd, key, keylen, wrappedkey, wrappedkeylen);
-  if (err)
-    goto unwraperror;
   realkeylen = gcry_sexp_canon_len (key, keylen, NULL, &err);
   if (!realkeylen)
     goto unwraperror; /* Invalid csexp.  */
@@ -1226,7 +1213,6 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
 
  unwraperror:
   xfree (key);
-  xfree (wrappedkey);
   if (err)
     {
       log_error ("key %s: error receiving key from agent:"
@@ -1537,7 +1523,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
                         iobuf_t out, int secret, unsigned int options,
                         export_stats_t stats, int *any,
                         KEYDB_SEARCH_DESC *desc, size_t ndesc,
-                        size_t descindex, gcry_cipher_hd_t cipherhd)
+                        size_t descindex)
 {
   gpg_error_t err = GPG_ERR_NOT_FOUND;
   char *cache_nonce = NULL;
@@ -1746,7 +1732,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
             }
           else if (!err)
             {
-              err = receive_seckey_from_agent (ctrl, cipherhd,
+              err = receive_seckey_from_agent (ctrl,
                                                cleartext, &cache_nonce,
                                                hexgrip, pk);
               if (err)
@@ -1845,7 +1831,6 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
   KEYDB_SEARCH_DESC *desc = NULL;
   KEYDB_HANDLE kdbhd;
   strlist_t sl;
-  gcry_cipher_hd_t cipherhd = NULL;
   struct export_stats_s dummystats;
   iobuf_t out_help = NULL;
 
@@ -1905,34 +1890,6 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
       goto leave;
     }
 #endif
-
-  /* For secret key export we need to setup a decryption context.  */
-  if (secret)
-    {
-      void *kek = NULL;
-      size_t keklen;
-
-      err = agent_keywrap_key (ctrl, 1, &kek, &keklen);
-      if (err)
-        {
-          log_error ("error getting the KEK: %s\n", gpg_strerror (err));
-          goto leave;
-        }
-
-      /* Prepare a cipher context.  */
-      err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                              GCRY_CIPHER_MODE_AESWRAP, 0);
-      if (!err)
-        err = gcry_cipher_setkey (cipherhd, kek, keklen);
-      if (err)
-        {
-          log_error ("error setting up an encryption context: %s\n",
-                     gpg_strerror (err));
-          goto leave;
-        }
-      xfree (kek);
-      kek = NULL;
-    }
 
   for (;;)
     {
@@ -2020,7 +1977,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
       err = do_export_one_keyblock (ctrl, keyblock, keyid,
                                     out_help? out_help : out,
                                     secret, options, stats, any,
-                                    desc, ndesc, descindex, cipherhd);
+                                    desc, ndesc, descindex);
       if (err)
         break;
 
@@ -2058,7 +2015,6 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
 
  leave:
   iobuf_cancel (out_help);
-  gcry_cipher_close (cipherhd);
   xfree(desc);
   keydb_release (kdbhd);
   if (err || !keyblock_out)

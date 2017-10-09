@@ -1866,8 +1866,6 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
                       kbnode_t sec_keyblock, int batch, int force)
 {
   gpg_error_t err = 0;
-  void *kek = NULL;
-  size_t keklen;
   kbnode_t ctx = NULL;
   kbnode_t node;
   PKT_public_key *main_pk, *pk;
@@ -1880,29 +1878,8 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
   gcry_sexp_t curve = NULL;
   unsigned char *transferkey = NULL;
   size_t transferkeylen;
-  gcry_cipher_hd_t cipherhd = NULL;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
   char *cache_nonce = NULL;
   int stub_key_skipped = 0;
-
-  /* Get the current KEK.  */
-  err = agent_keywrap_key (ctrl, 0, &kek, &keklen);
-  if (err)
-    {
-      log_error ("error getting the KEK: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
-  /* Prepare a cipher context.  */
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (!err)
-    err = gcry_cipher_setkey (cipherhd, kek, keklen);
-  if (err)
-    goto leave;
-  xfree (kek);
-  kek = NULL;
 
   main_pk = NULL;
   while ((node = walk_kbnode (sec_keyblock, &ctx, 0)))
@@ -2082,25 +2059,11 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
           goto leave;
         }
 
-      /* Wrap the key.  */
-      wrappedkeylen = transferkeylen + 8;
-      xfree (wrappedkey);
-      wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
-      if (!wrappedkey)
-        err = gpg_error_from_syserror ();
-      else
-        err = gcry_cipher_encrypt (cipherhd, wrappedkey, wrappedkeylen,
-                                   transferkey, transferkeylen);
-      if (err)
-        goto leave;
-      xfree (transferkey);
-      transferkey = NULL;
-
-      /* Send the wrapped key to the agent.  */
+      /* Send the key to the agent.  */
       {
         char *desc = gpg_format_keydesc (ctrl, pk, FORMAT_KEYDESC_IMPORT, 1);
         err = agent_import_key (ctrl, desc, &cache_nonce,
-                                wrappedkey, wrappedkeylen, batch, force);
+                                transferkey, transferkeylen, batch, force);
         xfree (desc);
       }
       if (!err)
@@ -2138,10 +2101,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
  leave:
   gcry_sexp_release (curve);
   xfree (cache_nonce);
-  xfree (wrappedkey);
   xfree (transferkey);
-  gcry_cipher_close (cipherhd);
-  xfree (kek);
   return err;
 }
 

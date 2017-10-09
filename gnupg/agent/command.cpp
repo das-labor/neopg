@@ -49,8 +49,6 @@
 #define MAXLEN_KEYPARAM 1024
 /* Maximum allowed size of key data as used in inquiries (bytes). */
 #define MAXLEN_KEYDATA 8192
-/* The size of the import/export KEK key (in bytes).  */
-#define KEYWRAP_KEYSIZE (128/8)
 
 /* A shortcut to call assuan_set_error using an gpg_error_t and a
    text string.  */
@@ -95,12 +93,6 @@ struct server_local_s
   /* An allocated description for the next key operation.  This is
      used if a pinnetry needs to be popped up.  */
   char *keydesc;
-
-  /* Malloced KEK (Key-Encryption-Key) for the import_key command.  */
-  void *import_key;
-
-  /* Malloced KEK for the export_key command.  */
-  void *export_key;
 
   /* Client is aware of the error code GPG_ERR_FULLY_CANCELED.  */
   int allow_fully_canceled;
@@ -1874,70 +1866,12 @@ cmd_scd (assuan_context_t ctx, char *line)
 
 
 
-static const char hlp_keywrap_key[] =
-  "KEYWRAP_KEY [--clear] <mode>\n"
-  "\n"
-  "Return a key to wrap another key.  For now the key is returned\n"
-  "verbatim and thus makes not much sense because an eavesdropper on\n"
-  "the gpg-agent connection will see the key as well as the wrapped key.\n"
-  "However, this function may either be equipped with a public key\n"
-  "mechanism or not used at all if the key is a pre-shared key.  In any\n"
-  "case wrapping the import and export of keys is a requirement for\n"
-  "certain cryptographic validations and thus useful.  The key persists\n"
-  "until a RESET command but may be cleared using the option --clear.\n"
-  "\n"
-  "Supported modes are:\n"
-  "  --import  - Return a key to import a key into gpg-agent\n"
-  "  --export  - Return a key to export a key from gpg-agent";
-static gpg_error_t
-cmd_keywrap_key (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  gpg_error_t err = 0;
-  int clearopt = has_option (line, "--clear");
-
-  assuan_begin_confidential (ctx);
-  if (has_option (line, "--import"))
-    {
-      xfree (ctrl->server_local->import_key);
-      if (clearopt)
-        ctrl->server_local->import_key = NULL;
-      else if (!(ctrl->server_local->import_key =
-                 gcry_random_bytes (KEYWRAP_KEYSIZE, GCRY_STRONG_RANDOM)))
-        err = gpg_error_from_syserror ();
-      else
-        err = assuan_send_data (ctx, ctrl->server_local->import_key,
-                                KEYWRAP_KEYSIZE);
-    }
-  else if (has_option (line, "--export"))
-    {
-      xfree (ctrl->server_local->export_key);
-      if (clearopt)
-        ctrl->server_local->export_key = NULL;
-      else if (!(ctrl->server_local->export_key =
-            gcry_random_bytes (KEYWRAP_KEYSIZE, GCRY_STRONG_RANDOM)))
-        err = gpg_error_from_syserror ();
-      else
-        err = assuan_send_data (ctx, ctrl->server_local->export_key,
-                                KEYWRAP_KEYSIZE);
-    }
-  else
-    err = set_error (GPG_ERR_ASS_PARAMETER, "unknown value for MODE");
-  assuan_end_confidential (ctx);
-
-  return leave_cmd (ctx, err);
-}
-
-
-
 static const char hlp_import_key[] =
   "IMPORT_KEY [--unattended] [--force] [<cache_nonce>]\n"
   "\n"
-  "Import a secret key into the key store.  The key is expected to be\n"
-  "encrypted using the current session's key wrapping key (cf. command\n"
-  "KEYWRAP_KEY) using the AESWRAP-128 algorithm.  This function takes\n"
+  "Import a secret key into the key store.  This function takes\n"
   "no arguments but uses the inquiry \"KEYDATA\" to ask for the actual\n"
-  "key data.  The unwrapped key must be a canonical S-expression.  The\n"
+  "key data.  The key must be a canonical S-expression.  The\n"
   "option --unattended tries to import the key as-is without any\n"
   "re-encryption.  Existing key can be overwritten with --force.";
 static gpg_error_t
@@ -1947,9 +1881,6 @@ cmd_import_key (assuan_context_t ctx, char *line)
   gpg_error_t err;
   int opt_unattended;
   int force;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
-  gcry_cipher_hd_t cipherhd = NULL;
   unsigned char *key = NULL;
   size_t keylen, realkeylen;
   char *passphrase = NULL;
@@ -1959,12 +1890,6 @@ cmd_import_key (assuan_context_t ctx, char *line)
   gcry_sexp_t openpgp_sexp = NULL;
   char *cache_nonce = NULL;
   char *p;
-
-  if (!ctrl->server_local->import_key)
-    {
-      err = GPG_ERR_MISSING_KEY;
-      goto leave;
-    }
 
   opt_unattended = has_option (line, "--unattended");
   force = has_option (line, "--force");
@@ -1978,38 +1903,15 @@ cmd_import_key (assuan_context_t ctx, char *line)
 
   assuan_begin_confidential (ctx);
   err = assuan_inquire (ctx, "KEYDATA",
-                        &wrappedkey, &wrappedkeylen, MAXLEN_KEYDATA);
+                        &key, &keylen, MAXLEN_KEYDATA);
   assuan_end_confidential (ctx);
   if (err)
     goto leave;
-  if (wrappedkeylen < 24)
+  if (keylen < 16)
     {
       err = GPG_ERR_INV_LENGTH;
       goto leave;
     }
-  keylen = wrappedkeylen - 8;
-  key = (unsigned char*) xtrymalloc_secure (keylen);
-  if (!key)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (err)
-    goto leave;
-  err = gcry_cipher_setkey (cipherhd,
-                            ctrl->server_local->import_key, KEYWRAP_KEYSIZE);
-  if (err)
-    goto leave;
-  err = gcry_cipher_decrypt (cipherhd, key, keylen, wrappedkey, wrappedkeylen);
-  if (err)
-    goto leave;
-  gcry_cipher_close (cipherhd);
-  cipherhd = NULL;
-  xfree (wrappedkey);
-  wrappedkey = NULL;
 
   realkeylen = gcry_sexp_canon_len (key, keylen, NULL, &err);
   if (!realkeylen)
@@ -2113,8 +2015,6 @@ cmd_import_key (assuan_context_t ctx, char *line)
   xfree (finalkey);
   xfree (passphrase);
   xfree (key);
-  gcry_cipher_close (cipherhd);
-  xfree (wrappedkey);
   xfree (cache_nonce);
   xfree (ctrl->server_local->keydesc);
   ctrl->server_local->keydesc = NULL;
@@ -2126,10 +2026,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
 static const char hlp_export_key[] =
   "EXPORT_KEY [--cache-nonce=<nonce>] [--openpgp] <hexstring_with_keygrip>\n"
   "\n"
-  "Export a secret key from the key store.  The key will be encrypted\n"
-  "using the current session's key wrapping key (cf. command KEYWRAP_KEY)\n"
-  "using the AESWRAP-128 algorithm.  The caller needs to retrieve that key\n"
-  "prior to using this command.  The function takes the keygrip as argument.\n"
+  "Export a secret key from the key store.  The function takes the keygrip as argument.\n"
   "\n"
   "If --openpgp is used, the secret key material will be exported in RFC 4880\n"
   "compatible passphrase-protected form.  Without --openpgp, the secret key\n"
@@ -2144,9 +2041,6 @@ cmd_export_key (assuan_context_t ctx, char *line)
   gcry_sexp_t s_skey = NULL;
   unsigned char *key = NULL;
   size_t keylen;
-  gcry_cipher_hd_t cipherhd = NULL;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
   int openpgp;
   char *cache_nonce;
   char *passphrase = NULL;
@@ -2171,12 +2065,6 @@ cmd_export_key (assuan_context_t ctx, char *line)
         }
     }
   line = skip_options (line);
-
-  if (!ctrl->server_local->export_key)
-    {
-      err = set_error (GPG_ERR_MISSING_KEY, "did you run KEYWRAP_KEY ?");
-      goto leave;
-    }
 
   err = parse_keygrip (ctx, line, grip);
   if (err)
@@ -2247,41 +2135,14 @@ cmd_export_key (assuan_context_t ctx, char *line)
   gcry_sexp_release (s_skey);
   s_skey = NULL;
 
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (err)
-    goto leave;
-  err = gcry_cipher_setkey (cipherhd,
-                            ctrl->server_local->export_key, KEYWRAP_KEYSIZE);
-  if (err)
-    goto leave;
-
-  wrappedkeylen = keylen + 8;
-  wrappedkey = (unsigned char*) xtrymalloc (wrappedkeylen);
-  if (!wrappedkey)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-
-  err = gcry_cipher_encrypt (cipherhd, wrappedkey, wrappedkeylen, key, keylen);
-  if (err)
-    goto leave;
-  xfree (key);
-  key = NULL;
-  gcry_cipher_close (cipherhd);
-  cipherhd = NULL;
-
   assuan_begin_confidential (ctx);
-  err = assuan_send_data (ctx, wrappedkey, wrappedkeylen);
+  err = assuan_send_data (ctx, key, keylen);
   assuan_end_confidential (ctx);
 
 
  leave:
   xfree (cache_nonce);
   xfree (passphrase);
-  xfree (wrappedkey);
-  gcry_cipher_close (cipherhd);
   xfree (key);
   gcry_sexp_release (s_skey);
   xfree (ctrl->server_local->keydesc);
@@ -2932,7 +2793,6 @@ register_commands (assuan_context_t ctx)
     { "INPUT",          NULL },
     { "OUTPUT",         NULL },
     { "SCD",            cmd_scd,       hlp_scd },
-    { "KEYWRAP_KEY",    cmd_keywrap_key, hlp_keywrap_key },
     { "IMPORT_KEY",     cmd_import_key, hlp_import_key },
     { "EXPORT_KEY",     cmd_export_key, hlp_export_key },
     { "DELETE_KEY",     cmd_delete_key, hlp_delete_key },
@@ -3044,8 +2904,6 @@ start_command_handler (ctrl_t ctrl)
   /* Cleanup.  */
   assuan_release (ctx);
   xfree (ctrl->server_local->keydesc);
-  xfree (ctrl->server_local->import_key);
-  xfree (ctrl->server_local->export_key);
   if (ctrl->server_local->stopme)
     agent_exit (0);
   xfree (ctrl->server_local);

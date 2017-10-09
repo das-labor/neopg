@@ -1206,51 +1206,6 @@ gpgsm_agent_ask_passphrase (ctrl_t ctrl, const char *desc_msg, int repeat,
   return err;
 }
 
-
-
-/* Retrieve a key encryption key from the agent.  With FOREXPORT true
-   the key shall be use for export, with false for import.  On success
-   the new key is stored at R_KEY and its length at R_KEKLEN.  */
-gpg_error_t
-gpgsm_agent_keywrap_key (ctrl_t ctrl, int forexport,
-                         void **r_kek, size_t *r_keklen)
-{
-  gpg_error_t err;
-  membuf_t data;
-  size_t len;
-  unsigned char *buf;
-  char line[ASSUAN_LINELENGTH];
-  struct default_inq_parm_s inq_parm;
-
-  *r_kek = NULL;
-  err = start_agent (ctrl);
-  if (err)
-    return err;
-  inq_parm.ctrl = ctrl;
-  inq_parm.ctx = agent_ctx;
-
-  snprintf (line, DIM(line), "KEYWRAP_KEY %s",
-            forexport? "--export":"--import");
-
-  init_membuf_secure (&data, 64);
-  err = assuan_transact (agent_ctx, line,
-                         put_membuf_cb, &data,
-                         default_inq_cb, &inq_parm, NULL, NULL);
-  if (err)
-    {
-      xfree (get_membuf (&data, &len));
-      return err;
-    }
-  buf = (unsigned char*) get_membuf (&data, &len);
-  if (!buf)
-    return gpg_error_from_syserror ();
-  *r_kek = buf;
-  *r_keklen = len;
-  return 0;
-}
-
-
-
 
 /* Handle the inquiry for an IMPORT_KEY command.  */
 static gpg_error_t

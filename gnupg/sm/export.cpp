@@ -615,11 +615,6 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
             void **r_result, size_t *r_resultlen)
 {
   gpg_error_t err = 0;
-  void *kek = NULL;
-  size_t keklen;
-  unsigned char *wrappedkey = NULL;
-  size_t wrappedkeylen;
-  gcry_cipher_hd_t cipherhd = NULL;
   gcry_sexp_t s_skey = NULL;
   gcry_mpi_t *kparms = NULL;
   unsigned char *key = NULL;
@@ -631,52 +626,18 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
 
   *r_result = NULL;
 
-  /* Get the current KEK.  */
-  err = gpgsm_agent_keywrap_key (ctrl, 1, &kek, &keklen);
-  if (err)
-    {
-      log_error ("error getting the KEK: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
   /* Receive the wrapped key from the agent.  */
   err = gpgsm_agent_export_key (ctrl, keygrip, prompt,
-                                &wrappedkey, &wrappedkeylen);
+                                &key, &keylen);
   if (err)
     goto leave;
 
 
-  /* Unwrap the key.  */
-  err = gcry_cipher_open (&cipherhd, GCRY_CIPHER_AES128,
-                          GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (err)
-    goto leave;
-  err = gcry_cipher_setkey (cipherhd, kek, keklen);
-  if (err)
-    goto leave;
-  xfree (kek);
-  kek = NULL;
-
-  if (wrappedkeylen < 24)
+  if (keylen < 16)
     {
       err = GPG_ERR_INV_LENGTH;
       goto leave;
     }
-  keylen = wrappedkeylen - 8;
-  key = (unsigned char*) xtrymalloc_secure (keylen);
-  if (!key)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-  err = gcry_cipher_decrypt (cipherhd, key, keylen, wrappedkey, wrappedkeylen);
-  if (err)
-    goto leave;
-  xfree (wrappedkey);
-  wrappedkey = NULL;
-  gcry_cipher_close (cipherhd);
-  cipherhd = NULL;
-
 
   /* Convert to a gcrypt S-expression.  */
   err = gcry_sexp_create (&s_skey, key, keylen, 0, xfree_fnc);
@@ -729,9 +690,6 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
         gcry_mpi_release (kparms[i]);
       xfree (kparms);
     }
-  gcry_cipher_close (cipherhd);
-  xfree (wrappedkey);
-  xfree (kek);
 
   if (err == GPG_ERR_BAD_PASSPHRASE)
     {

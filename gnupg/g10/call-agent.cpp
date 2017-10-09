@@ -2011,51 +2011,6 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
 
 
 
-/* Retrieve a key encryption key from the agent.  With FOREXPORT true
-   the key shall be used for export, with false for import.  On success
-   the new key is stored at R_KEY and its length at R_KEKLEN.  */
-gpg_error_t
-agent_keywrap_key (ctrl_t ctrl, int forexport, void **r_kek, size_t *r_keklen)
-{
-  gpg_error_t err;
-  membuf_t data;
-  size_t len;
-  unsigned char *buf;
-  char line[ASSUAN_LINELENGTH];
-  struct default_inq_parm_s dfltparm;
-
-  memset (&dfltparm, 0, sizeof dfltparm);
-  dfltparm.ctrl = ctrl;
-
-  *r_kek = NULL;
-  err = start_agent (ctrl, 0);
-  if (err)
-    return err;
-  dfltparm.ctx = agent_ctx;
-
-  snprintf (line, DIM(line), "KEYWRAP_KEY %s",
-            forexport? "--export":"--import");
-
-  init_membuf_secure (&data, 64);
-  err = assuan_transact (agent_ctx, line,
-                         put_membuf_cb, &data,
-                         default_inq_cb, &dfltparm,
-                         NULL, NULL);
-  if (err)
-    {
-      xfree (get_membuf (&data, &len));
-      return err;
-    }
-  buf = (unsigned char*) get_membuf (&data, &len);
-  if (!buf)
-    return gpg_error_from_syserror ();
-  *r_kek = buf;
-  *r_keklen = len;
-  return 0;
-}
-
-
-
 /* Handle the inquiry for an IMPORT_KEY command.  */
 static gpg_error_t
 inq_import_key_parms (void *opaque, const char *line)
