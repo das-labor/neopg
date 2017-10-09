@@ -30,7 +30,6 @@
 #include "packet.h"
 #include "../common/iobuf.h"
 #include "filter.h"
-#include "photoid.h"
 #include "options.h"
 #include "main.h"
 #include "../common/i18n.h"
@@ -2772,20 +2771,8 @@ make_attribute_uidname (PKT_user_id * uid, size_t max_namelen)
     {
       /* Only one attribute, so list it as the "user id" */
 
-      if (uid->attribs->type == ATTRIB_IMAGE)
-	{
-	  u32 len;
-	  byte type;
-
-	  if (parse_image_header (uid->attribs, &type, &len))
-	    sprintf (uid->name, "[%.20s image of size %lu]",
-		     image_type_to_string (type, 1), (unsigned long) len);
-	  else
-	    sprintf (uid->name, "[invalid image]");
-	}
-      else
-	sprintf (uid->name, "[unknown attribute of size %lu]",
-		 (unsigned long) uid->attribs->len);
+      sprintf (uid->name, "[unknown attribute of size %lu]",
+	       (unsigned long) uid->attribs->len);
     }
 
   uid->len = strlen (uid->name);

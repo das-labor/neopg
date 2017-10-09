@@ -329,8 +329,6 @@
 #define DIRMNGR_INFO_NAME "DIRMNGR_INFO"
 #define DIRMNGR_NAME "dirmngr"
 #define DIRMNGR_SOCK_NAME "S.dirmngr"
-/* define to disable photo viewing */
-/* #undef DISABLE_PHOTO_VIEWER */
 /* Define to disable regular expression support */
 /* #undef DISABLE_REGEX */
 /* Define to include smartcard support */
@@ -342,8 +340,6 @@
 /* #undef ENABLE_SELINUX_HACKS */
 /* The executable file extension, if any */
 #define EXEEXT ""
-/* if set, restrict photo-viewer to this */
-/* #undef FIXED_PHOTO_VIEWER */
 #define GNUPG_NAME "GnuPG"
 /* #undef GNUPG_REGISTRY_DIR */
 #define GPGCONF_DISP_NAME "GPGConf"

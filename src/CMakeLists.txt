@@ -529,7 +529,6 @@ add_executable(neopg
   ../gnupg/kbx/keybox-update.cpp
   ../gnupg/kbx/keybox-search.cpp
   ../gnupg/g10/misc.cpp
-  ../gnupg/g10/photoid.cpp
   ../gnupg/g10/keyid.cpp
   ../gnupg/g10/keyserver.cpp
   ../gnupg/g10/pubkey-enc.cpp

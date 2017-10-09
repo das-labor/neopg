@@ -36,7 +36,6 @@
 #include "../common/status.h"
 #include "../common/iobuf.h"
 #include "keydb.h"
-#include "photoid.h"
 #include "../common/util.h"
 #include "main.h"
 #include "trustdb.h"
@@ -65,8 +64,7 @@ static void show_key_and_fingerprint (ctrl_t ctrl,
                                       kbnode_t keyblock, int with_subkeys);
 static void show_key_and_grip (kbnode_t keyblock);
 static void subkey_expire_warning (kbnode_t keyblock);
-static int menu_adduid (ctrl_t ctrl, kbnode_t keyblock,
-                        int photo, const char *photo_name, const char *uidstr);
+static int menu_adduid (ctrl_t ctrl, kbnode_t keyblock, const char *uidstr);
 static void menu_deluid (KBNODE pub_keyblock);
 static int menu_delsig (ctrl_t ctrl, kbnode_t pub_keyblock);
 static int menu_clean (ctrl_t ctrl, kbnode_t keyblock, int self_only);
@@ -101,7 +99,6 @@ static int menu_revsubkey (ctrl_t ctrl, kbnode_t pub_keyblock);
 #ifndef NO_TRUST_MODELS
 static int enable_disable_key (ctrl_t ctrl, kbnode_t keyblock, int disable);
 #endif /*!NO_TRUST_MODELS*/
-static void menu_showphoto (ctrl_t ctrl, kbnode_t keyblock);
 
 static int update_trust = 0;
 
@@ -1231,14 +1228,14 @@ enum cmdids
   cmdNONE = 0,
   cmdQUIT, cmdHELP, cmdFPR, cmdLIST, cmdSELUID, cmdCHECK, cmdSIGN,
   cmdREVSIG, cmdREVKEY, cmdREVUID, cmdDELSIG, cmdPRIMARY, cmdDEBUG,
-  cmdSAVE, cmdADDUID, cmdADDPHOTO, cmdDELUID, cmdADDKEY, cmdDELKEY,
+  cmdSAVE, cmdADDUID, cmdDELUID, cmdADDKEY, cmdDELKEY,
   cmdADDREVOKER, cmdTOGGLE, cmdSELKEY, cmdPASSWD, cmdTRUST, cmdPREF,
   cmdEXPIRE, cmdCHANGEUSAGE, cmdBACKSIGN,
 #ifndef NO_TRUST_MODELS
   cmdENABLEKEY, cmdDISABLEKEY,
 #endif /*!NO_TRUST_MODELS*/
   cmdSHOWPREF,
-  cmdSETPREF, cmdPREFKS, cmdNOTATION, cmdINVCMD, cmdSHOWPHOTO, cmdUPDTRUST,
+  cmdSETPREF, cmdPREFKS, cmdNOTATION, cmdINVCMD, cmdUPDTRUST,
   cmdCHKTRUST, cmdADDCARDKEY, cmdKEYTOCARD, cmdBKUPTOCARD,
   cmdCLEAN, cmdMINIMIZE, cmdGRIP, cmdNOP
 };
@@ -1279,11 +1276,7 @@ static struct
     N_("sign selected user IDs with a non-revocable signature")},
   { "debug", cmdDEBUG, 0, NULL},
   { "adduid", cmdADDUID, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK, N_("add a user ID")},
-  { "addphoto", cmdADDPHOTO, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK,
-    N_("add a photo ID")},
   { "deluid", cmdDELUID, KEYEDIT_NOT_SK, N_("delete selected user IDs")},
-    /* delphoto is really deluid in disguise */
-  { "delphoto", cmdDELUID, KEYEDIT_NOT_SK, NULL},
   { "addkey", cmdADDKEY, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK, N_("add a subkey")},
 #ifdef ENABLE_CARD_SUPPORT
   { "addcardkey", cmdADDCARDKEY, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK,
@@ -1323,14 +1316,12 @@ static struct
     N_("revoke signatures on the selected user IDs")},
   { "revuid", cmdREVUID, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK,
     N_("revoke selected user IDs")},
-  { "revphoto", cmdREVUID, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK, NULL},
   { "revkey", cmdREVKEY, KEYEDIT_NOT_SK | KEYEDIT_NEED_SK,
     N_("revoke key or selected subkeys")},
 #ifndef NO_TRUST_MODELS
   { "enable", cmdENABLEKEY, KEYEDIT_NOT_SK, N_("enable key")},
   { "disable", cmdDISABLEKEY, KEYEDIT_NOT_SK, N_("disable key")},
 #endif /*!NO_TRUST_MODELS*/
-  { "showphoto", cmdSHOWPHOTO, 0, N_("show selected photo IDs")},
   { "clean", cmdCLEAN, KEYEDIT_NOT_SK,
     N_("compact unusable user IDs and remove unusable signatures from key")},
   { "minimize", cmdMINIMIZE, KEYEDIT_NOT_SK,
@@ -1452,7 +1443,7 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
   /* Main command loop.  */
   for (;;)
     {
-      int i, arg_number, photo;
+      int i, arg_number;
       const char *arg_string = "";
       char *p;
       PKT_public_key *pk = keyblock->pkt->pkt.public_key;
@@ -1505,7 +1496,6 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
       while (*answer == '#');
 
       arg_number = 0; /* Here is the init which egcc complains about.  */
-      photo = 0;      /* Same here. */
       if (!*answer)
 	cmd = cmdLIST;
       else if (*answer == CONTROL_D)
@@ -1692,17 +1682,8 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
 	  redisplay = 1;
 	  break;
 
-	case cmdADDPHOTO:
-	  if (RFC2440)
-	    {
-	      tty_printf (_("This command is not allowed while in %s mode.\n"),
-			  gnupg_compliance_option_string (opt.compliance));
-	      break;
-	    }
-	  photo = 1;
-	  /* fall through */
 	case cmdADDUID:
-	  if (menu_adduid (ctrl, keyblock, photo, arg_string, NULL))
+	  if (menu_adduid (ctrl, keyblock, NULL))
 	    {
 	      update_trust = 1;
 	      redisplay = 1;
@@ -2142,10 +2123,6 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
 	  break;
 #endif /*!NO_TRUST_MODELS*/
 
-	case cmdSHOWPHOTO:
-	  menu_showphoto (ctrl, keyblock);
-	  break;
-
 	case cmdCLEAN:
 	  if (menu_clean (ctrl, keyblock, 0))
 	    redisplay = modified = 1;
@@ -2359,7 +2336,7 @@ keyedit_quick_adduid (ctrl_t ctrl, const char *username, const char *newuid)
   if (err)
     goto leave;
 
-  if (menu_adduid (ctrl, keyblock, 0, NULL, uidstring))
+  if (menu_adduid (ctrl, keyblock, uidstring))
     {
       err = keydb_update_keyblock (ctrl, kdbhd, keyblock);
       if (err)
@@ -3797,8 +3774,7 @@ subkey_expire_warning (kbnode_t keyblock)
  * user id.
  */
 static int
-menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
-             int photo, const char *photo_name, const char *uidstring)
+menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock, const char *uidstring)
 {
   PKT_user_id *uid;
   PKT_public_key *pk = NULL;
@@ -3807,9 +3783,6 @@ menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
   KBNODE node;
   KBNODE pub_where = NULL;
   gpg_error_t err;
-
-  if (photo && uidstring)
-    return 0;  /* Not allowed.  */
 
   for (node = pub_keyblock; node; pub_where = node, node = node->next)
     {
@@ -3822,48 +3795,7 @@ menu_adduid (ctrl_t ctrl, kbnode_t pub_keyblock,
     pub_where = NULL;
   log_assert (pk);
 
-  if (photo)
-    {
-      int hasattrib = 0;
-
-      for (node = pub_keyblock; node; node = node->next)
-	if (node->pkt->pkttype == PKT_USER_ID &&
-	    node->pkt->pkt.user_id->attrib_data != NULL)
-	  {
-	    hasattrib = 1;
-	    break;
-	  }
-
-      /* It is legal but bad for compatibility to add a photo ID to a
-         v3 key as it means that PGP2 will not be able to use that key
-         anymore.  Also, PGP may not expect a photo on a v3 key.
-         Don't bother to ask this if the key already has a photo - any
-         damage has already been done at that point. -dms */
-      if (pk->version == 3 && !hasattrib)
-	{
-	  if (opt.expert)
-	    {
-	      tty_printf (_("WARNING: This is a PGP2-style key.  "
-			    "Adding a photo ID may cause some versions\n"
-			    "         of PGP to reject this key.\n"));
-
-	      if (!cpr_get_answer_is_yes ("keyedit.v3_photo.okay",
-					  _("Are you sure you still want "
-					    "to add it? (y/N) ")))
-		return 0;
-	    }
-	  else
-	    {
-	      tty_printf (_("You may not add a photo ID to "
-			    "a PGP2-style key.\n"));
-	      return 0;
-	    }
-	}
-
-      uid = generate_photo_id (ctrl, pk, photo_name);
-    }
-  else
-    uid = generate_user_id (pub_keyblock, uidstring);
+  uid = generate_user_id (pub_keyblock, uidstring);
   if (!uid)
     {
       if (uidstring)
@@ -6098,50 +6030,3 @@ enable_disable_key (ctrl_t ctrl, kbnode_t keyblock, int disable)
   return 0;
 }
 #endif /*!NO_TRUST_MODELS*/
-
-
-static void
-menu_showphoto (ctrl_t ctrl, kbnode_t keyblock)
-{
-  KBNODE node;
-  int select_all = !count_selected_uids (keyblock);
-  int count = 0;
-  PKT_public_key *pk = NULL;
-
-  /* Look for the public key first.  We have to be really, really,
-     explicit as to which photo this is, and what key it is a UID on
-     since people may want to sign it. */
-
-  for (node = keyblock; node; node = node->next)
-    {
-      if (node->pkt->pkttype == PKT_PUBLIC_KEY)
-	pk = node->pkt->pkt.public_key;
-      else if (node->pkt->pkttype == PKT_USER_ID)
-	{
-	  PKT_user_id *uid = node->pkt->pkt.user_id;
-	  count++;
-
-	  if ((select_all || (node->flag & NODFLG_SELUID)) &&
-	      uid->attribs != NULL)
-	    {
-	      int i;
-
-	      for (i = 0; i < uid->numattribs; i++)
-		{
-		  byte type;
-		  u32 size;
-
-		  if (uid->attribs[i].type == ATTRIB_IMAGE &&
-		      parse_image_header (&uid->attribs[i], &type, &size))
-		    {
-		      tty_printf (_("Displaying %s photo ID of size %ld for "
-				    "key %s (uid %d)\n"),
-				  image_type_to_string (type, 1),
-				  (unsigned long) size, keystr_from_pk (pk), count);
-		      show_photos (ctrl, &uid->attribs[i], 1, pk, uid);
-		    }
-		}
-	    }
-	}
-    }
-}

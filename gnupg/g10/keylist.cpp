@@ -35,7 +35,6 @@
 #include "packet.h"
 #include "../common/status.h"
 #include "keydb.h"
-#include "photoid.h"
 #include "../common/util.h"
 #include "../common/ttyio.h"
 #include "trustdb.h"
@@ -991,9 +990,6 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
                 }
               xfree (mbox);
             }
-
-	  if ((opt.list_options & LIST_SHOW_PHOTOS) && uid->attribs != NULL)
-	    show_photos (ctrl, uid->attribs, uid->numattribs, pk, uid);
 	}
       else if (node->pkt->pkttype == PKT_PUBLIC_SUBKEY)
 	{

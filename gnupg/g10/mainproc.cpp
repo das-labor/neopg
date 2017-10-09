@@ -36,7 +36,6 @@
 #include "../common/i18n.h"
 #include "trustdb.h"
 #include "keyserver-internal.h"
-#include "photoid.h"
 #include "../common/mbox-util.h"
 #include "call-dirmngr.h"
 #include "../common/compliance.h"
@@ -2083,12 +2082,6 @@ check_sig_and_print (CTX c, kbnode_t node)
               if (un->pkt->pkt.user_id->attrib_data)
                 {
                   dump_attribs (un->pkt->pkt.user_id, mainpk);
-
-                  if (opt.verify_options&VERIFY_SHOW_PHOTOS)
-                    show_photos (c->ctrl,
-                                 un->pkt->pkt.user_id->attribs,
-                                 un->pkt->pkt.user_id->numattribs,
-                                 mainpk ,un->pkt->pkt.user_id);
                 }
 
               p = utf8_to_native (un->pkt->pkt.user_id->name,

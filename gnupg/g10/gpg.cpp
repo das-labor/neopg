@@ -299,9 +299,6 @@ enum cmd_and_opt_values
     oNoComments,
     oThrowKeyids,
     oNoThrowKeyids,
-    oShowPhotos,
-    oNoShowPhotos,
-    oPhotoViewer,
     oForceMDC,
     oNoForceMDC,
     oDisableMDC,
@@ -676,9 +673,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oCompressAlgo, "compression-algo", "@"), /* Alias */
   ARGPARSE_s_n (oThrowKeyids, "throw-keyids", "@"),
   ARGPARSE_s_n (oNoThrowKeyids, "no-throw-keyids", "@"),
-  ARGPARSE_s_n (oShowPhotos,   "show-photos", "@"),
-  ARGPARSE_s_n (oNoShowPhotos, "no-show-photos", "@"),
-  ARGPARSE_s_s (oPhotoViewer,  "photo-viewer", "@"),
   ARGPARSE_s_s (oSetNotation,  "set-notation", "@"),
   ARGPARSE_s_s (oSigNotation,  "sig-notation", "@"),
   ARGPARSE_s_s (oCertNotation, "cert-notation", "@"),
@@ -1895,8 +1889,6 @@ parse_list_options(char *str)
   const char *subpackets=""; /* something that isn't NULL */
   struct parse_options lopts[]=
     {
-      {"show-photos",LIST_SHOW_PHOTOS,NULL,
-       N_("display photo IDs during key listings")},
       {"show-usage",LIST_SHOW_USAGE,NULL,
        N_("show key usage information during key listings")},
       {"show-policy-urls",LIST_SHOW_POLICY_URLS,NULL,
@@ -2438,7 +2430,7 @@ gpg_main (int argc, char **argv)
       if(check_permissions(configname,1))
 	{
 	  /* If any options file is unsafe, then disable any external
-	     programs for keyserver calls or photo IDs.  Since the
+	     programs for keyserver calls.  Since the
 	     external program to call is set in the options file, a
 	     unsafe options file can lead to an arbitrary program
 	     being run. */
@@ -2880,23 +2872,6 @@ gpg_main (int argc, char **argv)
 	    break;
 	  case oThrowKeyids: opt.throw_keyids = 1; break;
 	  case oNoThrowKeyids: opt.throw_keyids = 0; break;
-	  case oShowPhotos:
-	    deprecated_warning(configname,configlineno,"--show-photos",
-			       "--list-options ","show-photos");
-	    deprecated_warning(configname,configlineno,"--show-photos",
-			       "--verify-options ","show-photos");
-	    opt.list_options|=LIST_SHOW_PHOTOS;
-	    opt.verify_options|=VERIFY_SHOW_PHOTOS;
-	    break;
-	  case oNoShowPhotos:
-	    deprecated_warning(configname,configlineno,"--no-show-photos",
-			       "--list-options ","no-show-photos");
-	    deprecated_warning(configname,configlineno,"--no-show-photos",
-			       "--verify-options ","no-show-photos");
-	    opt.list_options&=~LIST_SHOW_PHOTOS;
-	    opt.verify_options&=~VERIFY_SHOW_PHOTOS;
-	    break;
-	  case oPhotoViewer: opt.photo_viewer = pargs.r.ret_str; break;
 
 	  case oForceMDC: opt.force_mdc = 1; break;
 	  case oNoForceMDC: opt.force_mdc = 0; break;
@@ -3177,8 +3152,6 @@ gpg_main (int argc, char **argv)
 	    {
 	      struct parse_options vopts[]=
 		{
-		  {"show-photos",VERIFY_SHOW_PHOTOS,NULL,
-		   N_("display photo IDs during signature verification")},
 		  {"show-policy-urls",VERIFY_SHOW_POLICY_URLS,NULL,
 		   N_("show policy URLs during signature verification")},
 		  {"show-notations",VERIFY_SHOW_NOTATIONS,NULL,

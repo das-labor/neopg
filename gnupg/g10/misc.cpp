@@ -63,7 +63,6 @@
 #endif /*HAVE_W32_SYSTEM*/
 #include "../common/util.h"
 #include "main.h"
-#include "photoid.h"
 #include "options.h"
 #include "call-agent.h"
 #include "../common/i18n.h"
@@ -960,28 +959,12 @@ pct_expando(const char *string,struct expando_args *args)
 		}
 	      break;
 
-	      /* The text string types */
-	    case 't':
-	    case 'T':
+	      /* The text string types e.g. "full", "expired", etc. */
 	    case 'V':
 	      {
 		const char *str=NULL;
 
-		switch(*(ch+1))
-		  {
-		  case 't': /* e.g. "jpg" */
-		    str=image_type_to_string(args->imagetype,0);
-		    break;
-
-		  case 'T': /* e.g. "image/jpeg" */
-		    str=image_type_to_string(args->imagetype,2);
-		    break;
-
-		  case 'V': /* e.g. "full", "expired", etc. */
-		    str=args->validity_string;
-		    break;
-		  }
-
+		str=args->validity_string;
 		if(str && idx+strlen(str)<maxlen)
 		  {
 		    strcpy(&ret[idx],str);

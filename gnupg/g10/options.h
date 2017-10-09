@@ -160,7 +160,6 @@ struct options
   const char *set_filename;
   strlist_t comments;
   int throw_keyids;
-  const char *photo_viewer;
   int s2k_mode;
   int s2k_digest_algo;
   int s2k_cipher_algo;
@@ -360,7 +359,6 @@ extern int memory_stat_debug_mode;
 #define EXPORT_DANE_FORMAT               (1<<7)
 #define EXPORT_BACKUP                    (1<<10)
 
-#define LIST_SHOW_PHOTOS                 (1<<0)
 #define LIST_SHOW_POLICY_URLS            (1<<1)
 #define LIST_SHOW_STD_NOTATIONS          (1<<2)
 #define LIST_SHOW_USER_NOTATIONS         (1<<3)
@@ -374,7 +372,6 @@ extern int memory_stat_debug_mode;
 #define LIST_SHOW_SIG_SUBPACKETS         (1<<10)
 #define LIST_SHOW_USAGE                  (1<<11)
 
-#define VERIFY_SHOW_PHOTOS               (1<<0)
 #define VERIFY_SHOW_POLICY_URLS          (1<<1)
 #define VERIFY_SHOW_STD_NOTATIONS        (1<<2)
 #define VERIFY_SHOW_USER_NOTATIONS       (1<<3)

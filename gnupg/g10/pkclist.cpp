@@ -35,7 +35,6 @@
 #include "trustdb.h"
 #include "../common/ttyio.h"
 #include "../common/status.h"
-#include "photoid.h"
 #include "../common/i18n.h"
 #include "tofu.h"
 
@@ -244,13 +243,6 @@ do_edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode,
                 if (un->pkt->pkt.user_id->flags.primary
 		    && !un->pkt->pkt.user_id->attrib_data )
 		  continue;
-
-		if((opt.verify_options&VERIFY_SHOW_PHOTOS)
-		   && un->pkt->pkt.user_id->attrib_data)
-		  show_photos (ctrl,
-                               un->pkt->pkt.user_id->attribs,
-                               un->pkt->pkt.user_id->numattribs, pk,
-                               un->pkt->pkt.user_id);
 
 		p=utf8_to_native(un->pkt->pkt.user_id->name,
 				 un->pkt->pkt.user_id->len,0);
