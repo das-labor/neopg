@@ -158,12 +158,12 @@ openpgp_oid_from_str (const char *string, gcry_mpi_t *r_mpi)
         else
           {
             val += 80;
-            buflen = make_flagged_int (val, buf, buflen);
+            buflen = make_flagged_int (val, (char*) (buf), buflen);
           }
       }
     else
       {
-        buflen = make_flagged_int (val, buf, buflen);
+        buflen = make_flagged_int (val, (char*) (buf), buflen);
       }
   } while (*endp == '.');
 

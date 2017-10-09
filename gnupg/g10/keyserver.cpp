@@ -460,7 +460,7 @@ parse_preferred_keyserver(PKT_signature *sig)
 
       memcpy(dupe,p,plen);
       dupe[plen]='\0';
-      spec = parse_keyserver_uri (dupe, 1);
+      spec = parse_keyserver_uri ((const char*) (dupe), 1);
       xfree(dupe);
     }
 
@@ -483,7 +483,7 @@ print_keyrec (ctrl_t ctrl, int number,struct keyrec *keyrec)
     {
       const char *str;
 
-      str = openpgp_pk_algo_name (keyrec->type);
+      str = openpgp_pk_algo_name ((pubkey_algo_t) (keyrec->type));
 
       if (str && strcmp (str, "?"))
 	es_printf ("%s ",str);
@@ -590,7 +590,7 @@ parse_keyrec(char *keystring)
       work->uidbuf=iobuf_temp();
     }
 
-  trim_trailing_ws (keystring, strlen (keystring));
+  trim_trailing_ws ((unsigned char*) (keystring), strlen (keystring));
 
   if((record=gpg_strsep(&keystring,":"))==NULL)
     return ret;

@@ -151,7 +151,7 @@ calibrate_s2k_count_one (unsigned long count)
 
   calibrate_get_time (&starttime);
   rc = hash_passphrase ("123456789abcdef0", GCRY_MD_SHA1,
-                        3, "saltsalt", count, keybuf, sizeof keybuf);
+                        3, (const unsigned char*) ("saltsalt"), count, (unsigned char*) (keybuf), sizeof keybuf);
   if (rc)
     BUG ();
   return calibrate_elapsed_time (&starttime);
@@ -1167,7 +1167,7 @@ agent_unprotect (ctrl_t ctrl,
       gcry_sexp_t s_prot_begin;
 
       rc = gcry_sexp_sscan (&s_prot_begin, NULL,
-                            prot_begin,
+                            (const char*) (prot_begin),
                             gcry_sexp_canon_len (prot_begin, 0,NULL,NULL));
       if (rc)
         return rc;

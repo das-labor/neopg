@@ -1060,7 +1060,7 @@ card_getattr_cb (void *opaque, const char *line)
   if (keywordlen == parm->keywordlen
       && !memcmp (keyword, parm->keyword, keywordlen))
     {
-      parm->data = percent_plus_unescape ((const unsigned char*)line, 0xff);
+      parm->data = percent_plus_unescape ((const char*) ((const unsigned char*)line), 0xff);
       if (!parm->data)
         parm->error = errno;
     }

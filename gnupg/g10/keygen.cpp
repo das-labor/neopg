@@ -644,7 +644,7 @@ add_feature_mdc (PKT_signature *sig,int enabled)
     if(i==n)
       delete_sig_subpkt (sig->hashed, SIGSUBPKT_FEATURES);
     else
-      build_sig_subpkt (sig, SIGSUBPKT_FEATURES, buf, n);
+      build_sig_subpkt (sig, SIGSUBPKT_FEATURES, (const byte*) (buf), n);
 
     xfree (buf);
 }
@@ -688,7 +688,7 @@ add_keyserver_modify (PKT_signature *sig,int enabled)
   if(i==n)
     delete_sig_subpkt (sig->hashed, SIGSUBPKT_KS_FLAGS);
   else
-    build_sig_subpkt (sig, SIGSUBPKT_KS_FLAGS, buf, n);
+    build_sig_subpkt (sig, SIGSUBPKT_KS_FLAGS, (const byte*) (buf), n);
 
   xfree (buf);
 }
@@ -761,7 +761,7 @@ keygen_add_keyserver_url(PKT_signature *sig, void *opaque)
     url=opt.def_keyserver_url;
 
   if(url)
-    build_sig_subpkt(sig,SIGSUBPKT_PREF_KS,url,strlen(url));
+    build_sig_subpkt(sig,SIGSUBPKT_PREF_KS,(const byte*) (url),strlen(url));
   else
     delete_sig_subpkt (sig->hashed,SIGSUBPKT_PREF_KS);
 
@@ -808,8 +808,8 @@ keygen_add_notations(PKT_signature *sig,void *opaque)
 	  memcpy(buf+8+n1, notation->bdat, n2 );
 	else
 	  memcpy(buf+8+n1, notation->value, n2 );
-	build_sig_subpkt( sig, SIGSUBPKT_NOTATION |
-			  (notation->flags.critical?SIGSUBPKT_FLAG_CRITICAL:0),
+	build_sig_subpkt( sig, (sigsubpkttype_t) (SIGSUBPKT_NOTATION |
+			  (notation->flags.critical?SIGSUBPKT_FLAG_CRITICAL:0)),
 			  buf, 8+n1+n2 );
 	xfree(buf);
       }
@@ -1279,7 +1279,7 @@ do_create_from_keygrip (ctrl_t ctrl, int algo, const char *hexkeygrip,
     if (err)
       return err;
     err = gcry_sexp_sscan (&s_key, NULL,
-                           public_x, gcry_sexp_canon_len (public_x, 0, NULL, NULL));
+                           (const char*) (public_x), gcry_sexp_canon_len (public_x, 0, NULL, NULL));
     xfree (public_x);
     if (err)
       return err;
@@ -1750,7 +1750,7 @@ ask_key_flags (int algo, int subkey, unsigned int current)
       tty_printf(_("Possible actions for a %s key: "),
                  (algo == PUBKEY_ALGO_ECDSA
                   || algo == PUBKEY_ALGO_EDDSA)
-                 ? "ECDSA/EdDSA" : openpgp_pk_algo_name (algo));
+                 ? "ECDSA/EdDSA" : openpgp_pk_algo_name ((pubkey_algo_t) (algo)));
       print_key_flags(possible);
       tty_printf("\n");
       tty_printf(_("Current allowed actions: "));
@@ -1855,7 +1855,7 @@ check_keygrip (ctrl_t ctrl, const char *hexgrip)
   algo = get_pk_algo_from_canon_sexp (public_x, publiclen);
   xfree (public_x);
 
-  return map_pk_gcry_to_openpgp (algo);
+  return map_pk_gcry_to_openpgp ((gcry_pk_algos) (algo));
 }
 
 
@@ -2176,7 +2176,7 @@ ask_keysize (int algo, unsigned int primary_keysize)
     }
 
   tty_printf(_("%s keys may be between %u and %u bits long.\n"),
-	     openpgp_pk_algo_name (algo), min, max);
+	     openpgp_pk_algo_name ((pubkey_algo_t) (algo)), min, max);
 
   for (;;)
     {
@@ -2195,7 +2195,7 @@ ask_keysize (int algo, unsigned int primary_keysize)
 
       if(nbits<min || nbits>max)
 	tty_printf(_("%s keysizes must be in the range %u-%u\n"),
-		   openpgp_pk_algo_name (algo), min, max);
+		   openpgp_pk_algo_name ((pubkey_algo_t) (algo)), min, max);
       else
 	break;
     }
@@ -3026,9 +3026,9 @@ parse_key_parameter_part (char *string, int for_subkey,
 
   /* Check that usage is actually possible.  */
   if (/**/((keyuse & (PUBKEY_USAGE_SIG|PUBKEY_USAGE_AUTH|PUBKEY_USAGE_CERT))
-           && !pubkey_get_nsig (algo))
+           && !pubkey_get_nsig ((pubkey_algo_t) (algo)))
        || ((keyuse & PUBKEY_USAGE_ENC)
-           && !pubkey_get_nenc (algo))
+           && !pubkey_get_nenc ((pubkey_algo_t) (algo)))
        || (for_subkey && (keyuse & PUBKEY_USAGE_CERT)))
     return GPG_ERR_WRONG_KEY_USAGE;
 
@@ -3257,7 +3257,7 @@ get_parameter_algo( struct para_data_s *para, enum para_name key,
   else if (!ascii_strcasecmp (r->u.value, "ECDH"))
     i = PUBKEY_ALGO_ECDH;
   else
-    i = map_pk_gcry_to_openpgp (gcry_pk_map_name (r->u.value));
+    i = map_pk_gcry_to_openpgp ((gcry_pk_algos) (gcry_pk_map_name (r->u.value)));
 
   if (i == PUBKEY_ALGO_RSA_E || i == PUBKEY_ALGO_RSA_S)
     i = 0; /* we don't want to allow generation of these algorithms */
@@ -3437,7 +3437,7 @@ proc_parameter_file (ctrl_t ctrl, struct para_data_s *para, const char *fname,
   if(r)
     {
       algo = get_parameter_algo (para, pKEYTYPE, &is_default);
-      if (openpgp_pk_test_algo2 (algo, PUBKEY_USAGE_SIG))
+      if (openpgp_pk_test_algo2 ((pubkey_algo_t) (algo), PUBKEY_USAGE_SIG))
 	{
 	  log_error ("%s:%d: invalid algorithm\n", fname, r->lnr );
 	  return -1;
@@ -3479,7 +3479,7 @@ proc_parameter_file (ctrl_t ctrl, struct para_data_s *para, const char *fname,
   if(r)
     {
       algo = get_parameter_algo (para, pSUBKEYTYPE, &is_default);
-      if (openpgp_pk_test_algo (algo))
+      if (openpgp_pk_test_algo ((pubkey_algo_t) (algo)))
 	{
 	  log_error ("%s:%d: invalid algorithm\n", fname, r->lnr );
 	  return -1;
@@ -3700,7 +3700,7 @@ read_parameter_file (ctrl_t ctrl, const char *fname )
 	    for( ; isspace(*(byte*)p); p++ )
 		;
 	    value = p;
-	    trim_trailing_ws( value, strlen(value) );
+	    trim_trailing_ws( (unsigned char*) (value), strlen(value) );
 	    if( !ascii_strcasecmp( keyword, "%echo" ) )
 		log_info("%s\n", value );
 	    else if( !ascii_strcasecmp( keyword, "%dry-run" ) )
@@ -3754,7 +3754,7 @@ read_parameter_file (ctrl_t ctrl, const char *fname )
 	    break;
 	}
 	value = p;
-	trim_trailing_ws( value, strlen(value) );
+	trim_trailing_ws( (unsigned char*) (value), strlen(value) );
 
 	for(i=0; keywords[i].name; i++ ) {
 	    if( !ascii_strcasecmp( keywords[i].name, keyword ) )
@@ -4894,9 +4894,9 @@ parse_algo_usage_expire (ctrl_t ctrl, int for_subkey,
    * parse_key_parameter_string but need it here again in case the
    * separate usage value has been given. */
   if (/**/((use & (PUBKEY_USAGE_SIG|PUBKEY_USAGE_AUTH|PUBKEY_USAGE_CERT))
-           && !pubkey_get_nsig (algo))
+           && !pubkey_get_nsig ((pubkey_algo_t) (algo)))
        || ((use & PUBKEY_USAGE_ENC)
-           && !pubkey_get_nenc (algo))
+           && !pubkey_get_nenc ((pubkey_algo_t) (algo)))
        || (for_subkey && (use & PUBKEY_USAGE_CERT)))
     return GPG_ERR_WRONG_KEY_USAGE;
 
@@ -5280,7 +5280,7 @@ gen_card_key (int keyno, int algo, int is_primary, kbnode_t pub_root,
   err = agent_readkey (NULL, 1, keyid, &public_x);
   if (err)
     return err;
-  err = gcry_sexp_sscan (&s_key, NULL, public_x,
+  err = gcry_sexp_sscan (&s_key, NULL, (const char*) (public_x),
                          gcry_sexp_canon_len (public_x, 0, NULL, NULL));
   xfree (public_x);
   if (err)

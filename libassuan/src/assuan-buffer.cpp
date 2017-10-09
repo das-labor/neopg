@@ -510,7 +510,7 @@ assuan_send_data (assuan_context_t ctx, const void *buffer, size_t length)
     }
   else
     {
-      _assuan_cookie_write_data (ctx, buffer, length);
+      _assuan_cookie_write_data (ctx, (const char*) (buffer), length);
       if (ctx->outbound.data.error)
         return ctx->outbound.data.error;
     }

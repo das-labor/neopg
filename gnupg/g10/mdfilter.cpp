@@ -57,7 +57,7 @@ md_filter( void *opaque, int control,
 	*ret_len = i;
     }
     else if( control == IOBUFCTRL_DESC )
-        mem2str (buf, "md_filter", *ret_len);
+        mem2str ((char*) (buf), "md_filter", *ret_len);
     return rc;
 }
 

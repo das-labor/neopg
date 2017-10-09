@@ -991,7 +991,7 @@ _gcry_cipher_encrypt (gcry_cipher_hd_t h, void *out, size_t outsize,
       inlen = outsize;
     }
 
-  rc = cipher_encrypt (h, out, outsize, in, inlen);
+  rc = cipher_encrypt (h, (byte*) (out), outsize, (const byte*) (in), inlen);
 
   /* Failsafe: Make sure that the plaintext will never make it into
      OUT if the encryption returned an error.  */
@@ -1116,7 +1116,7 @@ _gcry_cipher_decrypt (gcry_cipher_hd_t h, void *out, size_t outsize,
       inlen = outsize;
     }
 
-  return cipher_decrypt (h, out, outsize, in, inlen);
+  return cipher_decrypt (h, (byte*) (out), outsize, (const byte*) (in), inlen);
 }
 
 
@@ -1142,7 +1142,7 @@ cipher_sync (gcry_cipher_hd_t c)
 gpg_error_t
 _gcry_cipher_setkey (gcry_cipher_hd_t hd, const void *key, size_t keylen)
 {
-  return cipher_setkey (hd, (void*)key, keylen);
+  return cipher_setkey (hd, (byte*) ((void*)key), keylen);
 }
 
 
@@ -1154,23 +1154,23 @@ _gcry_cipher_setiv (gcry_cipher_hd_t hd, const void *iv, size_t ivlen)
   switch (hd->mode)
     {
       case GCRY_CIPHER_MODE_CCM:
-        rc = _gcry_cipher_ccm_set_nonce (hd, iv, ivlen);
+        rc = _gcry_cipher_ccm_set_nonce (hd, (const unsigned char*) (iv), ivlen);
         break;
 
       case GCRY_CIPHER_MODE_GCM:
-        rc =  _gcry_cipher_gcm_setiv (hd, iv, ivlen);
+        rc =  _gcry_cipher_gcm_setiv (hd, (const unsigned char*) (iv), ivlen);
         break;
 
       case GCRY_CIPHER_MODE_POLY1305:
-        rc =  _gcry_cipher_poly1305_setiv (hd, iv, ivlen);
+        rc =  _gcry_cipher_poly1305_setiv (hd, (const unsigned char*) (iv), ivlen);
         break;
 
       case GCRY_CIPHER_MODE_OCB:
-        rc = _gcry_cipher_ocb_set_nonce (hd, iv, ivlen);
+        rc = _gcry_cipher_ocb_set_nonce (hd, (const unsigned char*) (iv), ivlen);
         break;
 
       default:
-        rc = cipher_setiv (hd, iv, ivlen);
+        rc = cipher_setiv (hd, (const byte*) (iv), ivlen);
         break;
     }
   return rc;
@@ -1218,23 +1218,23 @@ _gcry_cipher_authenticate (gcry_cipher_hd_t hd, const void *abuf,
   switch (hd->mode)
     {
     case GCRY_CIPHER_MODE_CCM:
-      rc = _gcry_cipher_ccm_authenticate (hd, abuf, abuflen);
+      rc = _gcry_cipher_ccm_authenticate (hd, (const unsigned char*) (abuf), abuflen);
       break;
 
     case GCRY_CIPHER_MODE_CMAC:
-      rc = _gcry_cipher_cmac_authenticate (hd, abuf, abuflen);
+      rc = _gcry_cipher_cmac_authenticate (hd, (const unsigned char*) (abuf), abuflen);
       break;
 
     case GCRY_CIPHER_MODE_GCM:
-      rc = _gcry_cipher_gcm_authenticate (hd, abuf, abuflen);
+      rc = _gcry_cipher_gcm_authenticate (hd, (const unsigned char*) (abuf), abuflen);
       break;
 
     case GCRY_CIPHER_MODE_POLY1305:
-      rc = _gcry_cipher_poly1305_authenticate (hd, abuf, abuflen);
+      rc = _gcry_cipher_poly1305_authenticate (hd, (const unsigned char*) (abuf), abuflen);
       break;
 
     case GCRY_CIPHER_MODE_OCB:
-      rc = _gcry_cipher_ocb_authenticate (hd, abuf, abuflen);
+      rc = _gcry_cipher_ocb_authenticate (hd, (const unsigned char*) (abuf), abuflen);
       break;
 
     default:
@@ -1255,23 +1255,23 @@ _gcry_cipher_gettag (gcry_cipher_hd_t hd, void *outtag, size_t taglen)
   switch (hd->mode)
     {
     case GCRY_CIPHER_MODE_CCM:
-      rc = _gcry_cipher_ccm_get_tag (hd, outtag, taglen);
+      rc = _gcry_cipher_ccm_get_tag (hd, (unsigned char*) (outtag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_CMAC:
-      rc = _gcry_cipher_cmac_get_tag (hd, outtag, taglen);
+      rc = _gcry_cipher_cmac_get_tag (hd, (unsigned char*) (outtag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_GCM:
-      rc = _gcry_cipher_gcm_get_tag (hd, outtag, taglen);
+      rc = _gcry_cipher_gcm_get_tag (hd, (unsigned char*) (outtag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_POLY1305:
-      rc = _gcry_cipher_poly1305_get_tag (hd, outtag, taglen);
+      rc = _gcry_cipher_poly1305_get_tag (hd, (unsigned char*) (outtag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_OCB:
-      rc = _gcry_cipher_ocb_get_tag (hd, outtag, taglen);
+      rc = _gcry_cipher_ocb_get_tag (hd, (unsigned char*) (outtag), taglen);
       break;
 
     default:
@@ -1292,23 +1292,23 @@ _gcry_cipher_checktag (gcry_cipher_hd_t hd, const void *intag, size_t taglen)
   switch (hd->mode)
     {
     case GCRY_CIPHER_MODE_CCM:
-      rc = _gcry_cipher_ccm_check_tag (hd, intag, taglen);
+      rc = _gcry_cipher_ccm_check_tag (hd, (const unsigned char*) (intag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_CMAC:
-      rc = _gcry_cipher_cmac_check_tag (hd, intag, taglen);
+      rc = _gcry_cipher_cmac_check_tag (hd, (const unsigned char*) (intag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_GCM:
-      rc = _gcry_cipher_gcm_check_tag (hd, intag, taglen);
+      rc = _gcry_cipher_gcm_check_tag (hd, (const unsigned char*) (intag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_POLY1305:
-      rc = _gcry_cipher_poly1305_check_tag (hd, intag, taglen);
+      rc = _gcry_cipher_poly1305_check_tag (hd, (const unsigned char*) (intag), taglen);
       break;
 
     case GCRY_CIPHER_MODE_OCB:
-      rc = _gcry_cipher_ocb_check_tag (hd, intag, taglen);
+      rc = _gcry_cipher_ocb_check_tag (hd, (const unsigned char*) (intag), taglen);
       break;
 
     default:

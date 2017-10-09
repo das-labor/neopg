@@ -505,7 +505,7 @@ map_pk_gcry_to_openpgp (enum gcry_pk_algos algo)
     {
     case GCRY_PK_ECDSA:  return PUBKEY_ALGO_ECDSA;
     case GCRY_PK_ECDH:   return PUBKEY_ALGO_ECDH;
-    default: return algo < 110 ? (pubkey_algo_t)algo : 0;
+    default: return (pubkey_algo_t)(algo < 110 ? algo : 0);
     }
 }
 
@@ -1094,14 +1094,14 @@ string_to_cipher_algo (const char *string)
 {
   int val;
 
-  val = map_cipher_gcry_to_openpgp (gcry_cipher_map_name (string));
+  val = map_cipher_gcry_to_openpgp ((gcry_cipher_algos) (gcry_cipher_map_name (string)));
   if (!val && string && (string[0]=='S' || string[0]=='s'))
     {
       char *endptr;
 
       string++;
       val = strtol (string, &endptr, 10);
-      if (!*string || *endptr || openpgp_cipher_test_algo (val))
+      if (!*string || *endptr || openpgp_cipher_test_algo ((cipher_algo_t) (val)))
         val = 0;
     }
 
@@ -1126,7 +1126,7 @@ string_to_digest_algo (const char *string)
 
       string++;
       val = strtol (string, &endptr, 10);
-      if (!*string || *endptr || openpgp_md_test_algo (val))
+      if (!*string || *endptr || openpgp_md_test_algo ((digest_algo_t) (val)))
         val = 0;
     }
 

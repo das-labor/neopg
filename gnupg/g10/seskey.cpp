@@ -304,7 +304,7 @@ encode_md_value (PKT_public_key *pk, gcry_md_hd_t md, int hash_algo)
       if (qbits < 160)
 	{
 	  log_error (_("%s key %s uses an unsafe (%zu bit) hash\n"),
-                     openpgp_pk_algo_name (pk->pubkey_algo),
+                     openpgp_pk_algo_name ((pubkey_algo_t) (pk->pubkey_algo)),
                      keystr_from_pk (pk), qbits);
 	  return NULL;
 	}
@@ -323,7 +323,7 @@ encode_md_value (PKT_public_key *pk, gcry_md_hd_t md, int hash_algo)
 	{
 	  log_error (_("%s key %s requires a %zu bit or larger hash "
                        "(hash is %s)\n"),
-                     openpgp_pk_algo_name (pk->pubkey_algo),
+                     openpgp_pk_algo_name ((pubkey_algo_t) (pk->pubkey_algo)),
                      keystr_from_pk (pk), qbits,
                      gcry_md_algo_name (hash_algo));
 	  return NULL;

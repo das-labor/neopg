@@ -148,7 +148,7 @@ get_random (void *buffer, size_t length, int level)
   read_cb_len    = 0;
 
 #if USE_RNDLINUX
-  rc = _gcry_rndlinux_gather_random (read_cb, 0, length, level);
+  rc = _gcry_rndlinux_gather_random (read_cb, (random_origins) (0), length, level);
 #elif USE_RNDUNIX
   rc = _gcry_rndunix_gather_random (read_cb, 0, length, level);
 #elif USE_RNDW32
@@ -194,7 +194,7 @@ _gcry_rngsystem_close_fds (void)
 {
   lock_rng ();
 #if USE_RNDLINUX
-  _gcry_rndlinux_gather_random (NULL, 0, 0, 0);
+  _gcry_rndlinux_gather_random (NULL, (random_origins) (0), 0, 0);
 #endif
   unlock_rng ();
 }

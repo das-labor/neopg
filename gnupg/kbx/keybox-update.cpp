@@ -346,11 +346,11 @@ keybox_insert_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
      the write operation.  */
   _keybox_close_file (hd);
 
-  err = _keybox_parse_openpgp (image, imagelen, &nparsed, &info);
+  err = _keybox_parse_openpgp ((const unsigned char*) (image), imagelen, &nparsed, &info);
   if (err)
     return err;
   assert (nparsed <= imagelen);
-  err = _keybox_create_openpgp_blob (&blob, &info, image, imagelen,
+  err = _keybox_create_openpgp_blob (&blob, &info, (const unsigned char*) (image), imagelen,
                                       hd->ephemeral);
   _keybox_destroy_openpgp_info (&info);
   if (!err)
@@ -397,11 +397,11 @@ keybox_update_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
   _keybox_close_file (hd);
 
   /* Build a new blob.  */
-  err = _keybox_parse_openpgp (image, imagelen, &nparsed, &info);
+  err = _keybox_parse_openpgp ((const unsigned char*) (image), imagelen, &nparsed, &info);
   if (err)
     return err;
   assert (nparsed <= imagelen);
-  err = _keybox_create_openpgp_blob (&blob, &info, image, imagelen,
+  err = _keybox_create_openpgp_blob (&blob, &info, (const unsigned char*) (image), imagelen,
                                      hd->ephemeral);
   _keybox_destroy_openpgp_info (&info);
 

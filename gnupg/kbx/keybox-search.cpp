@@ -1099,7 +1099,7 @@ keybox_get_keyblock (KEYBOX_HANDLE hd, iobuf_t *r_iobuf,
 
   *r_pk_no  = hd->found.pk_no;
   *r_uid_no = hd->found.uid_no;
-  *r_iobuf = iobuf_temp_with_content (buffer+image_off, image_len);
+  *r_iobuf = iobuf_temp_with_content ((const char*) (buffer+image_off), image_len);
   return 0;
 }
 

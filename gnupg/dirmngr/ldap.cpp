@@ -665,7 +665,7 @@ read_buffer (ksba_reader_t reader, unsigned char *buffer, size_t count)
 
   while (count)
     {
-      err = ksba_reader_read (reader, buffer, count, &nread);
+      err = ksba_reader_read (reader, (char*) (buffer), count, &nread);
       if (err)
         return err;
       buffer += nread;

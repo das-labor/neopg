@@ -56,8 +56,8 @@ sig_comparison (const void *av, const void *bv)
   if (a->digest_algo > b->digest_algo)
     return 1;
 
-  ndataa = pubkey_get_nsig (a->pubkey_algo);
-  ndatab = pubkey_get_nsig (b->pubkey_algo);
+  ndataa = pubkey_get_nsig ((pubkey_algo_t) (a->pubkey_algo));
+  ndatab = pubkey_get_nsig ((pubkey_algo_t) (b->pubkey_algo));
   if (ndataa != ndatab)
     return (ndataa < ndatab)? -1 : 1;
 
@@ -325,7 +325,7 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
                 }
             }
 
-          if ((err = openpgp_pk_test_algo (sig->pubkey_algo)))
+          if ((err = openpgp_pk_test_algo ((pubkey_algo_t) (sig->pubkey_algo))))
             {
               if (DBG_PACKET && pending_desc)
                 log_debug ("%s", pending_desc);
@@ -334,7 +334,7 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
                           sig->pubkey_algo, gpg_strerror (err));
               break;
             }
-          if ((err = openpgp_md_test_algo (sig->digest_algo)))
+          if ((err = openpgp_md_test_algo ((digest_algo_t) (sig->digest_algo))))
             {
               if (DBG_PACKET && pending_desc)
                 log_debug ("%s", pending_desc);
@@ -483,8 +483,8 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
                 else if (last_printed_component->pkt->pkttype == PKT_USER_ID)
                   {
                     tty_printf ("uid  ");
-                    tty_print_utf8_string (last_printed_component
-                                           ->pkt->pkt.user_id->name,
+                    tty_print_utf8_string ((const unsigned char*) (last_printed_component
+                                           ->pkt->pkt.user_id->name),
                                            last_printed_component
                                            ->pkt->pkt.user_id->len);
                   }
@@ -515,13 +515,13 @@ key_check_all_keysigs (ctrl_t ctrl, kbnode_t kb,
             {
               int i;
 
-              for (i = 0; i < pubkey_get_nsig (sig->pubkey_algo); i ++)
+              for (i = 0; i < pubkey_get_nsig ((pubkey_algo_t) (sig->pubkey_algo)); i ++)
                 {
                   char buffer[1024];
                   size_t len;
                   char *printable;
                   gcry_mpi_print (GCRYMPI_FMT_USG,
-                                  buffer, sizeof (buffer), &len,
+                                  (unsigned char*) (buffer), sizeof (buffer), &len,
                                   sig->data[i]);
                   printable = bin2hex (buffer, len, NULL);
                   log_info ("        %d: %s\n", i, printable);

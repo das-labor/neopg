@@ -1491,7 +1491,7 @@ crl_cache_cert_isvalid (ctrl_t ctrl, ksba_cert_t cert,
       return GPG_ERR_INV_CERT_OBJ;
     }
   sn++;
-  snlen = strtoul (sn, &endp, 10);
+  snlen = strtoul ((const char*) (sn), &endp, 10);
   sn = (unsigned char*) endp;
   if (*sn != ':')
     {
@@ -1587,7 +1587,7 @@ finish_sig_check (ksba_crl_t crl, gcry_md_hd_t md, int algo,
       err = GPG_ERR_INV_SEXP;
       goto leave;
     }
-  err = gcry_sexp_sscan (&s_sig, NULL, sigval, n);
+  err = gcry_sexp_sscan (&s_sig, NULL, (const char*) (sigval), n);
   if (err)
     {
       log_error (_("converting S-expression failed: %s\n"),
@@ -1606,7 +1606,7 @@ finish_sig_check (ksba_crl_t crl, gcry_md_hd_t md, int algo,
       err = GPG_ERR_INV_SEXP;
       goto leave;
     }
-  err = gcry_sexp_sscan (&s_pkey, NULL, pubkey, n);
+  err = gcry_sexp_sscan (&s_pkey, NULL, (const char*) (pubkey), n);
   if (err)
     {
       log_error (_("converting S-expression failed: %s\n"),

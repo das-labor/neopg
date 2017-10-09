@@ -350,7 +350,7 @@ write_encrypted_cont (ksba_cms_t cms)
         err = ksba_writer_write (cms->writer, buffer, nread);
     }
   if (err == GPG_ERR_EOF) /* write the end tag */
-      err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+      err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
 
   return err;
 }
@@ -395,7 +395,7 @@ ksba_cms_identify (ksba_reader_t reader)
 
   for (count = sizeof buffer; count; count -= n)
     {
-      if (ksba_reader_read (reader, buffer+sizeof (buffer)-count, count, &n))
+      if (ksba_reader_read (reader, (char*) (buffer+sizeof (buffer)-count), count, &n))
         return KSBA_CT_NONE; /* too short */
     }
   n = sizeof buffer;
@@ -427,7 +427,7 @@ ksba_cms_identify (ksba_reader_t reader)
   if ( !(ti.klasse == CLASS_UNIVERSAL && ti.tag == TYPE_OBJECT_ID
          && !ti.is_constructed && ti.length) || ti.length > n)
     return KSBA_CT_NONE;
-  oid = ksba_oid_to_str (p, ti.length);
+  oid = ksba_oid_to_str ((const char*) (p), ti.length);
   if (!oid)
     return KSBA_CT_NONE; /* out of core */
   for (i=0; content_handlers[i].oid; i++)
@@ -827,7 +827,7 @@ ksba_cms_get_issuer_serial (ksba_cms_t cms, int idx,
       p = (unsigned char*) xtrymalloc (numbuflen + n->len + 2);
       if (!p)
         return GPG_ERR_ENOMEM;
-      strcpy (p, numbuf);
+      strcpy ((char*) (p), numbuf);
       memcpy (p+numbuflen, image + n->off + n->nhdr, n->len);
       p[numbuflen + n->len] = ')';
       p[numbuflen + n->len + 1] = 0;
@@ -1016,7 +1016,7 @@ ksba_cms_get_signing_time (ksba_cms_t cms, int idx, ksba_isotime_t r_sigtime)
   if (n->off == -1)
     return GPG_ERR_BUG;
 
-  return _ksba_asntime_to_iso (si->image + n->off + n->nhdr, n->len,
+  return _ksba_asntime_to_iso ((const char*) (si->image + n->off + n->nhdr), n->len,
                                n->type == TYPE_UTC_TIME, r_sigtime);
 }
 
@@ -2351,7 +2351,7 @@ build_signed_data_attributes (ksba_cms_t cms)
   memset (attrarray, 0, sizeof (attrarray));
 
   /* Write the End tag */
-  err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+  err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
   if (err)
     return err;
 
@@ -2730,7 +2730,7 @@ build_signed_data_rest (ksba_cms_t cms)
 	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
-      err = _ksba_der_store_integer (n, "\x00\x00\x00\x01\x01");
+      err = _ksba_der_store_integer (n, (const unsigned char*) ("\x00\x00\x00\x01\x01"));
       if (err)
         goto leave;
 
@@ -2825,7 +2825,7 @@ build_signed_data_rest (ksba_cms_t cms)
 	  err = GPG_ERR_ELEMENT_NOT_FOUND;
 	  goto leave;
 	}
-      err = _ksba_der_store_octet_string (n, sv->value, sv->valuelen);
+      err = _ksba_der_store_octet_string (n, (const char*) (sv->value), sv->valuelen);
       if (err)
 	goto leave;
 
@@ -2861,11 +2861,11 @@ build_signed_data_rest (ksba_cms_t cms)
   }
 
   /* Write 3 end tags */
-  err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+  err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
   if (!err)
-    err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+    err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
   if (!err)
-    err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+    err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
 
  leave:
   ksba_asn_tree_release (cms_tree);
@@ -2933,7 +2933,7 @@ ct_build_signed_data (ksba_cms_t cms)
   else if (state == sDATAREADY)
     {
       if (!cms->detached_data)
-        err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+        err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
       if (!err)
         err = build_signed_data_attributes (cms);
     }
@@ -3066,7 +3066,7 @@ build_enveloped_data_header (ksba_cms_t cms)
           err = GPG_ERR_ELEMENT_NOT_FOUND;
           goto leave;
         }
-      err = _ksba_der_store_integer (n, "\x00\x00\x00\x01\x00");
+      err = _ksba_der_store_integer (n, (const unsigned char*) ("\x00\x00\x00\x01\x00"));
       if (err)
         goto leave;
 
@@ -3145,7 +3145,7 @@ build_enveloped_data_header (ksba_cms_t cms)
           goto leave;
         }
       err = _ksba_der_store_octet_string (n,
-                                          certlist->enc_val.value,
+                                          (const char*) (certlist->enc_val.value),
                                           certlist->enc_val.valuelen);
       if (err)
         goto leave;
@@ -3268,13 +3268,13 @@ ct_build_enveloped_data (ksba_cms_t cms)
       /* SPHINX does not allow for unprotectedAttributes */
 
       /* Write 5 end tags */
-      err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+      err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
       if (!err)
-        err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+        err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
       if (!err)
-        err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+        err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
       if (!err)
-        err = _ksba_ber_write_tl (cms->writer, 0, 0, 0, 0);
+        err = _ksba_ber_write_tl (cms->writer, 0, (tag_class) (0), 0, 0);
     }
   else
     err = GPG_ERR_INV_STATE;

@@ -182,7 +182,7 @@ has_validation_model_chain (ksba_cert_t cert, int listmode, estream_t listfp)
     err = GPG_ERR_INV_OBJ;
   if (err)
     goto leave;
-  oidbuf = ksba_oid_to_str (der, objlen);
+  oidbuf = ksba_oid_to_str ((const char*) (der), objlen);
   if (!oidbuf)
     {
       err = gpg_error_from_syserror ();

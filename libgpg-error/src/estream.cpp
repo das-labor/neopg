@@ -2779,15 +2779,15 @@ es_writen (estream_t _GPGRT__RESTRICT stream,
   switch (stream->intern->strategy)
     {
     case _IONBF:
-      err = es_write_nbf (stream, buffer, bytes_to_write, &data_written);
+      err = es_write_nbf (stream, (const unsigned char*) (buffer), bytes_to_write, &data_written);
       break;
 
     case _IOLBF:
-      err = es_write_lbf (stream, buffer, bytes_to_write, &data_written);
+      err = es_write_lbf (stream, (const unsigned char*) (buffer), bytes_to_write, &data_written);
       break;
 
     case _IOFBF:
-      err = es_write_fbf (stream, buffer, bytes_to_write, &data_written);
+      err = es_write_fbf (stream, (const unsigned char*) (buffer), bytes_to_write, &data_written);
       break;
     }
 
@@ -3186,7 +3186,7 @@ _gpgrt_mopen (void *_GPGRT__RESTRICT data, size_t data_n, size_t data_len,
   if (err)
     goto out;
 
-  err = func_mem_create (&cookie, data, data_n, data_len,
+  err = func_mem_create (&cookie, (unsigned char*) (data), data_n, data_len,
                          BUFFER_BLOCK_SIZE, grow,
                          func_realloc, func_free, modeflags, 0);
   if (err)

@@ -968,25 +968,25 @@ build_list_pk_test_algo (int algo)
       || algo == PUBKEY_ALGO_RSA_S)
     return GPG_ERR_DIGEST_ALGO;
 
-  return openpgp_pk_test_algo (algo);
+  return openpgp_pk_test_algo ((pubkey_algo_t) (algo));
 }
 
 static const char *
 build_list_pk_algo_name (int algo)
 {
-  return openpgp_pk_algo_name (algo);
+  return openpgp_pk_algo_name ((pubkey_algo_t) (algo));
 }
 
 static int
 build_list_cipher_test_algo (int algo)
 {
-  return openpgp_cipher_test_algo (algo);
+  return openpgp_cipher_test_algo ((cipher_algo_t) (algo));
 }
 
 static const char *
 build_list_cipher_algo_name (int algo)
 {
-  return openpgp_cipher_algo_name (algo);
+  return openpgp_cipher_algo_name ((cipher_algo_t) (algo));
 }
 
 static int
@@ -997,7 +997,7 @@ build_list_md_test_algo (int algo)
   if (algo == DIGEST_ALGO_MD5)
     return GPG_ERR_DIGEST_ALGO;
 
-  return openpgp_md_test_algo (algo);
+  return openpgp_md_test_algo ((digest_algo_t) (algo));
 }
 
 static const char *
@@ -1335,7 +1335,7 @@ add_group(char *string)
       return;
     }
 
-  trim_trailing_ws(name,strlen(name));
+  trim_trailing_ws((unsigned char*) (name),strlen(name));
 
   /* Does this group already exist? */
   for(item=opt.grouplist;item;item=item->next)
@@ -1365,7 +1365,7 @@ rm_group(char *name)
 {
   struct groupitem *item,*last=NULL;
 
-  trim_trailing_ws(name,strlen(name));
+  trim_trailing_ws((unsigned char*) (name),strlen(name));
 
   for(item=opt.grouplist;item;last=item,item=item->next)
     {
@@ -1940,7 +1940,7 @@ parse_list_options(char *str)
 	{
 	  /* Unset so users can pass multiple lists in. */
 	  opt.list_options&=~LIST_SHOW_SIG_SUBPACKETS;
-	  if(!parse_subpacket_list(subpackets))
+	  if(!parse_subpacket_list((char*) (subpackets)))
 	    return 0;
 	}
       else if(subpackets==NULL && opt.show_subpackets)
@@ -2483,7 +2483,7 @@ gpg_main (int argc, char **argv)
 	  case aListGcryptConfig:
           case aGPGConfList:
           case aGPGConfTest:
-            set_cmd (&cmd, pargs.r_opt);
+            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             /* Do not register a keyring for these commands.  */
             default_keyring = -1;
             break;
@@ -2539,7 +2539,7 @@ gpg_main (int argc, char **argv)
 	  case aExportOwnerTrust:
 	  case aImportOwnerTrust:
           case aRebuildKeydbCaches:
-            set_cmd (&cmd, pargs.r_opt);
+            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             break;
 
 	  case aKeygen:
@@ -2549,7 +2549,7 @@ gpg_main (int argc, char **argv)
 	  case aDeleteSecretAndPublicKeys:
 	  case aDeleteKeys:
           case aPasswd:
-            set_cmd (&cmd, pargs.r_opt);
+            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             greeting=1;
             break;
 
@@ -2565,12 +2565,12 @@ gpg_main (int argc, char **argv)
 	  case aVerify: set_cmd( &cmd, aVerify); break;
 
           case aServer:
-            set_cmd (&cmd, pargs.r_opt);
+            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             opt.batch = 1;
             break;
 
           case aTOFUPolicy:
-            set_cmd (&cmd, pargs.r_opt);
+            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             break;
 
 	  case oArmor: opt.armor = 1; opt.no_armor=0; break;
@@ -2815,7 +2815,7 @@ gpg_main (int argc, char **argv)
                  opt.quiet);
 	      if (compliance < 0)
 		g10_exit (1);
-	      set_compliance_option (compliance);
+	      set_compliance_option ((cmd_and_opt_values) (compliance));
 	    }
             break;
           case oOpenPGP:
@@ -2826,7 +2826,7 @@ gpg_main (int argc, char **argv)
           case oPGP7:
           case oPGP8:
           case oGnuPG:
-            set_compliance_option (pargs.r_opt);
+            set_compliance_option ((cmd_and_opt_values) (pargs.r_opt));
             break;
 
           case oRFC2440Text: opt.rfc2440_text=1; break;
@@ -3647,13 +3647,13 @@ gpg_main (int argc, char **argv)
     if( def_cipher_string ) {
 	opt.def_cipher_algo = string_to_cipher_algo (def_cipher_string);
 	xfree(def_cipher_string); def_cipher_string = NULL;
-	if ( openpgp_cipher_test_algo (opt.def_cipher_algo) )
+	if ( openpgp_cipher_test_algo ((cipher_algo_t) (opt.def_cipher_algo)) )
 	    log_error(_("selected cipher algorithm is invalid\n"));
     }
     if( def_digest_string ) {
 	opt.def_digest_algo = string_to_digest_algo (def_digest_string);
 	xfree(def_digest_string); def_digest_string = NULL;
-	if ( openpgp_md_test_algo (opt.def_digest_algo) )
+	if ( openpgp_md_test_algo ((digest_algo_t) (opt.def_digest_algo)) )
 	    log_error(_("selected digest algorithm is invalid\n"));
     }
     if( compress_algo_string ) {
@@ -3665,19 +3665,19 @@ gpg_main (int argc, char **argv)
     if( cert_digest_string ) {
 	opt.cert_digest_algo = string_to_digest_algo (cert_digest_string);
 	xfree(cert_digest_string); cert_digest_string = NULL;
-	if (openpgp_md_test_algo(opt.cert_digest_algo))
+	if (openpgp_md_test_algo((digest_algo_t) (opt.cert_digest_algo)))
           log_error(_("selected certification digest algorithm is invalid\n"));
     }
     if( s2k_cipher_string ) {
 	opt.s2k_cipher_algo = string_to_cipher_algo (s2k_cipher_string);
 	xfree(s2k_cipher_string); s2k_cipher_string = NULL;
-	if (openpgp_cipher_test_algo (opt.s2k_cipher_algo))
+	if (openpgp_cipher_test_algo ((cipher_algo_t) (opt.s2k_cipher_algo)))
           log_error(_("selected cipher algorithm is invalid\n"));
     }
     if( s2k_digest_string ) {
 	opt.s2k_digest_algo = string_to_digest_algo (s2k_digest_string);
 	xfree(s2k_digest_string); s2k_digest_string = NULL;
-	if (openpgp_md_test_algo(opt.s2k_digest_algo))
+	if (openpgp_md_test_algo((digest_algo_t) (opt.s2k_digest_algo)))
           log_error(_("selected digest algorithm is invalid\n"));
     }
     if( opt.completes_needed < 1 )
@@ -3771,7 +3771,7 @@ gpg_main (int argc, char **argv)
 	if(opt.def_cipher_algo
 	   && !algo_available(PREFTYPE_SYM,opt.def_cipher_algo,NULL))
 	  {
-	    badalg = openpgp_cipher_algo_name (opt.def_cipher_algo);
+	    badalg = openpgp_cipher_algo_name ((cipher_algo_t) (opt.def_cipher_algo));
 	    badtype = PREFTYPE_SYM;
 	  }
 	else if(opt.def_digest_algo
@@ -3833,11 +3833,11 @@ gpg_main (int argc, char **argv)
 				      || cmd == aSym
 				      || cmd == aSignSym
 				      || cmd == aSignEncrSym,
-				      opt.def_cipher_algo,
+				      (cipher_algo_t) (opt.def_cipher_algo),
 				      GCRY_CIPHER_MODE_NONE))
       log_error (_("you may not use cipher algorithm '%s'"
 		   " while in %s mode\n"),
-		 openpgp_cipher_algo_name (opt.def_cipher_algo),
+		 openpgp_cipher_algo_name ((cipher_algo_t) (opt.def_cipher_algo)),
 		 gnupg_compliance_option_string (opt.compliance));
 
     if (opt.def_digest_algo
@@ -3847,7 +3847,7 @@ gpg_main (int argc, char **argv)
 				      || cmd == aSignEncrSym
 				      || cmd == aSignSym
 				      || cmd == aClearsign,
-				      opt.def_digest_algo))
+				      (digest_algo_t) opt.def_digest_algo))
       log_error (_("you may not use digest algorithm '%s'"
 		   " while in %s mode\n"),
 		 gcry_md_algo_name (opt.def_digest_algo),
@@ -4670,7 +4670,7 @@ gpg_main (int argc, char **argv)
                    other tools */
 		size_t n = !endless && count < 99? count : 99;
 
-		p = (byte*) gcry_random_bytes (n, level);
+		p = (byte*) gcry_random_bytes (n, (gcry_random_level) (level));
 #ifdef HAVE_DOSISH_SYSTEM
 		setmode ( fileno(stdout), O_BINARY );
 #endif
@@ -4896,7 +4896,7 @@ gpg_main (int argc, char **argv)
 		}
 
 	      merge_keys_and_selfsig (ctrl, kb);
-	      if (tofu_set_policy (ctrl, kb, policy))
+	      if (tofu_set_policy (ctrl, kb, (tofu_policy) (policy)))
 		g10_exit (1);
 
               release_kbnode (kb);

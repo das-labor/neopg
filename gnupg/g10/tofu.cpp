@@ -1095,7 +1095,7 @@ record_binding (tofu_dbs_t dbs, const char *fingerprint, const char *email,
           ("Changing TOFU trust policy for binding"
            " <key: %s, user id: %s> from %s to %s.\n",
            fingerprint, show_old ? user_id : email,
-           tofu_policy_str (policy_old),
+           tofu_policy_str ((tofu_policy) (policy_old)),
            tofu_policy_str (policy));
       else
         (show_old ? log_info : log_debug)
@@ -2487,7 +2487,7 @@ get_policy (ctrl_t ctrl, tofu_dbs_t dbs, PKT_public_key *pk,
         kbnode_t kb;
 
         lookup_err = get_pubkey_byfprint (ctrl, NULL, &kb,
-                                          fingerprint_raw,
+                                          (const byte*) (fingerprint_raw),
                                           fingerprint_raw_len);
         if (lookup_err)
           {

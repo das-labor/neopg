@@ -282,7 +282,7 @@ gpg_mpi_write (iobuf_t out, gcry_mpi_t a)
       size_t nbytes;
 
       nbytes = DIM(buffer);
-      rc = gcry_mpi_print (GCRYMPI_FMT_PGP, buffer, nbytes, &nbytes, a );
+      rc = gcry_mpi_print (GCRYMPI_FMT_PGP, (unsigned char*) (buffer), nbytes, &nbytes, a );
       if( !rc )
         rc = iobuf_write( out, buffer, nbytes );
       else if (rc == GPG_ERR_TOO_SHORT )
@@ -484,8 +484,8 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
 
   /* Get number of secret and public parameters.  They are held in one
      array: the public ones followed by the secret ones.  */
-  nskey = pubkey_get_nskey (pk->pubkey_algo);
-  npkey = pubkey_get_npkey (pk->pubkey_algo);
+  nskey = pubkey_get_nskey ((pubkey_algo_t) (pk->pubkey_algo));
+  npkey = pubkey_get_npkey ((pubkey_algo_t) (pk->pubkey_algo));
 
   /* If we don't have any public parameters - which is for example the
      case if we don't know the algorithm used - the parameters are
@@ -674,7 +674,7 @@ do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc )
       write_32(a, enc->keyid[1] );
     }
   iobuf_put(a,enc->pubkey_algo );
-  n = pubkey_get_nenc( enc->pubkey_algo );
+  n = pubkey_get_nenc( (pubkey_algo_t) (enc->pubkey_algo ));
   if ( !n )
     write_fake_data( a, enc->data[0] );
 
@@ -880,7 +880,7 @@ delete_sig_subpkt (subpktarea_t *area, sigsubpkttype_t reqtype )
 	if( buflen < n )
 	    break;
 
-	type = (sigsubpkttype_t) *buffer & 0x7f;
+	type = (sigsubpkttype_t) (*buffer & 0x7f);
 	if( type == reqtype ) {
 	    buffer++;
             buflen--;
@@ -925,7 +925,7 @@ build_sig_subpkt (PKT_signature *sig, sigsubpkttype_t type,
     size_t nlen, n, n0;
 
     critical = (type & SIGSUBPKT_FLAG_CRITICAL);
-    type &= (sigsubpkttype_t) ~SIGSUBPKT_FLAG_CRITICAL;
+    type = (sigsubpkttype_t) (type & ~SIGSUBPKT_FLAG_CRITICAL);
 
     /* Sanity check buffer sizes */
     if(parse_one_sig_subpkt(buffer,buflen,type)<0)
@@ -1022,7 +1022,7 @@ build_sig_subpkt (PKT_signature *sig, sigsubpkttype_t type,
       }
 
     if( critical )
-      type |= (sigsubpkttype_t) SIGSUBPKT_FLAG_CRITICAL;
+      type = (sigsubpkttype_t) (type | SIGSUBPKT_FLAG_CRITICAL);
 
     oldarea = hashed? sig->hashed : sig->unhashed;
 
@@ -1135,7 +1135,7 @@ build_sig_subpkt_from_sig (PKT_signature *sig, PKT_public_key *pksk)
            understand sigs that can expire, it'll just disregard this
            sig altogether. */
 
-	build_sig_subpkt( sig, SIGSUBPKT_SIG_EXPIRE | SIGSUBPKT_FLAG_CRITICAL,
+	build_sig_subpkt( sig, (sigsubpkttype_t) (SIGSUBPKT_SIG_EXPIRE | SIGSUBPKT_FLAG_CRITICAL),
 			  buf, 4 );
       }
 }
@@ -1532,7 +1532,7 @@ do_signature( IOBUF out, int ctb, PKT_signature *sig )
     }
   iobuf_put(a, sig->digest_start[0] );
   iobuf_put(a, sig->digest_start[1] );
-  n = pubkey_get_nsig( sig->pubkey_algo );
+  n = pubkey_get_nsig( (pubkey_algo_t) (sig->pubkey_algo ));
   if ( !n )
     write_fake_data( a, sig->data[0] );
   for (i=0; i < n && !rc ; i++ )

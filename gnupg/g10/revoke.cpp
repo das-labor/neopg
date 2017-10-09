@@ -587,7 +587,7 @@ gen_standard_revoke (ctrl_t ctrl, PKT_public_key *psk, const char *cache_nonce)
   reason.code = 0x00; /* No particular reason.  */
   reason.desc = NULL;
   rc = create_revocation (ctrl,
-                          fname, &reason, psk, NULL, leadin, 3, cache_nonce);
+                          fname, &reason, psk, NULL, (const char*) (leadin), 3, cache_nonce);
   if (!rc && !opt.quiet)
     log_info (_("revocation certificate stored as '%s.rev'\n"), fname);
 
@@ -825,7 +825,7 @@ ask_revocation_reason( int key_rev, int cert_rev, int hint )
 		     "end it with an empty line:\n") );
 	for(;;) {
 	    char *answer = cpr_get("ask_revocation_reason.text", "> " );
-	    trim_trailing_ws( answer, strlen(answer) );
+	    trim_trailing_ws( (unsigned char*) (answer), strlen(answer) );
 	    cpr_kill_prompt();
 	    if( !*answer ) {
 		xfree(answer);

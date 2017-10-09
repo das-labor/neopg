@@ -1426,7 +1426,7 @@ format_text (const char *text_in, int target_cols, int max_cols)
     }
 
   /* Chop off any trailing space.  */
-  trim_trailing_chars (text, strlen (text), " ");
+  trim_trailing_chars ((byte*) (text), strlen (text), " ");
   /* If we inserted the trailing newline, then remove it.  */
   if (! copied_last_space && *text && text[strlen (text) - 1] == '\n')
     text[strlen (text) - 1] = '\0';

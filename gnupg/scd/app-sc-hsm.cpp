@@ -250,7 +250,7 @@ select_and_read_binary (int slot, unsigned short efid, const char *efid_desc,
   cdata[3] = 0x00;
 
   sw = apdu_send_le(slot, 1, 0x00, 0xB1, efid >> 8, efid & 0xFF,
-                    4, cdata, maxread, buffer, buflen);
+                    4, (const char*) (cdata), maxread, buffer, buflen);
 
   if (sw == SW_EOF_REACHED)
     sw = SW_SUCCESS;
@@ -1832,31 +1832,31 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
         cdsblklen = 256;
 
       if (hashalgo == GCRY_MD_SHA1 && indatalen == 20)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             sha1_prefix, sizeof(sha1_prefix),
                             cdsblk, cdsblklen);
       else if (hashalgo == GCRY_MD_MD5 && indatalen == 20)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             rmd160_prefix, sizeof(rmd160_prefix),
                             cdsblk, cdsblklen);
       else if (hashalgo == GCRY_MD_SHA224 && indatalen == 28)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             sha224_prefix, sizeof(sha224_prefix),
                             cdsblk, cdsblklen);
       else if (hashalgo == GCRY_MD_SHA256 && indatalen == 32)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             sha256_prefix, sizeof(sha256_prefix),
                             cdsblk, cdsblklen);
       else if (hashalgo == GCRY_MD_SHA384 && indatalen == 48)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             sha384_prefix, sizeof(sha384_prefix),
                             cdsblk, cdsblklen);
       else if (hashalgo == GCRY_MD_SHA512 && indatalen == 64)
-        apply_PKCS_padding (indata, indatalen,
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen,
                             sha512_prefix, sizeof(sha512_prefix),
                             cdsblk, cdsblklen);
       else  /* Assume it's already a digest info or TLS_MD5SHA1 */
-        apply_PKCS_padding (indata, indatalen, NULL, 0, cdsblk, cdsblklen);
+        apply_PKCS_padding ((const unsigned char*) (indata), indatalen, NULL, 0, cdsblk, cdsblklen);
     }
   else
     {
@@ -1865,7 +1865,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
           && indatalen != 48 && indatalen != 64)
         {
           cdsblklen = sizeof(cdsblk);
-          err = hash_from_digestinfo (indata, indatalen, cdsblk, &cdsblklen);
+          err = hash_from_digestinfo ((const unsigned char*) (indata), indatalen, cdsblk, &cdsblklen);
           if (err)
             {
               log_error ("DigestInfo invalid: %s\n", gpg_strerror (err));
@@ -1884,7 +1884,7 @@ do_sign (app_t app, const char *keyidstr, int hashalgo,
     return err;
 
   sw = apdu_send_le (app->slot, 1, 0x80, 0x68, prkdf->key_reference, algoid,
-                     cdsblklen, cdsblk, 0, outdata, outdatalen);
+                     cdsblklen, (const char*) (cdsblk), 0, outdata, outdatalen);
   return iso7816_map_sw (sw);
 }
 
@@ -2019,7 +2019,7 @@ do_decipher (app_t app, const char *keyidstr,
     return err;
 
   sw = apdu_send_le (app->slot, 1, 0x80, 0x62, prkdf->key_reference, 0x21,
-                     p1blklen, p1blk, 0, &rspdata, &rspdatalen);
+                     p1blklen, (const char*) (p1blk), 0, &rspdata, &rspdatalen);
   err = iso7816_map_sw (sw);
   if (err)
     {
@@ -2047,7 +2047,7 @@ app_select_sc_hsm (app_t app)
   int slot = app->slot;
   int rc;
 
-  rc = iso7816_select_application (slot, sc_hsm_aid, sizeof sc_hsm_aid, 0);
+  rc = iso7816_select_application (slot, (const char*) (sc_hsm_aid), sizeof sc_hsm_aid, 0);
   if (!rc)
     {
       app->apptype = "SC-HSM";

@@ -93,7 +93,7 @@ serial_hex (ksba_sexp_t serial )
     return NULL;
   else {
     p++; /* ignore initial '(' */
-    n = strtoul (p, (char**)&endp, 10);
+    n = strtoul ((const char*) (p), (char**)&endp, 10);
     p = (unsigned char*) endp;
     if (*p!=':')
       return NULL;
@@ -123,7 +123,7 @@ serial_to_buffer (const ksba_sexp_t serial, size_t *length)
   if (!p || *p != '(')
     return NULL;
   p++;
-  n = strtoul (p, &endp, 10);
+  n = strtoul ((const char*) (p), &endp, 10);
   p = (unsigned char*) endp;
   if (*p != ':')
     return NULL;
@@ -172,7 +172,7 @@ canon_sexp_to_gcry (const unsigned char *canon, gcry_sexp_t *r_sexp)
       log_error (_("invalid canonical S-expression found\n"));
       err = GPG_ERR_INV_SEXP;
     }
-  else if ((err = gcry_sexp_sscan (&sexp, NULL, canon, n)))
+  else if ((err = gcry_sexp_sscan (&sexp, NULL, (const char*) (canon), n)))
     log_error (_("converting S-expression failed: %s\n"), gpg_strerror (err));
   else
     *r_sexp = sexp;
@@ -532,7 +532,7 @@ host_and_port_from_url (const char *url, int *port)
     }
 
   /* Remove quotes and make sure that no Nul has been encoded. */
-  if ((n = remove_percent_escapes (buf)) < 0
+  if ((n = remove_percent_escapes ((unsigned char*) (buf))) < 0
       || n != strlen (buf) )
     {
       log_error (_("bad URL encoding detected\n"));

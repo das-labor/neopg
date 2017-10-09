@@ -283,7 +283,7 @@ app_select_geldkarte (app_t app)
   struct app_local_s *ld;
   const char *banktype;
 
-  err = iso7816_select_application (slot, aid, sizeof aid, 0);
+  err = iso7816_select_application (slot, (const char*) (aid), sizeof aid, 0);
   if (err)
     goto leave;
 

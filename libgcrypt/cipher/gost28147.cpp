@@ -195,7 +195,7 @@ gost_set_extra_info (void *c, int what, const void *buffer, size_t buflen)
   switch (what)
     {
     case GCRYCTL_SET_SBOX:
-      ec = gost_set_sbox (ctx, buffer);
+      ec = gost_set_sbox (ctx, (const char*) (buffer));
       break;
 
     default:

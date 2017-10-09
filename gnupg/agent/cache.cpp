@@ -160,7 +160,7 @@ new_data (const char *string, struct secret_data_s **r_data)
   d_enc->totallen = total;
 
   const Botan::secure_vector<uint8_t> data(total - 8);
-  memcpy(data.data(), d->data, total - 8);
+  memcpy((void*) (data.data()), d->data, total - 8);
   Botan::secure_vector<uint8_t> enc = Botan::rfc3394_keywrap(data, *encryption_handle);
   assert(enc.size() == total);
   memcpy(d_enc->data, enc.data(), total);
@@ -424,7 +424,7 @@ agent_get_cache (const char *key, cache_mode_t cache_mode)
           else
             {
 	      const Botan::secure_vector<uint8_t> pw_data(r->pw->totallen);
-	      memcpy(pw_data.data(), r->pw->data, r->pw->totallen);
+	      memcpy((void*) (pw_data.data()), r->pw->data, r->pw->totallen);
 	      Botan::secure_vector<uint8_t> val = Botan::rfc3394_keyunwrap(pw_data, *encryption_handle);
 	      assert(val.size() == r->pw->totallen - 8);
 	      memcpy(value, val.data(), val.size());

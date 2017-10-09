@@ -56,6 +56,7 @@ metriken:
 - sloccount
 - coverage
 - libksba
+- secretgrind
 
 windows
 - chocolatey

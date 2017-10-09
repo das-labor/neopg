@@ -273,7 +273,7 @@ print_name (estream_t fp, const char *text, const char *name)
       if (fp)
         print_utf8_buffer2 (fp, name, strlen (name), '\n');
       else
-        tty_print_utf8_string2 (NULL, name, strlen (name), 0);
+        tty_print_utf8_string2 (NULL, (const unsigned char*) (name), strlen (name), 0);
     }
   else
     tty_fprintf (fp, _("[not set]"));
@@ -306,7 +306,7 @@ print_isoname (estream_t fp, const char *text,
           else if (fp)
             print_utf8_buffer2 (fp, given, strlen (given), '\n');
           else
-            tty_print_utf8_string2 (NULL, given, strlen (given), 0);
+            tty_print_utf8_string2 (NULL, (const unsigned char*) (given), strlen (given), 0);
 
           if (opt.with_colons)
             es_putc (':', fp);
@@ -319,7 +319,7 @@ print_isoname (estream_t fp, const char *text,
       else if (fp)
         print_utf8_buffer2 (fp, buf, strlen (buf), '\n');
       else
-        tty_print_utf8_string2 (NULL, buf, strlen (buf), 0);
+        tty_print_utf8_string2 (NULL, (const unsigned char*) (buf), strlen (buf), 0);
       xfree (buf);
     }
   else
@@ -503,14 +503,14 @@ current_card_status (ctrl_t ctrl, estream_t fp,
         }
 
       es_fputs ("cafpr:", fp);
-      print_sha1_fpr_colon (fp, info.cafpr1valid? info.cafpr1:NULL);
-      print_sha1_fpr_colon (fp, info.cafpr2valid? info.cafpr2:NULL);
-      print_sha1_fpr_colon (fp, info.cafpr3valid? info.cafpr3:NULL);
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.cafpr1valid? info.cafpr1:NULL));
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.cafpr2valid? info.cafpr2:NULL));
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.cafpr3valid? info.cafpr3:NULL));
       es_putc ('\n', fp);
       es_fputs ("fpr:", fp);
-      print_sha1_fpr_colon (fp, info.fpr1valid? info.fpr1:NULL);
-      print_sha1_fpr_colon (fp, info.fpr2valid? info.fpr2:NULL);
-      print_sha1_fpr_colon (fp, info.fpr3valid? info.fpr3:NULL);
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.fpr1valid? info.fpr1:NULL));
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.fpr2valid? info.fpr2:NULL));
+      print_sha1_fpr_colon (fp, (const unsigned char*) (info.fpr3valid? info.fpr3:NULL));
       es_putc ('\n', fp);
       es_fprintf (fp, "fprtime:%lu:%lu:%lu:\n",
                (unsigned long)info.fpr1time, (unsigned long)info.fpr2time,
@@ -546,17 +546,17 @@ current_card_status (ctrl_t ctrl, estream_t fp,
       if (info.cafpr1valid)
         {
           tty_fprintf (fp, "CA fingerprint %d .:", 1);
-          print_sha1_fpr (fp, info.cafpr1);
+          print_sha1_fpr (fp, (const unsigned char*) (info.cafpr1));
         }
       if (info.cafpr2valid)
         {
           tty_fprintf (fp, "CA fingerprint %d .:", 2);
-          print_sha1_fpr (fp, info.cafpr2);
+          print_sha1_fpr (fp, (const unsigned char*) (info.cafpr2));
         }
       if (info.cafpr3valid)
         {
           tty_fprintf (fp, "CA fingerprint %d .:", 3);
-          print_sha1_fpr (fp, info.cafpr3);
+          print_sha1_fpr (fp, (const unsigned char*) (info.cafpr3));
         }
       tty_fprintf (fp,    "Signature PIN ....: %s\n",
                    info.chv1_cached? _("not forced"): _("forced"));
@@ -589,17 +589,17 @@ current_card_status (ctrl_t ctrl, estream_t fp,
                    info.chvretry[0], info.chvretry[1], info.chvretry[2]);
       tty_fprintf (fp,    "Signature counter : %lu\n", info.sig_counter);
       tty_fprintf (fp, "Signature key ....:");
-      print_sha1_fpr (fp, info.fpr1valid? info.fpr1:NULL);
+      print_sha1_fpr (fp, (const unsigned char*) (info.fpr1valid? info.fpr1:NULL));
       if (info.fpr1valid && info.fpr1time)
         tty_fprintf (fp, "      created ....: %s\n",
                      isotimestamp (info.fpr1time));
       tty_fprintf (fp, "Encryption key....:");
-      print_sha1_fpr (fp, info.fpr2valid? info.fpr2:NULL);
+      print_sha1_fpr (fp, (const unsigned char*) (info.fpr2valid? info.fpr2:NULL));
       if (info.fpr2valid && info.fpr2time)
         tty_fprintf (fp, "      created ....: %s\n",
                      isotimestamp (info.fpr2time));
       tty_fprintf (fp, "Authentication key:");
-      print_sha1_fpr (fp, info.fpr3valid? info.fpr3:NULL);
+      print_sha1_fpr (fp, (const unsigned char*) (info.fpr3valid? info.fpr3:NULL));
       if (info.fpr3valid && info.fpr3time)
         tty_fprintf (fp, "      created ....: %s\n",
                      isotimestamp (info.fpr3time));
@@ -609,7 +609,7 @@ current_card_status (ctrl_t ctrl, estream_t fp,
                 info.fpr3valid? info.fpr3 : NULL);
       /* If the fingerprint is all 0xff, the key has no asssociated
          OpenPGP certificate.  */
-      if ( thefpr && !fpr_is_ff (thefpr)
+      if ( thefpr && !fpr_is_ff ((const char*) (thefpr))
            && !get_pubkey_byfprint (ctrl, pk, &keyblock, thefpr, 20))
         {
           print_pubkey_info (ctrl, fp, pk);
@@ -756,7 +756,7 @@ change_name (void)
       return -1;
     }
 
-  rc = agent_scd_setattr ("DISP-NAME", isoname, strlen (isoname), NULL );
+  rc = agent_scd_setattr ("DISP-NAME", (const unsigned char*) (isoname), strlen (isoname), NULL );
   if (rc)
     log_error ("error setting Name: %s\n", gpg_strerror (rc));
 
@@ -785,7 +785,7 @@ change_url (void)
       return -1;
     }
 
-  rc = agent_scd_setattr ("PUBKEY-URL", url, strlen (url), NULL );
+  rc = agent_scd_setattr ("PUBKEY-URL", (const unsigned char*) (url), strlen (url), NULL );
   if (rc)
     log_error ("error setting URL: %s\n", gpg_strerror (rc));
   xfree (url);
@@ -823,7 +823,7 @@ fetch_url (ctrl_t ctrl)
         }
       else if (info.fpr1valid)
 	{
-          rc = keyserver_import_fprint (ctrl, info.fpr1, 20, opt.keyserver, 0);
+          rc = keyserver_import_fprint (ctrl, (const byte*) (info.fpr1), 20, opt.keyserver, 0);
 	}
     }
 
@@ -950,7 +950,7 @@ change_login (const char *args)
       return -1;
     }
 
-  rc = agent_scd_setattr ("LOGIN-DATA", data, n, NULL );
+  rc = agent_scd_setattr ("LOGIN-DATA", (const unsigned char*) (data), n, NULL );
   if (rc)
     log_error ("error setting login data: %s\n", gpg_strerror (rc));
   xfree (data);
@@ -996,7 +996,7 @@ change_private_do (const char *args, int nr)
       return -1;
     }
 
-  rc = agent_scd_setattr (do_name, data, n, NULL );
+  rc = agent_scd_setattr (do_name, (const unsigned char*) (data), n, NULL );
   if (rc)
     log_error ("error setting private DO: %s\n", gpg_strerror (rc));
   xfree (data);
@@ -1026,7 +1026,7 @@ change_cert (const char *args)
       return -1;
     }
 
-  rc = agent_scd_writecert ("OPENPGP.3", data, n);
+  rc = agent_scd_writecert ("OPENPGP.3", (const unsigned char*) (data), n);
   if (rc)
     log_error ("error writing certificate to card: %s\n", gpg_strerror (rc));
   xfree (data);
@@ -1095,7 +1095,7 @@ change_lang (void)
       return -1;
     }
 
-  rc = agent_scd_setattr ("DISP-LANG", data, strlen (data), NULL );
+  rc = agent_scd_setattr ("DISP-LANG", (const unsigned char*) (data), strlen (data), NULL );
   if (rc)
     log_error ("error setting lang: %s\n", gpg_strerror (rc));
   xfree (data);
@@ -1131,7 +1131,7 @@ change_sex (void)
       return -1;
     }
 
-  rc = agent_scd_setattr ("DISP-SEX", str, 1, NULL );
+  rc = agent_scd_setattr ("DISP-SEX", (const unsigned char*) (str), 1, NULL );
   if (rc)
     log_error ("error setting sex: %s\n", gpg_strerror (rc));
   xfree (data);
@@ -1203,7 +1203,7 @@ toggle_forcesig (void)
   newstate = !info.chv1_cached;
   agent_release_card_info (&info);
 
-  rc = agent_scd_setattr ("CHV-STATUS-1", newstate? "\x01":"", 1, NULL);
+  rc = agent_scd_setattr ("CHV-STATUS-1", (const unsigned char*) (newstate? "\x01":""), 1, NULL);
   if (rc)
     log_error ("error toggling signature PIN flag: %s\n", gpg_strerror (rc));
   write_sc_op_status (rc);
@@ -1253,7 +1253,7 @@ check_pin_for_key_operation (struct agent_card_info_s *info, int *forced_chv1)
     { /* Switch off the forced mode so that during key generation we
          don't get bothered with PIN queries for each
          self-signature. */
-      rc = agent_scd_setattr ("CHV-STATUS-1", "\x01", 1, info->serialno);
+      rc = agent_scd_setattr ("CHV-STATUS-1", (const unsigned char*) ("\x01"), 1, info->serialno);
       if (rc)
         {
           log_error ("error clearing forced signature PIN flag: %s\n",
@@ -1284,7 +1284,7 @@ restore_forced_chv1 (int *forced_chv1)
 
   if (*forced_chv1)
     { /* Switch back to forced state. */
-      rc = agent_scd_setattr ("CHV-STATUS-1", "", 1, NULL);
+      rc = agent_scd_setattr ("CHV-STATUS-1", (const unsigned char*) (""), 1, NULL);
       if (rc)
         {
           log_error ("error setting forced signature PIN flag: %s\n",
@@ -1299,11 +1299,11 @@ static void
 show_card_key_info (struct agent_card_info_s *info)
 {
   tty_fprintf (NULL, "Signature key ....:");
-  print_sha1_fpr (NULL, info->fpr1valid? info->fpr1:NULL);
+  print_sha1_fpr (NULL, (const unsigned char*) (info->fpr1valid? info->fpr1:NULL));
   tty_fprintf (NULL, "Encryption key....:");
-  print_sha1_fpr (NULL, info->fpr2valid? info->fpr2:NULL);
+  print_sha1_fpr (NULL, (const unsigned char*) (info->fpr2valid? info->fpr2:NULL));
   tty_fprintf (NULL, "Authentication key:");
-  print_sha1_fpr (NULL, info->fpr3valid? info->fpr3:NULL);
+  print_sha1_fpr (NULL, (const unsigned char*) (info->fpr3valid? info->fpr3:NULL));
   tty_printf ("\n");
 }
 
@@ -1409,7 +1409,7 @@ do_change_rsa_keysize (int keyno, unsigned int nbits)
   char args[100];
 
   snprintf (args, sizeof args, "--force %d 1 rsa%u", keyno+1, nbits);
-  err = agent_scd_setattr ("KEY-ATTR", args, strlen (args), NULL);
+  err = agent_scd_setattr ("KEY-ATTR", (const unsigned char*) (args), strlen (args), NULL);
   if (err)
     log_error (_("error changing size of key %d to %u bits: %s\n"),
                keyno+1, nbits, gpg_strerror (err));

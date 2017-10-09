@@ -51,7 +51,7 @@ read_buffer (ksba_reader_t reader, unsigned char *buffer, size_t count)
 
   while (count)
     {
-      err = ksba_reader_read (reader, buffer, count, &nread);
+      err = ksba_reader_read (reader, (char*) (buffer), count, &nread);
       if (err)
         return err;
       buffer += nread;
@@ -223,7 +223,7 @@ outstream_cookie_writer (void *cookie_arg, const void *buffer, size_t size)
 	was_empty = 1;
 
       /* Copy data.  */
-      nwritten = buffer_put_data (cookie, buffer, size);
+      nwritten = buffer_put_data (cookie, (const char*) (buffer), size);
       size -= nwritten;
       src += nwritten;
       amount += nwritten;

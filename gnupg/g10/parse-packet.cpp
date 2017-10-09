@@ -236,16 +236,16 @@ unknown_pubkey_warning (int algo)
 
   /* First check whether the algorithm is usable but not suitable for
      encryption/signing.  */
-  if (pubkey_get_npkey (algo))
+  if (pubkey_get_npkey ((pubkey_algo_t) (algo)))
     {
       if (opt.verbose)
         {
-          if (!pubkey_get_nsig (algo))
+          if (!pubkey_get_nsig ((pubkey_algo_t) (algo)))
             log_info ("public key algorithm %s not suitable for %s\n",
-                      openpgp_pk_algo_name (algo), "signing");
-          if (!pubkey_get_nenc (algo))
+                      openpgp_pk_algo_name ((pubkey_algo_t) (algo)), "signing");
+          if (!pubkey_get_nenc ((pubkey_algo_t) (algo)))
             log_info ("public key algorithm %s not suitable for %s\n",
-                      openpgp_pk_algo_name (algo), "encryption");
+                      openpgp_pk_algo_name ((pubkey_algo_t) (algo)), "encryption");
         }
     }
   else
@@ -796,7 +796,8 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       rc = parse_user_id (inp, pkttype, pktlen, pkt);
       break;
     case PKT_ATTRIBUTE:
-      pkt->pkttype = pkttype = (pkttype_t) PKT_USER_ID;	/* we store it in the userID */
+      pkt->pkttype = (pkttype_t) PKT_USER_ID;	/* we store it in the userID */
+      pkttype = pkt->pkttype;
       rc = parse_attribute (inp, pkttype, pktlen, pkt);
       break;
     case PKT_OLD_COMMENT:
@@ -1252,7 +1253,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
                 k->version, k->pubkey_algo, (unsigned long) k->keyid[0],
                 (unsigned long) k->keyid[1]);
 
-  ndata = pubkey_get_nenc (k->pubkey_algo);
+  ndata = pubkey_get_nenc ((pubkey_algo_t) (k->pubkey_algo));
   if (!ndata)
     {
       if (list_mode)
@@ -1273,7 +1274,7 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
           else
             {
 	      int n = pktlen;
-              k->data[i] = mpi_read (inp, &n, 0);
+              k->data[i] = mpi_read (inp, (unsigned int*) (&n), 0);
               pktlen -= n;
               if (!k->data[i])
                 rc = GPG_ERR_INV_PACKET;
@@ -2071,7 +2072,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 	}
     }
 
-  ndata = pubkey_get_nsig (sig->pubkey_algo);
+  ndata = pubkey_get_nsig ((pubkey_algo_t) (sig->pubkey_algo));
   if (!ndata)
     {
       if (list_mode)
@@ -2284,8 +2285,8 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
   pk->flags.primary = (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY);
   pk->pubkey_algo = algorithm;
 
-  nskey = pubkey_get_nskey (algorithm);
-  npkey = pubkey_get_npkey (algorithm);
+  nskey = pubkey_get_nskey ((pubkey_algo_t) (algorithm));
+  npkey = pubkey_get_npkey ((pubkey_algo_t) (algorithm));
   if (!npkey)
     {
       if (list_mode)
@@ -2520,7 +2521,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 	   * won't work.  The only solution I see is to hardwire it.
 	   * NOTE: if you change the ivlen above 16, don't forget to
 	   * enlarge temp.  */
-	  ski->ivlen = openpgp_cipher_blocklen (ski->algo);
+	  ski->ivlen = openpgp_cipher_blocklen ((cipher_algo_t) (ski->algo));
 	  log_assert (ski->ivlen <= sizeof (temp));
 
 	  if (ski->s2k.mode == 1001)

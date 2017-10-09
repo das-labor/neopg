@@ -407,7 +407,7 @@ _gcry_sha1_mixblock (SHA1_CONTEXT *hd, void *blockof64byte)
   u32 *p = (u32*) blockof64byte;
   unsigned int nburn;
 
-  nburn = transform (hd, blockof64byte, 1);
+  nburn = transform (hd, (const unsigned char*) (blockof64byte), 1);
   p[0] = hd->h0;
   p[1] = hd->h1;
   p[2] = hd->h2;

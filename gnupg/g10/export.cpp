@@ -1070,10 +1070,10 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
       err = GPG_ERR_INV_DATA;
       goto leave;
     }
-  err = openpgp_cipher_test_algo (protect_algo);
+  err = openpgp_cipher_test_algo ((cipher_algo_t) (protect_algo));
   if (err)
     goto leave;
-  err = openpgp_md_test_algo (s2k_algo);
+  err = openpgp_md_test_algo ((digest_algo_t) (s2k_algo));
   if (err)
     goto leave;
 
@@ -1214,7 +1214,7 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
   if (!realkeylen)
     goto unwraperror; /* Invalid csexp.  */
 
-  err = gcry_sexp_sscan (&s_skey, NULL, key, realkeylen);
+  err = gcry_sexp_sscan (&s_skey, NULL, (const char*) (key), realkeylen);
   if (!err)
     {
       if (cleartext)
@@ -1516,7 +1516,7 @@ print_pka_or_dane_records (iobuf_t out, kbnode_t keyblock, PKT_public_key *pk,
         goto leave;
       }
     fp = NULL;
-    iobuf_writestr (out, vp);
+    iobuf_writestr (out, (const char*) (vp));
     es_free (vp);
   }
   err = 0;
@@ -1782,8 +1782,8 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
           pk->seckey_info = NULL;
           {
             int i;
-            for (i = pubkey_get_npkey (pk->pubkey_algo);
-                 i < pubkey_get_nskey (pk->pubkey_algo); i++)
+            for (i = pubkey_get_npkey ((pubkey_algo_t) (pk->pubkey_algo));
+                 i < pubkey_get_nskey ((pubkey_algo_t) (pk->pubkey_algo)); i++)
               {
                 gcry_mpi_release (pk->pkey[i]);
                 pk->pkey[i] = NULL;

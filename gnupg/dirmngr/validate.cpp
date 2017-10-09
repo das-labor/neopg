@@ -956,7 +956,7 @@ check_cert_sig (ksba_cert_t issuer_cert, ksba_cert_t cert)
       log_printf ("\n");
     }
 
-  err = gcry_sexp_sscan ( &s_sig, NULL, p, n);
+  err = gcry_sexp_sscan ( &s_sig, NULL, (const char*) (p), n);
   ksba_free (p);
   if (err)
     {
@@ -976,7 +976,7 @@ check_cert_sig (ksba_cert_t issuer_cert, ksba_cert_t cert)
       gcry_sexp_release (s_sig);
       return GPG_ERR_BUG;
     }
-  err = gcry_sexp_sscan ( &s_pkey, NULL, p, n);
+  err = gcry_sexp_sscan ( &s_pkey, NULL, (const char*) (p), n);
   ksba_free (p);
   if (err)
     {

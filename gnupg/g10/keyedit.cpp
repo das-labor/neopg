@@ -172,7 +172,7 @@ print_and_check_one_sig_colon (ctrl_t ctrl, kbnode_t keyblock, kbnode_t node,
 
       if (sig->trust_regexp)
 	es_write_sanitized (es_stdout,
-			    sig->trust_regexp, strlen (sig->trust_regexp),
+			    sig->trust_regexp, strlen ((const char*) (sig->trust_regexp)),
 			    ":", NULL);
 
       es_printf ("::%02x%c\n", sig->sig_class,
@@ -264,7 +264,7 @@ keyedit_print_one_sig (ctrl_t ctrl, int rc, kbnode_t keyblock, kbnode_t node,
 	{
 	  size_t n;
 	  char *p = get_user_id (ctrl, sig->keyid, &n);
-	  tty_print_utf8_string2 (NULL, p, n,
+	  tty_print_utf8_string2 (NULL, (const unsigned char*) (p), n,
 				  opt.screen_columns - keystrlen () - 26 -
 				  ((opt.
 				    list_options & LIST_SHOW_SIG_EXPIRE) ? 11
@@ -356,8 +356,8 @@ sign_mk_attrib (PKT_signature * sig, void *opaque)
          whole sig should be invalid.  Note the +1 for the length -
          regexps are null terminated. */
       if (attrib->trust_regexp)
-	build_sig_subpkt (sig, SIGSUBPKT_FLAG_CRITICAL | SIGSUBPKT_REGEXP,
-			  attrib->trust_regexp,
+	build_sig_subpkt (sig, (sigsubpkttype_t) (SIGSUBPKT_FLAG_CRITICAL | SIGSUBPKT_REGEXP),
+(const byte*) (			  attrib->trust_regexp),
 			  strlen (attrib->trust_regexp) + 1);
     }
 
@@ -2910,9 +2910,9 @@ tty_print_notations (int indent, PKT_signature * sig)
       else
 	first = 0;
 
-      tty_print_utf8_string (nd->name, strlen (nd->name));
+      tty_print_utf8_string ((const unsigned char*) (nd->name), strlen (nd->name));
       tty_printf ("=");
-      tty_print_utf8_string (nd->value, strlen (nd->value));
+      tty_print_utf8_string ((const unsigned char*) (nd->value), strlen (nd->value));
       tty_printf ("\n");
     }
 
@@ -2954,9 +2954,9 @@ show_prefs (PKT_user_id * uid, PKT_signature * selfsig, int verbose)
 		tty_printf (", ");
 	      any = 1;
 	      /* We don't want to display strings for experimental algos */
-	      if (!openpgp_cipher_test_algo (prefs[i].value)
+	      if (!openpgp_cipher_test_algo ((cipher_algo_t) (prefs[i].value))
 		  && prefs[i].value < 100)
-		tty_printf ("%s", openpgp_cipher_algo_name (prefs[i].value));
+		tty_printf ("%s", openpgp_cipher_algo_name ((cipher_algo_t) (prefs[i].value)));
 	      else
 		tty_printf ("[%d]", prefs[i].value);
 	      if (prefs[i].value == CIPHER_ALGO_3DES)
@@ -3283,7 +3283,7 @@ show_names (ctrl_t ctrl, estream_t fp,
 		tty_fprintf (fp, "(%d). ", i);
 	      else
 		tty_fprintf (fp, "(%d)  ", i);
-	      tty_print_utf8_string2 (fp, uid->name, uid->len, 0);
+	      tty_print_utf8_string2 (fp, (const unsigned char*) (uid->name), uid->len, 0);
 	      tty_fprintf (fp, "\n");
 	      if (with_prefs && pk)
 		{
@@ -3615,7 +3615,7 @@ show_basic_key_info (ctrl_t ctrl, kbnode_t keyblock)
 	    tty_printf ("[%s] ", _("revoked"));
 	  else if (uid->flags.expired)
 	    tty_printf ("[%s] ", _("expired"));
-	  tty_print_utf8_string (uid->name, uid->len);
+	  tty_print_utf8_string ((const unsigned char*) (uid->name), uid->len);
 	  tty_printf ("\n");
 	}
     }
@@ -3642,7 +3642,7 @@ show_key_and_fingerprint (ctrl_t ctrl, kbnode_t keyblock, int with_subkeys)
       else if (node->pkt->pkttype == PKT_USER_ID)
 	{
 	  PKT_user_id *uid = node->pkt->pkt.user_id;
-	  tty_print_utf8_string (uid->name, uid->len);
+	  tty_print_utf8_string ((const unsigned char*) (uid->name), uid->len);
 	  break;
 	}
     }
@@ -3954,7 +3954,7 @@ menu_delsig (ctrl_t ctrl, kbnode_t pub_keyblock)
 	  int okay, valid, selfsig, inv_sig, no_key, other_err;
 
 	  tty_printf ("uid  ");
-	  tty_print_utf8_string (uid->name, uid->len);
+	  tty_print_utf8_string ((const unsigned char*) (uid->name), uid->len);
 	  tty_printf ("\n");
 
 	  okay = inv_sig = no_key = other_err = 0;
@@ -4756,7 +4756,7 @@ menu_set_primary_uid (ctrl_t ctrl, kbnode_t pub_keyblock)
 						     main_pk, uid, NULL,
 						     main_pk,
 						     change_primary_uid_cb,
-						     action > 0 ? "x" : NULL);
+						     (void*)(action > 0 ? "x" : NULL));
 		      if (rc)
 			{
 			  log_error ("update_keysig_packet failed: %s\n",
@@ -5661,7 +5661,7 @@ menu_revsig (ctrl_t ctrl, kbnode_t keyblock)
 	      PKT_user_id *uid = node->pkt->pkt.user_id;
 	      /* Hmmm: Should we show only UIDs with a signature? */
 	      tty_printf ("     ");
-	      tty_print_utf8_string (uid->name, uid->len);
+	      tty_print_utf8_string ((const unsigned char*) (uid->name), uid->len);
 	      tty_printf ("\n");
 	      skip = 0;
 	    }
@@ -5716,7 +5716,7 @@ menu_revsig (ctrl_t ctrl, kbnode_t keyblock)
 	{
 	  PKT_user_id *uid = node->pkt->pkt.user_id;
 	  tty_printf ("     ");
-	  tty_print_utf8_string (uid->name, uid->len);
+	  tty_print_utf8_string ((const unsigned char*) (uid->name), uid->len);
 	  tty_printf ("\n");
 	}
       else if (node->pkt->pkttype == PKT_SIGNATURE)

@@ -516,8 +516,8 @@ agent_listtrusted (void *assuan_context)
           key[41] = ((ti->flags.for_smime && ti->flags.for_pgp)? '*'
                      : ti->flags.for_smime? 'S': ti->flags.for_pgp? 'P':' ');
           key[42] = '\n';
-          assuan_send_data (assuan_context, key, 43);
-          assuan_send_data (assuan_context, NULL, 0); /* flush */
+          assuan_send_data ((assuan_context_t) (assuan_context), key, 43);
+          assuan_send_data ((assuan_context_t) (assuan_context), NULL, 0); /* flush */
         }
     }
 

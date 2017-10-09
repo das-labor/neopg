@@ -266,7 +266,7 @@ _assuan_inquire_release (assuan_context_t ctx)
     {
       if (ctx->inquire_membuf)
 	{
-	  free_membuf (ctx, ctx->inquire_membuf);
+	  free_membuf (ctx, (membuf*) (ctx->inquire_membuf));
 	  free (ctx->inquire_membuf);
 	}
       ctx->in_inquire = 0;

@@ -293,9 +293,9 @@ proc_symkey_enc (CTX c, PACKET *pkt)
   else if(!c->dek)
     {
       int algo = enc->cipher_algo;
-      const char *s = openpgp_cipher_algo_name (algo);
+      const char *s = openpgp_cipher_algo_name ((cipher_algo_t) (algo));
 
-      if (!openpgp_cipher_test_algo (algo))
+      if (!openpgp_cipher_test_algo ((cipher_algo_t) (algo)))
         {
           if (!opt.quiet)
             {
@@ -308,7 +308,7 @@ proc_symkey_enc (CTX c, PACKET *pkt)
       else
         log_error (_("encrypted with unknown algorithm %d\n"), algo);
 
-      if (openpgp_md_test_algo (enc->s2k.hash_algo))
+      if (openpgp_md_test_algo ((digest_algo_t) (enc->s2k.hash_algo)))
         {
           log_error(_("passphrase generated with unknown digest"
                       " algorithm %d\n"),enc->s2k.hash_algo);
@@ -478,7 +478,7 @@ print_pkenc_list (ctrl_t ctrl, struct kidlist_item *list, int failed)
       if (!failed && list->reason)
         continue;
 
-      algstr = openpgp_pk_algo_name (list->pubkey_algo);
+      algstr = openpgp_pk_algo_name ((pubkey_algo_t) (list->pubkey_algo));
       pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
 
       if (!algstr)
@@ -565,7 +565,7 @@ proc_encrypted (CTX c, PACKET *pkt)
           algo = opt.def_cipher_algo;
           if (algo)
             log_info (_("assuming %s encrypted data\n"),
-                      openpgp_cipher_algo_name (algo));
+                      openpgp_cipher_algo_name ((cipher_algo_t) (algo)));
           else if (openpgp_cipher_test_algo (CIPHER_ALGO_IDEA))
             {
               algo = opt.def_cipher_algo;
@@ -573,7 +573,7 @@ proc_encrypted (CTX c, PACKET *pkt)
                 algo = opt.s2k_cipher_algo;
               log_info (_("IDEA cipher unavailable, "
                           "optimistically attempting to use %s instead\n"),
-                        openpgp_cipher_algo_name (algo));
+                        openpgp_cipher_algo_name ((cipher_algo_t) (algo)));
             }
           else
             {
@@ -607,7 +607,7 @@ proc_encrypted (CTX c, PACKET *pkt)
       /* Overriding session key voids compliance.  */
       && !opt.override_session_key
       /* Check symmetric cipher.  */
-      && gnupg_cipher_is_compliant (CO_DE_VS, c->dek->algo,
+      && gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (c->dek->algo),
                                     GCRY_CIPHER_MODE_CFB))
     {
       struct kidlist_item *i;
@@ -908,7 +908,7 @@ do_check_sig (CTX c, kbnode_t node, int *is_selfsig,
   sig = node->pkt->pkt.signature;
 
   algo = sig->digest_algo;
-  rc = openpgp_md_test_algo (algo);
+  rc = openpgp_md_test_algo ((digest_algo_t) (algo));
   if (rc)
     return rc;
 
@@ -999,7 +999,7 @@ do_check_sig (CTX c, kbnode_t node, int *is_selfsig,
   if (md_good)
     {
       unsigned char *buffer = gcry_md_read (md_good, sig->digest_algo);
-      sig->digest_len = gcry_md_get_algo_dlen (map_md_openpgp_to_gcry (algo));
+      sig->digest_len = gcry_md_get_algo_dlen (map_md_openpgp_to_gcry ((digest_algo_t) (algo)));
       memcpy (sig->digest, buffer, sig->digest_len);
     }
 
@@ -1186,7 +1186,7 @@ list_node (CTX c, kbnode_t node)
 
           if (sig->trust_regexp)
             es_write_sanitized (es_stdout, sig->trust_regexp,
-                                strlen (sig->trust_regexp), ":", NULL);
+                                strlen ((const char*) (sig->trust_regexp)), ":", NULL);
           es_putc (':', es_stdout);
 	}
       else
@@ -1781,7 +1781,7 @@ check_sig_and_print (CTX c, kbnode_t node)
   else
     write_status_text (STATUS_NEWSIG, NULL);
 
-  astr = openpgp_pk_algo_name ( sig->pubkey_algo );
+  astr = openpgp_pk_algo_name ( (pubkey_algo_t) (sig->pubkey_algo ));
   if ((issuer_fpr = issuer_fpr_string (sig)))
     {
       log_info (_("Signature made %s\n"), asctimestamp(sig->timestamp));
@@ -2241,7 +2241,7 @@ check_sig_and_print (CTX c, kbnode_t node)
       if (pk && is_status_enabled ()
           && gnupg_pk_is_compliant (CO_DE_VS, pk->pubkey_algo, pk->pkey,
                                     nbits_from_pk (pk), NULL)
-          && gnupg_digest_is_compliant (CO_DE_VS, sig->digest_algo))
+          && gnupg_digest_is_compliant (CO_DE_VS, (digest_algo_t) (sig->digest_algo)))
         write_status_strings (STATUS_VERIFICATION_COMPLIANCE_MODE,
                               gnupg_status_compliance_flag (CO_DE_VS),
                               NULL);
@@ -2439,10 +2439,10 @@ proc_tree (CTX c, kbnode_t node)
               /* If we have and want to handle multiple signatures we
                * need to enable all hash algorithms for the context.  */
               for (n1 = node; (n1 = find_next_kbnode (n1, PKT_SIGNATURE)); )
-                if (!openpgp_md_test_algo (n1->pkt->pkt.signature->digest_algo))
+                if (!openpgp_md_test_algo ((digest_algo_t) (n1->pkt->pkt.signature->digest_algo)))
                   gcry_md_enable (c->mfx.md,
                                   map_md_openpgp_to_gcry
-                                  (n1->pkt->pkt.signature->digest_algo));
+                                  ((digest_algo_t) (n1->pkt->pkt.signature->digest_algo)));
             }
 
           if (RFC2440 || RFC4880)

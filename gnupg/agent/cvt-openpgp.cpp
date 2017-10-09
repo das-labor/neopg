@@ -968,7 +968,7 @@ convert_from_openpgp_main (ctrl_t ctrl, gcry_sexp_t s_pgp, int dontcare_exist,
           err = try_do_unprotect_cb (pi);
         }
       if (err == GPG_ERR_BAD_PASSPHRASE && !from_native)
-        err = agent_askpin (ctrl, prompt, NULL, NULL, pi, NULL, 0);
+        err = agent_askpin (ctrl, prompt, NULL, NULL, pi, NULL, (cache_mode_t) (0));
       skeyidx = pi_arg.skeyidx;
       if (!err && r_passphrase && is_protected)
         {
@@ -1348,7 +1348,7 @@ convert_to_openpgp (ctrl_t ctrl, gcry_sexp_t s_key, const char *passphrase,
   s2k_count = get_standard_s2k_count_rfc4880 ();
   err = apply_protection (array, npkey, nskey, passphrase,
                           GCRY_CIPHER_AES, protect_iv, sizeof protect_iv,
-                          3, GCRY_MD_SHA1, salt, s2k_count);
+                          3, GCRY_MD_SHA1, (byte*) (salt), s2k_count);
   /* Turn it into the transfer key S-expression.  Note that we always
      return a protected key.  */
   if (!err)

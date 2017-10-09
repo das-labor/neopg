@@ -84,7 +84,7 @@ canon_sexp_to_string (const unsigned char *canon, size_t canonlen)
   n = gcry_sexp_canon_len (canon, canonlen, NULL, NULL);
   if (!n)
     return NULL;
-  if (gcry_sexp_sscan (&sexp, NULL, canon, n))
+  if (gcry_sexp_sscan (&sexp, NULL, (const char*) (canon), n))
     return NULL;
   result = sexp_to_string (sexp);
   gcry_sexp_release (sexp);
@@ -398,19 +398,19 @@ make_canon_sexp_from_rsa_pk (const void *m_arg, size_t mlen,
   if (!keybuf)
     return NULL;
 
-  p = (unsigned char*) stpcpy (keybuf, part1);
-  p = (unsigned char*) stpcpy (p, mlen_str);
+  p = (unsigned char*) stpcpy ((char*) (keybuf), part1);
+  p = (unsigned char*) stpcpy ((char*) (p), mlen_str);
   if (m_extra)
     *p++ = 0;
   memcpy (p, m, mlen);
   p += mlen;
-  p = (unsigned char*) stpcpy (p, part2);
-  p = (unsigned char*) stpcpy (p, elen_str);
+  p = (unsigned char*) stpcpy ((char*) (p), part2);
+  p = (unsigned char*) stpcpy ((char*) (p), elen_str);
   if (e_extra)
     *p++ = 0;
   memcpy (p, e, elen);
   p += elen;
-  p = (unsigned char*) stpcpy (p, part3);
+  p = (unsigned char*) stpcpy ((char*) (p), part3);
 
   if (r_len)
     *r_len = p - keybuf;
@@ -570,7 +570,7 @@ get_pk_algo_from_canon_sexp (const unsigned char *keydata, size_t keydatalen)
   gcry_sexp_t sexp;
   int algo;
 
-  if (gcry_sexp_sscan (&sexp, NULL, keydata, keydatalen))
+  if (gcry_sexp_sscan (&sexp, NULL, (const char*) (keydata), keydatalen))
     return 0;
 
   algo = get_pk_algo_from_key (sexp);

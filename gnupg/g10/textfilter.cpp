@@ -149,7 +149,7 @@ text_filter( void *opaque, int control,
 	tfx->buffer = NULL;
     }
     else if( control == IOBUFCTRL_DESC )
-        mem2str (buf, "text_filter", *ret_len);
+        mem2str ((char*) (buf), "text_filter", *ret_len);
     return rc;
 }
 

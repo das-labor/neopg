@@ -957,7 +957,7 @@ get_escaped_usb_string (libusb_device_handle *idev, int idx,
   rc = libusb_control_transfer (idev, LIBUSB_ENDPOINT_IN,
                                 LIBUSB_REQUEST_GET_DESCRIPTOR,
                                 (LIBUSB_DT_STRING << 8), 0,
-                                (char*)buf, sizeof buf, 1000 /* ms timeout */);
+                                (unsigned char*)buf, sizeof buf, 1000 /* ms timeout */);
 #ifdef USE_NPTH
   npth_protect ();
 #endif
@@ -972,7 +972,7 @@ get_escaped_usb_string (libusb_device_handle *idev, int idx,
   rc = libusb_control_transfer (idev, LIBUSB_ENDPOINT_IN,
                                 LIBUSB_REQUEST_GET_DESCRIPTOR,
                                 (LIBUSB_DT_STRING << 8) + idx, langid,
-                                (char*)buf, sizeof buf, 1000 /* ms timeout */);
+                                (unsigned char*)buf, sizeof buf, 1000 /* ms timeout */);
 #ifdef USE_NPTH
   npth_protect ();
 #endif
@@ -1260,7 +1260,7 @@ ccid_vendor_specific_init (ccid_driver_t handle)
        */
       const char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
 
-      r = send_escape_cmd (handle, cmd, sizeof (cmd), NULL, 0, NULL);
+      r = send_escape_cmd (handle, (const unsigned char*) (cmd), sizeof (cmd), NULL, 0, NULL);
       if (r != 0 && r != CCID_DRIVER_ERR_CARD_INACTIVE
           && r != CCID_DRIVER_ERR_NO_CARD)
         return r;
@@ -1895,7 +1895,7 @@ bulk_out (ccid_driver_t handle, unsigned char *msg, size_t msglen,
   npth_unprotect ();
 #endif
   rc = libusb_bulk_transfer (handle->idev, handle->ep_bulk_out,
-                             (char*)msg, msglen, &transferred,
+                             (unsigned char*) ((char*)msg), msglen, &transferred,
                              5000 /* ms timeout */);
 #ifdef USE_NPTH
   npth_protect ();
@@ -1941,7 +1941,7 @@ bulk_in (ccid_driver_t handle, unsigned char *buffer, size_t length,
   npth_unprotect ();
 #endif
   rc = libusb_bulk_transfer (handle->idev, handle->ep_bulk_in,
-                             (char*)buffer, length, &msglen, timeout);
+                             (unsigned char*) ((char*)buffer), length, &msglen, timeout);
 #ifdef USE_NPTH
   npth_protect ();
 #endif
@@ -2072,10 +2072,10 @@ abort_cmd (ccid_driver_t handle, int seqno)
   rc = libusb_control_transfer (handle->idev,
                                 0x21,/* bmRequestType: host-to-device,
                                         class specific, to interface.  */
-                                1,   /* ABORT */
+                                1, /* ABORT */
                                 (seqno << 8 | 0 /* slot */),
                                 handle->ifc_no,
-                                dummybuf, 0,
+                                (unsigned char*) dummybuf, 0,
                                 1000 /* ms timeout */);
 #ifdef USE_NPTH
   npth_protect ();
@@ -2108,7 +2108,7 @@ abort_cmd (ccid_driver_t handle, int seqno)
       npth_unprotect ();
 #endif
       rc = libusb_bulk_transfer (handle->idev, handle->ep_bulk_out,
-                                 (char*)msg, msglen, &transferred,
+                                 (unsigned char*) ((char*)msg), msglen, &transferred,
                                  5000 /* ms timeout */);
 #ifdef USE_NPTH
       npth_protect ();
@@ -2126,7 +2126,7 @@ abort_cmd (ccid_driver_t handle, int seqno)
       npth_unprotect ();
 #endif
       rc = libusb_bulk_transfer (handle->idev, handle->ep_bulk_in,
-                                 (char*)msg, sizeof msg, &msglen,
+                                 (unsigned char*) ((char*)msg), sizeof msg, &msglen,
                                  5000 /*ms timeout*/);
 #ifdef USE_NPTH
       npth_protect ();
@@ -2247,7 +2247,7 @@ ccid_poll (ccid_driver_t handle)
   int i, j;
 
   rc = libusb_interrupt_transfer (handle->idev, handle->ep_intr,
-                                  (char*)msg, sizeof msg, &msglen,
+                                  (unsigned char*) ((char*)msg), sizeof msg, &msglen,
                                   0 /* ms timeout */ );
   if (rc == LIBUSB_ERROR_TIMEOUT)
     return 0;

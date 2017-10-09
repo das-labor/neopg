@@ -566,7 +566,7 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
                 continue;
               dirmngr_tick (ctrl);
 
-              add_host (name, is_pool, ai, 0, 0);
+              add_host (name, is_pool, ai, (ks_protocol) (0), 0);
               new_hosts = 1;
             }
 

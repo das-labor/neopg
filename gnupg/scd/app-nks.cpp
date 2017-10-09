@@ -1064,7 +1064,7 @@ do_decipher (app_t app, const char *keyidstr,
      Command chaining does not work.  */
   if (!rc)
     rc = iso7816_decipher (app->slot, app->app_local->nks_version > 2? 1:0,
-                           indata, indatalen, 0, 0x81,
+                           (const unsigned char*) (indata), indatalen, 0, 0x81,
                            outdata, outdatalen);
   return rc;
 }
@@ -1339,9 +1339,9 @@ switch_application (app_t app, int enable_sigg)
 
   log_info ("app-nks: switching to %s\n", enable_sigg? "SigG":"NKS");
   if (enable_sigg)
-    err = iso7816_select_application (app->slot, aid_sigg, sizeof aid_sigg, 0);
+    err = iso7816_select_application (app->slot, (const char*) (aid_sigg), sizeof aid_sigg, 0);
   else
-    err = iso7816_select_application (app->slot, aid_nks, sizeof aid_nks, 0);
+    err = iso7816_select_application (app->slot, (const char*) (aid_nks), sizeof aid_nks, 0);
 
   if (!err && enable_sigg && app->app_local->nks_version >= 3
       && !app->app_local->sigg_msig_checked)
@@ -1391,7 +1391,7 @@ app_select_nks (app_t app)
   int slot = app->slot;
   int rc;
 
-  rc = iso7816_select_application (slot, aid_nks, sizeof aid_nks, 0);
+  rc = iso7816_select_application (slot, (const char*) (aid_nks), sizeof aid_nks, 0);
   if (!rc)
     {
       app->apptype = "NKS";

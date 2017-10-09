@@ -571,12 +571,12 @@ keydb_search_desc_dump (struct keydb_search_desc *desc)
     case KEYDB_SEARCH_MODE_ISSUER_SN:
       return xasprintf ("ISSUER_SN: '%*s'",
                         (int) (desc->snlen == -1
-                               ? strlen (desc->sn) : desc->snlen),
+                               ? strlen ((const char*) (desc->sn)) : desc->snlen),
                         desc->sn);
     case KEYDB_SEARCH_MODE_SN:
       return xasprintf ("SN: '%*s'",
                         (int) (desc->snlen == -1
-                               ? strlen (desc->sn) : desc->snlen),
+                               ? strlen ((const char*) (desc->sn)) : desc->snlen),
                         desc->sn);
     case KEYDB_SEARCH_MODE_SUBJECT:
       return xasprintf ("SUBJECT: '%s'", desc->u.name);

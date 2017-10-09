@@ -444,7 +444,7 @@ ksba_writer_write_octet_string (ksba_writer_t w,
     }
 
   if (!err && flush && w->ndef_is_open) /* write an end tag */
-      err = _ksba_ber_write_tl (w, 0, 0, 0, 0);
+    err = _ksba_ber_write_tl (w, 0, (tag_class)0, 0, 0);
 
   if (flush) /* Reset it even in case of an error. */
     w->ndef_is_open = 1;

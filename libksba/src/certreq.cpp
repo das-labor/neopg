@@ -379,7 +379,7 @@ ksba_certreq_add_extension (ksba_certreq_t cr,
   e->critical = is_crit;
   e->derlen = derlen;
   memcpy (e->der, der, derlen);
-  strcpy (e->der+derlen, oid);
+  strcpy ((char*) (e->der+derlen), oid);
   e->oid = (const char*) e->der + derlen;
 
   e->next = cr->extn_list;

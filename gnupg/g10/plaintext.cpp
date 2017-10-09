@@ -89,7 +89,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
       if (data)
         fname = make_outfile_name (iobuf_get_real_fname (data));
       if (!fname)
-	fname = ask_outfile_name (embedded_name, embedded_namelen);
+	fname = ask_outfile_name ((const char*) (embedded_name), embedded_namelen);
       if (!fname)
 	{
 	  err = GPG_ERR_GENERAL;	/* Can't create file. */
@@ -97,7 +97,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 	}
     }
   else
-    fname = utf8_to_native (embedded_name, embedded_namelen, 0);
+    fname = utf8_to_native ((const char*) (embedded_name), embedded_namelen, 0);
 
   if (nooutput)
     ;
@@ -228,7 +228,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 
   if (! nooutput)
     {
-      err = get_output_file (pt->name, pt->namelen, pt->buf, &fname, &fp);
+      err = get_output_file ((const byte*) (pt->name), pt->namelen, pt->buf, &fname, &fp);
       if (err)
         goto leave;
     }

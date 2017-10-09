@@ -917,7 +917,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
     {
       /* (N is used as a dummy) */
       assuan_begin_confidential (ctx);
-      rc = assuan_inquire (ctx, "NEWPASSWD", &newpasswd, &n, 256);
+      rc = assuan_inquire (ctx, "NEWPASSWD", (unsigned char**) (&newpasswd), &n, 256);
       assuan_end_confidential (ctx);
       if (rc)
         goto leave;
@@ -1827,7 +1827,7 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
 
       /* Do in-place conversion.  */
       passphrase = (unsigned char*) line;
-      if (!hex2str (passphrase, passphrase, strlen (passphrase)+1, NULL))
+      if (!hex2str ((const char*) (passphrase), (char*) (passphrase), strlen ((const char*) (passphrase)+1), NULL))
         rc = set_error (GPG_ERR_ASS_PARAMETER, "invalid hexstring");
     }
   else if (opt_inquire)
@@ -1845,7 +1845,7 @@ cmd_preset_passphrase (assuan_context_t ctx, char *line)
 
   if (!rc)
     {
-      rc = agent_put_cache (grip_clear, CACHE_MODE_ANY, passphrase, ttl);
+      rc = agent_put_cache (grip_clear, CACHE_MODE_ANY, (const char*) (passphrase), ttl);
       if (opt_inquire)
 	xfree (passphrase);
     }
@@ -2021,7 +2021,7 @@ cmd_import_key (assuan_context_t ctx, char *line)
       /* This might be due to an unsupported S-expression format.
          Check whether this is openpgp-private-key and trigger that
          import code.  */
-      if (!gcry_sexp_sscan (&openpgp_sexp, NULL, key, realkeylen))
+      if (!gcry_sexp_sscan (&openpgp_sexp, NULL, (const char*) (key), realkeylen))
         {
           const char *tag;
           size_t taglen;
@@ -2436,9 +2436,9 @@ cmd_keytocard (assuan_context_t ctx, char *line)
   gcry_sexp_release (s_skey);
   keydatalen--;			/* Decrement for last '\0'.  */
   /* Add timestamp "created-at" in the private key */
-  snprintf (keydata+keydatalen-1, 30, KEYTOCARD_TIMESTAMP_FORMAT, timestamp);
+  snprintf ((char*)(keydata+keydatalen-1), 30, KEYTOCARD_TIMESTAMP_FORMAT, timestamp);
   keydatalen += 10 + 19 - 1;
-  err = divert_writekey (ctrl, force, serialno, id, keydata, keydatalen);
+  err = divert_writekey (ctrl, force, serialno, id, (const char*) (keydata), keydatalen);
   xfree (keydata);
 
  leave:

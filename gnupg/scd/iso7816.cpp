@@ -222,7 +222,7 @@ iso7816_apdu_direct (int slot, const void *apdudata, size_t apdudatalen,
   *result = NULL;
   *resultlen = 0;
 
-  sw = apdu_send_direct (slot, 0, apdudata, apdudatalen, handle_more,
+  sw = apdu_send_direct (slot, 0, (const unsigned char*) (apdudata), apdudatalen, handle_more,
                          result, resultlen);
   if (!sw)
     {

@@ -90,21 +90,21 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
 
   if ( opt.verbose && !dek->algo_info_printed )
     {
-      if (!openpgp_cipher_test_algo (dek->algo))
+      if (!openpgp_cipher_test_algo ((cipher_algo_t) (dek->algo)))
         log_info (_("%s encrypted data\n"),
-                  openpgp_cipher_algo_name (dek->algo));
+                  openpgp_cipher_algo_name ((cipher_algo_t) (dek->algo)));
       else
         log_info (_("encrypted with unknown algorithm %d\n"), dek->algo );
       dek->algo_info_printed = 1;
     }
 
   /* Check compliance.  */
-  if (! gnupg_cipher_is_allowed (opt.compliance, 0, dek->algo,
+  if (! gnupg_cipher_is_allowed (opt.compliance, 0, (cipher_algo_t) (dek->algo),
                                  GCRY_CIPHER_MODE_CFB))
     {
       log_error (_("you may not use cipher algorithm '%s'"
                    " while in %s mode\n"),
-		 openpgp_cipher_algo_name (dek->algo),
+		 openpgp_cipher_algo_name ((cipher_algo_t) (dek->algo)),
 		 gnupg_compliance_option_string (opt.compliance));
       rc = GPG_ERR_CIPHER_ALGO;
       goto leave;
@@ -134,7 +134,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
       xfree (hexbuf);
     }
 
-  rc = openpgp_cipher_test_algo (dek->algo);
+  rc = openpgp_cipher_test_algo ((cipher_algo_t) (dek->algo));
   if (rc)
     goto leave;
   blocksize = openpgp_cipher_get_algo_blklen (dek->algo);
@@ -237,7 +237,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
     {
       char *filename = NULL;
       estream_t fp;
-      rc = get_output_file ("", 0, ed->buf, &filename, &fp);
+      rc = get_output_file ((const byte*) (""), 0, ed->buf, &filename, &fp);
       if (! rc)
         {
           iobuf_t output = iobuf_esopen (fp, "w", 0);
@@ -438,7 +438,7 @@ mdc_decode_filter (void *opaque, int control, IOBUF a,
     }
   else if ( control == IOBUFCTRL_DESC )
     {
-      mem2str (buf, "mdc_decode_filter", *ret_len);
+      mem2str ((char*) (buf), "mdc_decode_filter", *ret_len);
     }
   return rc;
 }
@@ -509,7 +509,7 @@ decode_filter( void *opaque, int control, IOBUF a, byte *buf, size_t *ret_len)
     }
   else if ( control == IOBUFCTRL_DESC )
     {
-      mem2str (buf, "decode_filter", *ret_len);
+      mem2str ((char*) (buf), "decode_filter", *ret_len);
     }
   return rc;
 }

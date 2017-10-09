@@ -54,7 +54,7 @@ void
 free_pubkey_enc( PKT_pubkey_enc *enc )
 {
     int n, i;
-    n = pubkey_get_nenc( enc->pubkey_algo );
+    n = pubkey_get_nenc( (pubkey_algo_t) (enc->pubkey_algo ));
     if( !n )
 	mpi_release(enc->data[0]);
     for(i=0; i < n; i++ )
@@ -67,7 +67,7 @@ free_seckey_enc( PKT_signature *sig )
 {
   int n, i;
 
-  n = pubkey_get_nsig( sig->pubkey_algo );
+  n = pubkey_get_nsig( (pubkey_algo_t) (sig->pubkey_algo ));
   if( !n )
     mpi_release(sig->data[0]);
   for(i=0; i < n; i++ )
@@ -94,9 +94,9 @@ release_public_key_parts (PKT_public_key *pk)
   int n, i;
 
   if (pk->seckey_info)
-    n = pubkey_get_nskey (pk->pubkey_algo);
+    n = pubkey_get_nskey ((pubkey_algo_t) (pk->pubkey_algo));
   else
-    n = pubkey_get_npkey (pk->pubkey_algo);
+    n = pubkey_get_npkey ((pubkey_algo_t) (pk->pubkey_algo));
   if (!n)
     mpi_release (pk->pkey[0]);
   for (i=0; i < n; i++ )
@@ -203,7 +203,7 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
   d->user_id = scopy_user_id (s->user_id);
   d->prefs = copy_prefs (s->prefs);
 
-  n = pubkey_get_npkey (s->pubkey_algo);
+  n = pubkey_get_npkey ((pubkey_algo_t) (s->pubkey_algo));
   i = 0;
   if (!n)
     d->pkey[i++] = my_mpi_copy (s->pkey[0]);
@@ -251,7 +251,7 @@ copy_signature( PKT_signature *d, PKT_signature *s )
     if( !d )
 	d = (PKT_signature*) xmalloc(sizeof *d);
     memcpy( d, s, sizeof *d );
-    n = pubkey_get_nsig( s->pubkey_algo );
+    n = pubkey_get_nsig( (pubkey_algo_t) (s->pubkey_algo ));
     if( !n )
 	d->data[0] = my_mpi_copy(s->data[0]);
     else {
@@ -495,7 +495,7 @@ cmp_public_keys( PKT_public_key *a, PKT_public_key *b )
     if( a->pubkey_algo != b->pubkey_algo )
 	return -1;
 
-    n = pubkey_get_npkey( b->pubkey_algo );
+    n = pubkey_get_npkey( (pubkey_algo_t) (b->pubkey_algo ));
     if( !n ) { /* unknown algorithm, rest is in opaque MPI */
 	if( mpi_cmp( a->pkey[0], b->pkey[0] ) )
 	    return -1; /* can't compare due to unknown algorithm */
@@ -523,7 +523,7 @@ cmp_signatures( PKT_signature *a, PKT_signature *b )
     if( a->pubkey_algo != b->pubkey_algo )
 	return -1;
 
-    n = pubkey_get_nsig( a->pubkey_algo );
+    n = pubkey_get_nsig( (pubkey_algo_t) (a->pubkey_algo ));
     if( !n )
 	return -1; /* can't compare due to unknown algorithm */
     for(i=0; i < n; i++ ) {

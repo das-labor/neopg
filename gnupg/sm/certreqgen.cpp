@@ -986,7 +986,7 @@ create_request (ctrl_t ctrl,
           /* Clear high bit to guarantee a positive integer.  */
           snbuf[3] &= 0x7f;
           snbuf[3+8] = ')';
-          err = ksba_certreq_set_serial (cr, snbuf);
+          err = ksba_certreq_set_serial (cr, (ksba_const_sexp_t) (snbuf));
         }
       else
         {
@@ -1025,7 +1025,7 @@ create_request (ctrl_t ctrl,
           p += len;
           strcpy (p, ")");
           xfree (hexbuf);
-          err = ksba_certreq_set_serial (cr, buf);
+          err = ksba_certreq_set_serial (cr, (ksba_const_sexp_t) (buf));
           xfree (buf);
         }
       if (err)

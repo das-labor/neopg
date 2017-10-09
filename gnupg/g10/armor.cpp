@@ -413,7 +413,7 @@ is_armor_header( byte *line, unsigned len )
     save_c = *save_p; *save_p = 0;
     p = line+5;
     for(i=0; (s=head_strings[i]); i++ )
-	if( !strcmp(s, p) )
+	if( !strcmp(s, (const char*) (p)) )
 	    break;
     *save_p = save_c;
     if( !s )
@@ -477,9 +477,9 @@ parse_header_line( armor_filter_context_t *afx, byte *line, unsigned int len )
 
     if( afx->in_cleartext )
       {
-	if( (hashes=parse_hash_header( line )) )
+	if( (hashes=parse_hash_header( (const char*) (line ))) )
 	  afx->hashes |= hashes;
-	else if( strlen(line) > 15 && !memcmp( line, "NotDashEscaped:", 15 ) )
+	else if( strlen((const char*) (line)) > 15 && !memcmp( line, "NotDashEscaped:", 15 ) )
 	  afx->not_dash_escaped = 1;
 	else
 	  {
@@ -487,7 +487,7 @@ parse_header_line( armor_filter_context_t *afx, byte *line, unsigned int len )
 	    return -1;
 	  }
       }
-    else if(!is_armor_tag(line))
+    else if(!is_armor_tag((const char*) (line)))
       {
 	/* Section 6.2: "Unknown keys should be reported to the user,
 	   but OpenPGP should continue to process the message."  Note
@@ -1133,7 +1133,7 @@ armor_filter( void *opaque, int control,
 	    iobuf_writestr(a, "-----");
 	    iobuf_writestr(a, head_strings[afx->what] );
 	    iobuf_writestr(a, "-----" );
-	    iobuf_writestr(a,afx->eol);
+	    iobuf_writestr(a,(const char*) (afx->eol));
 	    if (opt.emit_version)
 	      {
 		iobuf_writestr (a, "Version: " GNUPG_NAME " v");
@@ -1154,7 +1154,7 @@ armor_filter( void *opaque, int control,
 #endif
                       }
                   }
-		iobuf_writestr(a,afx->eol);
+		iobuf_writestr(a,(const char*) (afx->eol));
 	      }
 
 	    /* write the comment strings */
@@ -1173,7 +1173,7 @@ armor_filter( void *opaque, int control,
 		      iobuf_put(a, *s );
 		  }
 
-		iobuf_writestr(a,afx->eol);
+		iobuf_writestr(a,(const char*) (afx->eol));
 	      }
 
 	    if ( afx->hdrlines ) {
@@ -1186,7 +1186,7 @@ armor_filter( void *opaque, int control,
                 }
             }
 
-	    iobuf_writestr(a,afx->eol);
+	    iobuf_writestr(a,(const char*) (afx->eol));
 	    afx->status++;
 	    afx->idx = 0;
 	    afx->idx2 = 0;
@@ -1217,7 +1217,7 @@ armor_filter( void *opaque, int control,
 		iobuf_put(a, c);
 		if( ++idx2 >= (64/4) )
 		  { /* pgp doesn't like 72 here */
-		    iobuf_writestr(a,afx->eol);
+		    iobuf_writestr(a,(const char*) (afx->eol));
 		    idx2=0;
 		  }
 	    }
@@ -1274,13 +1274,13 @@ armor_filter( void *opaque, int control,
 		}
 		if( ++idx2 >= (64/4) )
 		  { /* pgp doesn't like 72 here */
-		    iobuf_writestr(a,afx->eol);
+		    iobuf_writestr(a,(const char*) (afx->eol));
 		    idx2=0;
 		  }
 	    }
 	    /* may need a linefeed */
 	    if( idx2 )
-	      iobuf_writestr(a,afx->eol);
+	      iobuf_writestr(a,(const char*) (afx->eol));
 	    /* write the CRC */
 	    iobuf_put(a, '=');
 	    radbuf[0] = crc >>16;
@@ -1294,14 +1294,14 @@ armor_filter( void *opaque, int control,
 	    iobuf_put(a, c);
 	    c = bintoasc[radbuf[2]&077];
 	    iobuf_put(a, c);
-	    iobuf_writestr(a,afx->eol);
+	    iobuf_writestr(a,(const char*) (afx->eol));
 	    /* and the trailer */
 	    if( afx->what >= DIM(tail_strings) )
 		log_bug("afx->what=%d", afx->what);
 	    iobuf_writestr(a, "-----");
 	    iobuf_writestr(a, tail_strings[afx->what] );
 	    iobuf_writestr(a, "-----" );
-	    iobuf_writestr(a,afx->eol);
+	    iobuf_writestr(a,(const char*) (afx->eol));
 	}
 	else if( !afx->any_data && !afx->inp_bypass ) {
 	    log_error(_("no valid OpenPGP data found.\n"));
@@ -1320,7 +1320,7 @@ armor_filter( void *opaque, int control,
         release_armor_context (afx);
     }
     else if( control == IOBUFCTRL_DESC )
-        mem2str (buf, "armor_filter", *ret_len);
+        mem2str ((char*) (buf), "armor_filter", *ret_len);
     return rc;
 }
 

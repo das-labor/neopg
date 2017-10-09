@@ -997,7 +997,7 @@ pcsc_vendor_specific_init (int slot)
        */
       const char cmd[] = { '\xb5', '\x01', '\x00', '\x03', '\x00' };
       sw = control_pcsc (slot, CM_IOCTL_VENDOR_IFD_EXCHANGE,
-                         cmd, sizeof (cmd), NULL, 0);
+                         (const unsigned char*) (cmd), sizeof (cmd), NULL, 0);
       if (sw)
         return SW_NOT_SUPPORTED;
     }

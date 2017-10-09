@@ -359,7 +359,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
             }
 
           /* Check compliance.  */
-          if (! gnupg_cipher_is_allowed (opt.compliance, 0, algo, mode))
+          if (! gnupg_cipher_is_allowed (opt.compliance, 0, (cipher_algo_t) (algo), (gcry_cipher_modes) (mode)))
             {
               log_error (_("you may not use cipher algorithm '%s'"
                            " while in %s mode\n"),
@@ -370,7 +370,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
             }
 
           /* For CMS, CO_DE_VS demands CBC mode.  */
-          is_de_vs = gnupg_cipher_is_compliant (CO_DE_VS, algo, mode);
+          is_de_vs = gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (algo), (gcry_cipher_modes) (mode));
 
           audit_log_i (ctrl->audit, AUDIT_DATA_CIPHER_ALGO, algo);
           dfparm.algo = algo;

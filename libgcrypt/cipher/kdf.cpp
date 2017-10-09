@@ -290,8 +290,8 @@ _gcry_kdf_derive (const void *passphrase, size_t passphraselen,
     case 41:
     case GCRY_KDF_SCRYPT:
 #if USE_SCRYPT
-      ec = _gcry_kdf_scrypt (passphrase, passphraselen, algo, subalgo,
-                             salt, saltlen, iterations, keysize, keybuffer);
+      ec = _gcry_kdf_scrypt ((const unsigned char*) (passphrase), passphraselen, algo, subalgo,
+                             (const unsigned char*) (salt), saltlen, iterations, keysize, (unsigned char*) (keybuffer));
 #else
       ec = GPG_ERR_UNSUPPORTED_ALGORITHM;
 #endif /*USE_SCRYPT*/

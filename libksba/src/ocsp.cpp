@@ -205,7 +205,7 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
     err = GPG_ERR_TOO_SHORT;
   else if (ti.length > *len)
     err = GPG_ERR_BAD_BER;
-  else if (!(*oid = ksba_oid_to_str (*buf, ti.length)))
+  else if (!(*oid = ksba_oid_to_str ((const char*) (*buf), ti.length)))
     err = gpg_error_from_syserror ();
   else
     {
@@ -232,7 +232,7 @@ parse_asntime_into_isotime (unsigned char const **buf, size_t *len,
     err = GPG_ERR_INV_OBJ;
   else if (ti.length > *len)
     err = GPG_ERR_INV_BER;
-  else if (!(err = _ksba_asntime_to_iso (*buf, ti.length,
+  else if (!(err = _ksba_asntime_to_iso ((const char*) (*buf), ti.length,
                                          ti.tag == TYPE_UTC_TIME, isotime)))
     parse_skip (buf, len, &ti);
 
@@ -1542,7 +1542,7 @@ parse_response (ksba_ocsp_t ocsp, const unsigned char *msg, size_t msglen)
   parse_skip (&msg, &msglen, &ti);
   len = len - msglen;
   xfree (ocsp->sigval); ocsp->sigval = NULL;
-  err =  _ksba_sigval_to_sexp (s, len, &ocsp->sigval);
+  err =  _ksba_sigval_to_sexp ((const unsigned char*) (s), len, &ocsp->sigval);
   if (err)
     return err;
 
@@ -1758,7 +1758,7 @@ ksba_ocsp_get_responder_id (ksba_ocsp_t ocsp,
       *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + ocsp->responder_id.keyidlen + 2);
       if (!*r_keyid)
         return gpg_error_from_syserror ();
-      strcpy (*r_keyid, numbuf);
+      strcpy ((char*) (*r_keyid), numbuf);
       memcpy (*r_keyid+numbuflen,
               ocsp->responder_id.keyid, ocsp->responder_id.keyidlen);
       (*r_keyid)[numbuflen + ocsp->responder_id.keyidlen] = ')';

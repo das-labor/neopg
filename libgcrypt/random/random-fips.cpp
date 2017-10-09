@@ -555,7 +555,7 @@ get_entropy (size_t nbytes)
   entropy_collect_buffer_len = 0;
 
 #if USE_RNDLINUX
-  rc = _gcry_rndlinux_gather_random (entropy_collect_cb, 0,
+  rc = _gcry_rndlinux_gather_random (entropy_collect_cb, (random_origins) (0),
                                      X931_AES_KEYLEN,
                                      GCRY_VERY_STRONG_RANDOM);
 #elif USE_RNDW32
@@ -715,7 +715,7 @@ get_random (void *buffer, size_t length, rng_context_t rng_ctx)
       goto bailout;
     }
 
-  if (x931_aes_driver (buffer, length, rng_ctx))
+  if (x931_aes_driver ((unsigned char*) (buffer), length, rng_ctx))
     goto bailout;
 
   check_guards (rng_ctx);
@@ -782,7 +782,7 @@ _gcry_rngfips_close_fds (void)
 {
   lock_rng ();
 #if USE_RNDLINUX
-  _gcry_rndlinux_gather_random (NULL, 0, 0, 0);
+  _gcry_rndlinux_gather_random (NULL, (random_origins) (0), 0, 0);
 #endif
   unlock_rng ();
 }

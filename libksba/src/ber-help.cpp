@@ -50,7 +50,7 @@ read_byte (ksba_reader_t reader)
   int rc;
 
   do
-    rc = ksba_reader_read (reader, &buf, 1, &nread);
+    rc = ksba_reader_read (reader, (char*) &buf, 1, &nread);
   while (!rc && !nread);
   return rc? -1: buf;
 }
@@ -106,7 +106,7 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
     return eof_or_error (reader, ti, 0);
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (tag_class) (c & 0xc0) >> 6;
+  ti->klasse = (tag_class) ((c & 0xc0) >> 6);
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
@@ -213,7 +213,7 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   c = *buf++; length--;
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (tag_class) (c & 0xc0) >> 6;
+  ti->klasse = (tag_class) ((c & 0xc0) >> 6);
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 

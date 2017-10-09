@@ -625,7 +625,7 @@ sign (gcry_mpi_t r, gcry_mpi_t s, gcry_mpi_t input, DSA_secret_key *skey,
 
       abuf = mpi_get_opaque (input, &abits);
       rc = _gcry_dsa_gen_rfc6979_k (&k, skey->q, skey->x,
-                                    abuf, (abits+7)/8, hashalgo, extraloops);
+                                    (const unsigned char*) (abuf), (abits+7)/8, hashalgo, extraloops);
       if (rc)
         goto leave;
     }

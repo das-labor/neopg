@@ -691,7 +691,7 @@ parse_login_data (app_t app)
                   char *q;
                   int n, m;
 
-                  n = strtol (buffer, &q, 10);
+                  n = strtol ((const char*) (buffer), &q, 10);
                   if (q >= (char *)buffer + buflen
                       || *q == '\x18' || *q == '\n')
                     m = n;
@@ -1458,7 +1458,7 @@ ecc_read_pubkey (app_t app, ctrl_t ctrl, u32 created_at, int keyno,
   err = openpgp_oid_from_str (oidstr, &oid);
   if (err)
     return err;
-  oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, &n);
+  oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, (unsigned int*) (&n));
   if (!oidbuf)
     {
       err = gpg_error_from_syserror ();
@@ -3211,13 +3211,13 @@ change_keyattr_from_string (app_t app,
       if (err)
         goto leave;
 
-      oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, &n);
+      oidbuf = (const unsigned char*) gcry_mpi_get_opaque (oid, (unsigned int*) (&n));
       oid_len = (n+7)/8;
 
       /* We have enough room at STRING.  */
       string[0] = algo;
       memcpy (string+1, oidbuf+1, oid_len-1);
-      err = change_keyattr (app, keyno, string, oid_len, pincb, pincb_arg);
+      err = change_keyattr (app, keyno, (const unsigned char*) (string), oid_len, pincb, pincb_arg);
       gcry_mpi_release (oid);
     }
   else
@@ -4408,7 +4408,7 @@ do_auth (app_t app, const char *keyidstr,
           le_value = 0;
         }
       rc = iso7816_internal_authenticate (app->slot, exmode,
-                                          indata, indatalen, le_value,
+                                          (const unsigned char*) (indata), indatalen, le_value,
                                           outdata, outdatalen);
     }
   return rc;
@@ -4606,7 +4606,7 @@ do_decipher (app_t app, const char *keyidstr,
     exmode = le_value = 0;
 
   rc = iso7816_decipher (app->slot, exmode,
-                         indata, indatalen, le_value, padind,
+                         (const unsigned char*) (indata), indatalen, le_value, padind,
                          outdata, outdatalen);
   xfree (fixbuf);
   if (app->app_local->keyattr[1].key_type == KEY_TYPE_ECC)
@@ -4960,7 +4960,7 @@ app_select_openpgp (app_t app)
 
   /* Note that the card can't cope with P2=0xCO, thus we need to pass a
      special flag value. */
-  rc = iso7816_select_application (slot, aid, sizeof aid, 0x0001);
+  rc = iso7816_select_application (slot, (const char*) (aid), sizeof aid, 0x0001);
   if (!rc)
     {
       unsigned int manufacturer;

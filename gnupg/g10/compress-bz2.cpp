@@ -190,7 +190,8 @@ compress_filter_bz2( void *opaque, int control,
     {
       if( !zfx->status )
 	{
-	  bzs = zfx->opaque = (bz_stream*) xmalloc_clear( sizeof *bzs );
+	  bzs = (bz_stream*) xmalloc_clear( sizeof *bzs );
+	  zfx->opaque = bzs;
 	  init_uncompress( zfx, bzs );
 	  zfx->status = 1;
 	}
@@ -217,7 +218,8 @@ compress_filter_bz2( void *opaque, int control,
 	  pkt.pkt.compressed = &cd;
 	  if( build_packet( a, &pkt ))
 	    log_bug("build_packet(PKT_COMPRESSED) failed\n");
-	  bzs = zfx->opaque = (bz_stream*) xmalloc_clear( sizeof *bzs );
+	  bzs = (bz_stream*) xmalloc_clear( sizeof *bzs );
+	  zfx->opaque = bzs;
 	  init_compress( zfx, bzs );
 	  zfx->status = 2;
 	}
@@ -249,6 +251,6 @@ compress_filter_bz2( void *opaque, int control,
 	zfx->release (zfx);
     }
   else if( control == IOBUFCTRL_DESC )
-    mem2str (buf, "compress_filter", *ret_len);
+    mem2str ((char*) (buf), "compress_filter", *ret_len);
   return rc;
 }

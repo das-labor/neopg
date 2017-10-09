@@ -850,8 +850,8 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
             }
 
           rc = _gcry_rsa_pkcs1_encode_for_enc (ret_mpi, ctx->nbits,
-                                               value, valuelen,
-                                               random_override,
+                                               (const unsigned char*) (value), valuelen,
+                                               (const unsigned char*) (random_override),
                                                random_override_len);
           xfree (random_override);
         }
@@ -877,7 +877,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
             rc = GPG_ERR_INV_OBJ;
           else
 	    rc = _gcry_rsa_pkcs1_encode_for_sig (ret_mpi, ctx->nbits,
-                                                 value, valuelen,
+                                                 (const unsigned char*) (value), valuelen,
                                                  ctx->hash_algo);
         }
     }
@@ -894,7 +894,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
         rc = GPG_ERR_INV_OBJ;
       else
         rc = _gcry_rsa_pkcs1_encode_raw_for_sig (ret_mpi, ctx->nbits,
-                                                 value, valuelen);
+                                                 (const unsigned char*) (value), valuelen);
     }
   else if (ctx->encoding == PUBKEY_ENC_OAEP && lvalue
 	   && ctx->op == PUBKEY_OP_ENCRYPT)
@@ -974,7 +974,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
             }
 
 	  rc = _gcry_rsa_oaep_encode (ret_mpi, ctx->nbits, ctx->hash_algo,
-                                      value, valuelen,
+                                      (const unsigned char*) (value), valuelen,
                                       ctx->label, ctx->labellen,
                                       random_override, random_override_len);
 
@@ -1046,7 +1046,7 @@ _gcry_pk_util_data_to_mpi (gcry_sexp_t input, gcry_mpi_t *ret_mpi,
               /* Encode the data.  (NBITS-1 is due to 8.1.1, step 1.) */
 	      rc = _gcry_rsa_pss_encode (ret_mpi, ctx->nbits - 1,
                                          ctx->hash_algo,
-                                         value, valuelen, ctx->saltlen,
+                                         (const unsigned char*) (value), valuelen, ctx->saltlen,
                                          random_override, random_override_len);
 
               xfree (random_override);

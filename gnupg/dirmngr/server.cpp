@@ -1380,7 +1380,7 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
               goto leave;
             }
           memset (sl, 0, sizeof *sl);
-          strcpy_escaped_plus (sl->d, line);
+          strcpy_escaped_plus (sl->d, (const unsigned char*) (line));
           sl->next = list;
           list = sl;
         }
@@ -1622,7 +1622,7 @@ cmd_loadcrl (assuan_context_t ctx, char *line)
         err = gpg_error_from_syserror ();
       else
         {
-          strcpy_escaped_plus (buf, line);
+          strcpy_escaped_plus (buf, (const unsigned char*) (line));
           err = crl_cache_load (ctrl, buf);
           xfree (buf);
         }
@@ -2112,7 +2112,7 @@ cmd_ks_search (assuan_context_t ctx, char *line)
               goto leave;
             }
           sl->flags = 0;
-          strcpy_escaped_plus (sl->d, line);
+          strcpy_escaped_plus (sl->d, (const unsigned char*) (line));
           sl->next = list;
           list = sl;
         }
@@ -2179,7 +2179,7 @@ cmd_ks_get (assuan_context_t ctx, char *line)
               goto leave;
             }
           sl->flags = 0;
-          strcpy_escaped_plus (sl->d, line);
+          strcpy_escaped_plus (sl->d, (const unsigned char*) (line));
           sl->next = list;
           list = sl;
         }

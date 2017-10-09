@@ -483,7 +483,7 @@ gpg_format_keydesc (ctrl_t ctrl, PKT_public_key *pk, int mode, int escaped)
   is_subkey = (pk->main_keyid[0] && pk->main_keyid[1]
                && pk->keyid[0] != pk->main_keyid[0]
                && pk->keyid[1] != pk->main_keyid[1]);
-  algo_name = openpgp_pk_algo_name (pk->pubkey_algo);
+  algo_name = openpgp_pk_algo_name ((pubkey_algo_t) (pk->pubkey_algo));
   timestr = strtimestamp (pk->timestamp);
   uid = get_user_id (ctrl, is_subkey? pk->main_keyid:pk->keyid, &uidlen);
 

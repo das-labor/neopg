@@ -281,12 +281,12 @@ send_cert_back (ctrl_t ctrl, const char *id, void *assuan_context)
       return *action? 0 : rc;
     }
 
-  rc = assuan_send_data (assuan_context, derbuf, derbuflen);
+  rc = assuan_send_data ((assuan_context_t) (assuan_context), derbuf, derbuflen);
   xfree (derbuf);
   if (!rc)
-    rc = assuan_send_data (assuan_context, NULL, 0);
+    rc = assuan_send_data ((assuan_context_t) (assuan_context), NULL, 0);
   if (!rc)
-    rc = assuan_write_line (assuan_context, "END");
+    rc = assuan_write_line ((assuan_context_t) (assuan_context), "END");
   if (rc)
     {
       log_error ("sending certificate failed: %s\n",
@@ -346,7 +346,7 @@ agent_handle_learn (ctrl_t ctrl, int send, void *assuan_context, int force)
         {
           if (!strcmp (sitem->keyword, "SERIALNO"))
             serialno = sitem->data;
-          assuan_write_status (assuan_context, sitem->keyword, sitem->data);
+          assuan_write_status ((assuan_context_t) (assuan_context), sitem->keyword, sitem->data);
         }
     }
 

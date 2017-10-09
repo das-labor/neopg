@@ -350,7 +350,7 @@ _gcry_rngcsprng_close_fds (void)
 {
   lock_pool ();
 #if USE_RNDLINUX
-  _gcry_rndlinux_gather_random (NULL, 0, 0, 0);
+  _gcry_rndlinux_gather_random (NULL, (random_origins) (0), 0, 0);
   pool_filled = 0; /* Force re-open on next use.  */
 #endif
   unlock_pool ();
@@ -505,7 +505,7 @@ _gcry_rngcsprng_randomize (void *buffer, size_t length,
     level = GCRY_STRONG_RANDOM;
 
   /* Make sure the level is okay. */
-  level &= (gcry_random_level) 3;
+  level = (gcry_random_level) (((int) (level)) & 3);
 
 #ifdef USE_RANDOM_DAEMON
   if (allow_daemon

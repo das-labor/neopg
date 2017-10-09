@@ -58,7 +58,7 @@ read_byte (ksba_reader_t reader)
   int rc;
 
   do
-    rc = ksba_reader_read (reader, &buf, 1, &nread);
+    rc = ksba_reader_read (reader, (char*) (&buf), 1, &nread);
   while (!rc && !nread);
   return rc? -1: buf;
 }
@@ -184,10 +184,10 @@ parse_content_info (ksba_reader_t reader,
 
   if (ti.length >= DIM(oidbuf))
     return GPG_ERR_TOO_LARGE;
-  err = read_buffer (reader, oidbuf, ti.length);
+  err = read_buffer (reader, (char*) (oidbuf), ti.length);
   if (err)
     return err;
-  oid = ksba_oid_to_str (oidbuf, ti.length);
+  oid = ksba_oid_to_str ((const char*) (oidbuf), ti.length);
   if (!oid)
     return GPG_ERR_ENOMEM;
 
@@ -295,10 +295,10 @@ parse_encrypted_content_info (ksba_reader_t reader,
     }
   if (ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
-  err = read_buffer (reader, tmpbuf, ti.length);
+  err = read_buffer (reader, (char*) (tmpbuf), ti.length);
   if (err)
     return err;
-  cont_oid = ksba_oid_to_str (tmpbuf, ti.length);
+  cont_oid = ksba_oid_to_str ((const char*) (tmpbuf), ti.length);
   if (!cont_oid)
     return GPG_ERR_ENOMEM;
 
@@ -321,7 +321,7 @@ parse_encrypted_content_info (ksba_reader_t reader,
   if (ti.nhdr + ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
   err = _ksba_parse_algorithm_identifier2 (tmpbuf, ti.nhdr+ti.length,
@@ -559,7 +559,7 @@ _ksba_cms_parse_signed_data_part_1 (ksba_cms_t cms)
       size_t nread;
       struct oidlist_s *ol;
 
-      err = _ksba_parse_algorithm_identifier (p, algo_set_len, &nread, &oid);
+      err = _ksba_parse_algorithm_identifier ((const unsigned char*) (p), algo_set_len, &nread, &oid);
       if (err)
         {
           xfree (buffer);

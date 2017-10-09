@@ -1087,12 +1087,12 @@ check_prefs (ctrl_t ctrl, kbnode_t keyblock)
 
 	      if(prefs->type==PREFTYPE_SYM)
 		{
-		  if (openpgp_cipher_test_algo (prefs->value))
+		  if (openpgp_cipher_test_algo ((cipher_algo_t) (prefs->value)))
 		    {
 		      const char *algo =
-                        (openpgp_cipher_test_algo (prefs->value)
+                        (openpgp_cipher_test_algo ((cipher_algo_t) (prefs->value))
                          ? num
-                         : openpgp_cipher_algo_name (prefs->value));
+                         : openpgp_cipher_algo_name ((cipher_algo_t) (prefs->value)));
 		      if(!problem)
 			check_prefs_warning(pk);
 		      log_info(_("         \"%s\": preference for cipher"
@@ -1102,7 +1102,7 @@ check_prefs (ctrl_t ctrl, kbnode_t keyblock)
 		}
 	      else if(prefs->type==PREFTYPE_HASH)
 		{
-		  if(openpgp_md_test_algo(prefs->value))
+		  if(openpgp_md_test_algo((digest_algo_t) (prefs->value)))
 		    {
 		      const char *algo =
                         (gcry_md_test_algo (prefs->value)
@@ -1954,7 +1954,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
         }
 
       /* Convert our internal secret key object into an S-expression.  */
-      nskey = pubkey_get_nskey (pk->pubkey_algo);
+      nskey = pubkey_get_nskey ((pubkey_algo_t) (pk->pubkey_algo));
       if (!nskey || nskey > PUBKEY_MAX_NSKEY)
         {
           err = GPG_ERR_BAD_SECKEY;
@@ -2045,7 +2045,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
             (&prot, NULL,
              " (protection %s %s %b %d %s %b %s)\n",
              ski->sha1chk? "sha1":"sum",
-             openpgp_cipher_algo_name (ski->algo),
+             openpgp_cipher_algo_name ((cipher_algo_t) (ski->algo)),
              ski->ivlen? (int)ski->ivlen:1,
              ski->ivlen? ski->iv: (const unsigned char*)"X",
              ski->s2k.mode,
@@ -2068,7 +2068,7 @@ transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
                                " (csum %d)\n"
                                " %S)\n",
                                pk->version,
-                               openpgp_pk_algo_name (pk->pubkey_algo),
+                               openpgp_pk_algo_name ((pubkey_algo_t) (pk->pubkey_algo)),
                                curve, skey,
                                (int)(unsigned long)ski->csum, prot);
       gcry_sexp_release (skey);
@@ -2767,7 +2767,7 @@ delete_inv_parts (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
             subkey_seen = 1;
 	}
       else if (node->pkt->pkttype == PKT_SIGNATURE
-               && openpgp_pk_test_algo (node->pkt->pkt.signature->pubkey_algo)
+               && openpgp_pk_test_algo ((pubkey_algo_t) (node->pkt->pkt.signature->pubkey_algo))
                && node->pkt->pkt.signature->pubkey_algo != PUBKEY_ALGO_RSA )
         {
           delete_kbnode( node ); /* build_packet() can't handle this */

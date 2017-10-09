@@ -253,21 +253,21 @@ append_quoted (struct stringbuf *sb, const unsigned char *value, size_t length,
         }
 
       if (s != value)
-        put_stringbuf_mem_skip (sb, value, s-value, skip);
+        put_stringbuf_mem_skip (sb, (const char*) (value), s-value, skip);
       if (n+skip >= length)
         return; /* ready */
       s += skip;
       n += skip;
       if ( *s < ' ' || *s > 126 )
         {
-          snprintf (tmp, sizeof tmp, "\\%02X", *s);
-          put_stringbuf_mem (sb, tmp, 3);
+          snprintf ((char*) (tmp), sizeof tmp, "\\%02X", *s);
+          put_stringbuf_mem (sb, (const char*) (tmp), 3);
         }
       else
         {
           tmp[0] = '\\';
           tmp[1] = *s;
-          put_stringbuf_mem (sb, tmp, 2);
+          put_stringbuf_mem (sb, (const char*) (tmp), 2);
         }
       n++; s++;
     }
@@ -288,7 +288,7 @@ append_utf8_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = *value;
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       value++;
       length--;
     }
@@ -296,7 +296,7 @@ append_utf8_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = ' ';
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       length--;
     }
 
@@ -326,8 +326,8 @@ append_utf8_value (const unsigned char *value, size_t length,
       if (!nmore)
         {
           /* Encoding error:  We quote the bad byte.  */
-          snprintf (tmp, sizeof tmp, "\\%02X", *s);
-          put_stringbuf_mem (sb, tmp, 3);
+          snprintf ((char*) (tmp), sizeof tmp, "\\%02X", *s);
+          put_stringbuf_mem (sb, (const char*) (tmp), 3);
           s++; n++;
         }
       else
@@ -340,7 +340,7 @@ append_utf8_value (const unsigned char *value, size_t length,
               tmp[i] = *s++;
               n++;
             }
-          put_stringbuf_mem (sb, tmp, i);
+          put_stringbuf_mem (sb, (const char*) (tmp), i);
         }
     }
 }
@@ -359,7 +359,7 @@ append_latin1_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = *value;
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       value++;
       length--;
     }
@@ -367,7 +367,7 @@ append_latin1_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = ' ';
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       length--;
     }
 
@@ -382,7 +382,7 @@ append_latin1_value (const unsigned char *value, size_t length,
       assert ((*s & 0x80));
       tmp[0] = 0xc0 | ((*s >> 6) & 3);
       tmp[1] = 0x80 | ( *s & 0x3f );
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       n++; s++;
     }
 }
@@ -404,7 +404,7 @@ append_ucs4_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = *value;
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       value += 4;
       length -= 4;
     }
@@ -412,7 +412,7 @@ append_ucs4_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = ' ';
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       length -= 4;
     }
 
@@ -472,7 +472,7 @@ append_ucs4_value (const unsigned char *value, size_t length,
           tmp[i++] = 0x80 | ((c >>  6) & 0x3f);
           tmp[i++] = 0x80 | ( c        & 0x3f);
         }
-      put_stringbuf_mem (sb, tmp, i);
+      put_stringbuf_mem (sb, (const char*) (tmp), i);
     }
 }
 
@@ -492,7 +492,7 @@ append_ucs2_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = *value;
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       value += 2;
       length -= 2;
     }
@@ -500,7 +500,7 @@ append_ucs2_value (const unsigned char *value, size_t length,
     {
       tmp[0] = '\\';
       tmp[1] = ' ';
-      put_stringbuf_mem (sb, tmp, 2);
+      put_stringbuf_mem (sb, (const char*) (tmp), 2);
       length -=2;
     }
 
@@ -533,7 +533,7 @@ append_ucs2_value (const unsigned char *value, size_t length,
           tmp[i++] = 0x80 | ((c >>  6) & 0x3f);
           tmp[i++] = 0x80 | ( c        & 0x3f);
         }
-      put_stringbuf_mem (sb, tmp, i);
+      put_stringbuf_mem (sb, (const char*) (tmp), i);
     }
 }
 
@@ -572,7 +572,7 @@ append_atv (const unsigned char *image, AsnNode root, struct stringbuf *sb)
          again and use the string as last resort.  */
       char *p;
 
-      p = ksba_oid_to_str (image+node->off+node->nhdr, node->len);
+      p = ksba_oid_to_str ((const char*) (image+node->off+node->nhdr), node->len);
       if (!p)
         return GPG_ERR_ENOMEM;
 
@@ -981,7 +981,7 @@ parse_rdn (const unsigned char *string, const char **endp,
             return GPG_ERR_ENOMEM;
           memcpy (p, string, n);
           p[n] = 0;
-          err = ksba_oid_from_str (p, &oidbuf, &oidlen);
+          err = ksba_oid_from_str ((const char*) (p), &oidbuf, &oidlen);
           xfree (p);
           if (err)
             return err;
@@ -1087,7 +1087,7 @@ parse_rdn (const unsigned char *string, const char **endp,
   else if (*s == '\"')
     { /* old style quotation */
       string = s+1;
-      s = (const unsigned char*) count_quoted_string (string, &n, 1, &valuetype);
+      s = (const unsigned char*) count_quoted_string ((const char*) (string), &n, 1, &valuetype);
       if (!s || *s != '\"')
         {
           *rlen = s - orig_string;
@@ -1103,7 +1103,7 @@ parse_rdn (const unsigned char *string, const char **endp,
     }
   else
     { /* regular v3 quoted string */
-      s = (const unsigned char*) count_quoted_string (string, &n, 0, &valuetype);
+      s = (const unsigned char*) count_quoted_string ((const char*) (string), &n, 0, &valuetype);
       if (!s)
         {
           err = GPG_ERR_SYNTAX; /* error */
@@ -1204,7 +1204,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
   part_array_size = 0;
   for (nparts=0, s=string; s && *s;)
     {
-      err = parse_rdn (s, &endp, NULL, NULL, NULL);
+      err = parse_rdn ((const unsigned char*) (s), &endp, NULL, NULL, NULL);
       if (err)
         goto leave;
       if (nparts >= part_array_size)
@@ -1233,7 +1233,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
 
   while (--nparts >= 0)
     {
-      err = parse_rdn (part_array[nparts], &endp, writer, NULL, NULL);
+      err = parse_rdn ((const unsigned char*) (part_array[nparts]), &endp, writer, NULL, NULL);
       if (err)
         goto leave;
     }
@@ -1280,7 +1280,7 @@ _ksba_dn_from_str (const char *string, char **rbuf, size_t *rlength)
 gpg_error_t
 ksba_dn_der2str (const void *der, size_t derlen, char **rstring)
 {
-  return _ksba_derdn_to_str (der, derlen, rstring);
+  return _ksba_derdn_to_str ((const unsigned char*) (der), derlen, rstring);
 }
 
 
@@ -1320,7 +1320,7 @@ ksba_dn_teststr (const char *string, int seq,
 
   for (nparts=0, s=string; s && *s; nparts++)
     {
-      err = parse_rdn (s, &endp, NULL, &off, &len);
+      err = parse_rdn ((const unsigned char*) (s), &endp, NULL, &off, &len);
       if (err && !seq--)
         {
           *rerroff = s - string + off;

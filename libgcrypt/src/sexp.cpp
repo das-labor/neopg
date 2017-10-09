@@ -274,7 +274,7 @@ _gcry_sexp_create (gcry_sexp_t *retsexp, void *buffer, size_t length,
   if (!length && !autodetect)
     { /* What a brave caller to assume that there is really a canonical
          encoded S-expression in buffer */
-      length = _gcry_sexp_canon_len (buffer, 0, NULL, &errcode);
+      length = _gcry_sexp_canon_len ((const unsigned char*) (buffer), 0, NULL, &errcode);
       if (!length)
         return errcode;
     }
@@ -283,7 +283,7 @@ _gcry_sexp_create (gcry_sexp_t *retsexp, void *buffer, size_t length,
       length = strlen ((char *)buffer);
     }
 
-  errcode = do_sexp_sscan (&se, NULL, buffer, length, 0, NULL);
+  errcode = do_sexp_sscan (&se, NULL, (const char*) (buffer), length, 0, NULL);
   if (errcode)
     return errcode;
 
@@ -843,7 +843,7 @@ _gcry_sexp_nth_mpi (gcry_sexp_t list, int number, int mpifmt)
       if (!s)
         return NULL;
 
-      if (_gcry_mpi_scan (&a, mpifmt, s, n, NULL))
+      if (_gcry_mpi_scan (&a, (gcry_mpi_format) (mpifmt), s, n, NULL))
         return NULL;
     }
 
@@ -1428,7 +1428,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
                 }
               else
                 {
-                  if (_gcry_mpi_print (mpifmt, NULL, 0, &nm, m))
+                  if (_gcry_mpi_print ((gcry_mpi_format) (mpifmt), NULL, 0, &nm, m))
                     BUG ();
 
                   MAKE_SPACE (nm);
@@ -1455,7 +1455,7 @@ do_vsexp_sscan (gcry_sexp_t *retsexp, size_t *erroff,
 
                   *c.pos++ = ST_DATA;
                   STORE_LEN (c.pos, nm);
-                  if (_gcry_mpi_print (mpifmt, c.pos, nm, &nm, m))
+                  if (_gcry_mpi_print ((gcry_mpi_format) (mpifmt), c.pos, nm, &nm, m))
                     BUG ();
                   c.pos += nm;
                 }

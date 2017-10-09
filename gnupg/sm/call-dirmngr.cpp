@@ -212,9 +212,9 @@ prepare_dirmngr (ctrl_t ctrl, assuan_context_t ctx, gpg_error_t err)
   while (server)
     {
       char line[ASSUAN_LINELENGTH];
-      char *user = (char*) server->user ? server->user : "";
-      char *pass = (char*) server->pass ? server->pass : "";
-      char *base = (char*) server->base ? server->base : "";
+      char *user = (char*) (server->user ? server->user : "");
+      char *pass = (char*) (server->pass ? server->pass : "");
+      char *base = (char*) (server->base ? server->base : "");
 
       snprintf (line, DIM (line), "LDAPSERVER %s:%i:%s:%s:%s",
 		server->host, server->port, user, pass, base);

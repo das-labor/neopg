@@ -1040,7 +1040,7 @@ gpgsm_main ( int argc, char **argv)
         {
 	case aGPGConfList:
 	case aGPGConfTest:
-          set_cmd (&cmd, pargs.r_opt);
+          set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
           do_not_setup_keys = 1;
           nogreeting = 1;
           break;
@@ -1099,12 +1099,12 @@ gpgsm_main ( int argc, char **argv)
         case aPasswd:
         case aSm_KeydbClearSomeCertFlags:
           do_not_setup_keys = 1;
-          set_cmd (&cmd, pargs.r_opt);
+          set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
           break;
 
         case aEncr:
           recp_required = 1;
-          set_cmd (&cmd, pargs.r_opt);
+          set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
           break;
 
         case aSym:
@@ -1112,7 +1112,7 @@ gpgsm_main ( int argc, char **argv)
         case aSign:
         case aClearsign:
         case aVerify:
-          set_cmd (&cmd, pargs.r_opt);
+          set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
           break;
 
           /* Output encoding selection.  */
@@ -1593,12 +1593,12 @@ gpgsm_main ( int argc, char **argv)
    * enforce this right before the actual operation.  */
   if (! gnupg_cipher_is_allowed (opt.compliance,
                                  cmd == aEncr || cmd == aSignEncr,
-                                 gcry_cipher_map_name (opt.def_cipher_algoid),
+                                 (cipher_algo_t) (gcry_cipher_map_name (opt.def_cipher_algoid)),
                                  GCRY_CIPHER_MODE_NONE)
       && ! gnupg_cipher_is_allowed (opt.compliance,
                                     cmd == aEncr || cmd == aSignEncr,
-                                    gcry_cipher_mode_from_oid
-                                    (opt.def_cipher_algoid),
+                                    (cipher_algo_t) (gcry_cipher_mode_from_oid
+                                    (opt.def_cipher_algoid)),
                                     GCRY_CIPHER_MODE_NONE))
     log_error (_("you may not use cipher algorithm '%s'"
                  " while in %s mode\n"),
@@ -1610,7 +1610,7 @@ gpgsm_main ( int argc, char **argv)
                                      cmd == aSign
                                      || cmd == aSignEncr
                                      || cmd == aClearsign,
-                                     opt.forced_digest_algo))
+				    (digest_algo_t) (opt.forced_digest_algo)))
     log_error (_("you may not use digest algorithm '%s'"
                  " while in %s mode\n"),
                forced_digest_algo,
@@ -1621,7 +1621,7 @@ gpgsm_main ( int argc, char **argv)
                                      cmd == aSign
                                      || cmd == aSignEncr
                                      || cmd == aClearsign,
-                                     opt.extra_digest_algo))
+				    (digest_algo_t) (opt.extra_digest_algo)))
     log_error (_("you may not use digest algorithm '%s'"
                  " while in %s mode\n"),
                forced_digest_algo,

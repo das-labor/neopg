@@ -408,7 +408,7 @@ read_byte (ksba_reader_t reader)
   int rc;
 
   do
-    rc = ksba_reader_read (reader, &buf, 1, &nread);
+    rc = ksba_reader_read (reader, (char *) &buf, 1, &nread);
   while (!rc && !nread);
   return rc? -1: buf;
 }
@@ -471,7 +471,7 @@ cmp_tag (AsnNode node, const struct tag_info *ti)
       if (node->type == TYPE_SET_OF && ti->tag == TYPE_SET)
         return 1;
       if (node->type == TYPE_ANY)
-        return _ksba_asn_is_primitive (ti->tag)? 1:2;
+        return _ksba_asn_is_primitive ((node_type_t)ti->tag)? 1:2;
     }
 
   return 0;
@@ -1145,7 +1145,7 @@ _ksba_ber_decoder_dump (BerDecoder d, FILE *fp)
           switch (node->type)
             {
             case TYPE_OBJECT_ID:
-              p = ksba_oid_to_str (buf, n);
+              p = ksba_oid_to_str ((const char*) (buf), n);
               break;
             default:
               for (i=0; i < n && (d->debug || i < 20); i++)
@@ -1237,7 +1237,7 @@ _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
           else if (d->val.primitive)
             {
               if( read_buffer (d->reader,
-                               d->image.buf + d->image.used, d->val.length))
+                               (char*) (d->image.buf + d->image.used), d->val.length))
                 err = eof_or_error (d, 1);
               else
                 {

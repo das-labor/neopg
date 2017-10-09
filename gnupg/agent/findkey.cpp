@@ -84,7 +84,7 @@ write_extended_private_key (char *fname, estream_t fp, int update,
     }
   es_clearerr (fp);
 
-  err = gcry_sexp_sscan (&key, NULL, buf, len);
+  err = gcry_sexp_sscan (&key, NULL, (const char*) (buf), len);
   if (err)
     goto leave;
 

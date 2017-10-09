@@ -125,7 +125,7 @@ print_sexp (ksba_const_sexp_t p)
               const unsigned char *s;
               unsigned long len, n;
 
-              len = strtoul (p, &endp, 10);
+              len = strtoul ((const char*) (p), &endp, 10);
               p = (ksba_const_sexp_t) endp;
               if (*p != ':')
                 {
@@ -191,7 +191,7 @@ print_sexp_hex (ksba_const_sexp_t p)
               char *endp;
               unsigned long len, n;
 
-              len = strtoul (p, &endp, 10);
+              len = strtoul ((const char*) (p), &endp, 10);
               p = (ksba_const_sexp_t) endp;
               if (*p != ':')
                 {

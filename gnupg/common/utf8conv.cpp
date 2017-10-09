@@ -361,7 +361,7 @@ native_to_utf8 (const char *orig_string)
       if (cd == (iconv_t)-1)
         {
           handle_iconv_error ("utf-8", active_charset_name, 1);
-          return native_to_utf8 (string);
+          return native_to_utf8 ((const char*) (string));
         }
 
       for (s=string; *s; s++ )
@@ -373,7 +373,7 @@ native_to_utf8 (const char *orig_string)
       buffer = (char*) xmalloc (length + 1);
 
       inptr = (const char*) string;
-      inbytes = strlen (string);
+      inbytes = strlen ((const char*) (string));
       outptr = buffer;
       outbytes = length;
       if ( iconv (cd, (ICONV_CONST char **)&inptr, &inbytes,
@@ -386,7 +386,7 @@ native_to_utf8 (const char *orig_string)
                       active_charset_name, "utf-8", strerror (errno));
           shown = 1;
           /* We don't do any conversion at all but use the strings as is. */
-          strcpy (buffer, string);
+          strcpy (buffer, (const char*) (string));
         }
       else /* Success.  */
         {

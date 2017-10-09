@@ -2451,7 +2451,7 @@ p12_build (gcry_mpi_t *kparms, const void *cert, size_t certlen,
                sha1hash[16], sha1hash[17], sha1hash[18], sha1hash[19]);
 
       /* Encode the certificate. */
-      buffer = build_cert_sequence (cert, certlen, sha1hash, keyidstr,
+      buffer = build_cert_sequence ((const unsigned char*) (cert), certlen, sha1hash, keyidstr,
                                     &buflen);
       if (!buffer)
         goto failure;

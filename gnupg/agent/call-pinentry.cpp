@@ -234,7 +234,7 @@ getinfo_pid_cb (void *opaque, const void *buffer, size_t length)
     length = sizeof pidbuf -1;
   if (length)
     {
-      strncpy (pidbuf, buffer, length);
+      strncpy (pidbuf, (const char*) (buffer), length);
       pidbuf[length] = 0;
       *pid = strtoul (pidbuf, NULL, 10);
     }
@@ -746,7 +746,7 @@ inq_quality (void *opaque, const char *line)
 
   if ((s = has_leading_keyword (line, "QUALITY")))
     {
-      pin = unescape_passphrase_string (s);
+      pin = unescape_passphrase_string ((const unsigned char*) (s));
       if (!pin)
         rc = gpg_error_from_syserror ();
       else

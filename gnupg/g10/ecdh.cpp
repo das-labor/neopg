@@ -194,7 +194,7 @@ pk_ecdh_encrypt_with_shared_point (int is_encrypt, gcry_mpi_t shared_mpi,
   if (DBG_CRYPTO)
     log_debug ("ecdh KDF algorithms %s+%s with aeswrap\n",
                openpgp_md_algo_name (kdf_hash_algo),
-               openpgp_cipher_algo_name (kdf_encr_algo));
+               openpgp_cipher_algo_name ((cipher_algo_t) (kdf_encr_algo)));
 
   if (kdf_hash_algo != GCRY_MD_SHA256
       && kdf_hash_algo != GCRY_MD_SHA384

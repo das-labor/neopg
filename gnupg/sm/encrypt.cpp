@@ -409,8 +409,8 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
 
   /* Check compliance.  */
   if (!gnupg_cipher_is_allowed
-      (opt.compliance, 1, gcry_cipher_map_name (opt.def_cipher_algoid),
-       gcry_cipher_mode_from_oid (opt.def_cipher_algoid)))
+      (opt.compliance, 1, (cipher_algo_t) (gcry_cipher_map_name (opt.def_cipher_algoid)),
+       (gcry_cipher_modes) (gcry_cipher_mode_from_oid (opt.def_cipher_algoid))))
     {
       log_error (_("you may not use cipher algorithm '%s'"
 		   " while in %s mode\n"),
@@ -457,7 +457,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
 
   audit_log_s (ctrl->audit, AUDIT_SESSION_KEY, dek->algoid);
 
-  compliant = gnupg_cipher_is_compliant (CO_DE_VS, dek->algo,
+  compliant = gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (dek->algo),
                                          GCRY_CIPHER_MODE_CBC);
 
   /* Gather certificates of recipients, encrypt the session key for

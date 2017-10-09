@@ -318,7 +318,7 @@ cache_user_id (KBNODE keyblock)
 	  keyid_list_t a = (keyid_list_t) xmalloc_clear (sizeof *a);
 	  /* Hmmm: For a long list of keyids it might be an advantage
 	   * to append the keys.  */
-          fingerprint_from_pk (k->pkt->pkt.public_key, a->fpr, NULL);
+          fingerprint_from_pk (k->pkt->pkt.public_key, (byte*) (a->fpr), NULL);
 	  keyid_from_pk (k->pkt->pkt.public_key, a->keyid);
 	  /* First check for duplicates.  */
 	  for (r = user_id_db; r; r = r->next)
@@ -3054,7 +3054,7 @@ static PKT_signature *
 buf_to_sig (const byte * buf, size_t len)
 {
   PKT_signature *sig = (PKT_signature*) xmalloc_clear (sizeof (PKT_signature));
-  IOBUF iobuf = iobuf_temp_with_content (buf, len);
+  IOBUF iobuf = iobuf_temp_with_content ((const char*) (buf), len);
   int save_mode = set_packet_list_mode (0);
 
   if (parse_signature (iobuf, PKT_SIGNATURE, len, sig) != 0)
@@ -3193,7 +3193,7 @@ merge_selfsigs_subkey (ctrl_t ctrl, kbnode_t keyblock, kbnode_t subnode)
   subpk->expiredate = key_expire;
 
   /* Algo doesn't exist.  */
-  if (openpgp_pk_test_algo (subpk->pubkey_algo))
+  if (openpgp_pk_test_algo ((pubkey_algo_t) (subpk->pubkey_algo)))
     return;
 
   subpk->flags.valid = 1;
@@ -4016,7 +4016,7 @@ get_seckey_default_or_card (ctrl_t ctrl, PKT_public_key *pk,
               continue;
             if (!((pk_candidate->pubkey_usage & USAGE_MASK) & pk->req_usage))
               continue;
-            fingerprint_from_pk (pk_candidate, fpr, NULL);
+            fingerprint_from_pk (pk_candidate, (byte*) (fpr), NULL);
             if (!memcmp (fpr_card, fpr, fpr_len))
               {
                 release_public_key_parts (pk);

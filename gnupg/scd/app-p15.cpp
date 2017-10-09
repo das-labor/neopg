@@ -3287,7 +3287,7 @@ app_select_p15 (app_t app)
   int direct = 0;
   int is_belpic = 0;
 
-  rc = iso7816_select_application (slot, pkcs15_aid, sizeof pkcs15_aid, 0);
+  rc = iso7816_select_application (slot, (const char*) (pkcs15_aid), sizeof pkcs15_aid, 0);
   if (rc)
     { /* Not found: Try to locate it from 2F00.  We use direct path
          selection here because it seems that the Belgian eID card

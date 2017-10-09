@@ -935,7 +935,7 @@ list_cert_raw (ctrl_t ctrl, KEYDB_HANDLE hd,
 
   /* CRL distribution point */
   for (idx=0; !(err=ksba_cert_get_crl_dist_point (cert, idx, &name, &name2,
-                                                  &reason)) ;idx++)
+                                                  (ksba_crl_reason_t*) (&reason))) ;idx++)
     {
       es_fputs ("        crlDP: ", fp);
       print_names_raw (fp, 15, name);

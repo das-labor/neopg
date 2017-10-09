@@ -148,11 +148,11 @@ do_plus_or_plain_unescape (const char *string, int withplus, int nulrepl)
   size_t nbytes, n;
   char *newstring;
 
-  nbytes = count_unescape (string);
+  nbytes = count_unescape ((const unsigned char*) (string));
   newstring = (char*) xtrymalloc (nbytes+1);
   if (newstring)
     {
-      n = do_unescape (newstring, string, withplus, nulrepl);
+      n = do_unescape ((unsigned char*) (newstring), (const unsigned char*) (string), withplus, nulrepl);
       assert (n == nbytes);
       newstring[n] = 0;
     }

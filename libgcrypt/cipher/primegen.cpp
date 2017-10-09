@@ -772,7 +772,7 @@ gen_prime (unsigned int nbits, int secret, int randomlevel,
       int dotcount=0;
 
       /* generate a random number */
-      _gcry_mpi_randomize( prime, nbits, randomlevel );
+      _gcry_mpi_randomize( prime, nbits, (gcry_random_level) (randomlevel ));
 
       /* Set high order bit to 1, set low order bit to 1.  If we are
          generating a secret prime we are most probably doing that

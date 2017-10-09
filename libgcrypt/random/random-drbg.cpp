@@ -619,7 +619,7 @@ drbg_get_entropy (drbg_state_t drbg, unsigned char *buffer,
   read_cb_size = len;
   read_cb_len = 0;
 #if USE_RNDLINUX
-  rc = _gcry_rndlinux_gather_random (drbg_read_cb, 0, len,
+  rc = _gcry_rndlinux_gather_random (drbg_read_cb, (random_origins) (0), len,
 				     GCRY_VERY_STRONG_RANDOM);
 #elif USE_RNDUNIX
   rc = _gcry_rndunix_gather_random (drbg_read_cb, 0, len,
@@ -1866,7 +1866,7 @@ _gcry_rngdrbg_close_fds (void)
 {
 #if USE_RNDLINUX
   drbg_lock ();
-  _gcry_rndlinux_gather_random (NULL, 0, 0, 0);
+  _gcry_rndlinux_gather_random (NULL, (random_origins) (0), 0, 0);
   drbg_unlock ();
 #endif
 }
@@ -1940,7 +1940,7 @@ _gcry_rngdrbg_randomize (void *buffer, size_t length,
     {
       if (!buffer)
 	goto bailout;
-      if (drbg_generate_long (drbg_state, buffer, (unsigned int) length, NULL))
+      if (drbg_generate_long (drbg_state, (unsigned char*) (buffer), (unsigned int) length, NULL))
 	log_fatal ("No random numbers generated\n");
     }
   else

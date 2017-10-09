@@ -161,7 +161,7 @@ parse_object_id_into_str (unsigned char const **buf, size_t *len, char **oid)
     err = GPG_ERR_TOO_SHORT;
   else if (ti.length > *len)
     err = GPG_ERR_BAD_BER;
-  else if (!(*oid = ksba_oid_to_str (*buf, ti.length)))
+  else if (!(*oid = ksba_oid_to_str ((const char*) (*buf), ti.length)))
     err = gpg_error_from_errno (errno);
   else
     {
@@ -475,7 +475,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
   *r_serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_serial)
     return gpg_error_from_errno (errno);
-  strcpy (*r_serial, numbuf);
+  strcpy ((char*) (*r_serial), numbuf);
   memcpy (*r_serial+numbuflen, der, ti.length);
   (*r_serial)[numbuflen + ti.length] = ')';
   (*r_serial)[numbuflen + ti.length + 1] = 0;
@@ -488,7 +488,7 @@ ksba_crl_get_auth_key_id (ksba_crl_t crl,
       *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + keyid_derlen + 2);
       if (!*r_keyid)
         return GPG_ERR_ENOMEM;
-      strcpy (*r_keyid, numbuf);
+      strcpy ((char*) (*r_keyid), numbuf);
       memcpy (*r_keyid+numbuflen, keyid_der, keyid_derlen);
       (*r_keyid)[numbuflen + keyid_derlen] = ')';
       (*r_keyid)[numbuflen + keyid_derlen + 1] = 0;
@@ -542,7 +542,7 @@ ksba_crl_get_crl_number (ksba_crl_t crl, ksba_sexp_t *number)
   *number = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*number)
     return gpg_error_from_errno (errno);
-  strcpy (*number, numbuf);
+  strcpy ((char*) (*number), numbuf);
   memcpy (*number+numbuflen, der, ti.length);
   (*number)[numbuflen + ti.length] = ')';
   (*number)[numbuflen + ti.length + 1] = 0;
@@ -666,7 +666,7 @@ read_byte (ksba_reader_t reader)
   int rc;
 
   do
-    rc = ksba_reader_read (reader, &buf, 1, &nread);
+    rc = ksba_reader_read (reader, (char*) (&buf), 1, &nread);
   while (!rc && !nread);
   return rc? -1: buf;
 }
@@ -937,7 +937,7 @@ parse_to_next_update (ksba_crl_t crl)
   if (ti.nhdr + ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
   HASH (tmpbuf, ti.nhdr+ti.length);
@@ -1002,11 +1002,11 @@ parse_to_next_update (ksba_crl_t crl)
   if (ti.nhdr + ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
   HASH (tmpbuf, ti.nhdr+ti.length);
-  _ksba_asntime_to_iso (tmpbuf+ti.nhdr, ti.length,
+  _ksba_asntime_to_iso ((const char*) (tmpbuf+ti.nhdr), ti.length,
                         ti.tag == TYPE_UTC_TIME, crl->this_update);
 
   /* Read the optional nextUpdate time. */
@@ -1029,11 +1029,11 @@ parse_to_next_update (ksba_crl_t crl)
       if (ti.nhdr + ti.length >= DIM(tmpbuf))
         return GPG_ERR_TOO_LARGE;
       memcpy (tmpbuf, ti.buf, ti.nhdr);
-      err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+      err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
       if (err)
         return err;
       HASH (tmpbuf, ti.nhdr+ti.length);
-      _ksba_asntime_to_iso (tmpbuf+ti.nhdr, ti.length,
+      _ksba_asntime_to_iso ((const char*) (tmpbuf+ti.nhdr), ti.length,
                             ti.tag == TYPE_UTC_TIME, crl->next_update);
       err = _ksba_ber_read_tl (crl->reader, &ti);
       if (err)
@@ -1214,7 +1214,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   if (ti.nhdr + ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
   HASH (tmpbuf, ti.nhdr+ti.length);
@@ -1225,7 +1225,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   crl->item.serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!crl->item.serial)
     return GPG_ERR_ENOMEM;
-  strcpy (crl->item.serial, numbuf);
+  strcpy ((char*) (crl->item.serial), numbuf);
   memcpy (crl->item.serial+numbuflen, tmpbuf+ti.nhdr, ti.length);
   crl->item.serial[numbuflen + ti.length] = ')';
   crl->item.serial[numbuflen + ti.length + 1] = 0;
@@ -1251,12 +1251,12 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
   if (ti.nhdr + ti.length >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
   HASH (tmpbuf, ti.nhdr+ti.length);
 
-  _ksba_asntime_to_iso (tmpbuf+ti.nhdr, ti.length,
+  _ksba_asntime_to_iso ((const char*) (tmpbuf+ti.nhdr), ti.length,
                         ti.tag == TYPE_UTC_TIME, crl->item.revocation_date);
 
   /* if there is still space we must parse the optional entryExtensions */
@@ -1300,7 +1300,7 @@ parse_crl_entry (ksba_crl_t crl, int *got_entry)
           if (ti.nhdr + ti.length >= DIM(tmpbuf))
             return GPG_ERR_TOO_LARGE;
           memcpy (tmpbuf, ti.buf, ti.nhdr);
-          err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+          err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
           if (err)
             return err;
           HASH (tmpbuf, ti.nhdr+ti.length);
@@ -1382,7 +1382,7 @@ parse_crl_extensions (ksba_crl_t crl)
         return GPG_ERR_TOO_LARGE;
       /* fixme use a larger buffer if the extension does not fit into tmpbuf */
       memcpy (tmpbuf, ti.buf, ti.nhdr);
-      err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+      err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
       if (err)
         return err;
       HASH (tmpbuf, ti.nhdr+ti.length);
@@ -1422,7 +1422,7 @@ parse_signature (ksba_crl_t crl)
   if (n >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+ti.nhdr), ti.length);
   if (err)
     return err;
 
@@ -1437,7 +1437,7 @@ parse_signature (ksba_crl_t crl)
   if (n + n2 >= DIM(tmpbuf))
     return GPG_ERR_TOO_LARGE;
   memcpy (tmpbuf+n, ti.buf, ti.nhdr);
-  err = read_buffer (crl->reader, tmpbuf+n+ti.nhdr, ti.length);
+  err = read_buffer (crl->reader, (char*) (tmpbuf+n+ti.nhdr), ti.length);
   if (err)
     return err;
 

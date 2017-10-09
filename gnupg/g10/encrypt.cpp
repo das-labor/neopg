@@ -253,7 +253,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
 
       if (opt.verbose)
         log_info(_("using cipher %s\n"),
-                 openpgp_cipher_algo_name (cfx.dek->algo));
+                 openpgp_cipher_algo_name ((cipher_algo_t) (cfx.dek->algo)));
 
       cfx.dek->use_mdc=use_mdc(NULL,cfx.dek->algo);
     }
@@ -607,7 +607,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
         {
           log_info(_("WARNING: forcing symmetric cipher %s (%d)"
                      " violates recipient preferences\n"),
-                   openpgp_cipher_algo_name (opt.def_cipher_algo),
+                   openpgp_cipher_algo_name ((cipher_algo_t) (opt.def_cipher_algo)),
                    opt.def_cipher_algo);
         }
 
@@ -615,18 +615,18 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
     }
 
   /* Check compliance.  */
-  if (! gnupg_cipher_is_allowed (opt.compliance, 1, cfx.dek->algo,
+  if (! gnupg_cipher_is_allowed (opt.compliance, 1, (cipher_algo_t) (cfx.dek->algo),
                                  GCRY_CIPHER_MODE_CFB))
     {
       log_error (_("you may not use cipher algorithm '%s'"
 		   " while in %s mode\n"),
-		 openpgp_cipher_algo_name (cfx.dek->algo),
+		 openpgp_cipher_algo_name ((cipher_algo_t) (cfx.dek->algo)),
 		 gnupg_compliance_option_string (opt.compliance));
       rc = GPG_ERR_CIPHER_ALGO;
       goto leave;
     }
 
-  compliant = gnupg_cipher_is_compliant (CO_DE_VS, cfx.dek->algo,
+  compliant = gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (cfx.dek->algo),
                                          GCRY_CIPHER_MODE_CFB);
 
   {
@@ -866,7 +866,7 @@ encrypt_filter (void *opaque, int control,
                                              NULL) != opt.def_cipher_algo)
 		log_info(_("forcing symmetric cipher %s (%d) "
 			   "violates recipient preferences\n"),
-			 openpgp_cipher_algo_name (opt.def_cipher_algo),
+			 openpgp_cipher_algo_name ((cipher_algo_t) (opt.def_cipher_algo)),
 			 opt.def_cipher_algo);
 
 	      efx->cfx.dek->algo = opt.def_cipher_algo;
@@ -905,7 +905,7 @@ encrypt_filter (void *opaque, int control,
     }
   else if ( control == IOBUFCTRL_DESC )
     {
-      mem2str (buf, "encrypt_filter", *ret_len);
+      mem2str ((char*) (buf), "encrypt_filter", *ret_len);
     }
   return rc;
 }
@@ -923,7 +923,7 @@ write_pubkey_enc (ctrl_t ctrl,
   int rc;
   gcry_mpi_t frame;
 
-  print_pubkey_algo_note ( pk->pubkey_algo );
+  print_pubkey_algo_note ( (pubkey_algo_t) (pk->pubkey_algo ));
   enc = (PKT_pubkey_enc*) xmalloc_clear ( sizeof *enc );
   enc->pubkey_algo = pk->pubkey_algo;
   keyid_from_pk( pk, enc->keyid );
@@ -943,7 +943,7 @@ write_pubkey_enc (ctrl_t ctrl,
    * build_packet().  */
   frame = encode_session_key (pk->pubkey_algo, dek,
                               pubkey_nbits (pk->pubkey_algo, pk->pkey));
-  rc = pk_encrypt (pk->pubkey_algo, enc->data, frame, pk, pk->pkey);
+  rc = pk_encrypt ((pubkey_algo_t) (pk->pubkey_algo), enc->data, frame, pk, pk->pkey);
   gcry_mpi_release (frame);
   if (rc)
     log_error ("pubkey_encrypt failed: %s\n", gpg_strerror (rc) );
@@ -953,8 +953,8 @@ write_pubkey_enc (ctrl_t ctrl,
         {
           char *ustr = get_user_id_string_native (ctrl, enc->keyid);
           log_info (_("%s/%s encrypted for: \"%s\"\n"),
-                    openpgp_pk_algo_name (enc->pubkey_algo),
-                    openpgp_cipher_algo_name (dek->algo),
+                    openpgp_pk_algo_name ((pubkey_algo_t) (enc->pubkey_algo)),
+                    openpgp_cipher_algo_name ((cipher_algo_t) (dek->algo)),
                     ustr );
           xfree (ustr);
         }

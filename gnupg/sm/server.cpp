@@ -467,7 +467,7 @@ cmd_encrypt (assuan_context_t ctx, char *line)
   if (!rc)
     rc = ctrl->audit? 0 : start_audit_session (ctrl);
   if (!rc)
-    rc = gpgsm_encrypt (assuan_get_pointer (ctx),
+    rc = gpgsm_encrypt ((ctrl_t) (assuan_get_pointer (ctx)),
                         ctrl->server_local->recplist,
                         inp_fd, out_fp);
   es_fclose (out_fp);
@@ -557,7 +557,7 @@ cmd_verify (assuan_context_t ctx, char *line)
 
   rc = start_audit_session (ctrl);
   if (!rc)
-    rc = gpgsm_verify (assuan_get_pointer (ctx), fd,
+    rc = gpgsm_verify ((ctrl_t) (assuan_get_pointer (ctx)), fd,
                        ctrl->server_local->message_fd, out_fp);
   es_fclose (out_fp);
 
@@ -600,7 +600,7 @@ cmd_sign (assuan_context_t ctx, char *line)
 
   rc = start_audit_session (ctrl);
   if (!rc)
-    rc = gpgsm_sign (assuan_get_pointer (ctx), ctrl->server_local->signerlist,
+    rc = gpgsm_sign ((ctrl_t) (assuan_get_pointer (ctx)), ctrl->server_local->signerlist,
                      inp_fd, detached, out_fp);
   es_fclose (out_fp);
 
@@ -638,7 +638,7 @@ cmd_import (assuan_context_t ctx, char *line)
   if (fd == -1)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
 
-  rc = gpgsm_import (assuan_get_pointer (ctx), fd, reimport);
+  rc = gpgsm_import ((ctrl_t) (assuan_get_pointer (ctx)), fd, reimport);
 
   /* close and reset the fd */
   close_message_fd (ctrl);
@@ -954,7 +954,7 @@ do_listkeys (assuan_context_t ctx, char *line, int mode)
     listmode |= (1<<6);
   if (ctrl->server_local->list_external)
     listmode |= (1<<7);
-  err = gpgsm_list_keys (assuan_get_pointer (ctx), list, fp, listmode);
+  err = gpgsm_list_keys ((ctrl_t) (assuan_get_pointer (ctx)), list, fp, listmode);
   free_strlist (list);
   es_fclose (fp);
   if (ctrl->server_local->list_to_output)
@@ -1492,5 +1492,5 @@ gpgsm_proxy_pinentry_notify (ctrl_t ctrl, const unsigned char *line)
   if (!ctrl || !ctrl->server_local
       || !ctrl->server_local->allow_pinentry_notify)
     return 0;
-  return assuan_inquire (ctrl->server_local->assuan_ctx, line, NULL, NULL, 0);
+  return assuan_inquire (ctrl->server_local->assuan_ctx, (const char*) (line), NULL, NULL, 0);
 }

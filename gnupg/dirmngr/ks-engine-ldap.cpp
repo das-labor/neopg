@@ -587,7 +587,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
       const char *attr[] = { "namingContexts", NULL };
 
       err = ldap_search_s (ldap_conn, "", LDAP_SCOPE_BASE,
-			   "(objectClass=*)", attr, 0, &res);
+			   "(objectClass=*)", (char**) (attr), 0, &res);
       if (err == LDAP_SUCCESS)
 	{
 	  char **context = ldap_get_values (ldap_conn, res, "namingContexts");
@@ -612,7 +612,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
                     char *object = xasprintf ("cn=pgpServerInfo,%s",
                                               context[i]);
                     err = ldap_search_s (ldap_conn, object, LDAP_SCOPE_BASE,
-                                         "(objectClass=*)", attr2, 0, &si_res);
+                                         "(objectClass=*)", (char**) (attr2), 0, &si_res);
                     xfree (object);
                   }
 
@@ -663,7 +663,7 @@ my_ldap_connect (parsed_uri_t uri, LDAP **ldap_connp,
 	  const char *attr2[] = { "pgpBaseKeySpaceDN", "version", "software", NULL };
 
 	  err = ldap_search_s (ldap_conn, "cn=pgpServerInfo", LDAP_SCOPE_BASE,
-			       "(objectClass=*)", attr2, 0, &si_res);
+			       "(objectClass=*)", (char**) (attr2), 0, &si_res);
 	  if (err == LDAP_SUCCESS)
 	    {
 	      /* For the LDAP keyserver, this is always
@@ -897,7 +897,7 @@ ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri, const char *keyspec,
     int count;
 
     ldap_err = ldap_search_s (ldap_conn, basedn, LDAP_SCOPE_SUBTREE,
-			      filter, attrs, attrsonly, &message);
+			      filter, (char**) (attrs), attrsonly, &message);
     if (ldap_err)
       {
 	err = ldap_err_to_gpg_err (ldap_err);
@@ -1091,7 +1091,7 @@ ks_ldap_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
     log_debug ("SEARCH '%s' => '%s' BEGIN\n", pattern, filter);
 
     ldap_err = ldap_search_s (ldap_conn, basedn,
-			      LDAP_SCOPE_SUBTREE, filter, attrs, 0, &res);
+			      LDAP_SCOPE_SUBTREE, filter, (char**) (attrs), 0, &res);
 
     xfree (filter);
     filter = NULL;
@@ -2012,7 +2012,7 @@ ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
 
       *newline = '\0';
 
-      extract_attributes (&modlist, info);
+      extract_attributes (&modlist, (char*) (info));
 
       infolen = infolen - ((uintptr_t) newline - (uintptr_t) info + 1);
       info = newline + 1;

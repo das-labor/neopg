@@ -117,9 +117,9 @@ mk_notation_policy_etc (PKT_signature *sig,
           p = xstrdup(string);
         }
 
-      build_sig_subpkt (sig, (SIGSUBPKT_POLICY
-                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0)),
-                        p, strlen (p));
+      build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_POLICY
+                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
+                        (const byte*) (p), strlen (p));
 
       xfree (p);
     }
@@ -140,9 +140,9 @@ mk_notation_policy_etc (PKT_signature *sig,
           p = xstrdup (string);
         }
 
-      build_sig_subpkt (sig, (SIGSUBPKT_PREF_KS
-                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0)),
-                        p, strlen (p));
+      build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_PREF_KS
+                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
+                        (const byte*) (p), strlen (p));
       xfree (p);
     }
 
@@ -156,7 +156,7 @@ mk_notation_policy_etc (PKT_signature *sig,
         {
           if (DBG_LOOKUP)
             log_debug ("setting Signer's UID to '%s'\n", mbox);
-          build_sig_subpkt (sig, SIGSUBPKT_SIGNERS_UID, mbox, strlen (mbox));
+          build_sig_subpkt (sig, SIGSUBPKT_SIGNERS_UID, (const byte*) (mbox), strlen (mbox));
           xfree (mbox);
         }
       else if (opt.sender_list)
@@ -172,7 +172,7 @@ mk_notation_policy_etc (PKT_signature *sig,
            * one from the supplied list and hope that the caller
            * passed a matching one.  */
           build_sig_subpkt (sig, SIGSUBPKT_SIGNERS_UID,
-                            opt.sender_list->d, strlen (opt.sender_list->d));
+                            (const byte*) (opt.sender_list->d), strlen (opt.sender_list->d));
         }
     }
 }
@@ -273,13 +273,13 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
         return GPG_ERR_TIME_CONFLICT;
     }
 
-  print_pubkey_algo_note (pksk->pubkey_algo);
+  print_pubkey_algo_note ((pubkey_algo_t) (pksk->pubkey_algo));
 
   if (!mdalgo)
     mdalgo = gcry_md_get_algo (md);
 
   /* Check compliance.  */
-  if (! gnupg_digest_is_allowed (opt.compliance, 1, mdalgo))
+  if (! gnupg_digest_is_allowed (opt.compliance, 1, (digest_algo_t) (mdalgo)))
     {
       log_error (_("you may not use digest algorithm '%s'"
 		   " while in %s mode\n"),
@@ -299,7 +299,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
       goto leave;
     }
 
-  print_digest_algo_note (mdalgo);
+  print_digest_algo_note ((digest_algo_t) (mdalgo));
   dp = gcry_md_read  (md, mdalgo);
   sig->digest_algo = mdalgo;
   sig->digest_start[0] = dp[0];
@@ -352,7 +352,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
         {
           char *ustr = get_user_id_string_native (ctrl, sig->keyid);
           log_info (_("%s/%s signature from: \"%s\"\n"),
-                    openpgp_pk_algo_name (pksk->pubkey_algo),
+                    openpgp_pk_algo_name ((pubkey_algo_t) (pksk->pubkey_algo)),
                     openpgp_md_algo_name (sig->digest_algo),
                     ustr);
           xfree (ustr);
@@ -1319,7 +1319,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     algo = default_cipher_algo();
     if (!opt.quiet || !opt.batch)
         log_info (_("%s encryption will be used\n"),
-                  openpgp_cipher_algo_name (algo) );
+                  openpgp_cipher_algo_name ((cipher_algo_t) (algo)) );
     cfx.dek = passphrase_to_dek (algo, s2k, 1, 1, NULL, &canceled);
 
     if (!cfx.dek || !cfx.dek->keylen) {

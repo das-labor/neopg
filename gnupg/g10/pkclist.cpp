@@ -858,7 +858,7 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
       return rc;
     }
 
-  rc = openpgp_pk_test_algo2 (pk->pubkey_algo, use);
+  rc = openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo), use);
   if (rc)
     {
       /* Key found but not usable for us (e.g. sign-only key). */
@@ -1052,7 +1052,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
               send_status_inv_recp (0, rov->d);
               goto fail;
             }
-          else if ( !(rc=openpgp_pk_test_algo2 (pk->pubkey_algo,
+          else if ( !(rc=openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo),
                                                 PUBKEY_USAGE_ENC)) )
             {
               /* Skip the actual key if the key is already present
@@ -1147,13 +1147,13 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                               datestr_from_pk (iter->pk));
 
                   if (iter->pk->user_id)
-                    tty_print_utf8_string(iter->pk->user_id->name,
+                    tty_print_utf8_string((const unsigned char*) (iter->pk->user_id->name),
                                           iter->pk->user_id->len);
                   else
                     {
                       size_t n;
                       char *p = get_user_id (ctrl, keyid, &n );
-                      tty_print_utf8_string ( p, n );
+                      tty_print_utf8_string ( (const unsigned char*) (p), n );
                       xfree(p);
                     }
                   tty_printf("\"\n");
@@ -1185,7 +1185,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
           rc = get_pubkey_byname (ctrl, NULL, pk, answer, NULL, NULL, 0, 0 );
           if (rc)
             tty_printf(_("No such user ID.\n"));
-          else if ( !(rc=openpgp_pk_test_algo2 (pk->pubkey_algo,
+          else if ( !(rc=openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo),
                                                 PUBKEY_USAGE_ENC)) )
             {
               if ( have_def_rec )
@@ -1263,7 +1263,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
       rc = get_pubkey_byname (ctrl, NULL, pk, def_rec, NULL, NULL, 1, 1);
       if (rc)
         log_error(_("unknown default recipient \"%s\"\n"), def_rec );
-      else if ( !(rc=openpgp_pk_test_algo2(pk->pubkey_algo,
+      else if ( !(rc=openpgp_pk_test_algo2((pubkey_algo_t) (pk->pubkey_algo),
                                            PUBKEY_USAGE_ENC)) )
         {
           /* Mark any_recipients here since the default recipient
@@ -1389,7 +1389,7 @@ algo_available( preftype_t preftype, int algo, const union pref_hint *hint)
 
       /* PGP8 supports all the ciphers we do.. */
 
-      return algo && !openpgp_cipher_test_algo ( algo );
+      return algo && !openpgp_cipher_test_algo ( (cipher_algo_t) (algo ));
     }
   else if( preftype == PREFTYPE_HASH )
     {
@@ -1420,7 +1420,7 @@ algo_available( preftype_t preftype, int algo, const union pref_hint *hint)
 		  && algo != DIGEST_ALGO_SHA256))
 	return 0;
 
-      return algo && !openpgp_md_test_algo (algo);
+      return algo && !openpgp_md_test_algo ((digest_algo_t) (algo));
     }
   else if( preftype == PREFTYPE_ZIP )
     {
@@ -1547,7 +1547,7 @@ select_algo_from_prefs(PK_LIST pk_list, int preftype,
 
   /* The caller passed us a request.  Can we use it? */
   if(request>-1 && (bits[request/32] & (1<<(request%32))) &&
-     algo_available(preftype,request,hint))
+     algo_available((preftype_t) (preftype),request,hint))
     result=request;
 
   if(result==-1)
@@ -1565,7 +1565,7 @@ select_algo_from_prefs(PK_LIST pk_list, int preftype,
 	for(i=0; prefs[i].type; i++ )
 	  {
 	    if(bits[prefs[i].value/32] & (1<<(prefs[i].value%32))
-	       && algo_available( preftype, prefs[i].value, hint))
+	       && algo_available( (preftype_t) (preftype), prefs[i].value, hint))
 	      {
 		result = prefs[i].value;
 		break;
@@ -1611,7 +1611,7 @@ select_algo_from_prefs(PK_LIST pk_list, int preftype,
 	     tend to be "stronger". */
 	  if(scores[i] && scores[i]<best
 	     && (bits[i/32] & (1<<(i%32)))
-	     && algo_available(preftype,i,hint))
+	     && algo_available((preftype_t) (preftype),i,hint))
 	    {
 	      best=scores[i];
 	      result=i;

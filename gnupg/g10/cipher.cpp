@@ -79,7 +79,7 @@ write_header( cipher_filter_context_t *cfx, IOBUF a )
     gcry_randomize (temp, nprefix, GCRY_STRONG_RANDOM );
     temp[nprefix] = temp[nprefix-2];
     temp[nprefix+1] = temp[nprefix-1];
-    print_cipher_algo_note( cfx->dek->algo );
+    print_cipher_algo_note( (cipher_algo_t) (cfx->dek->algo ));
     err = openpgp_cipher_open (&cfx->cipher_hd,
 			       cfx->dek->algo,
 			       GCRY_CIPHER_MODE_CFB,
@@ -156,7 +156,7 @@ cipher_filter( void *opaque, int control,
 	gcry_cipher_close (cfx->cipher_hd);
     }
     else if( control == IOBUFCTRL_DESC ) {
-        mem2str (buf, "cipher_filter", *ret_len);
+        mem2str ((char*) (buf), "cipher_filter", *ret_len);
     }
     return rc;
 }

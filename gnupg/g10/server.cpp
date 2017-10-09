@@ -773,7 +773,7 @@ gpg_proxy_pinentry_notify (ctrl_t ctrl, const unsigned char *line)
   const char *s;
 
   if (opt.verbose
-      && !strncmp (line, "PINENTRY_LAUNCHED", 17)
+      && !strncmp ((const char*) (line), "PINENTRY_LAUNCHED", 17)
       && (line[17]==' '||!line[17]))
     {
       for (s = (const char*) line + 17; *s && spacep (s); s++)
@@ -784,16 +784,16 @@ gpg_proxy_pinentry_notify (ctrl_t ctrl, const unsigned char *line)
   if (!ctrl || !ctrl->server_local
       || !ctrl->server_local->allow_pinentry_notify)
     {
-      gnupg_allow_set_foregound_window ((pid_t)strtoul (line+17, NULL, 10));
+      gnupg_allow_set_foregound_window ((pid_t)strtoul ((const char*) (line+17), NULL, 10));
       /* Client might be interested in that event - send as status line.  */
-      if (!strncmp (line, "PINENTRY_LAUNCHED", 17)
+      if (!strncmp ((const char*) (line), "PINENTRY_LAUNCHED", 17)
           && (line[17]==' '||!line[17]))
         {
           for (line += 17; *line && spacep (line); line++)
             ;
-          write_status_text (STATUS_PINENTRY_LAUNCHED, line);
+          write_status_text (STATUS_PINENTRY_LAUNCHED, (const char*) (line));
         }
       return 0;
     }
-  return assuan_inquire (ctrl->server_local->assuan_ctx, line, NULL, NULL, 0);
+  return assuan_inquire (ctrl->server_local->assuan_ctx, (const char*) (line), NULL, NULL, 0);
 }

@@ -821,7 +821,7 @@ _gcry_ecc_eddsa_verify (gcry_mpi_t input, ECC_public_key *pkey,
 
     sbuf = _gcry_mpi_get_opaque_copy (s_in, &tmp);
     slen = (tmp +7)/8;
-    reverse_buffer (sbuf, slen);
+    reverse_buffer ((unsigned char*) (sbuf), slen);
     if (DBG_CIPHER)
       log_printhex ("     s", sbuf, slen);
     _gcry_mpi_set_buffer (s, sbuf, slen, 0);

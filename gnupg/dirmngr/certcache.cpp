@@ -183,7 +183,7 @@ hexsn_to_sexp (const char *hexsn)
   if (!buffer)
     return NULL;
   p = stpcpy (buffer, numbuf);
-  len = unhexify (p, hexsn);
+  len = unhexify ((unsigned char*) (p), hexsn);
   p[len] = ')';
   p[len+1] = 0;
 
@@ -266,7 +266,7 @@ put_cert (ksba_cert_t cert, int permanent, unsigned int trustclass,
   unsigned char help_fpr_buffer[20], *fpr;
   cert_item_t ci;
 
-  fpr = (unsigned char*) fpr_buffer? fpr_buffer : &help_fpr_buffer;
+  fpr = (unsigned char*) (fpr_buffer? fpr_buffer : &help_fpr_buffer);
 
   /* If we already reached the caching limit, drop a couple of certs
    * from the cache.  Our dropping strategy is simple: We keep a

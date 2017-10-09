@@ -134,7 +134,7 @@ _ksba_oid_node_to_str (const unsigned char *image, AsnNode node)
 {
   if (!node || node->type != TYPE_OBJECT_ID || node->off == -1)
     return NULL;
-  return ksba_oid_to_str (image+node->off + node->nhdr, node->len);
+  return ksba_oid_to_str ((const char*) (image+node->off + node->nhdr), node->len);
 }
 
 
@@ -239,12 +239,12 @@ ksba_oid_from_str (const char *string, unsigned char **rbuf, size_t *rlength)
         else
           {
             val += 80;
-            buflen = make_flagged_int (val, buf, buflen);
+            buflen = make_flagged_int (val, (char*) (buf), buflen);
           }
       }
     else
       {
-        buflen = make_flagged_int (val, buf, buflen);
+        buflen = make_flagged_int (val, (char*) (buf), buflen);
       }
   } while (*endp == '.');
 

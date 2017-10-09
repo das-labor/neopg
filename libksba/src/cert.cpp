@@ -810,7 +810,7 @@ ksba_cert_get_validity (ksba_cert_t cert, int what, ksba_isotime_t timebuf)
 
   return_val_if_fail (n->off != -1, GPG_ERR_BUG);
 
-  return _ksba_asntime_to_iso (cert->image + n->off + n->nhdr, n->len,
+  return _ksba_asntime_to_iso ((const char*) (cert->image + n->off + n->nhdr), n->len,
                                n->type == TYPE_UTC_TIME, timebuf);
 }
 
@@ -1377,7 +1377,7 @@ ksba_cert_get_cert_policies (ksba_cert_t cert, char **r_policies)
                 }
               seqseqlen -= ti.nhdr;
 
-              suboid = ksba_oid_to_str (der, ti.length);
+              suboid = ksba_oid_to_str ((const char*) (der), ti.length);
               if (!suboid)
                 {
                   err = GPG_ERR_ENOMEM;
@@ -1483,7 +1483,7 @@ ksba_cert_get_ext_key_usages (ksba_cert_t cert, char **result)
                   goto leave;
                 }
 
-              suboid = ksba_oid_to_str (der, ti.length);
+              suboid = ksba_oid_to_str ((const char*) (der), ti.length);
               if (!suboid)
                 {
                   err = GPG_ERR_ENOMEM;
@@ -1898,7 +1898,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
   *r_serial = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_serial)
     return GPG_ERR_ENOMEM;
-  strcpy (*r_serial, numbuf);
+  strcpy ((char*) (*r_serial), numbuf);
   memcpy (*r_serial+numbuflen, der, ti.length);
   (*r_serial)[numbuflen + ti.length] = ')';
   (*r_serial)[numbuflen + ti.length + 1] = 0;
@@ -1911,7 +1911,7 @@ ksba_cert_get_auth_key_id (ksba_cert_t cert,
       *r_keyid = (ksba_sexp_t) xtrymalloc (numbuflen + keyid_derlen + 2);
       if (!*r_keyid)
         return GPG_ERR_ENOMEM;
-      strcpy (*r_keyid, numbuf);
+      strcpy ((char*) (*r_keyid), numbuf);
       memcpy (*r_keyid+numbuflen, keyid_der, keyid_derlen);
       (*r_keyid)[numbuflen + keyid_derlen] = ')';
       (*r_keyid)[numbuflen + keyid_derlen + 1] = 0;
@@ -1986,7 +1986,7 @@ get_simple_octet_string_ext (ksba_cert_t cert, const char *oid,
   *r_data = (ksba_sexp_t) xtrymalloc (numbuflen + ti.length + 2);
   if (!*r_data)
     return GPG_ERR_ENOMEM;
-  strcpy (*r_data, numbuf);
+  strcpy ((char*) (*r_data), numbuf);
   memcpy (*r_data+numbuflen, der, ti.length);
   (*r_data)[numbuflen + ti.length] = ')';
   (*r_data)[numbuflen + ti.length + 1] = 0;
@@ -2112,7 +2112,7 @@ get_info_access (ksba_cert_t cert, int idx, int mode,
               if (derlen < ti.length)
                 return GPG_ERR_BAD_BER;
 
-              *method = ksba_oid_to_str (der, ti.length);
+              *method = ksba_oid_to_str ((const char*) (der), ti.length);
               if (!*method)
                 return GPG_ERR_ENOMEM;
               der       += ti.length;

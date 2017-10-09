@@ -54,7 +54,7 @@ _gcry_dsa_gen_k (gcry_mpi_t q, int security_level)
       if ( !rndbuf || nbits < 32 )
         {
           xfree (rndbuf);
-          rndbuf = (char*) _gcry_random_bytes_secure (nbytes, security_level);
+          rndbuf = (char*) _gcry_random_bytes_secure (nbytes, (gcry_random_level) (security_level));
 	}
       else
         { /* Change only some of the higher bits.  We could improve
@@ -62,7 +62,7 @@ _gcry_dsa_gen_k (gcry_mpi_t q, int security_level)
 	     to get_random_bytes() and use these extra bytes here.
 	     However the required management code is more complex and
 	     thus we better use this simple method.  */
-          char *pp = (char*) _gcry_random_bytes_secure (4, security_level);
+          char *pp = (char*) _gcry_random_bytes_secure (4, (gcry_random_level) (security_level));
           memcpy (rndbuf, pp, 4);
           xfree (pp);
 	}
@@ -120,7 +120,10 @@ int2octets (unsigned char **r_frame, gcry_mpi_t value, size_t nbytes)
 
   noff = (nframe < nbytes)? nbytes - nframe : 0;
   n = nframe + noff;
-  frame = (unsigned char*) mpi_is_secure (value)? xtrymalloc_secure (n) : xtrymalloc (n);
+  if (mpi_is_secure (value))
+    frame = (unsigned char*) xtrymalloc_secure (n);
+  else
+    frame = (unsigned char*) xtrymalloc (n);
   if (!frame)
     return gpg_error_from_syserror ();
   if (noff)

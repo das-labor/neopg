@@ -776,7 +776,7 @@ parse_p12 (ctrl_t ctrl, ksba_reader_t reader, struct stats_s *stats)
   if (err)
     goto leave;
 
-  kparms = p12_parse (p12buffer + p12bufoff, p12buflen - p12bufoff,
+  kparms = p12_parse ((const unsigned char*) (p12buffer + p12bufoff), p12buflen - p12bufoff,
                       passphrase, store_cert_cb, &store_cert_parm, &bad_pass);
 
   xfree (passphrase);

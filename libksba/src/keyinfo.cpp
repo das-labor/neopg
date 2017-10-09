@@ -532,7 +532,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
   if (err)
     return err;
   *r_nread = nread;
-  *r_oid = ksba_oid_to_str (der+off, len);
+  *r_oid = ksba_oid_to_str ((const char*) (der+off), len);
   if (!*r_oid)
     return GPG_ERR_ENOMEM;
 
@@ -550,7 +550,7 @@ _ksba_parse_algorithm_identifier2 (const unsigned char *der, size_t derlen,
           *r_nread = 0;
           return err;
         }
-      *r_oid = ksba_oid_to_str (der+off2+off, len);
+      *r_oid = ksba_oid_to_str ((const char*) (der+off2+off), len);
       if (!*r_oid)
         {
           *r_nread = 0;
@@ -721,7 +721,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
     return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
   if (parm_off && parm_len && parm_type == TYPE_OBJECT_ID)
-    parm_oid = ksba_oid_to_str (der+parm_off, parm_len);
+    parm_oid = ksba_oid_to_str ((const char*) (der+parm_off), parm_len);
   else if (parm_off && parm_len)
     {
       parmder = der + parm_off;
@@ -805,7 +805,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
               put_stringbuf (&sb, "(");
               tmp[0] = *elem; tmp[1] = 0;
               put_stringbuf_sexp (&sb, tmp);
-              put_stringbuf_mem_sexp (&sb, parmder, len);
+              put_stringbuf_mem_sexp (&sb, (const char*) (parmder), len);
               parmder += len;
               parmderlen -= len;
               put_stringbuf (&sb, ")");
@@ -851,7 +851,7 @@ _ksba_keyinfo_to_sexp (const unsigned char *der, size_t derlen,
           put_stringbuf (&sb, "(");
           tmp[0] = *elem; tmp[1] = 0;
           put_stringbuf_sexp (&sb, tmp);
-          put_stringbuf_mem_sexp (&sb, der, len);
+          put_stringbuf_mem_sexp (&sb, (const char*) (der), len);
           der += len;
           derlen -= len;
           put_stringbuf (&sb, ")");
@@ -970,7 +970,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
     return GPG_ERR_INV_SEXP;
   s++;
 
-  n = strtoul (s, &endp, 10);
+  n = strtoul ((const char*) (s), &endp, 10);
   s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
@@ -983,7 +983,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
   s++;
 
   /* Break out the algorithm ID */
-  n = strtoul (s, &endp, 10);
+  n = strtoul ((const char*) (s), &endp, 10);
   s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* we don't allow empty lengths */
@@ -1001,7 +1001,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
       if (*s != '(')
         return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
-      n = strtoul (s, &endp, 10);
+      n = strtoul ((const char*) (s), &endp, 10);
       s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
@@ -1012,7 +1012,7 @@ _ksba_keyinfo_from_sexp (ksba_const_sexp_t sexp,
       if (!digitp(s))
         return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
-      n = strtoul (s, &endp, 10);
+      n = strtoul ((const char*) (s), &endp, 10);
       s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
@@ -1341,7 +1341,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
     return GPG_ERR_INV_SEXP;
   s++;
 
-  n = strtoul (s, &endp, 10);
+  n = strtoul ((const char*) (s), &endp, 10);
   s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
@@ -1358,7 +1358,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
   s++;
 
   /* Break out the algorithm ID */
-  n = strtoul (s, &endp, 10);
+  n = strtoul ((const char*) (s), &endp, 10);
   s = (const unsigned char*) endp;
   if (!n || *s != ':')
     return GPG_ERR_INV_SEXP; /* We don't allow empty lengths.  */
@@ -1376,7 +1376,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
       if (*s != '(')
         return digitp(s) ? GPG_ERR_UNKNOWN_SEXP:GPG_ERR_INV_SEXP;
       s++;
-      n = strtoul (s, &endp, 10);
+      n = strtoul ((const char*) (s), &endp, 10);
       s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
@@ -1387,7 +1387,7 @@ _ksba_algoinfo_from_sexp (ksba_const_sexp_t sexp,
       if (!digitp(s))
         return GPG_ERR_UNKNOWN_SEXP; /* ... or invalid S-Exp. */
 
-      n = strtoul (s, &endp, 10);
+      n = strtoul ((const char*) (s), &endp, 10);
       s = (const unsigned char*) endp;
       if (!n || *s != ':')
         return GPG_ERR_INV_SEXP;
@@ -1683,7 +1683,7 @@ cryptval_to_sexp (int mode, const unsigned char *der, size_t derlen,
           put_stringbuf (&sb, "(");
           tmp[0] = *elem; tmp[1] = 0;
           put_stringbuf_sexp (&sb, tmp);
-          put_stringbuf_mem_sexp (&sb, der, len);
+          put_stringbuf_mem_sexp (&sb, (const char*) (der), len);
           der += len;
           derlen -= len;
           put_stringbuf (&sb, ")");

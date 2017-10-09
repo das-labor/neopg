@@ -148,7 +148,7 @@ hash_public_key (gcry_md_hd_t md, PKT_public_key *pk)
   int i;
   unsigned int nbits;
   size_t nbytes;
-  int npkey = pubkey_get_npkey (pk->pubkey_algo);
+  int npkey = pubkey_get_npkey ((pubkey_algo_t) (pk->pubkey_algo));
 
   /* FIXME: We can avoid the extra malloc by calling only the first
      mpi_print here which computes the required length and calling the
@@ -594,9 +594,9 @@ namehash_from_uid (PKT_user_id *uid)
       std::unique_ptr<Botan::HashFunction> rmd160(Botan::HashFunction::create_or_throw("RIPEMD-160"));
 
       if (uid->attrib_data) {
-        rmd160->update(uid->attrib_data, uid->attrib_len);
+        rmd160->update((const uint8_t*) uid->attrib_data, uid->attrib_len);
       } else {
-        rmd160->update(uid->name, uid->len);
+        rmd160->update((const uint8_t*) uid->name, uid->len);
       }
 
       uid->namehash = (byte*) xmalloc (rmd160->output_length());

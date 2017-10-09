@@ -579,9 +579,9 @@ cdb_make_add(struct cdb_make *cdbmp,
   ++cdbmp->cdb_rcnt;
   cdb_pack(klen, rlen);
   cdb_pack(vlen, rlen + 4);
-  if (make_write(cdbmp, rlen, 8) < 0 ||
-      make_write(cdbmp, key, klen) < 0 ||
-      make_write(cdbmp, val, vlen) < 0)
+  if (make_write(cdbmp, (const char*) (rlen), 8) < 0 ||
+      make_write(cdbmp, (const char*) (key), klen) < 0 ||
+      make_write(cdbmp, (const char*) (val), vlen) < 0)
     return -1;
   return 0;
 }
@@ -653,9 +653,9 @@ cdb_make_put(struct cdb_make *cdbmp,
   }
   cdb_pack(klen, rlen);
   cdb_pack(vlen, rlen + 4);
-  if (make_write(cdbmp, rlen, 8) < 0 ||
-      make_write(cdbmp, key, klen) < 0 ||
-      make_write(cdbmp, val, vlen) < 0)
+  if (make_write(cdbmp, (const char*) (rlen), 8) < 0 ||
+      make_write(cdbmp, (const char*) (key), klen) < 0 ||
+      make_write(cdbmp, (const char*) (val), vlen) < 0)
     return -1;
   return r;
 }
@@ -711,7 +711,7 @@ make_find (struct cdb_make *cdbmp,
         cdbmp->cdb_bpos = cdbmp->cdb_buf;
       }
       sought = 1;
-      r = match(cdbmp->cdb_fd, rl->rec[i].rpos, key, klen);
+      r = match(cdbmp->cdb_fd, rl->rec[i].rpos, (const char*) (key), klen);
       if (!r)
 	continue;
       if (r < 0)
@@ -866,7 +866,7 @@ cdb_make_finish_internal(struct cdb_make *cdbmp)
       cdb_pack(htab[i].hval, p + (i << 3));
       cdb_pack(htab[i].rpos, p + (i << 3) + 4);
     }
-    if (make_write(cdbmp, p, len << 3) < 0) {
+    if (make_write(cdbmp, (const char*) (p), len << 3) < 0) {
       free(p);
       return -1;
     }
@@ -882,7 +882,7 @@ cdb_make_finish_internal(struct cdb_make *cdbmp)
     cdb_pack(hcnt[t], p + (t << 3) + 4);
   }
   if (lseek(cdbmp->cdb_fd, 0, 0) != 0 ||
-      ewrite(cdbmp->cdb_fd, p, 2048) != 0)
+      ewrite(cdbmp->cdb_fd, (const char*) (p), 2048) != 0)
     return -1;
 
   return 0;

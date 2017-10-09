@@ -161,13 +161,13 @@ start_agent (ctrl_t ctrl)
           if (opt.pinentry_mode)
             {
               char *tmp = xasprintf ("OPTION pinentry-mode=%s",
-                                     str_pinentry_mode (opt.pinentry_mode));
+                                     str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)));
               rc = assuan_transact (agent_ctx, tmp,
                                NULL, NULL, NULL, NULL, NULL, NULL);
               xfree (tmp);
               if (rc)
                 log_error ("setting pinentry mode '%s' failed: %s\n",
-                           str_pinentry_mode (opt.pinentry_mode),
+                           str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)),
                            gpg_strerror (rc));
             }
         }
@@ -193,7 +193,7 @@ default_inq_cb (void *opaque, const char *line)
 
   if (has_leading_keyword (line, "PINENTRY_LAUNCHED"))
     {
-      err = gpgsm_proxy_pinentry_notify (ctrl, line);
+      err = gpgsm_proxy_pinentry_notify (ctrl, (const unsigned char*) (line));
       if (err)
         log_error (_("failed to proxy %s inquiry to client\n"),
                    "PINENTRY_LAUNCHED");

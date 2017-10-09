@@ -248,12 +248,12 @@ static void prefetch_table(const volatile byte *tab, size_t len)
 
 static void prefetch_enc(void)
 {
-  prefetch_table((const void *)encT, sizeof(encT));
+  prefetch_table((const volatile byte*) ((const void *)encT), sizeof(encT));
 }
 
 static void prefetch_dec(void)
 {
-  prefetch_table((const void *)&dec_tables, sizeof(dec_tables));
+  prefetch_table((const volatile byte*) ((const void *)&dec_tables), sizeof(dec_tables));
 }
 
 

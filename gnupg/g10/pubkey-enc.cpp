@@ -80,7 +80,7 @@ get_session_key (ctrl_t ctrl, PKT_pubkey_enc * k, DEK * dek)
   if (DBG_CLOCK)
     log_clock ("get_session_key enter");
 
-  rc = openpgp_pk_test_algo2 (k->pubkey_algo, PUBKEY_USAGE_ENC);
+  rc = openpgp_pk_test_algo2 ((pubkey_algo_t) (k->pubkey_algo), PUBKEY_USAGE_ENC);
   if (rc)
     goto leave;
 
@@ -330,7 +330,7 @@ get_it (ctrl_t ctrl,
 
   dek->keylen = nframe - (n + 1) - 2;
   dek->algo = frame[n++];
-  err = openpgp_cipher_test_algo (dek->algo);
+  err = openpgp_cipher_test_algo ((cipher_algo_t) (dek->algo));
   if (err)
     {
       if (!opt.quiet && err == GPG_ERR_CIPHER_ALGO)
@@ -380,7 +380,7 @@ get_it (ctrl_t ctrl,
              && !opt.quiet
              && !is_algo_in_prefs (pkb, PREFTYPE_SYM, dek->algo))
       log_info (_("WARNING: cipher algorithm %s not found in recipient"
-                  " preferences\n"), openpgp_cipher_algo_name (dek->algo));
+                  " preferences\n"), openpgp_cipher_algo_name ((cipher_algo_t) (dek->algo)));
 
     if (!err)
       {

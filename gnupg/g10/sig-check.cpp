@@ -131,9 +131,9 @@ check_signature2 (ctrl_t ctrl,
     if (!pk)
       return gpg_error_from_syserror ();
 
-    if ( (rc=openpgp_md_test_algo(sig->digest_algo)) )
+    if ( (rc=openpgp_md_test_algo((digest_algo_t) (sig->digest_algo))) )
       ; /* We don't have this digest. */
-    else if (! gnupg_digest_is_allowed (opt.compliance, 0, sig->digest_algo))
+    else if (! gnupg_digest_is_allowed (opt.compliance, 0, (digest_algo_t) (sig->digest_algo)))
       {
 	/* Compliance failure.  */
 	log_info (_("you may not use digest algorithm '%s'"
@@ -142,7 +142,7 @@ check_signature2 (ctrl_t ctrl,
 		  gnupg_compliance_option_string (opt.compliance));
 	rc = GPG_ERR_DIGEST_ALGO;
       }
-    else if ((rc=openpgp_pk_test_algo(sig->pubkey_algo)))
+    else if ((rc=openpgp_pk_test_algo((pubkey_algo_t) (sig->pubkey_algo))))
       ; /* We don't have this pubkey algo. */
     else if (!gcry_md_is_enabled (digest,sig->digest_algo))
       {
@@ -230,7 +230,7 @@ check_signature2 (ctrl_t ctrl,
          * and gpg 2.x didn't matched either because 2.x used to print
          * MPIs not in PGP format.  */
 	u32 a = sig->timestamp;
-	int nsig = pubkey_get_nsig( sig->pubkey_algo );
+	int nsig = pubkey_get_nsig( (pubkey_algo_t) (sig->pubkey_algo ));
 	unsigned char *p, *buffer;
         size_t n, nbytes;
         int i;
@@ -267,11 +267,11 @@ check_signature2 (ctrl_t ctrl,
           }
         gcry_md_hash_buffer (GCRY_MD_SHA1, hashbuf, buffer, p-buffer);
 
-	p = (unsigned char*) make_radix64_string (hashbuf, 20);
-	sprintf (buffer, "%s %s %lu",
+	p = (unsigned char*) make_radix64_string ((const byte*) (hashbuf), 20);
+	sprintf ((char*) (buffer), "%s %s %lu",
 		 p, strtimestamp (sig->timestamp), (unsigned long)sig->timestamp);
 	xfree (p);
-	write_status_text (STATUS_SIG_ID, buffer);
+	write_status_text (STATUS_SIG_ID, (const char*) (buffer));
 	xfree (buffer);
     }
 
@@ -456,7 +456,7 @@ check_signature_end_simple (PKT_public_key *pk, PKT_signature *sig,
       for (weak = opt.weak_digests; weak; weak = weak->next)
         if (sig->digest_algo == weak->algo)
           {
-            print_digest_rejected_note(sig->digest_algo);
+            print_digest_rejected_note((gcry_md_algos) (sig->digest_algo));
             return GPG_ERR_DIGEST_ALGO;
           }
 
@@ -511,7 +511,7 @@ check_signature_end_simple (PKT_public_key *pk, PKT_signature *sig,
         return GPG_ERR_GENERAL;
 
     /* Verify the signature.  */
-    rc = pk_verify( pk->pubkey_algo, result, sig->data, pk->pkey );
+    rc = pk_verify( (pubkey_algo_t) (pk->pubkey_algo), result, sig->data, pk->pkey );
     gcry_mpi_release (result);
 
     if( !rc && sig->flags.unknown_critical )
@@ -705,7 +705,7 @@ check_backsig (PKT_public_key *main_pk,PKT_public_key *sub_pk,
   /* Always check whether the algorithm is available.  Although
      gcry_md_open would throw an error, some libgcrypt versions will
      print a debug message in that case too. */
-  if ((rc=openpgp_md_test_algo (backsig->digest_algo)))
+  if ((rc=openpgp_md_test_algo ((digest_algo_t) (backsig->digest_algo))))
     return rc;
 
   if(!opt.no_sig_cache && backsig->flags.checked)
@@ -781,10 +781,10 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
   gcry_md_hd_t md;
   int signer_alloced = 0;
 
-  rc = openpgp_pk_test_algo (sig->pubkey_algo);
+  rc = openpgp_pk_test_algo ((pubkey_algo_t) (sig->pubkey_algo));
   if (rc)
     return rc;
-  rc = openpgp_md_test_algo (sig->digest_algo);
+  rc = openpgp_md_test_algo ((digest_algo_t) (sig->digest_algo));
   if (rc)
     return rc;
 
@@ -1060,10 +1060,10 @@ check_key_signature2 (ctrl_t ctrl,
         }
     }
 
-  rc = openpgp_pk_test_algo(sig->pubkey_algo);
+  rc = openpgp_pk_test_algo((pubkey_algo_t) (sig->pubkey_algo));
   if (rc)
     return rc;
-  rc = openpgp_md_test_algo(algo);
+  rc = openpgp_md_test_algo((digest_algo_t) (algo));
   if (rc)
     return rc;
 

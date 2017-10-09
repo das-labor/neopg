@@ -175,7 +175,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
 
           if (rlen < neededfixedlen
               && !gcry_mpi_get_flag (r, GCRYMPI_FLAG_OPAQUE)
-              && !(rc=gcry_mpi_print (GCRYMPI_FMT_USG, buf, sizeof buf, &n, r)))
+              && !(rc=gcry_mpi_print (GCRYMPI_FMT_USG, (unsigned char*) (buf), sizeof buf, &n, r)))
             {
               log_assert (n < neededfixedlen);
               memmove (buf + (neededfixedlen - n), buf, n);
@@ -184,7 +184,7 @@ pk_verify (pubkey_algo_t pkalgo, gcry_mpi_t hash,
             }
           if (slen < neededfixedlen
               && !gcry_mpi_get_flag (s, GCRYMPI_FLAG_OPAQUE)
-              && !(rc=gcry_mpi_print (GCRYMPI_FMT_USG, buf, sizeof buf, &n, s)))
+              && !(rc=gcry_mpi_print (GCRYMPI_FMT_USG, (unsigned char*) (buf), sizeof buf, &n, s)))
             {
               log_assert (n < neededfixedlen);
               memmove (buf + (neededfixedlen - n), buf, n);

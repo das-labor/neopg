@@ -755,15 +755,15 @@ proc_type_encrypt (audit_ctx_t ctx)
   int algo;
   char *name;
 
-  item = find_log_item (ctx, AUDIT_ENCRYPTION_DONE, 0);
+  item = find_log_item (ctx, AUDIT_ENCRYPTION_DONE, (audit_event_t) (0));
   writeout_li (ctx, item?"Yes":"No", "%s", _("Data encryption succeeded"));
 
   enter_li (ctx);
 
-  item = find_log_item (ctx, AUDIT_GOT_DATA, 0);
+  item = find_log_item (ctx, AUDIT_GOT_DATA, (audit_event_t) (0));
   writeout_li (ctx, item? "Yes":"No", "%s", _("Data available"));
 
-  item = find_log_item (ctx, AUDIT_SESSION_KEY, 0);
+  item = find_log_item (ctx, AUDIT_SESSION_KEY, (audit_event_t) (0));
   writeout_li (ctx, item? "Yes":"No", "%s", _("Session key created"));
   if (item)
     {
@@ -778,7 +778,7 @@ proc_type_encrypt (audit_ctx_t ctx)
         writeout_rem (ctx, _("seems to be not encrypted"));
     }
 
-  item = find_log_item (ctx, AUDIT_GOT_RECIPIENTS, 0);
+  item = find_log_item (ctx, AUDIT_GOT_RECIPIENTS, (audit_event_t) (0));
   snprintf (numbuf, sizeof numbuf, "%d",
             item && item->have_intvalue? item->intvalue : 0);
   writeout_li (ctx, numbuf, "%s", _("Number of recipients"));
@@ -786,7 +786,7 @@ proc_type_encrypt (audit_ctx_t ctx)
   /* Loop over all recipients.  */
   loopitem = NULL;
   recp_no = 0;
-  while ((loopitem=find_next_log_item (ctx, loopitem, AUDIT_ENCRYPTED_TO, 0)))
+  while ((loopitem=find_next_log_item (ctx, loopitem, AUDIT_ENCRYPTED_TO, (audit_event_t) (0))))
     {
       recp_no++;
       writeout_li (ctx, NULL, _("Recipient %d"), recp_no);
@@ -821,12 +821,12 @@ proc_type_sign (audit_ctx_t ctx)
   char *name;
   int lastalgo;
 
-  item = find_log_item (ctx, AUDIT_SIGNING_DONE, 0);
+  item = find_log_item (ctx, AUDIT_SIGNING_DONE, (audit_event_t) (0));
   writeout_li (ctx, item?"Yes":"No", "%s", _("Data signing succeeded"));
 
   enter_li (ctx);
 
-  item = find_log_item (ctx, AUDIT_GOT_DATA, 0);
+  item = find_log_item (ctx, AUDIT_GOT_DATA, (audit_event_t) (0));
   writeout_li (ctx, item? "Yes":"No", "%s", _("Data available"));
   /* Write remarks with the data hash algorithms.  We use a very
      simple scheme to avoid some duplicates.  */
@@ -844,7 +844,7 @@ proc_type_sign (audit_ctx_t ctx)
   /* Loop over all signer.  */
   loopitem = NULL;
   signer = 0;
-  while ((loopitem=find_next_log_item (ctx, loopitem, AUDIT_NEW_SIG, 0)))
+  while ((loopitem=find_next_log_item (ctx, loopitem, AUDIT_NEW_SIG, (audit_event_t) (0))))
     {
       signer++;
 
@@ -896,22 +896,22 @@ proc_type_decrypt (audit_ctx_t ctx)
   char numbuf[35];
   int idx;
 
-  item = find_log_item (ctx, AUDIT_DECRYPTION_RESULT, 0);
+  item = find_log_item (ctx, AUDIT_DECRYPTION_RESULT, (audit_event_t) (0));
   writeout_li (ctx, item && !item->err?"Yes":"No",
                "%s", _("Data decryption succeeded"));
 
   enter_li (ctx);
 
-  item = find_log_item (ctx, AUDIT_GOT_DATA, 0);
+  item = find_log_item (ctx, AUDIT_GOT_DATA, (audit_event_t) (0));
   writeout_li (ctx, item? "Yes":"No", "%s", _("Data available"));
 
-  item = find_log_item (ctx, AUDIT_DATA_CIPHER_ALGO, 0);
+  item = find_log_item (ctx, AUDIT_DATA_CIPHER_ALGO, (audit_event_t) (0));
   algo = item? item->intvalue : 0;
   writeout_li (ctx, algo?"Yes":"No", "%s", _("Encryption algorithm supported"));
   if (algo)
     writeout_rem (ctx, _("algorithm: %s"), gnupg_cipher_algo_name (algo));
 
-  item = find_log_item (ctx, AUDIT_BAD_DATA_CIPHER_ALGO, 0);
+  item = find_log_item (ctx, AUDIT_BAD_DATA_CIPHER_ALGO, (audit_event_t) (0));
   if (item && item->string)
     {
       algo = gcry_cipher_map_name (item->string);
@@ -927,14 +927,14 @@ proc_type_decrypt (audit_ctx_t ctx)
 
 
   for (recpno = 0, item = NULL;
-       (item = find_next_log_item (ctx, item, AUDIT_NEW_RECP, 0)); recpno++)
+       (item = find_next_log_item (ctx, item, AUDIT_NEW_RECP, (audit_event_t) (0))); recpno++)
     ;
   snprintf (numbuf, sizeof numbuf, "%d", recpno);
   writeout_li (ctx, numbuf, "%s", _("Number of recipients"));
 
   /* Loop over all recipients.  */
   loopitem = NULL;
-  while ((loopitem = find_next_log_item (ctx, loopitem, AUDIT_NEW_RECP, 0)))
+  while ((loopitem = find_next_log_item (ctx, loopitem, AUDIT_NEW_RECP, (audit_event_t) (0))))
     {
       const char *result;
 
@@ -989,7 +989,7 @@ proc_type_verify (audit_ctx_t ctx)
   /* If there is at least one signature status we claim that the
      verification succeeded.  This does not mean that the data has
      verified okay.  */
-  item = find_log_item (ctx, AUDIT_SIG_STATUS, 0);
+  item = find_log_item (ctx, AUDIT_SIG_STATUS, (audit_event_t) (0));
   writeout_li (ctx, item?"Yes":"No", "%s", _("Data verification succeeded"));
   enter_li (ctx);
 
@@ -998,7 +998,7 @@ proc_type_verify (audit_ctx_t ctx)
   if (!item)
     goto leave;
 
-  item = find_log_item (ctx, AUDIT_NEW_SIG, 0);
+  item = find_log_item (ctx, AUDIT_NEW_SIG, (audit_event_t) (0));
   writeout_li (ctx, item? "Yes":"No", "%s", _("Signature available"));
   if (!item)
     goto leave;
@@ -1040,7 +1040,7 @@ proc_type_verify (audit_ctx_t ctx)
 
 
   /* Loop over all signatures.  */
-  loopitem = find_log_item (ctx, AUDIT_NEW_SIG, 0);
+  loopitem = find_log_item (ctx, AUDIT_NEW_SIG, (audit_event_t) (0));
   assert (loopitem);
   do
     {
@@ -1125,7 +1125,7 @@ proc_type_verify (audit_ctx_t ctx)
 
       leave_li (ctx);
     }
-  while ((loopitem = find_next_log_item (ctx, loopitem, AUDIT_NEW_SIG, 0)));
+  while ((loopitem = find_next_log_item (ctx, loopitem, AUDIT_NEW_SIG, (audit_event_t) (0))));
 
 
  leave:
@@ -1255,7 +1255,7 @@ audit_print_result (audit_ctx_t ctx, estream_t out, int use_html)
       proc_type_verify (ctx);
       break;
     }
-  item = find_log_item (ctx, AUDIT_AGENT_READY, 0);
+  item = find_log_item (ctx, AUDIT_AGENT_READY, (audit_event_t) (0));
   if (item && item->have_err)
     {
       writeout_li (ctx, item->err? "No":"Yes", "%s", _("Gpg-Agent usable"));
@@ -1265,7 +1265,7 @@ audit_print_result (audit_ctx_t ctx, estream_t out, int use_html)
           add_helptag (ctx, "gnupg.agent-problem");
         }
     }
-  item = find_log_item (ctx, AUDIT_DIRMNGR_READY, 0);
+  item = find_log_item (ctx, AUDIT_DIRMNGR_READY, (audit_event_t) (0));
   if (item && item->have_err)
     {
       writeout_li (ctx, item->err? "No":"Yes", "%s", _("Dirmngr usable"));

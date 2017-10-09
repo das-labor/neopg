@@ -1673,7 +1673,7 @@ tdbio_write_record (ctrl_t ctrl, TRUSTREC *rec)
       BUG();
     }
 
-  rc = put_record_into_cache (recnum, buf);
+  rc = put_record_into_cache (recnum, (const char*) (buf));
   if (rc)
     ;
   else if (rec->rectype == RECTYPE_TRUST)

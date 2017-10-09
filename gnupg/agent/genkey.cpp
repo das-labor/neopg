@@ -394,7 +394,7 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
   pi2->check_cb_arg = pi->pin;
 
  next_try:
-  err = agent_askpin (ctrl, text1, NULL, initial_errtext, pi, NULL, 0);
+  err = agent_askpin (ctrl, text1, NULL, initial_errtext, pi, NULL, (cache_mode_t) (0));
   xfree (initial_errtext);
   initial_errtext = NULL;
   if (!err)
@@ -409,7 +409,7 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
          it already did the repetition check, ask to confirm it.  */
       if (*pi->pin && !pi->repeat_okay)
         {
-          err = agent_askpin (ctrl, text2, NULL, NULL, pi2, NULL, 0);
+          err = agent_askpin (ctrl, text2, NULL, NULL, pi2, NULL, (cache_mode_t) (0));
           if (err == GPG_ERR_BAD_PASSPHRASE)
             { /* The re-entered one did not match and the user did not
                  hit cancel. */

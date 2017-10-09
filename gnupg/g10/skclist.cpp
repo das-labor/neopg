@@ -149,7 +149,7 @@ build_sk_list (ctrl_t ctrl,
         }
 
       err = get_seckey_default_or_card (ctrl, pk,
-                                        info.fpr1valid? info.fpr1 : NULL, 20);
+                                        (const byte*) (info.fpr1valid? info.fpr1 : NULL), 20);
       if (err)
 	{
 	  free_public_key (pk);
@@ -157,7 +157,7 @@ build_sk_list (ctrl_t ctrl,
 	  log_error ("no default secret key: %s\n", gpg_strerror (err));
 	  write_status_text (STATUS_INV_SGNR, get_inv_recpsgnr_code (err));
 	}
-      else if ((err = openpgp_pk_test_algo2 (pk->pubkey_algo, use)))
+      else if ((err = openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo), use)))
 	{
 	  free_public_key (pk);
 	  pk = NULL;
@@ -223,7 +223,7 @@ build_sk_list (ctrl_t ctrl,
 	      pk = NULL;
 	      log_info (_("skipped: secret key already present\n"));
 	    }
-	  else if ((err = openpgp_pk_test_algo2 (pk->pubkey_algo, use)))
+	  else if ((err = openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo), use)))
 	    {
 	      free_public_key (pk);
 	      pk = NULL;

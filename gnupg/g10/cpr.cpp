@@ -354,7 +354,7 @@ write_status_begin_signing (gcry_md_hd_t md)
       buflen = 0;
       for (i=1; i <= 110; i++)
         {
-          ga = map_md_openpgp_to_gcry (i);
+          ga = map_md_openpgp_to_gcry ((digest_algo_t) (i));
           if (ga && gcry_md_is_enabled (md, ga) && buflen+10 < DIM(buf))
             {
               snprintf (buf+buflen, DIM(buf) - buflen,

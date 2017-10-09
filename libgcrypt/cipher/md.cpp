@@ -855,7 +855,7 @@ _gcry_md_ctl (gcry_md_hd_t hd, int cmd, void *buffer, size_t buflen)
       md_final (hd);
       break;
     case GCRYCTL_START_DUMP:
-      md_start_debug (hd, buffer);
+      md_start_debug (hd, (const char*) (buffer));
       break;
     case GCRYCTL_STOP_DUMP:
       md_stop_debug ( hd );
@@ -874,13 +874,13 @@ _gcry_md_setkey (gcry_md_hd_t hd, const void *key, size_t keylen)
 
   if (hd->ctx->flags.hmac)
     {
-      rc = prepare_macpads (hd, key, keylen);
+      rc = prepare_macpads (hd, (const unsigned char*) (key), keylen);
       if (!rc)
 	_gcry_md_reset (hd);
     }
   else
     {
-      rc = md_setkey (hd, key, keylen);
+      rc = md_setkey (hd, (const unsigned char*) (key), keylen);
     }
 
   return rc;

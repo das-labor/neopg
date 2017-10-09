@@ -139,7 +139,7 @@ default_inq_cb (void *opaque, const char *line)
 
   if (has_leading_keyword (line, "PINENTRY_LAUNCHED"))
     {
-      err = gpg_proxy_pinentry_notify (parm->ctrl, line);
+      err = gpg_proxy_pinentry_notify (parm->ctrl, (const unsigned char*) (line));
       if (err)
         log_error (_("failed to proxy %s inquiry to client\n"),
                    "PINENTRY_LAUNCHED");
@@ -268,14 +268,14 @@ start_agent (ctrl_t ctrl, int flag_for_card)
           if (opt.pinentry_mode)
             {
               char *tmp = xasprintf ("OPTION pinentry-mode=%s",
-                                     str_pinentry_mode (opt.pinentry_mode));
+                                     str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)));
               rc = assuan_transact (agent_ctx, tmp,
                                NULL, NULL, NULL, NULL, NULL, NULL);
               xfree (tmp);
               if (rc)
                 {
                   log_error ("setting pinentry mode '%s' failed: %s\n",
-                             str_pinentry_mode (opt.pinentry_mode),
+                             str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)),
                              gpg_strerror (rc));
                   write_status_error ("set_pinentry_mode", rc);
                 }
@@ -341,7 +341,7 @@ start_agent (ctrl_t ctrl, int flag_for_card)
 static char *
 unescape_status_string (const unsigned char *s)
 {
-  return percent_plus_unescape (s, 0xff);
+  return percent_plus_unescape ((const char*) (s), 0xff);
 }
 
 
@@ -470,7 +470,7 @@ learn_status_cb (void *opaque, const char *line)
   if (keywordlen == 6 && !memcmp (keyword, "READER", keywordlen))
     {
       xfree (parm->reader);
-      parm->reader = unescape_status_string (line);
+      parm->reader = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 8 && !memcmp (keyword, "SERIALNO", keywordlen))
     {
@@ -482,17 +482,17 @@ learn_status_cb (void *opaque, const char *line)
   else if (keywordlen == 7 && !memcmp (keyword, "APPTYPE", keywordlen))
     {
       xfree (parm->apptype);
-      parm->apptype = unescape_status_string (line);
+      parm->apptype = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 9 && !memcmp (keyword, "DISP-NAME", keywordlen))
     {
       xfree (parm->disp_name);
-      parm->disp_name = unescape_status_string (line);
+      parm->disp_name = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 9 && !memcmp (keyword, "DISP-LANG", keywordlen))
     {
       xfree (parm->disp_lang);
-      parm->disp_lang = unescape_status_string (line);
+      parm->disp_lang = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 8 && !memcmp (keyword, "DISP-SEX", keywordlen))
     {
@@ -501,12 +501,12 @@ learn_status_cb (void *opaque, const char *line)
   else if (keywordlen == 10 && !memcmp (keyword, "PUBKEY-URL", keywordlen))
     {
       xfree (parm->pubkey_url);
-      parm->pubkey_url = unescape_status_string (line);
+      parm->pubkey_url = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 10 && !memcmp (keyword, "LOGIN-DATA", keywordlen))
     {
       xfree (parm->login_data);
-      parm->login_data = unescape_status_string (line);
+      parm->login_data = unescape_status_string ((const unsigned char*) (line));
     }
   else if (keywordlen == 11 && !memcmp (keyword, "SIG-COUNTER", keywordlen))
     {
@@ -516,7 +516,7 @@ learn_status_cb (void *opaque, const char *line)
     {
       char *p, *buf;
 
-      buf = p = unescape_status_string (line);
+      buf = p = unescape_status_string ((const unsigned char*) (line));
       if (buf)
         {
           while (spacep (p))
@@ -550,7 +550,7 @@ learn_status_cb (void *opaque, const char *line)
       char *p, *p2, *buf;
       int abool;
 
-      buf = p = unescape_status_string (line);
+      buf = p = unescape_status_string ((const unsigned char*) (line));
       if (buf)
         {
           for (p = strtok (buf, " "); p; p = strtok (NULL, " "))
@@ -579,11 +579,11 @@ learn_status_cb (void *opaque, const char *line)
       while (spacep (line))
         line++;
       if (no == 1)
-        parm->fpr1valid = unhexify_fpr (line, parm->fpr1);
+        parm->fpr1valid = unhexify_fpr (line, (unsigned char*) (parm->fpr1));
       else if (no == 2)
-        parm->fpr2valid = unhexify_fpr (line, parm->fpr2);
+        parm->fpr2valid = unhexify_fpr (line, (unsigned char*) (parm->fpr2));
       else if (no == 3)
-        parm->fpr3valid = unhexify_fpr (line, parm->fpr3);
+        parm->fpr3valid = unhexify_fpr (line, (unsigned char*) (parm->fpr3));
     }
   else if (keywordlen == 8 && !memcmp (keyword, "KEY-TIME", keywordlen))
     {
@@ -607,11 +607,11 @@ learn_status_cb (void *opaque, const char *line)
       while (spacep (line))
         line++;
       if (no == 1)
-        parm->cafpr1valid = unhexify_fpr (line, parm->cafpr1);
+        parm->cafpr1valid = unhexify_fpr (line, (unsigned char*) (parm->cafpr1));
       else if (no == 2)
-        parm->cafpr2valid = unhexify_fpr (line, parm->cafpr2);
+        parm->cafpr2valid = unhexify_fpr (line, (unsigned char*) (parm->cafpr2));
       else if (no == 3)
-        parm->cafpr3valid = unhexify_fpr (line, parm->cafpr3);
+        parm->cafpr3valid = unhexify_fpr (line, (unsigned char*) (parm->cafpr3));
     }
   else if (keywordlen == 8 && !memcmp (keyword, "KEY-ATTR", keywordlen))
     {
@@ -638,7 +638,7 @@ learn_status_cb (void *opaque, const char *line)
       int no = keyword[11] - '1';
       log_assert (no >= 0 && no <= 3);
       xfree (parm->private_do[no]);
-      parm->private_do[no] = unescape_status_string (line);
+      parm->private_do[no] = unescape_status_string ((const unsigned char*) (line));
     }
 
   return 0;
@@ -1702,7 +1702,7 @@ agent_genkey (ctrl_t ctrl, char **cache_nonce_addr, char **passwd_nonce_addr,
     err = gpg_error_from_syserror ();
   else
     {
-      err = gcry_sexp_sscan (r_pubkey, NULL, buf, len);
+      err = gcry_sexp_sscan (r_pubkey, NULL, (const char*) (buf), len);
       xfree (buf);
     }
   return err;
@@ -1844,7 +1844,7 @@ agent_pksign (ctrl_t ctrl, const char *cache_nonce,
         err = gpg_error_from_syserror ();
       else
         {
-          err = gcry_sexp_sscan (r_sigval, NULL, buf, len);
+          err = gcry_sexp_sscan (r_sigval, NULL, (const char*) (buf), len);
           xfree (buf);
         }
     }

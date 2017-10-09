@@ -550,7 +550,7 @@ app_select_dinsig (app_t app)
   int slot = app->slot;
   int rc;
 
-  rc = iso7816_select_application (slot, aid, sizeof aid, 0);
+  rc = iso7816_select_application (slot, (const char*) (aid), sizeof aid, 0);
   if (!rc)
     {
       app->apptype = "DINSIG";

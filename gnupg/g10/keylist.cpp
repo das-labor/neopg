@@ -302,7 +302,7 @@ status_one_subpacket (sigsubpkttype_t type, size_t len, int flags,
   snprintf (status, sizeof status,
             "%d %u %u ", type, flags, (unsigned int) len);
 
-  write_status_text_and_buffer (STATUS_SIG_SUBPACKET, status, buf, len, 0);
+  write_status_text_and_buffer (STATUS_SIG_SUBPACKET, status, (const char*) (buf), len, 0);
 }
 
 
@@ -342,7 +342,7 @@ show_policy_url (PKT_signature * sig, int indent, int mode)
 	}
 
       if (mode > 0)
-	write_status_buffer (STATUS_POLICY_URL, p, len, 0);
+	write_status_buffer (STATUS_POLICY_URL, (const char*) (p), len, 0);
     }
 }
 
@@ -433,9 +433,9 @@ show_notation (PKT_signature * sig, int indent, int mode, int which)
 	      else
 		tty_fprintf (fp, "%s", str);
 	      /* This is all UTF8 */
-	      tty_print_utf8_string2 (fp, nd->name, strlen (nd->name), 0);
+	      tty_print_utf8_string2 (fp, (const unsigned char*) (nd->name), strlen (nd->name), 0);
 	      tty_fprintf (fp, "=");
-	      tty_print_utf8_string2 (fp, nd->value, strlen (nd->value), 0);
+	      tty_print_utf8_string2 (fp, (const unsigned char*) (nd->value), strlen (nd->value), 0);
               /* (We need to use log_printf so that the next call to a
                   log function does not insert an extra LF.)  */
               if (mode > 0)
@@ -686,7 +686,7 @@ locate_one (ctrl_t ctrl, strlist_t names)
 static void
 print_key_data (PKT_public_key * pk)
 {
-  int n = pk ? pubkey_get_npkey (pk->pubkey_algo) : 0;
+  int n = pk ? pubkey_get_npkey ((pubkey_algo_t) (pk->pubkey_algo)) : 0;
   int i;
 
   for (i = 0; i < n; i++)
@@ -817,13 +817,13 @@ print_subpackets_colon (PKT_signature * sig)
 
       seq = 0;
 
-      while ((p = enum_sig_subpkt (sig->hashed, *i, &len, &seq, &crit)))
-	print_one_subpacket (*i, len, 0x01 | (crit ? 0x02 : 0), p);
+      while ((p = enum_sig_subpkt (sig->hashed, (sigsubpkttype_t) (*i), &len, &seq, &crit)))
+	print_one_subpacket ((sigsubpkttype_t) (*i), len, 0x01 | (crit ? 0x02 : 0), p);
 
       seq = 0;
 
-      while ((p = enum_sig_subpkt (sig->unhashed, *i, &len, &seq, &crit)))
-	print_one_subpacket (*i, len, 0x00 | (crit ? 0x02 : 0), p);
+      while ((p = enum_sig_subpkt (sig->unhashed, (sigsubpkttype_t) (*i), &len, &seq, &crit)))
+	print_one_subpacket ((sigsubpkttype_t) (*i), len, 0x00 | (crit ? 0x02 : 0), p);
     }
 }
 
@@ -978,7 +978,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
                   *p++ = 0;
 
 		  std::unique_ptr<Botan::HashFunction> sha1(Botan::HashFunction::create_or_throw("SHA-1"));
-		  sha1->update(mbox, strlen(mbox));
+		  sha1->update((const uint8_t *) mbox, strlen(mbox));
 		  sha1->final((byte*)hashbuf);
 
                   hash = zb32_encode (hashbuf, 8*20);
@@ -1558,7 +1558,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 
 	  if (sig->trust_regexp)
 	    es_write_sanitized (es_stdout, sig->trust_regexp,
-                                strlen (sig->trust_regexp), ":", NULL);
+                                strlen ((const char*) (sig->trust_regexp)), ":", NULL);
 	  es_fprintf (es_stdout, ":");
 
 	  if (sigrc == '%')

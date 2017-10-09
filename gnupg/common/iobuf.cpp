@@ -544,7 +544,7 @@ file_filter (void *opaque, int control, iobuf_t chain, byte * buf,
     }
   else if (control == IOBUFCTRL_DESC)
     {
-      mem2str (buf, "file_filter(fd)", *ret_len);
+      mem2str ((char*) (buf), "file_filter(fd)", *ret_len);
     }
   else if (control == IOBUFCTRL_FREE)
     {
@@ -633,7 +633,7 @@ file_es_filter (void *opaque, int control, iobuf_t chain, byte * buf,
     }
   else if (control == IOBUFCTRL_DESC)
     {
-      mem2str (buf, "estream_filter", *ret_len);
+      mem2str ((char*) (buf), "estream_filter", *ret_len);
     }
   else if (control == IOBUFCTRL_FREE)
     {
@@ -1415,7 +1415,7 @@ iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval)
 		   ptrval ? (char *) ptrval : "?");
       if (!a && !intval && ptrval)
 	{
-	  if (fd_cache_invalidate (ptrval))
+	  if (fd_cache_invalidate ((const char*) (ptrval)))
             return -1;
 	  return 0;
 	}
@@ -1452,7 +1452,7 @@ iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval)
 
       if (!a && !intval && ptrval)
         {
-          return fd_cache_synchronize (ptrval);
+          return fd_cache_synchronize ((const char*) (ptrval));
         }
     }
 
