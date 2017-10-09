@@ -38,6 +38,7 @@ $ make test # or ./gpg-error-test
 
 ## Things accomplished
 
+* build with clang (portability and allowing static analysis)
 * libgpg-error
 ** No dynamic code generation (except preprocessor).
 ** No lock objects.

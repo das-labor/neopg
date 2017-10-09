@@ -1653,7 +1653,7 @@ yyreduce:
 #line 282 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_TAG);
-                  (yyval.node)->flags.klasse = (yyvsp[-2].constant);
+                  (yyval.node)->flags.klasse = (tag_class) (yyvsp[-2].constant);
                   set_ulong_value ((yyval.node), (yyvsp[-1].str));
                 }
 #line 1660 "asn1-parse.c" /* yacc.c:1646  */
@@ -2758,7 +2758,7 @@ new_node (struct parser_control_s *parsectl, node_type_t type)
 {
   AsnNode node;
 
-  node = xcalloc (1, sizeof *node);
+  node = (AsnNode) xcalloc (1, sizeof *node);
   node->type = type;
   node->off = -1;
   node->link_next = parsectl->all_nodes;
@@ -2888,7 +2888,7 @@ ksba_asn_parse_file (const char *file_name, ksba_asn_tree_t *result, int debug)
 
       _ksba_asn_change_integer_value (parsectl.parse_tree);
       _ksba_asn_expand_object_id (parsectl.parse_tree);
-      tree = xmalloc ( sizeof *tree + (file_name? strlen (file_name):1) );
+      tree = (ksba_asn_tree_t) xmalloc ( sizeof *tree + (file_name? strlen (file_name):1) );
       tree->parse_tree = parsectl.parse_tree;
       tree->node_list = parsectl.all_nodes;
       strcpy (tree->filename, file_name? file_name:"-");
