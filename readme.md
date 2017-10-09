@@ -31,7 +31,7 @@ With all dependencies installed NeoPG can be build with CMake.
 
 ```bash
 $ cd build
-$ cmake ../src
+$ cmake ../src   # or cmake -C ../src/clang.txt ../src
 $ make
 $ make test # or ./gpg-error-test
 ```
