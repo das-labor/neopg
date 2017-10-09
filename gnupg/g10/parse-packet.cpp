@@ -1674,7 +1674,7 @@ enum_sig_subpkt (const subpktarea_t * pktbuf, sigsubpkttype_t reqtype,
       static char dummy[] = "x";
       /* Return a value different from NULL to indicate that
        * there is no critical bit we do not understand.  */
-      return reqtype ==	SIGSUBPKT_TEST_CRITICAL ? dummy : NULL;
+      return (const byte *) (reqtype ==	SIGSUBPKT_TEST_CRITICAL ? dummy : NULL);
     }
   buffer = pktbuf->data;
   buflen = pktbuf->len;

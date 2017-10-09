@@ -2509,7 +2509,6 @@ build_signed_data_attributes (ksba_cms_t cms)
       attridx++;
 
       /* Include the signing time */
-      if (certlist->signing_time)
         {
           attr = _ksba_asn_expand_tree (cms_tree->parse_tree,
                                      "CryptographicMessageSyntax.Attribute");

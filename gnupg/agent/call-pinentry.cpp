@@ -321,7 +321,8 @@ start_pinentry (ctrl_t ctrl)
   argv[0] = pgmname;
 #endif /*__APPLE__*/
 
-  if (value = session_env_getenv (ctrl->session_env, "DISPLAY"))
+  value = session_env_getenv (ctrl->session_env, "DISPLAY");
+  if (value)
     {
       argv[1] = "--display";
       argv[2] = value;

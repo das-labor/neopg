@@ -408,7 +408,7 @@ myread(int fd, void *buf, size_t count)
    is set the function returns a static string (do not free) if the
    entered value was true or NULL if the entered value was false.  */
 static char *
-do_get_from_fd ( const char *keyword, int hidden, int getbool )
+do_get_from_fd ( const char *keyword, int hidden, int* getbool )
 {
   int i, len;
   char *string;
@@ -447,7 +447,10 @@ do_get_from_fd ( const char *keyword, int hidden, int getbool )
   write_status (STATUS_GOT_IT);
 
   if (getbool)	 /* Fixme: is this correct??? */
-    return (string[0] == 'Y' || string[0] == 'y') ? "" : NULL;
+    {
+      *getbool = (string[0] == 'Y' || string[0] == 'y') ? 1 : 0;
+      return NULL;
+    }
 
   return string;
 }
@@ -468,7 +471,7 @@ cpr_get_no_help( const char *keyword, const char *prompt )
     char *p;
 
     if( opt.command_fd != -1 )
-	return do_get_from_fd ( keyword, 0, 0 );
+	return do_get_from_fd ( keyword, 0, NULL );
     for(;;) {
 	p = tty_get( prompt );
         return p;
@@ -481,7 +484,7 @@ cpr_get( const char *keyword, const char *prompt )
     char *p;
 
     if( opt.command_fd != -1 )
-	return do_get_from_fd ( keyword, 0, 0 );
+	return do_get_from_fd ( keyword, 0, NULL );
     for(;;) {
 	p = tty_get( prompt );
 	if( *p=='?' && !p[1] && !(keyword && !*keyword)) {
@@ -513,7 +516,7 @@ cpr_get_hidden( const char *keyword, const char *prompt )
     char *p;
 
     if( opt.command_fd != -1 )
-	return do_get_from_fd ( keyword, 1, 0 );
+	return do_get_from_fd ( keyword, 1, NULL );
     for(;;) {
 	p = tty_get_hidden( prompt );
 	if( *p == '?' && !p[1] ) {
@@ -541,7 +544,11 @@ cpr_get_answer_is_yes_def (const char *keyword, const char *prompt, int def_yes)
     char *p;
 
     if( opt.command_fd != -1 )
-	return !!do_get_from_fd ( keyword, 0, 1 );
+      {
+	int ret;
+	do_get_from_fd ( keyword, 0, &ret );
+	return ret;
+      }
     for(;;) {
 	p = tty_get( prompt );
 	trim_spaces(p); /* it is okay to do this here */
@@ -571,7 +578,11 @@ cpr_get_answer_yes_no_quit( const char *keyword, const char *prompt )
     char *p;
 
     if( opt.command_fd != -1 )
-	return !!do_get_from_fd ( keyword, 0, 1 );
+      {
+	int ret;
+	do_get_from_fd ( keyword, 0, &ret );
+	return ret;
+      }
     for(;;) {
 	p = tty_get( prompt );
 	trim_spaces(p); /* it is okay to do this here */

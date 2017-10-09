@@ -919,9 +919,9 @@ cdb_make_finish(struct cdb_make *cdbmp)
 cdbi_t
 cdb_hash(const void *buf, cdbi_t len)
 {
-  register const unsigned char *p = (const unsigned char *)buf;
-  register const unsigned char *end = p + len;
-  register cdbi_t hash = 5381;	/* start value */
+  const unsigned char *p = (const unsigned char *)buf;
+  const unsigned char *end = p + len;
+  cdbi_t hash = 5381;	/* start value */
   while (p < end)
     hash = (hash + (hash << 5)) ^ *p++;
   return hash;

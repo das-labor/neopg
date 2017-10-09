@@ -1382,7 +1382,7 @@ gcry_log_debugmpi (const char *text, gcry_mpi_t mpi)
 void
 gcry_log_debugpnt (const char *text, mpi_point_t point, gcry_ctx_t ctx)
 {
-  mpi_ec_t ec = ctx? _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC) : NULL;
+  mpi_ec_t ec = (mpi_ec_t) (ctx? _gcry_ctx_get_pointer (ctx, CONTEXT_TYPE_EC) : NULL);
 
   _gcry_mpi_point_log (text, point, ec);
 }

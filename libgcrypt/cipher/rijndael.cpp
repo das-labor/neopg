@@ -230,20 +230,21 @@ static const char *selftest(void);
 static void prefetch_table(const volatile byte *tab, size_t len)
 {
   size_t i;
-
+  byte b;
+  
   for (i = 0; i < len; i += 8 * 32)
     {
-      (void)tab[i + 0 * 32];
-      (void)tab[i + 1 * 32];
-      (void)tab[i + 2 * 32];
-      (void)tab[i + 3 * 32];
-      (void)tab[i + 4 * 32];
-      (void)tab[i + 5 * 32];
-      (void)tab[i + 6 * 32];
-      (void)tab[i + 7 * 32];
+      b = tab[i + 0 * 32];
+      b = tab[i + 1 * 32];
+      b = tab[i + 2 * 32];
+      b = tab[i + 3 * 32];
+      b = tab[i + 4 * 32];
+      b = tab[i + 5 * 32];
+      b = tab[i + 6 * 32];
+      b = tab[i + 7 * 32];
     }
 
-  (void)tab[len - 1];
+  b = tab[len - 1];
 }
 
 static void prefetch_enc(void)
