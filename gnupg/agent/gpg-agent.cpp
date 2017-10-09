@@ -1361,33 +1361,3 @@ create_directories (void)
 
 
 
-/* This is the worker for the ticker.  It is called every few seconds
-   and may only do fast operations. */
-static void
-handle_tick (void)
-{
-  static time_t last_minute;
-
-  if (!last_minute)
-    last_minute = time (NULL);
-
-  /* Check whether the scdaemon has died and cleanup in this case. */
-  agent_scd_check_aliveness ();
-
-  /* If we are running as a child of another process, check whether
-     the parent is still alive and shutdown if not. */
-#ifndef HAVE_W32_SYSTEM
-  if (parent_pid != (pid_t)(-1))
-    {
-      if (kill (parent_pid, 0))
-        {
-          shutdown_pending = 2;
-          log_info ("parent process died - shutting down\n");
-          log_info ("%s %s stopped\n", strusage(11), strusage(13) );
-          cleanup ();
-          agent_exit (0);
-        }
-    }
-#endif /*HAVE_W32_SYSTEM*/
-
-}

@@ -2435,24 +2435,6 @@ cmd_putval (assuan_context_t ctx, char *line)
 }
 
 
-static const char hlp_killagent[] =
-  "KILLAGENT\n"
-  "\n"
-  "Stop the agent.";
-static gpg_error_t
-cmd_killagent (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-  (void)line;
-
-  ctrl->server_local->stopme = 1;
-  assuan_set_flag (ctx, ASSUAN_FORCE_CLOSE, 1);
-  return 0;
-}
-
-
-
 static const char hlp_getinfo[] =
   "GETINFO <what>\n"
   "\n"
@@ -2461,7 +2443,6 @@ static const char hlp_getinfo[] =
   "\n"
   "  version     - Return the version of the program.\n"
   "  pid         - Return the process id of the server.\n"
-  "  scd_running - Return OK if the SCdaemon is already running.\n"
   "  s2k_count   - Return the calibrated S2K count.\n"
   "  std_env_names   - List the names of the standard environment.\n"
   "  std_session_env - List the standard session environment.\n"
@@ -2525,10 +2506,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "scd_running"))
-    {
-      rc = agent_scd_check_running ()? 0 : GPG_ERR_GENERAL;
     }
   else if (!strcmp (line, "std_env_names"))
     {
@@ -2798,7 +2775,6 @@ register_commands (assuan_context_t ctx)
     { "DELETE_KEY",     cmd_delete_key, hlp_delete_key },
     { "GETVAL",         cmd_getval,    hlp_getval },
     { "PUTVAL",         cmd_putval,    hlp_putval },
-    { "KILLAGENT",      cmd_killagent,  hlp_killagent },
     { "GETINFO",        cmd_getinfo,   hlp_getinfo },
     { "KEYTOCARD",      cmd_keytocard, hlp_keytocard },
     { NULL }
