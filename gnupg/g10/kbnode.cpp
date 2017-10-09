@@ -300,63 +300,6 @@ commit_kbnode( KBNODE *root )
     return changed;
 }
 
-void
-remove_kbnode( KBNODE *root, KBNODE node )
-{
-    KBNODE n, nl;
-
-    for( n = *root, nl=NULL; n; n = nl->next ) {
-	if( n == node ) {
-	    if( n == *root )
-		*root = nl = n->next;
-	    else
-		nl->next = n->next;
-	    if( !is_cloned_kbnode(n) ) {
-                free_packet (n->pkt, NULL);
-		xfree( n->pkt );
-	    }
-	    free_node( n );
-	}
-	else
-	    nl = n;
-    }
-}
-
-
-/****************
- * Move NODE behind right after WHERE or to the beginning if WHERE is NULL.
- */
-void
-move_kbnode( KBNODE *root, KBNODE node, KBNODE where )
-{
-    KBNODE tmp, prev;
-
-    if( !root || !*root || !node )
-	return;  /* sanity check */
-    for( prev = *root; prev && prev->next != node; prev = prev->next )
-	;
-    if( !prev )
-	return; /* node is not in the list */
-
-    if( !where ) {  /* move node before root */
-	if( node == *root ) /* move to itself */
-	    return;
-	prev->next = node->next;
-	node->next = *root;
-	*root = node;
-	return;
-    }
-    /* move it after where */
-    if( node == where )
-	return;
-    tmp = node->next;
-    node->next = where->next;
-    where->next = node;
-    prev->next = tmp;
-}
-
-
-
 
 void
 dump_kbnode (KBNODE node)

@@ -480,8 +480,6 @@ void release_kbnode( KBNODE n );
 void delete_kbnode( KBNODE node );
 void add_kbnode( KBNODE root, KBNODE node );
 void insert_kbnode( KBNODE root, KBNODE node, int pkttype );
-void move_kbnode( KBNODE *root, KBNODE node, KBNODE where );
-void remove_kbnode( KBNODE *root, KBNODE node );
 KBNODE find_prev_kbnode( KBNODE root, KBNODE node, int pkttype );
 KBNODE find_next_kbnode( KBNODE node, int pkttype );
 KBNODE find_kbnode( KBNODE node, int pkttype );
