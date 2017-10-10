@@ -91,14 +91,6 @@ start_agent (void)
                              agentargs.lc_messages,
                              agentargs.session_env,
                              1, agentargs.verbosity, 0, NULL, NULL);
-  if (!err)
-    {
-      /* Tell the agent that we support Pinentry notifications.  No
-         error checking so that it will work with older agents.  */
-      assuan_transact (agent_ctx, "OPTION allow-pinentry-notify",
-                       NULL, NULL, NULL, NULL, NULL, NULL);
-    }
-
   return err;
 }
 

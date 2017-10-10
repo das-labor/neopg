@@ -83,40 +83,6 @@ struct default_inq_parm_s
 };
 
 
-/* Print a warning if the server's version number is less than our
-   version number.  Returns an error code on a connection problem.  */
-static gpg_error_t
-warn_version_mismatch (ctrl_t ctrl, assuan_context_t ctx,
-                       const char *servername, int mode)
-{
-  gpg_error_t err;
-  char *serverversion;
-  const char *myversion = strusage (13);
-
-  err = get_assuan_server_version (ctx, mode, &serverversion);
-  if (err)
-    log_error (_("error getting version from '%s': %s\n"),
-               servername, gpg_strerror (err));
-  else if (compare_version_strings (serverversion, myversion) < 0)
-    {
-      char *warn;
-
-      warn = xtryasprintf (_("server '%s' is older than us (%s < %s)"),
-                           servername, serverversion, myversion);
-      if (!warn)
-        err = gpg_error_from_syserror ();
-      else
-        {
-          log_info (_("WARNING: %s\n"), warn);
-          gpgsm_status2 (ctrl, STATUS_WARNING, "server_version_mismatch 0",
-                         warn, NULL);
-          xfree (warn);
-        }
-    }
-  xfree (serverversion);
-  return err;
-}
-
 
 /* Try to connect to the agent via socket or fork it off and work by
    pipes.  Handle the server's initial greeting */
@@ -146,29 +112,6 @@ start_agent (ctrl_t ctrl)
             {
               shown = 1;
               log_info (_("no gpg-agent running in this session\n"));
-            }
-        }
-      else if (!rc && !(rc = warn_version_mismatch (ctrl, agent_ctx,
-                                                    GPG_AGENT_NAME, 0)))
-        {
-          /* Tell the agent that we support Pinentry notifications.  No
-             error checking so that it will work also with older
-             agents.  */
-          assuan_transact (agent_ctx, "OPTION allow-pinentry-notify",
-                           NULL, NULL, NULL, NULL, NULL, NULL);
-
-          /* Pass on the pinentry mode.  */
-          if (opt.pinentry_mode)
-            {
-              char *tmp = xasprintf ("OPTION pinentry-mode=%s",
-                                     str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)));
-              rc = assuan_transact (agent_ctx, tmp,
-                               NULL, NULL, NULL, NULL, NULL, NULL);
-              xfree (tmp);
-              if (rc)
-                log_error ("setting pinentry mode '%s' failed: %s\n",
-                           str_pinentry_mode ((pinentry_mode_t) (opt.pinentry_mode)),
-                           gpg_strerror (rc));
             }
         }
     }
@@ -993,10 +936,6 @@ gpgsm_agent_learn (ctrl_t ctrl)
   size_t len;
 
   rc = start_agent (ctrl);
-  if (rc)
-    return rc;
-
-  rc = warn_version_mismatch (ctrl, agent_ctx, SCDAEMON_NAME, 2);
   if (rc)
     return rc;
 

@@ -49,8 +49,6 @@ struct server_local_s {
   certlist_t recplist;
   certlist_t signerlist;
   certlist_t default_recplist; /* As set by main() - don't release. */
-  int allow_pinentry_notify;   /* Set if pinentry notifications should
-                                  be passed back to the client. */
   int no_encrypt_to;           /* Local version of option.  */
 };
 
@@ -264,10 +262,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     {
       int i = *value? atoi (value) : 0;
       ctrl->server_local->enable_audit_log = i;
-    }
-  else if (!strcmp (key, "allow-pinentry-notify"))
-    {
-      ctrl->server_local->allow_pinentry_notify = 1;
     }
   else if (!strcmp (key, "with-ephemeral-keys"))
     {
@@ -1489,8 +1483,7 @@ gpgsm_status_with_error (ctrl_t ctrl, int no, const char *text,
 gpg_error_t
 gpgsm_proxy_pinentry_notify (ctrl_t ctrl, const unsigned char *line)
 {
-  if (!ctrl || !ctrl->server_local
-      || !ctrl->server_local->allow_pinentry_notify)
+  if (!ctrl || !ctrl->server_local)
     return 0;
   return assuan_inquire (ctrl->server_local->assuan_ctx, (const char*) (line), NULL, NULL, 0);
 }

@@ -87,15 +87,9 @@ struct server_local_s
      the end of the current session.  */
   unsigned int stopme : 1;
 
-  /* Flag indicating whether pinentry notifications shall be done. */
-  unsigned int allow_pinentry_notify : 1;
-
   /* An allocated description for the next key operation.  This is
      used if a pinnetry needs to be popped up.  */
   char *keydesc;
-
-  /* Client is aware of the error code GPG_ERR_FULLY_CANCELED.  */
-  int allow_fully_canceled;
 
   /* Last CACHE_NONCE sent as status (malloced).  */
   char *last_cache_nonce;
@@ -357,8 +351,7 @@ agent_inq_pinentry_launched (ctrl_t ctrl, unsigned long pid, const char *extra)
 {
   char line[256];
 
-  if (!ctrl || !ctrl->server_local
-      || !ctrl->server_local->allow_pinentry_notify)
+  if (!ctrl || !ctrl->server_local)
     return 0;
   snprintf (line, DIM(line), "PINENTRY_LAUNCHED %lu%s%s",
             pid, extra?" ":"", extra? extra:"");
@@ -394,16 +387,6 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
       const char *name = assuan_get_command_name (ctx);
       if (!name)
         name = "?";
-
-      /* Not all users of gpg-agent know about the fully canceled
-         error code; map it back if needed.  */
-      if (err == GPG_ERR_FULLY_CANCELED)
-        {
-          ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-          if (!ctrl->server_local->allow_fully_canceled)
-            err = GPG_ERR_CANCELED;
-        }
 
       log_error ("command '%s' failed: %s\n", name,
 		 gpg_strerror (err));
@@ -2573,14 +2556,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
   ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
 
-  if (!strcmp (key, "agent-awareness"))
-    {
-      /* The value is a version string telling us of which agent
-         version the caller is aware of.  */
-      ctrl->server_local->allow_fully_canceled =
-        gnupg_compare_version (value, "2.1.0");
-    }
-  else if (!strcmp (key, "putenv"))
+if (!strcmp (key, "putenv"))
     {
       /* Change the session's environment to be used for the
          Pinentry.  Valid values are:
@@ -2628,16 +2604,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     }
   else if (!strcmp (key, "use-cache-for-signing"))
     ctrl->server_local->use_cache_for_signing = *value? !!atoi (value) : 0;
-  else if (!strcmp (key, "allow-pinentry-notify"))
-    ctrl->server_local->allow_pinentry_notify = 1;
-  else if (!strcmp (key, "pinentry-mode"))
-    {
-      int tmp = parse_pinentry_mode (value);
-      if (tmp == -1)
-        err = GPG_ERR_INV_VALUE;
-      else
-        ctrl->pinentry_mode = (pinentry_mode_t) tmp;
-    }
   else if (!strcmp (key, "cache-ttl-opt-preset"))
     {
       ctrl->cache_ttl_opt_preset = *value? atoi (value) : 0;
