@@ -28,6 +28,7 @@ if(BUILD_DOC)
     # install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
 endif()
 
+find_package(Intl REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
@@ -84,8 +85,10 @@ add_library(neopg::gpg-error ALIAS gpg-error)
 
 target_include_directories(gpg-error PRIVATE
   ../libgpg-error/src
+  ${Intl_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(gpg-error PRIVATE
+  ${Intl_LDFLAGS} ${Intl_LIBRARIES}
   HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread)
 target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
@@ -662,7 +665,7 @@ add_executable(neopg
   ../gnupg/scd/ccid-driver.cpp
   ../gnupg/scd/command.cpp
   ../gnupg/scd/iso7816.cpp
-  
+
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE
