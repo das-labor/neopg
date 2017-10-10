@@ -578,7 +578,6 @@ add_executable(neopg
   ../gnupg/g10/tdbdump.cpp
   ../gnupg/g10/exec.cpp
   ../gnupg/g10/server.cpp
-  ../gnupg/g10/migrate.cpp
   ../gnupg/g10/delkey.cpp
   ../gnupg/g10/dearmor.cpp
   ../gnupg/g10/tofu.cpp
