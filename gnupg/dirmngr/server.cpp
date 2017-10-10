@@ -2390,41 +2390,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 
 
 
-static const char hlp_killdirmngr[] =
-  "KILLDIRMNGR\n"
-  "\n"
-  "This command allows a user - given sufficient permissions -\n"
-  "to kill this dirmngr process.\n";
-static gpg_error_t
-cmd_killdirmngr (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-  (void)line;
-
-  ctrl->server_local->stopme = 1;
-  assuan_set_flag (ctx, ASSUAN_FORCE_CLOSE, 1);
-  return GPG_ERR_EOF;
-}
-
-
-static const char hlp_reloaddirmngr[] =
-  "RELOADDIRMNGR\n"
-  "\n"
-  "This command is an alternative to SIGHUP\n"
-  "to reload the configuration.";
-static gpg_error_t
-cmd_reloaddirmngr (assuan_context_t ctx, char *line)
-{
-  (void)ctx;
-  (void)line;
-
-  dirmngr_sighup_action ();
-  return 0;
-}
-
-
-
 /* Tell the assuan library about our commands. */
 static int
 register_commands (assuan_context_t ctx)
@@ -2451,8 +2416,6 @@ register_commands (assuan_context_t ctx)
     { "KS_FETCH",   cmd_ks_fetch,   hlp_ks_fetch },
     { "KS_PUT",     cmd_ks_put,     hlp_ks_put },
     { "GETINFO",    cmd_getinfo,    hlp_getinfo },
-    { "KILLDIRMNGR",cmd_killdirmngr,hlp_killdirmngr },
-    { "RELOADDIRMNGR",cmd_reloaddirmngr,hlp_reloaddirmngr },
     { NULL, NULL }
   };
   int i, j, rc;
