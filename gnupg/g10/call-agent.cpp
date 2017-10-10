@@ -193,7 +193,6 @@ start_agent (ctrl_t ctrl, int flag_for_card)
   else
     {
       rc = start_new_gpg_agent (&agent_ctx,
-                                opt.agent_program,
                                 opt.lc_ctype, opt.lc_messages,
                                 opt.autostart, opt.verbose, DBG_IPC,
                                 NULL, NULL);

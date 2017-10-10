@@ -89,7 +89,6 @@ static struct
 {
   int quiet;
   int verbose;
-  const char *dirmngr_program;
   int force_default_responder;
   int pem;
   int escaped_pem; /* PEM is additional percent encoded.  */
@@ -295,9 +294,6 @@ dirmngr_client_main (int argc, char **argv )
     }
 
   err = start_new_dirmngr (&ctx,
-                           opt.dirmngr_program
-                             ? opt.dirmngr_program
-                             : gnupg_module_name (GNUPG_MODULE_NAME_DIRMNGR),
                            ! cmd_ping,
                            opt.verbose,
                            0,

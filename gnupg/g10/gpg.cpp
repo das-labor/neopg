@@ -372,10 +372,6 @@ enum cmd_and_opt_values
     oPersonalCipherPreferences,
     oPersonalDigestPreferences,
     oPersonalCompressPreferences,
-    oAgentProgram,
-    oDirmngrProgram,
-    oTTYname,
-    oTTYtype,
     oLCctype,
     oLCmessages,
     oGroup,
@@ -827,10 +823,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oPersonalDigestPreferences, "personal-digest-prefs", "@"),
   ARGPARSE_s_s (oPersonalCompressPreferences, "personal-compress-prefs", "@"),
 
-  ARGPARSE_s_s (oAgentProgram, "agent-program", "@"),
-  ARGPARSE_s_s (oDirmngrProgram, "dirmngr-program", "@"),
-  ARGPARSE_s_s (oTTYname,    "ttyname",    "@"),
-  ARGPARSE_s_s (oTTYtype,    "ttytype",    "@"),
   ARGPARSE_s_s (oLCctype,    "lc-ctype",   "@"),
   ARGPARSE_s_s (oLCmessages, "lc-messages","@"),
   ARGPARSE_s_s (oGroup,      "group",      "@"),
@@ -3276,8 +3268,6 @@ gpg_main (int argc, char **argv)
           case oPersonalCompressPreferences:
 	    pers_compress_list=pargs.r.ret_str;
 	    break;
-          case oAgentProgram: opt.agent_program = pargs.r.ret_str;  break;
-          case oDirmngrProgram: opt.dirmngr_program = pargs.r.ret_str; break;
           case oWeakDigest:
 	    additional_weak_digest(pargs.r.ret_str);
 	    break;

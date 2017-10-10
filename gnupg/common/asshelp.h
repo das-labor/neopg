@@ -53,7 +53,6 @@ send_pinentry_environment (assuan_context_t ctx,
    agent.  */
 gpg_error_t
 start_new_gpg_agent (assuan_context_t *r_ctx,
-                     const char *agent_program,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
                      int autostart, int verbose, int debug,
@@ -64,7 +63,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
    the function is able starts a dirmngr process if needed.  */
 gpg_error_t
 start_new_dirmngr (assuan_context_t *r_ctx,
-                   const char *dirmngr_program,
                    int autostart, int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg);
