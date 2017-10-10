@@ -179,7 +179,6 @@ enum cmd_and_opt_values
     aCardEdit,
     aChangePIN,
     aPasswd,
-    aServer,
     aTOFUPolicy,
 
     oMimemode,
@@ -534,7 +533,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aPrintMD, "print-md", N_("print message digests")),
   ARGPARSE_c (aPrimegen, "gen-prime", "@" ),
   ARGPARSE_c (aGenRandom,"gen-random", "@" ),
-  ARGPARSE_c (aServer,   "server",  N_("run in server mode")),
   ARGPARSE_c (aTOFUPolicy, "tofu-policy",
 	      N_("|VALUE|set the TOFU policy for a key")),
 
@@ -2553,11 +2551,6 @@ gpg_main (int argc, char **argv)
 	  case aVerifyFiles: multifile=1; /* fall through */
 	  case aVerify: set_cmd( &cmd, aVerify); break;
 
-          case aServer:
-            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-            opt.batch = 1;
-            break;
-
           case aTOFUPolicy:
             set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             break;
@@ -3942,10 +3935,6 @@ gpg_main (int argc, char **argv)
     /* The command dispatcher.  */
     switch( cmd )
       {
-      case aServer:
-        gpg_server (ctrl);
-        break;
-
       case aStore: /* only store the file */
 	if( argc > 1 )
 	    wrong_args("--store [filename]");

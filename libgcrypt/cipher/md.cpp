@@ -696,53 +696,7 @@ md_setkey (gcry_md_hd_t h, const unsigned char *key, size_t keylen)
   if (h->ctx->flags.hmac)
     return GPG_ERR_DIGEST_ALGO; /* Tried md_setkey for HMAC md. */
 
-  for (r = h->ctx->list; r; r = r->next)
-    {
-      switch (r->spec->algo)
-	{
-	/* TODO? add spec->init_with_key? */
-	case GCRY_MD_BLAKE2B_512:
-	case GCRY_MD_BLAKE2B_384:
-	case GCRY_MD_BLAKE2B_256:
-	case GCRY_MD_BLAKE2B_160:
-	case GCRY_MD_BLAKE2S_256:
-	case GCRY_MD_BLAKE2S_224:
-	case GCRY_MD_BLAKE2S_160:
-	case GCRY_MD_BLAKE2S_128:
-	  algo_had_setkey = 1;
-	  memset (r->context.c, 0, r->spec->contextsize);
-	  rc = _gcry_blake2_init_with_key (r->context.c,
-					   h->ctx->flags.bugemu1
-					     ? GCRY_MD_FLAG_BUGEMU1:0,
-					   key, keylen, r->spec->algo);
-	  break;
-	default:
-	  rc = GPG_ERR_DIGEST_ALGO;
-	  break;
-	}
-
-      if (rc)
-	break;
-    }
-
-  if (rc && !algo_had_setkey)
-    {
-      /* None of algorithms had setkey implementation, so contexts were not
-       * modified. Just return error. */
-      return rc;
-    }
-  else if (rc && algo_had_setkey)
-    {
-      /* Some of the contexts have been modified, but got error. Reset
-       * all contexts. */
-      _gcry_md_reset (h);
-      return rc;
-    }
-
-  /* Successful md_setkey implies reset. */
-  h->bufpos = h->ctx->flags.finalized = 0;
-
-  return 0;
+  return GPG_ERR_DIGEST_ALGO;
 }
 
 

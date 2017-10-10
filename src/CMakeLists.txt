@@ -231,7 +231,6 @@ add_library(gcrypt
   ../libgcrypt/src/types.h
   ../libgcrypt/src/visibility.cpp
   ../libgcrypt/src/visibility.h
-  ../libgcrypt/cipher/blake2.cpp
   ../libgcrypt/cipher/crc.cpp
   ../libgcrypt/cipher/ecc.cpp
   ../libgcrypt/cipher/ecc-curves.cpp
@@ -249,24 +248,16 @@ add_library(gcrypt
   ../libgcrypt/cipher/whirlpool.cpp
   ../libgcrypt/cipher/md4.cpp
   ../libgcrypt/cipher/md5.cpp
-  ../libgcrypt/cipher/tiger.cpp
-  ../libgcrypt/cipher/gostr3411-94.cpp
-  ../libgcrypt/cipher/gost28147.cpp
-  ../libgcrypt/cipher/stribog.cpp
   ../libgcrypt/cipher/rmd160.cpp
   ../libgcrypt/cipher/blowfish.cpp
   ../libgcrypt/cipher/camellia.cpp
   ../libgcrypt/cipher/camellia-glue.cpp
-  ../libgcrypt/cipher/salsa20.cpp
   ../libgcrypt/cipher/rijndael.cpp
   ../libgcrypt/cipher/idea.cpp
-  ../libgcrypt/cipher/des.cpp
-  ../libgcrypt/cipher/arcfour.cpp
   ../libgcrypt/cipher/cast5.cpp
   ../libgcrypt/cipher/twofish.cpp
   ../libgcrypt/cipher/rfc2268.cpp
   ../libgcrypt/cipher/seed.cpp
-  ../libgcrypt/cipher/chacha20.cpp
   ../libgcrypt/cipher/mac-cmac.cpp
   ../libgcrypt/cipher/serpent.cpp
   ../libgcrypt/cipher/cipher.cpp
@@ -577,7 +568,6 @@ add_executable(neopg
   ../gnupg/g10/tdbio.cpp
   ../gnupg/g10/tdbdump.cpp
   ../gnupg/g10/exec.cpp
-  ../gnupg/g10/server.cpp
   ../gnupg/g10/delkey.cpp
   ../gnupg/g10/dearmor.cpp
   ../gnupg/g10/tofu.cpp

@@ -137,15 +137,7 @@ default_inq_cb (void *opaque, const char *line)
   gpg_error_t err = 0;
   struct default_inq_parm_s *parm = (default_inq_parm_s*) opaque;
 
-  if (has_leading_keyword (line, "PINENTRY_LAUNCHED"))
-    {
-      err = gpg_proxy_pinentry_notify (parm->ctrl, (const unsigned char*) (line));
-      if (err)
-        log_error (_("failed to proxy %s inquiry to client\n"),
-                   "PINENTRY_LAUNCHED");
-      /* We do not pass errors to avoid breaking other code.  */
-    }
-  else if ((has_leading_keyword (line, "PASSPHRASE")
+  if ((has_leading_keyword (line, "PASSPHRASE")
             || has_leading_keyword (line, "NEW_PASSPHRASE"))
            && opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
     {

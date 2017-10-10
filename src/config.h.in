@@ -27,10 +27,10 @@
 /* libgcrypt */
 
 /* List of available cipher algorithms */
-#define LIBGCRYPT_CIPHERS "arcfour:blowfish:cast5:des:aes:twofish:serpent:rfc2268:seed:camellia:idea:salsa20:gost28147:chacha20"
+#define LIBGCRYPT_CIPHERS "blowfish:cast5:aes:twofish:serpent:rfc2268:seed:camellia:idea"
 
 /* List of available digest algorithms */
-#define LIBGCRYPT_DIGESTS "crc:gostr3411-94::md4:md5:rmd160:sha1:sha256:sha512:sha3:tiger:whirlpool:stribog:blake2"
+#define LIBGCRYPT_DIGESTS "crc:md4:md5:rmd160:sha1:sha256:sha512:sha3:whirlpool"
 
 /* List of available KDF algorithms */
 #define LIBGCRYPT_KDFS "s2k:pkdf2:scrypt"
@@ -42,12 +42,6 @@
 #define USE_AES 1
 
 /* Defined if this module should be included */
-#define USE_ARCFOUR 1
-
-/* Defined if this module should be included */
-#define USE_BLAKE2 1
-
-/* Defined if this module should be included */
 #define USE_BLOWFISH 1
 
 /* Defined if this module should be included */
@@ -57,13 +51,7 @@
 #define USE_CAST5 1
 
 /* Defined if this module should be included */
-#define USE_CHACHA20 1
-
-/* Defined if this module should be included */
 #define USE_CRC 1
-
-/* Defined if this module should be included */
-#define USE_DES 1
 
 /* Defined if this module should be included */
 #define USE_DSA 1
@@ -73,15 +61,6 @@
 
 /* Defined if this module should be included */
 #define USE_ELGAMAL 1
-
-/* Defined if this module should be included */
-#define USE_GOST28147 1
-
-/* Defined if this module should be included */
-#define USE_GOST_R_3411_12 1
-
-/* Defined if this module should be included */
-#define USE_GOST_R_3411_94 1
 
 /* Defined if this module should be included */
 #define USE_IDEA 1
@@ -98,9 +77,6 @@
 
 /* Defined if this module should be included */
 #define USE_RSA 1
-
-/* Defined if this module should be included */
-#define USE_SALSA20 1
 
 /* Defined if this module should be included */
 #define USE_SCRYPT 1
@@ -128,10 +104,6 @@
 
 /* Defined if this module should be included */
 #define USE_RMD160 1
-
-
-/* Defined if this module should be included */
-#define USE_TIGER 1
 
 /* Defined if this module should be included */
 #define USE_TWOFISH 1
