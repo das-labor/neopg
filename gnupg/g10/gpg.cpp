@@ -374,12 +374,10 @@ enum cmd_and_opt_values
     oPersonalCompressPreferences,
     oAgentProgram,
     oDirmngrProgram,
-    oDisplay,
     oTTYname,
     oTTYtype,
     oLCctype,
     oLCmessages,
-    oXauthority,
     oGroup,
     oUnGroup,
     oNoGroups,
@@ -831,12 +829,10 @@ static ARGPARSE_OPTS opts[] = {
 
   ARGPARSE_s_s (oAgentProgram, "agent-program", "@"),
   ARGPARSE_s_s (oDirmngrProgram, "dirmngr-program", "@"),
-  ARGPARSE_s_s (oDisplay,    "display",    "@"),
   ARGPARSE_s_s (oTTYname,    "ttyname",    "@"),
   ARGPARSE_s_s (oTTYtype,    "ttytype",    "@"),
   ARGPARSE_s_s (oLCctype,    "lc-ctype",   "@"),
   ARGPARSE_s_s (oLCmessages, "lc-messages","@"),
-  ARGPARSE_s_s (oXauthority, "xauthority", "@"),
   ARGPARSE_s_s (oGroup,      "group",      "@"),
   ARGPARSE_s_s (oUnGroup,    "ungroup",    "@"),
   ARGPARSE_s_n (oNoGroups,   "no-groups",  "@"),
@@ -1131,18 +1127,6 @@ make_username( const char *string )
     else
 	p = native_to_utf8( string );
     return p;
-}
-
-
-static void
-set_opt_session_env (const char *name, const char *value)
-{
-  gpg_error_t err;
-
-  err = session_env_setenv (opt.session_env, name, value);
-  if (err)
-    log_fatal ("error setting session environment: %s\n",
-               gpg_strerror (err));
 }
 
 
@@ -2284,10 +2268,6 @@ gpg_main (int argc, char **argv)
     gnupg_initialize_compliance (GNUPG_MODULE_NAME_GPG);
 
     opt.autostart = 1;
-    opt.session_env = session_env_new ();
-    if (!opt.session_env)
-      log_fatal ("error allocating session environment block: %s\n",
-                 strerror (errno));
 
     opt.command_fd = -1; /* no command fd */
     opt.compress_level = -1; /* defaults to standard compress level */
@@ -3306,19 +3286,6 @@ gpg_main (int argc, char **argv)
             break;
           case oOnlySignTextIDs:
             opt.only_sign_text_ids = 1;
-            break;
-
-          case oDisplay:
-            set_opt_session_env ("DISPLAY", pargs.r.ret_str);
-            break;
-          case oTTYname:
-            set_opt_session_env ("GPG_TTY", pargs.r.ret_str);
-            break;
-          case oTTYtype:
-            set_opt_session_env ("TERM", pargs.r.ret_str);
-            break;
-          case oXauthority:
-            set_opt_session_env ("XAUTHORITY", pargs.r.ret_str);
             break;
 
           case oLCctype: opt.lc_ctype = pargs.r.ret_str; break;

@@ -161,8 +161,7 @@ send_one_option (assuan_context_t ctx, const char *name, const char *value, int 
 gpg_error_t
 send_pinentry_environment (assuan_context_t ctx,
                            const char *opt_lc_ctype,
-                           const char *opt_lc_messages,
-                           session_env_t session_env)
+                           const char *opt_lc_messages)
 
 {
   gpg_error_t err = 0;
@@ -170,35 +169,8 @@ send_pinentry_environment (assuan_context_t ctx,
   char *old_lc = NULL;
 #endif
   char *dft_lc = NULL;
-  const char *dft_ttyname;
-  int iterator;
   const char *name, *assname, *value;
   int is_default;
-
-  iterator = 0;
-  while ((name = session_env_list_stdenvnames (&iterator, &assname)))
-    {
-      value = session_env_getenv_or_default (session_env, name, NULL);
-      if (!value)
-        continue;
-
-      if (assname)
-        err = send_one_option (ctx, assname, value, 0);
-      else
-        {
-          err = send_one_option (ctx, name, value, 1);
-          if (err == GPG_ERR_UNKNOWN_OPTION)
-            err = 0;  /* Server too old; can't pass the new envvars.  */
-        }
-      if (err)
-        return err;
-    }
-
-
-  dft_ttyname = session_env_getenv_or_default (session_env, "GPG_TTY",
-                                               &is_default);
-  if (dft_ttyname && !is_default)
-    dft_ttyname = NULL;  /* We need the default value.  */
 
   /* Send the value for LC_CTYPE.  */
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
@@ -211,10 +183,10 @@ send_pinentry_environment (assuan_context_t ctx,
     }
   dft_lc = setlocale (LC_CTYPE, "");
 #endif
-  if (opt_lc_ctype || (dft_ttyname && dft_lc))
+  if (opt_lc_ctype)
     {
       err = send_one_option (ctx, "lc-ctype",
-                             opt_lc_ctype ? opt_lc_ctype : dft_lc, 0);
+                             opt_lc_ctype, 0);
     }
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
   if (old_lc)
@@ -237,10 +209,10 @@ send_pinentry_environment (assuan_context_t ctx,
     }
   dft_lc = setlocale (LC_MESSAGES, "");
 #endif
-  if (opt_lc_messages || (dft_ttyname && dft_lc))
+  if (opt_lc_messages)
     {
       err = send_one_option (ctx, "lc-messages",
-                             opt_lc_messages ? opt_lc_messages : dft_lc, 0);
+                             opt_lc_messages, 0);
     }
 #if defined(HAVE_SETLOCALE) && defined(LC_MESSAGES)
   if (old_lc)
@@ -267,7 +239,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
                      const char *agent_program,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
-                     session_env_t session_env,
                      int autostart, int verbose, int debug,
                      gpg_error_t (*status_cb)(ctrl_t, int, ...),
                      ctrl_t status_cb_arg)
@@ -339,8 +310,7 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
   if (!err)
     {
       err = send_pinentry_environment (ctx,
-                                       opt_lc_ctype, opt_lc_messages,
-                                       session_env);
+                                       opt_lc_ctype, opt_lc_messages);
       if (err == GPG_ERR_FORBIDDEN)
         {
           /* Check whether we are in restricted mode.  */

@@ -33,7 +33,6 @@
 #include <assuan.h>
 #include <gpg-error.h>
 
-#include "session-env.h"
 #include "util.h"
 
 /*-- asshelp.c --*/
@@ -48,8 +47,7 @@ void set_libassuan_log_cats (unsigned int newcats);
 gpg_error_t
 send_pinentry_environment (assuan_context_t ctx,
                            const char *opt_lc_ctype,
-                           const char *opt_lc_messages,
-                           session_env_t session_env);
+                           const char *opt_lc_messages);
 
 /* This function is used by the call-agent.c modules to fire up a new
    agent.  */
@@ -58,7 +56,6 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
                      const char *agent_program,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
-                     session_env_t session_env,
                      int autostart, int verbose, int debug,
                      gpg_error_t (*status_cb)(ctrl_t, int, ...),
                      ctrl_t status_cb_arg);

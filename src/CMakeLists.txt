@@ -472,8 +472,6 @@ add_executable(neopg
   ../gnupg/common/iobuf.cpp
   ../gnupg/common/i18n.h
   ../gnupg/common/i18n.cpp
-  ../gnupg/common/session-env.h
-  ../gnupg/common/session-env.cpp
   ../gnupg/common/gettime.h
   ../gnupg/common/gettime.cpp
   ../gnupg/common/asshelp.h

@@ -29,7 +29,6 @@
 	    "t-gettime"
 	    "t-sysutils"
 	    "t-sexputil"
-	    "t-session-env"
 	    "t-openpgp-oid"
 	    "t-ssh-utils"
 	    "t-mapstrings"

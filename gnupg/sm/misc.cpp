@@ -46,23 +46,6 @@ setup_pinentry_env (void)
   const char *name, *value;
   int iterator;
 
-  /* Try to make sure that GPG_TTY has been set.  This is needed if we
-     call for example the protect-tools with redirected stdin and thus
-     it won't be able to ge a default by itself.  Try to do it here
-     but print a warning.  */
-  value = session_env_getenv (opt.session_env, "GPG_TTY");
-  if (value)
-    gnupg_setenv ("GPG_TTY", value, 1);
-  else if (!(lc=getenv ("GPG_TTY")) || !*lc)
-    {
-      log_error (_("GPG_TTY has not been set - "
-                   "using maybe bogus default\n"));
-      lc = gnupg_ttyname (0);
-      if (!lc)
-        lc = "/dev/tty";
-      gnupg_setenv ("GPG_TTY", lc, 1);
-    }
-
   if (opt.lc_ctype)
     gnupg_setenv ("LC_CTYPE", opt.lc_ctype, 1);
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
@@ -76,16 +59,6 @@ setup_pinentry_env (void)
   else if ( (lc = setlocale (LC_MESSAGES, "")) )
     gnupg_setenv ("LC_MESSAGES", lc, 1);
 #endif
-
-  iterator = 0;
-  while ((name = session_env_list_stdenvnames (&iterator, NULL)))
-    {
-      if (!strcmp (name, "GPG_TTY"))
-        continue;  /* Already set.  */
-      value = session_env_getenv (opt.session_env, name);
-      if (value)
-        gnupg_setenv (name, value, 1);
-    }
 
 #endif /*!HAVE_W32_SYSTEM*/
 }

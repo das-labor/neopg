@@ -27,7 +27,6 @@
 #include "main.h"
 #include "packet.h"
 #include "tofu.h"
-#include "../common/session-env.h"
 #include "../common/compliance.h"
 
 /* Declaration of a keyserver spec type.  The definition is found in
@@ -143,7 +142,6 @@ struct options
   const char *def_new_key_algo;
 
   /* Options to be passed to the gpg-agent */
-  session_env_t session_env;
   char *lc_ctype;
   char *lc_messages;
 

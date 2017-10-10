@@ -158,29 +158,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
   ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
 
-  if (!strcmp (key, "putenv"))
-    {
-      /* Change the session's environment to be used for the
-         Pinentry.  Valid values are:
-          <NAME>            Delete envvar NAME
-          <KEY>=            Set envvar NAME to the empty string
-          <KEY>=<VALUE>     Set envvar NAME to VALUE
-      */
-      err = session_env_putenv (opt.session_env, value);
-    }
-  else if (!strcmp (key, "display"))
-    {
-      err = session_env_setenv (opt.session_env, "DISPLAY", value);
-    }
-  else if (!strcmp (key, "ttyname"))
-    {
-      err = session_env_setenv (opt.session_env, "GPG_TTY", value);
-    }
-  else if (!strcmp (key, "ttytype"))
-    {
-      err = session_env_setenv (opt.session_env, "TERM", value);
-    }
-  else if (!strcmp (key, "lc-ctype"))
+  if (!strcmp (key, "lc-ctype"))
     {
       xfree (opt.lc_ctype);
       opt.lc_ctype = xtrystrdup (value);
@@ -193,14 +171,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       opt.lc_messages = xtrystrdup (value);
       if (!opt.lc_messages)
         err = gpg_error_from_syserror ();
-    }
-  else if (!strcmp (key, "xauthority"))
-    {
-      err = session_env_setenv (opt.session_env, "XAUTHORITY", value);
-    }
-  else if (!strcmp (key, "pinentry-user-data"))
-    {
-      err = session_env_setenv (opt.session_env, "PINENTRY_USER_DATA", value);
     }
   else if (!strcmp (key, "include-certs"))
     {

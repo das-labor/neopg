@@ -76,9 +76,6 @@ struct server_local_s
   /* Flag to suppress I/O logging during a command.  */
   unsigned int pause_io_logging : 1;
 
-  /* Flag indicating that the connection is from ourselves.  */
-  unsigned int connect_from_self : 1;
-
   /* Helper flag for io_monitor to allow suppressing of our own
    * greeting in some cases.  See io_monitor for details.  */
   unsigned int greeting_seen : 1;
@@ -2427,9 +2424,6 @@ static const char hlp_getinfo[] =
   "  version     - Return the version of the program.\n"
   "  pid         - Return the process id of the server.\n"
   "  s2k_count   - Return the calibrated S2K count.\n"
-  "  std_env_names   - List the names of the standard environment.\n"
-  "  std_session_env - List the standard session environment.\n"
-  "  std_startup_env - List the standard startup environment.\n"
   "  cmd_has_option\n"
   "              - Returns OK if the command CMD implements the option OPT.\n"
   "  connections - Return number of active connections.\n";
@@ -2490,49 +2484,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
     }
-  else if (!strcmp (line, "std_env_names"))
-    {
-      int iterator;
-      const char *name;
-
-      iterator = 0;
-      while ((name = session_env_list_stdenvnames (&iterator, NULL)))
-        {
-          rc = assuan_send_data (ctx, name, strlen (name)+1);
-          if (!rc)
-            rc = assuan_send_data (ctx, NULL, 0);
-          if (rc)
-            break;
-        }
-    }
-  else if (!strcmp (line, "std_session_env")
-           || !strcmp (line, "std_startup_env"))
-    {
-      int iterator;
-      const char *name, *value;
-      char *string;
-
-      iterator = 0;
-      while ((name = session_env_list_stdenvnames (&iterator, NULL)))
-        {
-          value = session_env_getenv_or_default
-            (line[5] == 't'? opt.startup_env:ctrl->session_env, name, NULL);
-          if (value)
-            {
-              string = xtryasprintf ("%s=%s", name, value);
-              if (!string)
-                rc = gpg_error_from_syserror ();
-              else
-                {
-                  rc = assuan_send_data (ctx, string, strlen (string)+1);
-                  if (!rc)
-                    rc = assuan_send_data (ctx, NULL, 0);
-                }
-              if (rc)
-                break;
-            }
-        }
-    }
   else if (!strcmp (line, "connections"))
     {
       char numbuf[20];
@@ -2556,29 +2507,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
   ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   gpg_error_t err = 0;
 
-if (!strcmp (key, "putenv"))
-    {
-      /* Change the session's environment to be used for the
-         Pinentry.  Valid values are:
-          <NAME>            Delete envvar NAME
-          <KEY>=            Set envvar NAME to the empty string
-          <KEY>=<VALUE>     Set envvar NAME to VALUE
-      */
-      err = session_env_putenv (ctrl->session_env, value);
-    }
-  else if (!strcmp (key, "display"))
-    {
-      err = session_env_setenv (ctrl->session_env, "DISPLAY", value);
-    }
-  else if (!strcmp (key, "ttyname"))
-    {
-      err = session_env_setenv (ctrl->session_env, "GPG_TTY", value);
-    }
-  else if (!strcmp (key, "ttytype"))
-    {
-      err = session_env_setenv (ctrl->session_env, "TERM", value);
-    }
-  else if (!strcmp (key, "lc-ctype"))
+  if (!strcmp (key, "lc-ctype"))
     {
       if (ctrl->lc_ctype)
         xfree (ctrl->lc_ctype);
@@ -2593,14 +2522,6 @@ if (!strcmp (key, "putenv"))
       ctrl->lc_messages = xtrystrdup (value);
       if (!ctrl->lc_messages)
         return out_of_core ();
-    }
-  else if (!strcmp (key, "xauthority"))
-    {
-      err = session_env_setenv (ctrl->session_env, "XAUTHORITY", value);
-    }
-  else if (!strcmp (key, "pinentry-user-data"))
-    {
-      err = session_env_setenv (ctrl->session_env, "PINENTRY_USER_DATA", value);
     }
   else if (!strcmp (key, "use-cache-for-signing"))
     ctrl->server_local->use_cache_for_signing = *value? !!atoi (value) : 0;
@@ -2667,12 +2588,6 @@ io_monitor (assuan_context_t ctx, void *hook, int direction,
           && strtoul (line+32, NULL, 10) == getpid ())
         return ASSUAN_IO_MONITOR_NOLOG;
     }
-
-
-  /* Do not log self-connections.  This makes the log cleaner because
-   * we won't see the check-our-own-socket calls.  */
-  if (ctx && ctrl->server_local->connect_from_self)
-    return ASSUAN_IO_MONITOR_NOLOG;
 
   /* Note that we only check for the uppercase name.  This allows the user to
      see the logging for debugging if using a non-upercase command
@@ -2806,8 +2721,6 @@ start_command_handler (ctrl_t ctrl)
 
   for (;;)
     {
-      pid_t client_pid;
-
       rc = assuan_accept (ctx);
       if (rc == GPG_ERR_EOF || rc == -1)
         {
@@ -2818,13 +2731,6 @@ start_command_handler (ctrl_t ctrl)
           log_info ("Assuan accept problem: %s\n", gpg_strerror (rc));
           break;
         }
-
-      client_pid = assuan_get_pid (ctx);
-      ctrl->server_local->connect_from_self = (client_pid == getpid ());
-      if (client_pid != ASSUAN_INVALID_PID)
-        ctrl->client_pid = (unsigned long)client_pid;
-      else
-        ctrl->client_pid = 0;
 
       rc = assuan_process (ctx);
       if (rc)

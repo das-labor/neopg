@@ -87,12 +87,8 @@ enum cmd_and_opt_values
   oPinentryProgram,
   oPinentryInvisibleChar,
   oPinentryTimeout,
-  oDisplay,
-  oTTYname,
-  oTTYtype,
   oLCctype,
   oLCmessages,
-  oXauthority,
   oScdaemonProgram,
   oDefCacheTTL,
   oMaxCacheTTL,
@@ -157,12 +153,8 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oBatch,      "batch",        "@"),
   ARGPARSE_s_s (oHomedir,    "homedir",      "@"),
 
-  ARGPARSE_s_s (oDisplay,    "display",     "@"),
-  ARGPARSE_s_s (oTTYname,    "ttyname",     "@"),
-  ARGPARSE_s_s (oTTYtype,    "ttytype",     "@"),
   ARGPARSE_s_s (oLCctype,    "lc-ctype",    "@"),
   ARGPARSE_s_s (oLCmessages, "lc-messages", "@"),
-  ARGPARSE_s_s (oXauthority, "xauthority",  "@"),
 
   ARGPARSE_s_u (oDefCacheTTL,    "default-cache-ttl",
                                  N_("|N|expire cached PINs after N seconds")),
@@ -249,12 +241,8 @@ static int inhibit_socket_removal;
 static int maybe_setuid = 1;
 
 /* Default values for options passed to the pinentry. */
-static char *default_display;
-static char *default_ttyname;
-static char *default_ttytype;
 static char *default_lc_ctype;
 static char *default_lc_messages;
-static char *default_xauthority;
 
 /* Name of a config file, which will be reread on a HUP if it is not NULL. */
 static char *config_filename;
@@ -663,42 +651,6 @@ agent_main (int argc, char **argv )
   if (shell && strlen (shell) >= 3 && !strcmp (shell+strlen (shell)-3, "csh") )
     csh_style = 1;
 
-  /* Record some of the original environment strings. */
-  {
-    const char *s;
-    int idx;
-    static const char *names[] =
-      { "DISPLAY", "TERM", "XAUTHORITY", "PINENTRY_USER_DATA", NULL };
-
-    err = 0;
-    opt.startup_env = session_env_new ();
-    if (!opt.startup_env)
-      err = gpg_error_from_syserror ();
-    for (idx=0; !err && names[idx]; idx++)
-      {
-        s = getenv (names[idx]);
-        if (s)
-          err = session_env_setenv (opt.startup_env, names[idx], s);
-      }
-    if (!err)
-      {
-        s = gnupg_ttyname (0);
-        if (s)
-          err = session_env_setenv (opt.startup_env, "GPG_TTY", s);
-      }
-    if (err)
-      log_fatal ("error recording startup environment: %s\n",
-                 gpg_strerror (err));
-
-    /* Fixme: Better use the locale function here.  */
-    opt.startup_lc_ctype = getenv ("LC_CTYPE");
-    if (opt.startup_lc_ctype)
-      opt.startup_lc_ctype = xstrdup (opt.startup_lc_ctype);
-    opt.startup_lc_messages = getenv ("LC_MESSAGES");
-    if (opt.startup_lc_messages)
-      opt.startup_lc_messages = xstrdup (opt.startup_lc_messages);
-  }
-
   /* Check whether we have a config file on the commandline */
   orig_argc = argc;
   orig_argv = argv;
@@ -802,13 +754,8 @@ agent_main (int argc, char **argv )
         case oSh: csh_style = 0; break;
         case oServer: pipe_server = 1; break;
 
-        case oDisplay: default_display = xstrdup (pargs.r.ret_str); break;
-        case oTTYname: default_ttyname = xstrdup (pargs.r.ret_str); break;
-        case oTTYtype: default_ttytype = xstrdup (pargs.r.ret_str); break;
         case oLCctype: default_lc_ctype = xstrdup (pargs.r.ret_str); break;
         case oLCmessages: default_lc_messages = xstrdup (pargs.r.ret_str);
-          break;
-        case oXauthority: default_xauthority = xstrdup (pargs.r.ret_str);
           break;
 
         case oFakedSystemTime:
@@ -980,13 +927,6 @@ agent_main (int argc, char **argv )
       current_logfile = xstrdup (logfile);
     }
 
-  /* Make sure that we have a default ttyname. */
-  if (!default_ttyname && gnupg_ttyname (1))
-    default_ttyname = xstrdup (gnupg_ttyname (1));
-  if (!default_ttytype && getenv ("TERM"))
-    default_ttytype = xstrdup (getenv ("TERM"));
-
-
   if (pipe_server)
     {
       /* This is the simple pipe based server */
@@ -999,14 +939,6 @@ agent_main (int argc, char **argv )
         {
           log_error ("error allocating connection control data: %s\n",
                      strerror (errno) );
-          agent_exit (1);
-        }
-      ctrl->session_env = session_env_new ();
-      if (!ctrl->session_env)
-        {
-          log_error ("error allocating session environment block: %s\n",
-                     strerror (errno) );
-          xfree (ctrl);
           agent_exit (1);
         }
       agent_init_default_ctrl (ctrl);
@@ -1156,17 +1088,6 @@ agent_set_progress_cb (void (*cb)(ctrl_t ctrl, const char *what,
 static void
 agent_init_default_ctrl (ctrl_t ctrl)
 {
-  assert (ctrl->session_env);
-
-  /* Note we ignore malloc errors because we can't do much about it
-     and the request will fail anyway shortly after this
-     initialization. */
-  session_env_setenv (ctrl->session_env, "DISPLAY", default_display);
-  session_env_setenv (ctrl->session_env, "GPG_TTY", default_ttyname);
-  session_env_setenv (ctrl->session_env, "TERM", default_ttytype);
-  session_env_setenv (ctrl->session_env, "XAUTHORITY", default_xauthority);
-  session_env_setenv (ctrl->session_env, "PINENTRY_USER_DATA", NULL);
-
   if (ctrl->lc_ctype)
     xfree (ctrl->lc_ctype);
   ctrl->lc_ctype = default_lc_ctype? xtrystrdup (default_lc_ctype) : NULL;
@@ -1186,45 +1107,11 @@ static void
 agent_deinit_default_ctrl (ctrl_t ctrl)
 {
   unregister_progress_cb ();
-  session_env_release (ctrl->session_env);
 
   if (ctrl->lc_ctype)
     xfree (ctrl->lc_ctype);
   if (ctrl->lc_messages)
     xfree (ctrl->lc_messages);
-}
-
-
-/* Because the ssh protocol does not send us information about the
-   current TTY setting, we use this function to use those from startup
-   or those explicitly set.  This is also used for the restricted mode
-   where we ignore requests to change the environment.  */
-gpg_error_t
-agent_copy_startup_env (ctrl_t ctrl)
-{
-  static const char *names[] =
-    {"GPG_TTY", "DISPLAY", "TERM", "XAUTHORITY", "PINENTRY_USER_DATA", NULL};
-  gpg_error_t err = 0;
-  int idx;
-  const char *value;
-
-  for (idx=0; !err && names[idx]; idx++)
-    if ((value = session_env_getenv (opt.startup_env, names[idx])))
-      err = session_env_setenv (ctrl->session_env, names[idx], value);
-
-  if (!err && !ctrl->lc_ctype && opt.startup_lc_ctype)
-    if (!(ctrl->lc_ctype = xtrystrdup (opt.startup_lc_ctype)))
-      err = gpg_error_from_syserror ();
-
-  if (!err && !ctrl->lc_messages && opt.startup_lc_messages)
-    if (!(ctrl->lc_messages = xtrystrdup (opt.startup_lc_messages)))
-      err = gpg_error_from_syserror ();
-
-  if (err)
-    log_error ("error setting default session environment: %s\n",
-               gpg_strerror (err));
-
-  return err;
 }
 
 

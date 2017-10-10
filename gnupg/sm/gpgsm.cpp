@@ -110,12 +110,8 @@ enum cmd_and_opt_values {
   oEnableSpecialFilenames,
 
   oAgentProgram,
-  oDisplay,
-  oTTYname,
-  oTTYtype,
   oLCctype,
   oLCmessages,
-  oXauthority,
 
   oPreferSystemDirmngr,
   oDirmngrProgram,
@@ -371,12 +367,8 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoOptions, "no-options", "@"),
   ARGPARSE_s_s (oHomedir, "homedir", "@"),
   ARGPARSE_s_s (oAgentProgram, "agent-program", "@"),
-  ARGPARSE_s_s (oDisplay,    "display", "@"),
-  ARGPARSE_s_s (oTTYname,    "ttyname", "@"),
-  ARGPARSE_s_s (oTTYtype,    "ttytype", "@"),
   ARGPARSE_s_s (oLCctype,    "lc-ctype", "@"),
   ARGPARSE_s_s (oLCmessages, "lc-messages", "@"),
-  ARGPARSE_s_s (oXauthority, "xauthority", "@"),
   ARGPARSE_s_s (oDirmngrProgram, "dirmngr-program", "@"),
   ARGPARSE_s_n (oDisableDirmngr, "disable-dirmngr", "@"),
   ARGPARSE_s_s (oProtectToolProgram, "protect-tool-program", "@"),
@@ -642,18 +634,6 @@ wrong_args (const char *text)
 {
   fprintf (stderr, _("usage: %s [options] %s\n"), GPGSM_NAME, text);
   gpgsm_exit (2);
-}
-
-
-static void
-set_opt_session_env (const char *name, const char *value)
-{
-  gpg_error_t err;
-
-  err = session_env_setenv (opt.session_env, name, value);
-  if (err)
-    log_fatal ("error setting session environment: %s\n",
-               gpg_strerror (err));
 }
 
 
@@ -932,10 +912,6 @@ gpgsm_main ( int argc, char **argv)
   gnupg_initialize_compliance (GNUPG_MODULE_NAME_GPGSM);
 
   opt.autostart = 1;
-  opt.session_env = session_env_new ();
-  if (!opt.session_env)
-    log_fatal ("error allocating session environment block: %s\n",
-               strerror (errno));
 
   /* Note: If you change this default cipher algorithm , please
      remember to update the Gpgconflist entry as well.  */
@@ -1281,19 +1257,6 @@ gpgsm_main ( int argc, char **argv)
         case oNoOptions: opt.no_homedir_creation = 1; break; /* no-options */
         case oHomedir: gnupg_set_homedir (pargs.r.ret_str); break;
         case oAgentProgram: opt.agent_program = pargs.r.ret_str;  break;
-
-        case oDisplay:
-          set_opt_session_env ("DISPLAY", pargs.r.ret_str);
-          break;
-        case oTTYname:
-          set_opt_session_env ("GPG_TTY", pargs.r.ret_str);
-          break;
-        case oTTYtype:
-          set_opt_session_env ("TERM", pargs.r.ret_str);
-          break;
-        case oXauthority:
-          set_opt_session_env ("XAUTHORITY", pargs.r.ret_str);
-          break;
 
         case oLCctype: opt.lc_ctype = xstrdup (pargs.r.ret_str); break;
         case oLCmessages: opt.lc_messages = xstrdup (pargs.r.ret_str); break;

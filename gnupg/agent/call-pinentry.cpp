@@ -164,40 +164,6 @@ unlock_pinentry (gpg_error_t rc)
   return rc;
 }
 
-
-/* To make sure we leave no secrets in our image after forking of the
-   pinentry, we use this callback. */
-static void
-atfork_cb (void *opaque, int where)
-{
-  ctrl_t ctrl = (ctrl_t) opaque;
-
-  if (!where)
-    {
-      int iterator = 0;
-      const char *name, *assname, *value;
-
-      gcry_control (GCRYCTL_TERM_SECMEM);
-
-      while ((name = session_env_list_stdenvnames (&iterator, &assname)))
-        {
-          /* For all new envvars (!ASSNAME) and the two medium old
-             ones which do have an assuan name but are conveyed using
-             environment variables, update the environment of the
-             forked process.  */
-          if (!assname
-              || !strcmp (name, "XAUTHORITY")
-              || !strcmp (name, "PINENTRY_USER_DATA"))
-            {
-              value = session_env_getenv (ctrl->session_env, name);
-              if (value)
-                gnupg_setenv (name, value, 1);
-            }
-        }
-    }
-}
-
-
 /* Status line callback for the FEATURES status.  */
 static gpg_error_t
 getinfo_features_cb (void *opaque, const char *line)
@@ -321,15 +287,7 @@ start_pinentry (ctrl_t ctrl)
   argv[0] = pgmname;
 #endif /*__APPLE__*/
 
-  value = session_env_getenv (ctrl->session_env, "DISPLAY");
-  if (value)
-    {
-      argv[1] = "--display";
-      argv[2] = value;
-      argv[3] = NULL;
-    }
-  else
-    argv[1] = NULL;
+  argv[1] = NULL;
 
   i=0;
   if (!opt.running_detached)
@@ -358,7 +316,7 @@ start_pinentry (ctrl_t ctrl)
      start the server in detached mode to suppress the console window
      under Windows.  */
   rc = assuan_pipe_connect (ctx, full_pgmname, argv,
-			    no_close_list, atfork_cb, ctrl,
+			    no_close_list, NULL, ctrl,
 			    ASSUAN_PIPE_CONNECT_DETACHED);
   if (rc)
     {
@@ -372,49 +330,12 @@ start_pinentry (ctrl_t ctrl)
   if (DBG_IPC)
     log_debug ("connection to PIN entry established\n");
 
-  value = session_env_getenv (ctrl->session_env, "PINENTRY_USER_DATA");
-  if (value != NULL)
-    {
-      char *optstr;
-      if (asprintf (&optstr, "OPTION pinentry-user-data=%s", value) < 0 )
-	return unlock_pinentry (out_of_core ());
-      rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-			    NULL);
-      xfree (optstr);
-      if (rc && rc != GPG_ERR_UNKNOWN_OPTION)
-        return unlock_pinentry (rc);
-    }
-
   rc = assuan_transact (entry_ctx,
                         opt.no_grab? "OPTION no-grab":"OPTION grab",
                         NULL, NULL, NULL, NULL, NULL, NULL);
   if (rc)
     return unlock_pinentry (rc);
 
-  value = session_env_getenv (ctrl->session_env, "GPG_TTY");
-  if (value)
-    {
-      char *optstr;
-      if (asprintf (&optstr, "OPTION ttyname=%s", value) < 0 )
-	return unlock_pinentry (out_of_core ());
-      rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-			    NULL);
-      xfree (optstr);
-      if (rc)
-	return unlock_pinentry (rc);
-    }
-  value = session_env_getenv (ctrl->session_env, "TERM");
-  if (value)
-    {
-      char *optstr;
-      if (asprintf (&optstr, "OPTION ttytype=%s", value) < 0 )
-	return unlock_pinentry (out_of_core ());
-      rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-			    NULL);
-      xfree (optstr);
-      if (rc)
-	return unlock_pinentry (rc);
-    }
   if (ctrl->lc_ctype)
     {
       char *optstr;
@@ -523,30 +444,6 @@ start_pinentry (ctrl_t ctrl)
           xfree (optstr);
         }
     }
-
-  /* Tell Pinentry about our client.  */
-  if (ctrl->client_pid)
-    {
-      char *optstr;
-      const char *nodename = "";
-
-#ifndef HAVE_W32_SYSTEM
-      struct utsname utsbuf;
-      if (!uname (&utsbuf))
-        nodename = utsbuf.nodename;
-#endif /*!HAVE_W32_SYSTEM*/
-
-      if ((optstr = xtryasprintf ("OPTION owner=%lu %s",
-                                  ctrl->client_pid, nodename)))
-        {
-          assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-                           NULL);
-          /* We ignore errors because this is just a fancy thing and
-             older pinentries do not support this feature.  */
-          xfree (optstr);
-        }
-    }
-
 
   /* Ask the pinentry for its version and flavor and store that as a
    * string in MB.  This information is useful for helping users to

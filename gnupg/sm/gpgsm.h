@@ -28,7 +28,6 @@
 #include "../common/util.h"
 #include "../common/status.h"
 #include "../common/audit.h"
-#include "../common/session-env.h"
 #include "../common/ksba-io-support.h"
 #include "../common/compliance.h"
 
@@ -62,7 +61,6 @@ struct
   const char *config_filename; /* Name of the used config file. */
   const char *agent_program;
 
-  session_env_t session_env;
   char *lc_ctype;
   char *lc_messages;
 

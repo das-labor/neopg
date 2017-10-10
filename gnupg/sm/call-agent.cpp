@@ -100,7 +100,6 @@ start_agent (ctrl_t ctrl)
       rc = start_new_gpg_agent (&agent_ctx,
                                 opt.agent_program,
                                 opt.lc_ctype, opt.lc_messages,
-                                opt.session_env,
                                 opt.autostart, opt.verbose, DBG_IPC,
                                 gpgsm_status2, ctrl);
 

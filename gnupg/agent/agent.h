@@ -28,7 +28,6 @@
 #include "../common/util.h"
 #include "../common/membuf.h"
 #include "../common/sysutils.h" /* (gnupg_fd_t) */
-#include "../common/session-env.h"
 #include "../common/shareddefs.h"
 
 /* To convey some special hash algorithms we use algorithm numbers
@@ -59,12 +58,6 @@ struct options
 
   /* True if we handle sigusr2.  */
   int sigusr2_enabled;
-
-  /* Environment settings gathered at program start or changed using the
-     Assuan command UPDATESTARTUPTTY. */
-  session_env_t startup_env;
-  char *startup_lc_ctype;
-  char *startup_lc_messages;
 
   /* Enable pinentry debugging (--debug 1024 should also be used).  */
   int debug_pinentry;
@@ -180,10 +173,8 @@ struct server_control_s
   struct scd_local_s *scd_local;
 
   /* Environment settings for the connection.  */
-  session_env_t session_env;
   char *lc_ctype;
   char *lc_messages;
-  unsigned long client_pid;
 
   /* The current pinentry mode.  */
   pinentry_mode_t pinentry_mode;
@@ -302,7 +293,6 @@ void agent_exit (int rc)
 void agent_set_progress_cb (void (*cb)(ctrl_t ctrl, const char *what,
                                        int printchar, int current, int total),
                             ctrl_t ctrl);
-gpg_error_t agent_copy_startup_env (ctrl_t ctrl);
 const char *get_agent_socket_name (void);
 const char *get_agent_ssh_socket_name (void);
 int get_agent_active_connection_count (void);
