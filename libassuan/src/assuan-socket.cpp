@@ -44,6 +44,11 @@
 #endif
 #include <assert.h>
 
+/* MacOS https://trac.macports.org/ticket/51708 */
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK (u_int32_t)0x7f000001
+#endif
+
 #include "assuan-defs.h"
 #include "debug.h"
 
