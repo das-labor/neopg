@@ -960,7 +960,7 @@ arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
       {
         /* Short option.  */
 	int dash_kludge = 0;
-
+	
 	i = 0;
 	if ( !arg->internal.inarg )
           {
@@ -1027,8 +1027,7 @@ arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
 		    argc--; argv++; idx++; /* Skip one.  */
                   }
               }
-	    // s = "x"; /* This is so that !s[1] yields false.  */
-	    goto skipthis;
+	    s = "x"; /* This is so that !s[1] yields false.  */
           }
 	else
           {
@@ -1042,8 +1041,6 @@ arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
 	    arg->internal.inarg = 0;
 	    argc--; argv++; idx++;
           }
-      skipthis:
-	;
       }
   else if ( arg->flags & ARGPARSE_FLAG_MIXED )
     {
