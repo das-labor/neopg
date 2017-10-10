@@ -26,9 +26,18 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
+static int
+my_usleep(unsigned int usec)
+{
+  struct timespec req = { 0, ((long) usec) * 1000 };
+  return nanosleep(&req, NULL);
+}
+
 #ifdef HAVE_LIB_DISPATCH
 # include <dispatch/dispatch.h>
 typedef dispatch_semaphore_t sem_t;
+
 
 /* This glue code is for macOS which does not have full implementation
    of POSIX semaphore.  On macOS, using semaphore in Grand Central
@@ -164,7 +173,7 @@ busy_wait_for (trylock_func_t trylock, void *lock,
       /* Try again after waiting a bit.  We could calculate the
 	 maximum wait time from ts and abstime, but we don't
 	 bother, as our granularity is pretty fine.  */
-      usleep (BUSY_WAIT_INTERVAL * 1000);
+      my_usleep (BUSY_WAIT_INTERVAL * 1000);
     }
 
   return err;
@@ -531,7 +540,7 @@ npth_usleep(unsigned int usec)
   int res;
 
   ENTER();
-  res = usleep(usec);
+  res = my_usleep(usec);
   LEAVE();
   return res;
 }

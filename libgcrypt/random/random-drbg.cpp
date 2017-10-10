@@ -277,8 +277,8 @@ typedef struct drbg_state_s *drbg_state_t;
 struct drbg_core_s
 {
   u32 flags;			/* flags for the cipher */
-  ushort statelen;		/* maximum state length */
-  ushort blocklen_bytes;	/* block size of output in bytes */
+  unsigned short statelen;		/* maximum state length */
+  unsigned short blocklen_bytes;	/* block size of output in bytes */
   int backend_cipher;		/* libgcrypt backend cipher */
 };
 
@@ -466,7 +466,7 @@ drbg_string_fill (drbg_string_t *string,
   string->next = NULL;
 }
 
-static inline ushort
+static inline unsigned short
 drbg_statelen (drbg_state_t drbg)
 {
   if (drbg && drbg->core)
@@ -474,7 +474,7 @@ drbg_statelen (drbg_state_t drbg)
   return 0;
 }
 
-static inline ushort
+static inline unsigned short
 drbg_blocklen (drbg_state_t drbg)
 {
   if (drbg && drbg->core)
@@ -482,7 +482,7 @@ drbg_blocklen (drbg_state_t drbg)
   return 0;
 }
 
-static inline ushort
+static inline unsigned short
 drbg_keylen (drbg_state_t drbg)
 {
   if (drbg && drbg->core)
