@@ -89,7 +89,6 @@ enum cmd_and_opt_values
   oReaderPort,
   oCardTimeout,
   octapiDriver,
-  opcscDriver,
   oDisableCCID,
   oDisableOpenSC,
   oDisablePinpad,
@@ -128,8 +127,6 @@ static ARGPARSE_OPTS opts[] = {
                 N_("|N|connect to reader at port N")),
   ARGPARSE_s_s (octapiDriver, "ctapi-driver",
                 N_("|NAME|use NAME as ct-API driver")),
-  ARGPARSE_s_s (opcscDriver, "pcsc-driver",
-                N_("|NAME|use NAME as PC/SC driver")),
   ARGPARSE_s_n (oDisableCCID, "disable-ccid",
 #ifdef HAVE_LIBUSB
                                     N_("do not use the internal CCID driver")
@@ -171,17 +168,6 @@ static struct debug_flags_s debug_flags [] =
     { 0, NULL }
   };
 
-
-/* The card driver we use by default for PC/SC.  */
-#if defined(HAVE_W32_SYSTEM) || defined(__CYGWIN__)
-#define DEFAULT_PCSC_DRIVER "winscard.dll"
-#elif defined(__APPLE__)
-#define DEFAULT_PCSC_DRIVER "/System/Library/Frameworks/PCSC.framework/PCSC"
-#elif defined(__GLIBC__)
-#define DEFAULT_PCSC_DRIVER "libpcsclite.so.1"
-#else
-#define DEFAULT_PCSC_DRIVER "libpcsclite.so"
-#endif
 
 /* The timer tick used to check card removal.
 
@@ -399,7 +385,6 @@ scd_main (int argc, char **argv )
 
   /* Set default options. */
   opt.allow_admin = 1;
-  opt.pcsc_driver = DEFAULT_PCSC_DRIVER;
 
   shell = getenv ("SHELL");
   if (shell && strlen (shell) >= 3 && !strcmp (shell+strlen (shell)-3, "csh") )
@@ -530,7 +515,6 @@ scd_main (int argc, char **argv )
 
         case oReaderPort: opt.reader_port = pargs.r.ret_str; break;
         case octapiDriver: opt.ctapi_driver = pargs.r.ret_str; break;
-        case opcscDriver: opt.pcsc_driver = pargs.r.ret_str; break;
         case oDisableCCID: opt.disable_ccid = 1; break;
         case oDisableOpenSC: break;
 
@@ -626,8 +610,6 @@ scd_main (int argc, char **argv )
 
       es_printf ("reader-port:%lu:\n", GC_OPT_FLAG_NONE );
       es_printf ("ctapi-driver:%lu:\n", GC_OPT_FLAG_NONE );
-      es_printf ("pcsc-driver:%lu:\"%s:\n",
-              GC_OPT_FLAG_DEFAULT, DEFAULT_PCSC_DRIVER );
 #ifdef HAVE_LIBUSB
       es_printf ("disable-ccid:%lu:\n", GC_OPT_FLAG_NONE );
 #endif

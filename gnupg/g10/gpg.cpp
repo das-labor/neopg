@@ -388,7 +388,6 @@ enum cmd_and_opt_values
     oLimitCardInsertTries,
     oReaderPort,
     octapiDriver,
-    opcscDriver,
     oDisableCCID,
     oRequireCrossCert,
     oNoRequireCrossCert,
@@ -873,7 +872,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oGpgAgentInfo, "gpg-agent-info", "@"),
   ARGPARSE_s_s (oReaderPort, "reader-port", "@"),
   ARGPARSE_s_s (octapiDriver, "ctapi-driver", "@"),
-  ARGPARSE_s_s (opcscDriver, "pcsc-driver", "@"),
   ARGPARSE_s_n (oDisableCCID, "disable-ccid", "@"),
   ARGPARSE_s_n (oHonorHttpProxy, "honor-http-proxy", "@"),
   ARGPARSE_s_s (oTOFUDBFormat, "tofu-db-format", "@"),
@@ -2566,9 +2564,6 @@ gpg_main (int argc, char **argv)
             break;
           case octapiDriver:
 	    obsolete_scdaemon_option (configname, configlineno, "ctapi-driver");
-            break;
-          case opcscDriver:
-	    obsolete_scdaemon_option (configname, configlineno, "pcsc-driver");
             break;
           case oDisableCCID:
 	    obsolete_scdaemon_option (configname, configlineno, "disable-ccid");

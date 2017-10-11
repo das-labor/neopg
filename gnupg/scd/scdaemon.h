@@ -48,7 +48,6 @@ struct
   int dry_run;        /* Don't change any persistent data. */
   int batch;          /* Batch mode. */
   const char *ctapi_driver; /* Library to access the ctAPI. */
-  const char *pcsc_driver;  /* Library to access the PC/SC system. */
   const char *reader_port;  /* NULL or reder port to use. */
   int disable_ccid;    /* Disable the use of the internal CCID driver. */
   int disable_pinpad;  /* Do not use a pinpad. */
