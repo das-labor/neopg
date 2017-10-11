@@ -513,7 +513,6 @@ add_executable(neopg
   ../gnupg/common/localename.cpp
   ../gnupg/common/convert.cpp
   ../gnupg/common/b64enc.cpp
-  ../gnupg/common/agent-opt.cpp
   ../gnupg/kbx/keybox-init.cpp
   ../gnupg/kbx/keybox-util.cpp
   ../gnupg/kbx/keybox-blob.cpp

@@ -39,7 +39,6 @@
 #include "../common/sysutils.h"
 #include "call-agent.h"
 #include "../common/status.h"
-#include "../common/shareddefs.h"
 #include "../common/host2net.h"
 
 #define CONTROL_D ('D' - 'A' + 1)
@@ -137,9 +136,8 @@ default_inq_cb (void *opaque, const char *line)
   gpg_error_t err = 0;
   struct default_inq_parm_s *parm = (default_inq_parm_s*) opaque;
 
-  if ((has_leading_keyword (line, "PASSPHRASE")
-            || has_leading_keyword (line, "NEW_PASSPHRASE"))
-           && opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
+  if (has_leading_keyword (line, "PASSPHRASE")
+       || has_leading_keyword (line, "NEW_PASSPHRASE"))
     {
       if (have_static_passphrase ())
         {

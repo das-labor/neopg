@@ -104,24 +104,23 @@ agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
 
   *r_passphrase = NULL;
 
-  if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
     {
-	size_t size;
-	unsigned char *buffer;
-
-	err = pinentry_loopback (ctrl, "NEW_PASSPHRASE", &buffer, &size,
-                                 MAX_PASSPHRASE_LEN);
-	if (!err)
-	  {
-	    if (size)
-	      {
-		buffer[size] = 0;
-		*r_passphrase = (char*) buffer;
-	      }
-	    else
-	        *r_passphrase = NULL;
-	  }
-	return err;
+      size_t size;
+      unsigned char *buffer;
+      
+      err = pinentry_loopback (ctrl, "NEW_PASSPHRASE", &buffer, &size,
+			       MAX_PASSPHRASE_LEN);
+      if (!err)
+	{
+	  if (size)
+	    {
+	      buffer[size] = 0;
+	      *r_passphrase = (char*) buffer;
+	    }
+	  else
+	    *r_passphrase = NULL;
+	}
+      return err;
     }
 
   pi = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);

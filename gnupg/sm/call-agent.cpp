@@ -37,7 +37,6 @@
 #include "../common/asshelp.h"
 #include "keydb.h" /* fixme: Move this to import.c */
 #include "../common/membuf.h"
-#include "../common/shareddefs.h"
 #include "passphrase.h"
 
 
@@ -142,7 +141,6 @@ default_inq_cb (void *opaque, const char *line)
     }
   else if ((has_leading_keyword (line, "PASSPHRASE")
             || has_leading_keyword (line, "NEW_PASSPHRASE"))
-           && opt.pinentry_mode == PINENTRY_MODE_LOOPBACK
            && sm_have_static_passphrase ())
     {
       const char *s = sm_get_static_passphrase ();

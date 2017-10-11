@@ -23,7 +23,6 @@
 
 #include "passphrase.h"
 #include "gpgsm.h"
-#include "../common/shareddefs.h"
 #include "../common/ttyio.h"
 
 static char *fd_passwd = NULL;
@@ -31,8 +30,7 @@ static char *fd_passwd = NULL;
 int
 sm_have_static_passphrase ()
 {
-  return (!!fd_passwd
-          && (opt.batch || opt.pinentry_mode == PINENTRY_MODE_LOOPBACK));
+  return !!fd_passwd;
 }
 
 /* Return a static passphrase.  The returned value is only valid as
@@ -50,18 +48,6 @@ sm_read_passphrase_from_fd (int fd)
 {
   int i, len;
   char *pw;
-
-  if (!opt.batch && opt.pinentry_mode != PINENTRY_MODE_LOOPBACK)
-    { /* Not used but we have to do a dummy read, so that it won't end
-         up at the begin of the message if the quite usual trick to
-         prepend the passphtrase to the message is used. */
-      char buf[1];
-
-      while (!(read (fd, buf, 1) != 1 || *buf == '\n'))
-        ;
-      *buf = 0;
-      return;
-    }
 
   for (pw = NULL, i = len = 100; ; i++)
     {
@@ -82,8 +68,6 @@ sm_read_passphrase_from_fd (int fd)
         break;
     }
   pw[i] = 0;
-  if (!opt.batch && opt.pinentry_mode != PINENTRY_MODE_LOOPBACK)
-    tty_printf("\b\b\b   \n" );
 
   xfree (fd_passwd);
   fd_passwd = pw;

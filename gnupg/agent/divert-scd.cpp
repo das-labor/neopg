@@ -124,8 +124,7 @@ ask_for_card (ctrl_t ctrl, const unsigned char *shadow_info, char **r_kid)
           else
             {
               rc = agent_get_confirmation (ctrl, desc, NULL, NULL, 0);
-              if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK &&
-                  rc == GPG_ERR_NO_PIN_ENTRY)
+              if (rc == GPG_ERR_NO_PIN_ENTRY)
                 rc = GPG_ERR_CARD_NOT_PRESENT;
 
               xfree (desc);

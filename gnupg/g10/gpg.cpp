@@ -61,7 +61,6 @@
 #include "tofu.h"
 #include "../common/init.h"
 #include "../common/mbox-util.h"
-#include "../common/shareddefs.h"
 #include "../common/compliance.h"
 
 #if defined(HAVE_DOSISH_SYSTEM) || defined(__CYGWIN__)
@@ -256,7 +255,6 @@ enum cmd_and_opt_values
     oPassphrase,
     oPassphraseFD,
     oPassphraseFile,
-    oPassphraseRepeat,
     oPinentryMode,
     oCommandFD,
     oCommandFile,
@@ -693,7 +691,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oPassphrase,      "passphrase", "@"),
   ARGPARSE_s_i (oPassphraseFD,    "passphrase-fd", "@"),
   ARGPARSE_s_s (oPassphraseFile,  "passphrase-file", "@"),
-  ARGPARSE_s_i (oPassphraseRepeat,"passphrase-repeat", "@"),
   ARGPARSE_s_s (oPinentryMode,    "pinentry-mode", "@"),
   ARGPARSE_s_i (oCommandFD, "command-fd", "@"),
   ARGPARSE_s_s (oCommandFile, "command-file", "@"),
@@ -2300,11 +2297,9 @@ gpg_main (int argc, char **argv)
     opt.def_sig_expire = "0";
     opt.def_cert_expire = "0";
     gnupg_set_homedir (NULL);
-    opt.passphrase_repeat = 1;
     opt.emit_version = 0;
     opt.weak_digests = NULL;
     additional_weak_digest("MD5");
-    opt.pinentry_mode = PINENTRY_MODE_LOOPBACK;
 
     /* Check whether we have a config file on the command line.  */
     orig_argc = argc;
@@ -2964,15 +2959,6 @@ gpg_main (int argc, char **argv)
 	  case oPassphraseFile:
             pwfd = open_info_file (pargs.r.ret_str, 0, 1);
             break;
-	  case oPassphraseRepeat:
-            opt.passphrase_repeat = pargs.r.ret_int;
-            break;
-
-          case oPinentryMode:
-	    opt.pinentry_mode = parse_pinentry_mode (pargs.r.ret_str);
-	    if (opt.pinentry_mode == -1)
-              log_error (_("invalid pinentry mode '%s'\n"), pargs.r.ret_str);
-	    break;
 
 	  case oCommandFD:
             opt.command_fd = translate_sys2libc_fd_int (pargs.r.ret_int, 0);
@@ -3807,13 +3793,6 @@ gpg_main (int argc, char **argv)
           keydb_add_resource (sl->d, sl->flags);
       }
     FREE_STRLIST(nrings);
-
-    if (opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
-      /* In loopback mode, never ask for the password multiple
-	 times.  */
-      {
-	opt.passphrase_repeat = 0;
-      }
 
     if (cmd == aGPGConfTest)
       g10_exit(0);

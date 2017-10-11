@@ -42,7 +42,6 @@
 #include "keyserver-internal.h"
 #include "call-agent.h"
 #include "pkglue.h"
-#include "../common/shareddefs.h"
 #include "../common/host2net.h"
 #include "../common/mbox-util.h"
 
@@ -4020,21 +4019,6 @@ quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,
       para = r;
     }
 
-  /* If the pinentry loopback mode is not and we have a static
-     passphrase (i.e. set with --passphrase{,-fd,-file} while in batch
-     mode), we use that passphrase for the new key.  */
-  if (opt.pinentry_mode != PINENTRY_MODE_LOOPBACK
-      && have_static_passphrase ())
-    {
-      const char *s = get_static_passphrase ();
-
-      r = (para_data_s*) xmalloc_clear (sizeof *r + strlen (s));
-      r->key = pPASSPHRASE;
-      strcpy (r->u.value, s);
-      r->next = para;
-      para = r;
-    }
-
   proc_parameter_file (ctrl, para, "[internal]", &outctrl, 0);
 
  leave:
@@ -5032,11 +5016,7 @@ generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock, const char *algostr,
       /* If the pinentry loopback mode is not and we have a static
          passphrase (i.e. set with --passphrase{,-fd,-file} while in batch
          mode), we use that passphrase for the new subkey.  */
-      if (opt.pinentry_mode != PINENTRY_MODE_LOOPBACK
-          && have_static_passphrase ())
-        passwd = get_static_passphrase ();
-      else
-        passwd = NULL;
+      passwd = NULL;
 
       err = do_create (algo, nbits, curve,
                        keyblock, cur_time, expire, 1, 0,

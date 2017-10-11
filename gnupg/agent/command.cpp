@@ -1281,41 +1281,9 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
       entry_errtext = NULL;
       if (!rc)
         {
-          int i;
-
-          for (i = 0; i < opt_repeat; i++)
-            {
-              char *response2;
-
-              if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
-                break;
-
-              rc = agent_get_passphrase (ctrl, &response2, desc2, prompt,
-                                         errtext,
-					 cacheid, CACHE_MODE_USER);
-              if (rc)
-                break;
-              if (strcmp (response2, response))
-                {
-                  xfree (response2);
-                  xfree (response);
-                  entry_errtext = try_percent_escape
-                    (_("does not match - try again"), NULL);
-                  if (!entry_errtext)
-                    {
-                      rc = gpg_error_from_syserror ();
-                      break;
-                    }
-                  goto next_try;
-                }
-              xfree (response2);
-            }
-          if (!rc)
-            {
-              if (cacheid)
-                agent_put_cache (cacheid, CACHE_MODE_USER, response, 0);
-              rc = send_back_passphrase (ctx, opt_data, response);
-            }
+	  if (cacheid)
+	    agent_put_cache (cacheid, CACHE_MODE_USER, response, 0);
+	  rc = send_back_passphrase (ctx, opt_data, response);
           xfree (response);
         }
     }

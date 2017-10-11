@@ -28,7 +28,6 @@
 #include "../common/util.h"
 #include "../common/membuf.h"
 #include "../common/sysutils.h" /* (gnupg_fd_t) */
-#include "../common/shareddefs.h"
 
 /* To convey some special hash algorithms we use algorithm numbers
    reserved for application use. */
@@ -162,9 +161,6 @@ struct server_control_s
   /* Environment settings for the connection.  */
   char *lc_ctype;
   char *lc_messages;
-
-  /* The current pinentry mode.  */
-  pinentry_mode_t pinentry_mode;
 
   /* Information on the currently used digest (for signing commands).  */
   struct {

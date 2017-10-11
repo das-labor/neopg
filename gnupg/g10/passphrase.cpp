@@ -41,7 +41,6 @@
 #include "../common/i18n.h"
 #include "../common/status.h"
 #include "call-agent.h"
-#include "../common/shareddefs.h"
 
 static char *fd_passwd = NULL;
 static char *next_pw = NULL;
@@ -102,8 +101,7 @@ encode_s2k_iterations (int iterations)
 int
 have_static_passphrase()
 {
-  return (!!fd_passwd
-          && (opt.batch || opt.pinentry_mode == PINENTRY_MODE_LOOPBACK));
+  return !!fd_passwd;
 }
 
 /* Return a static passphrase.  The returned value is only valid as
@@ -169,18 +167,6 @@ read_passphrase_from_fd( int fd )
   if (! gnupg_fd_valid (fd))
     log_fatal ("passphrase-fd is invalid: %s\n", strerror (errno));
 
-  if ( !opt.batch && opt.pinentry_mode != PINENTRY_MODE_LOOPBACK)
-    { /* Not used but we have to do a dummy read, so that it won't end
-         up at the begin of the message if the quite usual trick to
-         prepend the passphtrase to the message is used. */
-      char buf[1];
-
-      while (!(read (fd, buf, 1) != 1 || *buf == '\n' ))
-        ;
-      *buf = 0;
-      return;
-    }
-
   for (pw = NULL, i = len = 100; ; i++ )
     {
       if (i >= len-1 )
@@ -200,8 +186,6 @@ read_passphrase_from_fd( int fd )
         break;
     }
   pw[i] = 0;
-  if (!opt.batch && opt.pinentry_mode != PINENTRY_MODE_LOOPBACK)
-    tty_printf("\b\b\b   \n" );
 
   xfree ( fd_passwd );
   fd_passwd = pw;
@@ -377,7 +361,7 @@ passphrase_to_dek (int cipher_algo, STRING2KEY *s2k,
 	  s2k_cacheid = s2k_cacheidbuf;
 	}
 
-      if (opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
+      // if (opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
         {
           char buf[32];
 

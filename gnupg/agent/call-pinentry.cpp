@@ -585,35 +585,29 @@ agent_askpin (ctrl_t ctrl,
   if (opt.batch)
     return 0; /* fixme: we should return BAD PIN */
 
-  if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    {
-      if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return GPG_ERR_CANCELED;
-      if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
-        {
-	  unsigned char *passphrase;
-	  size_t size;
+  {
+    unsigned char *passphrase;
+    size_t size;
+    
+    *pininfo->pin = 0; /* Reset the PIN. */
+    rc = pinentry_loopback (ctrl, "PASSPHRASE", &passphrase, &size,
+			    pininfo->max_length - 1);
+    if (rc)
+      return rc;
+    
+    memcpy(&pininfo->pin, passphrase, size);
+    xfree(passphrase);
+    pininfo->pin[size] = 0;
+    if (pininfo->check_cb)
+      {
+	/* More checks by utilizing the optional callback. */
+	pininfo->cb_errtext = NULL;
+	rc = pininfo->check_cb (pininfo);
+      }
+    return rc;
+  }
 
-	  *pininfo->pin = 0; /* Reset the PIN. */
-	  rc = pinentry_loopback (ctrl, "PASSPHRASE", &passphrase, &size,
-                                  pininfo->max_length - 1);
-	  if (rc)
-	    return rc;
-
-	  memcpy(&pininfo->pin, passphrase, size);
-	  xfree(passphrase);
-	  pininfo->pin[size] = 0;
-	  if (pininfo->check_cb)
-	    {
-	      /* More checks by utilizing the optional callback. */
-	      pininfo->cb_errtext = NULL;
-	      rc = pininfo->check_cb (pininfo);
-	    }
-	  return rc;
-	}
-      return GPG_ERR_NO_PIN_ENTRY;
-    }
-
+#if 0
   if (!pininfo || pininfo->max_length < 1)
     return GPG_ERR_INV_VALUE;
   if (!desc_text && pininfo->min_digits)
@@ -781,6 +775,7 @@ agent_askpin (ctrl_t ctrl,
 
   return unlock_pinentry (pininfo->min_digits? GPG_ERR_BAD_PIN
                           : GPG_ERR_BAD_PASSPHRASE);
+#endif
 }
 
 
@@ -803,22 +798,15 @@ agent_get_passphrase (ctrl_t ctrl,
   if (opt.batch)
     return GPG_ERR_BAD_PASSPHRASE;
 
-  if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    {
-      if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return GPG_ERR_CANCELED;
+  {
+    size_t size;
+    
+    return pinentry_loopback (ctrl, "PASSPHRASE",
+			      (unsigned char **)retpass, &size,
+			      MAX_PASSPHRASE_LEN);
+  }
 
-      if (ctrl->pinentry_mode == PINENTRY_MODE_LOOPBACK)
-        {
-	  size_t size;
-
-	  return pinentry_loopback (ctrl, "PASSPHRASE",
-				    (unsigned char **)retpass, &size,
-                                    MAX_PASSPHRASE_LEN);
-        }
-      return GPG_ERR_NO_PIN_ENTRY;
-    }
-
+#if 0
   rc = start_pinentry (ctrl);
   if (rc)
     return rc;
@@ -897,6 +885,7 @@ agent_get_passphrase (ctrl_t ctrl,
   else
     *retpass = (char*) parm.buffer;
   return unlock_pinentry (rc);
+#endif
 }
 
 
@@ -916,14 +905,9 @@ agent_get_confirmation (ctrl_t ctrl,
   int rc;
   char line[ASSUAN_LINELENGTH];
 
-  if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    {
-      if (ctrl->pinentry_mode == PINENTRY_MODE_CANCEL)
-        return GPG_ERR_CANCELED;
+  return GPG_ERR_NO_PIN_ENTRY;
 
-      return GPG_ERR_NO_PIN_ENTRY;
-    }
-
+#if 0
   rc = start_pinentry (ctrl);
   if (rc)
     return rc;
@@ -980,6 +964,7 @@ agent_get_confirmation (ctrl_t ctrl,
     rc = GPG_ERR_CANCELED;
 
   return unlock_pinentry (rc);
+#endif
 }
 
 
@@ -994,9 +979,9 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
   int rc;
   char line[ASSUAN_LINELENGTH];
 
-  if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    return GPG_ERR_CANCELED;
+  return GPG_ERR_CANCELED;
 
+#if 0  
   rc = start_pinentry (ctrl);
   if (rc)
     return rc;
@@ -1030,6 +1015,7 @@ agent_show_message (ctrl_t ctrl, const char *desc, const char *ok_btn)
     rc = GPG_ERR_CANCELED;
 
   return unlock_pinentry (rc);
+#endif
 }
 
 
@@ -1064,9 +1050,9 @@ agent_popup_message_start (ctrl_t ctrl, const char *desc, const char *ok_btn)
   npth_attr_t tattr;
   int err;
 
-  if (ctrl->pinentry_mode != PINENTRY_MODE_ASK)
-    return GPG_ERR_CANCELED;
+  return GPG_ERR_CANCELED;
 
+#if 0
   rc = start_pinentry (ctrl);
   if (rc)
     return rc;
@@ -1105,6 +1091,7 @@ agent_popup_message_start (ctrl_t ctrl, const char *desc, const char *ok_btn)
   npth_setname_np (popup_tid, "popup-message");
 
   return 0;
+#endif
 }
 
 /* Close a popup window. */

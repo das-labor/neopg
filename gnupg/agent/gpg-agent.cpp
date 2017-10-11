@@ -893,7 +893,6 @@ agent_init_default_ctrl (ctrl_t ctrl)
     xfree (ctrl->lc_messages);
   ctrl->lc_messages = default_lc_messages? xtrystrdup (default_lc_messages)
                                     /**/ : NULL;
-  ctrl->pinentry_mode = PINENTRY_MODE_LOOPBACK;
 }
 
 
