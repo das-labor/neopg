@@ -388,11 +388,6 @@
 #define HAVE_LANGINFO_H 1
 /* #undef HAVE_LBER */
 #define HAVE_LC_MESSAGES 1
-/* #undef HAVE_LDAP_GET_OPTION */
-/* #undef HAVE_LDAP_LD_ERRNO */
-/* #undef HAVE_LDAP_SET_OPTION */
-/* #undef HAVE_LDAP_START_TLS_S */
-/* #undef HAVE_LDAP_START_TLS_SA */
 /* #undef HAVE_LIBREADLINE */
 #define HAVE_LIBUSB 1
 #define HAVE_LIBUTIL 1
@@ -480,7 +475,6 @@
 #define SIZEOF_UNSIGNED_SHORT 2
 #define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
-#define USE_LDAP 1
 #define USE_NPTH 1
 /* #undef USE_ONLY_8DOT3 */
 /* #undef USE_SIMPLE_GETTEXT */
@@ -575,15 +569,5 @@
 #endif
 #endif
 
-
-/* Hack used for W32: ldap.m4 also tests for the ASCII version of
-   ldap_start_tls_s because that is the actual symbol used in the
-   library.  winldap.h redefines it to our commonly used value,
-   thus we define our usual macro here.  */
-#ifdef HAVE_LDAP_START_TLS_SA
-# ifndef HAVE_LDAP_START_TLS_S
-#  define HAVE_LDAP_START_TLS_S 1
-# endif
-#endif
 
 #define USE_RNDLINUX 1

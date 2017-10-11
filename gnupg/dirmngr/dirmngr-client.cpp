@@ -827,7 +827,7 @@ do_loadcrl (assuan_context_t ctx, const char *filename)
 }
 
 
-/* Do a LDAP lookup using PATTERN and print the result in a base-64
+/* Do lookup using PATTERN and print the result in a base-64
    encoded format.  */
 static gpg_error_t
 do_lookup (assuan_context_t ctx, const char *pattern)

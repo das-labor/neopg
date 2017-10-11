@@ -1415,9 +1415,7 @@ find_cert_bysn (ctrl_t ctrl, const char *issuer_dn, ksba_sexp_t serialno)
 
 /* Return the certificate matching SUBJECT_DN and (if not NULL)
  * KEYID. If it is not already in the cache, try to find it from other
- * resources.  Note, that the external search does not work for user
- * certificates because the LDAP lookup is on the caCertificate
- * attribute. For our purposes this is just fine.  */
+ * resources.  */
 ksba_cert_t
 find_cert_bysubject (ctrl_t ctrl, const char *subject_dn, ksba_sexp_t keyid)
 {

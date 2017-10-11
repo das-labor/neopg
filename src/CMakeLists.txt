@@ -600,7 +600,6 @@ add_executable(neopg
   ../gnupg/dirmngr/crlfetch.cpp
   ../gnupg/dirmngr/dirmngr-client.cpp
   ../gnupg/dirmngr/dirmngr.cpp
-  ../gnupg/dirmngr/dirmngr_ldap.cpp
   ../gnupg/dirmngr/dns-stuff.cpp
   ../gnupg/dirmngr/http-common.cpp
   ../gnupg/dirmngr/http.cpp
@@ -609,11 +608,6 @@ add_executable(neopg
   ../gnupg/dirmngr/ks-engine-hkp.cpp
   ../gnupg/dirmngr/ks-engine-http.cpp
   ../gnupg/dirmngr/ks-engine-kdns.cpp
-  ../gnupg/dirmngr/ks-engine-ldap.cpp
-  ../gnupg/dirmngr/ldap-parse-uri.cpp
-  ../gnupg/dirmngr/ldap.cpp
-  ../gnupg/dirmngr/ldap-wrapper-ce.cpp
-  ../gnupg/dirmngr/ldapserver.cpp
   ../gnupg/dirmngr/misc.cpp
   ../gnupg/dirmngr/ocsp.cpp
   ../gnupg/dirmngr/server.cpp

@@ -53,15 +53,5 @@ gpg_error_t ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp);
 gpg_error_t ks_kdns_help (ctrl_t ctrl, parsed_uri_t uri);
 gpg_error_t ks_kdns_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp);
 
-/*-- ks-engine-ldap.c --*/
-gpg_error_t ks_ldap_help (ctrl_t ctrl, parsed_uri_t uri);
-gpg_error_t ks_ldap_search (ctrl_t ctrl, parsed_uri_t uri, const char *pattern,
-			    estream_t *r_fp);
-gpg_error_t ks_ldap_get (ctrl_t ctrl, parsed_uri_t uri,
-			 const char *keyspec, estream_t *r_fp);
-gpg_error_t ks_ldap_put (ctrl_t ctrl, parsed_uri_t uri,
-			 void *data, size_t datalen,
-			 void *info, size_t infolen);
-
 
 #endif /*DIRMNGR_KS_ENGINE_H*/

@@ -34,20 +34,6 @@
 #include "../common/i18n.h"
 #include "http.h"     /* (parsed_uri_t) */
 
-/* This objects keeps information about a particular LDAP server and
-   is used as item of a single linked list of servers. */
-struct ldap_server_s
-{
-  struct ldap_server_s* next;
-
-  char *host;
-  int   port;
-  char *user;
-  char *pass;
-  char *base;
-};
-typedef struct ldap_server_s *ldap_server_t;
-
 
 /* This objects is used to build a list of URI consisting of the
    original and the parsed URI.  */
@@ -83,8 +69,6 @@ struct options
   char *config_filename;     /* Name of a config file, which will be
                                 reread on a HUP if it is not NULL. */
 
-  char *ldap_wrapper_program; /* Override value for the LDAP wrapper
-                                 program.  */
   char *http_wrapper_program; /* Override value for the HTTP wrapper
                                  program.  */
 
@@ -98,15 +82,11 @@ struct options
   unsigned int connect_quick_timeout; /* Shorter timeout for connect.  */
 
   int disable_http;       /* Do not use HTTP at all.  */
-  int disable_ldap;       /* Do not use LDAP at all.  */
   int disable_ipv4;       /* Do not use legacy IP addresses.  */
   int disable_ipv6;       /* Do not use standard IP addresses.  */
   int honor_http_proxy;   /* Honor the http_proxy env variable. */
   const char *http_proxy; /* The default HTTP proxy.  */
-  const char *ldap_proxy; /* Use given LDAP proxy.  */
-  int only_ldap_proxy;    /* Only use the LDAP proxy; no fallback.  */
   int ignore_http_dp;     /* Ignore HTTP CRL distribution points.  */
-  int ignore_ldap_dp;     /* Ignore LDAP CRL distribution points.  */
   int ignore_ocsp_service_url; /* Ignore OCSP service URLs as given in
                                   the certificate.  */
 
@@ -118,10 +98,6 @@ struct options
   int allow_ocsp;     /* Allow using OCSP. */
 
   int max_replies;
-  unsigned int ldaptimeout;
-
-  ldap_server_t ldapservers;
-  int add_new_ldapservers;
 
   const char *ocsp_responder;     /* Standard OCSP responder's URL. */
   fingerprint_list_t ocsp_signer; /* The list of fingerprints with allowed
@@ -217,7 +193,6 @@ void ks_hkp_reload (void);
 
 
 /*-- server.c --*/
-ldap_server_t get_ldapservers_from_ctrl (ctrl_t ctrl);
 ksba_cert_t get_cert_local (ctrl_t ctrl, const char *issuer);
 ksba_cert_t get_issuing_cert_local (ctrl_t ctrl, const char *issuer);
 ksba_cert_t get_cert_local_ski (ctrl_t ctrl,

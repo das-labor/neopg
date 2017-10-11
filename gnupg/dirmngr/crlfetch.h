@@ -43,8 +43,7 @@ gpg_error_t ca_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
 /* Query the server for certs matching patterns. */
 gpg_error_t start_cert_fetch (ctrl_t ctrl,
                               cert_fetch_context_t *context,
-                              strlist_t patterns,
-                              const ldap_server_t server);
+                              strlist_t patterns);
 gpg_error_t fetch_next_cert(cert_fetch_context_t context,
                             unsigned char **value, size_t *valuelen);
 gpg_error_t fetch_next_ksba_cert (cert_fetch_context_t context,
@@ -57,31 +56,6 @@ gpg_error_t fetch_cert_by_url (ctrl_t ctrl, const char *url,
 
 /* Close a reader object. */
 void crl_close_reader (ksba_reader_t reader);
-
-
-
-/*-- ldap.c --*/
-gpg_error_t url_fetch_ldap (ctrl_t ctrl,
-                            const char *url, const char *host, int port,
-                            ksba_reader_t *reader);
-gpg_error_t attr_fetch_ldap (ctrl_t ctrl,
-                             const char *dn, const char *attr,
-                             ksba_reader_t *reader);
-
-
-gpg_error_t start_default_fetch_ldap (ctrl_t ctrl,
-                                      cert_fetch_context_t *context,
-                                      const char *dn, const char *attr);
-gpg_error_t start_cert_fetch_ldap( ctrl_t ctrl,
-                                   cert_fetch_context_t *context,
-                                   strlist_t patterns,
-                                   const ldap_server_t server );
-gpg_error_t fetch_next_cert_ldap (cert_fetch_context_t context,
-                                  unsigned char **value, size_t *valuelen );
-void end_cert_fetch_ldap (cert_fetch_context_t context);
-
-
-
 
 
 

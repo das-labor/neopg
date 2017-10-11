@@ -1,4 +1,4 @@
-/* crlcache.c - LDAP access
+/* crlcache.c
  * Copyright (C) 2002 Klarälvdalens Datakonsult AB
  * Copyright (C) 2003, 2004, 2005, 2008 g10 Code GmbH
  *
@@ -2476,13 +2476,7 @@ crl_cache_reload_crl (ctrl_t ctrl, ksba_cert_t cert)
           if (!distpoint_uri)
             continue;
 
-          if (!strncmp (distpoint_uri, "ldap:", 5)
-              || !strncmp (distpoint_uri, "ldaps:", 6))
-            {
-              if (opt.ignore_ldap_dp)
-                continue;
-            }
-          else if (!strncmp (distpoint_uri, "http:", 5)
+          if (!strncmp (distpoint_uri, "http:", 5)
                    || !strncmp (distpoint_uri, "https:", 6))
             {
               if (opt.ignore_http_dp)

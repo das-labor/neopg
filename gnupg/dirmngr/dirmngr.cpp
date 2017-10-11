@@ -1,4 +1,4 @@
-/* dirmngr.c - Keyserver and X.509 LDAP access
+/* dirmngr.c - Keyserver and X.509
  * Copyright (C) 2002 Klarälvdalens Datakonsult AB
  * Copyright (C) 2003, 2004, 2006, 2007, 2008, 2010, 2011 g10 Code GmbH
  * Copyright (C) 2014 Werner Koch
@@ -58,13 +58,7 @@
 #include "crlcache.h"
 #include "crlfetch.h"
 #include "misc.h"
-#if USE_LDAP
-# include "ldapserver.h"
-#endif
 #include "../common/asshelp.h"
-#if USE_LDAP
-# include "ldap-wrapper.h"
-#endif
 #include "../common/init.h"
 #include "../common/gc-opt-flags.h"
 #include "dns-stuff.h"
@@ -106,19 +100,12 @@ enum cmd_and_opt_values {
   oLogFile,
   oBatch,
   oDisableHTTP,
-  oDisableLDAP,
   oDisableIPv4,
   oDisableIPv6,
-  oIgnoreLDAPDP,
   oIgnoreHTTPDP,
   oIgnoreOCSPSvcUrl,
   oHonorHTTPProxy,
   oHTTPProxy,
-  oLDAPProxy,
-  oOnlyLDAPProxy,
-  oLDAPFile,
-  oLDAPTimeout,
-  oLDAPAddServers,
   oOCSPResponder,
   oOCSPSigner,
   oOCSPMaxClockSkew,
@@ -130,7 +117,6 @@ enum cmd_and_opt_values {
   oForce,
   oAllowOCSP,
   oAllowVersionCheck,
-  oLDAPWrapperProgram,
   oHTTPWrapperProgram,
   oIgnoreCertExtension,
   oUseTor,
@@ -178,28 +164,13 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oAllowVersionCheck, "allow-version-check",
                 N_("allow online software version check")),
   ARGPARSE_s_n (oDisableHTTP, "disable-http", N_("inhibit the use of HTTP")),
-  ARGPARSE_s_n (oDisableLDAP, "disable-ldap", N_("inhibit the use of LDAP")),
   ARGPARSE_s_n (oIgnoreHTTPDP,"ignore-http-dp",
                 N_("ignore HTTP CRL distribution points")),
-  ARGPARSE_s_n (oIgnoreLDAPDP,"ignore-ldap-dp",
-                N_("ignore LDAP CRL distribution points")),
   ARGPARSE_s_n (oIgnoreOCSPSvcUrl, "ignore-ocsp-service-url",
                 N_("ignore certificate contained OCSP service URLs")),
 
   ARGPARSE_s_s (oHTTPProxy,  "http-proxy",
                 N_("|URL|redirect all HTTP requests to URL")),
-  ARGPARSE_s_s (oLDAPProxy,  "ldap-proxy",
-                N_("|HOST|use HOST for LDAP queries")),
-  ARGPARSE_s_n (oOnlyLDAPProxy, "only-ldap-proxy",
-                N_("do not use fallback hosts with --ldap-proxy")),
-
-  ARGPARSE_s_s (oLDAPFile, "ldapserverlist-file",
-                N_("|FILE|read LDAP server list from FILE")),
-  ARGPARSE_s_n (oLDAPAddServers, "add-servers",
-                N_("add new servers discovered in CRL distribution"
-                   " points to serverlist")),
-  ARGPARSE_s_i (oLDAPTimeout, "ldaptimeout",
-                N_("|N|set LDAP timeout to N seconds")),
 
   ARGPARSE_s_s (oOCSPResponder, "ocsp-responder",
                 N_("|URL|use OCSP responder at URL")),
@@ -231,7 +202,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_i (oDebugWait, "debug-wait", "@"),
   ARGPARSE_s_n (oNoGreeting, "no-greeting", "@"),
   ARGPARSE_s_s (oHomedir, "homedir", "@"),
-  ARGPARSE_s_s (oLDAPWrapperProgram, "ldap-wrapper-program", "@"),
   ARGPARSE_s_s (oHTTPWrapperProgram, "http-wrapper-program", "@"),
   ARGPARSE_s_n (oHonorHTTPProxy, "honor-http-proxy", "@"),
   ARGPARSE_s_s (oIgnoreCertExtension,"ignore-cert-extension", "@"),
@@ -265,7 +235,6 @@ static struct debug_flags_s debug_flags [] =
   };
 
 #define DEFAULT_MAX_REPLIES 10
-#define DEFAULT_LDAP_TIMEOUT 100 /* arbitrary large timeout */
 
 #define DEFAULT_CONNECT_TIMEOUT       (15*1000)  /* 15 seconds */
 #define DEFAULT_CONNECT_QUICK_TIMEOUT ( 2*1000)  /*  2 seconds */
@@ -329,9 +298,6 @@ static npth_key_t my_tlskey_current_fd;
 
 /* Prototypes. */
 static void cleanup (void);
-#if USE_LDAP
-static ldap_server_t parse_ldapserver_file (const char* filename);
-#endif /*USE_LDAP*/
 static fingerprint_list_t parse_ocsp_signer (const char *string);
 static void netactivity_action (void);
 
@@ -506,16 +472,6 @@ wrong_args (const char *text)
 }
 
 
-/* Helper to stop the reaper thread for the ldap wrapper.  */
-static void
-shutdown_reaper (void)
-{
-#if USE_LDAP
-  ldap_wrapper_wait_connections ();
-#endif
-}
-
-
 /* Handle options which are allowed to be reset after program start.
    Return true if the current option in PARGS could be handled and
    false if not.  As a special feature, passing a value of NULL for
@@ -529,15 +485,10 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       opt.quiet = 0;
       opt.verbose = 0;
       opt.debug = 0;
-      opt.ldap_wrapper_program = NULL;
       opt.disable_http = 0;
-      opt.disable_ldap = 0;
       opt.honor_http_proxy = 0;
       opt.http_proxy = NULL;
-      opt.ldap_proxy = NULL;
-      opt.only_ldap_proxy = 0;
       opt.ignore_http_dp = 0;
-      opt.ignore_ldap_dp = 0;
       opt.ignore_ocsp_service_url = 0;
       opt.allow_ocsp = 0;
       opt.allow_version_check = 0;
@@ -589,23 +540,16 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
         }
       break;
 
-    case oLDAPWrapperProgram:
-      opt.ldap_wrapper_program = pargs->r.ret_str;
-      break;
     case oHTTPWrapperProgram:
       opt.http_wrapper_program = pargs->r.ret_str;
       break;
 
     case oDisableHTTP: opt.disable_http = 1; break;
-    case oDisableLDAP: opt.disable_ldap = 1; break;
     case oDisableIPv4: opt.disable_ipv4 = 1; break;
     case oDisableIPv6: opt.disable_ipv6 = 1; break;
     case oHonorHTTPProxy: opt.honor_http_proxy = 1; break;
     case oHTTPProxy: opt.http_proxy = pargs->r.ret_str; break;
-    case oLDAPProxy: opt.ldap_proxy = pargs->r.ret_str; break;
-    case oOnlyLDAPProxy: opt.only_ldap_proxy = 1; break;
     case oIgnoreHTTPDP: opt.ignore_http_dp = 1; break;
-    case oIgnoreLDAPDP: opt.ignore_ldap_dp = 1; break;
     case oIgnoreOCSPSvcUrl: opt.ignore_ocsp_service_url = 1; break;
 
     case oAllowOCSP: opt.allow_ocsp = 1; break;
@@ -747,9 +691,6 @@ dirmngr_main (int argc, char **argv)
   int nodetach = 0;
   int csh_style = 0;
   char *logfile = NULL;
-#if USE_LDAP
-  char *ldapfile = NULL;
-#endif /*USE_LDAP*/
   int debug_wait = 0;
   int rc;
   struct assuan_malloc_hooks malloc_hooks;
@@ -795,10 +736,6 @@ dirmngr_main (int argc, char **argv)
   /* Default TCP timeouts.  */
   opt.connect_timeout = DEFAULT_CONNECT_TIMEOUT;
   opt.connect_quick_timeout = DEFAULT_CONNECT_QUICK_TIMEOUT;
-
-  /* LDAP defaults.  */
-  opt.add_new_ldapservers = 0;
-  opt.ldaptimeout = DEFAULT_LDAP_TIMEOUT;
 
   /* Other defaults.  */
 
@@ -901,15 +838,6 @@ dirmngr_main (int argc, char **argv)
         case oLogFile: logfile = pargs.r.ret_str; break;
         case oCsh: csh_style = 1; break;
         case oSh: csh_style = 0; break;
-	case oLDAPFile:
-#        if USE_LDAP
-          ldapfile = pargs.r.ret_str;
-#        endif /*USE_LDAP*/
-          break;
-	case oLDAPAddServers: opt.add_new_ldapservers = 1; break;
-	case oLDAPTimeout:
-	  opt.ldaptimeout = pargs.r.ret_int;
-	  break;
 
         case oFakedSystemTime:
           gnupg_set_time ((time_t)pargs.r.ret_ulong, 0);
@@ -976,24 +904,9 @@ dirmngr_main (int argc, char **argv)
 
   post_option_parsing ();
 
-  /* Get LDAP server list from file. */
-#if USE_LDAP
-  if (!ldapfile)
-    {
-      ldapfile = make_filename (gnupg_homedir (),
-                                "dirmngr_ldapservers.conf",
-                                NULL);
-      opt.ldapservers = parse_ldapserver_file (ldapfile);
-      xfree (ldapfile);
-    }
-  else
-      opt.ldapservers = parse_ldapserver_file (ldapfile);
-#endif /*USE_LDAP*/
-
 #ifndef HAVE_W32_SYSTEM
   /* We need to ignore the PIPE signal because the we might log to a
-     socket and that code handles EPIPE properly.  The ldap wrapper
-     also requires us to ignore this silly signal. Assuan would set
+     socket and that code handles EPIPE properly.  Assuan would set
      this signal to ignore anyway.*/
   signal (SIGPIPE, SIG_IGN);
 #endif
@@ -1029,7 +942,6 @@ dirmngr_main (int argc, char **argv)
       crl_cache_init ();
       http_register_netactivity_cb (netactivity_action);
       start_command_handler ();
-      shutdown_reaper ();
     }
   else if (cmd == aListCRLs)
     {
@@ -1124,17 +1036,6 @@ dirmngr_main (int argc, char **argv)
          and having both of them is thus problematic.  --no-detach is
          also only usable on the command line.  --batch is unused.  */
 
-      filename = make_filename (gnupg_homedir (),
-                                "dirmngr_ldapservers.conf",
-                                NULL);
-      filename_esc = percent_escape (filename, NULL);
-      es_printf ("ldapserverlist-file:%lu:\"%s\n", flags | GC_OPT_FLAG_DEFAULT,
-	      filename_esc);
-      xfree (filename_esc);
-      xfree (filename);
-
-      es_printf ("ldaptimeout:%lu:%u\n",
-              flags | GC_OPT_FLAG_DEFAULT, DEFAULT_LDAP_TIMEOUT);
       es_printf ("max-replies:%lu:%u\n",
               flags | GC_OPT_FLAG_DEFAULT, DEFAULT_MAX_REPLIES);
       es_printf ("allow-ocsp:%lu:\n", flags | GC_OPT_FLAG_NONE);
@@ -1146,12 +1047,8 @@ dirmngr_main (int argc, char **argv)
       es_printf ("no-greeting:%lu:\n", flags | GC_OPT_FLAG_NONE);
 
       es_printf ("disable-http:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("disable-ldap:%lu:\n", flags | GC_OPT_FLAG_NONE);
       es_printf ("honor-http-proxy:%lu\n", flags | GC_OPT_FLAG_NONE);
       es_printf ("http-proxy:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ldap-proxy:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("only-ldap-proxy:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ignore-ldap-dp:%lu:\n", flags | GC_OPT_FLAG_NONE);
       es_printf ("ignore-http-dp:%lu:\n", flags | GC_OPT_FLAG_NONE);
       es_printf ("ignore-ocsp-service-url:%lu:\n", flags | GC_OPT_FLAG_NONE);
       /* Note: The next one is to fix a typo in gpgconf - should be
@@ -1181,11 +1078,6 @@ cleanup (void)
   crl_cache_deinit ();
   cert_cache_deinit (1);
   reload_dns_stuff (1);
-
-#if USE_LDAP
-  ldapserver_list_free (opt.ldapservers);
-#endif /*USE_LDAP*/
-  opt.ldapservers = NULL;
 
 }
 
@@ -1220,79 +1112,6 @@ dirmngr_deinit_default_ctrl (ctrl_t ctrl)
   ctrl->http_proxy = NULL;
 }
 
-
-/* Create a list of LDAP servers from the file FILENAME. Returns the
-   list or NULL in case of errors.
-
-   The format fo such a file is line oriented where empty lines and
-   lines starting with a hash mark are ignored.  All other lines are
-   assumed to be colon seprated with these fields:
-
-   1. field: Hostname
-   2. field: Portnumber
-   3. field: Username
-   4. field: Password
-   5. field: Base DN
-
-*/
-#if USE_LDAP
-static ldap_server_t
-parse_ldapserver_file (const char* filename)
-{
-  char buffer[1024];
-  char *p;
-  ldap_server_t server, serverstart, *serverend;
-  int c;
-  unsigned int lineno = 0;
-  estream_t fp;
-
-  fp = es_fopen (filename, "r");
-  if (!fp)
-    {
-      log_error (_("error opening '%s': %s\n"), filename, strerror (errno));
-      return NULL;
-    }
-
-  serverstart = NULL;
-  serverend = &serverstart;
-  while (es_fgets (buffer, sizeof buffer, fp))
-    {
-      lineno++;
-      if (!*buffer || buffer[strlen(buffer)-1] != '\n')
-        {
-          if (*buffer && es_feof (fp))
-            ; /* Last line not terminated - continue. */
-          else
-            {
-              log_error (_("%s:%u: line too long - skipped\n"),
-                         filename, lineno);
-              while ( (c=es_fgetc (fp)) != EOF && c != '\n')
-                ; /* Skip until end of line. */
-              continue;
-            }
-        }
-      /* Skip empty and comment lines.*/
-      for (p=buffer; spacep (p); p++)
-        ;
-      if (!*p || *p == '\n' || *p == '#')
-        continue;
-
-      /* Parse the colon separated fields. */
-      server = ldapserver_parse_one (buffer, filename, lineno);
-      if (server)
-        {
-          *serverend = server;
-          serverend = &server->next;
-        }
-    }
-
-  if (es_ferror (fp))
-    log_error (_("error reading '%s': %s\n"), filename, strerror (errno));
-  es_fclose (fp);
-
-  return serverstart;
-}
-#endif /*USE_LDAP*/
 
 static fingerprint_list_t
 parse_ocsp_signer (const char *string)

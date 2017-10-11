@@ -1,4 +1,4 @@
-/* server.c - LDAP and Keyserver access server
+/* server.c - Keyserver access server
  * Copyright (C) 2002 Klarälvdalens Datakonsult AB
  * Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009, 2011, 2015 g10 Code GmbH
  * Copyright (C) 2014, 2015, 2016 Werner Koch
@@ -36,21 +36,12 @@
 
 #include "crlcache.h"
 #include "crlfetch.h"
-#if USE_LDAP
-# include "ldapserver.h"
-#endif
 #include "ocsp.h"
 #include "certcache.h"
 #include "validate.h"
 #include "misc.h"
-#if USE_LDAP
-# include "ldap-wrapper.h"
-#endif
 #include "ks-action.h"
 #include "ks-engine.h"  /* (ks_hkp_print_hosttable) */
-#if USE_LDAP
-# include "ldap-parse-uri.h"
-#endif
 #include "dns-stuff.h"
 #include "../common/mbox-util.h"
 #include "../common/zb32.h"
@@ -88,9 +79,6 @@ struct server_local_s
   /* Data used to associate an Assuan context with local server data */
   assuan_context_t assuan_ctx;
 
-  /* Per-session LDAP servers.  */
-  ldap_server_t ldapservers;
-
   /* Per-session list of keyservers.  */
   uri_item_t keyservers;
 
@@ -124,17 +112,6 @@ static es_cookie_io_functions_t data_line_cookie_functions =
 
 
 
-
-
-/* Accessor for the local ldapservers variable. */
-ldap_server_t
-get_ldapservers_from_ctrl (ctrl_t ctrl)
-{
-  if (ctrl && ctrl->server_local)
-    return ctrl->server_local->ldapservers;
-  else
-    return NULL;
-}
 
 /* Release an uri_item_t list.  */
 static void
@@ -938,41 +915,6 @@ cmd_wkd_get (assuan_context_t ctx, char *line)
 }
 
 
-
-static const char hlp_ldapserver[] =
-  "LDAPSERVER <data>\n"
-  "\n"
-  "Add a new LDAP server to the list of configured LDAP servers.\n"
-  "DATA is in the same format as expected in the configure file.";
-static gpg_error_t
-cmd_ldapserver (assuan_context_t ctx, char *line)
-{
-#if USE_LDAP
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  ldap_server_t server;
-  ldap_server_t *last_next_p;
-
-  while (spacep (line))
-    line++;
-  if (*line == '\0')
-    return leave_cmd (ctx, PARM_ERROR (_("ldapserver missing")));
-
-  server = ldapserver_parse_one (line, "", 0);
-  if (! server)
-    return leave_cmd (ctx, GPG_ERR_INV_ARG);
-
-  last_next_p = &ctrl->server_local->ldapservers;
-  while (*last_next_p)
-    last_next_p = &(*last_next_p)->next;
-  *last_next_p = server;
-  return leave_cmd (ctx, 0);
-#else
-  (void)line;
-  return leave_cmd (ctx, GPG_ERR_NOT_IMPLEMENTED);
-#endif
-}
-
-
 static const char hlp_isvalid[] =
   "ISVALID [--only-ocsp] [--force-default-responder]"
   " <certificate_id>|<certificate_fpr>\n"
@@ -1342,8 +1284,7 @@ return_one_cert (void *opaque, ksba_cert_t cert)
 }
 
 
-/* Lookup certificates from the internal cache or using the ldap
-   servers. */
+/* Lookup certificates from the internal cache.  */
 static int
 lookup_cert_by_pattern (assuan_context_t ctx, char *line,
                         int single, int cache_only)
@@ -1354,13 +1295,6 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
   int truncated = 0, truncation_forced = 0;
   int count = 0;
   int local_count = 0;
-#if USE_LDAP
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  unsigned char *value = NULL;
-  size_t valuelen;
-  struct ldapserver_iter ldapserver_iter;
-  cert_fetch_context_t fetch_context;
-#endif /*USE_LDAP*/
   int any_no_data = 0;
 
   /* Break the line down into an STRLIST */
@@ -1419,100 +1353,6 @@ lookup_cert_by_pattern (assuan_context_t ctx, char *line,
 
   /* Loop over all configured servers unless we want only the
      certificates from the cache.  */
-#if USE_LDAP
-  for (ldapserver_iter_begin (&ldapserver_iter, ctrl);
-       !cache_only && !ldapserver_iter_end_p (&ldapserver_iter)
-	 && ldapserver_iter.server->host && !truncation_forced;
-       ldapserver_iter_next (&ldapserver_iter))
-    {
-      ldap_server_t ldapserver = ldapserver_iter.server;
-
-      if (DBG_LOOKUP)
-        log_debug ("cmd_lookup: trying %s:%d base=%s\n",
-                   ldapserver->host, ldapserver->port,
-                   ldapserver->base?ldapserver->base : "[default]");
-
-      /* Fetch certificates matching pattern */
-      err = start_cert_fetch (ctrl, &fetch_context, list, ldapserver);
-      if ( err == GPG_ERR_NO_DATA )
-        {
-          if (DBG_LOOKUP)
-            log_debug ("cmd_lookup: no data\n");
-          err = 0;
-          any_no_data = 1;
-          continue;
-        }
-      if (err)
-        {
-          log_error (_("start_cert_fetch failed: %s\n"), gpg_strerror (err));
-          goto leave;
-        }
-
-      /* Fetch the certificates for this query. */
-      while (!truncation_forced)
-        {
-          xfree (value); value = NULL;
-          err = fetch_next_cert (fetch_context, &value, &valuelen);
-          if (err == GPG_ERR_NO_DATA )
-            {
-              err = 0;
-              any_no_data = 1;
-              break; /* Ready. */
-            }
-          if (err == GPG_ERR_TRUNCATED)
-            {
-              truncated = 1;
-              err = 0;
-              break;  /* Ready.  */
-            }
-          if (err == GPG_ERR_EOF)
-            {
-              err = 0;
-              break; /* Ready. */
-            }
-          if (!err && !value)
-            {
-              err = GPG_ERR_BUG;
-              goto leave;
-            }
-          if (err)
-            {
-              log_error (_("fetch_next_cert failed: %s\n"),
-                         gpg_strerror (err));
-              end_cert_fetch (fetch_context);
-              goto leave;
-            }
-
-          if (DBG_LOOKUP)
-            log_debug ("cmd_lookup: returning one cert%s\n",
-                       truncated? " (truncated)":"");
-
-          /* Send the data, flush the buffer and then send an END line
-             as a certificate delimiter. */
-          err = assuan_send_data (ctx, value, valuelen);
-          if (!err)
-            err = assuan_send_data (ctx, NULL, 0);
-          if (!err)
-            err = assuan_write_line (ctx, "END");
-          if (err)
-            {
-              log_error (_("error sending data: %s\n"), gpg_strerror (err));
-              end_cert_fetch (fetch_context);
-              goto leave;
-            }
-
-          if (++count >= opt.max_replies )
-            {
-              truncation_forced = 1;
-              log_info (_("max_replies %d exceeded\n"), opt.max_replies );
-            }
-          if (single)
-            break;
-        }
-
-      end_cert_fetch (fetch_context);
-    }
-#endif /*USE_LDAP*/
 
  ready:
   if (truncated || truncation_forced)
@@ -1856,11 +1696,6 @@ make_keyserver_item (const char *uri, uri_item_t *r_item)
   item->parsed_uri = NULL;
   strcpy (item->uri, uri);
 
-#if USE_LDAP
-  if (ldap_uri_p (item->uri))
-    err = ldap_parse_uri (&item->parsed_uri, uri);
-  else
-#endif
     {
       err = http_parse_uri (&item->parsed_uri, uri, 1);
     }
@@ -2257,12 +2092,7 @@ static const char hlp_ks_put[] =
   "  INQUIRE KEYBLOCK\n"
   "\n"
   "The client shall respond with a binary version of the keyblock (e.g.,\n"
-  "the output of `gpg --export KEYID').  For LDAP\n"
-  "keyservers Dirmngr may ask for meta information of the provided keyblock\n"
-  "using:\n"
-  "\n"
-  "  INQUIRE KEYBLOCK_INFO\n"
-  "\n"
+  "the output of `gpg --export KEYID').\n"
   "The client shall respond with a colon delimited info lines (the output\n"
   "of 'for x in keys sigs; do gpg --list-$x --with-colons KEYID; done').\n";
 static gpg_error_t
@@ -2401,7 +2231,6 @@ register_commands (assuan_context_t ctx)
   } table[] = {
     { "DNS_CERT",   cmd_dns_cert,   hlp_dns_cert },
     { "WKD_GET",    cmd_wkd_get,    hlp_wkd_get },
-    { "LDAPSERVER", cmd_ldapserver, hlp_ldapserver },
     { "ISVALID",    cmd_isvalid,    hlp_isvalid },
     { "CHECKCRL",   cmd_checkcrl,   hlp_checkcrl },
     { "CHECKOCSP",  cmd_checkocsp,  hlp_checkocsp },
@@ -2427,21 +2256,6 @@ register_commands (assuan_context_t ctx)
       if (rc)
         return rc;
     }
-  return 0;
-}
-
-
-/* Note that we do not reset the list of configured keyservers.  */
-static gpg_error_t
-reset_notify (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  (void)line;
-
-#if USE_LDAP
-  ldapserver_list_free (ctrl->server_local->ldapservers);
-#endif /*USE_LDAP*/
-  ctrl->server_local->ldapservers = NULL;
   return 0;
 }
 
@@ -2539,7 +2353,6 @@ start_command_handler ()
 
   assuan_set_hello_line (ctx, hello_line);
   assuan_register_option_handler (ctx, option_handler);
-  assuan_register_reset_notify (ctx, reset_notify);
 
   for (;;)
     {
@@ -2560,13 +2373,6 @@ start_command_handler ()
         }
     }
 
-
-#if USE_LDAP
-  ldap_wrapper_connection_cleanup (ctrl);
-
-  ldapserver_list_free (ctrl->server_local->ldapservers);
-#endif /*USE_LDAP*/
-  ctrl->server_local->ldapservers = NULL;
 
   release_ctrl_keyservers (ctrl);
 

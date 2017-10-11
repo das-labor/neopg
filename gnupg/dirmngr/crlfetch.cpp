@@ -1,4 +1,4 @@
-/* crlfetch.c - LDAP access
+/* crlfetch.c
  *      Copyright (C) 2002 Klarälvdalens Datakonsult AB
  *      Copyright (C) 2003, 2004, 2005, 2006, 2007 g10 Code GmbH
  *
@@ -28,10 +28,6 @@
 #include "dirmngr.h"
 #include "misc.h"
 #include "http.h"
-
-#if USE_LDAP
-# include "ldap-wrapper.h"
-#endif
 
 /* For detecting armored CRLs received via HTTP (yes, such CRLS really
    exits, e.g. http://grid.fzk.de/ca/gridka-crl.pem at least in June
@@ -147,8 +143,7 @@ my_es_read (void *opaque, char *buffer, size_t nbytes, size_t *nread)
 
 
 /* Fetch CRL from URL and return the entire CRL using new ksba reader
-   object in READER.  Note that this reader object should be closed
-   only using ldap_close_reader. */
+   object in READER. */
 gpg_error_t
 crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
 {
@@ -262,8 +257,6 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
                   {
                     url = free_this;
                     http_close (hd, 0);
-                    /* Note, that our implementation of redirection
-                       actually handles a redirect to LDAP.  */
                     goto once_more;
                   }
               }
@@ -287,28 +280,7 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
         }
     }
   else /* Let the LDAP code try other schemes. */
-    {
-      if (opt.disable_ldap)
-        {
-          log_error (_("CRL access not possible due to disabled %s\n"),
-                     "LDAP");
-          err = GPG_ERR_NOT_SUPPORTED;
-        }
-      else if (dirmngr_use_tor ())
-        {
-          /* For now we do not support LDAP over Tor.  */
-          log_error (_("CRL access not possible due to Tor mode\n"));
-          err = GPG_ERR_NOT_SUPPORTED;
-        }
-      else
-        {
-#       if USE_LDAP
-          err = url_fetch_ldap (ctrl, url, NULL, 0, reader);
-#       else /*!USE_LDAP*/
-          err = GPG_ERR_NOT_IMPLEMENTED;
-#       endif /*!USE_LDAP*/
-        }
-    }
+    err = GPG_ERR_NOT_SUPPORTED;
 
   xfree (free_this);
   return err;
@@ -326,22 +298,10 @@ crl_fetch_default (ctrl_t ctrl, const char *issuer, ksba_reader_t *reader)
       log_error (_("CRL access not possible due to Tor mode\n"));
       return GPG_ERR_NOT_SUPPORTED;
     }
-  if (opt.disable_ldap)
-    {
-      log_error (_("CRL access not possible due to disabled %s\n"),
-                 "LDAP");
-      return GPG_ERR_NOT_SUPPORTED;
-    }
-
-#if USE_LDAP
-  return attr_fetch_ldap (ctrl, issuer, "certificateRevocationList",
-                          reader);
-#else
   (void)ctrl;
   (void)issuer;
   (void)reader;
   return GPG_ERR_NOT_IMPLEMENTED;
-#endif
 }
 
 
@@ -358,26 +318,16 @@ ca_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context, const char *dn)
       log_error (_("CRL access not possible due to Tor mode\n"));
       return GPG_ERR_NOT_SUPPORTED;
     }
-  if (opt.disable_ldap)
-    {
-      log_error (_("CRL access not possible due to disabled %s\n"),
-                 "LDAP");
-      return GPG_ERR_NOT_SUPPORTED;
-    }
-#if USE_LDAP
-  return start_default_fetch_ldap (ctrl, context, dn, "cACertificate");
-#else
   (void)ctrl;
   (void)context;
   (void)dn;
   return GPG_ERR_NOT_IMPLEMENTED;
-#endif
 }
 
 
 gpg_error_t
 start_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
-                  strlist_t patterns, const ldap_server_t server)
+                  strlist_t patterns)
 {
   if (dirmngr_use_tor ())
     {
@@ -385,21 +335,10 @@ start_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
       log_error (_("CRL access not possible due to Tor mode\n"));
       return GPG_ERR_NOT_SUPPORTED;
     }
-  if (opt.disable_ldap)
-    {
-      log_error (_("certificate search not possible due to disabled %s\n"),
-                 "LDAP");
-      return GPG_ERR_NOT_SUPPORTED;
-    }
-#if USE_LDAP
-  return start_cert_fetch_ldap (ctrl, context, patterns, server);
-#else
   (void)ctrl;
   (void)context;
   (void)patterns;
-  (void)server;
   return GPG_ERR_NOT_IMPLEMENTED;
-#endif
 }
 
 
@@ -407,14 +346,10 @@ gpg_error_t
 fetch_next_cert (cert_fetch_context_t context,
                  unsigned char **value, size_t * valuelen)
 {
-#if USE_LDAP
-  return fetch_next_cert_ldap (context, value, valuelen);
-#else
   (void)context;
   (void)value;
   (void)valuelen;
   return GPG_ERR_NOT_IMPLEMENTED;
-#endif
 }
 
 
@@ -430,44 +365,15 @@ fetch_next_ksba_cert (cert_fetch_context_t context, ksba_cert_t *r_cert)
 
   *r_cert = NULL;
 
-#if USE_LDAP
-  err = fetch_next_cert_ldap (context, &value, &valuelen);
-  if (!err && !value)
-    err = GPG_ERR_BUG;
-#else
   (void)context;
-  err = GPG_ERR_NOT_IMPLEMENTED;
-#endif
-  if (err)
-    return err;
-
-  err = ksba_cert_new (&cert);
-  if (err)
-    {
-      xfree (value);
-      return err;
-    }
-
-  err = ksba_cert_init_from_mem (cert, value, valuelen);
-  xfree (value);
-  if (err)
-    {
-      ksba_cert_release (cert);
-      return err;
-    }
-  *r_cert = cert;
-  return 0;
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 
 void
 end_cert_fetch (cert_fetch_context_t context)
 {
-#if USE_LDAP
-  end_cert_fetch_ldap (context);
-#else
   (void)context;
-#endif
 }
 
 
@@ -488,49 +394,9 @@ fetch_cert_by_url (ctrl_t ctrl, const char *url,
   reader = NULL;
   cert = NULL;
 
-#if USE_LDAP
-  err = url_fetch_ldap (ctrl, url, NULL, 0, &reader);
-#else
   (void)ctrl;
   (void)url;
-  err = GPG_ERR_NOT_IMPLEMENTED;
-#endif /*USE_LDAP*/
-  if (err)
-    goto leave;
-
-  err = ksba_cert_new (&cert);
-  if (err)
-    goto leave;
-
-  err = ksba_cert_read_der (cert, reader);
-  if (err)
-    goto leave;
-
-  cert_image = ksba_cert_get_image (cert, &cert_image_n);
-  if (!cert_image || !cert_image_n)
-    {
-      err = GPG_ERR_INV_CERT_OBJ;
-      goto leave;
-    }
-
-  *value = (unsigned char*) xtrymalloc (cert_image_n);
-  if (!*value)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-
-  memcpy (*value, cert_image, cert_image_n);
-  *valuelen = cert_image_n;
-
- leave:
-
-  ksba_cert_release (cert);
-#if USE_LDAP
-  ldap_wrapper_release_context (reader);
-#endif /*USE_LDAP*/
-
-  return err;
+  return GPG_ERR_NOT_IMPLEMENTED;
 }
 
 /* This function is to be used to close the reader object.  In
@@ -556,12 +422,6 @@ crl_close_reader (ksba_reader_t reader)
         gpgrt_b64dec_finish (cb_ctx->b64state);
       /* Release the callback context.  */
       xfree (cb_ctx);
-    }
-  else /* This is an ldap wrapper context (Currently not used). */
-    {
-#if USE_LDAP
-      ldap_wrapper_release_context (reader);
-#endif /*USE_LDAP*/
     }
 
   /* Now get rid of the reader object. */
