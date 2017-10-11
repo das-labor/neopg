@@ -272,9 +272,6 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
     err = app_select_nks (app);
   if (err && is_app_allowed ("p15") && (!name || !strcmp (name, "p15")))
     err = app_select_p15 (app);
-  if (err && is_app_allowed ("geldkarte")
-      && (!name || !strcmp (name, "geldkarte")))
-    err = app_select_geldkarte (app);
   if (err && is_app_allowed ("dinsig") && (!name || !strcmp (name, "dinsig")))
     err = app_select_dinsig (app);
   if (err && is_app_allowed ("sc-hsm") && (!name || !strcmp (name, "sc-hsm")))
@@ -410,7 +407,6 @@ get_supported_applications (void)
     "openpgp",
     "nks",
     "p15",
-    "geldkarte",
     "dinsig",
     "sc-hsm",
     /* Note: "undefined" is not listed here because it needs special

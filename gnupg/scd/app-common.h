@@ -200,9 +200,6 @@ gpg_error_t app_select_dinsig (app_t app);
 /*-- app-p15.c --*/
 gpg_error_t app_select_p15 (app_t app);
 
-/*-- app-geldkarte.c --*/
-gpg_error_t app_select_geldkarte (app_t app);
-
 /*-- app-sc-hsm.c --*/
 gpg_error_t app_select_sc_hsm (app_t app);
 
