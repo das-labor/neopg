@@ -604,7 +604,6 @@ add_executable(neopg
   ../gnupg/dirmngr/http-common.cpp
   ../gnupg/dirmngr/http.cpp
   ../gnupg/dirmngr/ks-action.cpp
-  ../gnupg/dirmngr/ks-engine-finger.cpp
   ../gnupg/dirmngr/ks-engine-hkp.cpp
   ../gnupg/dirmngr/ks-engine-http.cpp
   ../gnupg/dirmngr/ks-engine-kdns.cpp
@@ -688,7 +687,7 @@ target_link_libraries(neopg PRIVATE
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
- -lldap -lz -lbz2 -lgnutls
+ -lresolv -lz -lbz2 -lgnutls
  libneopg
 )
 target_compile_options(neopg PUBLIC

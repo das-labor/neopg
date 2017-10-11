@@ -170,7 +170,6 @@ main (int argc, char **argv)
                  "  --timeout MS      timeout for connect in MS\n"
                  "  --no-verify       do not verify the certificate\n"
                  "  --force-tls       use HTTP_FLAG_FORCE_TLS\n"
-                 "  --force-tor       use HTTP_FLAG_FORCE_TOR\n"
                  "  --no-out          do not print the content\n"
                  "  --no-crl          do not consuilt a CRL\n",
                  stdout);
@@ -222,11 +221,6 @@ main (int argc, char **argv)
       else if (!strcmp (*argv, "--force-tls"))
         {
           my_http_flags |= HTTP_FLAG_FORCE_TLS;
-          argc--; argv++;
-        }
-      else if (!strcmp (*argv, "--force-tor"))
-        {
-          my_http_flags |= HTTP_FLAG_FORCE_TOR;
           argc--; argv++;
         }
       else if (!strcmp (*argv, "--no-out"))
@@ -335,8 +329,6 @@ main (int argc, char **argv)
       printf ("TLS   : %s\n",
               uri->use_tls? "yes":
               (my_http_flags&HTTP_FLAG_FORCE_TLS)? "forced" : "no");
-      printf ("Tor   : %s\n",
-              (my_http_flags&HTTP_FLAG_FORCE_TOR)? "yes" : "no");
 
     }
   fflush (stdout);

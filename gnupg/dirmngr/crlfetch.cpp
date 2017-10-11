@@ -194,7 +194,6 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
         err = http_open_document (&hd, url, NULL,
                                   ((opt.honor_http_proxy? HTTP_FLAG_TRY_PROXY:0)
                                    |(DBG_LOOKUP? HTTP_FLAG_LOG_RESP:0)
-                                   |(dirmngr_use_tor()? HTTP_FLAG_FORCE_TOR:0)
                                    |(opt.disable_ipv4? HTTP_FLAG_IGNORE_IPv4:0)
                                    |(opt.disable_ipv6? HTTP_FLAG_IGNORE_IPv6:0)
                                    ),
@@ -292,12 +291,6 @@ crl_fetch (ctrl_t ctrl, const char *url, ksba_reader_t *reader)
 gpg_error_t
 crl_fetch_default (ctrl_t ctrl, const char *issuer, ksba_reader_t *reader)
 {
-  if (dirmngr_use_tor ())
-    {
-      /* For now we do not support LDAP over Tor.  */
-      log_error (_("CRL access not possible due to Tor mode\n"));
-      return GPG_ERR_NOT_SUPPORTED;
-    }
   (void)ctrl;
   (void)issuer;
   (void)reader;
@@ -312,12 +305,6 @@ crl_fetch_default (ctrl_t ctrl, const char *issuer, ksba_reader_t *reader)
 gpg_error_t
 ca_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context, const char *dn)
 {
-  if (dirmngr_use_tor ())
-    {
-      /* For now we do not support LDAP over Tor.  */
-      log_error (_("CRL access not possible due to Tor mode\n"));
-      return GPG_ERR_NOT_SUPPORTED;
-    }
   (void)ctrl;
   (void)context;
   (void)dn;
@@ -329,12 +316,6 @@ gpg_error_t
 start_cert_fetch (ctrl_t ctrl, cert_fetch_context_t *context,
                   strlist_t patterns)
 {
-  if (dirmngr_use_tor ())
-    {
-      /* For now we do not support LDAP over Tor.  */
-      log_error (_("CRL access not possible due to Tor mode\n"));
-      return GPG_ERR_NOT_SUPPORTED;
-    }
   (void)ctrl;
   (void)context;
   (void)patterns;

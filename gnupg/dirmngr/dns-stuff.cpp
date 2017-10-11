@@ -134,18 +134,6 @@ static int standard_resolver;
 /* If set use recursive resolver when available. */
 static int recursive_resolver;
 
-/* If set Tor mode shall be used.  */
-static int tor_mode;
-
-/* A string with the nameserver IP address used with Tor.
-  (40 should be sufficient for v6 but we add some extra for a scope.) */
-static char tor_nameserver[40+20];
-
-/* Two strings to hold the credentials presented to Tor.  */
-static char tor_socks_user[30];
-static char tor_socks_password[20];
-
-
 /* Calling this function with YES set to True forces the use of the
  * standard resolver even if dirmngr has been built with support for
  * an alternative resolver.  */
@@ -178,33 +166,6 @@ int
 recursive_resolver_p (void)
 {
   return 0;
-}
-
-
-/* Puts this module eternally into Tor mode.  When called agained with
- * NEW_CIRCUIT request a new TOR circuit for the next DNS query.  */
-void
-enable_dns_tormode (int new_circuit)
-{
-  if (!*tor_socks_user || new_circuit)
-    {
-      static unsigned int counter;
-
-      gpgrt_snprintf (tor_socks_user, sizeof tor_socks_user,
-                      "dirmngr-%lu", (unsigned long)getpid ());
-      gpgrt_snprintf (tor_socks_password, sizeof tor_socks_password,
-                      "p%u", counter);
-      counter++;
-    }
-  tor_mode = 1;
-}
-
-
-/* Disable tor mode.  */
-void
-disable_dns_tormode (void)
-{
-  tor_mode = 0;
 }
 
 
@@ -248,18 +209,6 @@ set_dns_timeout (int seconds)
     seconds = 600;
 
   opt_timeout = seconds;
-}
-
-
-/* Change the default IP address of the nameserver to IPADDR.  The
-   address needs to be a numerical IP address and will be used for the
-   next DNS query.  Note that this is only used in Tor mode.  */
-void
-set_dns_nameserver (const char *ipaddr)
-{
-  strncpy (tor_nameserver, ipaddr? ipaddr : DEFAULT_NAMESERVER,
-           sizeof tor_nameserver -1);
-  tor_nameserver[sizeof tor_nameserver -1] = 0;
 }
 
 
@@ -502,7 +451,7 @@ resolve_addr_standard (const struct sockaddr_storage *addr, int addrlen,
   if (!buffer)
     return gpg_error_from_syserror ();
 
-  if ((flags & DNS_NUMERICHOST) || tor_mode)
+  if ((flags & DNS_NUMERICHOST))
     ec = EAI_NONAME;
   else
     ec = getnameinfo ((const struct sockaddr *)addr,
@@ -917,10 +866,6 @@ getsrv_standard (const char *name,
   unsigned int srvcount = 0;
   u16 count;
 
-  /* Do not allow a query using the standard resolver in Tor mode.  */
-  if (tor_mode)
-    return GPG_ERR_NOT_ENABLED;
-
   my_unprotect ();
   r = res_query (name, C_IN, T_SRV, answer, sizeof res.ans);
   my_protect ();
@@ -1171,10 +1116,6 @@ get_dns_cname_standard (const char *name, char **r_cname)
   char *cname;
   int cnamesize = 1025;
   u16 count;
-
-  /* Do not allow a query using the standard resolver in Tor mode.  */
-  if (tor_mode)
-    return -1;
 
   my_unprotect ();
   r = res_query (name, C_IN, T_CERT, answer, sizeof res.ans);

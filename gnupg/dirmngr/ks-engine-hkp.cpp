@@ -274,31 +274,6 @@ arecords_is_pool (dns_addrinfo_t aibuf)
 }
 
 
-/* Print a warning iff Tor is not running but Tor has been requested.
- * Also return true if it is not running.  */
-static int
-tor_not_running_p (ctrl_t ctrl)
-{
-  assuan_fd_t sock;
-
-  if (!dirmngr_use_tor ())
-    return 0;
-
-  sock = assuan_sock_connect_byname (NULL, 0, 0, NULL, ASSUAN_SOCK_TOR);
-  if (sock != ASSUAN_INVALID_FD)
-    {
-      assuan_sock_close (sock);
-      return 0;
-    }
-
-  log_info ("(it seems Tor is not running)\n");
-  dirmngr_status (ctrl, "WARNING", "tor_not_running 0",
-                  "Tor is enabled but the local Tor daemon"
-                  " seems to be down", NULL);
-  return 1;
-}
-
-
 /* Add the host AI under the NAME into the HOSTTABLE.  If PORT is not
    zero, it specifies which port to use to talk to the host for
    PROTOCOL.  If NAME specifies a pool (as indicated by IS_POOL),
@@ -501,8 +476,6 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
       err = get_dns_srv (name, srvtag, NULL, &srvs, &srvscount);
       if (err)
         {
-          if (err == GPG_ERR_ECONNREFUSED)
-            tor_not_running_p (ctrl);
           return err;
         }
 
@@ -667,11 +640,6 @@ map_host (ctrl_t ctrl, const char *name, const char *srvtag, int force_reselect,
         *r_httpflags |= HTTP_FLAG_IGNORE_IPv4;
       if (!hi->v6)
         *r_httpflags |= HTTP_FLAG_IGNORE_IPv6;
-
-      /* Note that we do not set the HTTP_FLAG_FORCE_TOR for onion
-         addresses because the http module detects this itself.  This
-         also allows us to use an onion address without Tor mode being
-         enabled.  */
     }
 
   *r_host = xtrystrdup (hi->name);
@@ -1175,7 +1143,6 @@ send_request (ctrl_t ctrl, const char *request, const char *hostportstr,
                    /* fixme: AUTH */ NULL,
                    (httpflags
                     |(opt.honor_http_proxy? HTTP_FLAG_TRY_PROXY:0)
-                    |(dirmngr_use_tor ()? HTTP_FLAG_FORCE_TOR:0)
                     |(opt.disable_ipv4? HTTP_FLAG_IGNORE_IPv4 : 0)
                     |(opt.disable_ipv6? HTTP_FLAG_IGNORE_IPv6 : 0)),
                    ctrl->http_proxy,
@@ -1312,10 +1279,6 @@ handle_send_request_error (ctrl_t ctrl, gpg_error_t err, const char *request,
   switch (err)
     {
     case GPG_ERR_ECONNREFUSED:
-      if (tor_not_running_p (ctrl))
-        break; /* A retry does not make sense.  */
-      /* Okay: Tor is up or --use-tor is not used.  */
-      /*FALLTHRU*/
     case GPG_ERR_ENETUNREACH:
     case GPG_ERR_ENETDOWN:
     case GPG_ERR_UNKNOWN_HOST:
@@ -1334,13 +1297,6 @@ handle_send_request_error (ctrl_t ctrl, gpg_error_t err, const char *request,
       break;
 
     case GPG_ERR_EACCES:
-      if (dirmngr_use_tor ())
-        {
-          log_info ("(Tor configuration problem)\n");
-          dirmngr_status (ctrl, "WARNING", "tor_config_problem 0",
-                          "Please check that the \"SocksPort\" flag "
-                          "\"IPv6Traffic\" is set in torrc", NULL);
-        }
       break;
 
     default:

@@ -122,12 +122,6 @@
    needed.  */
 static assuan_context_t sock_ctx;
 
-/* This global flag can be set using assuan_sock_set_flag to enable
-   TOR or SOCKS mode for all sockets.  It may not be reset.  The value
-   is the port to be used. */
-static unsigned short tor_mode;
-
-
 
 #ifdef HAVE_W32_SYSTEM
 /* A table of active Cygwin connections.  This is only used for
@@ -478,39 +472,6 @@ _assuan_sock_set_flag (assuan_context_t ctx, assuan_fd_t sockfd,
       /* Setting the Cygwin flag on non-Windows is ignored.  */
 #endif
     }
-  else if (!strcmp (name, "tor-mode") || !strcmp (name, "socks"))
-    {
-      /* If SOCKFD is ASSUAN_INVALID_FD this controls global flag to
-         switch AF_INET and AF_INET6 into TOR mode by using a SOCKS5
-         proxy on localhost:9050.  It may only be switched on and this
-         needs to be done before any new threads are started.  Once
-         TOR mode has been enabled, TOR mode can be disabled for a
-         specific socket by using SOCKFD with a VALUE of 0.  */
-      if (sockfd == ASSUAN_INVALID_FD)
-        {
-          if (tor_mode && !value)
-            {
-              gpg_err_set_errno (EPERM);
-              return -1; /* Clearing the global flag is not allowed.  */
-            }
-          else if (value)
-            {
-              if (*name == 's')
-                tor_mode = SOCKS_PORT;
-              else
-                tor_mode = TOR_PORT;
-            }
-        }
-      else if (tor_mode && sockfd != ASSUAN_INVALID_FD)
-        {
-          /* Fixme: Disable/enable tormode for the given context.  */
-        }
-      else
-        {
-          gpg_err_set_errno (EINVAL);
-          return -1;
-        }
-    }
   else
     {
       gpg_err_set_errno (EINVAL);
@@ -534,15 +495,6 @@ _assuan_sock_get_flag (assuan_context_t ctx, assuan_fd_t sockfd,
 #else
       *r_value = 0;
 #endif
-    }
-  else if (!strcmp (name, "tor-mode"))
-    {
-      /* FIXME: Find tor-mode for the given socket.  */
-      *r_value = tor_mode == TOR_PORT;
-    }
-  else if (!strcmp (name, "socks"))
-    {
-      *r_value = tor_mode == SOCKS_PORT;
     }
   else
     {
@@ -837,44 +789,6 @@ socks5_connect (assuan_context_t ctx, assuan_fd_t sock,
   return 0;
 }
 
-
-/* Return true if SOCKS shall be used.  This is the case if tor_mode
-   is enabled and the desired address is not the loopback
-   address.  */
-static int
-use_socks (struct sockaddr *addr)
-{
-  if (!tor_mode)
-    return 0;
-  else if (addr->sa_family == AF_INET6)
-    {
-      struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
-      const unsigned char *s;
-      int i;
-
-      s = (unsigned char *)&addr_in6->sin6_addr.s6_addr;
-      if (s[15] != 1)
-        return 1;   /* Last octet is not 1 - not the loopback address.  */
-      for (i=0; i < 15; i++, s++)
-        if (*s)
-          return 1; /* Non-zero octet found - not the loopback address.  */
-
-      return 0; /* This is the loopback address.  */
-    }
-  else if (addr->sa_family == AF_INET)
-    {
-      struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
-
-      if (*(unsigned char*)&addr_in->sin_addr.s_addr == 127)
-        return 0; /* Loopback (127.0.0.0/8) */
-
-      return 1;
-    }
-  else
-    return 0;
-}
-
-
 int
 _assuan_sock_connect (assuan_context_t ctx, assuan_fd_t sockfd,
 		      struct sockaddr *addr, int addrlen)
@@ -932,11 +846,6 @@ _assuan_sock_connect (assuan_context_t ctx, assuan_fd_t sockfd,
         }
       return ret;
     }
-  else if (use_socks (addr))
-    {
-      return socks5_connect (ctx, sockfd, tor_mode,
-                             NULL, NULL, 0, addr, addrlen);
-    }
   else
     {
       return _assuan_connect (ctx, HANDLE2SOCKET (sockfd), addr, addrlen);
@@ -974,16 +883,7 @@ _assuan_sock_connect (assuan_context_t ctx, assuan_fd_t sockfd,
 
     }
 # endif /*HAVE_STAT*/
-
-  if (use_socks (addr))
-    {
-      return socks5_connect (ctx, sockfd, tor_mode,
-                             NULL, NULL, 0, addr, addrlen);
-    }
-  else
-    {
       return _assuan_connect (ctx, sockfd, addr, addrlen);
-    }
 #endif
 }
 

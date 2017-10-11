@@ -85,8 +85,6 @@ ks_action_help (ctrl_t ctrl, const char *url)
   if (!err)
     err = ks_http_help (ctrl, parsed_uri);
   if (!err)
-    err = ks_finger_help (ctrl, parsed_uri);
-  if (!err)
     err = ks_kdns_help (ctrl, parsed_uri);
 
   if (!parsed_uri)
@@ -284,15 +282,6 @@ ks_action_fetch (ctrl_t ctrl, const char *url, estream_t outfp)
   else if (!parsed_uri->opaque)
     {
       err = GPG_ERR_INV_URI;
-    }
-  else if (!strcmp (parsed_uri->scheme, "finger"))
-    {
-      err = ks_finger_fetch (ctrl, parsed_uri, &infp);
-      if (!err)
-        {
-          err = copy_stream (infp, outfp);
-          es_fclose (infp);
-        }
     }
   else if (!strcmp (parsed_uri->scheme, "kdns"))
     {

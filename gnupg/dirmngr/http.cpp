@@ -780,17 +780,6 @@ http_raw_connect (http_t *r_hd, const char *server, unsigned short port,
 
   *r_hd = NULL;
 
-  if ((flags & HTTP_FLAG_FORCE_TOR))
-    {
-      int mode;
-
-      if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
-        {
-          log_error ("Tor support is not available\n");
-          return GPG_ERR_NOT_IMPLEMENTED;
-        }
-    }
-
   /* Create the handle. */
   hd = (http_t) xtrycalloc (1, sizeof *hd);
   if (!hd)
@@ -1507,17 +1496,6 @@ send_request (http_t hd, const char *httphost, const char *auth,
       return GPG_ERR_INTERNAL;
     }
 
-  if ((hd->flags & HTTP_FLAG_FORCE_TOR))
-    {
-      int mode;
-
-      if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
-        {
-          log_error ("Tor support is not available\n");
-          return GPG_ERR_NOT_IMPLEMENTED;
-        }
-    }
-
   server = *hd->uri->host ? hd->uri->host : "localhost";
   port = hd->uri->port ? hd->uri->port : 80;
 
@@ -2184,68 +2162,6 @@ start_server ()
 }
 #endif
 
-
-
-/* Return true if SOCKS shall be used.  This is the case if tor_mode
- * is enabled and the desired address is not the loopback address.
- * This function is basically a copy of the same internal function in
- * Libassuan.  */
-static int
-use_socks (struct sockaddr_storage *addr)
-{
-  int mode;
-
-  if (assuan_sock_get_flag (ASSUAN_INVALID_FD, "tor-mode", &mode) || !mode)
-    return 0;  /* Not in Tor mode.  */
-  else if (addr->ss_family == AF_INET6)
-    {
-      struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)addr;
-      const unsigned char *s;
-      int i;
-
-      s = (unsigned char *)&addr_in6->sin6_addr.s6_addr;
-      if (s[15] != 1)
-        return 1;   /* Last octet is not 1 - not the loopback address.  */
-      for (i=0; i < 15; i++, s++)
-        if (*s)
-          return 1; /* Non-zero octet found - not the loopback address.  */
-
-      return 0; /* This is the loopback address.  */
-    }
-  else if (addr->ss_family == AF_INET)
-    {
-      struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
-
-      if (*(unsigned char*)&addr_in->sin_addr.s_addr == 127)
-        return 0; /* Loopback (127.0.0.0/8) */
-
-      return 1;
-    }
-  else
-    return 0;
-}
-
-
-/* Wrapper around assuan_sock_new which takes the domain from an
- * address parameter.  */
-static assuan_fd_t
-my_sock_new_for_addr (struct sockaddr_storage *addr, int type, int proto)
-{
-  int domain;
-
-  if (use_socks (addr))
-    {
-      /* Libassaun always uses 127.0.0.1 to connect to the socks
-       * server (i.e. the Tor daemon).  */
-      domain = AF_INET;
-    }
-  else
-    domain = addr->ss_family;
-
-  return assuan_sock_new (domain, type, proto);
-}
-
-
 /* Call WSAGetLastError and map it to a libgpg-error.  */
 #ifdef HAVE_W32_SYSTEM
 static gpg_error_t
@@ -2497,7 +2413,7 @@ connect_server (const char *server, unsigned short port,
 
           if (sock != ASSUAN_INVALID_FD)
             assuan_sock_close (sock);
-          sock = my_sock_new_for_addr (ai->addr, ai->socktype, ai->protocol);
+          sock = assuan_sock_new (ai->addr->ss_family, ai->socktype, ai->protocol);
           if (sock == ASSUAN_INVALID_FD)
             {
               err = gpg_error_from_syserror ();

@@ -132,14 +132,6 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
 
   (void)ctrl;
 
-  if (dirmngr_use_tor ())
-    {
-      /* For now we do not allow OCSP via Tor due to possible privacy
-         concerns.  Needs further research.  */
-      log_error (_("OCSP request not possible due to Tor mode\n"));
-      return GPG_ERR_NOT_SUPPORTED;
-    }
-
   if (opt.disable_http)
     {
       log_error (_("OCSP request not possible due to disabled HTTP\n"));
@@ -174,7 +166,6 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp, gcry_md_hd_t md,
  once_more:
   err = http_open (&http, HTTP_REQ_POST, url, NULL, NULL,
                    ((opt.honor_http_proxy? HTTP_FLAG_TRY_PROXY:0)
-                    | (dirmngr_use_tor ()? HTTP_FLAG_FORCE_TOR:0)
                     | (opt.disable_ipv4? HTTP_FLAG_IGNORE_IPv4 : 0)
                     | (opt.disable_ipv6? HTTP_FLAG_IGNORE_IPv6 : 0)),
                    ctrl->http_proxy, NULL, NULL, NULL);

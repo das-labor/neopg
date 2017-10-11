@@ -122,7 +122,6 @@ enum cmd_and_opt_values {
   oUseTor,
   oNoUseTor,
   oKeyServer,
-  oNameServer,
   oStandardResolver,
   oRecursiveResolver,
   oResolverTimeout,
@@ -183,13 +182,9 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_i (oMaxReplies, "max-replies",
                 N_("|N|do not return more than N items in one query")),
 
-  ARGPARSE_s_s (oNameServer, "nameserver", "@"),
   ARGPARSE_s_s (oKeyServer, "keyserver", "@"),
   ARGPARSE_s_s (oHkpCaCert, "hkp-cacert",
                 N_("|FILE|use the CA certificates in FILE for HKP over TLS")),
-
-  ARGPARSE_s_n (oUseTor, "use-tor", N_("route all network traffic via Tor")),
-  ARGPARSE_s_n (oNoUseTor, "no-use-tor", "@"),
 
   ARGPARSE_s_n (oDisableIPv4, "disable-ipv4", "@"),
   ARGPARSE_s_n (oDisableIPv6, "disable-ipv6", "@"),
@@ -248,16 +243,6 @@ static const char *debug_level;
 
 /* Helper to set the GNUTLS log level.  */
 static int opt_gnutls_debug = -1;
-
-/* Flag to control the Tor mode.  */
-static enum
-  { TOR_MODE_AUTO = 0,  /* Switch to NO or YES         */
-    TOR_MODE_NEVER,     /* Never use Tor.              */
-    TOR_MODE_NO,        /* Do not use Tor              */
-    TOR_MODE_YES,       /* Use Tor                     */
-    TOR_MODE_FORCE      /* Force using Tor             */
-  } tor_mode;
-
 
 /* Counter for the active connections.  */
 static int active_connections;
@@ -424,44 +409,6 @@ set_debug (void)
     parse_debug_flag (NULL, &opt.debug, debug_flags);
 }
 
-
-static void
-set_tor_mode (void)
-{
-  if (dirmngr_use_tor ())
-    {
-      /* Enable Tor mode and when called again force a new curcuit
-       * (e.g. on SIGHUP).  */
-      enable_dns_tormode (1);
-      if (assuan_sock_set_flag (ASSUAN_INVALID_FD, "tor-mode", 1))
-        {
-          log_error ("error enabling Tor mode: %s\n", strerror (errno));
-          log_info ("(is your Libassuan recent enough?)\n");
-        }
-    }
-  else
-    disable_dns_tormode ();
-}
-
-
-/* Return true if Tor shall be used.  */
-int
-dirmngr_use_tor (void)
-{
-  if (tor_mode == TOR_MODE_AUTO)
-    {
-      /* FIXME: Figure out whether Tor is running.  */
-    }
-
-  if (tor_mode == TOR_MODE_FORCE)
-    return 2; /* Use Tor (using 2 to indicate force mode) */
-  else if (tor_mode == TOR_MODE_YES)
-    return 1; /* Use Tor */
-  else
-    return 0; /* Do not use Tor.  */
-}
-
-
 static void
 wrong_args (const char *text)
 {
@@ -507,9 +454,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       http_register_tls_ca (NULL);
       FREE_STRLIST (hkp_cacert_filenames);
       FREE_STRLIST (opt.keyserver);
-      /* Note: We do not allow resetting of TOR_MODE_FORCE at runtime.  */
-      if (tor_mode != TOR_MODE_FORCE)
-        tor_mode = TOR_MODE_AUTO;
       enable_standard_resolver (0);
       set_dns_timeout (0);
       opt.connect_timeout = 0;
@@ -582,24 +526,12 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       add_to_strlist (&opt.ignored_cert_extensions, pargs->r.ret_str);
       break;
 
-    case oUseTor:
-      tor_mode = TOR_MODE_FORCE;
-      break;
-    case oNoUseTor:
-      if (tor_mode != TOR_MODE_FORCE)
-        tor_mode = TOR_MODE_NEVER;
-      break;
-
     case oStandardResolver: enable_standard_resolver (1); break;
     case oRecursiveResolver: enable_recursive_resolver (1); break;
 
     case oKeyServer:
       if (*pargs->r.ret_str)
         add_to_strlist (&opt.keyserver, pargs->r.ret_str);
-      break;
-
-    case oNameServer:
-      set_dns_nameserver (pargs->r.ret_str);
       break;
 
     case oResolverTimeout:
@@ -638,7 +570,6 @@ post_option_parsing (void)
     opt.connect_quick_timeout = opt.connect_timeout;
 
   set_debug ();
-  set_tor_mode ();
 }
 
 
@@ -1055,8 +986,6 @@ dirmngr_main (int argc, char **argv)
          removed eventually. */
       es_printf ("ignore-ocsp-servic-url:%lu:\n", flags | GC_OPT_FLAG_NONE);
 
-      es_printf ("use-tor:%lu:\n", flags | GC_OPT_FLAG_NONE);
-
       filename_esc = percent_escape (get_default_keyserver (0), NULL);
       es_printf ("keyserver:%lu:\"%s:\n", flags | GC_OPT_FLAG_DEFAULT,
                  filename_esc);
@@ -1297,4 +1226,3 @@ my_inotify_is_name (int fd, const char *name)
   return 1; /* Found.  */
 }
 #endif /*HAVE_INOTIFY_INIT*/
-

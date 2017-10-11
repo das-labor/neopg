@@ -80,7 +80,6 @@ enum
   {
     HTTP_FLAG_TRY_PROXY = 1,     /* Try to use a proxy.  */
     HTTP_FLAG_SHUTDOWN = 2,      /* Close sending end after the request.  */
-    HTTP_FLAG_FORCE_TOR = 4,     /* Force a TOR connection.  */
     HTTP_FLAG_LOG_RESP = 8,      /* Log the server response.  */
     HTTP_FLAG_FORCE_TLS = 16,    /* Force the use of TLS.  */
     HTTP_FLAG_IGNORE_CL = 32,    /* Ignore content-length.  */

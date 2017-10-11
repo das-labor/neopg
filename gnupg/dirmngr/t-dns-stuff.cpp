@@ -50,7 +50,6 @@ main (int argc, char **argv)
   int last_argc = -1;
   gpg_error_t err;
   int any_options = 0;
-  int opt_tor = 0;
   int opt_cert = 0;
   int opt_srv = 0;
   int opt_bracket = 0;
@@ -76,7 +75,6 @@ main (int argc, char **argv)
                  "  --verbose           print timings etc.\n"
                  "  --debug             flyswatter\n"
                  "  --standard-resolver use the system's resolver\n"
-                 "  --use-tor           use Tor\n"
                  "  --new-circuit       use a new Tor circuit\n"
                  "  --bracket           enclose v6 addresses in brackets\n"
                  "  --cert              lookup a CERT RR\n"
@@ -95,11 +93,6 @@ main (int argc, char **argv)
         {
           verbose += 2;
           debug++;
-          argc--; argv++;
-        }
-      else if (!strcmp (*argv, "--use-tor"))
-        {
-          opt_tor = 1;
           argc--; argv++;
         }
       else if (!strcmp (*argv, "--standard-resolver"))
@@ -163,9 +156,6 @@ main (int argc, char **argv)
 
   set_dns_verbose (verbose, debug);
   init_sockets ();
-
-  if (opt_tor)
-    enable_dns_tormode (0);
 
   if (opt_cert)
     {

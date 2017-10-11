@@ -44,11 +44,6 @@ gpg_error_t ks_hkp_put (ctrl_t ctrl, parsed_uri_t uri,
 gpg_error_t ks_http_help (ctrl_t ctrl, parsed_uri_t uri);
 gpg_error_t ks_http_fetch (ctrl_t ctrl, const char *url, estream_t *r_fp);
 
-
-/*-- ks-engine-finger.c --*/
-gpg_error_t ks_finger_help (ctrl_t ctrl, parsed_uri_t uri);
-gpg_error_t ks_finger_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp);
-
 /*-- ks-engine-kdns.c --*/
 gpg_error_t ks_kdns_help (ctrl_t ctrl, parsed_uri_t uri);
 gpg_error_t ks_kdns_fetch (ctrl_t ctrl, parsed_uri_t uri, estream_t *r_fp);

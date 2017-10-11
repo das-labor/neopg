@@ -569,12 +569,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       else if (!(ctrl->http_proxy = xtrystrdup (value)))
         err = gpg_error_from_syserror ();
     }
-  else if (!strcmp (key, "honor-keyserver-url-used"))
-    {
-      /* Return an error if we are running in Tor mode.  */
-      if (dirmngr_use_tor ())
-        err = GPG_ERR_FORBIDDEN;
-    }
   else if (!strcmp (key, "http-crl"))
     {
       int i = *value? atoi (value) : 0;
@@ -2176,24 +2170,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
 
       snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
       err = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "tor"))
-    {
-      int use_tor;
-
-      use_tor = dirmngr_use_tor ();
-      if (use_tor)
-        {
-          if (!is_tor_running (ctrl))
-            err = assuan_write_status (ctx, "NO_TOR", "Tor not running");
-          else
-            err = 0;
-          if (!err)
-            assuan_set_okay_line (ctx, use_tor == 1 ? "- Tor mode is enabled"
-                                  /**/              : "- Tor mode is enforced");
-        }
-      else
-        err = set_error (GPG_ERR_FALSE, "Tor mode is NOT enabled");
     }
   else if (!strcmp (line, "dnsinfo"))
     {
