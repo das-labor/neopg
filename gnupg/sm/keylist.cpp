@@ -246,19 +246,6 @@ print_capabilities (ksba_cert_t cert, estream_t fp)
   size_t buflen;
   char buffer[1];
 
-  err = ksba_cert_get_user_data (cert, "is_qualified",
-                                 &buffer, sizeof (buffer), &buflen);
-  if (!err && buflen)
-    {
-      if (*buffer)
-        es_putc ('q', fp);
-    }
-  else if (err == GPG_ERR_NOT_FOUND)
-    ; /* Don't know - will not get marked as 'q' */
-  else
-    log_debug ("get_user_data(is_qualified) failed: %s\n",
-               gpg_strerror (err));
-
   err = ksba_cert_get_key_usage (cert, &use);
   if (err == GPG_ERR_NO_DATA)
     {
@@ -1272,19 +1259,6 @@ list_cert_std (ctrl_t ctrl, ksba_cert_t cert, estream_t fp, int have_secret,
       char buffer[1];
 
       err = gpgsm_validate_chain (ctrl, cert, "", NULL, 1, fp, 0, NULL);
-      tmperr = ksba_cert_get_user_data (cert, "is_qualified",
-                                        &buffer, sizeof (buffer), &buflen);
-      if (!tmperr && buflen)
-        {
-          if (*buffer)
-            es_fputs ("  [qualified]\n", fp);
-        }
-      else if (tmperr == GPG_ERR_NOT_FOUND)
-        ; /* Don't know - will not get marked as 'q' */
-      else
-        log_debug ("get_user_data(is_qualified) failed: %s\n",
-                   gpg_strerror (tmperr));
-
       if (!err)
         es_fprintf (fp, "  [certificate is good]\n");
       else

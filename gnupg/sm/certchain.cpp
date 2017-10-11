@@ -60,7 +60,6 @@ typedef struct chain_item_s *chain_item_t;
 
 static int is_root_cert (ksba_cert_t cert,
                          const char *issuerdn, const char *subjectdn);
-static int get_regtp_ca_info (ctrl_t ctrl, ksba_cert_t cert, int *chainlen);
 
 
 /* This function returns true if we already asked during this session
@@ -285,13 +284,6 @@ allowed_ca (ctrl_t ctrl,
     return err;
   if (!flag)
     {
-      if (get_regtp_ca_info (ctrl, cert, chainlen))
-        {
-          /* Note that dirmngr takes a different way to cope with such
-             certs. */
-          return 0; /* RegTP issued certificate. */
-        }
-
       do_list (1, listmode, fp,_("issuer certificate is not marked as a CA"));
       return GPG_ERR_BAD_CA_CERT;
     }
@@ -1288,9 +1280,6 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
   int any_no_crl = 0;
   int any_crl_too_old = 0;
   int any_no_policy_match = 0;
-  int is_qualified = -1; /* Indicates whether the certificate stems
-                            from a qualified root certificate.
-                            -1 = unknown, 0 = no, 1 = yes. */
   chain_item_t chain = NULL; /* A list of all certificates in the chain.  */
 
 
@@ -1457,51 +1446,6 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
               rc = allowed_ca (ctrl, subject_cert, NULL, listmode, listfp);
               if (rc)
                 goto leave;
-            }
-
-
-          /* Set the flag for qualified signatures.  This flag is
-             deduced from a list of root certificates allowed for
-             qualified signatures. */
-          if (is_qualified == -1 && !(flags & VALIDATE_FLAG_STEED))
-            {
-              gpg_error_t err;
-              size_t buflen;
-              char buf[1];
-
-              if (!ksba_cert_get_user_data (cert, "is_qualified",
-                                            &buf, sizeof (buf),
-                                            &buflen) && buflen)
-                {
-                  /* We already checked this for this certificate,
-                     thus we simply take it from the user data. */
-                  is_qualified = !!*buf;
-                }
-              else
-                {
-                  /* Need to consult the list of root certificates for
-                     qualified signatures. */
-                  err = gpgsm_is_in_qualified_list (ctrl, subject_cert, NULL);
-                  if (!err)
-                    is_qualified = 1;
-                  else if ( err == GPG_ERR_NOT_FOUND)
-                    is_qualified = 0;
-                  else
-                    log_error ("checking the list of qualified "
-                               "root certificates failed: %s\n",
-                               gpg_strerror (err));
-                  if ( is_qualified != -1 )
-                    {
-                      /* Cache the result but don't care too much
-                         about an error. */
-                      buf[0] = !!is_qualified;
-                      err = ksba_cert_set_user_data (subject_cert,
-                                                     "is_qualified", buf, 1);
-                      if (err)
-                        log_error ("set_user_data(is_qualified) failed: %s\n",
-                                   gpg_strerror (err));
-                    }
-                }
             }
 
 
@@ -1814,31 +1758,6 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
         }
     }
 
-  /* If we have figured something about the qualified signature
-     capability of the certificate under question, store the result as
-     user data in all certificates of the chain.  We do this even if the
-     validation itself failed.  */
-  if (is_qualified != -1 && !(flags & VALIDATE_FLAG_STEED))
-    {
-      gpg_error_t err;
-      chain_item_t ci;
-      char buf[1];
-
-      buf[0] = !!is_qualified;
-
-      for (ci = chain; ci; ci = ci->next)
-        {
-          err = ksba_cert_set_user_data (ci->cert, "is_qualified", buf, 1);
-          if (err)
-            {
-              log_error ("set_user_data(is_qualified) failed: %s\n",
-                         gpg_strerror (err));
-              if (!rc)
-                rc = err;
-            }
-        }
-    }
-
   /* If auditing has been enabled, record what is in the chain.  */
   if (ctrl->audit)
     {
@@ -2042,112 +1961,4 @@ gpgsm_basic_cert_check (ctrl_t ctrl, ksba_cert_t cert)
   sm_keydb_release (kh);
   ksba_cert_release (issuer_cert);
   return rc;
-}
-
-
-
-/* Check whether the certificate CERT has been issued by the German
-   authority for qualified signature.  They do not set the
-   basicConstraints and thus we need this workaround.  It works by
-   looking up the root certificate and checking whether that one is
-   listed as a qualified certificate for Germany.
-
-   We also try to cache this data but as long as don't keep a
-   reference to the certificate this won't be used.
-
-   Returns: True if CERT is a RegTP issued CA cert (i.e. the root
-   certificate itself or one of the CAs).  In that case CHAINLEN will
-   receive the length of the chain which is either 0 or 1.
-*/
-static int
-get_regtp_ca_info (ctrl_t ctrl, ksba_cert_t cert, int *chainlen)
-{
-  gpg_error_t err;
-  ksba_cert_t next;
-  int rc = 0;
-  int i, depth;
-  char country[3];
-  ksba_cert_t array[4];
-  char buf[2];
-  size_t buflen;
-  int dummy_chainlen;
-
-  if (!chainlen)
-    chainlen = &dummy_chainlen;
-
-  *chainlen = 0;
-  err = ksba_cert_get_user_data (cert, "regtp_ca_chainlen",
-                                 &buf, sizeof (buf), &buflen);
-  if (!err)
-    {
-      /* Got info. */
-      if (buflen < 2 || !*buf)
-        return 0; /* Nothing found. */
-      *chainlen = buf[1];
-      return 1; /* This is a regtp CA. */
-    }
-  else if (err != GPG_ERR_NOT_FOUND)
-    {
-      log_error ("ksba_cert_get_user_data(%s) failed: %s\n",
-                 "regtp_ca_chainlen", gpg_strerror (err));
-      return 0; /* Nothing found.  */
-    }
-
-  /* Need to gather the info.  This requires to walk up the chain
-     until we have found the root.  Because we are only interested in
-     German Bundesnetzagentur (former RegTP) derived certificates 3
-     levels are enough.  (The German signature law demands a 3 tier
-     hierarchy; thus there is only one CA between the EE and the Root
-     CA.)  */
-  memset (&array, 0, sizeof array);
-
-  depth = 0;
-  ksba_cert_ref (cert);
-  array[depth++] = cert;
-  ksba_cert_ref (cert);
-  while (depth < DIM(array) && !(rc=gpgsm_walk_cert_chain (ctrl, cert, &next)))
-    {
-      ksba_cert_release (cert);
-      ksba_cert_ref (next);
-      array[depth++] = next;
-      cert = next;
-    }
-  ksba_cert_release (cert);
-  if (rc != -1 || !depth || depth == DIM(array) )
-    {
-      /* We did not reached the root. */
-      goto leave;
-    }
-
-  /* If this is a German signature law issued certificate, we store
-     additional information. */
-  if (!gpgsm_is_in_qualified_list (NULL, array[depth-1], country)
-      && !strcmp (country, "de"))
-    {
-      /* Setting the pathlen for the root CA and the CA flag for the
-         next one is all what we need to do. */
-      err = ksba_cert_set_user_data (array[depth-1], "regtp_ca_chainlen",
-                                     "\x01\x01", 2);
-      if (!err && depth > 1)
-        err = ksba_cert_set_user_data (array[depth-2], "regtp_ca_chainlen",
-                                       "\x01\x00", 2);
-      if (err)
-        log_error ("ksba_set_user_data(%s) failed: %s\n",
-                   "regtp_ca_chainlen", gpg_strerror (err));
-      for (i=0; i < depth; i++)
-        ksba_cert_release (array[i]);
-      *chainlen = (depth>1? 0:1);
-      return 1;
-    }
-
- leave:
-  /* Nothing special with this certificate. Mark the target
-     certificate anyway to avoid duplicate lookups. */
-  err = ksba_cert_set_user_data (cert, "regtp_ca_chainlen", "", 1);
-  if (err)
-    log_error ("ksba_set_user_data(%s) failed: %s\n",
-               "regtp_ca_chainlen", gpg_strerror (err));
-  for (i=0; i < depth; i++)
-    ksba_cert_release (array[i]);
-  return 0;
 }

@@ -632,7 +632,6 @@ add_executable(neopg
   ../gnupg/sm/import.cpp
   ../gnupg/sm/keylist.cpp
   ../gnupg/sm/misc.cpp
-  ../gnupg/sm/qualified.cpp
   ../gnupg/sm/verify.cpp
   ../gnupg/sm/certchain.cpp
   ../gnupg/sm/certlist.cpp
@@ -649,7 +648,6 @@ add_executable(neopg
   ../gnupg/scd/apdu.cpp
   ../gnupg/scd/app.cpp
   ../gnupg/scd/app-dinsig.cpp
-  ../gnupg/scd/app-geldkarte.cpp
   ../gnupg/scd/app-help.cpp
   ../gnupg/scd/app-nks.cpp
   ../gnupg/scd/app-p15.cpp

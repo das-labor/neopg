@@ -1451,11 +1451,6 @@ gpgsm_main ( int argc, char **argv)
   if (may_coredump && !opt.quiet)
     log_info (_("WARNING: program may create a core file!\n"));
 
-/*   if (opt.qualsig_approval && !opt.quiet) */
-/*     log_info (_("This software has officially been approved to " */
-/*                 "create and verify\n" */
-/*                 "qualified signatures according to German law.\n")); */
-
   if (logfile && cmd == aServer)
     {
       log_set_file (logfile);

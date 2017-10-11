@@ -125,13 +125,6 @@ struct
 
   int auto_issuer_key_retrieve; /* try to retrieve a missing issuer key. */
 
-  int qualsig_approval;     /* Set to true if this software has
-                               officially been approved to create an
-                               verify qualified signatures.  This is a
-                               runtime option in case we want to check
-                               the integrity of the software at
-                               runtime. */
-
   struct keyserver_spec *keyserver;
 
   /* A list of certificate extension OIDs which are ignored so that
@@ -362,12 +355,6 @@ int gpgsm_genkey (ctrl_t ctrl, estream_t in_stream, estream_t out_stream);
 /*-- certreqgen-ui.c --*/
 void gpgsm_gencertreq_tty (ctrl_t ctrl, estream_t out_stream);
 
-
-/*-- qualified.c --*/
-gpg_error_t gpgsm_is_in_qualified_list (ctrl_t ctrl, ksba_cert_t cert,
-                                        char *country);
-gpg_error_t gpgsm_qualified_consent (ctrl_t ctrl, ksba_cert_t cert);
-gpg_error_t gpgsm_not_qualified_warning (ctrl_t ctrl, ksba_cert_t cert);
 
 /*-- call-agent.c --*/
 int gpgsm_agent_pksign (ctrl_t ctrl, const char *keygrip, const char *desc,

@@ -634,29 +634,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           ksba_free (p);
         }
 
-      /* Print a note if this is a qualified signature.  */
-      {
-        size_t qualbuflen;
-        char qualbuffer[1];
-
-        rc = ksba_cert_get_user_data (cert, "is_qualified", &qualbuffer,
-                                      sizeof (qualbuffer), &qualbuflen);
-        if (!rc && qualbuflen)
-          {
-            if (*qualbuffer)
-              {
-                log_info (_("This is a qualified signature\n"));
-                if (!opt.qualsig_approval)
-                  log_info
-                    (_("Note, that this software is not officially approved "
-                       "to create or verify such signatures.\n"));
-              }
-          }
-        else if (rc != GPG_ERR_NOT_FOUND)
-          log_error ("get_user_data(is_qualified) failed: %s\n",
-                     gpg_strerror (rc));
-      }
-
       gpgsm_status (ctrl, STATUS_TRUST_FULLY,
                     (verifyflags & VALIDATE_FLAG_STEED)?
                     "0 steed":
