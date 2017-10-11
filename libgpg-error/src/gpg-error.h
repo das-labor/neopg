@@ -740,40 +740,6 @@ typedef unsigned int gpg_error_t;
 # define GPGRT_HAVE_PRAGMA_GCC_PUSH 1
 #endif
 
-/* Detect LeakSanitizer (LSan) support for GCC and Clang based on
- * whether AddressSanitizer (ASAN) is enabled via -fsanitize=address).
- * Note that -fsanitize=leak just affect the linker options which
- * cannot be detected here.  In that case you have to define the
- * GPGRT_HAVE_LEAK_SANITIZER macro manually.  */
-#ifdef __GNUC__
-# ifdef __SANITIZE_ADDRESS__
-#  define GPGRT_HAVE_LEAK_SANITIZER
-# elif defined(__has_feature)
-#  if __has_feature(address_sanitizer)
-#   define GPGRT_HAVE_LEAK_SANITIZER
-#  endif
-# endif
-#endif
-
-
-/* The new name for the inline macro.  */
-#define GPGRT_INLINE GPG_ERR_INLINE
-
-#ifdef GPGRT_HAVE_LEAK_SANITIZER
-# include <sanitizer/lsan_interface.h>
-#endif
-
-/* Mark heap objects as non-leaked memory. */
-static GPGRT_INLINE void
-gpgrt_annotate_leaked_object (const void *p)
-{
-#ifdef GPGRT_HAVE_LEAK_SANITIZER
-  __lsan_ignore_object(p);
-#else
-  (void)p;
-#endif
-}
-
 
 /* Initialization function.  */
 

@@ -5181,6 +5181,5 @@ read_sessionkey_from_fd (int fd)
     }
   line[i] = 0;
   log_debug ("seskey: %s\n", line);
-  gpgrt_annotate_leaked_object (line);
   opt.override_session_key = line;
 }
