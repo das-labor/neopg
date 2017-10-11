@@ -57,7 +57,6 @@ enum
     oValidate,
     oLookup,
     oLoadCRL,
-    oSquidMode,
     oPEM,
     oEscapedPEM,
     oForceDefaultResponder
@@ -76,7 +75,6 @@ static ARGPARSE_OPTS opts[] = {
   { oLocal,    "local",     0, N_("lookup only locally stored certificates")},
   { oUrl,      "url",       0, N_("expect an URL for --lookup")},
   { oLoadCRL,  "load-crl",  0, N_("load a CRL into the dirmngr")},
-  { oSquidMode,"squid-mode",0, N_("special mode for use by Squid")},
   { oPEM,      "pem",       0, N_("expect certificates in PEM format")},
   { oForceDefaultResponder, "force-default-responder", 0,
     N_("force the use of the default OCSP responder")},
@@ -145,7 +143,6 @@ static gpg_error_t do_validate (assuan_context_t ctx,
                                 const unsigned char *cert, size_t certlen);
 static gpg_error_t do_loadcrl (assuan_context_t ctx, const char *filename);
 static gpg_error_t do_lookup (assuan_context_t ctx, const char *pattern);
-static gpg_error_t squid_loop_body (assuan_context_t ctx);
 
 
 
@@ -194,7 +191,6 @@ dirmngr_client_main (int argc, char **argv )
   int cmd_validate = 0;
   int cmd_lookup = 0;
   int cmd_loadcrl = 0;
-  int cmd_squid_mode = 0;
 
   early_system_init ();
   set_strusage (my_strusage);
@@ -237,11 +233,6 @@ dirmngr_client_main (int argc, char **argv )
         case oLocal: opt.local = 1; break;
         case oLoadCRL: cmd_loadcrl = 1; break;
         case oPEM: opt.pem = 1; break;
-        case oSquidMode:
-          opt.pem = 1;
-          opt.escaped_pem = 1;
-          cmd_squid_mode = 1;
-          break;
         case oForceDefaultResponder: opt.force_default_responder = 1; break;
 
         default : pargs.err = 2; break;
@@ -257,12 +248,6 @@ dirmngr_client_main (int argc, char **argv )
       if (!argc)
         usage (1);
       err = 0;
-    }
-  else if (cmd_squid_mode)
-    {
-      err = 0;
-      if (argc)
-        usage (1);
     }
   else if (!argc)
     {
@@ -306,13 +291,6 @@ dirmngr_client_main (int argc, char **argv )
 
   if (cmd_ping)
     ;
-  else if (cmd_squid_mode)
-    {
-      while (!(err = squid_loop_body (ctx)))
-        ;
-      if (err == GPG_ERR_EOF)
-        err = 0;
-    }
   else if (cmd_lookup)
     {
       int last_err = 0;
@@ -368,7 +346,7 @@ dirmngr_client_main (int argc, char **argv )
         log_info (_("a dirmngr daemon is up and running\n"));
       return 0;
     }
-  else if (cmd_lookup|| cmd_loadcrl || cmd_squid_mode)
+  else if (cmd_lookup|| cmd_loadcrl)
     return err? 1:0;
   else if (cmd_cache_cert)
     {
@@ -879,49 +857,3 @@ do_lookup (assuan_context_t ctx, const char *pattern)
   return err;
 }
 
-/* The body of an endless loop: Read a line from stdin, retrieve the
-   certificate from it, validate it and print "ERR" or "OK" to stdout.
-   Continue.  */
-static gpg_error_t
-squid_loop_body (assuan_context_t ctx)
-{
-  gpg_error_t err;
-  unsigned char *certbuf;
-  size_t certbuflen = 0;
-
-  err = read_pem_certificate (NULL, &certbuf, &certbuflen);
-  if (err == GPG_ERR_EOF)
-    return err;
-  if (err)
-    {
-      log_error (_("error reading certificate from stdin: %s\n"),
-                 gpg_strerror (err));
-      puts ("ERROR");
-      return 0;
-    }
-
-  err = do_check (ctx, certbuf, certbuflen);
-  xfree (certbuf);
-  if (!err)
-    {
-      if (opt.verbose)
-        log_info (_("certificate is valid\n"));
-      puts ("OK");
-    }
-  else
-    {
-      if (!opt.quiet)
-        {
-          if (err == GPG_ERR_CERT_REVOKED )
-            log_info (_("certificate has been revoked\n"));
-          else
-            log_error (_("certificate check failed: %s\n"),
-                       gpg_strerror (err));
-        }
-      puts ("ERROR");
-    }
-
-  fflush (stdout);
-
-  return 0;
-}
