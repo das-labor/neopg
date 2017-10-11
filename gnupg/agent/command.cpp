@@ -76,10 +76,6 @@ struct server_local_s
   /* Flag to suppress I/O logging during a command.  */
   unsigned int pause_io_logging : 1;
 
-  /* Helper flag for io_monitor to allow suppressing of our own
-   * greeting in some cases.  See io_monitor for details.  */
-  unsigned int greeting_seen : 1;
-
   /* If this flag is set to true the agent will be terminated after
      the end of the current session.  */
   unsigned int stopme : 1;
@@ -390,57 +386,6 @@ leave_cmd (assuan_context_t ctx, gpg_error_t err)
     }
   return err;
 }
-
-
-
-static const char hlp_geteventcounter[] =
-  "GETEVENTCOUNTER\n"
-  "\n"
-  "Return a status line named EVENTCOUNTER with the current values\n"
-  "of all event counters.  The values are decimal numbers in the range\n"
-  "0 to UINT_MAX and wrapping around to 0.  The actual values should\n"
-  "not be relied upon, they shall only be used to detect a change.\n"
-  "\n"
-  "The currently defined counters are:\n"
-  "\n"
-  "ANY  - Incremented with any change of any of the other counters.\n"
-  "KEY  - Incremented for added or removed private keys.\n"
-  "CARD - Incremented for changes of the card readers stati.";
-static gpg_error_t
-cmd_geteventcounter (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-  (void)line;
-
-  return agent_print_status (ctrl, "EVENTCOUNTER", "%u %u %u",
-                             eventcounter.any,
-                             eventcounter.key,
-                             eventcounter.card);
-}
-
-
-/* This function should be called once for all key removals or
-   additions.  This function is assured not to do any context
-   switches. */
-void
-bump_key_eventcounter (void)
-{
-  eventcounter.key++;
-  eventcounter.any++;
-}
-
-
-/* This function should be called for all card reader status
-   changes.  This function is assured not to do any context
-   switches. */
-void
-bump_card_eventcounter (void)
-{
-  eventcounter.card++;
-  eventcounter.any++;
-}
-
 
 
 
@@ -2560,50 +2505,6 @@ post_cmd_notify (assuan_context_t ctx, gpg_error_t err)
 }
 
 
-/* This function is called by libassuan for all I/O.  We use it here
-   to disable logging for the GETEVENTCOUNTER commands.  This is so
-   that the debug output won't get cluttered by this primitive
-   command.  */
-static unsigned int
-io_monitor (assuan_context_t ctx, void *hook, int direction,
-            const char *line, size_t linelen)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-  (void) hook;
-
-  /* We want to suppress all Assuan log messages for connections from
-   * self.  However, assuan_get_pid works only after
-   * assuan_accept. Now, assuan_accept already logs a line ending with
-   * the process id.  We use this hack here to get the peers pid so
-   * that we can compare it to our pid.  We should add an assuan
-   * function to return the pid for a file descriptor and use that to
-   * detect connections to self.  */
-  if (ctx && !ctrl->server_local->greeting_seen
-      && direction == ASSUAN_IO_TO_PEER)
-    {
-      ctrl->server_local->greeting_seen = 1;
-      if (linelen > 32
-          && !strncmp (line, "OK Pleased to meet you, process ", 32)
-          && strtoul (line+32, NULL, 10) == getpid ())
-        return ASSUAN_IO_MONITOR_NOLOG;
-    }
-
-  /* Note that we only check for the uppercase name.  This allows the user to
-     see the logging for debugging if using a non-upercase command
-     name. */
-  if (ctx && direction == ASSUAN_IO_FROM_PEER
-      && linelen >= 15
-      && !strncmp (line, "GETEVENTCOUNTER", 15)
-      && (linelen == 15 || spacep (line+15)))
-    {
-      ctrl->server_local->pause_io_logging = 1;
-    }
-
-  return ctrl->server_local->pause_io_logging? ASSUAN_IO_MONITOR_NOLOG : 0;
-}
-
-
 /* Return true if the command CMD implements the option OPT.  */
 static int
 command_has_option (const char *cmd, const char *cmdopt)
@@ -2628,7 +2529,6 @@ register_commands (assuan_context_t ctx)
     assuan_handler_t handler;
     const char * const help;
   } table[] = {
-    { "GETEVENTCOUNTER",cmd_geteventcounter, hlp_geteventcounter },
     { "ISTRUSTED",      cmd_istrusted, hlp_istrusted },
     { "HAVEKEY",        cmd_havekey,   hlp_havekey },
     { "KEYINFO",        cmd_keyinfo,   hlp_keyinfo },
@@ -2716,7 +2616,6 @@ start_command_handler (ctrl_t ctrl)
 
   ctrl->digest.raw_value = 0;
 
-  assuan_set_io_monitor (ctx, io_monitor, NULL);
   agent_set_progress_cb (progress_cb, ctrl);
 
   for (;;)

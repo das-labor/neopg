@@ -805,8 +805,6 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
   unlock_trusttable ();
   xfree (fprformatted);
   xfree (nameformatted);
-  if (!err)
-    bump_key_eventcounter ();
   return err;
 }
 
@@ -821,5 +819,4 @@ agent_reload_trustlist (void)
   lock_trusttable ();
   clear_trusttable ();
   unlock_trusttable ();
-  bump_key_eventcounter ();
 }

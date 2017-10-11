@@ -122,8 +122,6 @@ write_extended_private_key (char *fname, estream_t fp, int update,
   else
     fp = NULL;
 
-  bump_key_eventcounter ();
-
  leave:
   es_fclose (fp);
   if (remove)
@@ -248,7 +246,6 @@ agent_write_private_key (const unsigned char *grip,
       xfree (fname);
       return tmperr;
     }
-  bump_key_eventcounter ();
   xfree (fname);
   return 0;
 }
