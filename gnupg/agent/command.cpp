@@ -76,10 +76,6 @@ struct server_local_s
   /* Flag to suppress I/O logging during a command.  */
   unsigned int pause_io_logging : 1;
 
-  /* If this flag is set to true the agent will be terminated after
-     the end of the current session.  */
-  unsigned int stopme : 1;
-
   /* An allocated description for the next key operation.  This is
      used if a pinnetry needs to be popped up.  */
   char *keydesc;
@@ -90,43 +86,6 @@ struct server_local_s
   /* Last PASSWD_NONCE sent as status (malloced). */
   char *last_passwd_nonce;
 };
-
-
-/* An entry for the getval/putval commands. */
-struct putval_item_s
-{
-  struct putval_item_s *next;
-  size_t off;  /* Offset to the value into DATA.  */
-  size_t len;  /* Length of the value.  */
-  char d[1];   /* Key | Nul | value.  */
-};
-
-
-/* A list of key value pairs fpr the getval/putval commands.  */
-static struct putval_item_s *putval_list;
-
-
-
-/* To help polling clients, we keep track of the number of certain
-   events.  This structure keeps those counters.  The counters are
-   integers and there should be no problem if they are overflowing as
-   callers need to check only whether a counter changed.  The actual
-   values are not meaningful. */
-struct
-{
-  /* Incremented if any of the other counters below changed. */
-  unsigned int any;
-
-  /* Incremented if a key is added or removed from the internal privat
-     key database. */
-  unsigned int key;
-
-  /* Incremented if a change of the card readers stati has been
-     detected. */
-  unsigned int card;
-
-} eventcounter;
-
 
 
 /*  Local prototypes.  */
@@ -333,22 +292,6 @@ agent_print_status (ctrl_t ctrl, const char *keyword, const char *format, ...)
   err = vprint_assuan_status (ctx, keyword, format, arg_ptr);
   va_end (arg_ptr);
   return err;
-}
-
-
-/* Helper to notify the client about a launched Pinentry.  Because
-   that might disturb some older clients, this is only done if enabled
-   via an option.  Returns an gpg error code. */
-gpg_error_t
-agent_inq_pinentry_launched (ctrl_t ctrl, unsigned long pid, const char *extra)
-{
-  char line[256];
-
-  if (!ctrl || !ctrl->server_local)
-    return 0;
-  snprintf (line, DIM(line), "PINENTRY_LAUNCHED %lu%s%s",
-            pid, extra?" ":"", extra? extra:"");
-  return assuan_inquire (ctrl->server_local->assuan_ctx, line, NULL, NULL, 0);
 }
 
 
@@ -756,7 +699,7 @@ cmd_pkdecrypt (assuan_context_t ctx, char *line)
 
 
 static const char hlp_genkey[] =
-  "GENKEY [--no-protection] [--preset] [--inq-passwd]\n"
+  "GENKEY [--no-protection] [--inq-passwd]\n"
   "       [--passwd-nonce=<s>] [<cache_nonce>]\n"
   "\n"
   "Generate a new key, store the secret part and return the public\n"
@@ -770,8 +713,7 @@ static const char hlp_genkey[] =
   "  S: D   (rsa (n 326487324683264) (e 10001)))\n"
   "  S: OK key created\n"
   "\n"
-  "When the --preset option is used the passphrase for the generated\n"
-  "key will be added to the cache.  When --inq-passwd is used an inquire\n"
+  "When --inq-passwd is used an inquire\n"
   "with the keyword NEWPASSWD is used to request the passphrase for the\n"
   "new key.  When a --passwd-nonce is used, the corresponding cached\n"
   "passphrase is used to protect the new key.";
@@ -787,14 +729,12 @@ cmd_genkey (assuan_context_t ctx, char *line)
   membuf_t outbuf;
   char *cache_nonce = NULL;
   char *passwd_nonce = NULL;
-  int opt_preset;
   int opt_inq_passwd;
   size_t n;
   char *p, *pend;
   int c;
 
   no_protection = has_option (line, "--no-protection");
-  opt_preset = has_option (line, "--preset");
   opt_inq_passwd = has_option (line, "--inq-passwd");
   passwd_nonce = option_value (line, "--passwd-nonce");
   if (passwd_nonce)
@@ -851,7 +791,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
     newpasswd = agent_get_cache (passwd_nonce, CACHE_MODE_NONCE);
 
   rc = agent_genkey (ctrl, cache_nonce, (char*)value, valuelen, no_protection,
-                     newpasswd, opt_preset, &outbuf);
+                     newpasswd, &outbuf);
 
  leave:
   if (newpasswd)
@@ -1241,17 +1181,9 @@ static const char hlp_get_passphrase[] =
   "If the option \"--data\" is used the passphrase is returned by usual\n"
   "data lines and not on the okay line.\n"
   "\n"
-  "If the option \"--check\" is used the passphrase constraints checks as\n"
-  "implemented by gpg-agent are applied.  A check is not done if the\n"
-  "passphrase has been found in the cache.\n"
-  "\n"
   "If the option \"--no-ask\" is used and the passphrase is not in the\n"
   "cache the user will not be asked to enter a passphrase but the error\n"
-  "code GPG_ERR_NO_DATA is returned.  \n"
-  "\n"
-  "If the option \"--qualitybar\" is used a visual indication of the\n"
-  "entered passphrase quality is shown.  (Unless no minimum passphrase\n"
-  "length has been configured.)";
+  "code GPG_ERR_NO_DATA is returned.  \n";
 static gpg_error_t
 cmd_get_passphrase (assuan_context_t ctx, char *line)
 {
@@ -1262,12 +1194,11 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
   char *cacheid = NULL, *desc = NULL, *prompt = NULL, *errtext = NULL;
   const char *desc2 = _("Please re-enter this passphrase");
   char *p;
-  int opt_data, opt_check, opt_no_ask, opt_qualbar;
+  int opt_data, opt_no_ask;
   int opt_repeat = 0;
   char *entry_errtext = NULL;
 
   opt_data = has_option (line, "--data");
-  opt_check = has_option (line, "--check");
   opt_no_ask = has_option (line, "--no-ask");
   if (has_option_name (line, "--repeat"))
     {
@@ -1277,7 +1208,6 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
       else
 	opt_repeat = 1;
     }
-  opt_qualbar = has_option (line, "--qualitybar");
   line = skip_options (line);
 
   cacheid = line;
@@ -1346,19 +1276,13 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
     next_try:
       rc = agent_get_passphrase (ctrl, &response, desc, prompt,
                                  entry_errtext? entry_errtext:errtext,
-                                 opt_qualbar, cacheid, CACHE_MODE_USER);
+                                 cacheid, CACHE_MODE_USER);
       xfree (entry_errtext);
       entry_errtext = NULL;
       if (!rc)
         {
           int i;
 
-          if (opt_check
-	      && check_passphrase_constraints (ctrl, response, &entry_errtext))
-            {
-              xfree (response);
-              goto next_try;
-            }
           for (i = 0; i < opt_repeat; i++)
             {
               char *response2;
@@ -1367,7 +1291,7 @@ cmd_get_passphrase (assuan_context_t ctx, char *line)
                 break;
 
               rc = agent_get_passphrase (ctrl, &response2, desc2, prompt,
-                                         errtext, 0,
+                                         errtext,
 					 cacheid, CACHE_MODE_USER);
               if (rc)
                 break;
@@ -1509,11 +1433,10 @@ cmd_learn (assuan_context_t ctx, char *line)
 
 
 static const char hlp_passwd[] =
-  "PASSWD [--cache-nonce=<c>] [--passwd-nonce=<s>] [--preset]\n"
+  "PASSWD [--cache-nonce=<c>] [--passwd-nonce=<s>]\n"
   "       [--verify] <hexkeygrip>\n"
   "\n"
-  "Change the passphrase/PIN for the key identified by keygrip in LINE.  If\n"
-  "--preset is used then the new passphrase will be added to the cache.\n"
+  "Change the passphrase/PIN for the key identified by keygrip in LINE.\n"
   "If --verify is used the command asks for the passphrase and verifies\n"
   "that the passphrase valid.\n";
 static gpg_error_t
@@ -1529,9 +1452,8 @@ cmd_passwd (assuan_context_t ctx, char *line)
   unsigned char *shadow_info = NULL;
   char *passphrase = NULL;
   char *pend;
-  int opt_preset, opt_verify;
+  int opt_verify;
 
-  opt_preset = has_option (line, "--preset");
   cache_nonce = option_value (line, "--cache-nonce");
   opt_verify = has_option (line, "--verify");
   if (cache_nonce)
@@ -1656,13 +1578,6 @@ cmd_passwd (assuan_context_t ctx, char *line)
                 }
             }
         }
-      if (!err && opt_preset)
-        {
-	  char hexgrip[40+1];
-	  bin2hex(grip, 20, hexgrip);
-	  err = agent_put_cache (hexgrip, CACHE_MODE_ANY, newpass,
-                                 ctrl->cache_ttl_opt_preset);
-        }
       xfree (newpass);
     }
   ctrl->in_passwd--;
@@ -1677,98 +1592,6 @@ cmd_passwd (assuan_context_t ctx, char *line)
   xfree (cache_nonce);
   xfree (passwd_nonce);
   return leave_cmd (ctx, err);
-}
-
-
-static const char hlp_preset_passphrase[] =
-  "PRESET_PASSPHRASE [--inquire] <string_or_keygrip> <timeout> [<hexstring>]\n"
-  "\n"
-  "Set the cached passphrase/PIN for the key identified by the keygrip\n"
-  "to passwd for the given time, where -1 means infinite and 0 means\n"
-  "the default (currently only a timeout of -1 is allowed, which means\n"
-  "to never expire it).  If passwd is not provided, ask for it via the\n"
-  "pinentry module unless --inquire is passed in which case the passphrase\n"
-  "is retrieved from the client via a server inquire.\n";
-static gpg_error_t
-cmd_preset_passphrase (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  int rc;
-  char *grip_clear = NULL;
-  unsigned char *passphrase = NULL;
-  int ttl;
-  size_t len;
-  int opt_inquire;
-
-  if (!opt.allow_preset_passphrase)
-    return set_error (GPG_ERR_NOT_SUPPORTED, "no --allow-preset-passphrase");
-
-  opt_inquire = has_option (line, "--inquire");
-  line = skip_options (line);
-  grip_clear = line;
-  while (*line && (*line != ' ' && *line != '\t'))
-    line++;
-  if (!*line)
-    return GPG_ERR_MISSING_VALUE;
-  *line = '\0';
-  line++;
-  while (*line && (*line == ' ' || *line == '\t'))
-    line++;
-
-  /* Currently, only infinite timeouts are allowed.  */
-  ttl = -1;
-  if (line[0] != '-' || line[1] != '1')
-    return GPG_ERR_NOT_IMPLEMENTED;
-  line++;
-  line++;
-  while (!(*line != ' ' && *line != '\t'))
-    line++;
-
-  /* Syntax check the hexstring.  */
-  len = 0;
-  rc = parse_hexstring (ctx, line, &len);
-  if (rc)
-    return rc;
-  line[len] = '\0';
-
-  /* If there is a passphrase, use it.  Currently, a passphrase is
-     required.  */
-  if (*line)
-    {
-      if (opt_inquire)
-        {
-	  rc = set_error (GPG_ERR_ASS_PARAMETER,
-                          "both --inquire and passphrase specified");
-	  goto leave;
-	}
-
-      /* Do in-place conversion.  */
-      passphrase = (unsigned char*) line;
-      if (!hex2str ((const char*) (passphrase), (char*) (passphrase), strlen ((const char*) (passphrase)+1), NULL))
-        rc = set_error (GPG_ERR_ASS_PARAMETER, "invalid hexstring");
-    }
-  else if (opt_inquire)
-    {
-      /* Note that the passphrase will be truncated at any null byte and the
-       * limit is 480 characters. */
-      size_t maxlen = 480;
-
-      rc = print_assuan_status (ctx, "INQUIRE_MAXLEN", "%zu", maxlen);
-      if (!rc)
-	rc = assuan_inquire (ctx, "PASSPHRASE", &passphrase, &len, maxlen);
-    }
-  else
-    rc = set_error (GPG_ERR_NOT_IMPLEMENTED, "passphrase is required");
-
-  if (!rc)
-    {
-      rc = agent_put_cache (grip_clear, CACHE_MODE_ANY, (const char*) (passphrase), ttl);
-      if (opt_inquire)
-	xfree (passphrase);
-    }
-
-leave:
-  return leave_cmd (ctx, rc);
 }
 
 
@@ -2231,134 +2054,6 @@ cmd_keytocard (assuan_context_t ctx, char *line)
   return leave_cmd (ctx, err);
 }
 
-
-
-static const char hlp_getval[] =
-  "GETVAL <key>\n"
-  "\n"
-  "Return the value for KEY from the special environment as created by\n"
-  "PUTVAL.";
-static gpg_error_t
-cmd_getval (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  int rc = 0;
-  char *key = NULL;
-  char *p;
-  struct putval_item_s *vl;
-
-  for (p=line; *p == ' '; p++)
-    ;
-  key = p;
-  p = strchr (key, ' ');
-  if (p)
-    {
-      *p++ = 0;
-      for (; *p == ' '; p++)
-        ;
-      if (*p)
-        return set_error (GPG_ERR_ASS_PARAMETER, "too many arguments");
-    }
-  if (!*key)
-    return set_error (GPG_ERR_ASS_PARAMETER, "no key given");
-
-
-  for (vl=putval_list; vl; vl = vl->next)
-    if ( !strcmp (vl->d, key) )
-      break;
-
-  if (vl) /* Got an entry. */
-    rc = assuan_send_data (ctx, vl->d+vl->off, vl->len);
-  else
-    return GPG_ERR_NO_DATA;
-
-  return leave_cmd (ctx, rc);
-}
-
-
-static const char hlp_putval[] =
-  "PUTVAL <key> [<percent_escaped_value>]\n"
-  "\n"
-  "The gpg-agent maintains a kind of environment which may be used to\n"
-  "store key/value pairs in it, so that they can be retrieved later.\n"
-  "This may be used by helper daemons to daemonize themself on\n"
-  "invocation and register them with gpg-agent.  Callers of the\n"
-  "daemon's service may now first try connect to get the information\n"
-  "for that service from gpg-agent through the GETVAL command and then\n"
-  "try to connect to that daemon.  Only if that fails they may start\n"
-  "an own instance of the service daemon. \n"
-  "\n"
-  "KEY is an arbitrary symbol with the same syntax rules as keys\n"
-  "for shell environment variables.  PERCENT_ESCAPED_VALUE is the\n"
-  "corresponding value; they should be similar to the values of\n"
-  "envronment variables but gpg-agent does not enforce any\n"
-  "restrictions.  If that value is not given any value under that KEY\n"
-  "is removed from this special environment.";
-static gpg_error_t
-cmd_putval (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  int rc = 0;
-  char *key = NULL;
-  char *value = NULL;
-  size_t valuelen = 0;
-  char *p;
-  struct putval_item_s *vl, *vlprev;
-
-  for (p=line; *p == ' '; p++)
-    ;
-  key = p;
-  p = strchr (key, ' ');
-  if (p)
-    {
-      *p++ = 0;
-      for (; *p == ' '; p++)
-        ;
-      if (*p)
-        {
-          value = p;
-          p = strchr (value, ' ');
-          if (p)
-            *p = 0;
-          valuelen = percent_plus_unescape_inplace (value, 0);
-        }
-    }
-  if (!*key)
-    return set_error (GPG_ERR_ASS_PARAMETER, "no key given");
-
-
-  for (vl=putval_list,vlprev=NULL; vl; vlprev=vl, vl = vl->next)
-    if ( !strcmp (vl->d, key) )
-      break;
-
-  if (vl) /* Delete old entry. */
-    {
-      if (vlprev)
-        vlprev->next = vl->next;
-      else
-        putval_list = vl->next;
-      xfree (vl);
-    }
-
-  if (valuelen) /* Add entry. */
-    {
-      vl = (putval_item_s*) xtrymalloc (sizeof *vl + strlen (key) + valuelen);
-      if (!vl)
-        rc = gpg_error_from_syserror ();
-      else
-        {
-          vl->len = valuelen;
-          vl->off = strlen (key) + 1;
-          strcpy (vl->d, key);
-          memcpy (vl->d + vl->off, value, valuelen);
-          vl->next = putval_list;
-          putval_list = vl;
-        }
-    }
-
-  return leave_cmd (ctx, rc);
-}
-
 
 static const char hlp_getinfo[] =
   "GETINFO <what>\n"
@@ -2422,21 +2117,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
       snprintf (numbuf, sizeof numbuf, "%lu", get_standard_s2k_count ());
       rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
     }
-  else if (!strcmp (line, "pid"))
-    {
-      char numbuf[50];
-
-      snprintf (numbuf, sizeof numbuf, "%lu", (unsigned long)getpid ());
-      rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
-  else if (!strcmp (line, "connections"))
-    {
-      char numbuf[20];
-
-      snprintf (numbuf, sizeof numbuf, "%d",
-                get_agent_active_connection_count ());
-      rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-    }
   else
     rc = set_error (GPG_ERR_ASS_PARAMETER, "unknown value for WHAT");
   return rc;
@@ -2470,10 +2150,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     }
   else if (!strcmp (key, "use-cache-for-signing"))
     ctrl->server_local->use_cache_for_signing = *value? !!atoi (value) : 0;
-  else if (!strcmp (key, "cache-ttl-opt-preset"))
-    {
-      ctrl->cache_ttl_opt_preset = *value? atoi (value) : 0;
-    }
   else if (!strcmp (key, "s2k-count"))
     {
       ctrl->s2k_count = *value? strtoul(value, NULL, 10) : 0;
@@ -2491,20 +2167,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
 
 
 
-/* Called by libassuan after all commands. ERR is the error from the
-   last assuan operation and not the one returned from the command. */
-static void
-post_cmd_notify (assuan_context_t ctx, gpg_error_t err)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-
-  (void)err;
-
-  /* Switch off any I/O monitor controlled logging pausing. */
-  ctrl->server_local->pause_io_logging = 0;
-}
-
-
 /* Return true if the command CMD implements the option OPT.  */
 static int
 command_has_option (const char *cmd, const char *cmdopt)
@@ -2541,7 +2203,6 @@ register_commands (assuan_context_t ctx)
     { "GENKEY",         cmd_genkey,    hlp_genkey },
     { "READKEY",        cmd_readkey,   hlp_readkey },
     { "GET_PASSPHRASE", cmd_get_passphrase, hlp_get_passphrase },
-    { "PRESET_PASSPHRASE", cmd_preset_passphrase, hlp_preset_passphrase },
     { "CLEAR_PASSPHRASE", cmd_clear_passphrase,   hlp_clear_passphrase },
     { "GET_CONFIRMATION", cmd_get_confirmation,   hlp_get_confirmation },
     { "LISTTRUSTED",    cmd_listtrusted, hlp_listtrusted },
@@ -2554,8 +2215,6 @@ register_commands (assuan_context_t ctx)
     { "IMPORT_KEY",     cmd_import_key, hlp_import_key },
     { "EXPORT_KEY",     cmd_export_key, hlp_export_key },
     { "DELETE_KEY",     cmd_delete_key, hlp_delete_key },
-    { "GETVAL",         cmd_getval,    hlp_getval },
-    { "PUTVAL",         cmd_putval,    hlp_putval },
     { "GETINFO",        cmd_getinfo,   hlp_getinfo },
     { "KEYTOCARD",      cmd_keytocard, hlp_keytocard },
     { NULL }
@@ -2569,7 +2228,6 @@ register_commands (assuan_context_t ctx)
       if (rc)
         return rc;
     }
-  assuan_register_post_cmd_notify (ctx, post_cmd_notify);
   assuan_register_reset_notify (ctx, reset_notify);
   assuan_register_option_handler (ctx, option_handler);
   return 0;
@@ -2616,8 +2274,6 @@ start_command_handler (ctrl_t ctrl)
 
   ctrl->digest.raw_value = 0;
 
-  agent_set_progress_cb (progress_cb, ctrl);
-
   for (;;)
     {
       rc = assuan_accept (ctx);
@@ -2651,8 +2307,6 @@ start_command_handler (ctrl_t ctrl)
   /* Cleanup.  */
   assuan_release (ctx);
   xfree (ctrl->server_local->keydesc);
-  if (ctrl->server_local->stopme)
-    agent_exit (0);
   xfree (ctrl->server_local);
   ctrl->server_local = NULL;
 }

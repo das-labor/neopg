@@ -61,9 +61,7 @@ struct options opt;
 
 enum cmd_and_opt_values
 { aNull = 0,
-  oCsh		  = 'c',
   oQuiet	  = 'q',
-  oSh		  = 's',
   oVerbose	  = 'v',
 
   oNoVerbose = 500,
@@ -73,38 +71,24 @@ enum cmd_and_opt_values
   oDebug,
   oDebugAll,
   oDebugLevel,
-  oDebugWait,
-  oDebugPinentry,
-  oNoGreeting,
   oNoOptions,
   oHomedir,
   oNoDetach,
-  oNoGrab,
   oLogFile,
   oServer,
   oBatch,
 
-  oPinentryProgram,
-  oPinentryInvisibleChar,
-  oPinentryTimeout,
   oLCctype,
   oLCmessages,
   oScdaemonProgram,
   oDefCacheTTL,
   oMaxCacheTTL,
-  oEnforcePassphraseConstraints,
-  oMinPassphraseLen,
-  oMinPassphraseNonalpha,
-  oCheckPassphrasePattern,
-  oMaxPassphraseDays,
-  oEnablePassphraseHistory,
   oEnableExtendedKeyFormat,
   oFakedSystemTime,
 
   oIgnoreCacheForSigning,
   oAllowMarkTrusted,
   oNoAllowMarkTrusted,
-  oAllowPresetPassphrase,
   oNoAllowExternalCache,
   oDisableScdaemon,
   oWriteEnvFile
@@ -126,25 +110,14 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oServer,  "server", N_("run in server mode (foreground)")),
   ARGPARSE_s_n (oVerbose, "verbose", N_("verbose")),
   ARGPARSE_s_n (oQuiet,	  "quiet",     N_("be somewhat more quiet")),
-  ARGPARSE_s_n (oSh,	  "sh",        N_("sh-style command output")),
-  ARGPARSE_s_n (oCsh,	  "csh",       N_("csh-style command output")),
   ARGPARSE_s_s (oOptions, "options", N_("|FILE|read options from FILE")),
 
   ARGPARSE_s_s (oDebug,	     "debug",       "@"),
   ARGPARSE_s_n (oDebugAll,   "debug-all",   "@"),
   ARGPARSE_s_s (oDebugLevel, "debug-level", "@"),
-  ARGPARSE_s_i (oDebugWait,  "debug-wait",  "@"),
-  ARGPARSE_s_n (oDebugPinentry, "debug-pinentry", "@"),
 
   ARGPARSE_s_n (oNoDetach,  "no-detach", N_("do not detach from the console")),
-  ARGPARSE_s_n (oNoGrab,    "no-grab",   N_("do not grab keyboard and mouse")),
   ARGPARSE_s_s (oLogFile,   "log-file",  N_("use a log file for the server")),
-  ARGPARSE_s_s (oPinentryProgram, "pinentry-program",
-                /* */             N_("|PGM|use PGM as the PIN-Entry program")),
-  ARGPARSE_s_s (oPinentryInvisibleChar, "pinentry-invisible-char", "@"),
-  ARGPARSE_s_u (oPinentryTimeout, "pinentry-timeout", "@"),
-  ARGPARSE_s_s (oScdaemonProgram, "scdaemon-program",
-                /* */             N_("|PGM|use PGM as the SCdaemon program") ),
   ARGPARSE_s_n (oDisableScdaemon, "disable-scdaemon",
                 /* */             N_("do not use the SCdaemon") ),
 
@@ -160,14 +133,6 @@ static ARGPARSE_OPTS opts[] = {
                                  N_("|N|expire cached PINs after N seconds")),
   ARGPARSE_s_u (oMaxCacheTTL,    "max-cache-ttl",         "@" ),
 
-  ARGPARSE_s_n (oEnforcePassphraseConstraints, "enforce-passphrase-constraints",
-                /* */                          "@"),
-  ARGPARSE_s_u (oMinPassphraseLen,        "min-passphrase-len", "@"),
-  ARGPARSE_s_u (oMinPassphraseNonalpha,   "min-passphrase-nonalpha", "@"),
-  ARGPARSE_s_s (oCheckPassphrasePattern,  "check-passphrase-pattern", "@"),
-  ARGPARSE_s_u (oMaxPassphraseDays,       "max-passphrase-days", "@"),
-  ARGPARSE_s_n (oEnablePassphraseHistory, "enable-passphrase-history", "@"),
-
   ARGPARSE_s_n (oIgnoreCacheForSigning, "ignore-cache-for-signing",
                 /* */    N_("do not use the PIN cache when signing")),
   ARGPARSE_s_n (oNoAllowExternalCache,  "no-allow-external-cache",
@@ -175,8 +140,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoAllowMarkTrusted, "no-allow-mark-trusted",
                 /* */    N_("disallow clients to mark keys as \"trusted\"")),
   ARGPARSE_s_n (oAllowMarkTrusted,   "allow-mark-trusted", "@"),
-  ARGPARSE_s_n (oAllowPresetPassphrase, "allow-preset-passphrase",
-                /* */                    N_("allow presetting passphrase")),
   ARGPARSE_s_n (oEnableExtendedKeyFormat, "enable-extended-key-format", "@"),
 
   /* Dummy options for backward compatibility.  */
@@ -295,9 +258,6 @@ struct progress_dispatch_s *progress_dispatch_list;
 
 static void create_directories (void);
 
-static void agent_libgcrypt_progress_cb (void *data, const char *what,
-                                         int printchar,
-                                         int current, int total);
 static void agent_init_default_ctrl (ctrl_t ctrl);
 static void agent_deinit_default_ctrl (ctrl_t ctrl);
 
@@ -305,30 +265,6 @@ static void agent_deinit_default_ctrl (ctrl_t ctrl);
 ASSUAN_SYSTEM_NPTH_IMPL;
 
 
-/*
-   Functions.
- */
-
-/* Allocate a string describing a library version by calling a GETFNC.
-   This function is expected to be called only once.  GETFNC is
-   expected to have a semantic like gcry_check_version ().  */
-static char *
-make_libversion (const char *libname, const char *(*getfnc)(const char*))
-{
-  const char *s;
-  char *result;
-
-  if (maybe_setuid)
-    {
-      gcry_control (GCRYCTL_INIT_SECMEM, 0, 0);  /* Drop setuid. */
-      maybe_setuid = 0;
-    }
-  s = getfnc (NULL);
-  result = (char*) xmalloc (strlen (libname) + 1 + strlen (s) + 1);
-  strcpy (stpcpy (stpcpy (result, libname), " "), s);
-  return result;
-}
-
 /* Return strings describing this program.  The case values are
    described in common/argparse.c:strusage.  The values here override
    the default values given by strusage.  */
@@ -447,11 +383,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       opt.debug = 0;
       opt.no_grab = 0;
       opt.debug_pinentry = 0;
-      opt.pinentry_program = NULL;
-      xfree (opt.pinentry_invisible_char);
-      opt.pinentry_invisible_char = NULL;
-      opt.pinentry_timeout = 0;
-      opt.scdaemon_program = NULL;
       opt.def_cache_ttl = DEFAULT_CACHE_TTL;
       opt.max_cache_ttl = MAX_CACHE_TTL;
       opt.enforce_passphrase_constraints = 0;
@@ -478,7 +409,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
       break;
     case oDebugAll: opt.debug = ~0; break;
     case oDebugLevel: debug_level = pargs->r.ret_str; break;
-    case oDebugPinentry: opt.debug_pinentry = 1; break;
 
     case oLogFile:
       if (!reread)
@@ -492,36 +422,10 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
         }
       break;
 
-    case oNoGrab: opt.no_grab = 1; break;
-
-    case oPinentryProgram: opt.pinentry_program = pargs->r.ret_str; break;
-    case oPinentryInvisibleChar:
-      xfree (opt.pinentry_invisible_char);
-      opt.pinentry_invisible_char = xtrystrdup (pargs->r.ret_str); break;
-      break;
-    case oPinentryTimeout: opt.pinentry_timeout = pargs->r.ret_ulong; break;
-    case oScdaemonProgram: opt.scdaemon_program = pargs->r.ret_str; break;
     case oDisableScdaemon: opt.disable_scdaemon = 1; break;
 
     case oDefCacheTTL: opt.def_cache_ttl = pargs->r.ret_ulong; break;
     case oMaxCacheTTL: opt.max_cache_ttl = pargs->r.ret_ulong; break;
-
-    case oEnforcePassphraseConstraints:
-      opt.enforce_passphrase_constraints=1;
-      break;
-    case oMinPassphraseLen: opt.min_passphrase_len = pargs->r.ret_ulong; break;
-    case oMinPassphraseNonalpha:
-      opt.min_passphrase_nonalpha = pargs->r.ret_ulong;
-      break;
-    case oCheckPassphrasePattern:
-      opt.check_passphrase_pattern = pargs->r.ret_str;
-      break;
-    case oMaxPassphraseDays:
-      opt.max_passphrase_days = pargs->r.ret_ulong;
-      break;
-    case oEnablePassphraseHistory:
-      opt.enable_passphrase_history = 1;
-      break;
 
     case oEnableExtendedKeyFormat:
       opt.enable_extended_key_format = 1;
@@ -531,8 +435,6 @@ parse_rereadable_options (ARGPARSE_ARGS *pargs, int reread)
 
     case oAllowMarkTrusted: opt.allow_mark_trusted = 1; break;
     case oNoAllowMarkTrusted: opt.allow_mark_trusted = 0; break;
-
-    case oAllowPresetPassphrase: opt.allow_preset_passphrase = 1; break;
 
     case oNoAllowExternalCache: opt.allow_external_cache = 0;
       break;
@@ -640,7 +542,6 @@ agent_main (int argc, char **argv )
 
   setup_libgcrypt_logging ();
   gcry_control (GCRYCTL_USE_SECURE_RNDPOOL);
-  gcry_set_progress_handler (agent_libgcrypt_progress_cb, NULL);
 
   disable_core_dumps ();
 
@@ -733,8 +634,6 @@ agent_main (int argc, char **argv )
         case aGPGConfTest: gpgconf_list = 2; break;
         case oBatch: opt.batch=1; break;
 
-        case oDebugWait: debug_wait = pargs.r.ret_int; break;
-
         case oOptions:
           /* config files may not be nested (silently ignore them) */
           if (!configfp)
@@ -744,14 +643,11 @@ agent_main (int argc, char **argv )
 		goto next_pass;
 	    }
           break;
-        case oNoGreeting: /* Dummy option.  */ break;
         case oNoVerbose: opt.verbose = 0; break;
         case oNoOptions: break; /* no-options */
         case oHomedir: gnupg_set_homedir (pargs.r.ret_str); break;
         case oNoDetach: nodetach = 1; break;
         case oLogFile: logfile = pargs.r.ret_str; break;
-        case oCsh: csh_style = 1; break;
-        case oSh: csh_style = 0; break;
         case oServer: pipe_server = 1; break;
 
         case oLCctype: default_lc_ctype = xstrdup (pargs.r.ret_str); break;
@@ -981,105 +877,6 @@ agent_exit (int rc)
 }
 
 
-/* This is our callback function for gcrypt progress messages.  It is
-   set once at startup and dispatches progress messages to the
-   corresponding threads of the agent.  */
-static void
-agent_libgcrypt_progress_cb (void *data, const char *what, int printchar,
-                             int current, int total)
-{
-  struct progress_dispatch_s *dispatch;
-  npth_t mytid = npth_self ();
-
-  (void)data;
-
-  for (dispatch = progress_dispatch_list; dispatch; dispatch = dispatch->next)
-    if (dispatch->ctrl && dispatch->tid == mytid)
-      break;
-  if (dispatch && dispatch->cb)
-    dispatch->cb (dispatch->ctrl, what, printchar, current, total);
-
-  /* Libgcrypt < 1.8 does not know about nPth and thus when it reads
-   * from /dev/random this will block the process.  To mitigate this
-   * problem we yield the thread when Libgcrypt tells us that it needs
-   * more entropy.  This way other threads have chance to run.  */
-#if GCRYPT_VERSION_NUMBER < 0x010800 /* 1.8.0 */
-  if (what && !strcmp (what, "need_entropy"))
-    {
-#if GPGRT_VERSION_NUMBER < 0x011900 /* 1.25 */
-      /* In older gpg-error versions gpgrt_yield is buggy for use with
-       * nPth and thus we need to resort to a sleep call.  */
-      npth_usleep (1000); /* 1ms */
-#else
-      gpgrt_yield ();
-#endif
-    }
-#endif
-}
-
-
-/* If a progress dispatcher callback has been associated with the
- * current connection unregister it.  */
-static void
-unregister_progress_cb (void)
-{
-  struct progress_dispatch_s *dispatch;
-  npth_t mytid = npth_self ();
-
-  for (dispatch = progress_dispatch_list; dispatch; dispatch = dispatch->next)
-    if (dispatch->ctrl && dispatch->tid == mytid)
-      break;
-  if (dispatch)
-    {
-      dispatch->ctrl = NULL;
-      dispatch->cb = NULL;
-    }
-}
-
-
-/* Setup a progress callback CB for the current connection.  Using a
- * CB of NULL disables the callback.  */
-void
-agent_set_progress_cb (void (*cb)(ctrl_t ctrl, const char *what,
-                                  int printchar, int current, int total),
-                       ctrl_t ctrl)
-{
-  struct progress_dispatch_s *dispatch, *firstfree;
-  npth_t mytid = npth_self ();
-
-  firstfree = NULL;
-  for (dispatch = progress_dispatch_list; dispatch; dispatch = dispatch->next)
-    {
-      if (dispatch->ctrl && dispatch->tid == mytid)
-        break;
-      if (!dispatch->ctrl && !firstfree)
-        firstfree = dispatch;
-    }
-  if (!dispatch) /* None allocated: Reuse or allocate a new one.  */
-    {
-      if (firstfree)
-        {
-          dispatch = firstfree;
-        }
-      else if ((dispatch = (progress_dispatch_s*)xtrycalloc (1, sizeof *dispatch)))
-        {
-          dispatch->next = progress_dispatch_list;
-          progress_dispatch_list = dispatch;
-        }
-      else
-        {
-          log_error ("error allocating new progress dispatcher slot: %s\n",
-                     gpg_strerror (gpg_error_from_syserror ()));
-          return;
-        }
-      dispatch->ctrl = ctrl;
-      dispatch->tid = mytid;
-    }
-
-  dispatch->cb = cb;
-}
-
-
 /* Each thread has its own local variables conveyed by a control
    structure usually identified by an argument named CTRL.  This
    function is called immediately after allocating the control
@@ -1096,7 +893,6 @@ agent_init_default_ctrl (ctrl_t ctrl)
     xfree (ctrl->lc_messages);
   ctrl->lc_messages = default_lc_messages? xtrystrdup (default_lc_messages)
                                     /**/ : NULL;
-  ctrl->cache_ttl_opt_preset = CACHE_TTL_OPT_PRESET;
   ctrl->pinentry_mode = PINENTRY_MODE_LOOPBACK;
 }
 
@@ -1106,8 +902,6 @@ agent_init_default_ctrl (ctrl_t ctrl)
 static void
 agent_deinit_default_ctrl (ctrl_t ctrl)
 {
-  unregister_progress_cb ();
-
   if (ctrl->lc_ctype)
     xfree (ctrl->lc_ctype);
   if (ctrl->lc_messages)

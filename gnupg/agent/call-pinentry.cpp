@@ -417,61 +417,6 @@ start_pinentry (ctrl_t ctrl)
       }
   }
 
-  /* Tell the pinentry that we would prefer that the given character
-     is used as the invisible character by the entry widget.  */
-  if (opt.pinentry_invisible_char)
-    {
-      char *optstr;
-      if ((optstr = xtryasprintf ("OPTION invisible-char=%s",
-                                  opt.pinentry_invisible_char)))
-        {
-          assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-                           NULL);
-          /* We ignore errors because this is just a fancy thing and
-             older pinentries do not support this feature.  */
-          xfree (optstr);
-        }
-    }
-
-  if (opt.pinentry_timeout)
-    {
-      char *optstr;
-      if ((optstr = xtryasprintf ("SETTIMEOUT %lu", opt.pinentry_timeout)))
-        {
-          assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
-                           NULL);
-          /* We ignore errors because this is just a fancy thing.  */
-          xfree (optstr);
-        }
-    }
-
-  /* Ask the pinentry for its version and flavor and store that as a
-   * string in MB.  This information is useful for helping users to
-   * figure out Pinentry problems.  Noet that "flavor" may also return
-   * a status line with the features; we use a dedicated handler for
-   * that.  */
-  {
-    membuf_t mb;
-
-    init_membuf (&mb, 256);
-    if (assuan_transact (entry_ctx, "GETINFO flavor",
-                         put_membuf_cb, &mb,
-                         NULL, NULL,
-                         getinfo_features_cb, NULL))
-      put_membuf_str (&mb, "unknown");
-    put_membuf_str (&mb, " ");
-    if (assuan_transact (entry_ctx, "GETINFO version",
-                         put_membuf_cb, &mb, NULL, NULL, NULL, NULL))
-      put_membuf_str (&mb, "unknown");
-    put_membuf_str (&mb, " ");
-    if (assuan_transact (entry_ctx, "GETINFO ttyinfo",
-                         put_membuf_cb, &mb, NULL, NULL, NULL, NULL))
-      put_membuf_str (&mb, "? ? ?");
-    put_membuf (&mb, "", 1);
-    flavor_version = (char*) get_membuf (&mb, NULL);
-  }
-
-
   /* Now ask the Pinentry for its PID.  If the Pinentry is new enough
      it will send the pid back and we will use an inquire to notify
      our client.  The client may answer the inquiry either with END or
@@ -486,14 +431,6 @@ start_pinentry (ctrl_t ctrl)
     }
   else if (!rc && (pid_t)pinentry_pid == (pid_t)(-1))
     log_error ("pinentry did not return a PID\n");
-  else
-    {
-      rc = agent_inq_pinentry_launched (ctrl, pinentry_pid, flavor_version);
-      if (rc == GPG_ERR_CANCELED
-          || rc == GPG_ERR_FULLY_CANCELED)
-        return unlock_pinentry (rc);
-      rc = 0;
-    }
 
   xfree (flavor_version);
 
@@ -571,155 +508,6 @@ all_digitsp( const char *s)
   return !*s;
 }
 
-
-/* Return a new malloced string by unescaping the string S.  Escaping
-   is percent escaping and '+'/space mapping.  A binary Nul will
-   silently be replaced by a 0xFF.  Function returns NULL to indicate
-   an out of memory status.  Parsing stops at the end of the string or
-   a white space character. */
-static char *
-unescape_passphrase_string (const unsigned char *s)
-{
-  char *buffer, *d;
-
-  buffer = d = (char*) xtrymalloc_secure (strlen ((const char*)s)+1);
-  if (!buffer)
-    return NULL;
-  while (*s && !spacep (s))
-    {
-      if (*s == '%' && s[1] && s[2])
-        {
-          s++;
-          *d = xtoi_2 (s);
-          if (!*d)
-            *d = '\xff';
-          d++;
-          s += 2;
-        }
-      else if (*s == '+')
-        {
-          *d++ = ' ';
-          s++;
-        }
-      else
-        *d++ = *s++;
-    }
-  *d = 0;
-  return buffer;
-}
-
-
-/* Estimate the quality of the passphrase PW and return a value in the
-   range 0..100.  */
-static int
-estimate_passphrase_quality (const char *pw)
-{
-  int goodlength = opt.min_passphrase_len + opt.min_passphrase_len/3;
-  int length;
-  const char *s;
-
-  if (goodlength < 1)
-    return 0;
-
-  for (length = 0, s = pw; *s; s++)
-    if (!spacep (s))
-      length ++;
-
-  if (length > goodlength)
-    return 100;
-  return ((length*10) / goodlength)*10;
-}
-
-
-/* Handle the QUALITY inquiry. */
-static gpg_error_t
-inq_quality (void *opaque, const char *line)
-{
-  assuan_context_t ctx = (assuan_context_t) opaque;
-  const char *s;
-  char *pin;
-  int rc;
-  int percent;
-  char numbuf[20];
-
-  if ((s = has_leading_keyword (line, "QUALITY")))
-    {
-      pin = unescape_passphrase_string ((const unsigned char*) (s));
-      if (!pin)
-        rc = gpg_error_from_syserror ();
-      else
-        {
-          percent = estimate_passphrase_quality (pin);
-          if (check_passphrase_constraints (NULL, pin, NULL))
-            percent = -percent;
-          snprintf (numbuf, sizeof numbuf, "%d", percent);
-          rc = assuan_send_data (ctx, numbuf, strlen (numbuf));
-          xfree (pin);
-        }
-    }
-  else
-    {
-      log_error ("unsupported inquiry '%s' from pinentry\n", line);
-      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
-    }
-
-  return rc;
-}
-
-
-/* Helper for agent_askpin and agent_get_passphrase.  */
-static gpg_error_t
-setup_qualitybar (ctrl_t ctrl)
-{
-  int rc;
-  char line[ASSUAN_LINELENGTH];
-  char *tmpstr, *tmpstr2;
-  const char *tooltip;
-
-  (void)ctrl;
-
-  /* TRANSLATORS: This string is displayed by Pinentry as the label
-     for the quality bar.  */
-  tmpstr = try_percent_escape (L_("Quality:"), "\t\r\n\f\v");
-  snprintf (line, DIM(line), "SETQUALITYBAR %s", tmpstr? tmpstr:"");
-  xfree (tmpstr);
-  rc = assuan_transact (entry_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc == 103 /*(Old assuan error code)*/
-      || rc == GPG_ERR_ASS_UNKNOWN_CMD)
-    ; /* Ignore Unknown Command from old Pinentry versions.  */
-  else if (rc)
-    return rc;
-
-  tmpstr2 = gnupg_get_help_string ("pinentry.qualitybar.tooltip", 0);
-  if (tmpstr2)
-    tooltip = tmpstr2;
-  else
-    {
-      /* TRANSLATORS: This string is a tooltip, shown by pinentry when
-         hovering over the quality bar.  Please use an appropriate
-         string to describe what this is about.  The length of the
-         tooltip is limited to about 900 characters.  If you do not
-         translate this entry, a default english text (see source)
-         will be used. */
-      tooltip =  L_("pinentry.qualitybar.tooltip");
-      if (!strcmp ("pinentry.qualitybar.tooltip", tooltip))
-        tooltip = ("The quality of the text entered above.\n"
-                   "Please ask your administrator for "
-                   "details about the criteria.");
-    }
-  tmpstr = try_percent_escape (tooltip, "\t\r\n\f\v");
-  xfree (tmpstr2);
-  snprintf (line, DIM(line), "SETQUALITYBAR_TT %s", tmpstr? tmpstr:"");
-  xfree (tmpstr);
-  rc = assuan_transact (entry_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc == 103 /*(Old assuan error code)*/
-          || rc == GPG_ERR_ASS_UNKNOWN_CMD)
-    ; /* Ignore Unknown Command from old pinentry versions.  */
-  else if (rc)
-    return rc;
-
-  return 0;
-}
 
 enum
   {
@@ -874,16 +662,6 @@ agent_askpin (ctrl_t ctrl,
   if (rc)
     return unlock_pinentry (rc);
 
-  /* If a passphrase quality indicator has been requested and a
-     minimum passphrase length has not been disabled, send the command
-     to the pinentry.  */
-  if (pininfo->with_qualitybar && opt.min_passphrase_len )
-    {
-      rc = setup_qualitybar (ctrl);
-      if (rc)
-        return unlock_pinentry (rc);
-    }
-
   if (initial_errtext)
     {
       snprintf (line, DIM(line), "SETERROR %s", initial_errtext);
@@ -938,7 +716,7 @@ agent_askpin (ctrl_t ctrl,
       assuan_begin_confidential (entry_ctx);
       pinentry_status = 0;
       rc = assuan_transact (entry_ctx, "GETPIN", getpin_cb, &parm,
-                            inq_quality, entry_ctx,
+                            NULL, entry_ctx,
                             pinentry_status_cb, &pinentry_status);
       assuan_set_flag (entry_ctx, ASSUAN_CONFIDENTIAL, saveflag);
       /* Most pinentries out in the wild return the old Assuan error code
@@ -1012,8 +790,7 @@ agent_askpin (ctrl_t ctrl,
 int
 agent_get_passphrase (ctrl_t ctrl,
                       char **retpass, const char *desc, const char *prompt,
-                      const char *errtext, int with_qualitybar,
-		      const char *keyinfo, cache_mode_t cache_mode)
+                      const char *errtext, const char *keyinfo, cache_mode_t cache_mode)
 {
 
   int rc;
@@ -1083,13 +860,6 @@ agent_get_passphrase (ctrl_t ctrl,
   if (rc)
     return unlock_pinentry (rc);
 
-  if (with_qualitybar && opt.min_passphrase_len)
-    {
-      rc = setup_qualitybar (ctrl);
-      if (rc)
-        return unlock_pinentry (rc);
-    }
-
   if (errtext)
     {
       snprintf (line, DIM(line), "SETERROR %s", errtext);
@@ -1108,7 +878,7 @@ agent_get_passphrase (ctrl_t ctrl,
   assuan_begin_confidential (entry_ctx);
   pinentry_status = 0;
   rc = assuan_transact (entry_ctx, "GETPIN", getpin_cb, &parm,
-                        inq_quality, entry_ctx,
+                        NULL, entry_ctx,
                         pinentry_status_cb, &pinentry_status);
   assuan_set_flag (entry_ctx, ASSUAN_CONFIDENTIAL, saveflag);
   /* Most pinentries out in the wild return the old Assuan error code

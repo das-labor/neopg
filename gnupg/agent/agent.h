@@ -72,15 +72,6 @@ struct options
 
   int no_grab;         /* Don't let the pinentry grab the keyboard */
 
-  /* A string where the first character is used by the pinentry as a
-     custom invisible character.  */
-  char *pinentry_invisible_char;
-
-  /* The timeout value for the Pinentry in seconds.  This is passed to
-     the pinentry if it is not 0.  It is up to the pinentry to act
-     upon this timeout value.  */
-  unsigned long pinentry_timeout;
-
   /* The default and maximum TTL of cache entries. */
   unsigned long def_cache_ttl;     /* Default. */
   unsigned long max_cache_ttl;     /* Default. */
@@ -117,10 +108,6 @@ struct options
   /* If this global option is true, the user is allowed to
      interactively mark certificate in trustlist.txt as trusted. */
   int allow_mark_trusted;
-
-  /* If this global option is true, the Assuan command
-     PRESET_PASSPHRASE is allowed.  */
-  int allow_preset_passphrase;
 
   /* Allow the use of an external password cache.  If this option is
      enabled (which is the default) we send an option to Pinentry
@@ -178,9 +165,6 @@ struct server_control_s
 
   /* The current pinentry mode.  */
   pinentry_mode_t pinentry_mode;
-
-  /* The TTL used for the --preset option of certain commands.  */
-  int cache_ttl_opt_preset;
 
   /* Information on the currently used digest (for signing commands).  */
   struct {
@@ -255,11 +239,6 @@ cache_mode_t;
 /* The TTL is seconds used for adding a new nonce mode cache item.  */
 #define CACHE_TTL_NONCE 120
 
-/* The TTL in seconds used by the --preset option of some commands.
-   This is the default value changeable by an OPTION command.  */
-#define CACHE_TTL_OPT_PRESET 900
-
-
 /* The type of a function to lookup a TTL by a keygrip.  */
 typedef int (*lookup_ttl_t)(const char *hexgrip);
 
@@ -290,12 +269,6 @@ typedef int (*lookup_ttl_t)(const char *hexgrip);
 /*-- gpg-agent.c --*/
 void agent_exit (int rc)
                 GPGRT_ATTR_NORETURN; /* Also implemented in other tools */
-void agent_set_progress_cb (void (*cb)(ctrl_t ctrl, const char *what,
-                                       int printchar, int current, int total),
-                            ctrl_t ctrl);
-const char *get_agent_socket_name (void);
-const char *get_agent_ssh_socket_name (void);
-int get_agent_active_connection_count (void);
 #ifdef HAVE_W32_SYSTEM
 void *get_agent_scd_notify_event (void);
 #endif
@@ -310,8 +283,6 @@ gpg_error_t agent_write_status (ctrl_t ctrl, const char *keyword, ...)
 gpg_error_t agent_print_status (ctrl_t ctrl, const char *keyword,
                                 const char *format, ...)
      GPGRT_ATTR_PRINTF(3,4);
-void bump_key_eventcounter (void);
-void bump_card_eventcounter (void);
 void start_command_handler (ctrl_t);
 gpg_error_t pinentry_loopback (ctrl_t, const char *keyword,
 	                       unsigned char **buffer, size_t *size,
@@ -376,7 +347,7 @@ gpg_error_t agent_askpin (ctrl_t ctrl,
                           const char *keyinfo, cache_mode_t cache_mode);
 int agent_get_passphrase (ctrl_t ctrl, char **retpass,
                           const char *desc, const char *prompt,
-                          const char *errtext, int with_qualitybar,
+                          const char *errtext,
 			  const char *keyinfo, cache_mode_t cache_mode);
 int agent_get_confirmation (ctrl_t ctrl, const char *desc, const char *ok,
 			    const char *notokay, int with_cancel);
@@ -420,7 +391,7 @@ gpg_error_t agent_ask_new_passphrase (ctrl_t ctrl, const char *prompt,
 int agent_genkey (ctrl_t ctrl, const char *cache_nonce,
                   const char *keyparam, size_t keyparmlen,
                   int no_protection, const char *override_passphrase,
-                  int preset, membuf_t *outbuf);
+                  membuf_t *outbuf);
 gpg_error_t agent_protect_and_store (ctrl_t ctrl, gcry_sexp_t s_skey,
                                      char **passphrase_addr);
 
