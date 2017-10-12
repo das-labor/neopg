@@ -227,8 +227,6 @@ enum cmd_and_opt_values
     oStatusFile,
     oAttributeFD,
     oAttributeFile,
-    oEmitVersion,
-    oNoEmitVersion,
     oCompletesNeeded,
     oMarginalsNeeded,
     oMaxCertDepth,
@@ -732,9 +730,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oComment, "comment", "@"),
   ARGPARSE_s_n (oDefaultComment, "default-comment", "@"),
   ARGPARSE_s_n (oNoComments, "no-comments", "@"),
-  ARGPARSE_s_n (oEmitVersion,      "emit-version", "@"),
-  ARGPARSE_s_n (oNoEmitVersion, "no-emit-version", "@"),
-  ARGPARSE_s_n (oNoEmitVersion, "no-version", "@"), /* alias */
   ARGPARSE_s_n (oLockOnce,     "lock-once", "@"),
   ARGPARSE_s_n (oLockMultiple, "lock-multiple", "@"),
   ARGPARSE_s_n (oLockNever,    "lock-never", "@"),
@@ -2260,7 +2255,6 @@ gpg_main (int argc, char **argv)
     opt.def_sig_expire = "0";
     opt.def_cert_expire = "0";
     gnupg_set_homedir (NULL);
-    opt.emit_version = 0;
     opt.weak_digests = NULL;
     additional_weak_digest("MD5");
 
@@ -2633,8 +2627,6 @@ gpg_main (int argc, char **argv)
           case oQuickRandom:
             gcry_control (GCRYCTL_ENABLE_QUICK_RANDOM, 0);
             break;
-	  case oEmitVersion: opt.emit_version++; break;
-	  case oNoEmitVersion: opt.emit_version=0; break;
 	  case oCompletesNeeded: opt.completes_needed = pargs.r.ret_int; break;
 	  case oMarginalsNeeded: opt.marginals_needed = pargs.r.ret_int; break;
 	  case oMaxCertDepth: opt.max_cert_depth = pargs.r.ret_int; break;

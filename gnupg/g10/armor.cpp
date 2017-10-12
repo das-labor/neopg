@@ -1126,28 +1126,6 @@ armor_filter( void *opaque, int control,
 	    iobuf_writestr(a, head_strings[afx->what] );
 	    iobuf_writestr(a, "-----" );
 	    iobuf_writestr(a,(const char*) (afx->eol));
-	    if (opt.emit_version)
-	      {
-		iobuf_writestr (a, "Version: " GNUPG_NAME " v");
-                for (s=VERSION; *s && *s != '.'; s++)
-                  iobuf_writebyte (a, *s);
-                if (opt.emit_version > 1 && *s)
-                  {
-                    iobuf_writebyte (a, *s++);
-                    for (; *s && *s != '.'; s++)
-                      iobuf_writebyte (a, *s);
-                    if (opt.emit_version > 2)
-                      {
-                        for (; *s && *s != '-' && !spacep (s); s++)
-                          iobuf_writebyte (a, *s);
-#if 0
-                        if (opt.emit_version > 3)
-                          iobuf_writestr (a, " (" PRINTABLE_OS_NAME ")");
-#endif
-                      }
-                  }
-		iobuf_writestr(a,(const char*) (afx->eol));
-	      }
 
 	    /* write the comment strings */
 	    for(s=comment->d;comment;comment=comment->next,s=comment->d)

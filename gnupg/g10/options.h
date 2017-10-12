@@ -126,11 +126,6 @@ struct options
   int def_cert_level;
   int min_cert_level;
   int ask_cert_level;
-  int emit_version;       /* 0 = none,
-                             1 = major only,
-                             2 = major and minor,
-                             3 = full version,
-                             4 = full version plus OS string. */
   int marginals_needed;
   int completes_needed;
   int max_cert_depth;
