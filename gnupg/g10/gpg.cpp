@@ -389,7 +389,6 @@ enum cmd_and_opt_values
     oDisableDSA2,
     oAllowMultipleMessages,
     oNoAllowMultipleMessages,
-    oAllowWeakDigestAlgos,
     oFakedSystemTime,
     oNoAutostart,
     oPrintPKARecords,
@@ -823,7 +822,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oDisableDSA2, "disable-dsa2", "@"),
   ARGPARSE_s_n (oAllowMultipleMessages,      "allow-multiple-messages", "@"),
   ARGPARSE_s_n (oNoAllowMultipleMessages, "no-allow-multiple-messages", "@"),
-  ARGPARSE_s_n (oAllowWeakDigestAlgos, "allow-weak-digest-algos", "@"),
 
   ARGPARSE_s_s (oDefaultNewKeyAlgo, "default-new-key-algo", "@"),
 
@@ -3311,10 +3309,6 @@ gpg_main (int argc, char **argv)
 	  case oNoAllowMultipleMessages:
 	    opt.flags.allow_multiple_messages=0;
 	    break;
-
-          case oAllowWeakDigestAlgos:
-            opt.flags.allow_weak_digest_algos = 1;
-            break;
 
           case oFakedSystemTime:
             {

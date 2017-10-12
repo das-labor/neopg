@@ -452,13 +452,12 @@ check_signature_end_simple (PKT_public_key *pk, PKT_signature *sig,
     int rc = 0;
     const struct weakhash *weak;
 
-    if (!opt.flags.allow_weak_digest_algos)
-      for (weak = opt.weak_digests; weak; weak = weak->next)
-        if (sig->digest_algo == weak->algo)
-          {
-            print_digest_rejected_note((gcry_md_algos) (sig->digest_algo));
-            return GPG_ERR_DIGEST_ALGO;
-          }
+    for (weak = opt.weak_digests; weak; weak = weak->next)
+      if (sig->digest_algo == weak->algo)
+	{
+	  print_digest_rejected_note((gcry_md_algos) (sig->digest_algo));
+	  return GPG_ERR_DIGEST_ALGO;
+	}
 
     /* Make sure the digest algo is enabled (in case of a detached
        signature).  */
