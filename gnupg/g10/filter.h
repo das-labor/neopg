@@ -44,7 +44,6 @@ typedef struct {
     int inp_checked;	    /* set if the input has been checked */
     int inp_bypass;	    /* set if the input is not armored */
     int in_cleartext;	    /* clear text message */
-    int not_dash_escaped;   /* clear text is not dash escaped */
     int hashes; 	    /* detected hash algorithms */
     int faked;		    /* we are faking a literal data packet */
     int truncated;	    /* number of truncated lines */
@@ -106,7 +105,6 @@ typedef struct {
     unsigned buffer_len;    /* used length of the buffer */
     unsigned buffer_pos;    /* read position */
     int truncated;	    /* number of truncated lines */
-    int not_dash_escaped;
     int escape_from;
     gcry_md_hd_t md;
     int pending_lf;
@@ -150,8 +148,7 @@ int cipher_filter( void *opaque, int control,
 /*-- textfilter.c --*/
 int text_filter( void *opaque, int control,
 		 iobuf_t chain, byte *buf, size_t *ret_len);
-int copy_clearsig_text (iobuf_t out, iobuf_t inp, gcry_md_hd_t md,
-                        int escape_dash, int escape_from);
+int copy_clearsig_text (iobuf_t out, iobuf_t inp, gcry_md_hd_t md);
 
 /*-- progress.c --*/
 progress_filter_context_t *new_progress_context (void);

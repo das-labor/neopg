@@ -159,8 +159,7 @@ text_filter( void *opaque, int control,
  * md is updated as required by rfc2440
  */
 int
-copy_clearsig_text( IOBUF out, IOBUF inp, gcry_md_hd_t md,
-		    int escape_dash, int escape_from)
+copy_clearsig_text( IOBUF out, IOBUF inp, gcry_md_hd_t md)
 {
     unsigned int maxlen;
     byte *buffer = NULL;    /* malloced buffer */
@@ -168,9 +167,6 @@ copy_clearsig_text( IOBUF out, IOBUF inp, gcry_md_hd_t md,
     unsigned int n;
     int truncated = 0;
     int pending_lf = 0;
-
-   if( !escape_dash )
-	escape_from = 0;
 
     write_status_begin_signing (md);
 
@@ -184,57 +180,27 @@ copy_clearsig_text( IOBUF out, IOBUF inp, gcry_md_hd_t md,
 	    break; /* read_line has returned eof */
 
 	/* update the message digest */
-	if( escape_dash ) {
-	    if( pending_lf ) {
-		gcry_md_putc ( md, '\r' );
-		gcry_md_putc ( md, '\n' );
-	    }
-	    gcry_md_write ( md, buffer,
-                            len_without_trailing_chars (buffer, n, " \t\r\n"));
+	if( pending_lf ) {
+	  gcry_md_putc ( md, '\r' );
+	  gcry_md_putc ( md, '\n' );
 	}
-	else
-            gcry_md_write ( md, buffer, n );
+	gcry_md_write ( md, buffer,
+			len_without_trailing_chars (buffer, n, " \t\r\n"));
+
 	pending_lf = buffer[n-1] == '\n';
 
 	/* write the output */
-	if(    ( escape_dash && *buffer == '-')
-	    || ( escape_from && n > 4 && !memcmp(buffer, "From ", 5 ) ) ) {
+	if (*buffer == '-') {
 	    iobuf_put( out, '-' );
 	    iobuf_put( out, ' ' );
 	}
 
-#if  0 /*defined(HAVE_DOSISH_SYSTEM)*/
-	/* We don't use this anymore because my interpretation of rfc2440 7.1
-	 * is that there is no conversion needed.  If one decides to
-	 * clearsign a unix file on a DOS box he will get a mixed line endings.
-	 * If at some point it turns out, that a conversion is a nice feature
-	 * we can make an option out of it.
-	 */
-	/* make sure the lines do end in CR,LF */
-	if( n > 1 && ( (buffer[n-2] == '\r' && buffer[n-1] == '\n' )
-			    || (buffer[n-2] == '\n' && buffer[n-1] == '\r'))) {
-	    iobuf_write( out, buffer, n-2 );
-	    iobuf_put( out, '\r');
-	    iobuf_put( out, '\n');
-	}
-	else if( n && buffer[n-1] == '\n' ) {
-	    iobuf_write( out, buffer, n-1 );
-	    iobuf_put( out, '\r');
-	    iobuf_put( out, '\n');
-	}
-	else
-	    iobuf_write( out, buffer, n );
-
-#else
 	iobuf_write( out, buffer, n );
-#endif
     }
 
     /* at eof */
     if( !pending_lf ) { /* make sure that the file ends with a LF */
 	iobuf_writestr( out, LF );
-	if( !escape_dash )
-	    gcry_md_putc( md, '\n' );
     }
 
     if( truncated )

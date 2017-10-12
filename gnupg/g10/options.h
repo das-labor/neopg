@@ -159,8 +159,6 @@ struct options
   int s2k_cipher_algo;
   unsigned char s2k_count; /* This is the encoded form, not the raw
 			      count */
-  int not_dash_escaped;
-  int escape_from;
   int lock_once;
   keyserver_spec_t keyserver;  /* The list of configured keyservers.  */
   struct

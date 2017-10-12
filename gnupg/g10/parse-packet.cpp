@@ -2197,43 +2197,10 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 
   version = iobuf_get_noeof (inp);
   pktlen--;
-  if (pkttype == PKT_PUBLIC_SUBKEY && version == '#')
-    {
-      /* Early versions of G10 used the old PGP comments packets;
-       * luckily all those comments are started by a hash.  */
-      if (list_mode)
-	{
-	  es_fprintf (listfp, ":rfc1991 comment packet: \"");
-	  for (; pktlen; pktlen--)
-	    {
-	      int c;
-	      c = iobuf_get (inp);
-              if (c == -1)
-                break; /* Ooops: shorter than indicated.  */
-	      if (c >= ' ' && c <= 'z')
-		es_putc (c, listfp);
-	      else
-		es_fprintf (listfp, "\\x%02x", c);
-	    }
-	  es_fprintf (listfp, "\"\n");
-	}
-      iobuf_skip_rest (inp, pktlen, 0);
-      return 0;
-    }
-  else if (version == 4)
+  if (version == 4)
     {
       /* The only supported version.  Use an older gpg
          version (i.e. gpg 1.4) to parse v3 packets.  */
-    }
-  else if (version == 2 || version == 3)
-    {
-      if (opt.verbose > 1)
-        log_info ("packet(%d) with obsolete version %d\n", pkttype, version);
-      if (list_mode)
-        es_fprintf (listfp, ":key packet: [obsolete version %d]\n", version);
-      pk->version = version;
-      err = GPG_ERR_LEGACY_KEY;
-      goto leave;
     }
   else
     {

@@ -300,9 +300,6 @@ enum cmd_and_opt_values
     oS2KCipher,
     oS2KCount,
     oDisplayCharset,
-    oNotDashEscaped,
-    oEscapeFrom,
-    oNoEscapeFrom,
     oLockOnce,
     oLockMultiple,
     oLockNever,
@@ -739,9 +736,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oEmitVersion,      "emit-version", "@"),
   ARGPARSE_s_n (oNoEmitVersion, "no-emit-version", "@"),
   ARGPARSE_s_n (oNoEmitVersion, "no-version", "@"), /* alias */
-  ARGPARSE_s_n (oNotDashEscaped, "not-dash-escaped", "@"),
-  ARGPARSE_s_n (oEscapeFrom,      "escape-from-lines", "@"),
-  ARGPARSE_s_n (oNoEscapeFrom, "no-escape-from-lines", "@"),
   ARGPARSE_s_n (oLockOnce,     "lock-once", "@"),
   ARGPARSE_s_n (oLockMultiple, "lock-multiple", "@"),
   ARGPARSE_s_n (oLockNever,    "lock-never", "@"),
@@ -859,16 +853,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oDisableCCID, "disable-ccid", "@"),
   ARGPARSE_s_n (oHonorHttpProxy, "honor-http-proxy", "@"),
   ARGPARSE_s_s (oTOFUDBFormat, "tofu-db-format", "@"),
-
-  /* Dummy options.  */
-  ARGPARSE_s_n (oNoop, "sk-comments", "@"),
-  ARGPARSE_s_n (oNoop, "no-sk-comments", "@"),
-  ARGPARSE_s_n (oNoop, "compress-keys", "@"),
-  ARGPARSE_s_n (oNoop, "compress-sigs", "@"),
-  ARGPARSE_s_n (oNoop, "force-v3-sigs", "@"),
-  ARGPARSE_s_n (oNoop, "no-force-v3-sigs", "@"),
-  ARGPARSE_s_n (oNoop, "force-v4-certs", "@"),
-  ARGPARSE_s_n (oNoop, "no-force-v4-certs", "@"),
 
   ARGPARSE_end ()
 };
@@ -2016,7 +2000,7 @@ set_compliance_option (enum cmd_and_opt_values option)
     case oOpenPGP:
     case oRFC4880:
       /* This is effectively the same as RFC2440, but with
-         "--enable-dsa2 --no-rfc2440-text --escape-from-lines
+         "--enable-dsa2 --no-rfc2440-text
          --require-cross-certification". */
       opt.compliance = CO_RFC4880;
       opt.flags.dsa2 = 1;
@@ -2024,8 +2008,6 @@ set_compliance_option (enum cmd_and_opt_values option)
       opt.rfc2440_text = 0;
       opt.allow_non_selfsigned_uid = 1;
       opt.allow_freeform_uid = 1;
-      opt.escape_from = 1;
-      opt.not_dash_escaped = 0;
       opt.def_cipher_algo = 0;
       opt.def_digest_algo = 0;
       opt.cert_digest_algo = 0;
@@ -2040,8 +2022,6 @@ set_compliance_option (enum cmd_and_opt_values option)
       opt.rfc2440_text = 1;
       opt.allow_non_selfsigned_uid = 1;
       opt.allow_freeform_uid = 1;
-      opt.escape_from = 0;
-      opt.not_dash_escaped = 0;
       opt.def_cipher_algo = 0;
       opt.def_digest_algo = 0;
       opt.cert_digest_algo = 0;
@@ -2256,7 +2236,6 @@ gpg_main (int argc, char **argv)
     opt.completes_needed = 1;
     opt.marginals_needed = 3;
     opt.max_cert_depth = 5;
-    opt.escape_from = 1;
     opt.flags.require_cross_cert = 1;
     opt.import_options = IMPORT_REPAIR_KEYS;
     opt.export_options = EXPORT_ATTRIBUTES;
@@ -2995,9 +2974,6 @@ gpg_main (int argc, char **argv)
 		log_error(_("'%s' is not a valid character set\n"),
 			  pargs.r.ret_str);
 	    break;
-	  case oNotDashEscaped: opt.not_dash_escaped = 1; break;
-	  case oEscapeFrom: opt.escape_from = 1; break;
-	  case oNoEscapeFrom: opt.escape_from = 0; break;
 	  case oLockOnce: opt.lock_once = 1; break;
 	  case oLockNever:
             dotlock_disable ();
@@ -3507,19 +3483,16 @@ gpg_main (int argc, char **argv)
       {
         /* That does not anymore work because we have no more support
            for v3 signatures.  */
-	opt.escape_from=1;
 	opt.ask_sig_expire=0;
       }
     else if(PGP7)
       {
         /* That does not anymore work because we have no more support
            for v3 signatures.  */
-	opt.escape_from=1;
 	opt.ask_sig_expire=0;
       }
     else if(PGP8)
       {
-	opt.escape_from=1;
       }
 
 

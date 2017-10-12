@@ -1212,10 +1212,6 @@ clearsign_file (ctrl_t ctrl,
 	iobuf_writestr(out, LF );
     }
 
-    if( opt.not_dash_escaped )
-      iobuf_writestr( out,
-                      "NotDashEscaped: You need " GPG_NAME
-                      " to verify this message" LF );
     iobuf_writestr(out, LF );
 
     if ( gcry_md_open (&textmd, 0, 0) )
@@ -1226,8 +1222,7 @@ clearsign_file (ctrl_t ctrl,
     if ( DBG_HASHING )
       gcry_md_debug ( textmd, "clearsign" );
 
-    copy_clearsig_text (out, inp, textmd, !opt.not_dash_escaped,
-                        opt.escape_from);
+    copy_clearsig_text (out, inp, textmd);
     /* fixme: check for read errors */
 
     /* now write the armor */

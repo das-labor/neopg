@@ -479,8 +479,6 @@ parse_header_line( armor_filter_context_t *afx, byte *line, unsigned int len )
       {
 	if( (hashes=parse_hash_header( (const char*) (line ))) )
 	  afx->hashes |= hashes;
-	else if( strlen((const char*) (line)) > 15 && !memcmp( line, "NotDashEscaped:", 15 ) )
-	  afx->not_dash_escaped = 1;
 	else
 	  {
 	    log_error(_("invalid clearsig header\n"));
@@ -667,7 +665,7 @@ fake_packet( armor_filter_context_t *afx, IOBUF a,
 	       any character other than a space at the beginning of a
 	       line.  */
 
-	    if(p[1]==' ' && !afx->not_dash_escaped)
+	    if(p[1]==' ')
 	      {
 		/* It's a dash-escaped line, so skip over the
 		   escape. */
@@ -678,23 +676,18 @@ fake_packet( armor_filter_context_t *afx, IOBUF a,
 		/* Five dashes in a row mean it's probably armor
 		   header. */
 		int type = is_armor_header( p, n );
-		if( afx->not_dash_escaped && type != BEGIN_SIGNATURE )
-		  ; /* this is okay */
-		else
+		if( type != BEGIN_SIGNATURE )
 		  {
-		    if( type != BEGIN_SIGNATURE )
-		      {
-			log_info(_("unexpected armor: "));
-			es_write_sanitized (log_get_stream (), p, n,
-                                            NULL, NULL);
-			log_printf ("\n");
-		      }
-
-		    lastline = 1;
-		    rc = -1;
+		    log_info(_("unexpected armor: "));
+		    es_write_sanitized (log_get_stream (), p, n,
+					NULL, NULL);
+		    log_printf ("\n");
 		  }
+		
+		lastline = 1;
+		rc = -1;
 	      }
-	    else if(!afx->not_dash_escaped)
+	    else
 	      {
 		/* Bad dash-escaping. */
 		log_info (_("invalid dash escaped line: "));
@@ -704,29 +697,28 @@ fake_packet( armor_filter_context_t *afx, IOBUF a,
 	  }
 
 	/* Now handle the end-of-line canonicalization */
-	if( !afx->not_dash_escaped )
-	  {
-	    int crlf = n > 1 && p[n-2] == '\r' && p[n-1]=='\n';
+	{
+	  int crlf = n > 1 && p[n-2] == '\r' && p[n-1]=='\n';
 
-	    afx->buffer_len=
-	      trim_trailing_chars( &p[afx->buffer_pos], n-afx->buffer_pos,
-				   " \t\r\n");
-	    afx->buffer_len+=afx->buffer_pos;
-	    /* the buffer is always allocated with enough space to append
-	     * the removed [CR], LF and a Nul
-	     * The reason for this complicated procedure is to keep at least
-	     * the original type of lineending - handling of the removed
-	     * trailing spaces seems to be impossible in our method
-	     * of faking a packet; either we have to use a temporary file
-	     * or calculate the hash here in this module and somehow find
-	     * a way to send the hash down the processing line (well, a special
-	     * faked packet could do the job).
-	     */
-	    if( crlf )
-	      afx->buffer[afx->buffer_len++] = '\r';
-	    afx->buffer[afx->buffer_len++] = '\n';
-	    afx->buffer[afx->buffer_len] = '\0';
-	  }
+	  afx->buffer_len=
+	    trim_trailing_chars( &p[afx->buffer_pos], n-afx->buffer_pos,
+				 " \t\r\n");
+	  afx->buffer_len+=afx->buffer_pos;
+	  /* the buffer is always allocated with enough space to append
+	   * the removed [CR], LF and a Nul
+	   * The reason for this complicated procedure is to keep at least
+	   * the original type of lineending - handling of the removed
+	   * trailing spaces seems to be impossible in our method
+	   * of faking a packet; either we have to use a temporary file
+	   * or calculate the hash here in this module and somehow find
+	   * a way to send the hash down the processing line (well, a special
+	   * faked packet could do the job).
+	   */
+	  if( crlf )
+	    afx->buffer[afx->buffer_len++] = '\r';
+	  afx->buffer[afx->buffer_len++] = '\n';
+	  afx->buffer[afx->buffer_len] = '\0';
+	}
     }
 
     if( lastline ) { /* write last (ending) length header */
@@ -1083,7 +1075,7 @@ armor_filter( void *opaque, int control,
                 n++;   /* see below */
                 memcpy(buf+n, sesmark, sesmarklen ); n+= sesmarklen;
                 buf[n++] = CTRLPKT_CLEARSIGN_START;
-                buf[n++] = afx->not_dash_escaped? 0:1; /* sigclass */
+                buf[n++] = 1; /* dash escaped, sigclass */
                 if( hashes & 1 )
                     buf[n++] = DIGEST_ALGO_RMD160;
                 if( hashes & 2 )
