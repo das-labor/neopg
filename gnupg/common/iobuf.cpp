@@ -1201,7 +1201,7 @@ iobuf_is_pipe_filename (const char *fname)
 {
   if (!fname || (*fname=='-' && !fname[1]) )
     return 1;
-  return check_special_filename (fname, 0, 1) != -1;
+  return 0;
 }
 
 
@@ -1237,10 +1237,6 @@ do_open (const char *fname, int special_filenames,
     }
   else if (!fname)
     return NULL;
-  else if (special_filenames
-           && (fd = check_special_filename (fname, 0, 1)) != -1)
-    return iobuf_fdopen (translate_file_handle (fd, use == IOBUF_INPUT ? 0 : 1),
-			 opentype);
   else
     {
       if (use == IOBUF_INPUT)

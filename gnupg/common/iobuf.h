@@ -281,18 +281,14 @@ iobuf_t iobuf_temp (void);
 iobuf_t iobuf_temp_with_content (const char *buffer, size_t length);
 
 /* Create an input file filter that reads from a file.  If FNAME is
-   '-', reads from stdin.  If special filenames are enabled
-   (iobuf_enable_special_filenames), then interprets special
-   filenames.  */
+   '-', reads from stdin.  */
 iobuf_t iobuf_open (const char *fname);
 
 /* Create an output file filter that writes to a file.  If FNAME is
-   NULL or '-', writes to stdout.  If special filenames are enabled
-   (iobuf_enable_special_filenames), then interprets special
-   filenames.  If FNAME is not NULL, '-' or a special filename, the
-   file is opened for writing.  If the file exists, it is truncated.
-   If MODE700 is TRUE, the file is created with mode 600.  Otherwise,
-   mode 666 is used.  */
+   NULL or '-', writes to stdout.  If FNAME is not NULL, '-' or a
+   special filename, the file is opened for writing.  If the file
+   exists, it is truncated.  If MODE700 is TRUE, the file is created
+   with mode 600.  Otherwise, mode 666 is used.  */
 iobuf_t iobuf_create (const char *fname, int mode700);
 
 /* Create an output file filter that writes to a specified file.

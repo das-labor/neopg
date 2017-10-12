@@ -81,26 +81,12 @@ pubkey_letter( int algo )
    "E_1.3.6.1.4.1.11591.2.12242973" ECC with a bogus OID.
    "unknown_N"  - Unknown OpenPGP algorithm N.
 
-   If the option --legacy-list-mode is active, the output use the
-   legacy format:
-
-   "2048R" - RSA with 2048 bit
-   "1024g" - Elgamal with 1024 bit
-   "256E"  - ECDSA using a curve with 256 bit
-
    The macro PUBKEY_STRING_SIZE may be used to allocate a buffer with
    a suitable size.*/
 char *
 pubkey_string (PKT_public_key *pk, char *buffer, size_t bufsize)
 {
   const char *prefix = NULL;
-
-  if (opt.legacy_list_mode)
-    {
-      snprintf (buffer, bufsize, "%4u%c",
-                nbits_from_pk (pk), pubkey_letter (pk->pubkey_algo));
-      return buffer;
-    }
 
   switch (pk->pubkey_algo)
     {

@@ -106,8 +106,6 @@ enum cmd_and_opt_values {
   oAuditLog,
   oHtmlAuditLog,
 
-  oEnableSpecialFilenames,
-
   oAgentProgram,
   oLCctype,
   oLCmessages,
@@ -355,7 +353,6 @@ static ARGPARSE_OPTS opts[] = {
   /* Hidden options. */
   ARGPARSE_s_s (oCompliance, "compliance",   "@"),
   ARGPARSE_s_n (oNoVerbose, "no-verbose", "@"),
-  ARGPARSE_s_n (oEnableSpecialFilenames, "enable-special-filenames", "@"),
   ARGPARSE_s_n (oNoSecmemWarn, "no-secmem-warning", "@"),
   ARGPARSE_s_n (oNoArmor, "no-armor", "@"),
   ARGPARSE_s_n (oNoArmor, "no-armour", "@"),
@@ -1349,10 +1346,6 @@ gpgsm_main ( int argc, char **argv)
         case oIgnoreTimeConflict: opt.ignore_time_conflict = 1; break;
         case oNoRandomSeedFile: use_random_seed = 0; break;
         case oNoCommonCertsImport: no_common_certs_import = 1; break;
-
-        case oEnableSpecialFilenames:
-          enable_special_filenames ();
-          break;
 
         case oValidationModel: parse_validation_model (pargs.r.ret_str); break;
 

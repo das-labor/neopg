@@ -227,7 +227,6 @@ enum cmd_and_opt_values
     oCompletesNeeded,
     oMarginalsNeeded,
     oMaxCertDepth,
-    oLoadExtension,
     oCompliance,
     oGnuPG,
     oRFC2440,
@@ -313,8 +312,6 @@ enum cmd_and_opt_values
     oAllowFreeformUID,
     oNoAllowFreeformUID,
     oAllowSecretKeyImport,
-    oEnableSpecialFilenames,
-    oHonorHttpProxy,
     oFastListMode,
     oListOnly,
     oIgnoreTimeConflict,
@@ -328,13 +325,10 @@ enum cmd_and_opt_values
     oNoAutoKeyRetrieve,
     oUseAgent,
     oNoUseAgent,
-    oGpgAgentInfo,
     oMergeOnly,
     oTryAllSecrets,
     oTrustedKey,
     oNoExpensiveTrustChecks,
-    oFixedListMode,
-    oLegacyListMode,
     oNoSigCache,
     oAutoCheckTrustDB,
     oNoAutoCheckTrustDB,
@@ -349,8 +343,6 @@ enum cmd_and_opt_values
     oGroup,
     oUnGroup,
     oNoGroups,
-    oStrict,
-    oNoStrict,
     oMangleDosFilenames,
     oNoMangleDosFilenames,
     oEnableProgressFilter,
@@ -358,9 +350,6 @@ enum cmd_and_opt_values
     oKeyidFormat,
     oExitOnStatusWriteError,
     oLimitCardInsertTries,
-    oReaderPort,
-    octapiDriver,
-    oDisableCCID,
     oRequireCrossCert,
     oNoRequireCrossCert,
     oAutoKeyLocate,
@@ -374,7 +363,6 @@ enum cmd_and_opt_values
     oPrintPKARecords,
     oPrintDANERecords,
     oTOFUDefaultPolicy,
-    oTOFUDBFormat,
     oDefaultNewKeyAlgo,
     oWeakDigest,
     oUnwrap,
@@ -595,8 +583,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_i (oMaxCertDepth,	"max-cert-depth", "@" ),
   ARGPARSE_s_s (oTrustedKey, "trusted-key", "@"),
 
-  ARGPARSE_s_s (oLoadExtension, "load-extension", "@"),  /* Dummy.  */
-
   ARGPARSE_s_s (oCompliance, "compliance",   "@"),
   ARGPARSE_s_n (oGnuPG, "gnupg",   "@"),
   ARGPARSE_s_n (oGnuPG, "no-pgp2", "@"),
@@ -719,8 +705,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oAllowFreeformUID,      "allow-freeform-uid", "@"),
   ARGPARSE_s_n (oNoAllowFreeformUID, "no-allow-freeform-uid", "@"),
   ARGPARSE_s_n (oFastListMode, "fast-list-mode", "@"),
-  ARGPARSE_s_n (oFixedListMode, "fixed-list-mode", "@"),
-  ARGPARSE_s_n (oLegacyListMode, "legacy-list-mode", "@"),
   ARGPARSE_s_n (oListOnly, "list-only", "@"),
   ARGPARSE_s_n (oPrintPKARecords, "print-pka-records", "@"),
   ARGPARSE_s_n (oPrintDANERecords, "print-dane-records", "@"),
@@ -737,7 +721,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oMergeOnly,	  "merge-only", "@" ),
   ARGPARSE_s_n (oAllowSecretKeyImport, "allow-secret-key-import", "@"),
   ARGPARSE_s_n (oTryAllSecrets,  "try-all-secrets", "@"),
-  ARGPARSE_s_n (oEnableSpecialFilenames, "enable-special-filenames", "@"),
   ARGPARSE_s_n (oNoExpensiveTrustChecks, "no-expensive-trust-checks", "@"),
   ARGPARSE_s_n (oPreservePermissions, "preserve-permissions", "@"),
   ARGPARSE_s_s (oDefaultPreferenceList,  "default-preference-list", "@"),
@@ -762,8 +745,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oGroup,      "group",      "@"),
   ARGPARSE_s_s (oUnGroup,    "ungroup",    "@"),
   ARGPARSE_s_n (oNoGroups,   "no-groups",  "@"),
-  ARGPARSE_s_n (oStrict,     "strict",     "@"),
-  ARGPARSE_s_n (oNoStrict,   "no-strict",  "@"),
   ARGPARSE_s_n (oMangleDosFilenames,      "mangle-dos-filenames", "@"),
   ARGPARSE_s_n (oNoMangleDosFilenames, "no-mangle-dos-filenames", "@"),
   ARGPARSE_s_n (oEnableProgressFilter, "enable-progress-filter", "@"),
@@ -795,16 +776,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oAutoKeyLocate, "auto-key-locate", "@"),
   ARGPARSE_s_n (oNoAutoKeyLocate, "no-auto-key-locate", "@"),
   ARGPARSE_s_n (oNoAutostart, "no-autostart", "@"),
-
-  /* Dummy options with warnings.  */
-  ARGPARSE_s_n (oUseAgent,      "use-agent", "@"),
-  ARGPARSE_s_n (oNoUseAgent, "no-use-agent", "@"),
-  ARGPARSE_s_s (oGpgAgentInfo, "gpg-agent-info", "@"),
-  ARGPARSE_s_s (oReaderPort, "reader-port", "@"),
-  ARGPARSE_s_s (octapiDriver, "ctapi-driver", "@"),
-  ARGPARSE_s_n (oDisableCCID, "disable-ccid", "@"),
-  ARGPARSE_s_n (oHonorHttpProxy, "honor-http-proxy", "@"),
-  ARGPARSE_s_s (oTOFUDBFormat, "tofu-db-format", "@"),
 
   ARGPARSE_end ()
 };
@@ -2236,20 +2207,11 @@ gpg_main (int argc, char **argv)
 	else if( pargs.r_opt == oNoOptions )
           {
 	    default_config = 0; /* --no-options */
-            opt.no_homedir_creation = 1;
           }
         else if( pargs.r_opt == oHomedir )
 	    gnupg_set_homedir (pargs.r.ret_str);
 	else if( pargs.r_opt == oNoPermissionWarn )
 	    opt.no_perm_warn=1;
-	else if (pargs.r_opt == oStrict )
-	  {
-	    /* Not used */
-	  }
-	else if (pargs.r_opt == oNoStrict )
-	  {
-	    /* Not used */
-	  }
     }
 
 #ifdef HAVE_DOSISH_SYSTEM
@@ -2460,28 +2422,6 @@ gpg_main (int argc, char **argv)
             nogreeting = 1;
             break;
 
-          case oUseAgent: /* Dummy. */
-            break;
-
-          case oNoUseAgent:
-	    obsolete_option (configname, configlineno, "no-use-agent");
-            break;
-	  case oGpgAgentInfo:
-	    obsolete_option (configname, configlineno, "gpg-agent-info");
-            break;
-          case oReaderPort:
-	    obsolete_scdaemon_option (configname, configlineno, "reader-port");
-            break;
-          case octapiDriver:
-	    obsolete_scdaemon_option (configname, configlineno, "ctapi-driver");
-            break;
-          case oDisableCCID:
-	    obsolete_scdaemon_option (configname, configlineno, "disable-ccid");
-            break;
-          case oHonorHttpProxy:
-	    obsolete_option (configname, configlineno, "honor-http-proxy");
-            break;
-
 	  case oAnswerYes: opt.answer_yes = 1; break;
 	  case oAnswerNo: opt.answer_no = 1; break;
 	  case oKeyring: append_to_strlist( &nrings, pargs.r.ret_str); break;
@@ -2609,7 +2549,6 @@ gpg_main (int argc, char **argv)
             xfree(opt.def_recipient); opt.def_recipient = NULL;
             opt.def_recipient_self = 0;
             break;
-	  case oNoOptions: opt.no_homedir_creation = 1; break; /* no-options */
 	  case oHomedir: break;
 	  case oNoBatch: opt.batch = 0; break;
 
@@ -2636,9 +2575,6 @@ gpg_main (int argc, char **argv)
 	  case oTOFUDefaultPolicy:
 	    opt.tofu_default_policy = (tofu_policy) parse_tofu_policy (pargs.r.ret_str);
 	    break;
-	  case oTOFUDBFormat:
-	    obsolete_option (configname, configlineno, "tofu-db-format");
-	    break;
 
 	  case oForceOwnertrust:
 	    log_info(_("Note: %s is not for normal use!\n"),
@@ -2649,10 +2585,6 @@ gpg_main (int argc, char **argv)
 		log_error("invalid ownertrust '%s'\n",pargs.r.ret_str);
 		opt.force_ownertrust=0;
 	      }
-	    break;
-	  case oLoadExtension:
-            /* Dummy so that gpg 1.4 conf files can work. Should
-               eventually be removed.  */
 	    break;
 
           case oCompliance:
@@ -3007,8 +2939,6 @@ gpg_main (int argc, char **argv)
 	  case oAllowFreeformUID: opt.allow_freeform_uid = 1; break;
 	  case oNoAllowFreeformUID: opt.allow_freeform_uid = 0; break;
 	  case oFastListMode: opt.fast_list_mode = 1; break;
-	  case oFixedListMode: /* Dummy */ break;
-          case oLegacyListMode: opt.legacy_list_mode = 1; break;
 	  case oPrintPKARecords: print_pka_records = 1; break;
 	  case oPrintDANERecords: print_dane_records = 1; break;
 	  case oListOnly: opt.list_only=1; break;
@@ -3038,10 +2968,6 @@ gpg_main (int argc, char **argv)
           case oAllowSecretKeyImport: /* obsolete */ break;
 	  case oTryAllSecrets: opt.try_all_secrets = 1; break;
           case oTrustedKey: register_trusted_key( pargs.r.ret_str ); break;
-
-          case oEnableSpecialFilenames:
-            enable_special_filenames ();
-            break;
 
           case oNoExpensiveTrustChecks: opt.no_expensive_trust_checks=1; break;
           case oAutoCheckTrustDB: opt.no_auto_check_trustdb=0; break;
@@ -3095,11 +3021,6 @@ gpg_main (int argc, char **argv)
 		xfree(iter);
 	      }
 	    break;
-
-	  case oStrict:
-	  case oNoStrict:
-	    /* Not used */
-            break;
 
           case oMangleDosFilenames: opt.mangle_dos_filenames = 1; break;
           case oNoMangleDosFilenames: opt.mangle_dos_filenames = 0; break;

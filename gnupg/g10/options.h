@@ -187,7 +187,6 @@ struct options
   int allow_non_selfsigned_uid;
   int allow_freeform_uid;
   int fast_list_mode;
-  int legacy_list_mode;
   int ignore_time_conflict;
   int ignore_valid_from;
   int ignore_crc_error;
@@ -201,7 +200,6 @@ struct options
   int no_sig_cache;
   int no_auto_check_trustdb;
   int preserve_permissions;
-  int no_homedir_creation;
   struct groupitem *grouplist;
   int mangle_dos_filenames;
   int enable_progress_filter;

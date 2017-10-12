@@ -950,7 +950,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	      const char *validity;
 
 	      validity = uid_trust_string_fixed (ctrl, pk, uid);
-	      indent = ((kl + (opt.legacy_list_mode? 9:11))
+	      indent = ((kl + 11)
                         - atoi (uid_trust_string_fixed (ctrl, NULL, NULL)));
 	      if (indent < 0 || indent > 40)
 		indent = 0;
@@ -959,7 +959,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	    }
 	  else
             {
-              indent = kl + (opt.legacy_list_mode? 10:12);
+              indent = kl + 12;
               es_fprintf (es_stdout, "uid%*s", indent, "");
             }
 

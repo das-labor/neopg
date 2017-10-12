@@ -3423,10 +3423,7 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
              pubkey_string (pk, pkstrbuf, sizeof pkstrbuf),
              keystr (pk->keyid));
 
-          if (opt.legacy_list_mode)
-            tty_fprintf (fp, "  ");
-          else
-            tty_fprintf (fp, "\n     ");
+	  tty_fprintf (fp, "\n     ");
 
           tty_fprintf (fp, _("created: %s"), datestr_from_pk (pk));
 	  tty_fprintf (fp, "  ");
@@ -3444,7 +3441,7 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
             {
               /* The agent told us that a secret key is available and
                  that it has been stored on a card.  */
-	      tty_fprintf (fp, "%*s%s", opt.legacy_list_mode? 21:5, "",
+	      tty_fprintf (fp, "%*s%s", 5, "",
                            _("card-no: "));
               if (strlen (serialno) == 32
                   && !strncmp (serialno, "D27600012401", 12))
@@ -3464,7 +3461,7 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
               && pk->seckey_info->s2k.mode == 1002)
 	    {
               /* FIXME: Check whether this code path is still used.  */
-	      tty_fprintf (fp, "%*s%s", opt.legacy_list_mode? 21:5, "",
+	      tty_fprintf (fp, "%*s%s", 5, "",
                            _("card-no: "));
 	      if (pk->seckey_info->ivlen == 16
 		  && !memcmp (pk->seckey_info->iv,
@@ -3493,8 +3490,7 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
 	      if (opt.trust_model != TM_ALWAYS)
 		{
 		  tty_fprintf (fp, "%*s",
-                               opt.legacy_list_mode?
-                               ((int) keystrlen () + 13):5, "");
+                               5, "");
 		  /* Ownertrust is only meaningful for the PGP or
 		     classic trust models, or PGP combined with TOFU */
 		  if (opt.trust_model == TM_PGP
