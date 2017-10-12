@@ -160,9 +160,8 @@ take_write_lock (void)
 static void
 release_write_lock (void)
 {
-  if (!opt.lock_once)
-    if (!dotlock_release (lockhandle))
-      is_locked = 0;
+  if (!dotlock_release (lockhandle))
+    is_locked = 0;
 }
 
 /*************************************

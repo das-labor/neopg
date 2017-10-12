@@ -288,10 +288,6 @@ enum cmd_and_opt_values
     oS2KDigest,
     oS2KCipher,
     oS2KCount,
-    oDisplayCharset,
-    oLockOnce,
-    oLockMultiple,
-    oLockNever,
     oKeyServer,
     oKeyServerOptions,
     oImportOptions,
@@ -369,13 +365,10 @@ enum cmd_and_opt_values
     oNoRequireCrossCert,
     oAutoKeyLocate,
     oNoAutoKeyLocate,
-    oAllowMultisigVerification,
     oEnableLargeRSA,
     oDisableLargeRSA,
     oEnableDSA2,
     oDisableDSA2,
-    oAllowMultipleMessages,
-    oNoAllowMultipleMessages,
     oFakedSystemTime,
     oNoAutostart,
     oPrintPKARecords,
@@ -586,8 +579,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oListOptions,   "list-options", "@"),
   ARGPARSE_s_s (oVerifyOptions, "verify-options", "@"),
 
-  ARGPARSE_s_s (oDisplayCharset, "display-charset", "@"),
-  ARGPARSE_s_s (oDisplayCharset, "charset", "@"),
   ARGPARSE_s_s (oOptions, "options", "@"),
 
   ARGPARSE_s_s (oDebug, "debug", "@"),
@@ -709,9 +700,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oComment, "comment", "@"),
   ARGPARSE_s_n (oDefaultComment, "default-comment", "@"),
   ARGPARSE_s_n (oNoComments, "no-comments", "@"),
-  ARGPARSE_s_n (oLockOnce,     "lock-once", "@"),
-  ARGPARSE_s_n (oLockMultiple, "lock-multiple", "@"),
-  ARGPARSE_s_n (oLockNever,    "lock-never", "@"),
   ARGPARSE_s_i (oLoggerFD,   "logger-fd", "@"),
   ARGPARSE_s_s (oLoggerFile, "log-file", "@"),
   ARGPARSE_s_s (oLoggerFile, "logger-file", "@"),  /* 1.4 compatibility.  */
@@ -784,14 +772,10 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oExitOnStatusWriteError, "exit-on-status-write-error", "@"),
   ARGPARSE_s_i (oLimitCardInsertTries, "limit-card-insert-tries", "@"),
 
-  ARGPARSE_s_n (oAllowMultisigVerification,
-                "allow-multisig-verification", "@"),
   ARGPARSE_s_n (oEnableLargeRSA, "enable-large-rsa", "@"),
   ARGPARSE_s_n (oDisableLargeRSA, "disable-large-rsa", "@"),
   ARGPARSE_s_n (oEnableDSA2, "enable-dsa2", "@"),
   ARGPARSE_s_n (oDisableDSA2, "disable-dsa2", "@"),
-  ARGPARSE_s_n (oAllowMultipleMessages,      "allow-multiple-messages", "@"),
-  ARGPARSE_s_n (oNoAllowMultipleMessages, "no-allow-multiple-messages", "@"),
 
   ARGPARSE_s_s (oDefaultNewKeyAlgo, "default-new-key-algo", "@"),
 
@@ -2882,18 +2866,6 @@ gpg_main (int argc, char **argv)
 	  case oRequireSecmem: require_secmem=1; break;
 	  case oNoRequireSecmem: require_secmem=0; break;
 	  case oNoPermissionWarn: opt.no_perm_warn=1; break;
-          case oDisplayCharset:
-	    if( set_native_charset( pargs.r.ret_str ) )
-		log_error(_("'%s' is not a valid character set\n"),
-			  pargs.r.ret_str);
-	    break;
-	  case oLockOnce: opt.lock_once = 1; break;
-	  case oLockNever:
-            dotlock_disable ();
-            break;
-	  case oLockMultiple:
-	    opt.lock_once = 0;
-            break;
 	  case oKeyServer:
 	    {
 	      keyserver_spec_t keyserver;
@@ -3198,15 +3170,6 @@ gpg_main (int argc, char **argv)
 	  case oEnableDSA2: opt.flags.dsa2=1; break;
 	  case oDisableDSA2: opt.flags.dsa2=0; break;
 
-          case oAllowMultisigVerification:
-	  case oAllowMultipleMessages:
-	    opt.flags.allow_multiple_messages=1;
-	    break;
-
-	  case oNoAllowMultipleMessages:
-	    opt.flags.allow_multiple_messages=0;
-	    break;
-
           case oFakedSystemTime:
             {
               size_t len = strlen (pargs.r.ret_str);
@@ -3296,9 +3259,6 @@ gpg_main (int argc, char **argv)
         log_set_file (logfile);
         log_set_prefix (NULL, GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_TIME | GPGRT_LOG_WITH_PID);
       }
-
-    if (opt.verbose > 2)
-        log_info ("using character set '%s'\n", get_native_charset ());
 
     if( may_coredump && !opt.quiet )
 	log_info(_("WARNING: program may create a core file!\n"));

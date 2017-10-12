@@ -152,7 +152,6 @@ struct options
   int s2k_cipher_algo;
   unsigned char s2k_count; /* This is the encoded form, not the raw
 			      count */
-  int lock_once;
   keyserver_spec_t keyserver;  /* The list of configured keyservers.  */
   struct
   {
@@ -227,7 +226,6 @@ struct options
 
     unsigned int utf8_filename:1;
     unsigned int dsa2:1;
-    unsigned int allow_multiple_messages:1;
     unsigned int large_rsa:1;
     unsigned int disable_signer_uid:1;
     /* Flag to enbale experimental features from RFC4880bis.  */
