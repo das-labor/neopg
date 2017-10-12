@@ -242,6 +242,7 @@ add_library(gcrypt
   ../libgcrypt/cipher/ecc-misc.cpp
   ../libgcrypt/cipher/ecc-ecdsa.cpp
   ../libgcrypt/cipher/elgamal.cpp
+  ../libgcrypt/cipher/des.cpp
   ../libgcrypt/cipher/dsa.cpp
   ../libgcrypt/cipher/rsa.cpp
   ../libgcrypt/cipher/sha1.cpp

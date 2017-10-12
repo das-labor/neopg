@@ -43,11 +43,14 @@ make_session_key( DEK *dek )
 
     dek->keylen = openpgp_cipher_get_algo_keylen (dek->algo);
 
-    if (openpgp_cipher_open (&chd, dek->algo, GCRY_CIPHER_MODE_CFB,
+    if (rc = openpgp_cipher_open (&chd, dek->algo, GCRY_CIPHER_MODE_CFB,
 			     (GCRY_CIPHER_SECURE
 			      | (dek->algo >= 100 ?
 				 0 : GCRY_CIPHER_ENABLE_SYNC))) )
-      BUG();
+      {
+	log_fatal("XXX: %s %i\n", gpg_strerror(rc), dek->algo);
+	BUG();
+      }
     gcry_randomize (dek->key, dek->keylen, GCRY_STRONG_RANDOM );
     for (i=0; i < 16; i++ )
       {
