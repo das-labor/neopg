@@ -37,7 +37,6 @@
 	    "t-iobuf"
 	    "t-strlist"
 	    "t-name-value"
-	    "t-ccparray"
 	    "t-recsel"
 	    "t-exechelp"
 	    "t-exectool"

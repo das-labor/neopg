@@ -613,7 +613,6 @@ add_executable(neopg
   ../gnupg/dirmngr/crlcache.cpp
   ../gnupg/dirmngr/certcache.cpp
   ../gnupg/dirmngr/cdblib.cpp
-  ../gnupg/common/ccparray.cpp
   ../gnupg/common/ksba-io-support.cpp
   ../gnupg/common/exectool.cpp
 
