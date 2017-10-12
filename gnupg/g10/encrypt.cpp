@@ -243,8 +243,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
       xfree (enc);
     }
 
-  if (!opt.no_literal)
-    pt = setup_plaintext_name (filename, inp);
+  pt = setup_plaintext_name (filename, inp);
 
   /* Note that PGP 5 has problems decrypting symmetrically encrypted
      data if the file length is in the inner packet. It works when
@@ -274,11 +273,9 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
         filesize = 0;
     }
   else
-    filesize = opt.set_filesize ? opt.set_filesize : 0; /* stdin */
+    filesize = 0; /* stdin */
 
-  if (!opt.no_literal)
     {
-      /* Note that PT has been initialized above in !no_literal mode.  */
       pt->timestamp = make_timestamp();
       pt->mode = opt.mimemode? 'm' : opt.textmode? 't' : 'b';
       pt->len = filesize;
@@ -287,12 +284,6 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
       pkt.pkttype = PKT_PLAINTEXT;
       pkt.pkt.plaintext = pt;
       cfx.datalen = filesize && !do_compress ? calc_packet_length( &pkt ) : 0;
-    }
-  else
-    {
-      cfx.datalen = filesize && !do_compress ? filesize : 0;
-      pkt.pkttype = (pkttype_t) 0;
-      pkt.pkt.generic = NULL;
     }
 
   /* Register the cipher filter. */
@@ -308,25 +299,8 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
     }
 
   /* Do the work. */
-  if (!opt.no_literal)
-    {
-      if ( (rc = build_packet( out, &pkt )) )
-        log_error("build_packet failed: %s\n", gpg_strerror (rc) );
-    }
-  else
-    {
-      /* User requested not to create a literal packet, so we copy the
-         plain data.  */
-    byte copy_buffer[4096];
-    int  bytes_copied;
-    while ((bytes_copied = iobuf_read(inp, copy_buffer, 4096)) != -1)
-      if ( (rc=iobuf_write(out, copy_buffer, bytes_copied)) ) {
-        log_error ("copying input to output failed: %s\n",
-                   gpg_strerror (rc) );
-        break;
-      }
-    wipememory (copy_buffer, 4096); /* burn buffer */
-    }
+  if ( (rc = build_packet( out, &pkt )) )
+    log_error("build_packet failed: %s\n", gpg_strerror (rc) );
 
   /* Finish the stuff.  */
   iobuf_close (inp);
@@ -632,8 +606,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
   if(use_symkey && (rc = write_symkey_enc(symkey_s2k,symkey_dek,cfx.dek,out)))
     goto leave;
 
-  if (!opt.no_literal)
-    pt = setup_plaintext_name (filename, inp);
+  pt = setup_plaintext_name (filename, inp);
 
   /* Get the size of the file if possible, i.e., if it is a real file.  */
   if (filename && *filename
@@ -655,21 +628,16 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
         filesize = 0;
     }
   else
-    filesize = opt.set_filesize ? opt.set_filesize : 0; /* stdin */
+    filesize = 0; /* stdin */
 
-  if (!opt.no_literal)
-    {
-      pt->timestamp = make_timestamp();
-      pt->mode = opt.mimemode? 'm' : opt.textmode ? 't' : 'b';
-      pt->len = filesize;
-      pt->new_ctb = !pt->len;
-      pt->buf = inp;
-      pkt.pkttype = PKT_PLAINTEXT;
-      pkt.pkt.plaintext = pt;
-      cfx.datalen = filesize && !do_compress? calc_packet_length( &pkt ) : 0;
-    }
-  else
-    cfx.datalen = filesize && !do_compress ? filesize : 0;
+  pt->timestamp = make_timestamp();
+  pt->mode = opt.mimemode? 'm' : opt.textmode ? 't' : 'b';
+  pt->len = filesize;
+  pt->new_ctb = !pt->len;
+  pt->buf = inp;
+  pkt.pkttype = PKT_PLAINTEXT;
+  pkt.pkt.plaintext = pt;
+  cfx.datalen = filesize && !do_compress? calc_packet_length( &pkt ) : 0;
 
   /* Register the cipher filter. */
   iobuf_push_filter (out, cipher_filter, &cfx);
@@ -705,30 +673,8 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
         }
     }
 
-  /* Do the work. */
-  if (!opt.no_literal)
-    {
-      if ((rc = build_packet( out, &pkt )))
-        log_error ("build_packet failed: %s\n", gpg_strerror (rc));
-    }
-  else
-    {
-      /* User requested not to create a literal packet, so we copy the
-         plain data. */
-      byte copy_buffer[4096];
-      int  bytes_copied;
-      while ((bytes_copied = iobuf_read (inp, copy_buffer, 4096)) != -1)
-        {
-          rc = iobuf_write (out, copy_buffer, bytes_copied);
-          if (rc)
-            {
-              log_error ("copying input to output failed: %s\n",
-                         gpg_strerror (rc));
-              break;
-            }
-        }
-      wipememory (copy_buffer, 4096); /* Burn the buffer. */
-    }
+  if ((rc = build_packet( out, &pkt )))
+    log_error ("build_packet failed: %s\n", gpg_strerror (rc));
 
   /* Finish the stuff. */
  leave:

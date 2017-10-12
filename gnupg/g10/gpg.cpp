@@ -278,8 +278,6 @@ enum cmd_and_opt_values
     oTrustModel,
     oForceOwnertrust,
     oSetFilename,
-    oForYourEyesOnly,
-    oNoForYourEyesOnly,
     oSetPolicyURL,
     oSigPolicyURL,
     oCertPolicyURL,
@@ -327,8 +325,6 @@ enum cmd_and_opt_values
     oNoAllowFreeformUID,
     oAllowSecretKeyImport,
     oEnableSpecialFilenames,
-    oNoLiteral,
-    oSetFilesize,
     oHonorHttpProxy,
     oFastListMode,
     oListOnly,
@@ -717,8 +713,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oTrustModel, "trust-model", "@"),
   ARGPARSE_s_s (oTOFUDefaultPolicy, "tofu-default-policy", "@"),
   ARGPARSE_s_s (oSetFilename, "set-filename", "@"),
-  ARGPARSE_s_n (oForYourEyesOnly, "for-your-eyes-only", "@"),
-  ARGPARSE_s_n (oNoForYourEyesOnly, "no-for-your-eyes-only", "@"),
   ARGPARSE_s_s (oSetPolicyURL,  "set-policy-url", "@"),
   ARGPARSE_s_s (oSigPolicyURL,  "sig-policy-url", "@"),
   ARGPARSE_s_s (oCertPolicyURL, "cert-policy-url", "@"),
@@ -753,8 +747,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoAllowNonSelfsignedUID, "no-allow-non-selfsigned-uid", "@"),
   ARGPARSE_s_n (oAllowFreeformUID,      "allow-freeform-uid", "@"),
   ARGPARSE_s_n (oNoAllowFreeformUID, "no-allow-freeform-uid", "@"),
-  ARGPARSE_s_n (oNoLiteral, "no-literal", "@"),
-  ARGPARSE_p_u (oSetFilesize, "set-filesize", "@"),
   ARGPARSE_s_n (oFastListMode, "fast-list-mode", "@"),
   ARGPARSE_s_n (oFixedListMode, "fixed-list-mode", "@"),
   ARGPARSE_s_n (oLegacyListMode, "legacy-list-mode", "@"),
@@ -2168,7 +2160,6 @@ gpg_main (int argc, char **argv)
     char *pers_cipher_list = NULL;
     char *pers_digest_list = NULL;
     char *pers_compress_list = NULL;
-    int eyes_only=0;
     int multifile=0;
     int pwfd = -1;
     int ovrseskeyfd = -1;
@@ -2737,8 +2728,6 @@ gpg_main (int argc, char **argv)
             else
               opt.set_filename = native_to_utf8(pargs.r.ret_str);
  	    break;
-	  case oForYourEyesOnly: eyes_only = 1; break;
-	  case oNoForYourEyesOnly: eyes_only = 0; break;
 	  case oSetPolicyURL:
 	    add_policy_url(pargs.r.ret_str,0);
 	    add_policy_url(pargs.r.ret_str,1);
@@ -3127,8 +3116,6 @@ gpg_main (int argc, char **argv)
 	  case oNoAllowNonSelfsignedUID: opt.allow_non_selfsigned_uid=0; break;
 	  case oAllowFreeformUID: opt.allow_freeform_uid = 1; break;
 	  case oNoAllowFreeformUID: opt.allow_freeform_uid = 0; break;
-	  case oNoLiteral: opt.no_literal = 1; break;
-	  case oSetFilesize: opt.set_filesize = pargs.r.ret_ulong; break;
 	  case oFastListMode: opt.fast_list_mode = 1; break;
 	  case oFixedListMode: /* Dummy */ break;
           case oLegacyListMode: opt.legacy_list_mode = 1; break;
@@ -3405,28 +3392,6 @@ gpg_main (int argc, char **argv)
         opt.mimemode = 0; /* This will use text mode instead.  */
       }
 
-    if (eyes_only) {
-      if (opt.set_filename)
-	  log_info(_("WARNING: %s overrides %s\n"),
-		   "--for-your-eyes-only","--set-filename");
-
-      opt.set_filename="_CONSOLE";
-    }
-
-    if (opt.no_literal) {
-	log_info(_("Note: %s is not for normal use!\n"), "--no-literal");
-	if (opt.textmode)
-	    log_error(_("%s not allowed with %s!\n"),
-		       "--textmode", "--no-literal" );
-	if (opt.set_filename)
-	    log_error(_("%s makes no sense with %s!\n"),
-			eyes_only?"--for-your-eyes-only":"--set-filename",
-		        "--no-literal" );
-    }
-
-
-    if (opt.set_filesize)
-	log_info(_("Note: %s is not for normal use!\n"), "--set-filesize");
     if( opt.batch )
 	tty_batchmode( 1 );
 

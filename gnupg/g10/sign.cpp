@@ -620,8 +620,7 @@ write_plaintext_packet (IOBUF out, IOBUF inp, const char *fname, int ptmode)
     u32 filesize;
     int rc = 0;
 
-    if (!opt.no_literal)
-      pt=setup_plaintext_name(fname,inp);
+    pt=setup_plaintext_name(fname,inp);
 
     /* try to calculate the length of the data */
     if ( !iobuf_is_pipe_filename (fname) && *fname )
@@ -650,12 +649,11 @@ write_plaintext_packet (IOBUF out, IOBUF inp, const char *fname, int ptmode)
 	  filesize = 0;
       }
     else
-      filesize = opt.set_filesize? opt.set_filesize : 0; /* stdin */
+      filesize = 0; /* stdin */
 
-    if (!opt.no_literal) {
+    {
         PACKET pkt;
 
-        /* Note that PT has been initialized above in no_literal mode.  */
         pt->timestamp = make_timestamp ();
         pt->mode = ptmode;
         pt->len = filesize;
@@ -670,18 +668,6 @@ write_plaintext_packet (IOBUF out, IOBUF inp, const char *fname, int ptmode)
                        gpg_strerror (rc) );
         pt->buf = NULL;
         free_packet (&pkt, NULL);
-    }
-    else {
-        byte copy_buffer[4096];
-        int  bytes_copied;
-
-        while ((bytes_copied = iobuf_read(inp, copy_buffer, 4096)) != -1)
-            if ( (rc=iobuf_write(out, copy_buffer, bytes_copied)) ) {
-                log_error ("copying input to output failed: %s\n",
-                           gpg_strerror (rc));
-                break;
-            }
-        wipememory(copy_buffer,4096); /* burn buffer */
     }
     /* fixme: it seems that we never freed pt/pkt */
 

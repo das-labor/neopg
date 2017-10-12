@@ -189,8 +189,6 @@ struct options
   strlist_t sig_subpackets;
   int allow_non_selfsigned_uid;
   int allow_freeform_uid;
-  int no_literal;
-  unsigned long set_filesize;
   int fast_list_mode;
   int legacy_list_mode;
   int ignore_time_conflict;

@@ -191,8 +191,6 @@ handle_progress (progress_filter_context_t *pfx, IOBUF inp, const char *name)
 
   if ( !iobuf_is_pipe_filename (name) && *name )
     filesize = iobuf_get_filelength (inp, NULL);
-  else if (opt.set_filesize)
-    filesize = opt.set_filesize;
 
   /* register the progress filter */
   pfx->what = xstrdup (name ? name : "stdin");
