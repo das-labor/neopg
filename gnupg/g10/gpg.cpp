@@ -112,8 +112,6 @@ enum cmd_and_opt_values
     oInputSizeHint,
     oSigNotation,
     oCertNotation,
-    oShowNotation,
-    oNoShowNotation,
     aEncrFiles,
     aEncrSym,
     aDecryptFiles,
@@ -212,7 +210,6 @@ enum cmd_and_opt_values
     oKeyring,
     oPrimaryKeyring,
     oSecretKeyring,
-    oShowKeyring,
     oDefaultKey,
     oDefRecipient,
     oDefRecipientSelf,
@@ -281,8 +278,6 @@ enum cmd_and_opt_values
     oSetPolicyURL,
     oSigPolicyURL,
     oCertPolicyURL,
-    oShowPolicyURL,
-    oNoShowPolicyURL,
     oSigKeyserverURL,
     oUseEmbeddedFilename,
     oNoUseEmbeddedFilename,
@@ -581,7 +576,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oKeyring, "keyring", "@"),
   ARGPARSE_s_s (oPrimaryKeyring, "primary-keyring", "@"),
   ARGPARSE_s_s (oSecretKeyring, "secret-keyring", "@"),
-  ARGPARSE_s_n (oShowKeyring, "show-keyring", "@"),
   ARGPARSE_s_s (oDefaultKey, "default-key", "@"),
 
   ARGPARSE_s_s (oKeyServer, "keyserver", "@"),
@@ -707,20 +701,13 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oSkipHiddenRecipients, "skip-hidden-recipients", "@"),
   ARGPARSE_s_n (oNoSkipHiddenRecipients, "no-skip-hidden-recipients", "@"),
   ARGPARSE_s_i (oDefCertLevel, "default-cert-check-level", "@"), /* old */
-#ifndef NO_TRUST_MODELS
-  ARGPARSE_s_n (oAlwaysTrust, "always-trust", "@"),
-#endif
   ARGPARSE_s_s (oTrustModel, "trust-model", "@"),
   ARGPARSE_s_s (oTOFUDefaultPolicy, "tofu-default-policy", "@"),
   ARGPARSE_s_s (oSetFilename, "set-filename", "@"),
   ARGPARSE_s_s (oSetPolicyURL,  "set-policy-url", "@"),
   ARGPARSE_s_s (oSigPolicyURL,  "sig-policy-url", "@"),
   ARGPARSE_s_s (oCertPolicyURL, "cert-policy-url", "@"),
-  ARGPARSE_s_n (oShowPolicyURL,      "show-policy-url", "@"),
-  ARGPARSE_s_n (oNoShowPolicyURL, "no-show-policy-url", "@"),
   ARGPARSE_s_s (oSigKeyserverURL, "sig-keyserver-url", "@"),
-  ARGPARSE_s_n (oShowNotation,      "show-notation", "@"),
-  ARGPARSE_s_n (oNoShowNotation, "no-show-notation", "@"),
   ARGPARSE_s_s (oComment, "comment", "@"),
   ARGPARSE_s_n (oDefaultComment, "default-comment", "@"),
   ARGPARSE_s_n (oNoComments, "no-comments", "@"),
@@ -2522,11 +2509,6 @@ gpg_main (int argc, char **argv)
 	    sl = append_to_strlist (&nrings, pargs.r.ret_str);
 	    sl->flags = KEYDB_RESOURCE_FLAG_PRIMARY;
 	    break;
-	  case oShowKeyring:
-	    deprecated_warning(configname,configlineno,"--show-keyring",
-			       "--list-options ","show-keyring");
-	    opt.list_options|=LIST_SHOW_KEYRING;
-	    break;
 
 	  case oDebug:
             if (parse_debug_flag (pargs.r.ret_str, &opt.debug, debug_flags))
@@ -2667,10 +2649,6 @@ gpg_main (int argc, char **argv)
 	  case aListSecretKeys: set_cmd( &cmd, aListSecretKeys); break;
 
 #ifndef NO_TRUST_MODELS
-	    /* There are many programs (like mutt) that call gpg with
-	       --always-trust so keep this option around for a long
-	       time. */
-	  case oAlwaysTrust: opt.trust_model=TM_ALWAYS; break;
 	  case oTrustModel:
 	    parse_trust_model(pargs.r.ret_str);
 	    break;
@@ -2734,22 +2712,6 @@ gpg_main (int argc, char **argv)
 	    break;
 	  case oSigPolicyURL: add_policy_url(pargs.r.ret_str,0); break;
 	  case oCertPolicyURL: add_policy_url(pargs.r.ret_str,1); break;
-          case oShowPolicyURL:
-	    deprecated_warning(configname,configlineno,"--show-policy-url",
-			       "--list-options ","show-policy-urls");
-	    deprecated_warning(configname,configlineno,"--show-policy-url",
-			       "--verify-options ","show-policy-urls");
-	    opt.list_options|=LIST_SHOW_POLICY_URLS;
-	    opt.verify_options|=VERIFY_SHOW_POLICY_URLS;
-	    break;
-	  case oNoShowPolicyURL:
-	    deprecated_warning(configname,configlineno,"--no-show-policy-url",
-			       "--list-options ","no-show-policy-urls");
-	    deprecated_warning(configname,configlineno,"--no-show-policy-url",
-			       "--verify-options ","no-show-policy-urls");
-	    opt.list_options&=~LIST_SHOW_POLICY_URLS;
-	    opt.verify_options&=~VERIFY_SHOW_POLICY_URLS;
-	    break;
 	  case oSigKeyserverURL: add_keyserver_url(pargs.r.ret_str,0); break;
 	  case oUseEmbeddedFilename:
 	    opt.flags.use_embedded_filename=1;
@@ -3081,22 +3043,6 @@ gpg_main (int argc, char **argv)
 	    break;
 	  case oSigNotation: add_notation_data( pargs.r.ret_str, 0 ); break;
 	  case oCertNotation: add_notation_data( pargs.r.ret_str, 1 ); break;
-	  case oShowNotation:
-	    deprecated_warning(configname,configlineno,"--show-notation",
-			       "--list-options ","show-notations");
-	    deprecated_warning(configname,configlineno,"--show-notation",
-			       "--verify-options ","show-notations");
-	    opt.list_options|=LIST_SHOW_NOTATIONS;
-	    opt.verify_options|=VERIFY_SHOW_NOTATIONS;
-	    break;
-	  case oNoShowNotation:
-	    deprecated_warning(configname,configlineno,"--no-show-notation",
-			       "--list-options ","no-show-notations");
-	    deprecated_warning(configname,configlineno,"--no-show-notation",
-			       "--verify-options ","no-show-notations");
-	    opt.list_options&=~LIST_SHOW_NOTATIONS;
-	    opt.verify_options&=~VERIFY_SHOW_NOTATIONS;
-	    break;
 	  case oUtf8Strings: utf8_strings = 1; break;
 	  case oNoUtf8Strings: utf8_strings = 0; break;
 	  case oDisableCipherAlgo:
