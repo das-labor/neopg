@@ -548,7 +548,6 @@ add_executable(neopg
   ../gnupg/g10/verify.cpp
   ../gnupg/g10/skclist.cpp
   ../gnupg/g10/keygen.cpp
-  ../gnupg/g10/helptext.cpp
   ../gnupg/g10/call-dirmngr.cpp
   ../gnupg/g10/call-agent.cpp
   ../gnupg/g10/getkey.cpp

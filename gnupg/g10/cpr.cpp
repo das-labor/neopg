@@ -487,12 +487,7 @@ cpr_get( const char *keyword, const char *prompt )
 	return do_get_from_fd ( keyword, 0, NULL );
     for(;;) {
 	p = tty_get( prompt );
-	if( *p=='?' && !p[1] && !(keyword && !*keyword)) {
-	    xfree(p);
-	    display_online_help( keyword );
-	}
-	else
-	    return p;
+	return p;
     }
 }
 
@@ -519,12 +514,7 @@ cpr_get_hidden( const char *keyword, const char *prompt )
 	return do_get_from_fd ( keyword, 1, NULL );
     for(;;) {
 	p = tty_get_hidden( prompt );
-	if( *p == '?' && !p[1] ) {
-	    xfree(p);
-	    display_online_help( keyword );
-	}
-	else
-	    return p;
+	return p;
     }
 }
 
@@ -552,16 +542,10 @@ cpr_get_answer_is_yes_def (const char *keyword, const char *prompt, int def_yes)
     for(;;) {
 	p = tty_get( prompt );
 	trim_spaces(p); /* it is okay to do this here */
-	if( *p == '?' && !p[1] ) {
-	    xfree(p);
-	    display_online_help( keyword );
-	}
-	else {
-	    tty_kill_prompt();
-	    yes = answer_is_yes_no_default (p, def_yes);
-	    xfree(p);
-	    return yes;
-	}
+	tty_kill_prompt();
+	yes = answer_is_yes_no_default (p, def_yes);
+	xfree(p);
+	return yes;
     }
 }
 
@@ -586,16 +570,10 @@ cpr_get_answer_yes_no_quit( const char *keyword, const char *prompt )
     for(;;) {
 	p = tty_get( prompt );
 	trim_spaces(p); /* it is okay to do this here */
-	if( *p == '?' && !p[1] ) {
-	    xfree(p);
-	    display_online_help( keyword );
-	}
-	else {
-	    tty_kill_prompt();
-	    yes = answer_is_yes_no_quit(p);
-	    xfree(p);
-	    return yes;
-	}
+	tty_kill_prompt();
+	yes = answer_is_yes_no_quit(p);
+	xfree(p);
+	return yes;
     }
 }
 
@@ -623,17 +601,9 @@ cpr_get_answer_okay_cancel (const char *keyword,
     {
       p = tty_get( prompt );
       trim_spaces(p); /* it is okay to do this here */
-      if (*p == '?' && !p[1])
-        {
-          xfree(p);
-          display_online_help (keyword);
-	}
-      else
-        {
-          tty_kill_prompt();
-          yes = answer_is_okay_cancel (p, def_answer);
-          xfree(p);
-          return yes;
-	}
+      tty_kill_prompt();
+      yes = answer_is_okay_cancel (p, def_answer);
+      xfree(p);
+      return yes;
     }
 }

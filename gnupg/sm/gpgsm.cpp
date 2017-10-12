@@ -2087,9 +2087,6 @@ open_read (const char *filename)
       set_binary (stdin);
       return 0; /* stdin */
     }
-  fd = check_special_filename (filename, 0, 0);
-  if (fd != -1)
-    return fd;
   fd = open (filename, O_RDONLY | O_BINARY);
   if (fd == -1)
     {
@@ -2108,8 +2105,6 @@ open_es_fread (const char *filename, const char *mode)
 
   if (filename[0] == '-' && !filename[1])
     fd = fileno (stdin);
-  else
-    fd = check_special_filename (filename, 0, 0);
   if (fd != -1)
     {
       fp = es_fdopen_nc (fd, mode);
@@ -2147,17 +2142,6 @@ open_es_fwrite (const char *filename)
       return fp;
     }
 
-  fd = check_special_filename (filename, 1, 0);
-  if (fd != -1)
-    {
-      fp = es_fdopen_nc (fd, "wb");
-      if (!fp)
-        {
-          log_error ("es_fdopen(%d) failed: %s\n", fd, strerror (errno));
-          gpgsm_exit (2);
-        }
-      return fp;
-    }
   fp = es_fopen (filename, "wb");
   if (!fp)
     {
