@@ -276,7 +276,6 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
     filesize = 0; /* stdin */
 
     {
-      pt->timestamp = make_timestamp();
       pt->mode = opt.mimemode? 'm' : opt.textmode? 't' : 'b';
       pt->len = filesize;
       pt->new_ctb = !pt->len;
@@ -630,7 +629,6 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
   else
     filesize = 0; /* stdin */
 
-  pt->timestamp = make_timestamp();
   pt->mode = opt.mimemode? 'm' : opt.textmode ? 't' : 'b';
   pt->len = filesize;
   pt->new_ctb = !pt->len;

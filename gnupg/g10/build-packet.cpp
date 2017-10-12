@@ -701,14 +701,8 @@ do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc )
 static u32
 calc_plaintext( PKT_plaintext *pt )
 {
-  /* Truncate namelen to the maximum 255 characters.  Note this means
-     that a function that calls build_packet with an illegal literal
-     packet will get it back legalized. */
-
-  if(pt->namelen>255)
-    pt->namelen=255;
-
-  return pt->len? (1 + 1 + pt->namelen + 4 + pt->len) : 0;
+  /* mode, namelen=0, timestamp=0, data */
+  return pt->len? (1 + 1 + 4 + pt->len) : 0;
 }
 
 /* Serialize the plaintext packet (RFC 4880, 5.9) described by PT and
@@ -738,9 +732,8 @@ do_plaintext( IOBUF out, int ctb, PKT_plaintext *pt )
                 || pt->mode == 'm'
                 || pt->mode == 'l' || pt->mode == '1');
     iobuf_put(out, pt->mode );
-    iobuf_put(out, pt->namelen );
-    iobuf_write (out, pt->name, pt->namelen);
-    rc = write_32(out, pt->timestamp );
+    iobuf_put(out, 0 ); /* Length of nonsense filename. */
+    rc = write_32(out, 0 ); /* Nonsense timestamp.  */
     if (rc)
       return rc;
 

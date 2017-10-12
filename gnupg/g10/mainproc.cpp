@@ -703,11 +703,6 @@ proc_plaintext( CTX c, PACKET *pkt )
 
   literals_seen++;
 
-  if (pt->namelen == 8 && !memcmp( pt->name, "_CONSOLE", 8))
-    log_info (_("Note: sender requested \"for-your-eyes-only\"\n"));
-  else if (opt.verbose)
-    log_info (_("original file name='%.*s'\n"), pt->namelen, pt->name);
-
   free_md_filter_context (&c->mfx);
   if (gcry_md_open (&c->mfx.md, 0, 0))
     BUG ();

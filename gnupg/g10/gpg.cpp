@@ -279,8 +279,6 @@ enum cmd_and_opt_values
     oSigPolicyURL,
     oCertPolicyURL,
     oSigKeyserverURL,
-    oUseEmbeddedFilename,
-    oNoUseEmbeddedFilename,
     oComment,
     oDefaultComment,
     oNoComments,
@@ -717,8 +715,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_i (oLoggerFD,   "logger-fd", "@"),
   ARGPARSE_s_s (oLoggerFile, "log-file", "@"),
   ARGPARSE_s_s (oLoggerFile, "logger-file", "@"),  /* 1.4 compatibility.  */
-  ARGPARSE_s_n (oUseEmbeddedFilename,      "use-embedded-filename", "@"),
-  ARGPARSE_s_n (oNoUseEmbeddedFilename, "no-use-embedded-filename", "@"),
   ARGPARSE_s_n (oUtf8Strings,      "utf8-strings", "@"),
   ARGPARSE_s_n (oNoUtf8Strings, "no-utf8-strings", "@"),
   ARGPARSE_s_n (oWithFingerprint, "with-fingerprint", "@"),
@@ -2700,12 +2696,6 @@ gpg_main (int argc, char **argv)
           case oRFC2440Text: opt.rfc2440_text=1; break;
           case oNoRFC2440Text: opt.rfc2440_text=0; break;
 
- 	  case oSetFilename:
-            if(utf8_strings)
-              opt.set_filename = pargs.r.ret_str;
-            else
-              opt.set_filename = native_to_utf8(pargs.r.ret_str);
- 	    break;
 	  case oSetPolicyURL:
 	    add_policy_url(pargs.r.ret_str,0);
 	    add_policy_url(pargs.r.ret_str,1);
@@ -2713,24 +2703,6 @@ gpg_main (int argc, char **argv)
 	  case oSigPolicyURL: add_policy_url(pargs.r.ret_str,0); break;
 	  case oCertPolicyURL: add_policy_url(pargs.r.ret_str,1); break;
 	  case oSigKeyserverURL: add_keyserver_url(pargs.r.ret_str,0); break;
-	  case oUseEmbeddedFilename:
-	    opt.flags.use_embedded_filename=1;
-	    break;
-	  case oNoUseEmbeddedFilename:
-	    opt.flags.use_embedded_filename=0;
-	    break;
-	  case oComment:
-	    if(pargs.r.ret_str[0])
-	      append_to_strlist(&opt.comments,pargs.r.ret_str);
-	    break;
-	  case oDefaultComment:
-	    deprecated_warning(configname,configlineno,
-			       "--default-comment","--no-comments","");
-	    /* fall through */
-	  case oNoComments:
-	    free_strlist(opt.comments);
-	    opt.comments=NULL;
-	    break;
 	  case oThrowKeyids: opt.throw_keyids = 1; break;
 	  case oNoThrowKeyids: opt.throw_keyids = 0; break;
 

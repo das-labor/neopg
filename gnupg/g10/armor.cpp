@@ -1118,7 +1118,6 @@ armor_filter( void *opaque, int control,
     else if( control == IOBUFCTRL_FLUSH && !afx->cancel ) {
 	if( !afx->status ) { /* write the header line */
 	    const char *s;
-	    strlist_t comment=opt.comments;
 
 	    if( afx->what >= DIM(head_strings) )
 		log_bug("afx->what=%d", afx->what);
@@ -1126,25 +1125,6 @@ armor_filter( void *opaque, int control,
 	    iobuf_writestr(a, head_strings[afx->what] );
 	    iobuf_writestr(a, "-----" );
 	    iobuf_writestr(a,(const char*) (afx->eol));
-
-	    /* write the comment strings */
-	    for(s=comment->d;comment;comment=comment->next,s=comment->d)
-	      {
-		iobuf_writestr(a, "Comment: " );
-		for( ; *s; s++ )
-		  {
-		    if( *s == '\n' )
-		      iobuf_writestr(a, "\\n" );
-		    else if( *s == '\r' )
-		      iobuf_writestr(a, "\\r" );
-		    else if( *s == '\v' )
-		      iobuf_writestr(a, "\\v" );
-		    else
-		      iobuf_put(a, *s );
-		  }
-
-		iobuf_writestr(a,(const char*) (afx->eol));
-	      }
 
 	    if ( afx->hdrlines ) {
                 for ( s = afx->hdrlines; *s; s++ ) {

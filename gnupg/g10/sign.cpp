@@ -654,7 +654,6 @@ write_plaintext_packet (IOBUF out, IOBUF inp, const char *fname, int ptmode)
     {
         PACKET pkt;
 
-        pt->timestamp = make_timestamp ();
         pt->mode = ptmode;
         pt->len = filesize;
         pt->new_ctb = !pt->len;

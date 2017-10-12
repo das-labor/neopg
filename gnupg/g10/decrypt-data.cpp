@@ -237,7 +237,7 @@ decrypt_data (ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek)
     {
       char *filename = NULL;
       estream_t fp;
-      rc = get_output_file ((const byte*) (""), 0, ed->buf, &filename, &fp);
+      rc = get_output_file (ed->buf, &filename, &fp);
       if (! rc)
         {
           iobuf_t output = iobuf_esopen (fp, "w", 0);

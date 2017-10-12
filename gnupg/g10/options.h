@@ -146,8 +146,6 @@ struct options
   int force_ownertrust;
   enum gnupg_compliance_mode compliance;
   int keyid_format;
-  const char *set_filename;
-  strlist_t comments;
   int throw_keyids;
   int s2k_mode;
   int s2k_digest_algo;
@@ -227,7 +225,6 @@ struct options
        an error (but an invalid backsig still is). */
     unsigned int require_cross_cert:1;
 
-    unsigned int use_embedded_filename:1;
     unsigned int utf8_filename:1;
     unsigned int dsa2:1;
     unsigned int allow_multiple_messages:1;

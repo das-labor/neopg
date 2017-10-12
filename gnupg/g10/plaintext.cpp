@@ -42,18 +42,13 @@
 /* Get the output filename.  On success, the actual filename that is
    used is set in *FNAMEP and a filepointer is returned in *FP.
 
-   EMBEDDED_NAME AND EMBEDDED_NAMELEN are normally stored in a
-   plaintext packet.  EMBEDDED_NAMELEN should not include any NUL
-   terminator (EMBEDDED_NAME does not need to be NUL terminated).
-
    DATA is the iobuf containing the input data.  We just use it to get
    the input file's filename.
 
    On success, the caller is responsible for calling xfree on *FNAMEP
    and calling es_close on *FPP.  */
 gpg_error_t
-get_output_file (const byte *embedded_name, int embedded_namelen,
-                 iobuf_t data, char **fnamep, estream_t *fpp)
+get_output_file (iobuf_t data, char **fnamep, estream_t *fpp)
 {
   gpg_error_t err = 0;
   char *fname = NULL;
@@ -79,25 +74,18 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
           goto leave;
         }
     }
-  else if (embedded_namelen == 8 && !memcmp (embedded_name, "_CONSOLE", 8))
-    {
-      log_info (_("data not saved; use option \"--output\" to save it\n"));
-      nooutput = 1;
-    }
-  else if (!opt.flags.use_embedded_filename)
+  else
     {
       if (data)
         fname = make_outfile_name (iobuf_get_real_fname (data));
       if (!fname)
-	fname = ask_outfile_name ((const char*) (embedded_name), embedded_namelen);
+	fname = ask_outfile_name (NULL, 0);
       if (!fname)
 	{
 	  err = GPG_ERR_GENERAL;	/* Can't create file. */
 	  goto leave;
 	}
     }
-  else
-    fname = utf8_to_native ((const char*) (embedded_name), embedded_namelen, 0);
 
   if (nooutput)
     ;
@@ -215,9 +203,8 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
       es_fflush (es_stdout);
 
       snprintf (status, sizeof status,
-                "%X %lu ", (byte) pt->mode, (unsigned long) pt->timestamp);
-      write_status_text_and_buffer (STATUS_PLAINTEXT,
-				    status, pt->name, pt->namelen, 0);
+                "%X ", (byte) pt->mode);
+      write_status_text (STATUS_PLAINTEXT, status);
 
       if (!pt->is_partial)
 	{
@@ -228,7 +215,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 
   if (! nooutput)
     {
-      err = get_output_file ((const byte*) (pt->name), pt->namelen, pt->buf, &fname, &fp);
+      err = get_output_file (pt->buf, &fname, &fp);
       if (err)
         goto leave;
     }
@@ -739,33 +726,8 @@ setup_plaintext_name (const char *filename, IOBUF iobuf)
 {
   PKT_plaintext *pt;
 
-  if ((filename && !iobuf_is_pipe_filename (filename))
-       || (opt.set_filename && !iobuf_is_pipe_filename (opt.set_filename)))
-    {
-      char *s;
-
-      if (opt.set_filename)
-	s = make_basename (opt.set_filename);
-      else if (filename && !opt.flags.utf8_filename)
-	{
-	  char *tmp = native_to_utf8 (filename);
-	  s = make_basename (tmp);
-	  xfree (tmp);
-	}
-      else
-	s = make_basename (filename);
-
-      pt = (PKT_plaintext*) xmalloc (sizeof *pt + strlen (s) - 1);
-      pt->namelen = strlen (s);
-      memcpy (pt->name, s, pt->namelen);
-      xfree (s);
-    }
-  else
-    {
-      /* no filename */
-      pt = (PKT_plaintext*) xmalloc (sizeof *pt - 1);
-      pt->namelen = 0;
-    }
+  /* no filename */
+  pt = (PKT_plaintext*) xmalloc (sizeof *pt);
 
   return pt;
 }
