@@ -108,8 +108,6 @@ struct options
   int no_armor;
   int list_packets; /* Option --list-packets active.  */
   int def_cipher_algo;
-  int force_mdc;
-  int disable_mdc;
   int def_digest_algo;
   int cert_digest_algo;
   int compress_algo;
@@ -185,7 +183,6 @@ struct options
   prefitem_t *personal_compress_prefs;
   struct weakhash *weak_digests;
   int no_perm_warn;
-  int no_mdc_warn;
   char *temp_dir;
   int no_encrypt_to;
   int encrypt_to_default_key;
@@ -206,7 +203,6 @@ struct options
   int ignore_time_conflict;
   int ignore_valid_from;
   int ignore_crc_error;
-  int ignore_mdc_error;
   int command_fd;
   const char *override_session_key;
   int show_session_key;

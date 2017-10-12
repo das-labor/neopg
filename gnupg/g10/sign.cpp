@@ -1328,8 +1328,6 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
         goto leave;
     }
 
-    cfx.dek->use_mdc = use_mdc (NULL, cfx.dek->algo);
-
     /* now create the outfile */
     rc = open_outfile (-1, fname, opt.armor? 1:0, 0, &out);
     if (rc)
@@ -1372,7 +1370,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     /* Push the compress filter */
     if (default_compress_algo())
       {
-        if (cfx.dek && cfx.dek->use_mdc)
+        if (cfx.dek)
           zfx.new_ctb = 1;
         push_compress_filter (out, &zfx,default_compress_algo() );
       }

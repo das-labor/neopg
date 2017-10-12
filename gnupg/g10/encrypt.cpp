@@ -109,60 +109,6 @@ encrypt_seskey (DEK *dek, DEK **seskey, byte *enckey)
 }
 
 
-/* We try very hard to use a MDC */
-int
-use_mdc (pk_list_t pk_list,int algo)
-{
-  /* RFC-2440 don't has MDC */
-  if (RFC2440)
-    return 0;
-
-  /* --force-mdc overrides --disable-mdc */
-  if(opt.force_mdc)
-    return 1;
-
-  if(opt.disable_mdc)
-    return 0;
-
-  /* Do the keys really support MDC? */
-
-  if(select_mdc_from_pklist(pk_list))
-    return 1;
-
-  /* The keys don't support MDC, so now we do a bit of a hack - if any
-     of the AESes or TWOFISH are in the prefs, we assume that the user
-     can handle a MDC.  This is valid for PGP 7, which can handle MDCs
-     though it will not generate them.  2440bis allows this, by the
-     way. */
-
-  if(select_algo_from_prefs(pk_list,PREFTYPE_SYM,
-			    CIPHER_ALGO_AES,NULL)==CIPHER_ALGO_AES)
-    return 1;
-
-  if(select_algo_from_prefs(pk_list,PREFTYPE_SYM,
-			    CIPHER_ALGO_AES192,NULL)==CIPHER_ALGO_AES192)
-    return 1;
-
-  if(select_algo_from_prefs(pk_list,PREFTYPE_SYM,
-			    CIPHER_ALGO_AES256,NULL)==CIPHER_ALGO_AES256)
-    return 1;
-
-  if(select_algo_from_prefs(pk_list,PREFTYPE_SYM,
-			    CIPHER_ALGO_TWOFISH,NULL)==CIPHER_ALGO_TWOFISH)
-    return 1;
-
-  /* Last try.  Use MDC for the modern ciphers. */
-
-  if (openpgp_cipher_get_algo_blklen (algo) != 8)
-    return 1;
-
-  if (opt.verbose)
-    warn_missing_mdc_from_pklist (pk_list);
-
-  return 0; /* No MDC */
-}
-
-
 /* We don't want to use use_seskey yet because older gnupg versions
    can't handle it, and there isn't really any point unless we're
    making a message that can be decrypted by a public key or
@@ -254,11 +200,9 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
       if (opt.verbose)
         log_info(_("using cipher %s\n"),
                  openpgp_cipher_algo_name ((cipher_algo_t) (cfx.dek->algo)));
-
-      cfx.dek->use_mdc=use_mdc(NULL,cfx.dek->algo);
     }
 
-  if (do_compress && cfx.dek && cfx.dek->use_mdc
+  if (do_compress && cfx.dek
       && is_file_compressed(filename, &rc))
     {
       if (opt.verbose)
@@ -358,7 +302,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
   /* Register the compress filter. */
   if ( do_compress )
     {
-      if (cfx.dek && cfx.dek->use_mdc)
+      if (cfx.dek)
         zfx.new_ctb = 1;
       push_compress_filter (out, &zfx, default_compress_algo());
     }
@@ -661,14 +605,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
                           gnupg_status_compliance_flag (CO_DE_VS),
                           NULL);
 
-  cfx.dek->use_mdc = use_mdc (pk_list,cfx.dek->algo);
-
-  /* Only do the is-file-already-compressed check if we are using a
-     MDC.  This forces compressed files to be re-compressed if we do
-     not have a MDC to give some protection against chosen ciphertext
-     attacks. */
-
-  if (do_compress && cfx.dek->use_mdc && is_file_compressed(filename, &rc2))
+  if (do_compress && is_file_compressed(filename, &rc2))
     {
       if (opt.verbose)
         log_info(_("'%s' already compressed\n"), filename);
@@ -762,7 +699,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
       /* Algo 0 means no compression. */
       if (compr_algo)
         {
-          if (cfx.dek && cfx.dek->use_mdc)
+          if (cfx.dek)
             zfx.new_ctb = 1;
           push_compress_filter (out,&zfx,compr_algo);
         }
@@ -872,7 +809,6 @@ encrypt_filter (void *opaque, int control,
 	      efx->cfx.dek->algo = opt.def_cipher_algo;
 	    }
 
-          efx->cfx.dek->use_mdc = use_mdc (efx->pk_list,efx->cfx.dek->algo);
 
           make_session_key ( efx->cfx.dek );
           if (DBG_CRYPTO)

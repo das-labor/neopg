@@ -644,31 +644,22 @@ proc_encrypted (CTX c, PACKET *pkt)
 
   if (result == -1)
     ;
-  else if (!result
-           && !opt.ignore_mdc_error
-           && !pkt->pkt.encrypted->mdc_method
-           && openpgp_cipher_get_algo_blklen ((cipher_algo_t)c->dek->algo) != 8
-           && c->dek->algo != CIPHER_ALGO_TWOFISH)
+  else if (!result && !pkt->pkt.encrypted->mdc_method)
     {
-      /* The message has been decrypted but has no MDC despite that a
-         modern cipher (blocklength != 64 bit, except for Twofish) is
-         used and the option to ignore MDC errors is not used: To
-         avoid attacks changing an MDC message to a non-MDC message,
-         we fail here.  */
+      /* The message has been decrypted but has no MDC.  */
       log_error (_("WARNING: message was not integrity protected\n"));
       if (opt.verbose > 1)
         log_info ("decryption forced to fail\n");
       write_status (STATUS_DECRYPTION_FAILED);
     }
-  else if (!result || (result == GPG_ERR_BAD_SIGNATURE
-                       && opt.ignore_mdc_error))
+  else if (!result)
     {
       write_status (STATUS_DECRYPTION_OKAY);
       if (opt.verbose > 1)
         log_info(_("decryption okay\n"));
       if (pkt->pkt.encrypted->mdc_method && !result)
         write_status (STATUS_GOODMDC);
-      else if (!opt.no_mdc_warn)
+      else
         log_info (_("WARNING: message was not integrity protected\n"));
     }
   else if (result == GPG_ERR_BAD_SIGNATURE)

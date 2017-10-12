@@ -265,7 +265,6 @@ enum cmd_and_opt_values
     oRequireSecmem,
     oNoRequireSecmem,
     oNoPermissionWarn,
-    oNoMDCWarn,
     oNoArmor,
     oNoDefKeyring,
     oNoKeyring,
@@ -296,10 +295,6 @@ enum cmd_and_opt_values
     oNoComments,
     oThrowKeyids,
     oNoThrowKeyids,
-    oForceMDC,
-    oNoForceMDC,
-    oDisableMDC,
-    oNoDisableMDC,
     oS2KMode,
     oS2KDigest,
     oS2KCipher,
@@ -345,7 +340,6 @@ enum cmd_and_opt_values
     oIgnoreTimeConflict,
     oIgnoreValidFrom,
     oIgnoreCrcError,
-    oIgnoreMDCError,
     oShowSessionKey,
     oOverrideSessionKey,
     oOverrideSessionKeyFD,
@@ -586,11 +580,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oQuiet,	  "quiet",   "@"),
   ARGPARSE_s_n (oNoTTY,   "no-tty",  "@"),
 
-  ARGPARSE_s_n (oForceMDC, "force-mdc", "@"),
-  ARGPARSE_s_n (oNoForceMDC, "no-force-mdc", "@"),
-  ARGPARSE_s_n (oDisableMDC, "disable-mdc", "@"),
-  ARGPARSE_s_n (oNoDisableMDC, "no-disable-mdc", "@"),
-
   ARGPARSE_s_n (oDisableSignerUID, "disable-signer-uid", "@"),
 
   ARGPARSE_s_n (oDryRun, "dry-run", N_("do not make any changes")),
@@ -708,7 +697,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oRequireSecmem, "require-secmem", "@"),
   ARGPARSE_s_n (oNoRequireSecmem, "no-require-secmem", "@"),
   ARGPARSE_s_n (oNoPermissionWarn, "no-permission-warning", "@"),
-  ARGPARSE_s_n (oNoMDCWarn, "no-mdc-warning", "@"),
   ARGPARSE_s_n (oNoArmor, "no-armor", "@"),
   ARGPARSE_s_n (oNoArmor, "no-armour", "@"),
   ARGPARSE_s_n (oNoDefKeyring, "no-default-keyring", "@"),
@@ -788,7 +776,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oIgnoreTimeConflict, "ignore-time-conflict", "@"),
   ARGPARSE_s_n (oIgnoreValidFrom,    "ignore-valid-from", "@"),
   ARGPARSE_s_n (oIgnoreCrcError, "ignore-crc-error", "@"),
-  ARGPARSE_s_n (oIgnoreMDCError, "ignore-mdc-error", "@"),
   ARGPARSE_s_n (oShowSessionKey, "show-session-key", "@"),
   ARGPARSE_s_s (oOverrideSessionKey, "override-session-key", "@"),
   ARGPARSE_s_i (oOverrideSessionKeyFD, "override-session-key-fd", "@"),
@@ -2071,7 +2058,6 @@ set_compliance_option (enum cmd_and_opt_values option)
     case oDE_VS:
       set_compliance_option (oOpenPGP);
       opt.compliance = CO_DE_VS;
-      opt.force_mdc = 1;
       /* Fixme: Change other options.  */
       break;
 
@@ -2828,11 +2814,6 @@ gpg_main (int argc, char **argv)
 	  case oThrowKeyids: opt.throw_keyids = 1; break;
 	  case oNoThrowKeyids: opt.throw_keyids = 0; break;
 
-	  case oForceMDC: opt.force_mdc = 1; break;
-	  case oNoForceMDC: opt.force_mdc = 0; break;
-	  case oDisableMDC: opt.disable_mdc = 1; break;
-	  case oNoDisableMDC: opt.disable_mdc = 0; break;
-
           case oDisableSignerUID: opt.flags.disable_signer_uid = 1; break;
 
 	  case oS2KMode:   opt.s2k_mode = pargs.r.ret_int; break;
@@ -3009,7 +2990,6 @@ gpg_main (int argc, char **argv)
 	  case oRequireSecmem: require_secmem=1; break;
 	  case oNoRequireSecmem: require_secmem=0; break;
 	  case oNoPermissionWarn: opt.no_perm_warn=1; break;
-	  case oNoMDCWarn: opt.no_mdc_warn=1; break;
           case oDisplayCharset:
 	    if( set_native_charset( pargs.r.ret_str ) )
 		log_error(_("'%s' is not a valid character set\n"),
@@ -3192,7 +3172,6 @@ gpg_main (int argc, char **argv)
 	  case oIgnoreTimeConflict: opt.ignore_time_conflict = 1; break;
 	  case oIgnoreValidFrom: opt.ignore_valid_from = 1; break;
 	  case oIgnoreCrcError: opt.ignore_crc_error = 1; break;
-	  case oIgnoreMDCError: opt.ignore_mdc_error = 1; break;
 	  case oNoRandomSeedFile: use_random_seed = 0; break;
 	  case oAutoKeyRetrieve:
 	  case oNoAutoKeyRetrieve:
@@ -3528,7 +3507,6 @@ gpg_main (int argc, char **argv)
       {
         /* That does not anymore work because we have no more support
            for v3 signatures.  */
-	opt.disable_mdc=1;
 	opt.escape_from=1;
 	opt.ask_sig_expire=0;
       }

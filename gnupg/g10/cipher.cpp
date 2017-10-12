@@ -56,12 +56,11 @@ write_header( cipher_filter_context_t *cfx, IOBUF a )
     ed.len = cfx->datalen;
     ed.extralen = blocksize+2;
     ed.new_ctb = !ed.len;
-    if( cfx->dek->use_mdc ) {
-	ed.mdc_method = DIGEST_ALGO_SHA1;
-	gcry_md_open (&cfx->mdc_hash, DIGEST_ALGO_SHA1, 0);
-	if ( DBG_HASHING )
-	    gcry_md_debug (cfx->mdc_hash, "creatmdc");
-    }
+
+    ed.mdc_method = DIGEST_ALGO_SHA1;
+    gcry_md_open (&cfx->mdc_hash, DIGEST_ALGO_SHA1, 0);
+    if ( DBG_HASHING )
+      gcry_md_debug (cfx->mdc_hash, "creatmdc");
 
     {
         char buf[20];
@@ -71,7 +70,7 @@ write_header( cipher_filter_context_t *cfx, IOBUF a )
     }
 
     init_packet( &pkt );
-    pkt.pkttype = cfx->dek->use_mdc? PKT_ENCRYPTED_MDC : PKT_ENCRYPTED;
+    pkt.pkttype = PKT_ENCRYPTED_MDC;
     pkt.pkt.encrypted = &ed;
     if( build_packet( a, &pkt ))
 	log_bug("build_packet(ENCR_DATA) failed\n");
@@ -83,9 +82,7 @@ write_header( cipher_filter_context_t *cfx, IOBUF a )
     err = openpgp_cipher_open (&cfx->cipher_hd,
 			       cfx->dek->algo,
 			       GCRY_CIPHER_MODE_CFB,
-			       (GCRY_CIPHER_SECURE
-				| ((cfx->dek->use_mdc || cfx->dek->algo >= 100)?
-				   0 : GCRY_CIPHER_ENABLE_SYNC)));
+			       GCRY_CIPHER_SECURE);
     if (err) {
 	/* We should never get an error here cause we already checked,
 	 * that the algorithm is available.  */
