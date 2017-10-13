@@ -63,3 +63,6 @@ windows
 
 macos
 - brew (homebrew)
+ascii armor default
+auto keylocate default auto keyretrieve
+dirmngr: hkps connections should default to system trust if --hkp-cacert is not given

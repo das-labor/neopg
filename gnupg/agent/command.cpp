@@ -73,9 +73,6 @@ struct server_local_s
      takes precedence over this flag.  */
   unsigned int use_cache_for_signing : 1;
 
-  /* Flag to suppress I/O logging during a command.  */
-  unsigned int pause_io_logging : 1;
-
   /* An allocated description for the next key operation.  This is
      used if a pinnetry needs to be popped up.  */
   char *keydesc;
