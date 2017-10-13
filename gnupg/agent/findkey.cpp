@@ -912,7 +912,7 @@ agent_key_from_file (ctrl_t ctrl, const char *cache_nonce,
               assert (n);
               *shadow_info = (unsigned char*) xtrymalloc (n);
               if (!*shadow_info)
-                rc = out_of_core ();
+                rc = gpg_error_from_syserror ();
               else
                 {
                   memcpy (*shadow_info, s, n);

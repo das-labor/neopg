@@ -382,7 +382,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
     }
   if (!outbuf)
     {
-      rc = out_of_core ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
 
@@ -411,7 +411,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
 
       key = (unsigned char*) gcry_malloc_secure (keylen);
       if (!key)
-        rc = out_of_core ();
+        rc = gpg_error_from_syserror ();
       else
         {
           rc = hash_passphrase (passphrase, GCRY_MD_SHA1,
@@ -532,7 +532,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
        enclen, &encpos, enclen, "");
     if (!p)
       {
-        gpg_error_t tmperr = out_of_core ();
+        gpg_error_t tmperr = gpg_error_from_syserror ();
         xfree (iv);
         xfree (outbuf);
         return tmperr;
@@ -703,7 +703,7 @@ agent_protect (const unsigned char *plainkey, const char *passphrase,
   *result = p = (unsigned char*) xtrymalloc (*resultlen);
   if (!p)
     {
-      gpg_error_t tmperr = out_of_core ();
+      gpg_error_t tmperr = gpg_error_from_syserror ();
       xfree (protecteder);
       return tmperr;
     }
@@ -768,7 +768,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
 
   outbuf = (unsigned char*) gcry_malloc_secure (protectedlen);
   if (!outbuf)
-    rc = out_of_core ();
+    rc = gpg_error_from_syserror ();
 
   /* Hash the passphrase and set the key.  */
   if (!rc)
@@ -777,7 +777,7 @@ do_decryption (const unsigned char *aad_begin, size_t aad_len,
 
       key = (unsigned char*) gcry_malloc_secure (prot_cipher_keylen);
       if (!key)
-        rc = out_of_core ();
+        rc = gpg_error_from_syserror ();
       else
         {
           rc = hash_passphrase (passphrase, GCRY_MD_SHA1,
@@ -892,7 +892,7 @@ merge_lists (const unsigned char *protectedkey,
   newlistlen += n;
   newlist = (unsigned char*) gcry_malloc_secure (newlistlen);
   if (!newlist)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   /* Copy the initial segment */
   strcpy ((char*)newlist, "(11:private-key");
@@ -1532,7 +1532,7 @@ agent_shadow_key (const unsigned char *pubkey,
   *result = (unsigned char*) xtrymalloc (n);
   p = (char*)*result;
   if (!p)
-      return out_of_core ();
+      return gpg_error_from_syserror ();
   p = stpcpy (p, "(20:shadowed-private-key");
   /* (10:public-key ...)*/
   memcpy (p, pubkey+14, point - (pubkey+14));

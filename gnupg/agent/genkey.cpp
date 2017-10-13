@@ -50,7 +50,7 @@ store_key (gcry_sexp_t privater, const char *passphrase, int force,
   assert (len);
   buf = (unsigned char*) gcry_malloc_secure (len);
   if (!buf)
-      return out_of_core ();
+      return gpg_error_from_syserror ();
   len = gcry_sexp_sprint (privater, GCRYSEXP_FMT_CANON, buf, len);
   assert (len);
 
@@ -293,7 +293,7 @@ agent_genkey (ctrl_t ctrl, const char *cache_nonce,
   buf = (char*) xtrymalloc (len);
   if (!buf)
     {
-      gpg_error_t tmperr = out_of_core ();
+      gpg_error_t tmperr = gpg_error_from_syserror ();
       gcry_sexp_release (s_private);
       gcry_sexp_release (s_public);
       return tmperr;

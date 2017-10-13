@@ -410,7 +410,7 @@ cmd_learn (assuan_context_t ctx, char *line)
 
       reader = apdu_get_reader_name (app->slot);
       if (!reader)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       send_status_direct (ctrl, "READER", reader);
       /* No need to free the string of READER.  */
 
@@ -422,7 +422,7 @@ cmd_learn (assuan_context_t ctx, char *line)
       if (rc < 0)
         {
           xfree (serial);
-          return out_of_core ();
+          return gpg_error_from_syserror ();
         }
 
       if (!has_option (line, "--force"))
@@ -433,7 +433,7 @@ cmd_learn (assuan_context_t ctx, char *line)
           if (rc < 0)
             {
               xfree (serial);
-              return out_of_core ();
+              return gpg_error_from_syserror ();
             }
           rc = assuan_inquire (ctx, command, NULL, NULL, 0);
           xfree (command);
@@ -622,7 +622,7 @@ cmd_setdata (assuan_context_t ctx, char *line)
   else
     buf = (unsigned char*) xtrymalloc (n);
   if (!buf)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   if (append)
     {
@@ -744,7 +744,7 @@ cmd_pksign (assuan_context_t ctx, char *line)
      overwriting the original line with the keyid */
   keyidstr = xtrystrdup (line);
   if (!keyidstr)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   rc = app_sign (ctrl->app_ctx, ctrl,
                  keyidstr, hash_algo,
@@ -791,7 +791,7 @@ cmd_pkauth (assuan_context_t ctx, char *line)
      overwriting the original line with the keyid */
   keyidstr = xtrystrdup (line);
   if (!keyidstr)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   rc = app_auth (ctrl->app_ctx, ctrl, keyidstr, pin_cb, ctx,
                  ctrl->in_data.value, ctrl->in_data.valuelen,
@@ -830,7 +830,7 @@ cmd_pkdecrypt (assuan_context_t ctx, char *line)
 
   keyidstr = xtrystrdup (line);
   if (!keyidstr)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   rc = app_decipher (ctrl->app_ctx, ctrl, keyidstr, pin_cb, ctx,
                      ctrl->in_data.value, ctrl->in_data.valuelen,
                      &outdata, &outdatalen, &infoflags);
@@ -927,7 +927,7 @@ cmd_setattr (assuan_context_t ctx, char *orig_line)
      context and thus reuses the Assuan provided LINE. */
   line = linebuf = xtrystrdup (orig_line);
   if (!line)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   keyword = line;
   for (keywordlen=0; *line && !spacep (line); line++, keywordlen++)
@@ -983,7 +983,7 @@ cmd_writecert (assuan_context_t ctx, char *line)
 
   certid = xtrystrdup (certid);
   if (!certid)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   /* Now get the actual keydata. */
   rc = assuan_inquire (ctx, "CERTDATA",
@@ -1045,7 +1045,7 @@ cmd_writekey (assuan_context_t ctx, char *line)
 
   keyid = xtrystrdup (keyid);
   if (!keyid)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   /* Now get the actual keydata. */
   assuan_begin_confidential (ctx);
@@ -1132,7 +1132,7 @@ cmd_genkey (assuan_context_t ctx, char *line)
 
   keyno = xtrystrdup (keyno);
   if (!keyno)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   rc = app_genkey (ctrl->app_ctx, ctrl, keyno, force? 1:0,
                    timestamp, pin_cb, ctx);
   xfree (keyno);
@@ -1170,7 +1170,7 @@ cmd_random (assuan_context_t ctx, char *line)
 
   buffer = (unsigned char*) xtrymalloc (nbytes);
   if (!buffer)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   rc = app_get_challenge (ctrl->app_ctx, ctrl, nbytes, buffer);
   if (!rc)
@@ -1223,7 +1223,7 @@ cmd_passwd (assuan_context_t ctx, char *line)
 
   chvnostr = xtrystrdup (chvnostr);
   if (!chvnostr)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   rc = app_change_pin (ctrl->app_ctx, ctrl, chvnostr, flags, pin_cb, ctx);
   if (rc)
     log_error ("command passwd failed: %s\n", gpg_strerror (rc));
@@ -1283,7 +1283,7 @@ cmd_checkpin (assuan_context_t ctx, char *line)
      overwriting the original line with the keyid. */
   idstr = xtrystrdup (line);
   if (!idstr)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
 
   rc = app_check_pin (ctrl->app_ctx, ctrl, idstr, pin_cb, ctx);
   xfree (idstr);

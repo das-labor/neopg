@@ -115,7 +115,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
 
       frame = (unsigned char*) xtrymalloc (nframe);
       if (!frame)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       memcpy (frame, gcry_md_read (md, algo), nframe);
       n = nframe;
       /* Truncate.  */
@@ -157,7 +157,7 @@ do_encode_md (gcry_md_hd_t md, int algo, int pkalgo, unsigned int nbits,
        */
       frame = (unsigned char*) xtrymalloc (nframe);
       if (!frame)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       n = 0;
       frame[n++] = 0;
       frame[n++] = 1; /* block type */

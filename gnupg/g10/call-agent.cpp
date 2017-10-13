@@ -339,7 +339,7 @@ get_serialno_cb (void *opaque, const char *line)
         return GPG_ERR_ASS_PARAMETER;
       *serialno = (char*) xtrymalloc (n+1);
       if (!*serialno)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       memcpy (*serialno, line, n);
       (*serialno)[n] = 0;
     }

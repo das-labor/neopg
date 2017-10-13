@@ -221,7 +221,7 @@ gpgsm_agent_pksign (ctrl_t ctrl, const char *keygrip, const char *desc,
       return GPG_ERR_INV_VALUE;
     }
 
-  return *r_buf? 0 : out_of_core ();
+  return *r_buf? 0 : gpg_error_from_syserror ();
 }
 
 

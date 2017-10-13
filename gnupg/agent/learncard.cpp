@@ -142,7 +142,7 @@ kpinfo_cb (void *opaque, const char *line)
   item = (KEYPAIR_INFO) xtrycalloc (1, sizeof *item + strlen (line));
   if (!item)
     {
-      parm->error = out_of_core ();
+      parm->error = gpg_error_from_syserror ();
       return;
     }
   strcpy (item->hexgrip, line);
@@ -211,7 +211,7 @@ certinfo_cb (void *opaque, const char *line)
   item = (CERTINFO) xtrycalloc (1, sizeof *item + strlen (p));
   if (!item)
     {
-      parm->error = out_of_core ();
+      parm->error = gpg_error_from_syserror ();
       return;
     }
   item->type = type;
@@ -237,7 +237,7 @@ sinfo_cb (void *opaque, const char *keyword, size_t keywordlen,
   item = (SINFO) xtrycalloc (1, sizeof *item + keywordlen + 1 + strlen (data));
   if (!item)
     {
-      sparm->error = out_of_core ();
+      sparm->error = gpg_error_from_syserror ();
       return;
     }
   memcpy (item->keyword, keyword, keywordlen);

@@ -340,7 +340,7 @@ start_pinentry (ctrl_t ctrl)
     {
       char *optstr;
       if (asprintf (&optstr, "OPTION lc-ctype=%s", ctrl->lc_ctype) < 0 )
-	return unlock_pinentry (out_of_core ());
+	return unlock_pinentry (gpg_error_from_syserror ());
       rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
 			    NULL);
       xfree (optstr);
@@ -351,7 +351,7 @@ start_pinentry (ctrl_t ctrl)
     {
       char *optstr;
       if (asprintf (&optstr, "OPTION lc-messages=%s", ctrl->lc_messages) < 0 )
-	return unlock_pinentry (out_of_core ());
+	return unlock_pinentry (gpg_error_from_syserror ());
       rc = assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
 			    NULL);
       xfree (optstr);
@@ -410,7 +410,7 @@ start_pinentry (ctrl_t ctrl)
         if (*s == '|' && (s2=strchr (s+1,'|')))
           s = s2+1;
         if (asprintf (&optstr, "OPTION default-%s=%s", tbl[idx].key, s) < 0 )
-          return unlock_pinentry (out_of_core ());
+          return unlock_pinentry (gpg_error_from_syserror ());
         assuan_transact (entry_ctx, optstr, NULL, NULL, NULL, NULL, NULL,
                          NULL);
         xfree (optstr);
@@ -860,7 +860,7 @@ agent_get_passphrase (ctrl_t ctrl,
   parm.size = ASSUAN_LINELENGTH/2 - 5;
   parm.buffer = (unsigned char*) gcry_malloc_secure (parm.size+10);
   if (!parm.buffer)
-    return unlock_pinentry (out_of_core ());
+    return unlock_pinentry (gpg_error_from_syserror ());
 
   saveflag = assuan_get_flag (entry_ctx, ASSUAN_CONFIDENTIAL);
   assuan_begin_confidential (entry_ctx);

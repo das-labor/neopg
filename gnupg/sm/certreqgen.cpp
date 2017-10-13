@@ -837,7 +837,7 @@ create_request (ctrl_t ctrl,
       buf = (char*) xtrymalloc (strlen (s) + 3);
       if (!buf)
         {
-          rc = out_of_core ();
+          rc = gpg_error_from_syserror ();
           goto leave;
         }
       *buf = '<';
@@ -862,7 +862,7 @@ create_request (ctrl_t ctrl,
       buf = p = (char*) xtrymalloc (11 + strlen (numbuf) + len + 3);
       if (!buf)
         {
-          rc = out_of_core ();
+          rc = gpg_error_from_syserror ();
           goto leave;
         }
       p = stpcpy (p, "(8:dns-name");
@@ -889,7 +889,7 @@ create_request (ctrl_t ctrl,
       buf = p = (char*) xtrymalloc (6 + strlen (numbuf) + len + 3);
       if (!buf)
         {
-          rc = out_of_core ();
+          rc = gpg_error_from_syserror ();
           goto leave;
         }
       p = stpcpy (p, "(3:uri");

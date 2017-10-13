@@ -581,7 +581,7 @@ gnupg_ksba_create_reader (gnupg_ksba_io_t *ctx,
   *r_reader = NULL;
   *ctx = (gnupg_ksba_io_t) xtrycalloc (1, sizeof **ctx);
   if (!*ctx)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   (*ctx)->u.rparm.allow_multi_pem = !!(flags & GNUPG_KSBA_IO_MULTIPEM);
 
   rc = ksba_reader_new (&r);

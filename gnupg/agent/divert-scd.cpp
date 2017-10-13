@@ -119,7 +119,7 @@ ask_for_card (ctrl_t ctrl, const unsigned char *shadow_info, char **r_kid)
                              "insert the one with serial number"),
                         want_sn_disp) < 0)
             {
-              rc = out_of_core ();
+              rc = gpg_error_from_syserror ();
             }
           else
             {
@@ -164,7 +164,7 @@ encode_md_for_card (const unsigned char *digest, size_t digestlen, int algo,
 
   frame = (unsigned char*) xtrymalloc (asnlen + digestlen);
   if (!frame)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   memcpy (frame, asn, asnlen);
   memcpy (frame+asnlen, digest, digestlen);
   if (DBG_CRYPTO)

@@ -121,7 +121,7 @@ write_and_clear_outbuf (assuan_context_t ctx, membuf_t *mb)
 
   p = get_membuf (mb, &n);
   if (!p)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   ae = assuan_send_data (ctx, p, n);
   memset (p, 0, n);
   xfree (p);
@@ -521,7 +521,7 @@ cmd_setkeydesc (assuan_context_t ctx, char *line)
 
   ctrl->server_local->keydesc = xtrystrdup (desc);
   if (!ctrl->server_local->keydesc)
-    return out_of_core ();
+    return gpg_error_from_syserror ();
   return 0;
 }
 
@@ -2106,7 +2106,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
         xfree (ctrl->lc_ctype);
       ctrl->lc_ctype = xtrystrdup (value);
       if (!ctrl->lc_ctype)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
     }
   else if (!strcmp (key, "lc-messages"))
     {
@@ -2114,7 +2114,7 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
         xfree (ctrl->lc_messages);
       ctrl->lc_messages = xtrystrdup (value);
       if (!ctrl->lc_messages)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
     }
   else if (!strcmp (key, "use-cache-for-signing"))
     ctrl->server_local->use_cache_for_signing = *value? !!atoi (value) : 0;

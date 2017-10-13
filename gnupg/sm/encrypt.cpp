@@ -423,7 +423,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   /* Create a session key */
   dek = (DEK) xtrycalloc_secure (1, sizeof *dek);
   if (!dek)
-    rc = out_of_core ();
+    rc = gpg_error_from_syserror ();
   else
   {
     dek->algoid = opt.def_cipher_algoid;
@@ -451,7 +451,7 @@ gpgsm_encrypt (ctrl_t ctrl, certlist_t recplist, int data_fd, estream_t out_fp)
   encparm.buffer = (unsigned char*) xtrymalloc (encparm.bufsize);
   if (!encparm.buffer)
     {
-      rc = out_of_core ();
+      rc = gpg_error_from_syserror ();
       goto leave;
     }
 

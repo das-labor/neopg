@@ -718,7 +718,7 @@ gpgsm_dirmngr_lookup (ctrl_t ctrl, strlist_t names, int cache_only,
       else
 	release_dirmngr2 (ctrl);
 
-      return out_of_core ();
+      return gpg_error_from_syserror ();
     }
   snprintf (line, DIM(line), "LOOKUP%s %s",
             cache_only? " --cache-only":"", pattern);
@@ -931,7 +931,7 @@ gpgsm_dirmngr_run_command (ctrl_t ctrl, const char *command,
   if (!line)
     {
       release_dirmngr (ctrl);
-      return out_of_core ();
+      return gpg_error_from_syserror ();
     }
 
   p = stpcpy (line, command);

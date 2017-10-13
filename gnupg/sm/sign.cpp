@@ -411,7 +411,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       signerlist = (certlist_t) xtrycalloc (1, sizeof *signerlist);
       if (!signerlist)
         {
-          rc = out_of_core ();
+          rc = gpg_error_from_syserror ();
           ksba_cert_release (cert);
           goto leave;
         }

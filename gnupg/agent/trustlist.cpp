@@ -668,7 +668,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
   if (!desc)
     {
       xfree (nameformatted);
-      return out_of_core ();
+      return gpg_error_from_syserror ();
     }
   err = agent_get_confirmation (ctrl, desc, L_("Yes"), L_("No"), 1);
   xfree (desc);
@@ -687,7 +687,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
   if (!fprformatted)
     {
       xfree (nameformatted);
-      return out_of_core ();
+      return gpg_error_from_syserror ();
     }
 
   /* If the user trusts this certificate he has to verify the
@@ -712,7 +712,7 @@ agent_marktrusted (ctrl_t ctrl, const char *name, const char *fpr, int flag)
         {
           xfree (fprformatted);
           xfree (nameformatted);
-          return out_of_core ();
+          return gpg_error_from_syserror ();
         }
 
       /* TRANSLATORS: "Correct" is the label of a button and intended

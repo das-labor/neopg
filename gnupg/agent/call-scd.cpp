@@ -574,7 +574,7 @@ get_serialno_cb (void *opaque, const char *line)
         return GPG_ERR_ASS_PARAMETER;
       *serialno = (char*) xtrymalloc (n+1);
       if (!*serialno)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       memcpy (*serialno, line, n);
       (*serialno)[n] = 0;
     }
@@ -632,7 +632,7 @@ inq_needpin (void *opaque, const char *line)
       pinlen = 90;
       pin = (char*) gcry_malloc_secure (pinlen);
       if (!pin)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
 
       rc = parm->getpin_cb (parm->getpin_cb_arg, parm->getpin_cb_desc,
                             line, pin, pinlen);

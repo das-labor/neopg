@@ -293,7 +293,7 @@ gpgsm_add_cert_to_certlist (ctrl_t ctrl, ksba_cert_t cert,
     {
       certlist_t cl = (certlist_t) xtrycalloc (1, sizeof *cl);
       if (!cl)
-        return out_of_core ();
+        return gpg_error_from_syserror ();
       cl->cert = cert;
       ksba_cert_ref (cert);
       cl->next = *listaddr;
@@ -451,7 +451,7 @@ gpgsm_add_to_certlist (ctrl_t ctrl, const char *name, int secret,
                 {
                   certlist_t cl = (certlist_t) xtrycalloc (1, sizeof *cl);
                   if (!cl)
-                    rc = out_of_core ();
+                    rc = gpg_error_from_syserror ();
                   else
                     {
                       cl->cert = cert; cert = NULL;

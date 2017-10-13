@@ -114,16 +114,6 @@ typedef char **rl_completion_func_t (const char *, int, int);
 #define xmalloc_clear(a) gcry_xcalloc (1, (a))
 #define xmalloc_secure_clear(a) gcry_xcalloc_secure (1, (a))
 
-/* Convenience function to return a gpg-error code for memory
-   allocation failures.  This function makes sure that an error will
-   be returned even if accidentally ERRNO is not set.  */
-static inline gpg_error_t
-out_of_core (void)
-{
-  return gpg_error_from_syserror ();
-}
-
-
 /*-- yesno.c --*/
 int answer_is_yes (const char *s);
 int answer_is_yes_no_default (const char *s, int def_answer);

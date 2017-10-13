@@ -169,7 +169,7 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
   if (!ndesc)
     {
       log_error ("allocating memory for export failed: %s\n",
-                 gpg_strerror (out_of_core ()));
+                 gpg_strerror (gpg_error_from_syserror ()));
       goto leave;
     }
 
@@ -352,7 +352,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
   if (!desc)
     {
       log_error ("allocating memory for export failed: %s\n",
-                 gpg_strerror (out_of_core ()));
+                 gpg_strerror (gpg_error_from_syserror ()));
       goto leave;
     }
 

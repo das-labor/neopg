@@ -1304,7 +1304,7 @@ sm_keydb_clear_some_cert_flags (ctrl_t ctrl, strlist_t names)
   if (!ndesc)
     {
       log_error ("allocating memory failed: %s\n",
-                 gpg_strerror (out_of_core ()));
+                 gpg_strerror (gpg_error_from_syserror ()));
       goto leave;
     }
 

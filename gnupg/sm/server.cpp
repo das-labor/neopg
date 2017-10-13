@@ -664,7 +664,7 @@ cmd_export (assuan_context_t ctx, char *line)
           if (!sl)
             {
               free_strlist (list);
-              return out_of_core ();
+              return gpg_error_from_syserror ();
             }
           sl->flags = 0;
           strcpy_escaped_plus (sl->d, line);
@@ -762,7 +762,7 @@ cmd_delkeys (assuan_context_t ctx, char *line)
           if (!sl)
             {
               free_strlist (list);
-              return out_of_core ();
+              return gpg_error_from_syserror ();
             }
           sl->flags = 0;
           strcpy_escaped_plus (sl->d, line);
@@ -885,7 +885,7 @@ do_listkeys (assuan_context_t ctx, char *line, int mode)
           if (!sl)
             {
               free_strlist (list);
-              return out_of_core ();
+              return gpg_error_from_syserror ();
             }
           sl->flags = 0;
           strcpy_escaped_plus (sl->d, line);
