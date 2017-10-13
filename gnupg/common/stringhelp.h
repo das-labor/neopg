@@ -116,8 +116,4 @@ int split_fields (char *string, char **array, int arraysize);
 /* Format a string so that it fits within about TARGET_COLS columns.  */
 char *format_text (const char *text, int target_cols, int max_cols);
 
-
-/*-- mapstrings.c --*/
-const char *map_static_macro_string (const char *string);
-
 #endif /*GNUPG_COMMON_STRINGHELP_H*/

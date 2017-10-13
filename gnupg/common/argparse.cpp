@@ -1190,7 +1190,7 @@ show_help (ARGPARSE_OPTS *opts, unsigned int flags)
         writestrings (0, "Options:", "\n", NULL);
       for (i=0; opts[i].short_opt; i++ )
         {
-          s = map_static_macro_string (_( opts[i].description ));
+          s = _( opts[i].description );
           if ( s && *s== '@' && !s[1] ) /* Hide this line.  */
             continue;
           if ( s && *s == '@' )  /* Unindented comment only line.  */
@@ -1403,7 +1403,7 @@ strusage( int level )
   const char *p = strusage_handler? strusage_handler(level) : NULL;
 
   if ( p )
-    return map_static_macro_string (p);
+    return p;
 
   switch ( level )
     {

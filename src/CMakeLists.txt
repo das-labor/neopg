@@ -497,7 +497,6 @@ add_executable(neopg
   ../gnupg/common/recsel.cpp
   ../gnupg/common/gpgrlhelp.cpp
   ../gnupg/common/homedir.cpp
-  ../gnupg/common/mapstrings.cpp
   ../gnupg/common/miscellaneous.cpp
   ../gnupg/common/init.cpp
   ../gnupg/common/percent.cpp
