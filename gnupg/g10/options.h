@@ -186,7 +186,6 @@ struct options
   strlist_t sig_subpackets;
   int allow_non_selfsigned_uid;
   int allow_freeform_uid;
-  int fast_list_mode;
   int ignore_time_conflict;
   int ignore_valid_from;
   int ignore_crc_error;
@@ -196,7 +195,6 @@ struct options
 
   const char *gpg_agent_info;
   int try_all_secrets;
-  int no_expensive_trust_checks;
   int no_sig_cache;
   int no_auto_check_trustdb;
   int preserve_permissions;

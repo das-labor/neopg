@@ -132,8 +132,6 @@ enum cmd_and_opt_values
     aQuickRevUid,
     aQuickSetExpire,
     aQuickSetPrimaryUid,
-    aListConfig,
-    aListGcryptConfig,
     aGPGConfList,
     aGPGConfTest,
     aListPackets,
@@ -312,7 +310,6 @@ enum cmd_and_opt_values
     oAllowFreeformUID,
     oNoAllowFreeformUID,
     oAllowSecretKeyImport,
-    oFastListMode,
     oListOnly,
     oIgnoreTimeConflict,
     oIgnoreValidFrom,
@@ -328,7 +325,6 @@ enum cmd_and_opt_values
     oMergeOnly,
     oTryAllSecrets,
     oTrustedKey,
-    oNoExpensiveTrustChecks,
     oNoSigCache,
     oAutoCheckTrustDB,
     oNoAutoCheckTrustDB,
@@ -460,8 +456,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aCardEdit,   "card-edit", "@"),
   ARGPARSE_c (aChangePIN,  "change-pin", N_("change a card's PIN")),
 #endif
-  ARGPARSE_c (aListConfig, "list-config", "@"),
-  ARGPARSE_c (aListGcryptConfig, "list-gcrypt-config", "@"),
   ARGPARSE_c (aGPGConfList, "gpgconf-list", "@" ),
   ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@" ),
   ARGPARSE_c (aListPackets, "list-packets","@"),
@@ -704,7 +698,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoAllowNonSelfsignedUID, "no-allow-non-selfsigned-uid", "@"),
   ARGPARSE_s_n (oAllowFreeformUID,      "allow-freeform-uid", "@"),
   ARGPARSE_s_n (oNoAllowFreeformUID, "no-allow-freeform-uid", "@"),
-  ARGPARSE_s_n (oFastListMode, "fast-list-mode", "@"),
   ARGPARSE_s_n (oListOnly, "list-only", "@"),
   ARGPARSE_s_n (oPrintPKARecords, "print-pka-records", "@"),
   ARGPARSE_s_n (oPrintDANERecords, "print-dane-records", "@"),
@@ -721,7 +714,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oMergeOnly,	  "merge-only", "@" ),
   ARGPARSE_s_n (oAllowSecretKeyImport, "allow-secret-key-import", "@"),
   ARGPARSE_s_n (oTryAllSecrets,  "try-all-secrets", "@"),
-  ARGPARSE_s_n (oNoExpensiveTrustChecks, "no-expensive-trust-checks", "@"),
   ARGPARSE_s_n (oPreservePermissions, "preserve-permissions", "@"),
   ARGPARSE_s_s (oDefaultPreferenceList,  "default-preference-list", "@"),
   ARGPARSE_s_s (oDefaultKeyserverURL,  "default-keyserver-url", "@"),
@@ -1485,168 +1477,6 @@ print_algo_names(int (*checker)(int),const char *(*mapper)(int))
     }
 }
 
-/* In the future, we can do all sorts of interesting configuration
-   output here.  For now, just give "group" as the Enigmail folks need
-   it, and pubkey, cipher, hash, and compress as they may be useful
-   for frontends. */
-static void
-list_config(char *items)
-{
-  int show_all = !items;
-  char *name = NULL;
-  const char *s;
-  struct groupitem *giter;
-  int first, iter;
-
-  if(!opt.with_colons)
-    return;
-
-  while(show_all || (name=gpg_strsep(&items," ")))
-    {
-      int any=0;
-
-      if(show_all || ascii_strcasecmp(name,"group")==0)
-	{
-	  for (giter = opt.grouplist; giter; giter = giter->next)
-	    {
-	      strlist_t sl;
-
-	      es_fprintf (es_stdout, "cfg:group:");
-	      es_write_sanitized (es_stdout, giter->name, strlen(giter->name),
-                                  ":", NULL);
-	      es_putc (':', es_stdout);
-
-	      for(sl=giter->values; sl; sl=sl->next)
-		{
-		  es_write_sanitized (es_stdout, sl->d, strlen (sl->d),
-                                      ":;", NULL);
-		  if(sl->next)
-                    es_printf(";");
-		}
-
-              es_printf("\n");
-	    }
-
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp(name,"version")==0)
-	{
-	  es_printf("cfg:version:");
-	  es_write_sanitized (es_stdout, VERSION, strlen(VERSION), ":", NULL);
-          es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp(name,"pubkey")==0)
-	{
-	  es_printf ("cfg:pubkey:");
-	  print_algo_numbers (build_list_pk_test_algo);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp(name,"pubkeyname")==0)
-	{
-	  es_printf ("cfg:pubkeyname:");
-	  print_algo_names (build_list_pk_test_algo,
-                            build_list_pk_algo_name);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp(name,"cipher")==0)
-	{
-	  es_printf ("cfg:cipher:");
-	  print_algo_numbers (build_list_cipher_test_algo);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if (show_all || !ascii_strcasecmp (name,"ciphername"))
-	{
-	  es_printf ("cfg:ciphername:");
-	  print_algo_names (build_list_cipher_test_algo,
-                            build_list_cipher_algo_name);
-	  es_printf ("\n");
-	  any = 1;
-	}
-
-      if(show_all
-	 || ascii_strcasecmp(name,"digest")==0
-	 || ascii_strcasecmp(name,"hash")==0)
-	{
-	  es_printf ("cfg:digest:");
-	  print_algo_numbers (build_list_md_test_algo);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if (show_all
-          || !ascii_strcasecmp(name,"digestname")
-          || !ascii_strcasecmp(name,"hashname"))
-	{
-	  es_printf ("cfg:digestname:");
-	  print_algo_names (build_list_md_test_algo,
-                            build_list_md_algo_name);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp(name,"compress")==0)
-	{
-	  es_printf ("cfg:compress:");
-	  print_algo_numbers(check_compress_algo);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all || ascii_strcasecmp (name, "compressname") == 0)
-	{
-	  es_printf ("cfg:compressname:");
-	  print_algo_names (check_compress_algo,
-			    compress_algo_to_string);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if (show_all || !ascii_strcasecmp(name,"ccid-reader-id"))
-	{
-          /* We ignore this for GnuPG 1.4 backward compatibility.  */
-	  any=1;
-	}
-
-      if (show_all || !ascii_strcasecmp (name,"curve"))
-	{
-	  es_printf ("cfg:curve:");
-          for (iter=0, first=1; (s = openpgp_enum_curves (&iter)); first=0)
-            es_printf ("%s%s", first?"":";", s);
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      /* Curve OIDs are rarely useful and thus only printed if requested.  */
-      if (name && !ascii_strcasecmp (name,"curveoid"))
-	{
-	  es_printf ("cfg:curveoid:");
-          for (iter=0, first=1; (s = openpgp_enum_curves (&iter)); first = 0)
-            {
-              s = openpgp_curve_to_oid (s, NULL);
-              es_printf ("%s%s", first?"":";", s? s:"[?]");
-            }
-	  es_printf ("\n");
-	  any=1;
-	}
-
-      if(show_all)
-	break;
-
-      if(!any)
-	log_error(_("unknown configuration item '%s'\n"),name);
-    }
-}
-
-
 /* List options and default values in the GPG Conf format.  This is a
    new tool distributed with gnupg 1.9.x but we also want some limited
    support in older gpg versions.  The output is the name of the
@@ -2309,8 +2139,6 @@ gpg_main (int argc, char **argv)
       {
 	switch( pargs.r_opt )
 	  {
-	  case aListConfig:
-	  case aListGcryptConfig:
           case aGPGConfList:
           case aGPGConfTest:
             set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
@@ -2938,7 +2766,6 @@ gpg_main (int argc, char **argv)
 	  case oNoAllowNonSelfsignedUID: opt.allow_non_selfsigned_uid=0; break;
 	  case oAllowFreeformUID: opt.allow_freeform_uid = 1; break;
 	  case oNoAllowFreeformUID: opt.allow_freeform_uid = 0; break;
-	  case oFastListMode: opt.fast_list_mode = 1; break;
 	  case oPrintPKARecords: print_pka_records = 1; break;
 	  case oPrintDANERecords: print_dane_records = 1; break;
 	  case oListOnly: opt.list_only=1; break;
@@ -2969,7 +2796,6 @@ gpg_main (int argc, char **argv)
 	  case oTryAllSecrets: opt.try_all_secrets = 1; break;
           case oTrustedKey: register_trusted_key( pargs.r.ret_str ); break;
 
-          case oNoExpensiveTrustChecks: opt.no_expensive_trust_checks=1; break;
           case oAutoCheckTrustDB: opt.no_auto_check_trustdb=0; break;
           case oNoAutoCheckTrustDB: opt.no_auto_check_trustdb=1; break;
           case oPreservePermissions: opt.preserve_permissions=1; break;
@@ -3522,8 +3348,6 @@ gpg_main (int argc, char **argv)
       case aGenRandom:
       case aDeArmor:
       case aEnArmor:
-      case aListConfig:
-      case aListGcryptConfig:
 	break;
       case aFixTrustDB:
       case aExportOwnerTrust:
@@ -4353,21 +4177,6 @@ gpg_main (int argc, char **argv)
             wrong_args ("--change-pin [no]");
         break;
 #endif /* ENABLE_CARD_SUPPORT*/
-
-      case aListConfig:
-	{
-	  char *str=collapse_args(argc,argv);
-	  list_config(str);
-	  xfree(str);
-	}
-	break;
-
-      case aListGcryptConfig:
-        /* Fixme: It would be nice to integrate that with
-           --list-config but unfortunately there is no way yet to have
-           libgcrypt print it to an estream for further parsing.  */
-        gcry_control (GCRYCTL_PRINT_CONFIG, stdout);
-        break;
 
       case aTOFUPolicy:
 #ifdef USE_TOFU

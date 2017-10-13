@@ -3106,7 +3106,7 @@ show_key_with_all_names_colon (ctrl_t ctrl, estream_t fp, kbnode_t keyblock)
 	    es_putc ('r', fp);
 	  else if (pk->has_expired)
 	    es_putc ('e', fp);
-	  else if (!(opt.fast_list_mode || opt.no_expensive_trust_checks))
+	  else
 	    {
 	      int trust = get_validity_info (ctrl, keyblock, pk, NULL);
 	      if (trust == 'u')
@@ -3119,8 +3119,7 @@ show_key_with_all_names_colon (ctrl_t ctrl, estream_t fp, kbnode_t keyblock)
                       pk->pubkey_algo,
                       (unsigned long) keyid[0], (unsigned long) keyid[1],
                       (unsigned long) pk->timestamp, (unsigned long) pk->expiredate);
-	  if (node->pkt->pkttype == PKT_PUBLIC_KEY
-	      && !(opt.fast_list_mode || opt.no_expensive_trust_checks))
+	  if (node->pkt->pkttype == PKT_PUBLIC_KEY)
 	    es_putc (get_ownertrust_info (ctrl, pk, 0), fp);
 	  es_putc (':', fp);
 	  es_putc (':', fp);
@@ -3160,8 +3159,6 @@ show_key_with_all_names_colon (ctrl_t ctrl, estream_t fp, kbnode_t keyblock)
 	    es_fputs ("r::::::::", fp);
 	  else if (uid->flags.expired)
 	    es_fputs ("e::::::::", fp);
-	  else if (opt.fast_list_mode || opt.no_expensive_trust_checks)
-	    es_fputs ("::::::::", fp);
 	  else
 	    {
 	      int uid_validity;

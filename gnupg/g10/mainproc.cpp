@@ -1038,13 +1038,11 @@ list_node (CTX c, kbnode_t node)
 
           keyid_from_pk( pk, keyid );
           if (pk->flags.primary)
-            c->trustletter = (opt.fast_list_mode
-                              ? 0
-                              : get_validity_info
-                                  (c->ctrl,
-                                   node->pkt->pkttype == PKT_PUBLIC_KEY
-                                   ? node : NULL,
-                                   pk, NULL));
+            c->trustletter = get_validity_info
+	      (c->ctrl,
+	       node->pkt->pkttype == PKT_PUBLIC_KEY
+	       ? node : NULL,
+	       pk, NULL);
           es_printf ("%s:", pk->flags.primary? "pub":"sub" );
           if (c->trustletter)
             es_putc (c->trustletter, es_stdout);
@@ -1054,7 +1052,7 @@ list_node (CTX c, kbnode_t node)
                      (unsigned long)keyid[0],(unsigned long)keyid[1],
                      colon_datestr_from_pk( pk ),
                      colon_strtime (pk->expiredate) );
-          if (pk->flags.primary && !opt.fast_list_mode)
+          if (pk->flags.primary)
             es_putc (get_ownertrust_info (c->ctrl, pk, 1), es_stdout);
           es_putc (':', es_stdout);
           es_putc ('\n', es_stdout);
@@ -1184,7 +1182,7 @@ list_node (CTX c, kbnode_t node)
           if (opt.with_colons)
             es_putc (':', es_stdout);
 	}
-      else if (!opt.fast_list_mode)
+      else
         {
           p = get_user_id (c->ctrl, sig->keyid, &n);
           es_write_sanitized (es_stdout, p, n,

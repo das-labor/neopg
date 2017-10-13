@@ -1112,7 +1112,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	    es_fprintf (es_stdout, "[%s] ", gpg_strerror (rc));
 	  else if (sigrc == '?')
 	    ;
-	  else if (!opt.fast_list_mode)
+	  else
 	    {
 	      size_t n;
 	      char *p = get_user_id (ctrl, sig->keyid, &n);
@@ -1257,8 +1257,6 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
     trustletter_print = 'r';
   else if (pk->has_expired)
     trustletter_print = 'e';
-  else if (opt.fast_list_mode || opt.no_expensive_trust_checks)
-    trustletter_print = 0;
   else
     {
       trustletter = get_validity_info (ctrl, keyblock, pk, NULL);
@@ -1267,10 +1265,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
       trustletter_print = trustletter;
     }
 
-  if (!opt.fast_list_mode && !opt.no_expensive_trust_checks)
-    ownertrust_print = get_ownertrust_info (ctrl, pk, 0);
-  else
-    ownertrust_print = 0;
+  ownertrust_print = get_ownertrust_info (ctrl, pk, 0);
 
   keylength = nbits_from_pk (pk);
 
@@ -1341,8 +1336,6 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	    uid_validity = 'r';
 	  else if (uid->flags.expired)
 	    uid_validity = 'e';
-	  else if (opt.no_expensive_trust_checks)
-	    uid_validity = 0;
 	  else if (ulti_hack)
             uid_validity = 'u';
           else
@@ -1411,8 +1404,6 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	    es_putc ('r', es_stdout);
 	  else if (pk2->has_expired)
 	    es_putc ('e', es_stdout);
-	  else if (opt.fast_list_mode || opt.no_expensive_trust_checks)
-	    ;
 	  else
 	    {
 	      /* TRUSTLETTER should always be defined here. */
@@ -1530,7 +1521,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
 	      sigrc = ' ';
 	    }
 
-	  if (sigrc != '%' && sigrc != '?' && !opt.fast_list_mode)
+	  if (sigrc != '%' && sigrc != '?')
             siguid = get_user_id (ctrl, sig->keyid, &siguidlen);
           else
             {
