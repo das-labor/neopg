@@ -150,86 +150,6 @@ get_membuf (struct membuf *mb, size_t *len)
 }
 
 
-/* Print a warning if the server's version number is less than our
-   version number.  Returns an error code on a connection problem.  */
-static gpg_error_t
-warn_version_mismatch (ctrl_t ctrl, assuan_context_t ctx,
-                       const char *servername, int mode)
-{
-  gpg_error_t err;
-  char *serverversion;
-  const char *myversion = strusage (13);
-
-  err = get_assuan_server_version (ctx, mode, &serverversion);
-  if (err)
-    log_error (_("error getting version from '%s': %s\n"),
-               servername, gpg_strerror (err));
-  else if (compare_version_strings (serverversion, myversion) < 0)
-    {
-      char *warn;
-
-      warn = xtryasprintf (_("server '%s' is older than us (%s < %s)"),
-                           servername, serverversion, myversion);
-      if (!warn)
-        err = gpg_error_from_syserror ();
-      else
-        {
-          log_info (_("WARNING: %s\n"), warn);
-          gpgsm_status2 (ctrl, STATUS_WARNING, "server_version_mismatch 0",
-                         warn, NULL);
-          xfree (warn);
-        }
-    }
-  xfree (serverversion);
-  return err;
-}
-
-
-/* This function prepares the dirmngr for a new session.  The
-   audit-events option is used so that other dirmngr clients won't get
-   disturbed by such events.  */
-static void
-prepare_dirmngr (ctrl_t ctrl, assuan_context_t ctx, gpg_error_t err)
-{
-  struct keyserver_spec *server;
-
-  if (!err)
-    err = warn_version_mismatch (ctrl, ctx, DIRMNGR_NAME, 0);
-
-  if (!err)
-    {
-      err = assuan_transact (ctx, "OPTION audit-events=1",
-			     NULL, NULL, NULL, NULL, NULL, NULL);
-      if (err == GPG_ERR_UNKNOWN_OPTION)
-	err = 0;  /* Allow the use of old dirmngr versions.  */
-    }
-  audit_log_ok (ctrl->audit, AUDIT_DIRMNGR_READY, err);
-
-  if (!ctx || err)
-    return;
-
-  server = opt.keyserver;
-  while (server)
-    {
-      char line[ASSUAN_LINELENGTH];
-      char *user = (char*) (server->user ? server->user : "");
-      char *pass = (char*) (server->pass ? server->pass : "");
-      char *base = (char*) (server->base ? server->base : "");
-
-      snprintf (line, DIM (line), "LDAPSERVER %s:%i:%s:%s:%s",
-		server->host, server->port, user, pass, base);
-
-      assuan_transact (ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
-      /* The code below is not required because we don't return an error.  */
-      /* err = [above call]  */
-      /* if (err == GPG_ERR_ASS_UNKNOWN_CMD) */
-      /*   err = 0;  /\* Allow the use of old dirmngr versions.  *\/ */
-
-      server = server->next;
-    }
-}
-
-
 
 /* Return a new assuan context for a Dirmngr connection.  */
 static gpg_error_t
@@ -260,7 +180,6 @@ start_dirmngr_ext (ctrl_t ctrl, assuan_context_t *ctx_r)
           log_info (_("no dirmngr running in this session\n"));
         }
     }
-  prepare_dirmngr (ctrl, ctx, err);
   if (err)
     return err;
 

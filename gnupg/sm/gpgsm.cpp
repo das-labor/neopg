@@ -172,7 +172,6 @@ enum cmd_and_opt_values {
   oWithEphemeralKeys,
   oSkipVerify,
   oValidationModel,
-  oKeyServer,
   oEncryptTo,
   oNoEncryptTo,
   oLoggerFD,
@@ -207,8 +206,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aKeygen, "gen-key", "@"),
   ARGPARSE_c (aDeleteKey, "delete-keys",
               N_("remove keys from the public keyring")),
-/*ARGPARSE_c (aSendKeys, "send-keys", N_("export keys to a keyserver")),*/
-/*ARGPARSE_c (aRecvKeys, "recv-keys", N_("import keys from a keyserver")),*/
   ARGPARSE_c (aImport, "import", N_("import certificates")),
   ARGPARSE_c (aExport, "export", N_("export certificates")),
 
@@ -321,8 +318,6 @@ static ARGPARSE_OPTS opts[] = {
   /*                  N_("use the default key as default recipient")), */
   /*   ARGPARSE_s_n (oNoDefRecipient, "no-default-recipient", "@"), */
 
-  ARGPARSE_s_s (oKeyServer, "keyserver",
-                N_("|SPEC|use this keyserver to lookup keys")),
   ARGPARSE_s_s (oOptions, "options", N_("|FILE|read options from FILE")),
 
   ARGPARSE_s_s (oDebug, "debug", "@"),
@@ -740,100 +735,6 @@ parse_validation_model (const char *model)
     log_error (_("unknown validation model '%s'\n"), model);
   else
     default_validation_model = i;
-}
-
-
-/* Release the list of SERVERS.  As usual it is okay to call this
-   function with SERVERS passed as NULL.  */
-void
-keyserver_list_free (struct keyserver_spec *servers)
-{
-  while (servers)
-    {
-      struct keyserver_spec *tmp = servers->next;
-      xfree (servers->host);
-      xfree (servers->user);
-      if (servers->pass)
-        memset (servers->pass, 0, strlen (servers->pass));
-      xfree (servers->pass);
-      xfree (servers->base);
-      xfree (servers);
-      servers = tmp;
-    }
-}
-
-/* See also dirmngr ldapserver_parse_one().  */
-struct keyserver_spec *
-parse_keyserver_line (char *line,
-		      const char *filename, unsigned int lineno)
-{
-  char *p;
-  char *endp;
-  struct keyserver_spec *server;
-  int fieldno;
-  int fail = 0;
-
-  /* Parse the colon separated fields.  */
-  server = (keyserver_spec*) xcalloc (1, sizeof *server);
-  for (fieldno = 1, p = line; p; p = endp, fieldno++ )
-    {
-      endp = strchr (p, ':');
-      if (endp)
-	*endp++ = '\0';
-      trim_spaces (p);
-      switch (fieldno)
-	{
-	case 1:
-	  if (*p)
-	    server->host = xstrdup (p);
-	  else
-	    {
-	      log_error (_("%s:%u: no hostname given\n"),
-			 filename, lineno);
-	      fail = 1;
-	    }
-	  break;
-
-	case 2:
-	  if (*p)
-	    server->port = atoi (p);
-	  break;
-
-	case 3:
-	  if (*p)
-	    server->user = xstrdup (p);
-	  break;
-
-	case 4:
-	  if (*p && !server->user)
-	    {
-	      log_error (_("%s:%u: password given without user\n"),
-			 filename, lineno);
-	      fail = 1;
-	    }
-	  else if (*p)
-	    server->pass = xstrdup (p);
-	  break;
-
-	case 5:
-	  if (*p)
-	    server->base = xstrdup (p);
-	  break;
-
-	default:
-	  /* (We silently ignore extra fields.) */
-	  break;
-	}
-    }
-
-  if (fail)
-    {
-      log_info (_("%s:%u: skipping this line\n"), filename, lineno);
-      keyserver_list_free (server);
-      server = NULL;
-    }
-
-  return server;
 }
 
 
@@ -1349,24 +1250,6 @@ gpgsm_main ( int argc, char **argv)
 
         case oValidationModel: parse_validation_model (pargs.r.ret_str); break;
 
-	case oKeyServer:
-	  {
-	    struct keyserver_spec *keyserver;
-	    keyserver = parse_keyserver_line (pargs.r.ret_str,
-					      configname, configlineno);
-	    if (! keyserver)
-	      log_error (_("could not parse keyserver\n"));
-	    else
-	      {
-		/* FIXME: Keep last next pointer.  */
-		struct keyserver_spec **next_p = &opt.keyserver;
-		while (*next_p)
-		  next_p = &(*next_p)->next;
-		*next_p = keyserver;
-	      }
-	  }
-	  break;
-
         case oIgnoreCertExtension:
           add_to_strlist (&opt.ignored_cert_extensions, pargs.r.ret_str);
           break;
@@ -1697,7 +1580,6 @@ gpgsm_main ( int argc, char **argv)
         es_printf ("p12-charset:%lu:\n", GC_OPT_FLAG_DEFAULT);
         es_printf ("default-key:%lu:\n", GC_OPT_FLAG_DEFAULT);
         es_printf ("encrypt-to:%lu:\n", GC_OPT_FLAG_DEFAULT);
-	es_printf ("keyserver:%lu:\n", GC_OPT_FLAG_NONE);
 
         /* The next one is an info only item and should match what
            proc_parameters actually implements.  */
@@ -2014,8 +1896,6 @@ gpgsm_main ( int argc, char **argv)
     }
 
   /* cleanup */
-  keyserver_list_free (opt.keyserver);
-  opt.keyserver = NULL;
   gpgsm_release_certlist (recplist);
   gpgsm_release_certlist (signerlist);
   FREE_STRLIST (remusr);

@@ -34,18 +34,6 @@
 
 #define MAX_DIGEST_LEN 64
 
-struct keyserver_spec
-{
-  struct keyserver_spec *next;
-
-  char *host;
-  int port;
-  char *user;
-  char *pass;
-  char *base;
-};
-
-
 /* A large struct named "opt" to keep global flags. */
 struct
 {
@@ -124,8 +112,6 @@ struct
   int ignore_expiration;    /* Ignore the notAfter validity checks. */
 
   int auto_issuer_key_retrieve; /* try to retrieve a missing issuer key. */
-
-  struct keyserver_spec *keyserver;
 
   /* A list of certificate extension OIDs which are ignored so that
      one can claim that a critical extension has been handled.  One

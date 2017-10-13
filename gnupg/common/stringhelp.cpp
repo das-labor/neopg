@@ -1251,53 +1251,6 @@ parse_version_string (const char *s, int *major, int *minor, int *micro)
 }
 
 
-/* Compare the version string MY_VERSION to the version string
- * REQ_VERSION.  Returns -1, 0, or 1 if MY_VERSION is found,
- * respectively, to be less than, to match, or be greater than
- * REQ_VERSION.  This function works for three and two part version
- * strings; for a two part version string the micro part is assumed to
- * be 0.  Patch levels are compared as strings.  If a version number
- * is invalid INT_MIN is returned.  If REQ_VERSION is given as NULL
- * the function returns 0 if MY_VERSION is parsable version string. */
-int
-compare_version_strings (const char *my_version, const char *req_version)
-{
-  int my_major, my_minor, my_micro;
-  int rq_major, rq_minor, rq_micro;
-  const char *my_patch, *rq_patch;
-  int result;
-
-  if (!my_version)
-    return INT_MIN;
-
-  my_patch = parse_version_string (my_version, &my_major, &my_minor, &my_micro);
-  if (!my_patch)
-    return INT_MIN;
-  if (!req_version)
-    return 0; /* MY_VERSION can be parsed.  */
-  rq_patch = parse_version_string (req_version, &rq_major, &rq_minor,&rq_micro);
-  if (!rq_patch)
-    return INT_MIN;
-
-  if (my_major == rq_major)
-    {
-      if (my_minor == rq_minor)
-        {
-          if (my_micro == rq_micro)
-            result = strcmp (my_patch, rq_patch);
-          else
-            result = my_micro - rq_micro;
-        }
-      else
-        result = my_minor - rq_minor;
-    }
-  else
-    result = my_major - rq_major;
-
-  return !result? 0 : result < 0 ? -1 : 1;
-}
-
-
 
 /* Format a string so that it fits within about TARGET_COLS columns.
  * TEXT_IN is copied to a new buffer, which is returned.  Normally,
