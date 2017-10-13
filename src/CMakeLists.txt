@@ -508,7 +508,6 @@ add_executable(neopg
   ../gnupg/common/yesno.cpp
   ../gnupg/common/sexputil.cpp
   ../gnupg/common/tlv.cpp
-  ../gnupg/common/helpfile.cpp
   ../gnupg/common/util.h
   ../gnupg/common/localename.cpp
   ../gnupg/common/convert.cpp
