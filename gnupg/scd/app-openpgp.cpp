@@ -2259,14 +2259,6 @@ verify_chv3 (app_t app,
 {
   int rc = 0;
 
-#if GNUPG_MAJOR_VERSION != 1
-  if (!opt.allow_admin)
-    {
-      log_info (_("access to admin commands is not configured\n"));
-      return GPG_ERR_EACCES;
-    }
-#endif
-
   if (!app->did_chv3)
     {
       pininfo_t pininfo;

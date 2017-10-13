@@ -1434,8 +1434,6 @@ cmd_getinfo (assuan_context_t ctx, char *line)
         rc = GPG_ERR_NO_DATA;
       xfree (s);
     }
-  else if (!strcmp (line, "deny_admin"))
-    rc = opt.allow_admin? GPG_ERR_GENERAL : 0;
   else if (!strcmp (line, "app_list"))
     {
       char *s = get_supported_applications ();

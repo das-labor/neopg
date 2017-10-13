@@ -47,15 +47,10 @@ struct
   int quiet;          /* Be as quiet as possible. */
   int dry_run;        /* Don't change any persistent data. */
   int batch;          /* Batch mode. */
-  const char *ctapi_driver; /* Library to access the ctAPI. */
   const char *reader_port;  /* NULL or reder port to use. */
   int disable_ccid;    /* Disable the use of the internal CCID driver. */
   int disable_pinpad;  /* Do not use a pinpad. */
   int enable_pinpad_varlen;  /* Use variable length input for pinpad. */
-  int allow_admin;     /* Allow the use of admin commands for certain
-                          cards. */
-  strlist_t disabled_applications;  /* Card applications we do not
-                                       want to use. */
   unsigned long card_timeout; /* Disconnect after N seconds of inactivity.  */
 } opt;
 

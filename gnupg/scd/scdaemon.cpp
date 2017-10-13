@@ -88,13 +88,9 @@ enum cmd_and_opt_values
   oBatch,
   oReaderPort,
   oCardTimeout,
-  octapiDriver,
   oDisableCCID,
   oDisableOpenSC,
   oDisablePinpad,
-  oAllowAdmin,
-  oDenyAdmin,
-  oDisableApplication,
   oEnablePinpadVarlen,
 };
 
@@ -125,8 +121,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oLogFile,  "log-file", N_("|FILE|write a log to FILE")),
   ARGPARSE_s_s (oReaderPort, "reader-port",
                 N_("|N|connect to reader at port N")),
-  ARGPARSE_s_s (octapiDriver, "ctapi-driver",
-                N_("|NAME|use NAME as ct-API driver")),
   ARGPARSE_s_n (oDisableCCID, "disable-ccid",
 #ifdef HAVE_LIBUSB
                                     N_("do not use the internal CCID driver")
@@ -141,10 +135,6 @@ static ARGPARSE_OPTS opts[] = {
                 N_("do not use a reader's pinpad")),
   ARGPARSE_ignore (300, "disable-keypad"),
 
-  ARGPARSE_s_n (oAllowAdmin, "allow-admin", "@"),
-  ARGPARSE_s_n (oDenyAdmin, "deny-admin",
-                N_("deny the use of admin card commands")),
-  ARGPARSE_s_s (oDisableApplication, "disable-application", "@"),
   ARGPARSE_s_n (oEnablePinpadVarlen, "enable-pinpad-varlen",
                 N_("use variable length input for pinpad")),
   ARGPARSE_s_s (oHomedir,    "homedir",      "@"),
@@ -346,7 +336,6 @@ scd_main (int argc, char **argv )
   int nogreeting = 0;
   int is_daemon = 0;
   int nodetach = 0;
-  int csh_style = 0;
   char *logfile = NULL;
   int debug_wait = 0;
   int gpgconf_list = 0;
@@ -382,13 +371,6 @@ scd_main (int argc, char **argv )
   gcry_control (GCRYCTL_USE_SECURE_RNDPOOL);
 
   disable_core_dumps ();
-
-  /* Set default options. */
-  opt.allow_admin = 1;
-
-  shell = getenv ("SHELL");
-  if (shell && strlen (shell) >= 3 && !strcmp (shell+strlen (shell)-3, "csh") )
-    csh_style = 1;
 
   /* Check whether we have a config file on the commandline */
   orig_argc = argc;
@@ -509,26 +491,15 @@ scd_main (int argc, char **argv )
         case oHomedir: gnupg_set_homedir (pargs.r.ret_str); break;
         case oNoDetach: nodetach = 1; break;
         case oLogFile: logfile = pargs.r.ret_str; break;
-        case oCsh: csh_style = 1; break;
-        case oSh: csh_style = 0; break;
         case oServer: /* Default */ break;
 
         case oReaderPort: opt.reader_port = pargs.r.ret_str; break;
-        case octapiDriver: opt.ctapi_driver = pargs.r.ret_str; break;
         case oDisableCCID: opt.disable_ccid = 1; break;
         case oDisableOpenSC: break;
 
         case oDisablePinpad: opt.disable_pinpad = 1; break;
 
-        case oAllowAdmin: /* Dummy because allow is now the default.  */
-          break;
-        case oDenyAdmin: opt.allow_admin = 0; break;
-
         case oCardTimeout: opt.card_timeout = pargs.r.ret_ulong; break;
-
-        case oDisableApplication:
-          add_to_strlist (&opt.disabled_applications, pargs.r.ret_str);
-          break;
 
         case oEnablePinpadVarlen: opt.enable_pinpad_varlen = 1; break;
 
@@ -609,7 +580,6 @@ scd_main (int argc, char **argv )
                  GC_OPT_FLAG_NONE );
 
       es_printf ("reader-port:%lu:\n", GC_OPT_FLAG_NONE );
-      es_printf ("ctapi-driver:%lu:\n", GC_OPT_FLAG_NONE );
 #ifdef HAVE_LIBUSB
       es_printf ("disable-ccid:%lu:\n", GC_OPT_FLAG_NONE );
 #endif

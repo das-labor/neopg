@@ -99,20 +99,6 @@ app_dump_state (void)
   npth_mutex_unlock (&app_list_lock);
 }
 
-/* Check whether the application NAME is allowed.  This does not mean
-   we have support for it though.  */
-static int
-is_app_allowed (const char *name)
-{
-  strlist_t l;
-
-  for (l=opt.disabled_applications; l; l = l->next)
-    if (!strcmp (l->d, name))
-      return 0; /* no */
-  return 1; /* yes */
-}
-
-
 static gpg_error_t
 check_conflict (app_t app, const char *name)
 {
@@ -265,16 +251,15 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
   else
     err = GPG_ERR_NOT_FOUND;
 
-  if (err && is_app_allowed ("openpgp")
-          && (!name || !strcmp (name, "openpgp")))
+  if (err && (!name || !strcmp (name, "openpgp")))
     err = app_select_openpgp (app);
-  if (err && is_app_allowed ("nks") && (!name || !strcmp (name, "nks")))
+  if (err && (!name || !strcmp (name, "nks")))
     err = app_select_nks (app);
-  if (err && is_app_allowed ("p15") && (!name || !strcmp (name, "p15")))
+  if (err && (!name || !strcmp (name, "p15")))
     err = app_select_p15 (app);
-  if (err && is_app_allowed ("dinsig") && (!name || !strcmp (name, "dinsig")))
+  if (err && (!name || !strcmp (name, "dinsig")))
     err = app_select_dinsig (app);
-  if (err && is_app_allowed ("sc-hsm") && (!name || !strcmp (name, "sc-hsm")))
+  if (err && (!name || !strcmp (name, "sc-hsm")))
     err = app_select_sc_hsm (app);
   if (err && name && err != GPG_ERR_OBJ_TERM_STATE)
     err = GPG_ERR_NOT_SUPPORTED;
@@ -425,8 +410,7 @@ get_supported_applications (void)
     return NULL;
 
   for (p=buffer, idx=0; list[idx]; idx++)
-    if (is_app_allowed (list[idx]))
-      p = stpcpy (stpcpy (p, list[idx]), ":\n");
+    p = stpcpy (stpcpy (p, list[idx]), ":\n");
   *p = 0;
 
   return buffer;
