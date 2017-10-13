@@ -1278,11 +1278,9 @@ gpgsm_server (certlist_t default_recplist)
       if (asprintf (&tmp,
                     "Home: %s\n"
                     "Config: %s\n"
-                    "DirmngrInfo: %s\n"
                     "%s",
                     gnupg_homedir (),
                     opt.config_filename,
-                    dirmngr_socket_name (),
                     hello) > 0)
         {
           assuan_set_hello_line (ctx, tmp);

@@ -227,14 +227,12 @@ const char *gnupg_libdir (void);
 const char *gnupg_datadir (void);
 const char *gnupg_localedir (void);
 const char *gnupg_cachedir (void);
-const char *dirmngr_socket_name (void);
 
 char *_gnupg_socketdir_internal (int skip_checks, unsigned *r_info);
 
 /* All module names.  We also include gpg and gpgsm for the sake for
    gpgconf. */
 #define GNUPG_MODULE_NAME_AGENT        1
-#define GNUPG_MODULE_NAME_PINENTRY     2
 #define GNUPG_MODULE_NAME_SCDAEMON     3
 #define GNUPG_MODULE_NAME_DIRMNGR      4
 #define GNUPG_MODULE_NAME_PROTECT_TOOL 5
@@ -246,16 +244,10 @@ char *_gnupg_socketdir_internal (int skip_checks, unsigned *r_info);
 #define GNUPG_MODULE_NAME_DIRMNGR_LDAP  11
 #define GNUPG_MODULE_NAME_GPGV          12
 const char *gnupg_module_name (int which);
-void gnupg_module_name_flush_some (void);
-void gnupg_set_builddir (const char *newdir);
-
 
 
 /*-- gpgrlhelp.c --*/
 void gnupg_rl_initialize (void);
-
-/*-- helpfile.c --*/
-char *gnupg_get_help_string (const char *key, int only_current_locale);
 
 /*-- localename.c --*/
 const char *gnupg_messages_locale_name (void);
@@ -294,8 +286,6 @@ char *make_printable_string (const void *p, size_t n, int delim);
 int is_file_compressed (const char *s, int *ret_rc);
 
 int match_multistr (const char *multistr,const char *match);
-
-int gnupg_compare_version (const char *a, const char *b);
 
 struct debug_flags_s
 {

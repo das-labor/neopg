@@ -1197,61 +1197,6 @@ split_fields (char *string, char **array, int arraysize)
 
 
 
-/* Version number parsing.  */
-
-/* This function parses the first portion of the version number S and
-   stores it in *NUMBER.  On success, this function returns a pointer
-   into S starting with the first character, which is not part of the
-   initial number portion; on failure, NULL is returned.  */
-static const char*
-parse_version_number (const char *s, int *number)
-{
-  int val = 0;
-
-  if (*s == '0' && digitp (s+1))
-    return NULL;  /* Leading zeros are not allowed.  */
-  for (; digitp (s); s++)
-    {
-      val *= 10;
-      val += *s - '0';
-    }
-  *number = val;
-  return val < 0 ? NULL : s;
-}
-
-
-/* This function breaks up the complete string-representation of the
-   version number S, which is of the following struture: <major
-   number>.<minor number>[.<micro number>]<patch level>.  The major,
-   minor, and micro number components will be stored in *MAJOR, *MINOR
-   and *MICRO.  If MICRO is not given 0 is used instead.
-
-   On success, the last component, the patch level, will be returned;
-   in failure, NULL will be returned.  */
-static const char *
-parse_version_string (const char *s, int *major, int *minor, int *micro)
-{
-  s = parse_version_number (s, major);
-  if (!s || *s != '.')
-    return NULL;
-  s++;
-  s = parse_version_number (s, minor);
-  if (!s)
-    return NULL;
-  if (*s == '.')
-    {
-      s++;
-      s = parse_version_number (s, micro);
-      if (!s)
-        return NULL;
-    }
-  else
-    *micro = 0;
-  return s;  /* Patchlevel.  */
-}
-
-
-
 /* Format a string so that it fits within about TARGET_COLS columns.
  * TEXT_IN is copied to a new buffer, which is returned.  Normally,
  * target_cols will be 72 and max_cols is 80.  On error NULL is

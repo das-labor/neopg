@@ -825,78 +825,6 @@ gnupg_cachedir (void)
 }
 
 
-/* Return the user socket name used by DirMngr.  */
-const char *
-dirmngr_socket_name (void)
-{
-  static char *name;
-
-  if (!name)
-    name = make_filename (gnupg_socketdir (), DIRMNGR_SOCK_NAME, NULL);
-  return name;
-}
-
-
-/* Return the default pinentry name.  If RESET is true the internal
-   cache is first flushed.  */
-static const char *
-get_default_pinentry_name (int reset)
-{
-  static struct {
-    const char *(*rfnc)(void);
-    const char *name;
-  } names[] = {
-    /* The first entry is what we return in case we found no
-       other pinentry.  */
-    { gnupg_bindir, DIRSEP_S "pinentry" EXEEXT_S },
-#ifdef HAVE_W32_SYSTEM
-    /* Try Gpg4win directory (with bin and without.) */
-    { w32_rootdir, "\\..\\Gpg4win\\bin\\pinentry.exe" },
-    { w32_rootdir, "\\..\\Gpg4win\\pinentry.exe" },
-    /* Try old Gpgwin directory.  */
-    { w32_rootdir, "\\..\\GNU\\GnuPG\\pinentry.exe" },
-    /* Try a Pinentry from the common GNU dir.  */
-    { w32_rootdir, "\\..\\GNU\\bin\\pinentry.exe" },
-#endif
-    /* Last chance is a pinentry-basic (which comes with the
-       GnuPG 2.1 Windows installer).  */
-    { gnupg_bindir, DIRSEP_S "pinentry-basic" EXEEXT_S }
-  };
-  static char *name;
-
-  if (reset)
-    {
-      xfree (name);
-      name = NULL;
-    }
-
-  if (!name)
-    {
-      int i;
-
-      for (i=0; i < DIM(names); i++)
-        {
-          char *name2;
-
-          name2 = xstrconcat (names[i].rfnc (), names[i].name, NULL);
-          if (!access (name2, F_OK))
-            {
-              /* Use that pinentry.  */
-              xfree (name);
-              name = name2;
-              break;
-            }
-          if (!i) /* Store the first as fallback return.  */
-            name = name2;
-          else
-            xfree (name2);
-        }
-    }
-
-  return name;
-}
-
-
 /* For sanity checks.  */
 static int gnupg_module_name_called;
 
@@ -922,13 +850,6 @@ gnupg_module_name (int which)
       return GNUPG_DEFAULT_AGENT;
 #else
       X(bindir, "agent", "gpg-agent");
-#endif
-
-    case GNUPG_MODULE_NAME_PINENTRY:
-#ifdef GNUPG_DEFAULT_PINENTRY
-      return GNUPG_DEFAULT_PINENTRY;  /* (Set by a configure option) */
-#else
-      return get_default_pinentry_name (0);
 #endif
 
     case GNUPG_MODULE_NAME_SCDAEMON:
@@ -981,13 +902,4 @@ gnupg_module_name (int which)
       BUG ();
     }
 #undef X
-}
-
-
-/* Flush some of the cached module names.  This is for example used by
-   gpg-agent to allow configuring a different pinentry.  */
-void
-gnupg_module_name_flush_some (void)
-{
-  (void)get_default_pinentry_name (1);
 }

@@ -558,29 +558,6 @@ unprotect (ctrl_t ctrl, const char *cache_nonce, const char *desc_text,
               xfree (pw);
             }
         }
-
-      /* If the pinentry is currently in use, we wait up to 60 seconds
-         for it to close and check the cache again.  This solves a common
-         situation where several requests for unprotecting a key have
-         been made but the user is still entering the passphrase for
-         the first request.  Because all requests to agent_askpin are
-         serialized they would then pop up one after the other to
-         request the passphrase - despite that the user has already
-         entered it and is then available in the cache.  This
-         implementation is not race free but in the worst case the
-         user has to enter the passphrase only once more. */
-      if (pinentry_active_p (ctrl, 0))
-        {
-          /* Active - wait */
-          if (!pinentry_active_p (ctrl, 60))
-            {
-              /* We need to give the other thread a chance to actually put
-                 it into the cache. */
-              npth_sleep (1);
-              goto retry;
-            }
-          /* Timeout - better call pinentry now the plain way. */
-        }
     }
 
   pi = (pin_entry_info_s*) gcry_calloc_secure (1, sizeof (*pi) + MAX_PASSPHRASE_LEN + 1);

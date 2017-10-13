@@ -1277,42 +1277,6 @@ audit_print_result (audit_ctx_t ctx, estream_t out, int use_html)
     }
   leave_li (ctx);
 
-
-  /* Show the help from the collected help tags.  */
-  if (ctx->helptags)
-    {
-      if (use_html)
-        {
-          es_fputs ("<hr/>\n", ctx->outstream);
-          if (ctx->helptags->next)
-            es_fputs ("<ul>\n", ctx->outstream);
-        }
-      else
-        es_fputs ("\n\n", ctx->outstream);
-    }
-  for (helptag = ctx->helptags; helptag; helptag = helptag->next)
-    {
-      char *text;
-
-      if (use_html && ctx->helptags->next)
-        es_fputs ("<li>\n", ctx->outstream);
-
-      text = gnupg_get_help_string (helptag->name, 0);
-      if (text)
-        {
-          writeout_para (ctx, "%s", text);
-          xfree (text);
-        }
-      else
-        writeout_para (ctx, _("No help available for '%s'."), helptag->name);
-      if (use_html && ctx->helptags->next)
-        es_fputs ("</li>\n", ctx->outstream);
-      if (helptag->next)
-        es_fputs ("\n", ctx->outstream);
-    }
-  if (use_html && ctx->helptags && ctx->helptags->next)
-    es_fputs ("</ul>\n", ctx->outstream);
-
  leave:
   if (use_html)
     es_fputs ("</div>\n", ctx->outstream);
