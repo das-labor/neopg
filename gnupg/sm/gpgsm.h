@@ -27,7 +27,6 @@
 #include <ksba.h>
 #include "../common/util.h"
 #include "../common/status.h"
-#include "../common/audit.h"
 #include "../common/ksba-io-support.h"
 #include "../common/compliance.h"
 
