@@ -42,15 +42,7 @@ init_compress( compress_filter_context_t *zfx, bz_stream *bzs )
   int rc;
   int level;
 
-  if( opt.bz2_compress_level >= 1 && opt.bz2_compress_level <= 9 )
-    level = opt.bz2_compress_level;
-  else if( opt.bz2_compress_level == -1 )
-    level = 6; /* no particular reason, but it seems reasonable */
-  else
-    {
-      log_error("invalid compression level; using default level\n");
-      level = 6;
-    }
+  level = 6; /* no particular reason, but it seems reasonable */
 
   if((rc=BZ2_bzCompressInit(bzs,level,0,0))!=BZ_OK)
     log_fatal("bz2lib problem: %d\n",rc);
@@ -102,7 +94,7 @@ init_uncompress( compress_filter_context_t *zfx, bz_stream *bzs )
 {
   int rc;
 
-  if((rc=BZ2_bzDecompressInit(bzs,0,opt.bz2_decompress_lowmem))!=BZ_OK)
+  if((rc=BZ2_bzDecompressInit(bzs,0,0))!=BZ_OK)
     log_fatal("bz2lib problem: %d\n",rc);
 
   zfx->inbufsize = 2048;

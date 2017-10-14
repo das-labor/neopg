@@ -56,14 +56,7 @@ init_compress( compress_filter_context_t *zfx, z_stream *zs )
     int rc;
     int level;
 
-    if( opt.compress_level >= 1 && opt.compress_level <= 9 )
-	level = opt.compress_level;
-    else if( opt.compress_level == -1 )
-	level = Z_DEFAULT_COMPRESSION;
-    else {
-	log_error("invalid compression level; using default level\n");
-	level = Z_DEFAULT_COMPRESSION;
-    }
+    level = Z_DEFAULT_COMPRESSION;
 
     if( (rc = zfx->algo == 1? deflateInit2( zs, level, Z_DEFLATED,
 					    -13, 8, Z_DEFAULT_STRATEGY)

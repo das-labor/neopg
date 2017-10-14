@@ -241,9 +241,6 @@ enum cmd_and_opt_values
     oDigestAlgo,
     oCertDigestAlgo,
     oCompressAlgo,
-    oCompressLevel,
-    oBZ2CompressLevel,
-    oBZ2DecompressLowmem,
     oPassphrase,
     oPassphraseFD,
     oPassphraseFile,
@@ -504,12 +501,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oSender, "sender", "@"),
 
   ARGPARSE_s_s (oTrySecretKey, "try-secret-key", "@"),
-
-  ARGPARSE_s_i (oCompress, NULL,
-                N_("|N|set compress level to N (0 disables)")),
-  ARGPARSE_s_i (oCompressLevel, "compress-level", "@"),
-  ARGPARSE_s_i (oBZ2CompressLevel, "bzip2-compress-level", "@"),
-  ARGPARSE_s_n (oBZ2DecompressLowmem, "bzip2-decompress-lowmem", "@"),
 
   ARGPARSE_s_n (oMimemode, "mimemode", "@"),
   ARGPARSE_s_n (oTextmodeShort, NULL, "@"),
@@ -1975,8 +1966,6 @@ gpg_main (int argc, char **argv)
     opt.autostart = 1;
 
     opt.command_fd = -1; /* no command fd */
-    opt.compress_level = -1; /* defaults to standard compress level */
-    opt.bz2_compress_level = -1; /* defaults to standard compress level */
     /* note: if you change these lines, look at oOpenPGP */
     opt.def_cipher_algo = 0;
     opt.def_digest_algo = 0;
@@ -2560,13 +2549,6 @@ gpg_main (int argc, char **argv)
                 }
             }
 	    break;
-	  case oCompress:
-	    /* this is the -z command line option */
-	    opt.compress_level = opt.bz2_compress_level = pargs.r.ret_int;
-	    break;
-	  case oCompressLevel: opt.compress_level = pargs.r.ret_int; break;
-	  case oBZ2CompressLevel: opt.bz2_compress_level = pargs.r.ret_int; break;
-	  case oBZ2DecompressLowmem: opt.bz2_decompress_lowmem=1; break;
 	  case oPassphrase:
 	    set_passphrase_from_string(pargs.r.ret_str);
 	    break;
@@ -3184,9 +3166,6 @@ gpg_main (int argc, char **argv)
 
     if( log_get_errorcount(0) )
 	g10_exit(2);
-
-    if(opt.compress_level==0)
-      opt.compress_algo=COMPRESS_ALGO_NONE;
 
     /* Check our chosen algorithms against the list of legal
        algorithms. */
