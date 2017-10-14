@@ -211,7 +211,7 @@ namespace NeoPG {
 	switch (lentype)
 	  {
 	  case PacketLengthType::OneOctet:
-	    out << (uint8_t) (length & 0xcf);
+	    out << (uint8_t) length;
 	    break;
 
 	  case PacketLengthType::TwoOctet:
