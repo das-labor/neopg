@@ -19,7 +19,6 @@ Aside from a working C++ toolchain you'll need the following libraries.
 1. SQLite >= 3.0
 1. Botan >= 2.0
 1. CMake >= 3.2
-1. Google Test (GTest) >= 1.8
 1. Boost >= 1.64.0
 1. openldap
 1. zlib
@@ -30,8 +29,10 @@ Aside from a working C++ toolchain you'll need the following libraries.
 With all dependencies installed NeoPG can be build with CMake.
 
 ```bash
+$ git submodule update --init
+$ mkdir build
 $ cd build
-$ cmake ../src   # or cmake -C ../src/clang.txt ../src
+$ cmake ..   # or cmake -C ../src/clang.txt ..
 $ make
 $ make test # or ./gpg-error-test
 ```
