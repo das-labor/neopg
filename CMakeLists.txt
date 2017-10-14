@@ -14,6 +14,12 @@ add_library(GTest::Main ALIAS gtest_main)
 
 enable_testing()
 
+# PEGTL
+set(PEGTL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/pegtl)
+set(PEGTL_INCLUDE_DIR ${PEGTL_ROOT}/include)
+add_subdirectory(${PEGTL_ROOT} EXCLUDE_FROM_ALL)
+# taocpp:pegtl
+
 find_package(Doxygen)
 option(BUILD_DOC "Create and install documentation (requires Doxygen)" ${DOXYGEN_FOUND})
 
@@ -447,18 +453,29 @@ FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 
 # libneopg
 
+set(LIBNEOPG_INCLUDE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib)
+set(LIBNEOPG_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/include)
+set(LIBNEOPG_INCLUDE_DST ${LIBNEOPG_INCLUDE}/neopg)
+configure_file(${LIBNEOPG_INCLUDE_SRC}/utils/time.h ${LIBNEOPG_INCLUDE_DST}/time.h COPYONLY)
+configure_file(${LIBNEOPG_INCLUDE_SRC}/parser/openpgp.h ${LIBNEOPG_INCLUDE_DST}/openpgp.h COPYONLY)
+configure_file(${LIBNEOPG_INCLUDE_SRC}/openpgp/tag.h ${LIBNEOPG_INCLUDE_DST}/openpgp/tag.h COPYONLY)
+
 add_library(libneopg
   src/lib/utils/time.h
   src/lib/utils/time.cpp
+  src/lib/parser/openpgp.h
+  src/lib/openpgp/tag.h
 )
 target_compile_options(libneopg
   PRIVATE
-  -fvisibility=hidden
-   -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -fvisibility=hidden -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++14
 )
+target_include_directories(libneopg PUBLIC
+   ${LIBNEOPG_INCLUDE}
+   ${PEGTL_INCLUDE_DIR})
 target_compile_definitions(gpg-error
    PRIVATE
-
 )
 
 
@@ -698,6 +715,23 @@ target_compile_options(neopg PUBLIC
 -std=c++14
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER})
+
+add_executable(test-neopg
+  src/tests/openpgp.cpp
+  )
+target_compile_options(test-neopg
+  PRIVATE
+  -fvisibility=hidden -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++14
+)
+target_include_directories(test-neopg PRIVATE
+  ${CMAKE_BINARY_DIR}/.)
+target_compile_definitions(test-neopg PRIVATE
+  CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/src/tests")
+target_link_libraries(test-neopg PRIVATE
+  libneopg
+  GTest::GTest GTest::Main)
+add_test(NeoPGTest test-neopg COMMAND test-neopg test_xml_output --gtest_output=xml:test-neopg.xml)
 
 
 
