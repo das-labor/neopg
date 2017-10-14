@@ -971,16 +971,12 @@ is_cert_still_valid (ctrl_t ctrl, int force_ocsp, int lm, estream_t fp,
 
   if (ctrl->offline || (opt.no_crl_check && !ctrl->use_ocsp))
     {
-      audit_log_ok (ctrl->audit, AUDIT_CRL_CHECK,
-                    GPG_ERR_NOT_ENABLED);
       return 0;
     }
 
   err = gpgsm_dirmngr_isvalid (ctrl,
                                subject_cert, issuer_cert,
                                force_ocsp? 2 : !!ctrl->use_ocsp);
-  audit_log_ok (ctrl->audit, AUDIT_CRL_CHECK, err);
-
   if (err)
     {
       if (!lm)
@@ -1378,8 +1374,6 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
           else
             istrusted_rc = gpgsm_agent_istrusted (ctrl, subject_cert, NULL,
                                                   rootca_flags);
-          audit_log_cert (ctrl->audit, AUDIT_ROOT_TRUSTED,
-                          subject_cert, istrusted_rc);
           /* If the chain model extended attribute is used, make sure
              that our chain model flag is set. */
           if (!(flags & VALIDATE_FLAG_STEED)
@@ -1756,21 +1750,6 @@ do_validate_chain (ctrl_t ctrl, ksba_cert_t cert, const ksba_isotime_t checktime
             log_error ("clearing ephemeral flag failed: %s\n",
                        gpg_strerror (err));
         }
-    }
-
-  /* If auditing has been enabled, record what is in the chain.  */
-  if (ctrl->audit)
-    {
-      chain_item_t ci;
-
-      audit_log (ctrl->audit, AUDIT_CHAIN_BEGIN);
-      for (ci = chain; ci; ci = ci->next)
-        {
-          audit_log_cert (ctrl->audit,
-                          ci->is_root? AUDIT_CHAIN_ROOTCERT : AUDIT_CHAIN_CERT,
-                          ci->cert, 0);
-        }
-      audit_log (ctrl->audit, AUDIT_CHAIN_END);
     }
 
   if (r_exptime)

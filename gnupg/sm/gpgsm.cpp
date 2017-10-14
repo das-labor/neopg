@@ -297,9 +297,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoLogFile, "no-log-file", "@"),
   ARGPARSE_s_i (oLoggerFD, "logger-fd", "@"),
 
-  ARGPARSE_s_s (oAuditLog, "audit-log",
-                N_("|FILE|write an audit log to FILE")),
-  ARGPARSE_s_s (oHtmlAuditLog, "html-audit-log", "@"),
   ARGPARSE_s_n (oDryRun, "dry-run", N_("do not make any changes")),
   ARGPARSE_s_n (oBatch, "batch", N_("batch mode: never ask")),
   ARGPARSE_s_n (oAnswerYes, "yes", N_("assume yes on most questions")),
@@ -757,8 +754,6 @@ gpgsm_main ( int argc, char **argv)
   int default_config =1;
   int default_keyring = 1;
   char *logfile = NULL;
-  char *auditlog = NULL;
-  char *htmlauditlog = NULL;
   int greeting = 0;
   int nogreeting = 0;
   int debug_wait = 0;
@@ -773,8 +768,6 @@ gpgsm_main ( int argc, char **argv)
   certlist_t signerlist = NULL;
   int do_not_setup_keys = 0;
   int recp_required = 0;
-  estream_t auditfp = NULL;
-  estream_t htmlauditfp = NULL;
   struct assuan_malloc_hooks malloc_hooks;
   int pwfd = -1;
   /*mtrace();*/
@@ -1088,9 +1081,6 @@ gpgsm_main ( int argc, char **argv)
 
         case oLogFile: logfile = pargs.r.ret_str; break;
         case oNoLogFile: logfile = NULL; break;
-
-        case oAuditLog: auditlog = pargs.r.ret_str; break;
-        case oHtmlAuditLog: htmlauditlog = pargs.r.ret_str; break;
 
         case oBatch:
           opt.batch = 1;
@@ -1492,29 +1482,6 @@ gpgsm_main ( int argc, char **argv)
     sm_keydb_add_resource (&ctrl, sl->d, 0, NULL);
   FREE_STRLIST(nrings);
 
-
-  /* Prepare the audit log feature for certain commands.  */
-  if (auditlog || htmlauditlog)
-    {
-      switch (cmd)
-        {
-        case aEncr:
-        case aSign:
-        case aDecrypt:
-        case aVerify:
-          audit_release (ctrl.audit);
-          ctrl.audit = audit_new ();
-          if (auditlog)
-            auditfp = open_es_fwrite (auditlog);
-          if (htmlauditlog)
-            htmlauditfp = open_es_fwrite (htmlauditlog);
-          break;
-        default:
-          break;
-        }
-    }
-
-
   if (!do_not_setup_keys)
     {
       for (sl = locusr; sl ; sl = sl->next)
@@ -1880,19 +1847,6 @@ gpgsm_main ( int argc, char **argv)
     default:
         log_error (_("invalid command (there is no implicit command)\n"));
 	break;
-    }
-
-  /* Print the audit result if needed.  */
-  if ((auditlog && auditfp) || (htmlauditlog && htmlauditfp))
-    {
-      if (auditlog && auditfp)
-        audit_print_result (ctrl.audit, auditfp, 0);
-      if (htmlauditlog && htmlauditfp)
-        audit_print_result (ctrl.audit, htmlauditfp, 1);
-      audit_release (ctrl.audit);
-      ctrl.audit = NULL;
-      es_fclose (auditfp);
-      es_fclose (htmlauditfp);
     }
 
   /* cleanup */

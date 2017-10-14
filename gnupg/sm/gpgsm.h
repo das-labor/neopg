@@ -150,7 +150,6 @@ struct server_control_s
   int  status_fd;     /* Only for non-server mode */
   struct server_local_s *server_local;
 
-  audit_ctx_t audit;  /* NULL or a context for the audit subsystem.  */
   int agent_seen;     /* Flag indicating that the gpg-agent has been
                          accessed.  */
 

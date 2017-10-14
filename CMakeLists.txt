@@ -646,7 +646,6 @@ add_executable(neopg
   gnupg/sm/minip12.cpp
   gnupg/sm/passphrase.cpp
   gnupg/sm/server.cpp
-  gnupg/common/audit.cpp
   gnupg/sm/gpgsm.cpp
 
   gnupg/scd/scdaemon.cpp

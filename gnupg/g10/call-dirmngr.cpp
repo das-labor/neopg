@@ -196,7 +196,6 @@ create_context (ctrl_t ctrl, assuan_context_t *r_ctx)
     assuan_release (ctx);
   else
     {
-      /* audit_log_ok (ctrl->audit, AUDIT_DIRMNGR_READY, err); */
       *r_ctx = ctx;
     }
 

@@ -107,8 +107,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   estream_t in_fp = NULL;
   char *p;
 
-  audit_set_type (ctrl->audit, AUDIT_TYPE_VERIFY);
-
   kh = sm_keydb_new ();
   if (!kh)
     {
@@ -171,8 +169,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   if (DBG_HASHING)
     gcry_md_debug (data_md, "vrfy.data");
 
-  audit_log (ctrl->audit, AUDIT_SETUP_READY);
-
   is_detached = 0;
   do
     {
@@ -186,7 +182,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (stopreason == KSBA_SR_NEED_HASH)
         {
           is_detached = 1;
-          audit_log (ctrl->audit, AUDIT_DETACHED_SIGNATURE);
           if (opt.verbose)
             log_info ("detached signature\n");
         }
@@ -194,8 +189,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (stopreason == KSBA_SR_NEED_HASH
           || stopreason == KSBA_SR_BEGIN_DATA)
         {
-          audit_log (ctrl->audit, AUDIT_GOT_DATA);
-
           /* We are now able to enable the hash algorithms */
           for (i=0; (algoid=ksba_cms_get_digest_algo_list (cms, i)); i++)
             {
@@ -208,7 +201,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                       && (  !strcmp (algoid, "1.2.840.113549.1.1.2")
                           ||!strcmp (algoid, "1.2.840.113549.2.2")))
                     log_info (_("(this is the MD2 algorithm)\n"));
-                  audit_log_s (ctrl->audit, AUDIT_BAD_DATA_HASH_ALGO, algoid);
                 }
               else
                 {
@@ -216,7 +208,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                     log_debug ("enabling hash algorithm %d (%s)\n",
                                algo, algoid? algoid:"");
                   gcry_md_enable (data_md, algo);
-                  audit_log_i (ctrl->audit, AUDIT_DATA_HASH_ALGO, algo);
                 }
             }
           if (opt.extra_digest_algo)
@@ -225,8 +216,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                 log_debug ("enabling extra hash algorithm %d\n",
                            opt.extra_digest_algo);
               gcry_md_enable (data_md, opt.extra_digest_algo);
-              audit_log_i (ctrl->audit, AUDIT_DATA_HASH_ALGO,
-                           opt.extra_digest_algo);
             }
           if (is_detached)
             {
@@ -234,20 +223,12 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                 {
                   log_info ("detached signature w/o data "
                             "- assuming certs-only\n");
-                  audit_log (ctrl->audit, AUDIT_CERT_ONLY_SIG);
                 }
-              else
-                audit_log_ok (ctrl->audit, AUDIT_DATA_HASHING,
-                              hash_data (data_fd, data_md));
             }
           else
             {
               ksba_cms_set_hash_function (cms, HASH_FNC, data_md);
             }
-        }
-      else if (stopreason == KSBA_SR_END_DATA)
-        { /* The data bas been hashed */
-          audit_log_ok (ctrl->audit, AUDIT_DATA_HASHING, 0);
         }
     }
   while (stopreason != KSBA_SR_READY);
@@ -258,7 +239,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (rc)
         {
           log_error ("write failed: %s\n", gpg_strerror (rc));
-          audit_log_ok (ctrl->audit, AUDIT_WRITE_ERROR, rc);
           goto leave;
         }
     }
@@ -267,7 +247,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
     {
       log_error ("data given for a non-detached signature\n");
       rc = GPG_ERR_CONFLICT;
-      audit_log (ctrl->audit, AUDIT_USAGE_ERROR);
       goto leave;
     }
 
@@ -277,8 +256,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
          certificate first before entering it into the DB.  This way
          we would avoid cluttering the DB with invalid
          certificates. */
-      audit_log_cert (ctrl->audit, AUDIT_SAVE_CERT, cert,
-                      sm_keydb_store_cert (ctrl, cert, 0, NULL));
       ksba_cert_release (cert);
     }
 
@@ -312,7 +289,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         }
 
       gpgsm_status (ctrl, STATUS_NEWSIG, NULL);
-      audit_log_i (ctrl->audit, AUDIT_NEW_SIG, signer);
 
       if (DBG_X509)
         {
@@ -321,12 +297,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           log_debug ("signer %d - serial: ", signer);
           gpgsm_dump_serial (serial);
           log_printf ("\n");
-        }
-      if (ctrl->audit)
-        {
-          char *tmpstr = gpgsm_format_sn_issuer (serial, issuer);
-          audit_log_s (ctrl->audit, AUDIT_SIG_NAME, tmpstr);
-          xfree (tmpstr);
         }
 
       rc = ksba_cms_get_signing_time (cms, signer, sigtime);
@@ -350,7 +320,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
             {
               log_error ("digest algo %d (%s) has not been enabled\n",
                          algo, algoid?algoid:"");
-              audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "unsupported");
               goto next_signer;
             }
         }
@@ -363,7 +332,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         }
       else /* real error */
         {
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "error");
           break;
         }
 
@@ -384,7 +352,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                          "actual content-type\n");
               ksba_free (ctattr);
               ctattr = NULL;
-              audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
               goto next_signer;
             }
           ksba_free (ctattr);
@@ -394,7 +361,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         {
           log_error ("error getting content-type attribute: %s\n",
                      gpg_strerror (rc));
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
         }
       rc = 0;
@@ -404,7 +370,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (!sigval)
         {
           log_error ("no signature value available\n");
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
         }
       sigval_hash_algo = hash_algo_from_sigval (sigval);
@@ -438,7 +403,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
             gpgsm_status2 (ctrl, STATUS_ERROR, "verify.findkey",
                            numbuf, NULL);
           }
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "no-cert");
           goto next_signer;
         }
 
@@ -446,7 +410,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       if (rc)
         {
           log_error ("failed to get cert: %s\n", gpg_strerror (rc));
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "error");
           goto next_signer;
         }
 
@@ -489,8 +452,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       log_printf (_(" using certificate ID 0x%08lX\n"),
                   gpgsm_get_short_fingerprint (cert, NULL));
 
-      audit_log_i (ctrl->audit, AUDIT_DATA_HASH_ALGO, algo);
-
       if (msgdigest)
         { /* Signed attributes are available. */
           gcry_md_hd_t md;
@@ -518,16 +479,13 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
               fpr = gpgsm_fpr_and_name_for_status (cert);
               gpgsm_status (ctrl, STATUS_BADSIG, fpr);
               xfree (fpr);
-              audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
               goto next_signer;
             }
 
-          audit_log_i (ctrl->audit, AUDIT_ATTR_HASH_ALGO, sigval_hash_algo);
           rc = gcry_md_open (&md, sigval_hash_algo, 0);
           if (rc)
             {
               log_error ("md_open failed: %s\n", gpg_strerror (rc));
-              audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "error");
               goto next_signer;
             }
           if (DBG_HASHING)
@@ -540,7 +498,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
               log_error ("hashing signed attrs failed: %s\n",
                          gpg_strerror (rc));
               gcry_md_close (md);
-              audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "error");
               goto next_signer;
             }
           rc = gpgsm_check_cms_signature (cert, sigval, md,
@@ -561,7 +518,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           fpr = gpgsm_fpr_and_name_for_status (cert);
           gpgsm_status (ctrl, STATUS_BADSIG, fpr);
           xfree (fpr);
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
         }
       rc = gpgsm_cert_use_verify_p (cert); /*(this displays an info message)*/
@@ -574,7 +530,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
 
       if (DBG_X509)
         log_debug ("signature okay - checking certs\n");
-      audit_log (ctrl->audit, AUDIT_VALIDATE_CHAIN);
       rc = gpgsm_validate_chain (ctrl, cert,
                                  *sigtime? sigtime : "19700101T000000",
                                  keyexptime, 0,
@@ -605,7 +560,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         xfree (buf);
       }
 
-      audit_log_ok (ctrl->audit, AUDIT_CHAIN_STATUS, rc);
       if (rc) /* of validate_chain */
         {
           log_error ("invalid certification chain: %s\n", gpg_strerror (rc));
@@ -618,11 +572,8 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           else
             gpgsm_status_with_err_code (ctrl, STATUS_TRUST_UNDEFINED, NULL,
                                         rc);
-          audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
         }
-
-      audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "good");
 
       for (i=0; (p = ksba_cert_get_subject (cert, i)); i++)
         {

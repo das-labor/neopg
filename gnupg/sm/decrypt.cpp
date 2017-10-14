@@ -257,8 +257,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
 
   memset (&dfparm, 0, sizeof dfparm);
 
-  audit_set_type (ctrl->audit, AUDIT_TYPE_DECRYPT);
-
   kh = sm_keydb_new ();
   if (!kh)
     {
@@ -308,8 +306,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
       goto leave;
     }
 
-  audit_log (ctrl->audit, AUDIT_SETUP_READY);
-
   /* Parser loop. */
   do
     {
@@ -328,8 +324,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
           int any_key = 0;
           int is_de_vs;	/* Computed compliance with CO_DE_VS.  */
 
-          audit_log (ctrl->audit, AUDIT_GOT_DATA);
-
           algoid = ksba_cms_get_content_oid (cms, 2/* encryption algo*/);
           algo = gcry_cipher_map_name (algoid);
           mode = gcry_cipher_mode_from_oid (algoid);
@@ -347,7 +341,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                 sprintf (numbuf, "%d", rc);
                 gpgsm_status2 (ctrl, STATUS_ERROR, "decrypt.algorithm",
                                numbuf, algoid?algoid:"?", NULL);
-                audit_log_s (ctrl->audit, AUDIT_BAD_DATA_CIPHER_ALGO, algoid);
               }
 
               /* If it seems that this is not an encrypted message we
@@ -372,7 +365,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
           /* For CMS, CO_DE_VS demands CBC mode.  */
           is_de_vs = gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (algo), (gcry_cipher_modes) (mode));
 
-          audit_log_i (ctrl->audit, AUDIT_DATA_CIPHER_ALGO, algo);
           dfparm.algo = algo;
           dfparm.mode = mode;
           dfparm.blklen = gcry_cipher_get_algo_blklen (algo);
@@ -403,7 +395,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
               rc = ksba_cms_get_issuer_serial (cms, recp, &issuer, &serial);
               if (rc == -1 && recp)
                 break; /* no more recipients */
-              audit_log_i (ctrl->audit, AUDIT_NEW_RECP, recp);
               if (rc)
                 log_error ("recp %d - error getting info: %s\n",
                            recp, gpg_strerror (rc));
@@ -416,13 +407,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                   log_debug ("recp %d - serial: ", recp);
                   gpgsm_dump_serial (serial);
                   log_printf ("\n");
-
-                  if (ctrl->audit)
-                    {
-                      char *tmpstr = gpgsm_format_sn_issuer (serial, issuer);
-                      audit_log_s (ctrl->audit, AUDIT_RECP_NAME, tmpstr);
-                      xfree (tmpstr);
-                    }
 
                   sm_keydb_search_reset (kh);
                   rc = sm_keydb_search_issuer_sn (ctrl, kh, issuer, serial);
@@ -456,9 +440,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                     gpgsm_status2 (ctrl, STATUS_ENC_TO,
                                    kidbuf, "0", "0", NULL);
                   }
-
-                  /* Put the certificate into the audit log.  */
-                  audit_log_cert (ctrl->audit, AUDIT_SAVE_CERT, cert, 0);
 
                   /* Just in case there is a problem with the own
                      certificate we print this message - should never
@@ -539,39 +520,9 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                                       gnupg_status_compliance_flag (CO_DE_VS));
 
                     }
-                  audit_log_ok (ctrl->audit, AUDIT_RECP_RESULT, rc);
                 }
               xfree (hexkeygrip);
               xfree (desc);
-            }
-
-          /* If we write an audit log add the unused recipients to the
-             log as well.  */
-          if (ctrl->audit && any_key)
-            {
-              for (;; recp++)
-                {
-                  char *issuer;
-                  ksba_sexp_t serial;
-                  int tmp_rc;
-
-                  tmp_rc = ksba_cms_get_issuer_serial (cms, recp,
-                                                       &issuer, &serial);
-                  if (tmp_rc == -1)
-                    break; /* no more recipients */
-                  audit_log_i (ctrl->audit, AUDIT_NEW_RECP, recp);
-                  if (tmp_rc)
-                    log_error ("recp %d - error getting info: %s\n",
-                               recp, gpg_strerror (rc));
-                  else
-                    {
-                      char *tmpstr = gpgsm_format_sn_issuer (serial, issuer);
-                      audit_log_s (ctrl->audit, AUDIT_RECP_NAME, tmpstr);
-                      xfree (tmpstr);
-                      xfree (issuer);
-                      xfree (serial);
-                    }
-                }
             }
 
           if (!any_key)
@@ -623,7 +574,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
 
 
  leave:
-  audit_log_ok (ctrl->audit, AUDIT_DECRYPTION_RESULT, rc);
   if (rc)
     {
       gpgsm_status (ctrl, STATUS_DECRYPTION_FAILED, NULL);

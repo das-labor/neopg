@@ -116,7 +116,6 @@ start_agent (ctrl_t ctrl)
   if (!ctrl->agent_seen)
     {
       ctrl->agent_seen = 1;
-      audit_log_ok (ctrl->audit, AUDIT_AGENT_READY, rc);
     }
 
   return rc;

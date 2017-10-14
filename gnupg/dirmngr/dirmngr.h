@@ -169,8 +169,6 @@ struct server_control_s
   int check_revocations_nest_level; /* Internal to check_revovations.  */
   cert_ref_t ocsp_certs; /* Certificates from the current OCSP
                             response. */
-
-  int audit_events;  /* Send audit events to client.  */
   char *http_proxy;  /* The used http_proxy or NULL.  */
 
   unsigned int timeout; /* Timeout for connect calls in ms.  */

@@ -556,11 +556,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
       int i = *value? atoi (value) : 0;
       ctrl->force_crl_refresh = i;
     }
-  else if (!strcmp (key, "audit-events"))
-    {
-      int i = *value? atoi (value) : 0;
-      ctrl->audit_events = i;
-    }
   else if (!strcmp (key, "http-proxy"))
     {
       xfree (ctrl->http_proxy);

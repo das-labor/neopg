@@ -329,8 +329,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
   certlist_t cl;
   int release_signerlist = 0;
 
-  audit_set_type (ctrl->audit, AUDIT_TYPE_SIGN);
-
   kh = sm_keydb_new ();
   if (!kh)
     {
@@ -551,10 +549,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
           goto leave;
         }
       gcry_md_enable (data_md, algo);
-      audit_log_i (ctrl->audit, AUDIT_DATA_HASH_ALGO, algo);
     }
-
-  audit_log (ctrl->audit, AUDIT_SETUP_READY);
 
   if (detached)
     { /* We hash the data right now so that we can store the message
@@ -563,8 +558,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       unsigned char *digest;
       size_t digest_len;
 
-      if (!hash_data (data_fd, data_md))
-        audit_log (ctrl->audit, AUDIT_GOT_DATA);
       for (cl=signerlist,signer=0; cl; cl = cl->next, signer++)
         {
           digest = gcry_md_read (data_md, cl->hash_algo);
@@ -639,7 +632,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
           rc = hash_and_copy_data (data_fd, data_md, writer);
           if (rc)
             goto leave;
-          audit_log (ctrl->audit, AUDIT_GOT_DATA);
           for (cl=signerlist,signer=0; cl; cl = cl->next, signer++)
             {
               digest = gcry_md_read (data_md, cl->hash_algo);
@@ -680,7 +672,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
               unsigned char *sigval = NULL;
               char *buf, *fpr;
 
-              audit_log_i (ctrl->audit, AUDIT_NEW_SIG, signer);
               if (signer)
                 gcry_md_reset (md);
               {
@@ -689,8 +680,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                 for (cl_tmp=signerlist; cl_tmp; cl_tmp = cl_tmp->next)
                   {
                     gcry_md_enable (md, cl_tmp->hash_algo);
-                    audit_log_i (ctrl->audit, AUDIT_ATTR_HASH_ALGO,
-                                 cl_tmp->hash_algo);
                   }
               }
 
@@ -707,7 +696,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                                                md, cl->hash_algo, &sigval);
               if (rc)
                 {
-                  audit_log_cert (ctrl->audit, AUDIT_SIGNED_BY, cl->cert, rc);
                   gcry_md_close (md);
                   goto leave;
                 }
@@ -716,7 +704,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
               xfree (sigval);
               if (err)
                 {
-                  audit_log_cert (ctrl->audit, AUDIT_SIGNED_BY, cl->cert, err);
                   log_error ("failed to store the signature: %s\n",
                              gpg_strerror (err));
                   rc = err;
@@ -752,7 +739,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                 }
               gpgsm_status (ctrl, STATUS_SIG_CREATED, buf);
               xfree (buf);
-              audit_log_cert (ctrl->audit, AUDIT_SIGNED_BY, cl->cert, 0);
             }
           gcry_md_close (md);
         }
@@ -766,7 +752,6 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       goto leave;
     }
 
-  audit_log (ctrl->audit, AUDIT_SIGNING_DONE);
   log_info ("signature created\n");
 
 

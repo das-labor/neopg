@@ -45,7 +45,6 @@ struct server_local_s {
   int list_internal;
   int list_external;
   int list_to_output;           /* Write keylistings to the output fd. */
-  int enable_audit_log;         /* Use an audit log.  */
   certlist_t recplist;
   certlist_t signerlist;
   certlist_t default_recplist; /* As set by main() - don't release. */
@@ -138,20 +137,6 @@ close_message_fd (ctrl_t ctrl)
     }
 }
 
-
-/* Start a new audit session if this has been enabled.  */
-static gpg_error_t
-start_audit_session (ctrl_t ctrl)
-{
-  audit_release (ctrl->audit);
-  ctrl->audit = NULL;
-  if (ctrl->server_local->enable_audit_log && !(ctrl->audit = audit_new ()) )
-    return gpg_error_from_syserror ();
-
-  return 0;
-}
-
-
 static gpg_error_t
 option_handler (assuan_context_t ctx, const char *key, const char *value)
 {
@@ -227,11 +212,6 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
   else if (!strcmp (key, "with-key-data"))
     {
       opt.with_key_data = 1;
-    }
-  else if (!strcmp (key, "enable-audit-log"))
-    {
-      int i = *value? atoi (value) : 0;
-      ctrl->server_local->enable_audit_log = i;
     }
   else if (!strcmp (key, "with-ephemeral-keys"))
     {
@@ -329,9 +309,6 @@ cmd_recipient (assuan_context_t ctx, char *line)
   ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
   int rc;
 
-  if (!ctrl->audit)
-    rc = start_audit_session (ctrl);
-  else
     rc = 0;
 
   if (!rc)
@@ -429,8 +406,6 @@ cmd_encrypt (assuan_context_t ctx, char *line)
                                            &ctrl->server_local->recplist, 1);
     }
   if (!rc)
-    rc = ctrl->audit? 0 : start_audit_session (ctrl);
-  if (!rc)
     rc = gpgsm_encrypt ((ctrl_t) (assuan_get_pointer (ctx)),
                         ctrl->server_local->recplist,
                         inp_fd, out_fp);
@@ -475,9 +450,7 @@ cmd_decrypt (assuan_context_t ctx, char *line)
   if (!out_fp)
     return set_error (gpg_error_from_syserror (), "fdopen() failed");
 
-  rc = start_audit_session (ctrl);
-  if (!rc)
-    rc = gpgsm_decrypt (ctrl, inp_fd, out_fp);
+  gpgsm_decrypt (ctrl, inp_fd, out_fp);
   es_fclose (out_fp);
 
   /* Close and reset the fds. */
@@ -519,9 +492,7 @@ cmd_verify (assuan_context_t ctx, char *line)
         return set_error (gpg_error_from_syserror (), "fdopen() failed");
     }
 
-  rc = start_audit_session (ctrl);
-  if (!rc)
-    rc = gpgsm_verify ((ctrl_t) (assuan_get_pointer (ctx)), fd,
+  gpgsm_verify ((ctrl_t) (assuan_get_pointer (ctx)), fd,
                        ctrl->server_local->message_fd, out_fp);
   es_fclose (out_fp);
 
@@ -562,9 +533,7 @@ cmd_sign (assuan_context_t ctx, char *line)
   if (!out_fp)
     return set_error (GPG_ERR_ASS_GENERAL, "fdopen() failed");
 
-  rc = start_audit_session (ctrl);
-  if (!rc)
-    rc = gpgsm_sign ((ctrl_t) (assuan_get_pointer (ctx)), ctrl->server_local->signerlist,
+  gpgsm_sign ((ctrl_t) (assuan_get_pointer (ctx)), ctrl->server_local->signerlist,
                      inp_fd, detached, out_fp);
   es_fclose (out_fp);
 
@@ -995,63 +964,6 @@ cmd_genkey (assuan_context_t ctx, char *line)
   return rc;
 }
 
-
-
-static const char hlp_getauditlog[] =
-  "GETAUDITLOG [--data] [--html]\n"
-  "\n"
-  "If --data is used, the output is send using D-lines and not to the\n"
-  "file descriptor given by an OUTPUT command.\n"
-  "\n"
-  "If --html is used the output is formatted as an XHTML block. This is\n"
-  "designed to be incorporated into a HTML document.";
-static gpg_error_t
-cmd_getauditlog (assuan_context_t ctx, char *line)
-{
-  ctrl_t ctrl = (ctrl_t) assuan_get_pointer (ctx);
-  int  out_fd;
-  estream_t out_stream;
-  int opt_data, opt_html;
-  int rc;
-
-  opt_data = has_option (line, "--data");
-  opt_html = has_option (line, "--html");
-  /* Not needed: line = skip_options (line); */
-
-  if (!ctrl->audit)
-    return GPG_ERR_NO_DATA;
-
-  if (opt_data)
-    {
-      out_stream = es_fopencookie (ctx, "w", data_line_cookie_functions);
-      if (!out_stream)
-        return set_error (GPG_ERR_ASS_GENERAL,
-                          "error setting up a data stream");
-    }
-  else
-    {
-      out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-      if (out_fd == -1)
-        return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
-
-      out_stream = es_fdopen_nc (out_fd, "w");
-      if (!out_stream)
-        {
-          return set_error (GPG_ERR_ASS_GENERAL, "es_fdopen() failed");
-        }
-    }
-
-  audit_print_result (ctrl->audit, out_stream, opt_html);
-  rc = 0;
-
-  es_fclose (out_stream);
-
-  /* Close and reset the fd. */
-  if (!opt_data)
-    assuan_close_output_fd (ctx);
-  return rc;
-}
-
 static const char hlp_getinfo[] =
   "GETINFO <what>\n"
   "\n"
@@ -1203,7 +1115,6 @@ register_commands (assuan_context_t ctx)
     { "DUMPSECRETKEYS",cmd_dumpsecretkeys, hlp_listkeys },
     { "GENKEY",        cmd_genkey,    hlp_genkey },
     { "DELKEYS",       cmd_delkeys,   hlp_delkeys },
-    { "GETAUDITLOG",   cmd_getauditlog,    hlp_getauditlog },
     { "GETINFO",       cmd_getinfo,   hlp_getinfo },
     { "PASSWD",        cmd_passwd,    hlp_passwd },
     { NULL }
@@ -1329,9 +1240,6 @@ gpgsm_server (certlist_t default_recplist)
   gpgsm_release_certlist (ctrl.server_local->signerlist);
   ctrl.server_local->signerlist = NULL;
   xfree (ctrl.server_local);
-
-  audit_release (ctrl.audit);
-  ctrl.audit = NULL;
 
   assuan_release (ctx);
 }
