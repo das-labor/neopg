@@ -1,3 +1,6 @@
 [submodule "3rdparty/googletest"]
 	path = 3rdparty/googletest
 	url = https://github.com/google/googletest.git
+[submodule "3rdparty/pegtl"]
+	path = 3rdparty/pegtl
+	url = https://github.com/taocpp/PEGTL.git
