@@ -1,16 +1,17 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(NeoPG VERSION 0.1 LANGUAGES C CXX)
 
 # Google Test
 set(GTEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/googletest)
 set(GTEST_INCLUDE_DIR ${GTEST_ROOT}/include)
-set(GTEST_LIBRARIES gtest)
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
   set(gtest_force_shared_crt ON CACHE BOOL
     "Use shared (DLL) run-time lib even when Google Test is built as static lib.")
 endif()
 add_subdirectory(${GTEST_ROOT} EXCLUDE_FROM_ALL)
-include_directories(${GTEST_INCLUDE_DIR})
+add_library(GTest::GTest ALIAS gtest)
+add_library(GTest::Main ALIAS gtest_main)
+
 enable_testing()
 
 find_package(Doxygen)
