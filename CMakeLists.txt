@@ -17,8 +17,10 @@ enable_testing()
 # PEGTL
 set(PEGTL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/pegtl)
 set(PEGTL_INCLUDE_DIR ${PEGTL_ROOT}/include)
+set(PEGTL_BUILD_TESTS OFF CACHE BOOL "")
 add_subdirectory(${PEGTL_ROOT} EXCLUDE_FROM_ALL)
 # taocpp:pegtl
+
 
 find_package(Doxygen)
 option(BUILD_DOC "Create and install documentation (requires Doxygen)" ${DOXYGEN_FOUND})
