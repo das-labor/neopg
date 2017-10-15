@@ -50,15 +50,15 @@ namespace NeoPG {
 
     struct PacketHeader
     {
-      PacketType packet_type;
-      PacketLengthType length_type;
-      uint32_t length;
-
       virtual void write(std::ostream& out) = 0;
     };
 
     struct OldPacketHeader : PacketHeader
     {
+      PacketType packet_type;
+      PacketLengthType length_type;
+      uint32_t length;
+
       static void verify_length(uint32_t length_,
 				PacketLengthType length_type_)
       {
@@ -141,8 +141,33 @@ namespace NeoPG {
       }
     };
 
-    struct NewPacketHeader : PacketHeader
+    struct NewPacketTag
     {
+      PacketType packet_type;
+
+      void set_packet_type(PacketType packet_type_)
+      {
+	if ((uint8_t) packet_type_ >= 64)
+	  throw std::logic_error("Invalid tag");
+	packet_type = packet_type_;
+      }
+
+      NewPacketTag(PacketType packet_type_)
+      {
+	set_packet_type(packet_type_);
+      }
+
+      void write(std::ostream& out) {
+	uint8_t tag = 0x80 | 0x40 | (uint8_t) packet_type;
+	out << (uint8_t) tag;
+      }
+    };
+
+    struct NewPacketLength
+    {
+      PacketLengthType length_type;
+      uint32_t length;
+
       static void verify_length(uint32_t length_,
 				PacketLengthType length_type_)
       {
@@ -152,7 +177,7 @@ namespace NeoPG {
 	    throw std::logic_error("Invalid packet length for one octet");
 	  }
 	else if (length_type_ == PacketLengthType::TwoOctet
-	    and not (length_ >= 0xc0 and length_ <= 0x20bf))
+		 and not (length_ >= 0xc0 and length_ <= 0x20bf))
 	  {
 	    throw std::logic_error("Invalid packet length for two octets");
 	  }
@@ -175,22 +200,6 @@ namespace NeoPG {
 	  return PacketLengthType::FiveOctet;
       }
 
-
-      NewPacketHeader(PacketType packet_type_,
-		      uint32_t length_,
-		      PacketLengthType length_type_ = PacketLengthType::Default)
-      {
-	set_packet_type(packet_type_);
-	set_length(length_, length_type_);
-      }
-
-      void set_packet_type(PacketType packet_type_)
-      {
-	if ((uint8_t) packet_type_ >= 64)
-	  throw std::logic_error("Invalid tag");
-	packet_type = packet_type_;
-      }
-
       void set_length(uint32_t length_,
 		      PacketLengthType length_type_ = PacketLengthType::Default)
 
@@ -200,10 +209,13 @@ namespace NeoPG {
 	length = length_;
       }
 
-      void write(std::ostream& out) {
-	uint8_t tag = 0x80 | 0x40 | (uint8_t) packet_type;
-	out << (uint8_t) tag;
+      NewPacketLength(uint32_t length_,
+		      PacketLengthType length_type_ = PacketLengthType::Default)
+      {
+	set_length(length_, length_type_);
+      }
 
+      void write(std::ostream& out) {
 	PacketLengthType lentype = length_type;
 	if (lentype == PacketLengthType::Default)
 	  lentype = best_length_type(length);
@@ -240,6 +252,30 @@ namespace NeoPG {
 	  case PacketLengthType::Default:
 	    throw std::logic_error("Unspecific packet length type (shouldn't happen).");
 	  }
+      }
+    };
+
+    struct NewPacketHeader : PacketHeader
+    {
+      NewPacketTag tag;
+      NewPacketLength length;
+
+      NewPacketHeader(NewPacketTag tag_,
+		      NewPacketLength length_)
+	: tag(tag_), length(length_)
+	{
+	}
+
+      NewPacketHeader(PacketType packet_type_,
+		      uint32_t length_,
+		      PacketLengthType length_type_ = PacketLengthType::Default)
+	: tag(packet_type_), length(length_, length_type_)
+	{
+	}
+
+      void write(std::ostream& out) {
+	tag.write(out);
+	length.write(out);
       }
     };
   }

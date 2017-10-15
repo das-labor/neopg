@@ -9,8 +9,32 @@ using namespace NeoPG;
 TEST(NeoPGTest, openpg_test) {
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 3);
+    OpenPGP::NewPacketTag tag(OpenPGP::PacketType::Marker);
     tag.write(out);
+    ASSERT_EQ(out.str(), "\xca");
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::NewPacketLength length(3);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\x03");
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::NewPacketTag tag(OpenPGP::PacketType::Marker);
+    OpenPGP::NewPacketLength length(3);
+    OpenPGP::NewPacketHeader header(tag, length);
+    header.write(out);
+    ASSERT_EQ(out.str(), "\xca\x03");
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::NewPacketHeader header(OpenPGP::PacketType::Marker,
+				    3);
+    header.write(out);
     ASSERT_EQ(out.str(), "\xca\x03");
   }
 
@@ -24,63 +48,63 @@ TEST(NeoPGTest, openpg_test) {
   /* Examples from RFC 4880.  */
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 100);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\x64");
+    OpenPGP::NewPacketLength length(100);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\x64");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 1723);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xc5\xfb");
+    OpenPGP::NewPacketLength length(1723);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xc5\xfb");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 100000);
-    tag.write(out);
-    ASSERT_EQ(out.str(), std::string("\xca\xff\x00\x01\x86\xa0", 6));
+    OpenPGP::NewPacketLength length(100000);
+    length.write(out);
+    ASSERT_EQ(out.str(), std::string("\xff\x00\x01\x86\xa0", 5));
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 32768,
-				 OpenPGP::PacketLengthType::Partial);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xef");
+    OpenPGP::NewPacketLength length(32768,
+				    OpenPGP::PacketLengthType::Partial);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xef");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 2,
-				 OpenPGP::PacketLengthType::Partial);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xe1");
+    OpenPGP::NewPacketLength length(2,
+				    OpenPGP::PacketLengthType::Partial);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xe1");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 1,
-				 OpenPGP::PacketLengthType::Partial);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xe0");
+    OpenPGP::NewPacketLength length(1,
+				    OpenPGP::PacketLengthType::Partial);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xe0");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 65536,
-				 OpenPGP::PacketLengthType::Partial);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xf0");
+    OpenPGP::NewPacketLength length(65536,
+				    OpenPGP::PacketLengthType::Partial);
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xf0");
   }
 
   {
     std::stringstream out;
-    OpenPGP::NewPacketHeader tag(OpenPGP::PacketType::Marker, 1693,
+    OpenPGP::NewPacketLength length(1693,
 				 OpenPGP::PacketLengthType::TwoOctet);
-    tag.write(out);
-    ASSERT_EQ(out.str(), "\xca\xc5\xdd");
+    length.write(out);
+    ASSERT_EQ(out.str(), "\xc5\xdd");
   }
 
   /* Similar for old packet format, for comparison.  */
@@ -104,6 +128,4 @@ TEST(NeoPGTest, openpg_test) {
     tag.write(out);
     ASSERT_EQ(out.str(), std::string("\xaa\x00\x01\x86\xa0", 5));
   }
-
 }
-
