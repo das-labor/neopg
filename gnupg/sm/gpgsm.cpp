@@ -792,8 +792,6 @@ gpgsm_main ( int argc, char **argv)
 
   may_coredump = disable_core_dumps ();
 
-  gnupg_init_signals (0, emergency_cleanup);
-
   dotlock_create (NULL, 0); /* Register lockfile cleanup.  */
 
   /* Tell the compliance module who we are.  */

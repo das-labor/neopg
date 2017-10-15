@@ -440,76 +440,6 @@ tdbio_sync()
     return 0;
 }
 
-
-#if 0  /* Not yet used.  */
-/*
- * Simple transactions system:
- * Everything between begin_transaction and end/cancel_transaction
- * is not immediately written but at the time of end_transaction.
- *
- * NOTE: The transaction code is disabled in the 1.2 branch, as it is
- * not yet used.
- */
-int
-tdbio_begin_transaction ()  /* Not yet used.  */
-{
-  int rc;
-
-  if (in_transaction)
-    log_bug ("tdbio: nested transactions\n");
-  /* Flush everything out. */
-  rc = tdbio_sync();
-  if (rc)
-    return rc;
-  in_transaction = 1;
-  return 0;
-}
-
-int
-tdbio_end_transaction ()  /* Not yet used.  */
-{
-  int rc;
-
-  if (!in_transaction)
-    log_bug ("tdbio: no active transaction\n");
-  take_write_lock ();
-  gnupg_block_all_signals ();
-  in_transaction = 0;
-  rc = tdbio_sync();
-  gnupg_unblock_all_signals();
-  release_write_lock ();
-  return rc;
-}
-
-int
-tdbio_cancel_transaction () /* Not yet used.  */
-{
-  CACHE_CTRL r;
-
-  if (!in_transaction)
-    log_bug ("tdbio: no active transaction\n");
-
-  /* Remove all dirty marked entries, so that the original ones are
-   * read back the next time.  */
-  if (cache_is_dirty)
-    {
-      for (r = cache_list; r; r = r->next)
-        {
-          if (r->flags.used && r->flags.dirty)
-            {
-              r->flags.used = 0;
-              cache_entries--;
-	    }
-	}
-      cache_is_dirty = 0;
-    }
-
-  in_transaction = 0;
-  return 0;
-}
-#endif  /* Not yet used.  */
-
-
 
 /********************************************************
  **************** cached I/O functions ******************

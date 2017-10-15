@@ -97,16 +97,6 @@ struct getkey_ctx_s
   KEYDB_SEARCH_DESC items[1];
 };
 
-#if 0
-static struct
-{
-  int any;
-  int okay_count;
-  int nokey_count;
-  int error_count;
-} lkup_stats[21];
-#endif
-
 typedef struct keyid_list
 {
   struct keyid_list *next;
@@ -147,24 +137,6 @@ static kbnode_t finish_lookup (kbnode_t keyblock,
                                unsigned int req_usage, int want_exact,
                                unsigned int *r_flags);
 static void print_status_key_considered (kbnode_t keyblock, unsigned int flags);
-
-
-#if 0
-static void
-print_stats ()
-{
-  int i;
-  for (i = 0; i < DIM (lkup_stats); i++)
-    {
-      if (lkup_stats[i].any)
-	es_fprintf (es_stderr,
-		 "lookup stats: mode=%-2d  ok=%-6d  nokey=%-6d  err=%-6d\n",
-		 i,
-		 lkup_stats[i].okay_count,
-		 lkup_stats[i].nokey_count, lkup_stats[i].error_count);
-    }
-}
-#endif
 
 
 /* Cache a copy of a public key in the public key cache.  PK is not

@@ -157,7 +157,6 @@ enum cmd_and_opt_values
     aCheckKeys,
     aGenRevoke,
     aDesigRevoke,
-    aPrimegen,
     aPrintMD,
     aPrintMDs,
     aCheckTrustDB,
@@ -471,7 +470,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aEnArmor, "enarmor", "@"),
   ARGPARSE_c (aEnArmor, "enarmour", "@"),
   ARGPARSE_c (aPrintMD, "print-md", N_("print message digests")),
-  ARGPARSE_c (aPrimegen, "gen-prime", "@" ),
   ARGPARSE_c (aGenRandom,"gen-random", "@" ),
   ARGPARSE_c (aTOFUPolicy, "tofu-policy",
 	      N_("|VALUE|set the TOFU policy for a key")),
@@ -1956,8 +1954,6 @@ gpg_main (int argc, char **argv)
 
     may_coredump = disable_core_dumps();
 
-    gnupg_init_signals (0, emergency_cleanup);
-
     dotlock_create (NULL, 0); /* Register lock file cleanup. */
 
     /* Tell the compliance module who we are.  */
@@ -2160,7 +2156,6 @@ gpg_main (int argc, char **argv)
 	  case aClearsign:
 	  case aGenRevoke:
 	  case aDesigRevoke:
-	  case aPrimegen:
 	  case aGenRandom:
 	  case aPrintMD:
 	  case aPrintMDs:
@@ -3321,7 +3316,6 @@ gpg_main (int argc, char **argv)
 #ifndef NO_TRUST_MODELS
     switch (cmd)
       {
-      case aPrimegen:
       case aPrintMD:
       case aPrintMDs:
       case aGenRandom:
@@ -3965,45 +3959,6 @@ gpg_main (int argc, char **argv)
             write_status_failure ("enarmor", rc);
 	    log_error (_("enarmoring failed: %s\n"), gpg_strerror (rc));
           }
-	break;
-
-
-      case aPrimegen:
-#if 0 /*FIXME*/
-	{   int mode = argc < 2 ? 0 : atoi(*argv);
-
-	    if( mode == 1 && argc == 2 ) {
-		mpi_print (es_stdout,
-                           generate_public_prime( atoi(argv[1]) ), 1);
-	    }
-	    else if( mode == 2 && argc == 3 ) {
-		mpi_print (es_stdout, generate_elg_prime(
-					     0, atoi(argv[1]),
-					     atoi(argv[2]), NULL,NULL ), 1);
-	    }
-	    else if( mode == 3 && argc == 3 ) {
-		MPI *factors;
-		mpi_print (es_stdout, generate_elg_prime(
-					     1, atoi(argv[1]),
-					     atoi(argv[2]), NULL,&factors ), 1);
-		es_putc ('\n', es_stdout);
-		mpi_print (es_stdout, factors[0], 1 ); /* print q */
-	    }
-	    else if( mode == 4 && argc == 3 ) {
-		MPI g = mpi_alloc(1);
-		mpi_print (es_stdout, generate_elg_prime(
-						 0, atoi(argv[1]),
-						 atoi(argv[2]), g, NULL ), 1);
-		es_putc ('\n', es_stdout);
-		mpi_print (es_stdout, g, 1 );
-		mpi_free (g);
-	    }
-	    else
-		wrong_args("--gen-prime mode bits [qbits] ");
-	    es_putc ('\n', es_stdout);
-	}
-#endif
-        wrong_args("--gen-prime not yet supported ");
 	break;
 
       case aGenRandom:

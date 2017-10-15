@@ -528,7 +528,6 @@ add_executable(neopg
   gnupg/common/miscellaneous.cpp
   gnupg/common/init.cpp
   gnupg/common/percent.cpp
-  gnupg/common/signal.cpp
   gnupg/common/zb32.cpp
   gnupg/common/openpgp-oid.cpp
   gnupg/common/ttyio.cpp

@@ -558,18 +558,11 @@ gnupg_remove (const char *fname)
 }
 
 
-/* Wrapper for rename(2) to handle Windows peculiarities.  If
- * BLOCK_SIGNALS is not NULL and points to a variable set to true, all
- * signals will be blocked by calling gnupg_block_all_signals; the
- * caller needs to call gnupg_unblock_all_signals if that variable is
- * still set to true on return. */
+/* Wrapper for rename(2) to handle Windows peculiarities.  */
 gpg_error_t
-gnupg_rename_file (const char *oldname, const char *newname, int *block_signals)
+gnupg_rename_file (const char *oldname, const char *newname)
 {
   gpg_error_t err = 0;
-
-  if (block_signals && *block_signals)
-    gnupg_block_all_signals ();
 
 #ifdef HAVE_DOSISH_SYSTEM
   {
@@ -611,12 +604,6 @@ gnupg_rename_file (const char *oldname, const char *newname, int *block_signals)
       err = gpg_error_from_syserror ();
   }
 #endif /* Unix */
-
-  if (block_signals && *block_signals && err)
-    {
-      gnupg_unblock_all_signals ();
-      *block_signals = 0;
-    }
 
   if (err)
     log_error (_("renaming '%s' to '%s' failed: %s\n"),

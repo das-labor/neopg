@@ -69,7 +69,6 @@
 #include "../common/utf8conv.h"
 #include "../common/dynload.h"
 #include "../common/fwddecl.h"
-#include "../common/utilproto.h"
 
 #include "gettime.h"
 

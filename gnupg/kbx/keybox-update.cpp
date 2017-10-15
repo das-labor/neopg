@@ -29,7 +29,6 @@
 #include "keybox-defs.h"
 #include "../common/sysutils.h"
 #include "../common/host2net.h"
-#include "../common/utilproto.h"
 
 #define EXTSEP_S "."
 
@@ -67,7 +66,6 @@ rename_tmp_file (const char *bakfname, const char *tmpfname,
                  const char *fname, int secret )
 {
   int rc=0;
-  int block = 0;
 
   /* restrict the permissions for secret keyboxs */
 #ifndef HAVE_DOSISH_SYSTEM
@@ -90,19 +88,13 @@ rename_tmp_file (const char *bakfname, const char *tmpfname,
   /* First make a backup file except for secret keyboxes. */
   if (!secret)
     {
-      block = 1;
-      rc = gnupg_rename_file (fname, bakfname, &block);
+      rc = gnupg_rename_file (fname, bakfname);
       if (rc)
         goto leave;
     }
 
   /* Then rename the file. */
-  rc = gnupg_rename_file (tmpfname, fname, NULL);
-  if (block)
-    {
-      gnupg_unblock_all_signals ();
-      block = 0;
-    }
+  rc = gnupg_rename_file (tmpfname, fname);
   /* if (rc) */
   /*   { */
   /*     if (secret) */
@@ -116,8 +108,6 @@ rename_tmp_file (const char *bakfname, const char *tmpfname,
   /*   } */
 
  leave:
-  if (block)
-    gnupg_unblock_all_signals ();
   return rc;
 }
 

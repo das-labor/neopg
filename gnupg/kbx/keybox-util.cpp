@@ -27,7 +27,6 @@
 #endif
 
 #include "keybox-defs.h"
-#include "../common/utilproto.h"
 
 static void *(*alloc_func)(size_t n) = malloc;
 static void *(*realloc_func)(void *p, size_t n) = realloc;
@@ -144,11 +143,4 @@ keybox_tmp_names (const char *filename, int for_keyring,
   *r_bakname = bak_name;
   *r_tmpname = tmp_name;
   return 0;
-}
-
-gpg_error_t
-keybox_file_rename (const char *oldname, const char *newname,
-                    int *block_signals)
-{
-  return gnupg_rename_file (oldname, newname, block_signals);
 }

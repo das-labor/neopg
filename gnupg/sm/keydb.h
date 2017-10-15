@@ -52,7 +52,6 @@ int sm_keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert);
 int sm_keydb_delete (KEYDB_HANDLE hd, int unlock);
 
 int sm_keydb_locate_writable (KEYDB_HANDLE hd, const char *reserved);
-void sm_keydb_rebuild_caches (void);
 
 gpg_error_t sm_keydb_search_reset (KEYDB_HANDLE hd);
 int sm_keydb_search (ctrl_t ctrl, KEYDB_HANDLE hd,

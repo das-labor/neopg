@@ -909,30 +909,6 @@ sm_keydb_locate_writable (KEYDB_HANDLE hd, const char *reserved)
   return -1;
 }
 
-/*
- * Rebuild the caches of all key resources.
- */
-void
-sm_keydb_rebuild_caches (void)
-{
-  int i;
-
-  for (i=0; i < used_resources; i++)
-    {
-      switch (all_resources[i].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE: /* ignore */
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-/*            rc = keybox_rebuild_cache (all_resources[i].token); */
-/*            if (rc) */
-/*              log_error (_("failed to rebuild keybox cache: %s\n"), */
-/*                         g10_errstr (rc)); */
-          break;
-        }
-    }
-}
-
 
 
 /*
