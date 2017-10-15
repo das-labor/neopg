@@ -40,8 +40,8 @@ TEST(NeoPGTest, openpg_test) {
 
   {
     std::stringstream out;
-    OpenPGP::OldPacketHeader tag(OpenPGP::PacketType::Marker, 3);
-    tag.write(out);
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 3);
+    header.write(out);
     ASSERT_EQ(out.str(), "\xa8\x03");
   }
 
@@ -110,22 +110,22 @@ TEST(NeoPGTest, openpg_test) {
   /* Similar for old packet format, for comparison.  */
   {
     std::stringstream out;
-    OpenPGP::OldPacketHeader tag(OpenPGP::PacketType::Marker, 100);
-    tag.write(out);
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 100);
+    header.write(out);
     ASSERT_EQ(out.str(), "\xa8\x64");
   }
 
   {
     std::stringstream out;
-    OpenPGP::OldPacketHeader tag(OpenPGP::PacketType::Marker, 1723);
-    tag.write(out);
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 1723);
+    header.write(out);
     ASSERT_EQ(out.str(), "\xa9\x06\xbb");
   }
 
   {
     std::stringstream out;
-    OpenPGP::OldPacketHeader tag(OpenPGP::PacketType::Marker, 100000);
-    tag.write(out);
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 100000);
+    header.write(out);
     ASSERT_EQ(out.str(), std::string("\xaa\x00\x01\x86\xa0", 5));
   }
 
