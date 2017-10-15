@@ -322,13 +322,6 @@ store_alias( ARGPARSE_ARGS *arg, char *name, char *value )
   (void)arg;
   (void)name;
   (void)value;
-#if 0
-    ALIAS_DEF a = xmalloc( sizeof *a );
-    a->name = name;
-    a->value = value;
-    a->next = (ALIAS_DEF)arg->internal.aliases;
-    (ALIAS_DEF)arg->internal.aliases = a;
-#endif
 }
 
 
@@ -774,19 +767,6 @@ find_long_option( ARGPARSE_ARGS *arg,
     for(i=0; opts[i].short_opt; i++ )
 	if( opts[i].long_opt && !strcmp( opts[i].long_opt, keyword) )
 	    return i;
-#if 0
-    {
-	ALIAS_DEF a;
-	/* see whether it is an alias */
-	for( a = args->internal.aliases; a; a = a->next ) {
-	    if( !strcmp( a->name, keyword) ) {
-		/* todo: must parse the alias here */
-		args->internal.cur_alias = a;
-		return -3; /* alias available */
-	    }
-	}
-    }
-#endif
     /* not found, see whether it is an abbreviation */
     /* aliases may not be abbreviated */
     n = strlen( keyword );
@@ -1452,77 +1432,3 @@ set_strusage ( const char *(*f)( int ) )
 {
   strusage_handler = f;
 }
-
-
-#ifdef TEST
-static struct {
-    int verbose;
-    int debug;
-    char *outfile;
-    char *crf;
-    int myopt;
-    int echo;
-    int a_long_one;
-} opt;
-
-int
-main(int argc, char **argv)
-{
-  ARGPARSE_OPTS opts[] = {
-    ARGPARSE_x('v', "verbose", NONE, 0, "Laut sein"),
-    ARGPARSE_s_n('e', "echo"   , ("Zeile ausgeben, damit wir sehen, "
-                                  "was wir eingegeben haben")),
-    ARGPARSE_s_n('d', "debug", "Debug\nfalls mal etwas\nschief geht"),
-    ARGPARSE_s_s('o', "output", 0 ),
-    ARGPARSE_o_s('c', "cross-ref", "cross-reference erzeugen\n" ),
-    /* Note that on a non-utf8 terminal the ß might garble the output. */
-    ARGPARSE_s_n('s', "street","|Straße|set the name of the street to Straße"),
-    ARGPARSE_o_i('m', "my-option", 0),
-    ARGPARSE_s_n(500, "a-long-option", 0 ),
-    ARGPARSE_end()
-  };
-  ARGPARSE_ARGS pargs = { &argc, &argv, (ARGPARSE_FLAG_ALL
-                                         | ARGPARSE_FLAG_MIXED
-                                         | ARGPARSE_FLAG_ONEDASH) };
-  int i;
-
-  while (arg_parse  (&pargs, opts))
-    {
-      switch (pargs.r_opt)
-        {
-        case ARGPARSE_IS_ARG :
-          printf ("arg='%s'\n", pargs.r.ret_str);
-          break;
-        case 'v': opt.verbose++; break;
-        case 'e': opt.echo++; break;
-        case 'd': opt.debug++; break;
-        case 'o': opt.outfile = pargs.r.ret_str; break;
-        case 'c': opt.crf = pargs.r_type? pargs.r.ret_str:"a.crf"; break;
-        case 'm': opt.myopt = pargs.r_type? pargs.r.ret_int : 1; break;
-        case 500: opt.a_long_one++;  break;
-        default : pargs.err = ARGPARSE_PRINT_WARNING; break;
-	}
-    }
-  for (i=0; i < argc; i++ )
-    printf ("%3d -> (%s)\n", i, argv[i] );
-  puts ("Options:");
-  if (opt.verbose)
-    printf ("  verbose=%d\n", opt.verbose );
-  if (opt.debug)
-    printf ("  debug=%d\n", opt.debug );
-  if (opt.outfile)
-    printf ("  outfile='%s'\n", opt.outfile );
-  if (opt.crf)
-    printf ("  crffile='%s'\n", opt.crf );
-  if (opt.myopt)
-    printf ("  myopt=%d\n", opt.myopt );
-  if (opt.a_long_one)
-    printf ("  a-long-one=%d\n", opt.a_long_one );
-  if (opt.echo)
-    printf ("  echo=%d\n", opt.echo );
-
-  return 0;
-}
-#endif /*TEST*/
-
-/**** bottom of file ****/
