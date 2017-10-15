@@ -128,4 +128,30 @@ TEST(NeoPGTest, openpg_test) {
     tag.write(out);
     ASSERT_EQ(out.str(), std::string("\xaa\x00\x01\x86\xa0", 5));
   }
+
+  /* Failures.  */
+  {
+    ASSERT_THROW(OpenPGP::NewPacketTag((OpenPGP::PacketType) 64),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::NewPacketLength(192,
+					  OpenPGP::PacketLengthType::OneOctet),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::UserAttribute, 0),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker,
+					  256,
+					  OpenPGP::PacketLengthType::OneOctet),
+		 std::logic_error);
+  }
+
+
 }
