@@ -384,7 +384,9 @@
 #define HAVE_ICONV 1
 #define HAVE_INET_NTOP 1
 #define HAVE_INET_PTON 1
-#define HAVE_INOTIFY_INIT 1
+#ifndef __APPLE__
+  #define HAVE_INOTIFY_INIT 1
+#endif
 #define HAVE_ISASCII 1
 #define HAVE_LANGINFO_CODESET 1
 #define HAVE_LANGINFO_H 1
@@ -457,7 +459,7 @@
 #define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
 #define HAVE_ZIP 1
-#define ICONV_CONST 
+#define ICONV_CONST
 #define LITTLE_ENDIAN_HOST 1
 /* #undef MKDIR_TAKES_ONE_ARG */
 /* #undef NEED_LBER_H */

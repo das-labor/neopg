@@ -1,4 +1,8 @@
+#define _BSD_SOURCE 1
 #define _GNU_SOURCE 1
+#undef _XOPEN_SOURCE
+#undef _POSIX_SOURCE
+#undef _POSIX_C_SOURCE
 
 /* dns-stuff.c - DNS related code including CERT RR (rfc-4398)
  * Copyright (C) 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
@@ -43,6 +47,7 @@
 # if HAVE_SYSTEM_RESOLVER
 #  include <netinet/in.h>
 #  include <arpa/nameser.h>
+#  include <arpa/nameser_compat.h>
 #  include <resolv.h>
 # endif
 # include <netdb.h>
