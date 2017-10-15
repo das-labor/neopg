@@ -75,10 +75,6 @@
 #endif
 
 
-#ifdef HAVE_W32CE_SYSTEM
-# define isatty(a)  (0)
-#endif
-
 #undef WITH_IPV6
 #if defined (AF_INET6) && defined(PF_INET) \
     && defined (INET6_ADDRSTRLEN) && defined(HAVE_INET_PTON)
@@ -139,35 +135,21 @@ struct fun_cookie_s
 {
   int fd;
   int quiet;
-  int want_socket;
-  int is_socket;
-#ifdef HAVE_W32CE_SYSTEM
-  int use_writefile;
-#endif
   char name[1];
 };
 
 
 /* Write NBYTES of BUFFER to file descriptor FD. */
 static int
-writen (int fd, const void *buffer, size_t nbytes, int is_socket)
+writen (int fd, const void *buffer, size_t nbytes)
 {
   const char *buf = (const char*) buffer;
   size_t nleft = nbytes;
   int nwritten;
-#ifndef HAVE_W32_SYSTEM
-  (void)is_socket; /* Not required.  */
-#endif
 
   while (nleft > 0)
     {
-#ifdef HAVE_W32_SYSTEM
-      if (is_socket)
-        nwritten = send (fd, buf, nleft, 0);
-      else
-#endif
-        nwritten = write (fd, buf, nleft);
-
+      nwritten = write (fd, buf, nleft);
       if (nwritten < 0 && errno == EINTR)
         continue;
       if (nwritten < 0)
@@ -206,220 +188,10 @@ fun_writer (void *cookie_arg, const void *buffer, size_t size)
 {
   struct fun_cookie_s *cookie = (fun_cookie_s*) cookie_arg;
 
-  /* FIXME: Use only estream with a callback for socket writing.  This
-     avoids the ugly mix of fd and estream code.  */
-
-  /* Note that we always try to reconnect to the socket but print
-     error messages only the first time an error occurred.  If
-     RUNNING_DETACHED is set we don't fall back to stderr and even do
-     not print any error messages.  This is needed because detached
-     processes often close stderr and by writing to file descriptor 2
-     we might send the log message to a file not intended for logging
-     (e.g. a pipe or network connection). */
-  if (cookie->want_socket && cookie->fd == -1)
-    {
-#ifdef WITH_IPV6
-      struct sockaddr_in6 srvr_addr_in6;
-#endif
-      struct sockaddr_in srvr_addr_in;
-#ifndef HAVE_W32_SYSTEM
-      struct sockaddr_un srvr_addr_un;
-#endif
-      const char *name_for_err = "";
-      size_t addrlen;
-      struct sockaddr *srvr_addr = NULL;
-      unsigned short port = 0;
-      int af = AF_LOCAL;
-      int pf = PF_LOCAL;
-      const char *name = cookie->name;
-
-      /* Not yet open or meanwhile closed due to an error. */
-      cookie->is_socket = 0;
-
-      /* Check whether this is a TCP socket or a local socket.  */
-      if (!strncmp (name, "tcp://", 6) && name[6])
-        {
-          name += 6;
-          af = AF_INET;
-          pf = PF_INET;
-        }
-#ifndef HAVE_W32_SYSTEM
-      else if (!strncmp (name, "socket://", 9))
-        name += 9;
-#endif
-
-      if (af == AF_LOCAL)
-        {
-          addrlen = 0;
-#ifndef HAVE_W32_SYSTEM
-          memset (&srvr_addr, 0, sizeof srvr_addr);
-          srvr_addr_un.sun_family = af;
-          if (!*name && (name = socket_dir_cb ()) && *name)
-            {
-              if (strlen (name) + 7 < sizeof (srvr_addr_un.sun_path)-1)
-                {
-                  strncpy (srvr_addr_un.sun_path,
-                           name, sizeof (srvr_addr_un.sun_path)-1);
-                  strcat (srvr_addr_un.sun_path, "/S.log");
-                  srvr_addr_un.sun_path[sizeof (srvr_addr_un.sun_path)-1] = 0;
-                  srvr_addr = (struct sockaddr *)&srvr_addr_un;
-                  addrlen = SUN_LEN (&srvr_addr_un);
-                  name_for_err = srvr_addr_un.sun_path;
-                }
-            }
-          else
-            {
-              if (*name && strlen (name) < sizeof (srvr_addr_un.sun_path)-1)
-                {
-                  strncpy (srvr_addr_un.sun_path,
-                           name, sizeof (srvr_addr_un.sun_path)-1);
-                  srvr_addr_un.sun_path[sizeof (srvr_addr_un.sun_path)-1] = 0;
-                  srvr_addr = (struct sockaddr *)&srvr_addr_un;
-                  addrlen = SUN_LEN (&srvr_addr_un);
-                }
-            }
-#endif /*!HAVE_W32SYSTEM*/
-        }
-      else
-        {
-          char *addrstr, *p;
-#ifdef HAVE_INET_PTON
-          void *addrbuf = NULL;
-#endif /*HAVE_INET_PTON*/
-
-          addrstr = (char*) xtrymalloc (strlen (name) + 1);
-          if (!addrstr)
-            addrlen = 0; /* This indicates an error.  */
-          else if (*name == '[')
-            {
-              /* Check for IPv6 literal address.  */
-              strcpy (addrstr, name+1);
-              p = strchr (addrstr, ']');
-              if (!p || p[1] != ':' || !parse_portno (p+2, &port))
-                {
-                  gpg_err_set_errno (EINVAL);
-                  addrlen = 0;
-                }
-              else
-                {
-                  *p = 0;
-#ifdef WITH_IPV6
-                  af = AF_INET6;
-                  pf = PF_INET6;
-                  memset (&srvr_addr_in6, 0, sizeof srvr_addr_in6);
-                  srvr_addr_in6.sin6_family = af;
-                  srvr_addr_in6.sin6_port = htons (port);
-#ifdef HAVE_INET_PTON
-                  addrbuf = &srvr_addr_in6.sin6_addr;
-#endif /*HAVE_INET_PTON*/
-                  srvr_addr = (struct sockaddr *)&srvr_addr_in6;
-                  addrlen = sizeof srvr_addr_in6;
-#else
-                  gpg_err_set_errno (EAFNOSUPPORT);
-                  addrlen = 0;
-#endif
-                }
-            }
-          else
-            {
-              /* Check for IPv4 literal address.  */
-              strcpy (addrstr, name);
-              p = strchr (addrstr, ':');
-              if (!p || !parse_portno (p+1, &port))
-                {
-                  gpg_err_set_errno (EINVAL);
-                  addrlen = 0;
-                }
-              else
-                {
-                  *p = 0;
-                  memset (&srvr_addr_in, 0, sizeof srvr_addr_in);
-                  srvr_addr_in.sin_family = af;
-                  srvr_addr_in.sin_port = htons (port);
-#ifdef HAVE_INET_PTON
-                  addrbuf = &srvr_addr_in.sin_addr;
-#endif /*HAVE_INET_PTON*/
-                  srvr_addr = (struct sockaddr *)&srvr_addr_in;
-                  addrlen = sizeof srvr_addr_in;
-                }
-            }
-
-          if (addrlen)
-            {
-#ifdef HAVE_INET_PTON
-              if (inet_pton (af, addrstr, addrbuf) != 1)
-                addrlen = 0;
-#else /*!HAVE_INET_PTON*/
-              /* We need to use the old function.  If we are here v6
-                 support isn't enabled anyway and thus we can do fine
-                 without.  Note that Windows has a compatible inet_pton
-                 function named inetPton, but only since Vista.  */
-              srvr_addr_in.sin_addr.s_addr = inet_addr (addrstr);
-              if (srvr_addr_in.sin_addr.s_addr == INADDR_NONE)
-                addrlen = 0;
-#endif /*!HAVE_INET_PTON*/
-            }
-
-          xfree (addrstr);
-        }
-
-      cookie->fd = addrlen? socket (pf, SOCK_STREAM, 0) : -1;
-      if (cookie->fd == -1)
-        {
-          if (!cookie->quiet && !running_detached
-              && isatty (es_fileno (es_stderr)))
-            es_fprintf (es_stderr, "failed to create socket for logging: %s\n",
-                        strerror(errno));
-        }
-      else
-        {
-          if (connect (cookie->fd, srvr_addr, addrlen) == -1)
-            {
-              if (!cookie->quiet && !running_detached
-                  && isatty (es_fileno (es_stderr)))
-                es_fprintf (es_stderr, "can't connect to '%s%s': %s\n",
-                            cookie->name, name_for_err, strerror(errno));
-              sock_close (cookie->fd);
-              cookie->fd = -1;
-            }
-        }
-
-      if (cookie->fd == -1)
-        {
-          if (!running_detached)
-            {
-              /* Due to all the problems with apps not running
-                 detached but being called with stderr closed or used
-                 for a different purposes, it does not make sense to
-                 switch to stderr.  We therefore disable it. */
-              if (!cookie->quiet)
-                {
-                  /* fputs ("switching logging to stderr\n", stderr);*/
-                  cookie->quiet = 1;
-                }
-              cookie->fd = -1; /*fileno (stderr);*/
-            }
-        }
-      else /* Connection has been established. */
-        {
-          cookie->quiet = 0;
-          cookie->is_socket = 1;
-        }
-    }
-
   log_socket = cookie->fd;
   if (cookie->fd != -1)
     {
-#ifdef HAVE_W32CE_SYSTEM
-      if (cookie->use_writefile)
-        {
-          DWORD nwritten;
-
-          WriteFile ((HANDLE)cookie->fd, buffer, size, &nwritten, NULL);
-          return (gpgrt_ssize_t)size; /* Okay.  */
-        }
-#endif
-      if (!writen (cookie->fd, buffer, size, cookie->is_socket))
+      if (!writen (cookie->fd, buffer, size))
         return (gpgrt_ssize_t)size; /* Okay. */
     }
 
@@ -433,13 +205,6 @@ fun_writer (void *cookie_arg, const void *buffer, size_t size)
         es_fprintf (es_stderr, "error writing to file descriptor %d: %s\n",
                     cookie->fd, strerror(errno));
     }
-  if (cookie->is_socket && cookie->fd != -1)
-    {
-      sock_close (cookie->fd);
-      cookie->fd = -1;
-      log_socket = -1;
-    }
-
   return (gpgrt_ssize_t)size;
 }
 
@@ -463,10 +228,6 @@ static void
 set_file_fd (const char *name, int fd)
 {
   estream_t fp;
-  int want_socket;
-#ifdef HAVE_W32CE_SYSTEM
-  int use_writefile = 0;
-#endif
   struct fun_cookie_s *cookie;
 
   /* Close an open log stream.  */
@@ -483,31 +244,6 @@ set_file_fd (const char *name, int fd)
       fd = es_fileno (es_stderr);
     }
 
-  want_socket = 0;
-  if (name && !strncmp (name, "tcp://", 6) && name[6])
-    want_socket = 1;
-#ifndef HAVE_W32_SYSTEM
-  else if (name && !strncmp (name, "socket://", 9))
-    want_socket = 2;
-#endif /*HAVE_W32_SYSTEM*/
-#ifdef HAVE_W32CE_SYSTEM
-  else if (name && !strcmp (name, "GPG2:"))
-    {
-      HANDLE hd;
-
-      ActivateDevice (L"Drivers\\"GNUPG_NAME"_Log", 0);
-      /* Ignore a filename and write the debug output to the GPG2:
-         device.  */
-      hd = CreateFile (L"GPG2:", GENERIC_WRITE,
-                       FILE_SHARE_READ | FILE_SHARE_WRITE,
-                       NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-      fd = (hd == INVALID_HANDLE_VALUE)? -1 : (int)hd;
-      name = NULL;
-      force_prefixes = 1;
-      use_writefile = 1;
-    }
-#endif /*HAVE_W32CE_SYSTEM*/
-
   /* Setup a new stream.  */
 
   /* The xmalloc below is justified because we can expect that this
@@ -516,15 +252,8 @@ set_file_fd (const char *name, int fd)
   cookie = (fun_cookie_s*) xmalloc (sizeof *cookie + (name? strlen (name):0));
   strcpy (cookie->name, name? name:"");
   cookie->quiet = 0;
-  cookie->is_socket = 0;
-  cookie->want_socket = want_socket;
-#ifdef HAVE_W32CE_SYSTEM
-  cookie->use_writefile = use_writefile;
-#endif
   if (!name)
     cookie->fd = fd;
-  else if (want_socket)
-    cookie->fd = -1;
   else
     {
       do
@@ -549,11 +278,6 @@ set_file_fd (const char *name, int fd)
   es_setvbuf (fp, NULL, _IOLBF, 0);
 
   logstream = fp;
-
-  /* We always need to print the prefix and the pid for socket mode,
-     so that the server reading the socket can do something
-     meaningful. */
-  force_prefixes = want_socket;
 
   missing_lf = 0;
 }

@@ -42,15 +42,6 @@ keybox_register_file (const char *fname, int secret, void **r_token)
 
   *r_token = NULL;
 
-  for (kr=kb_names; kr; kr = kr->next)
-    {
-      if (same_file_p (kr->fname, fname) )
-        {
-          *r_token = kr;
-          return GPG_ERR_EEXIST; /* Already registered. */
-        }
-    }
-
   kr = (KB_NAME) xtrymalloc (sizeof *kr + strlen (fname));
   if (!kr)
     return gpg_error_from_syserror ();

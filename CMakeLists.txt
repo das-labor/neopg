@@ -512,7 +512,6 @@ add_executable(neopg
   gnupg/common/dotlock.h
   gnupg/common/dotlock.cpp
   gnupg/common/mischelp.h
-  gnupg/common/mischelp.cpp
   gnupg/common/compliance.h
   gnupg/common/compliance.cpp
   gnupg/common/exechelp.h

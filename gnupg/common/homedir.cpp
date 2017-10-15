@@ -103,16 +103,7 @@ static const char *w32_rootdir (void);
 static void
 w32_try_mkdir (const char *dir)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  wchar_t *wdir = utf8_to_wchar (dir);
-  if (wdir)
-    {
-      CreateDirectory (wdir, NULL);
-      xfree (wdir);
-    }
-#else
   CreateDirectory (dir, NULL);
-#endif
 }
 #endif
 
@@ -674,13 +665,7 @@ gnupg_sysconfdir (void)
 const char *
 gnupg_bindir (void)
 {
-#if defined (HAVE_W32CE_SYSTEM)
-  static char *name;
-
-  if (!name)
-    name = xstrconcat (w32_rootdir (), DIRSEP_S "bin", NULL);
-  return name;
-#elif defined(HAVE_W32_SYSTEM)
+#if defined(HAVE_W32_SYSTEM)
   const char *rdir;
 
   rdir = w32_rootdir ();
@@ -810,11 +795,6 @@ gnupg_cachedir (void)
           else
             {
               dir = "c:\\temp\\cache\\gnupg";
-#ifdef HAVE_W32CE_SYSTEM
-              dir += 2;
-              w32_try_mkdir ("\\temp\\cache");
-              w32_try_mkdir ("\\temp\\cache\\gnupg");
-#endif
             }
         }
     }

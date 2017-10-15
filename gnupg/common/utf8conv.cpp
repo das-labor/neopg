@@ -166,10 +166,8 @@ set_native_charset (const char *newset)
          different one for console input.  Not sure how to cope with
          that.  If the console Code page is not known we fall back to
          the system code page.  */
-#ifndef HAVE_W32CE_SYSTEM
       cpno = GetConsoleOutputCP ();
       if (!cpno)
-#endif
         cpno = GetACP ();
       sprintf (codepage, "CP%u", cpno );
       /* Resolve alias.  We use a long string string and not the usual

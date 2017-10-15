@@ -108,12 +108,12 @@ gpg_error_t gnupg_create_pipe (int filedes[2]);
 
    GNUPG_SPAWN_DETACHED
           If set the process will be started as a background process.
-          This flag is only useful under W32 (but not W32CE) systems,
+          This flag is only useful under W32 systems,
           so that no new console is created and pops up a console
-          window when starting the server.  Does not work on W32CE.
+          window when starting the server.
 
    GNUPG_SPAWN_RUN_ASFW
-          On W32 (but not on W32CE) run AllowSetForegroundWindow for
+          On W32 run AllowSetForegroundWindow for
           the child.  Note that due to unknown problems this actually
           allows SetForegroundWindow for all children of this process.
 

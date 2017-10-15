@@ -207,8 +207,6 @@
      EXTSEP_S            - Separation string for file name suffixes.
                            Usually not redefined.
 
-     HAVE_W32CE_SYSTEM   - Currently only used by GnuPG.
-
    Note that there is a test program t-dotlock which has compile
    instructions at its end.  At least for SMBFS and CIFS it is
    important that 64 bit versions of stat are used; most programming
@@ -323,21 +321,7 @@
 # endif
 #endif
 
-/* In GnuPG we use wrappers around the malloc functions.  If they are
-   not defined we assume that this code is used outside of GnuPG and
-   fall back to the regular malloc functions.  */
-#ifndef xtrymalloc
-# define xtrymalloc(a)     malloc ((a))
-# define xtrycalloc(a,b)   calloc ((a), (b))
-# define xfree(a)	   free ((a))
-#endif
-
-/* Wrapper to set ERRNO (required for W32CE).  */
-#ifdef GPG_ERROR_VERSION
-#  define my_set_errno(e)  gpg_err_set_errno ((e))
-#else
-#  define my_set_errno(e)  do { errno = (e); } while (0)
-#endif
+#define my_set_errno(e)  gpg_err_set_errno ((e))
 
 /* Gettext macro replacement.  */
 #ifndef _
@@ -782,23 +766,10 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
      would not stop as expected but spin until Windows crashes.  Our
      solution is to keep the lock file open; that does not harm. */
   {
-#ifdef HAVE_W32CE_SYSTEM
-    wchar_t *wname = utf8_to_wchar (h->lockname);
-
-    if (wname)
-      h->lockhd = CreateFile (wname,
-                              GENERIC_READ|GENERIC_WRITE,
-                              FILE_SHARE_READ|FILE_SHARE_WRITE,
-                              NULL, OPEN_ALWAYS, 0, NULL);
-    else
-      h->lockhd = INVALID_HANDLE_VALUE;
-    xfree (wname);
-#else
     h->lockhd = CreateFile (h->lockname,
                             GENERIC_READ|GENERIC_WRITE,
                             FILE_SHARE_READ|FILE_SHARE_WRITE,
                             NULL, OPEN_ALWAYS, 0, NULL);
-#endif
   }
   if (h->lockhd == INVALID_HANDLE_VALUE)
     {

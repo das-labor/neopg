@@ -41,10 +41,6 @@
 #include <gpg-error.h>
 
 
-#ifndef HAVE_GETENV
-# define getenv(a)  (NULL)
-#endif
-
 #ifndef DIM
 # define DIM(v)		     (sizeof(v)/sizeof((v)[0]))
 # define DIMof(type,member)   DIM(((type *)0)->member)

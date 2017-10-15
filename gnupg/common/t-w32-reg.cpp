@@ -46,15 +46,6 @@ test_read_registry (void)
 {
   char *string;
 
-#ifdef HAVE_W32CE_SYSTEM
-  string = read_w32_registry_string ("HKEY_CLASSES_ROOT",
-                                     "BOOTSTRAP\\CLSID", NULL);
-  if (!string)
-    fail (0);
-  fprintf (stderr, "Bootstrap clsid: %s\n", string);
-  xfree (string);
-#endif
-
   string = read_w32_registry_string
     ("HKEY_CURRENT_USER",
      "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",

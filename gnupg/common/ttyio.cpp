@@ -35,7 +35,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-#if defined(HAVE_W32_SYSTEM) && !defined(HAVE_W32CE_SYSTEM)
+#if defined(HAVE_W32_SYSTEM)
 # define USE_W32_CONSOLE 1
 #endif
 
@@ -187,8 +187,6 @@ init_ttyfp(void)
     ttyfp = stdout; /* Fixme: replace by the real functions: see wklib */
     if (my_rl_init_stream)
       my_rl_init_stream (ttyfp);
-#elif defined (HAVE_W32CE_SYSTEM)
-    ttyfp = stderr;
 #else
     ttyfp = batchmode? stderr : fopen (tty_get_ttyname (), "r+");
     if( !ttyfp ) {

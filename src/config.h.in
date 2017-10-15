@@ -435,7 +435,6 @@
 #define HAVE_TCGETATTR 1
 #define HAVE_TERMIOS_H 1
 #define HAVE_TERMIO_H 1
-#define HAVE_TIMEGM 1
 #define HAVE_TIMES 1
 #define HAVE_TTYNAME 1
 /* #undef HAVE_U16_TYPEDEF */

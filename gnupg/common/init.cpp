@@ -56,18 +56,6 @@ struct mem_cleanup_item_s
 static mem_cleanup_item_t mem_cleanup_list;
 
 
-#ifdef HAVE_W32CE_SYSTEM
-static void parse_std_file_handles (int *argcp, char ***argvp);
-static void
-sleep_on_exit (void)
-{
-  /* The sshd on CE swallows some of the command output.  Sleeping a
-     while usually helps.  */
-  Sleep (400);
-}
-#endif /*HAVE_W32CE_SYSTEM*/
-
-
 static void
 run_mem_cleanup (void)
 {

@@ -79,70 +79,6 @@ get_root_key(const char *root)
 char *
 read_w32_registry_string (const char *root, const char *dir, const char *name)
 {
-#ifdef HAVE_W32CE_SYSTEM
-  HKEY root_key, key_handle;
-  DWORD n1, nbytes, type;
-  char *result = NULL;
-  wchar_t *wdir, *wname;
-
-  if ( !(root_key = get_root_key(root) ) )
-    return NULL;
-
-  wdir = utf8_to_wchar (dir);
-  if (!wdir)
-    return NULL;
-
-  if (RegOpenKeyEx (root_key, wdir, 0, KEY_READ, &key_handle) )
-    {
-      if (root)
-        {
-          xfree (wdir);
-          return NULL; /* No need for a RegClose, so return immediately. */
-        }
-      /* It seems to be common practise to fall back to HKLM. */
-      if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, wdir, 0, KEY_READ, &key_handle) )
-        {
-          xfree (wdir);
-          return NULL; /* Still no need for a RegClose. */
-        }
-    }
-  xfree (wdir);
-
-  if (name)
-    {
-      wname = utf8_to_wchar (name);
-      if (!wname)
-        goto leave;
-    }
-  else
-    wname = NULL;
-
-  nbytes = 2;
-  if (RegQueryValueEx (key_handle, wname, 0, NULL, NULL, &nbytes))
-    goto leave;
-  result = xtrymalloc ((n1=nbytes+2));
-  if (!result)
-    goto leave;
-  if (RegQueryValueEx (key_handle, wname, 0, &type, result, &n1))
-    {
-      xfree (result);
-      result = NULL;
-      goto leave;
-    }
-  result[nbytes] = 0;   /* Make sure it is a string.  */
-  result[nbytes+1] = 0;
-  if (type == REG_SZ || type == REG_EXPAND_SZ)
-    {
-      wchar_t *tmp = (void*)result;
-      result = wchar_to_utf8 (tmp);
-      xfree (tmp);
-    }
-
- leave:
-  xfree (wname);
-  RegCloseKey (key_handle);
-  return result;
-#else /*!HAVE_W32CE_SYSTEM*/
   HKEY root_key, key_handle;
   DWORD n1, nbytes, type;
   char *result = NULL;
@@ -223,7 +159,6 @@ read_w32_registry_string (const char *root, const char *dir, const char *name)
  leave:
   RegCloseKey (key_handle);
   return result;
-#endif /*!HAVE_W32CE_SYSTEM*/
 }
 
 

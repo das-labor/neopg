@@ -33,17 +33,6 @@
 #define GNUPG_COMMON_MISCHELP_H
 
 
-/* Check whether the files NAME1 and NAME2 are identical.  This is for
-   example achieved by comparing the inode numbers of the files.  */
-int same_file_p (const char *name1, const char *name2);
-
-
-#ifndef HAVE_TIMEGM
-#include <time.h>
-time_t timegm (struct tm *tm);
-#endif /*!HAVE_TIMEGM*/
-
-
 #define DIM(v)		     (sizeof(v)/sizeof((v)[0]))
 #define DIMof(type,member)   DIM(((type *)0)->member)
 
@@ -56,43 +45,9 @@ time_t timegm (struct tm *tm);
                   } while(0)
 #define wipememory(_ptr,_len) wipememory2(_ptr,0,_len)
 
-
-/* Include hacks which are mainly required for Slowaris.  */
-#ifdef GNUPG_COMMON_NEED_AFLOCAL
-#ifndef HAVE_W32_SYSTEM
-# include <sys/socket.h>
-# include <sys/un.h>
-#else
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif
-# include <windows.h>
-#endif
-
-#ifndef PF_LOCAL
-# ifdef PF_UNIX
-#  define PF_LOCAL PF_UNIX
-# else
-#  define PF_LOCAL AF_UNIX
-# endif
-#endif /*PF_LOCAL*/
-#ifndef AF_LOCAL
-# define AF_LOCAL AF_UNIX
-#endif /*AF_UNIX*/
-
-/* We used to avoid this macro in GnuPG and inlined the AF_LOCAL name
-   length computation directly with the little twist of adding 1 extra
-   byte.  It seems that this was needed once on an old HP/UX box and
-   there are also rumours that 4.3 Reno and DEC systems need it.  This
-   one-off buglet did not harm any current system until it came to Mac
-   OS X where the kernel (as of May 2009) exhibited a strange bug: The
-   systems basically froze in the connect call if the passed name
-   contained an invalid directory part.  Ignore the old Unices.  */
 #ifndef SUN_LEN
 # define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
 	               + strlen ((ptr)->sun_path))
 #endif /*SUN_LEN*/
-#endif /*GNUPG_COMMON_NEED_AFLOCAL*/
-
 
 #endif /*GNUPG_COMMON_MISCHELP_H*/
