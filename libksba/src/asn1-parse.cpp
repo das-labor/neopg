@@ -62,7 +62,6 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 42 "../../../libksba/src/asn1-parse.y" /* yacc.c:339  */
 
 #ifndef BUILD_GENTOOLS
 # include <config.h>
@@ -111,7 +110,6 @@ struct parser_control_s {
 #define PARSECTL ((struct parser_control_s *)parm)
 
 
-#line 115 "asn1-parse.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -195,13 +193,11 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 97 "../../../libksba/src/asn1-parse.y" /* yacc.c:355  */
 
   unsigned int constant;
   char str[MAX_STRING_LENGTH];
   AsnNode node;
 
-#line 205 "asn1-parse.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -216,7 +212,6 @@ int yyparse (void *parm);
 
 
 /* Copy the second part of user declarations.  */
-#line 103 "../../../libksba/src/asn1-parse.y" /* yacc.c:358  */
 
 static AsnNode new_node (struct parser_control_s *parsectl, node_type_t type);
 #define NEW_NODE(a)  (new_node (PARSECTL, (a)))
@@ -231,7 +226,6 @@ static void set_down (AsnNode node, AsnNode down);
 static int yylex (YYSTYPE *lvalp, void *parm);
 static void yyerror (void *parm, const char *s);
 
-#line 235 "asn1-parse.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1475,107 +1469,78 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 188 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { strcpy((yyval.str),(yyvsp[0].str)); }
-#line 1481 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 189 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { strcpy((yyval.str),(yyvsp[0].str)); }
-#line 1487 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 193 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   strcpy((yyval.str),"-");
                   strcat((yyval.str),(yyvsp[0].str));
                 }
-#line 1496 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 199 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { strcpy((yyval.str),(yyvsp[0].str)); }
-#line 1502 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 200 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { strcpy((yyval.str),(yyvsp[0].str)); }
-#line 1508 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 203 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {strcpy((yyval.str),(yyvsp[0].str));}
-#line 1514 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 204 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {strcpy((yyval.str),(yyvsp[0].str));}
-#line 1520 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 207 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {strcpy((yyval.str),(yyvsp[0].str));}
-#line 1526 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 208 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {strcpy((yyval.str),(yyvsp[0].str));}
-#line 1532 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 212 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           (yyval.node) = NEW_NODE (TYPE_CONSTANT);
                           set_str_value ((yyval.node), (yyvsp[-1].str));
                         }
-#line 1541 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 217 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           (yyval.node) = NEW_NODE (TYPE_CONSTANT);
                           set_name ((yyval.node), (yyvsp[-3].str));
                           set_str_value ((yyval.node), (yyvsp[-1].str));
                         }
-#line 1551 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 224 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node)=(yyvsp[0].node); }
-#line 1557 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 226 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                     (yyval.node) = (yyvsp[-2].node);
                     append_right ((yyvsp[-2].node), (yyvsp[0].node));
                   }
-#line 1566 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 233 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           (yyval.node) = NEW_NODE (TYPE_IDENTIFIER);
                           set_name((yyval.node),(yyvsp[0].str));
                         }
-#line 1575 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 238 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           AsnNode node;
 
@@ -1584,152 +1549,116 @@ yyreduce:
                           set_name (node, (yyvsp[0].str));
                           append_right ((yyval.node), node);
                         }
-#line 1588 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 249 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_CONSTANT);
                    set_str_value ((yyval.node), (yyvsp[0].str));
                  }
-#line 1597 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 254 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_CONSTANT);
                    set_name ((yyval.node), (yyvsp[-3].str));
                    set_str_value ((yyval.node), (yyvsp[-1].str));
                  }
-#line 1607 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 262 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node)=(yyvsp[0].node);}
-#line 1613 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 264 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           (yyval.node)=(yyvsp[-1].node);
                           append_right ((yyval.node), (yyvsp[0].node));
                         }
-#line 1622 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 270 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.constant) = CLASS_UNIVERSAL;   }
-#line 1628 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 271 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.constant) = CLASS_PRIVATE;     }
-#line 1634 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 272 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.constant) = CLASS_APPLICATION; }
-#line 1640 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 276 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_TAG);
                   (yyval.node)->flags.klasse = CLASS_CONTEXT;
                   set_ulong_value ((yyval.node), (yyvsp[-1].str));
                 }
-#line 1650 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 282 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_TAG);
                   (yyval.node)->flags.klasse = (tag_class) (yyvsp[-2].constant);
                   set_ulong_value ((yyval.node), (yyvsp[-1].str));
                 }
-#line 1660 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 290 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = (yyvsp[0].node); }
-#line 1666 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 292 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
            (yyval.node) = (yyvsp[-1].node);
            (yyval.node)->flags.explicit_x = 1;
          }
-#line 1675 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 297 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
            (yyval.node) = (yyvsp[-1].node);
            (yyval.node)->flags.implicit = 1;
          }
-#line 1684 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 304 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_DEFAULT);
                  set_str_value ((yyval.node), (yyvsp[0].str));
                }
-#line 1693 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 309 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_DEFAULT);
                  (yyval.node)->flags.is_true = 1;
                }
-#line 1702 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 314 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_DEFAULT);
                  (yyval.node)->flags.is_false = 1;
                }
-#line 1711 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 321 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_INTEGER);
                }
-#line 1719 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 325 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_INTEGER);
                  (yyval.node)->flags.has_list = 1;
                  set_down ((yyval.node), (yyvsp[-1].node));
                }
-#line 1729 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 331 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  (yyval.node) = NEW_NODE (TYPE_INTEGER);
                  (yyval.node)->flags.has_min_max = 1;
@@ -1738,367 +1667,275 @@ yyreduce:
                  set_str_value ((yyval.node)->down, (yyvsp[-1].str));
                  set_name ((yyval.node)->down, (yyvsp[-4].str));
                }
-#line 1742 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 342 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                 (yyval.node) = NEW_NODE (TYPE_BOOLEAN);
               }
-#line 1750 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 348 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
             (yyval.node) = NEW_NODE (TYPE_UTC_TIME);
           }
-#line 1758 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 352 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
             (yyval.node) = NEW_NODE (TYPE_GENERALIZED_TIME);
           }
-#line 1766 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 358 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_SIZE);
                (yyval.node)->flags.one_param = 1;
                set_str_value ((yyval.node), (yyvsp[-1].str));
              }
-#line 1776 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 364 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_SIZE);
                (yyval.node)->flags.has_min_max = 1;
                set_str_value ((yyval.node), (yyvsp[-4].str));
                set_name ((yyval.node), (yyvsp[-1].str));
              }
-#line 1787 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 373 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node)=(yyvsp[0].node);
              }
-#line 1795 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 377 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node)=(yyvsp[-1].node);
              }
-#line 1803 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 383 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_OCTET_STRING);
                      }
-#line 1811 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 387 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_OCTET_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1821 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 394 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_UTF8_STRING); }
-#line 1827 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 396 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_UTF8_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1837 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 402 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_NUMERIC_STRING); }
-#line 1843 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 404 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_NUMERIC_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1853 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 411 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_PRINTABLE_STRING); }
-#line 1859 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 413 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                           (yyval.node) = NEW_NODE (TYPE_PRINTABLE_STRING);
                           (yyval.node)->flags.has_size = 1;
                           set_down ((yyval.node),(yyvsp[0].node));
                         }
-#line 1869 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 420 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_TELETEX_STRING); }
-#line 1875 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 422 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_TELETEX_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1885 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 428 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_IA5_STRING); }
-#line 1891 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 430 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_IA5_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1901 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 437 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_UNIVERSAL_STRING); }
-#line 1907 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 439 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                            (yyval.node) = NEW_NODE (TYPE_UNIVERSAL_STRING);
                            (yyval.node)->flags.has_size = 1;
                            set_down ((yyval.node),(yyvsp[0].node));
                          }
-#line 1917 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 445 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = NEW_NODE (TYPE_BMP_STRING); }
-#line 1923 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 447 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                        (yyval.node) = NEW_NODE (TYPE_BMP_STRING);
                        (yyval.node)->flags.has_size = 1;
                        set_down ((yyval.node),(yyvsp[0].node));
                      }
-#line 1933 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 468 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_CONSTANT);
                    set_name ((yyval.node), (yyvsp[-3].str));
                    set_str_value ((yyval.node), (yyvsp[-1].str));
                  }
-#line 1943 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 476 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                         (yyval.node)=(yyvsp[0].node);
                       }
-#line 1951 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 480 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                         (yyval.node)=(yyvsp[-2].node);
                         append_right ((yyval.node), (yyvsp[0].node));
                       }
-#line 1960 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 487 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                      (yyval.node) = NEW_NODE (TYPE_BIT_STRING);
                    }
-#line 1968 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 491 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                      (yyval.node) = NEW_NODE (TYPE_BIT_STRING);
                      (yyval.node)->flags.has_list = 1;
                      set_down ((yyval.node), (yyvsp[-1].node));
                    }
-#line 1978 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 499 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                      (yyval.node) = NEW_NODE (TYPE_ENUMERATED);
                      (yyval.node)->flags.has_list = 1;
                      set_down ((yyval.node), (yyvsp[-1].node));
                    }
-#line 1988 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 507 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                      (yyval.node) = NEW_NODE (TYPE_OBJECT_ID);
                    }
-#line 1996 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 513 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                       (yyval.node) = NEW_NODE (TYPE_IDENTIFIER);
                       set_str_value ((yyval.node), (yyvsp[0].str));
                     }
-#line 2005 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 518 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                       (yyval.node) = NEW_NODE (TYPE_IDENTIFIER);
                       (yyval.node)->flags.has_size = 1;
                       set_str_value ((yyval.node), (yyvsp[-1].str));
                       set_down ((yyval.node), (yyvsp[0].node));
                     }
-#line 2016 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 524 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2022 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 525 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2028 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 526 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2034 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 527 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2040 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 529 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2046 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 530 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2052 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 531 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2058 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 532 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2064 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 533 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2070 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 534 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2076 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 535 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {(yyval.node)=(yyvsp[0].node);}
-#line 2082 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 537 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                       (yyval.node) = NEW_NODE(TYPE_NULL);
                     }
-#line 2090 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 543 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                              (yyval.node) = (yyvsp[0].node);
                            }
-#line 2098 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 547 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
 /*                               $2->flags.has_tag = 1; */
 /*                               $$ = $2; */
@@ -2107,138 +1944,108 @@ yyreduce:
                              (yyval.node) = (yyvsp[-1].node);
                              set_down ((yyval.node), (yyvsp[0].node));
                            }
-#line 2111 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 558 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                                    (yyval.node) = (yyvsp[0].node);
                                  }
-#line 2119 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 562 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                                    (yyvsp[-1].node)->flags.has_default = 1;
                                    (yyval.node) = (yyvsp[-1].node);
                                    set_right ((yyvsp[0].node), (yyval.node)->down);
                                    set_down ((yyval.node), (yyvsp[0].node));
                                  }
-#line 2130 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 569 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                                    (yyvsp[-1].node)->flags.is_optional = 1;
                                    (yyval.node) = (yyvsp[-1].node);
                                  }
-#line 2139 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 576 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  set_name ((yyvsp[0].node), (yyvsp[-1].str));
                  (yyval.node) = (yyvsp[0].node);
                }
-#line 2148 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 95:
-#line 583 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node)=(yyvsp[0].node); }
-#line 2154 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 585 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                       (yyval.node)=(yyvsp[-2].node);
                       append_right ((yyval.node), (yyvsp[0].node));
                     }
-#line 2163 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 592 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_SEQUENCE);
                    set_down ((yyval.node), (yyvsp[-1].node));
                  }
-#line 2172 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 98:
-#line 597 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_SEQUENCE_OF);
                    set_down ((yyval.node), (yyvsp[0].node));
                  }
-#line 2181 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 602 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_SEQUENCE_OF);
                    (yyval.node)->flags.has_size = 1;
                    set_right ((yyvsp[-2].node),(yyvsp[0].node));
                    set_down ((yyval.node),(yyvsp[-2].node));
                  }
-#line 2192 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 100:
-#line 611 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_SET);
                set_down ((yyval.node), (yyvsp[-1].node));
              }
-#line 2201 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 101:
-#line 616 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_SET_OF);
                set_down ((yyval.node), (yyvsp[0].node));
              }
-#line 2210 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 621 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_SET_OF);
                (yyval.node)->flags.has_size = 1;
                set_right ((yyvsp[-2].node), (yyvsp[0].node));
                set_down ((yyval.node), (yyvsp[-2].node));
              }
-#line 2221 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 103:
-#line 630 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   (yyval.node) = NEW_NODE (TYPE_CHOICE);
                   set_down ((yyval.node), (yyvsp[-1].node));
                 }
-#line 2230 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 104:
-#line 637 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                (yyval.node) = NEW_NODE (TYPE_ANY);
              }
-#line 2238 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 641 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                AsnNode node;
 
@@ -2248,31 +2055,25 @@ yyreduce:
                set_name (node, (yyvsp[0].str));
                set_down((yyval.node), node);
              }
-#line 2252 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 106:
-#line 653 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                set_name ((yyvsp[0].node), (yyvsp[-2].str));
                (yyval.node) = (yyvsp[0].node);
              }
-#line 2261 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 107:
-#line 660 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_OBJECT_ID);
                    (yyval.node)->flags.assignment = 1;
                    set_name ((yyval.node), (yyvsp[-6].str));
                    set_down ((yyval.node), (yyvsp[-1].node));
                  }
-#line 2272 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 108:
-#line 667 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_OBJECT_ID);
                    (yyval.node)->flags.assignment = 1;
@@ -2281,65 +2082,49 @@ yyreduce:
                    set_str_value ((yyval.node), (yyvsp[-4].str));
                    set_down ((yyval.node), (yyvsp[-1].node));
                  }
-#line 2285 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 109:
-#line 676 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                    (yyval.node) = NEW_NODE (TYPE_INTEGER);
                    (yyval.node)->flags.assignment = 1;
                    set_name ((yyval.node), (yyvsp[-3].str));
                    set_str_value ((yyval.node), (yyvsp[0].str));
                  }
-#line 2296 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 110:
-#line 684 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = (yyvsp[0].node); }
-#line 2302 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 685 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = (yyvsp[0].node); }
-#line 2308 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 112:
-#line 689 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node) = (yyvsp[0].node); }
-#line 2314 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 113:
-#line 691 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                          (yyval.node) = (yyvsp[-1].node);
                          append_right ((yyval.node), (yyvsp[0].node));
                        }
-#line 2323 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 114:
-#line 698 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                      (yyval.node) = NEW_NODE (TYPE_OBJECT_ID);
                      set_down ((yyval.node), (yyvsp[-1].node));
                      set_name ((yyval.node), (yyvsp[-3].str));
                    }
-#line 2333 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 115:
-#line 706 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.node)=NULL;}
-#line 2339 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 708 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                   AsnNode node;
 
@@ -2350,23 +2135,17 @@ yyreduce:
                   set_down ((yyval.node), node);
                   set_right ((yyval.node), (yyvsp[-3].node));
                 }
-#line 2354 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 720 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.constant) = CONST_EXPLICIT; }
-#line 2360 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 118:
-#line 721 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     { (yyval.constant) = CONST_IMPLICIT; }
-#line 2366 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
   case 119:
-#line 727 "../../../libksba/src/asn1-parse.y" /* yacc.c:1646  */
     {
                  AsnNode node;
 
@@ -2398,11 +2177,9 @@ yyreduce:
                  PARSECTL->result_parse = _ksba_asn_check_identifier((yyval.node));
                  PARSECTL->parse_tree=(yyval.node);
                }
-#line 2402 "asn1-parse.c" /* yacc.c:1646  */
     break;
 
 
-#line 2406 "asn1-parse.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2630,7 +2407,6 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 760 "../../../libksba/src/asn1-parse.y" /* yacc.c:1906  */
 
 
 

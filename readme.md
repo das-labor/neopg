@@ -37,6 +37,12 @@ $ make
 $ make test # or ./gpg-error-test
 ```
 
+## Optional
+
+$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+$ make coverage
+$ make coverage-xml
+
 ## Things accomplished
 
 * build with clang (portability and allowing static analysis)
