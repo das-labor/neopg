@@ -149,8 +149,8 @@
 static int
 working_memcmp( const void *_a, const void *_b, size_t n )
 {
-    const char *a = _a;
-    const char *b = _b;
+    const char *a = (const char *)_a;
+    const char *b = (const char *)_b;
     for( ; n; n--, a++, b++ )
 	if( *a != *b )
 	    return (int)(*(byte*)a) - (int)(*(byte*)b);
