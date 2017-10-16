@@ -37,7 +37,7 @@ SETUP_TARGET_FOR_COVERAGE(
      DEPENDENCIES neopg
 )
 SETUP_TARGET_FOR_COVERAGE_COBERTURA(
-     NAME coverage-xml
+     NAME coverage-data
      EXECUTABLE ctest -j ${PROCESSOR_COUNT}
      DEPENDENCIES neopg
 )
@@ -87,44 +87,44 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_BINAR
 # libgpg-error
 
 add_library(gpg-error
-  libgpg-error/src/gpg-error.h
-  libgpg-error/src/b64dec.cpp
-  libgpg-error/src/code-from-errno.cpp
-  libgpg-error/src/code-to-errno.cpp
-  libgpg-error/src/strerror.cpp
-  libgpg-error/src/estream.h
-  libgpg-error/src/estream.cpp
-  libgpg-error/src/estream-printf.cpp
-  libgpg-error/src/gpg-error.h
-  libgpg-error/src/gpgrt.h
-  libgpg-error/src/gpgrt-int.h
-  libgpg-error/src/init.h
-  libgpg-error/src/init.cpp
-  libgpg-error/src/visibility.h
-  libgpg-error/src/visibility.cpp
-  libgpg-error/src/gettext.h
+  legacy/libgpg-error/src/gpg-error.h
+  legacy/libgpg-error/src/b64dec.cpp
+  legacy/libgpg-error/src/code-from-errno.cpp
+  legacy/libgpg-error/src/code-to-errno.cpp
+  legacy/libgpg-error/src/strerror.cpp
+  legacy/libgpg-error/src/estream.h
+  legacy/libgpg-error/src/estream.cpp
+  legacy/libgpg-error/src/estream-printf.cpp
+  legacy/libgpg-error/src/gpg-error.h
+  legacy/libgpg-error/src/gpgrt.h
+  legacy/libgpg-error/src/gpgrt-int.h
+  legacy/libgpg-error/src/init.h
+  legacy/libgpg-error/src/init.cpp
+  legacy/libgpg-error/src/visibility.h
+  legacy/libgpg-error/src/visibility.cpp
+  legacy/libgpg-error/src/gettext.h
 )
 
 if(WIN32)
   target_sources(gpg-error PRIVATE
-    libgpg-error/src/w32-add.h
-    libgpg-error/src/w32-estream.cpp
-    libgpg-error/src/w32-gettext.cpp
-    libgpg-error/src/w32-iconv.cpp
-    libgpg-error/src/w32-lock.cpp
-    libgpg-error/src/w32-thread.cpp
+    legacy/libgpg-error/src/w32-add.h
+    legacy/libgpg-error/src/w32-estream.cpp
+    legacy/libgpg-error/src/w32-gettext.cpp
+    legacy/libgpg-error/src/w32-iconv.cpp
+    legacy/libgpg-error/src/w32-lock.cpp
+    legacy/libgpg-error/src/w32-thread.cpp
   )
 else()
   target_sources(gpg-error PRIVATE
-  libgpg-error/src/posix-lock.cpp
-  libgpg-error/src/posix-thread.cpp
+  legacy/libgpg-error/src/posix-lock.cpp
+  legacy/libgpg-error/src/posix-thread.cpp
 )
 endif()
 
 add_library(neopg::gpg-error ALIAS gpg-error)
 
 target_include_directories(gpg-error PRIVATE
-  libgpg-error/src
+  legacy/libgpg-error/src
   ${Intl_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(gpg-error PRIVATE
@@ -134,16 +134,16 @@ target_link_libraries(gpg-error PRIVATE pthread)
 target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(gpg-error-test
-  libgpg-error/tests/t-b64dec.cpp
-  libgpg-error/tests/t-lock.cpp
-  libgpg-error/tests/t-poll.cpp
-  libgpg-error/tests/t-printf.cpp
-  libgpg-error/tests/t-strerror.cpp
-  libgpg-error/tests/t-syserror.cpp
-  libgpg-error/tests/gpg-error-test.cpp
+  legacy/libgpg-error/tests/t-b64dec.cpp
+  legacy/libgpg-error/tests/t-lock.cpp
+  legacy/libgpg-error/tests/t-poll.cpp
+  legacy/libgpg-error/tests/t-printf.cpp
+  legacy/libgpg-error/tests/t-strerror.cpp
+  legacy/libgpg-error/tests/t-syserror.cpp
+  legacy/libgpg-error/tests/gpg-error-test.cpp
 )
 target_include_directories(gpg-error-test PRIVATE
-  libgpg-error/src
+  legacy/libgpg-error/src
   ${CMAKE_BINARY_DIR}/.)
 target_link_libraries(gpg-error-test PRIVATE
   gpg-error
@@ -153,37 +153,37 @@ add_test(GpgErrorTest gpg-error-test COMMAND gpg-error-test test_xml_output --gt
 # libassuan
 
 add_library(assuan
-  libassuan/src/assuan-buffer.cpp
-  libassuan/src/assuan-defs.h
-  libassuan/src/assuan-error.cpp
-  libassuan/src/assuan-handler.cpp
-  libassuan/src/assuan-inquire.cpp
-  libassuan/src/assuan-io.cpp
-  libassuan/src/assuan-listen.cpp
-  libassuan/src/assuan-logging.cpp
-  libassuan/src/assuan-pipe-connect.cpp
-  libassuan/src/assuan-pipe-server.cpp
-  libassuan/src/assuan-socket.cpp
-  libassuan/src/assuan-uds.cpp
-  libassuan/src/assuan.cpp
-  libassuan/src/assuan.h
-  libassuan/src/client.cpp
-  libassuan/src/context.cpp
-  libassuan/src/conversion.cpp
-  libassuan/src/debug.cpp
-  libassuan/src/debug.h
-  libassuan/src/server.cpp
-  libassuan/src/system.cpp
-  libassuan/src/sysutils.cpp
+  legacy/libassuan/src/assuan-buffer.cpp
+  legacy/libassuan/src/assuan-defs.h
+  legacy/libassuan/src/assuan-error.cpp
+  legacy/libassuan/src/assuan-handler.cpp
+  legacy/libassuan/src/assuan-inquire.cpp
+  legacy/libassuan/src/assuan-io.cpp
+  legacy/libassuan/src/assuan-listen.cpp
+  legacy/libassuan/src/assuan-logging.cpp
+  legacy/libassuan/src/assuan-pipe-connect.cpp
+  legacy/libassuan/src/assuan-pipe-server.cpp
+  legacy/libassuan/src/assuan-socket.cpp
+  legacy/libassuan/src/assuan-uds.cpp
+  legacy/libassuan/src/assuan.cpp
+  legacy/libassuan/src/assuan.h
+  legacy/libassuan/src/client.cpp
+  legacy/libassuan/src/context.cpp
+  legacy/libassuan/src/conversion.cpp
+  legacy/libassuan/src/debug.cpp
+  legacy/libassuan/src/debug.h
+  legacy/libassuan/src/server.cpp
+  legacy/libassuan/src/system.cpp
+  legacy/libassuan/src/sysutils.cpp
 )
 
 if(WIN32)
   target_sources(assuan PRIVATE
-    libassuan/src/system-w32.cpp
+    legacy/libassuan/src/system-w32.cpp
   )
 else()
   target_sources(assuan PRIVATE
-    libassuan/src/system-posix.cpp
+    legacy/libassuan/src/system-posix.cpp
 )
 endif()
 
@@ -192,22 +192,22 @@ target_compile_options(assuan PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=
 add_library(neopg::assuan ALIAS assuan)
 
 target_include_directories(assuan PRIVATE
-  libgpg-error/src
-  libassuan/src
+  legacy/libgpg-error/src
+  legacy/libassuan/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(assuan PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(assuan PRIVATE gpg-error)
 
 add_executable(assuan-test
-  libassuan/tests/fdpassing.cpp
-  libassuan/tests/assuan-test.cpp)
+  legacy/libassuan/tests/fdpassing.cpp
+  legacy/libassuan/tests/assuan-test.cpp)
 target_include_directories(assuan-test PRIVATE
-  libgpg-error/src
-  libassuan/src
+  legacy/libgpg-error/src
+  legacy/libassuan/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(assuan-test PRIVATE
-CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/libassuan/tests")
+CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/legacy/libassuan/tests")
 target_compile_options(assuan-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 target_link_libraries(assuan-test PRIVATE
   assuan
@@ -217,14 +217,14 @@ add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_outp
 # npth
 
 add_library(npth
-  npth/src/npth.h
-  npth/src/npth.cpp
-  npth/src/npth-sigev.cpp
+  legacy/npth/src/npth.h
+  legacy/npth/src/npth.cpp
+  legacy/npth/src/npth-sigev.cpp
 )
 add_library(neopg::npth ALIAS npth)
 
 target_include_directories(npth PRIVATE
-  npth/src
+  legacy/npth/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(npth PRIVATE
   HAVE_CONFIG_H=1)
@@ -232,13 +232,13 @@ target_compile_definitions(npth PRIVATE
 target_compile_options(npth PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(npth-test
-  npth/tests/t-fork.cpp
-  npth/tests/t-mutex.cpp
-  npth/tests/t-support.h
-  npth/tests/t-thread.cpp
-  npth/tests/npth-test.cpp)
+  legacy/npth/tests/t-fork.cpp
+  legacy/npth/tests/t-mutex.cpp
+  legacy/npth/tests/t-support.h
+  legacy/npth/tests/t-thread.cpp
+  legacy/npth/tests/npth-test.cpp)
 target_include_directories(npth-test PRIVATE
-  npth/src
+  legacy/npth/src
   ${CMAKE_BINARY_DIR}/.)
 target_link_libraries(npth-test PRIVATE
   npth
@@ -248,141 +248,141 @@ add_test(nPthTest npth-test COMMAND npth-test test_xml_output --gtest_output=xml
 # libgcrypt
 
 add_library(gcrypt
-  libgcrypt/src/cipher-proto.h
-  libgcrypt/src/cipher.h
-  libgcrypt/src/context.cpp
-  libgcrypt/src/context.h
-  libgcrypt/src/ec-context.h
-  libgcrypt/src/fips.cpp
-  libgcrypt/src/g10lib.h
-  libgcrypt/src/gcrypt-int.h
-  libgcrypt/src/gcrypt-testapi.h
-  libgcrypt/src/gcrypt.h
-  libgcrypt/src/global.cpp
-  libgcrypt/src/hmac256.cpp
-  libgcrypt/src/hmac256.h
-  libgcrypt/src/hwf-common.h
-  libgcrypt/src/hwf-x86.cpp
-  libgcrypt/src/hwfeatures.cpp
-  libgcrypt/src/misc.cpp
-  libgcrypt/src/mpi.h
-  libgcrypt/src/secmem.cpp
-  libgcrypt/src/secmem.h
-  libgcrypt/src/sexp.cpp
-  libgcrypt/src/stdmem.cpp
-  libgcrypt/src/stdmem.h
-  libgcrypt/src/types.h
-  libgcrypt/src/visibility.cpp
-  libgcrypt/src/visibility.h
-  libgcrypt/cipher/crc.cpp
-  libgcrypt/cipher/ecc.cpp
-  libgcrypt/cipher/ecc-curves.cpp
-  libgcrypt/cipher/ecc-eddsa.cpp
-  libgcrypt/cipher/ecc-gost.cpp
-  libgcrypt/cipher/ecc-misc.cpp
-  libgcrypt/cipher/ecc-ecdsa.cpp
-  libgcrypt/cipher/elgamal.cpp
-  libgcrypt/cipher/des.cpp
-  libgcrypt/cipher/dsa.cpp
-  libgcrypt/cipher/rsa.cpp
-  libgcrypt/cipher/sha1.cpp
-  libgcrypt/cipher/sha256.cpp
-  libgcrypt/cipher/sha512.cpp
-  libgcrypt/cipher/keccak.cpp
-  libgcrypt/cipher/whirlpool.cpp
-  libgcrypt/cipher/md4.cpp
-  libgcrypt/cipher/md5.cpp
-  libgcrypt/cipher/rmd160.cpp
-  libgcrypt/cipher/blowfish.cpp
-  libgcrypt/cipher/camellia.cpp
-  libgcrypt/cipher/camellia-glue.cpp
-  libgcrypt/cipher/rijndael.cpp
-  libgcrypt/cipher/idea.cpp
-  libgcrypt/cipher/cast5.cpp
-  libgcrypt/cipher/twofish.cpp
-  libgcrypt/cipher/rfc2268.cpp
-  libgcrypt/cipher/seed.cpp
-  libgcrypt/cipher/mac-cmac.cpp
-  libgcrypt/cipher/serpent.cpp
-  libgcrypt/cipher/cipher.cpp
-  libgcrypt/cipher/cipher-internal.h
-  libgcrypt/cipher/cipher-cbc.cpp
-  libgcrypt/cipher/cipher-cfb.cpp
-  libgcrypt/cipher/cipher-ofb.cpp
-  libgcrypt/cipher/cipher-ctr.cpp
-  libgcrypt/cipher/cipher-aeswrap.cpp
-  libgcrypt/cipher/cipher-ccm.cpp
-  libgcrypt/cipher/cipher-cmac.cpp
-  libgcrypt/cipher/cipher-gcm.cpp
-  libgcrypt/cipher/cipher-poly1305.cpp
-  libgcrypt/cipher/cipher-ocb.cpp
-  libgcrypt/cipher/cipher-xts.cpp
-  libgcrypt/cipher/cipher-selftest.cpp
-  libgcrypt/cipher/cipher-selftest.h
-  libgcrypt/cipher/pubkey.cpp
-  libgcrypt/cipher/pubkey-internal.h
-  libgcrypt/cipher/pubkey-util.cpp
-  libgcrypt/cipher/md.cpp
-  libgcrypt/cipher/mac.cpp
-  libgcrypt/cipher/mac-internal.h
-  libgcrypt/cipher/mac-hmac.cpp
-  libgcrypt/cipher/mac-cmac.cpp
-  libgcrypt/cipher/mac-gmac.cpp
-  libgcrypt/cipher/mac-poly1305.cpp
-  libgcrypt/cipher/poly1305.cpp
-  libgcrypt/cipher/poly1305-internal.h
-  libgcrypt/cipher/kdf.cpp
-  libgcrypt/cipher/scrypt.cpp
-  libgcrypt/cipher/kdf-internal.h
-  libgcrypt/cipher/bithelp.h
-  libgcrypt/cipher/bufhelp.h
-  libgcrypt/cipher/primegen.cpp
-  libgcrypt/cipher/hash-common.cpp
-  libgcrypt/cipher/hash-common.h
-  libgcrypt/cipher/dsa-common.cpp
-  libgcrypt/cipher/rsa-common.cpp
-  libgcrypt/cipher/sha1.h
-  libgcrypt/mpi/ec.cpp
-  libgcrypt/mpi/mpi-add.cpp
-  libgcrypt/mpi/mpi-bit.cpp
-  libgcrypt/mpi/mpi-cmp.cpp
-  libgcrypt/mpi/mpicoder.cpp
-  libgcrypt/mpi/mpi-div.cpp
-  libgcrypt/mpi/mpi-gcd.cpp
-  libgcrypt/mpi/mpih-div.cpp
-  libgcrypt/mpi/mpih-mul.cpp
-  libgcrypt/mpi/mpi-inline.cpp
-  libgcrypt/mpi/mpi-inv.cpp
-  libgcrypt/mpi/mpi-mod.cpp
-  libgcrypt/mpi/mpi-mpow.cpp
-  libgcrypt/mpi/mpi-mul.cpp
-  libgcrypt/mpi/mpi-pow.cpp
-  libgcrypt/mpi/mpi-scan.cpp
-  libgcrypt/mpi/mpiutil.cpp
-  libgcrypt/mpi/mpih-add1.cpp
-  libgcrypt/mpi/generic/mpih-lshift.cpp
-  libgcrypt/mpi/generic/mpih-mul1.cpp
-  libgcrypt/mpi/generic/mpih-mul2.cpp
-  libgcrypt/mpi/generic/mpih-mul3.cpp
-  libgcrypt/mpi/generic/mpih-rshift.cpp
-  libgcrypt/mpi/generic/mpih-sub1.cpp
-  libgcrypt/mpi/generic/udiv-w-sdiv.cpp
-  libgcrypt/random/rand-internal.h
-  libgcrypt/random/random.cpp
-  libgcrypt/random/random-csprng.cpp
-  libgcrypt/random/random-drbg.cpp
-  libgcrypt/random/random-fips.cpp
-  libgcrypt/random/random.h
-  libgcrypt/random/random-system.cpp
-  libgcrypt/random/rndhw.cpp
-  libgcrypt/random/rndlinux.cpp
+  legacy/libgcrypt/src/cipher-proto.h
+  legacy/libgcrypt/src/cipher.h
+  legacy/libgcrypt/src/context.cpp
+  legacy/libgcrypt/src/context.h
+  legacy/libgcrypt/src/ec-context.h
+  legacy/libgcrypt/src/fips.cpp
+  legacy/libgcrypt/src/g10lib.h
+  legacy/libgcrypt/src/gcrypt-int.h
+  legacy/libgcrypt/src/gcrypt-testapi.h
+  legacy/libgcrypt/src/gcrypt.h
+  legacy/libgcrypt/src/global.cpp
+  legacy/libgcrypt/src/hmac256.cpp
+  legacy/libgcrypt/src/hmac256.h
+  legacy/libgcrypt/src/hwf-common.h
+  legacy/libgcrypt/src/hwf-x86.cpp
+  legacy/libgcrypt/src/hwfeatures.cpp
+  legacy/libgcrypt/src/misc.cpp
+  legacy/libgcrypt/src/mpi.h
+  legacy/libgcrypt/src/secmem.cpp
+  legacy/libgcrypt/src/secmem.h
+  legacy/libgcrypt/src/sexp.cpp
+  legacy/libgcrypt/src/stdmem.cpp
+  legacy/libgcrypt/src/stdmem.h
+  legacy/libgcrypt/src/types.h
+  legacy/libgcrypt/src/visibility.cpp
+  legacy/libgcrypt/src/visibility.h
+  legacy/libgcrypt/cipher/crc.cpp
+  legacy/libgcrypt/cipher/ecc.cpp
+  legacy/libgcrypt/cipher/ecc-curves.cpp
+  legacy/libgcrypt/cipher/ecc-eddsa.cpp
+  legacy/libgcrypt/cipher/ecc-gost.cpp
+  legacy/libgcrypt/cipher/ecc-misc.cpp
+  legacy/libgcrypt/cipher/ecc-ecdsa.cpp
+  legacy/libgcrypt/cipher/elgamal.cpp
+  legacy/libgcrypt/cipher/des.cpp
+  legacy/libgcrypt/cipher/dsa.cpp
+  legacy/libgcrypt/cipher/rsa.cpp
+  legacy/libgcrypt/cipher/sha1.cpp
+  legacy/libgcrypt/cipher/sha256.cpp
+  legacy/libgcrypt/cipher/sha512.cpp
+  legacy/libgcrypt/cipher/keccak.cpp
+  legacy/libgcrypt/cipher/whirlpool.cpp
+  legacy/libgcrypt/cipher/md4.cpp
+  legacy/libgcrypt/cipher/md5.cpp
+  legacy/libgcrypt/cipher/rmd160.cpp
+  legacy/libgcrypt/cipher/blowfish.cpp
+  legacy/libgcrypt/cipher/camellia.cpp
+  legacy/libgcrypt/cipher/camellia-glue.cpp
+  legacy/libgcrypt/cipher/rijndael.cpp
+  legacy/libgcrypt/cipher/idea.cpp
+  legacy/libgcrypt/cipher/cast5.cpp
+  legacy/libgcrypt/cipher/twofish.cpp
+  legacy/libgcrypt/cipher/rfc2268.cpp
+  legacy/libgcrypt/cipher/seed.cpp
+  legacy/libgcrypt/cipher/mac-cmac.cpp
+  legacy/libgcrypt/cipher/serpent.cpp
+  legacy/libgcrypt/cipher/cipher.cpp
+  legacy/libgcrypt/cipher/cipher-internal.h
+  legacy/libgcrypt/cipher/cipher-cbc.cpp
+  legacy/libgcrypt/cipher/cipher-cfb.cpp
+  legacy/libgcrypt/cipher/cipher-ofb.cpp
+  legacy/libgcrypt/cipher/cipher-ctr.cpp
+  legacy/libgcrypt/cipher/cipher-aeswrap.cpp
+  legacy/libgcrypt/cipher/cipher-ccm.cpp
+  legacy/libgcrypt/cipher/cipher-cmac.cpp
+  legacy/libgcrypt/cipher/cipher-gcm.cpp
+  legacy/libgcrypt/cipher/cipher-poly1305.cpp
+  legacy/libgcrypt/cipher/cipher-ocb.cpp
+  legacy/libgcrypt/cipher/cipher-xts.cpp
+  legacy/libgcrypt/cipher/cipher-selftest.cpp
+  legacy/libgcrypt/cipher/cipher-selftest.h
+  legacy/libgcrypt/cipher/pubkey.cpp
+  legacy/libgcrypt/cipher/pubkey-internal.h
+  legacy/libgcrypt/cipher/pubkey-util.cpp
+  legacy/libgcrypt/cipher/md.cpp
+  legacy/libgcrypt/cipher/mac.cpp
+  legacy/libgcrypt/cipher/mac-internal.h
+  legacy/libgcrypt/cipher/mac-hmac.cpp
+  legacy/libgcrypt/cipher/mac-cmac.cpp
+  legacy/libgcrypt/cipher/mac-gmac.cpp
+  legacy/libgcrypt/cipher/mac-poly1305.cpp
+  legacy/libgcrypt/cipher/poly1305.cpp
+  legacy/libgcrypt/cipher/poly1305-internal.h
+  legacy/libgcrypt/cipher/kdf.cpp
+  legacy/libgcrypt/cipher/scrypt.cpp
+  legacy/libgcrypt/cipher/kdf-internal.h
+  legacy/libgcrypt/cipher/bithelp.h
+  legacy/libgcrypt/cipher/bufhelp.h
+  legacy/libgcrypt/cipher/primegen.cpp
+  legacy/libgcrypt/cipher/hash-common.cpp
+  legacy/libgcrypt/cipher/hash-common.h
+  legacy/libgcrypt/cipher/dsa-common.cpp
+  legacy/libgcrypt/cipher/rsa-common.cpp
+  legacy/libgcrypt/cipher/sha1.h
+  legacy/libgcrypt/mpi/ec.cpp
+  legacy/libgcrypt/mpi/mpi-add.cpp
+  legacy/libgcrypt/mpi/mpi-bit.cpp
+  legacy/libgcrypt/mpi/mpi-cmp.cpp
+  legacy/libgcrypt/mpi/mpicoder.cpp
+  legacy/libgcrypt/mpi/mpi-div.cpp
+  legacy/libgcrypt/mpi/mpi-gcd.cpp
+  legacy/libgcrypt/mpi/mpih-div.cpp
+  legacy/libgcrypt/mpi/mpih-mul.cpp
+  legacy/libgcrypt/mpi/mpi-inline.cpp
+  legacy/libgcrypt/mpi/mpi-inv.cpp
+  legacy/libgcrypt/mpi/mpi-mod.cpp
+  legacy/libgcrypt/mpi/mpi-mpow.cpp
+  legacy/libgcrypt/mpi/mpi-mul.cpp
+  legacy/libgcrypt/mpi/mpi-pow.cpp
+  legacy/libgcrypt/mpi/mpi-scan.cpp
+  legacy/libgcrypt/mpi/mpiutil.cpp
+  legacy/libgcrypt/mpi/mpih-add1.cpp
+  legacy/libgcrypt/mpi/generic/mpih-lshift.cpp
+  legacy/libgcrypt/mpi/generic/mpih-mul1.cpp
+  legacy/libgcrypt/mpi/generic/mpih-mul2.cpp
+  legacy/libgcrypt/mpi/generic/mpih-mul3.cpp
+  legacy/libgcrypt/mpi/generic/mpih-rshift.cpp
+  legacy/libgcrypt/mpi/generic/mpih-sub1.cpp
+  legacy/libgcrypt/mpi/generic/udiv-w-sdiv.cpp
+  legacy/libgcrypt/random/rand-internal.h
+  legacy/libgcrypt/random/random.cpp
+  legacy/libgcrypt/random/random-csprng.cpp
+  legacy/libgcrypt/random/random-drbg.cpp
+  legacy/libgcrypt/random/random-fips.cpp
+  legacy/libgcrypt/random/random.h
+  legacy/libgcrypt/random/random-system.cpp
+  legacy/libgcrypt/random/rndhw.cpp
+  legacy/libgcrypt/random/rndlinux.cpp
 )
 add_library(neopg::gcrypt ALIAS gcrypt)
 
 target_include_directories(gcrypt PRIVATE
-  libgpg-error/src
-  libgcrypt/mpi
-  libgcrypt/src
+  legacy/libgpg-error/src
+  legacy/libgcrypt/mpi
+  legacy/libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(gcrypt PRIVATE
   HAVE_CONFIG_H=1)
@@ -390,11 +390,11 @@ target_compile_definitions(gcrypt PRIVATE
 target_compile_options(gcrypt PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(gcrypt-test
-  libgcrypt/tests/hmac.cpp
-  libgcrypt/tests/gcrypt-test.cpp)
+  legacy/libgcrypt/tests/hmac.cpp
+  legacy/libgcrypt/tests/gcrypt-test.cpp)
 target_include_directories(gcrypt-test PRIVATE
-  libgpg-error/src
-  libgcrypt/src
+  legacy/libgpg-error/src
+  legacy/libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_options(gcrypt-test PUBLIC -fpermissive -Wnarrowing -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 target_link_libraries(gcrypt-test PRIVATE
@@ -404,11 +404,11 @@ target_link_libraries(gcrypt-test PRIVATE
 add_test(GcryptTest gcrypt-test COMMAND gcrypt-test test_xml_output --gtest_output=xml:gcrypt-test.xml)
 
 add_executable(gcrypt-secmem-test
-  libgcrypt/tests/t-secmem.cpp
-libgcrypt/tests/gcrypt-secmem-test.cpp)
+  legacy/libgcrypt/tests/t-secmem.cpp
+  legacy/libgcrypt/tests/gcrypt-secmem-test.cpp)
 target_include_directories(gcrypt-secmem-test PRIVATE
-    libgpg-error/src
-    libgcrypt/src
+    legacy/libgpg-error/src
+    legacy/libgcrypt/src
     ${CMAKE_BINARY_DIR}/.)
 target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
   target_link_libraries(gcrypt-secmem-test PRIVATE
@@ -420,35 +420,35 @@ target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_P
 # libksba
 
 add_library(ksba
-  libksba/src/ksba.h
-  libksba/src/visibility.cpp
-  libksba/src/reader.cpp
-  libksba/src/writer.cpp
-  libksba/src/asn1-parse.cpp
-  libksba/src/asn1-func.cpp
-  libksba/src/asn1-func2.cpp
-  libksba/src/ber-help.cpp
-  libksba/src/ber-decoder.cpp
-  libksba/src/der-encoder.cpp
-  libksba/src/cert.cpp
-  libksba/src/cms.cpp
-  libksba/src/cms-parser.cpp
-  libksba/src/crl.cpp
-  libksba/src/certreq.cpp
-  libksba/src/ocsp.cpp
-  libksba/src/keyinfo.cpp
-  libksba/src/oid.cpp
-  libksba/src/name.cpp
-  libksba/src/dn.cpp
-  libksba/src/time.cpp
-  libksba/src/util.cpp
-  libksba/src/asn1-tables.cpp
+  legacy/libksba/src/ksba.h
+  legacy/libksba/src/visibility.cpp
+  legacy/libksba/src/reader.cpp
+  legacy/libksba/src/writer.cpp
+  legacy/libksba/src/asn1-parse.cpp
+  legacy/libksba/src/asn1-func.cpp
+  legacy/libksba/src/asn1-func2.cpp
+  legacy/libksba/src/ber-help.cpp
+  legacy/libksba/src/ber-decoder.cpp
+  legacy/libksba/src/der-encoder.cpp
+  legacy/libksba/src/cert.cpp
+  legacy/libksba/src/cms.cpp
+  legacy/libksba/src/cms-parser.cpp
+  legacy/libksba/src/crl.cpp
+  legacy/libksba/src/certreq.cpp
+  legacy/libksba/src/ocsp.cpp
+  legacy/libksba/src/keyinfo.cpp
+  legacy/libksba/src/oid.cpp
+  legacy/libksba/src/name.cpp
+  legacy/libksba/src/dn.cpp
+  legacy/libksba/src/time.cpp
+  legacy/libksba/src/util.cpp
+  legacy/libksba/src/asn1-tables.cpp
 )
 add_library(neopg::ksba ALIAS ksba)
 
 target_include_directories(ksba PRIVATE
-  libgpg-error/src
-  libksba/src
+  legacy/libgpg-error/src
+  legacy/libksba/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(ksba PRIVATE
   HAVE_CONFIG_H=1)
@@ -456,17 +456,17 @@ target_compile_definitions(ksba PRIVATE
 target_compile_options(ksba PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(ksba-test
-  libksba/tests/ksba-test.cpp
-  libksba/tests/t-oid.cpp
-  libksba/tests/t-crl-parser.cpp
-  libksba/tests/t-dnparser.cpp
+  legacy/libksba/tests/ksba-test.cpp
+  legacy/libksba/tests/t-oid.cpp
+  legacy/libksba/tests/t-crl-parser.cpp
+  legacy/libksba/tests/t-dnparser.cpp
   )
 target_include_directories(ksba-test PRIVATE
-  libgpg-error/src
-  libksba/src
+  legacy/libgpg-error/src
+  legacy/libksba/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(ksba-test PRIVATE
-  CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/libksba/tests")
+  CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/legacy/libksba/tests")
 target_link_libraries(ksba-test PRIVATE
   gpg-error
   ksba
@@ -478,18 +478,12 @@ FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 
 # libneopg
 
-set(LIBNEOPG_INCLUDE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib)
-set(LIBNEOPG_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/include)
-set(LIBNEOPG_INCLUDE_DST ${LIBNEOPG_INCLUDE}/neopg)
-configure_file(${LIBNEOPG_INCLUDE_SRC}/utils/time.h ${LIBNEOPG_INCLUDE_DST}/time.h COPYONLY)
-configure_file(${LIBNEOPG_INCLUDE_SRC}/parser/openpgp.h ${LIBNEOPG_INCLUDE_DST}/openpgp.h COPYONLY)
-configure_file(${LIBNEOPG_INCLUDE_SRC}/openpgp/tag.h ${LIBNEOPG_INCLUDE_DST}/openpgp/tag.h COPYONLY)
+set(LIBNEOPG_INCLUDE include)
 
 add_library(libneopg
-  src/lib/utils/time.h
+  include/neopg/utils/time.h
   src/lib/utils/time.cpp
-  src/lib/parser/openpgp.h
-  src/lib/openpgp/tag.h
+  include/neopg/openpgp/tag.h
 )
 target_compile_options(libneopg
   PRIVATE
@@ -506,210 +500,210 @@ target_compile_definitions(gpg-error
 
 
 add_executable(neopg
-  gnupg/common/logging.h
-  gnupg/common/logging.cpp
-  gnupg/common/sysutils.h
-  gnupg/common/sysutils.cpp
-  gnupg/common/utf8conv.h
-  gnupg/common/utf8conv.cpp
-  gnupg/common/stringhelp.h
-  gnupg/common/stringhelp.cpp
-  gnupg/common/server-help.h
-  gnupg/common/server-help.cpp
-  gnupg/common/argparse.h
-  gnupg/common/argparse.cpp
-  gnupg/common/strlist.h
-  gnupg/common/strlist.cpp
-  gnupg/common/membuf.h
-  gnupg/common/membuf.cpp
-  gnupg/common/status.h
-  gnupg/common/status.cpp
-  gnupg/common/iobuf.h
-  gnupg/common/iobuf.cpp
-  gnupg/common/i18n.h
-  gnupg/common/i18n.cpp
-  gnupg/common/gettime.h
-  gnupg/common/gettime.cpp
-  gnupg/common/asshelp.h
-  gnupg/common/asshelp.cpp
-  gnupg/common/dotlock.h
-  gnupg/common/dotlock.cpp
-  gnupg/common/mischelp.h
-  gnupg/common/compliance.h
-  gnupg/common/compliance.cpp
-  gnupg/common/exechelp.h
-  gnupg/common/exechelp-posix.cpp
-  gnupg/common/userids.h
-  gnupg/common/userids.cpp
-  gnupg/common/mbox-util.h
-  gnupg/common/mbox-util.cpp
-  gnupg/common/recsel.h
-  gnupg/common/recsel.cpp
-  gnupg/common/gpgrlhelp.cpp
-  gnupg/common/homedir.cpp
-  gnupg/common/miscellaneous.cpp
-  gnupg/common/init.cpp
-  gnupg/common/percent.cpp
-  gnupg/common/zb32.cpp
-  gnupg/common/openpgp-oid.cpp
-  gnupg/common/ttyio.cpp
-  gnupg/common/xasprintf.cpp
-  gnupg/common/yesno.cpp
-  gnupg/common/sexputil.cpp
-  gnupg/common/tlv.cpp
-  gnupg/common/util.h
-  gnupg/common/localename.cpp
-  gnupg/common/convert.cpp
-  gnupg/common/b64enc.cpp
-  gnupg/kbx/keybox-init.cpp
-  gnupg/kbx/keybox-util.cpp
-  gnupg/kbx/keybox-blob.cpp
-  gnupg/kbx/keybox-file.cpp
-  gnupg/kbx/keybox-openpgp.cpp
-  gnupg/kbx/keybox-update.cpp
-  gnupg/kbx/keybox-search.cpp
-  gnupg/g10/misc.cpp
-  gnupg/g10/keyid.cpp
-  gnupg/g10/keyserver.cpp
-  gnupg/g10/pubkey-enc.cpp
-  gnupg/g10/pkclist.cpp
-  gnupg/g10/ecdh.cpp
-  gnupg/g10/kbnode.cpp
-  gnupg/g10/compress.cpp
-  gnupg/g10/filter.h
-  gnupg/g10/passphrase.cpp
-  gnupg/g10/import.cpp
-  gnupg/g10/export.cpp
-  gnupg/g10/decrypt-data.cpp
-  gnupg/g10/plaintext.cpp
-  gnupg/g10/textfilter.cpp
-  gnupg/g10/progress.cpp
-  gnupg/g10/mdfilter.cpp
-  gnupg/g10/seskey.cpp
-  gnupg/g10/pkglue.cpp
-  gnupg/g10/revoke.cpp
-  gnupg/g10/sign.cpp
-  gnupg/g10/encrypt.cpp
-  gnupg/g10/decrypt.cpp
-  gnupg/g10/cipher.cpp
-  gnupg/g10/verify.cpp
-  gnupg/g10/skclist.cpp
-  gnupg/g10/keygen.cpp
-  gnupg/g10/call-dirmngr.cpp
-  gnupg/g10/call-agent.cpp
-  gnupg/g10/getkey.cpp
-  gnupg/g10/keydb.cpp
-  gnupg/g10/packet.h
-  gnupg/g10/build-packet.cpp
-  gnupg/g10/parse-packet.cpp
-  gnupg/g10/mainproc.cpp
-  gnupg/g10/free-packet.cpp
-  gnupg/g10/sig-check.cpp
-  gnupg/g10/keyedit.cpp
-  gnupg/g10/trust.cpp
-  gnupg/g10/cpr.cpp
-  gnupg/g10/keylist.cpp
-  gnupg/g10/openfile.cpp
-  gnupg/g10/key-check.cpp
-  gnupg/g10/armor.cpp
-  gnupg/g10/trustdb.cpp
-  gnupg/g10/tdbio.cpp
-  gnupg/g10/tdbdump.cpp
-  gnupg/g10/exec.cpp
-  gnupg/g10/delkey.cpp
-  gnupg/g10/dearmor.cpp
-  gnupg/g10/tofu.cpp
-  gnupg/g10/card-util.cpp
-  gnupg/g10/gpgsql.cpp
-  gnupg/g10/compress-bz2.cpp
-  gnupg/g10/gpg.cpp
+  legacy/gnupg/common/logging.h
+  legacy/gnupg/common/logging.cpp
+  legacy/gnupg/common/sysutils.h
+  legacy/gnupg/common/sysutils.cpp
+  legacy/gnupg/common/utf8conv.h
+  legacy/gnupg/common/utf8conv.cpp
+  legacy/gnupg/common/stringhelp.h
+  legacy/gnupg/common/stringhelp.cpp
+  legacy/gnupg/common/server-help.h
+  legacy/gnupg/common/server-help.cpp
+  legacy/gnupg/common/argparse.h
+  legacy/gnupg/common/argparse.cpp
+  legacy/gnupg/common/strlist.h
+  legacy/gnupg/common/strlist.cpp
+  legacy/gnupg/common/membuf.h
+  legacy/gnupg/common/membuf.cpp
+  legacy/gnupg/common/status.h
+  legacy/gnupg/common/status.cpp
+  legacy/gnupg/common/iobuf.h
+  legacy/gnupg/common/iobuf.cpp
+  legacy/gnupg/common/i18n.h
+  legacy/gnupg/common/i18n.cpp
+  legacy/gnupg/common/gettime.h
+  legacy/gnupg/common/gettime.cpp
+  legacy/gnupg/common/asshelp.h
+  legacy/gnupg/common/asshelp.cpp
+  legacy/gnupg/common/dotlock.h
+  legacy/gnupg/common/dotlock.cpp
+  legacy/gnupg/common/mischelp.h
+  legacy/gnupg/common/compliance.h
+  legacy/gnupg/common/compliance.cpp
+  legacy/gnupg/common/exechelp.h
+  legacy/gnupg/common/exechelp-posix.cpp
+  legacy/gnupg/common/userids.h
+  legacy/gnupg/common/userids.cpp
+  legacy/gnupg/common/mbox-util.h
+  legacy/gnupg/common/mbox-util.cpp
+  legacy/gnupg/common/recsel.h
+  legacy/gnupg/common/recsel.cpp
+  legacy/gnupg/common/gpgrlhelp.cpp
+  legacy/gnupg/common/homedir.cpp
+  legacy/gnupg/common/miscellaneous.cpp
+  legacy/gnupg/common/init.cpp
+  legacy/gnupg/common/percent.cpp
+  legacy/gnupg/common/zb32.cpp
+  legacy/gnupg/common/openpgp-oid.cpp
+  legacy/gnupg/common/ttyio.cpp
+  legacy/gnupg/common/xasprintf.cpp
+  legacy/gnupg/common/yesno.cpp
+  legacy/gnupg/common/sexputil.cpp
+  legacy/gnupg/common/tlv.cpp
+  legacy/gnupg/common/util.h
+  legacy/gnupg/common/localename.cpp
+  legacy/gnupg/common/convert.cpp
+  legacy/gnupg/common/b64enc.cpp
+  legacy/gnupg/kbx/keybox-init.cpp
+  legacy/gnupg/kbx/keybox-util.cpp
+  legacy/gnupg/kbx/keybox-blob.cpp
+  legacy/gnupg/kbx/keybox-file.cpp
+  legacy/gnupg/kbx/keybox-openpgp.cpp
+  legacy/gnupg/kbx/keybox-update.cpp
+  legacy/gnupg/kbx/keybox-search.cpp
+  legacy/gnupg/g10/misc.cpp
+  legacy/gnupg/g10/keyid.cpp
+  legacy/gnupg/g10/keyserver.cpp
+  legacy/gnupg/g10/pubkey-enc.cpp
+  legacy/gnupg/g10/pkclist.cpp
+  legacy/gnupg/g10/ecdh.cpp
+  legacy/gnupg/g10/kbnode.cpp
+  legacy/gnupg/g10/compress.cpp
+  legacy/gnupg/g10/filter.h
+  legacy/gnupg/g10/passphrase.cpp
+  legacy/gnupg/g10/import.cpp
+  legacy/gnupg/g10/export.cpp
+  legacy/gnupg/g10/decrypt-data.cpp
+  legacy/gnupg/g10/plaintext.cpp
+  legacy/gnupg/g10/textfilter.cpp
+  legacy/gnupg/g10/progress.cpp
+  legacy/gnupg/g10/mdfilter.cpp
+  legacy/gnupg/g10/seskey.cpp
+  legacy/gnupg/g10/pkglue.cpp
+  legacy/gnupg/g10/revoke.cpp
+  legacy/gnupg/g10/sign.cpp
+  legacy/gnupg/g10/encrypt.cpp
+  legacy/gnupg/g10/decrypt.cpp
+  legacy/gnupg/g10/cipher.cpp
+  legacy/gnupg/g10/verify.cpp
+  legacy/gnupg/g10/skclist.cpp
+  legacy/gnupg/g10/keygen.cpp
+  legacy/gnupg/g10/call-dirmngr.cpp
+  legacy/gnupg/g10/call-agent.cpp
+  legacy/gnupg/g10/getkey.cpp
+  legacy/gnupg/g10/keydb.cpp
+  legacy/gnupg/g10/packet.h
+  legacy/gnupg/g10/build-packet.cpp
+  legacy/gnupg/g10/parse-packet.cpp
+  legacy/gnupg/g10/mainproc.cpp
+  legacy/gnupg/g10/free-packet.cpp
+  legacy/gnupg/g10/sig-check.cpp
+  legacy/gnupg/g10/keyedit.cpp
+  legacy/gnupg/g10/trust.cpp
+  legacy/gnupg/g10/cpr.cpp
+  legacy/gnupg/g10/keylist.cpp
+  legacy/gnupg/g10/openfile.cpp
+  legacy/gnupg/g10/key-check.cpp
+  legacy/gnupg/g10/armor.cpp
+  legacy/gnupg/g10/trustdb.cpp
+  legacy/gnupg/g10/tdbio.cpp
+  legacy/gnupg/g10/tdbdump.cpp
+  legacy/gnupg/g10/exec.cpp
+  legacy/gnupg/g10/delkey.cpp
+  legacy/gnupg/g10/dearmor.cpp
+  legacy/gnupg/g10/tofu.cpp
+  legacy/gnupg/g10/card-util.cpp
+  legacy/gnupg/g10/gpgsql.cpp
+  legacy/gnupg/g10/compress-bz2.cpp
+  legacy/gnupg/g10/gpg.cpp
 
-  gnupg/agent/command.cpp
-  gnupg/agent/gpg-agent.cpp
-  gnupg/agent/protect.cpp
-  gnupg/agent/call-scd.cpp
-  gnupg/agent/findkey.cpp
-  gnupg/agent/cvt-openpgp.cpp
-  gnupg/agent/cache.cpp
-  gnupg/agent/genkey.cpp
-  gnupg/agent/call-pinentry.cpp
-  gnupg/agent/trustlist.cpp
-  gnupg/common/asshelp2.cpp
-  gnupg/common/asshelp.h
-  gnupg/agent/pkdecrypt.cpp
-  gnupg/agent/pksign.cpp
-  gnupg/agent/learncard.cpp
-  gnupg/agent/divert-scd.cpp
-  gnupg/common/name-value.cpp
+  legacy/gnupg/agent/command.cpp
+  legacy/gnupg/agent/gpg-agent.cpp
+  legacy/gnupg/agent/protect.cpp
+  legacy/gnupg/agent/call-scd.cpp
+  legacy/gnupg/agent/findkey.cpp
+  legacy/gnupg/agent/cvt-openpgp.cpp
+  legacy/gnupg/agent/cache.cpp
+  legacy/gnupg/agent/genkey.cpp
+  legacy/gnupg/agent/call-pinentry.cpp
+  legacy/gnupg/agent/trustlist.cpp
+  legacy/gnupg/common/asshelp2.cpp
+  legacy/gnupg/common/asshelp.h
+  legacy/gnupg/agent/pkdecrypt.cpp
+  legacy/gnupg/agent/pksign.cpp
+  legacy/gnupg/agent/learncard.cpp
+  legacy/gnupg/agent/divert-scd.cpp
+  legacy/gnupg/common/name-value.cpp
 
-  gnupg/dirmngr/dirmngr.cpp
-  gnupg/dirmngr/crlfetch.cpp
-  gnupg/dirmngr/dirmngr-client.cpp
-  gnupg/dirmngr/dirmngr.cpp
-  gnupg/dirmngr/dns-stuff.cpp
-  gnupg/dirmngr/http-common.cpp
-  gnupg/dirmngr/http.cpp
-  gnupg/dirmngr/ks-action.cpp
-  gnupg/dirmngr/ks-engine-hkp.cpp
-  gnupg/dirmngr/ks-engine-http.cpp
-  gnupg/dirmngr/ks-engine-kdns.cpp
-  gnupg/dirmngr/misc.cpp
-  gnupg/dirmngr/ocsp.cpp
-  gnupg/dirmngr/server.cpp
-  gnupg/dirmngr/validate.cpp
-  gnupg/dirmngr/crlcache.cpp
-  gnupg/dirmngr/certcache.cpp
-  gnupg/dirmngr/cdblib.cpp
-  gnupg/common/ksba-io-support.cpp
-  gnupg/common/exectool.cpp
+  legacy/gnupg/dirmngr/dirmngr.cpp
+  legacy/gnupg/dirmngr/crlfetch.cpp
+  legacy/gnupg/dirmngr/dirmngr-client.cpp
+  legacy/gnupg/dirmngr/dirmngr.cpp
+  legacy/gnupg/dirmngr/dns-stuff.cpp
+  legacy/gnupg/dirmngr/http-common.cpp
+  legacy/gnupg/dirmngr/http.cpp
+  legacy/gnupg/dirmngr/ks-action.cpp
+  legacy/gnupg/dirmngr/ks-engine-hkp.cpp
+  legacy/gnupg/dirmngr/ks-engine-http.cpp
+  legacy/gnupg/dirmngr/ks-engine-kdns.cpp
+  legacy/gnupg/dirmngr/misc.cpp
+  legacy/gnupg/dirmngr/ocsp.cpp
+  legacy/gnupg/dirmngr/server.cpp
+  legacy/gnupg/dirmngr/validate.cpp
+  legacy/gnupg/dirmngr/crlcache.cpp
+  legacy/gnupg/dirmngr/certcache.cpp
+  legacy/gnupg/dirmngr/cdblib.cpp
+  legacy/gnupg/common/ksba-io-support.cpp
+  legacy/gnupg/common/exectool.cpp
 
-  gnupg/sm/call-agent.cpp
-  gnupg/sm/certcheck.cpp
-  gnupg/sm/certreqgen.cpp
-  gnupg/sm/delete.cpp
-  gnupg/sm/fingerprint.cpp
-  gnupg/sm/sign.cpp
-  gnupg/sm/call-dirmngr.cpp
-  gnupg/sm/certdump.cpp
-  gnupg/sm/certreqgen-ui.cpp
-  gnupg/sm/encrypt.cpp
-  gnupg/sm/gpgsm.cpp
-  gnupg/sm/import.cpp
-  gnupg/sm/keylist.cpp
-  gnupg/sm/misc.cpp
-  gnupg/sm/verify.cpp
-  gnupg/sm/certchain.cpp
-  gnupg/sm/certlist.cpp
-  gnupg/sm/decrypt.cpp
-  gnupg/sm/export.cpp
-  gnupg/sm/keydb.cpp
-  gnupg/sm/minip12.cpp
-  gnupg/sm/passphrase.cpp
-  gnupg/sm/server.cpp
-  gnupg/sm/gpgsm.cpp
+  legacy/gnupg/sm/call-agent.cpp
+  legacy/gnupg/sm/certcheck.cpp
+  legacy/gnupg/sm/certreqgen.cpp
+  legacy/gnupg/sm/delete.cpp
+  legacy/gnupg/sm/fingerprint.cpp
+  legacy/gnupg/sm/sign.cpp
+  legacy/gnupg/sm/call-dirmngr.cpp
+  legacy/gnupg/sm/certdump.cpp
+  legacy/gnupg/sm/certreqgen-ui.cpp
+  legacy/gnupg/sm/encrypt.cpp
+  legacy/gnupg/sm/gpgsm.cpp
+  legacy/gnupg/sm/import.cpp
+  legacy/gnupg/sm/keylist.cpp
+  legacy/gnupg/sm/misc.cpp
+  legacy/gnupg/sm/verify.cpp
+  legacy/gnupg/sm/certchain.cpp
+  legacy/gnupg/sm/certlist.cpp
+  legacy/gnupg/sm/decrypt.cpp
+  legacy/gnupg/sm/export.cpp
+  legacy/gnupg/sm/keydb.cpp
+  legacy/gnupg/sm/minip12.cpp
+  legacy/gnupg/sm/passphrase.cpp
+  legacy/gnupg/sm/server.cpp
+  legacy/gnupg/sm/gpgsm.cpp
 
-  gnupg/scd/scdaemon.cpp
-  gnupg/scd/apdu.cpp
-  gnupg/scd/app.cpp
-  gnupg/scd/app-dinsig.cpp
-  gnupg/scd/app-help.cpp
-  gnupg/scd/app-nks.cpp
-  gnupg/scd/app-p15.cpp
-  gnupg/scd/app-sc-hsm.cpp
-  gnupg/scd/app-openpgp.cpp
-  gnupg/scd/atr.cpp
-  gnupg/scd/ccid-driver.cpp
-  gnupg/scd/command.cpp
-  gnupg/scd/iso7816.cpp
+  legacy/gnupg/scd/scdaemon.cpp
+  legacy/gnupg/scd/apdu.cpp
+  legacy/gnupg/scd/app.cpp
+  legacy/gnupg/scd/app-dinsig.cpp
+  legacy/gnupg/scd/app-help.cpp
+  legacy/gnupg/scd/app-nks.cpp
+  legacy/gnupg/scd/app-p15.cpp
+  legacy/gnupg/scd/app-sc-hsm.cpp
+  legacy/gnupg/scd/app-openpgp.cpp
+  legacy/gnupg/scd/atr.cpp
+  legacy/gnupg/scd/ccid-driver.cpp
+  legacy/gnupg/scd/command.cpp
+  legacy/gnupg/scd/iso7816.cpp
 
   src/neopg.cpp
 )
 target_include_directories(neopg PRIVATE
-  libgpg-error/src
-  libassuan/src
-  libgcrypt/src
-  npth/src
-  libksba/src
+  legacy/libgpg-error/src
+  legacy/libassuan/src
+  legacy/libgcrypt/src
+  legacy/npth/src
+  legacy/libksba/src
   ${CMAKE_BINARY_DIR}/.
   ${Boost_INCLUDE_DIR}
   ${SQLITE3_INCLUDE_DIRS}

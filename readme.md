@@ -40,8 +40,8 @@ $ make test # or ./gpg-error-test
 ## Optional
 
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make coverage
-$ make coverage-xml
+$ make; make coverage
+$ make; make coverage-data
 
 ## Things accomplished
 

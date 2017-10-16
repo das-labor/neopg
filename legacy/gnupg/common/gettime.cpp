@@ -39,7 +39,7 @@
 #include "i18n.h"
 #include "gettime.h"
 
-#include "utils/time.h"
+#include <neopg/utils/time.h>
 #define timegm NeoPG::timegm
 
 

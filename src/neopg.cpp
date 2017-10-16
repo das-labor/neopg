@@ -216,7 +216,7 @@ bool dirmngr_client::no_help = true;
 
 char *neopg_program;
 #define GPGRT_ATTR_SENTINEL(a)
-#include "../gnupg/common/stringhelp.h"
+#include "../legacy/gnupg/common/stringhelp.h"
 
 int
 main(int argc, char const *argv[])
