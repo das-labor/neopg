@@ -142,14 +142,52 @@ TEST(NeoPGTest, openpg_test) {
   }
 
   {
+    ASSERT_THROW(OpenPGP::NewPacketLength(191,
+					  OpenPGP::PacketLengthType::TwoOctet),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::NewPacketLength(3,
+					  OpenPGP::PacketLengthType::Partial),
+		 std::logic_error);
+  }
+
+  {
     ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::UserAttribute, 0),
 		 std::logic_error);
   }
 
   {
     ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker,
-					  256,
+					  1 << 8,
 					  OpenPGP::PacketLengthType::OneOctet),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker,
+					  1 << 16,
+					  OpenPGP::PacketLengthType::TwoOctet),
+		 std::logic_error);
+  }
+
+  {
+    ASSERT_THROW(OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker,
+					  0,
+					  OpenPGP::PacketLengthType::Indeterminate),
+		 std::logic_error);
+  }
+
+  {
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker,
+				    1,
+				    OpenPGP::PacketLengthType::OneOctet);
+    /* Force unsupported packet length type.  */
+    header.m_length_type = OpenPGP::PacketLengthType::Indeterminate;
+
+    std::stringstream out;
+    ASSERT_THROW(header.write(out),
 		 std::logic_error);
   }
 

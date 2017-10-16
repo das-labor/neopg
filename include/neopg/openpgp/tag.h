@@ -136,7 +136,7 @@ namespace NeoPG {
 	    throw std::logic_error("Indeterminate packet length type (shouldn't happen).");
 
 	  case PacketLengthType::Default:
-	    throw std::logic_error("Unspecific packet length type (shouldn't happen).");
+	    throw std::logic_error("Unspecific packet length type (shouldn't happen)."); // LCOV_EXCL_LINE
 	  }
       }
     };
@@ -250,7 +250,7 @@ namespace NeoPG {
 	    break;
 
 	  case PacketLengthType::Default:
-	    throw std::logic_error("Unspecific packet length type (shouldn't happen).");
+	    throw std::logic_error("Unspecific packet length type (shouldn't happen)."); // LCOV_EXCL_LINE
 	  }
       }
     };
