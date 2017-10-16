@@ -191,5 +191,46 @@ TEST(NeoPGTest, openpg_test) {
 		 std::logic_error);
   }
 
+  {
+    OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 0);
+    header.set_length(0xff);
+    ASSERT_EQ(header.m_length, 0xff);
+  }
+
+  {
+    OpenPGP::NewPacketLength pktlength(0);
+    pktlength.set_length(0xff);
+    ASSERT_EQ(pktlength.m_length, 0xff);
+  }
+
+  {
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0),
+	      OpenPGP::PacketLengthType::OneOctet);
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0xff),
+	      OpenPGP::PacketLengthType::OneOctet);
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0x100),
+	      OpenPGP::PacketLengthType::TwoOctet);
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0xffff),
+	      OpenPGP::PacketLengthType::TwoOctet);
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0x10000),
+	      OpenPGP::PacketLengthType::FourOctet);
+    ASSERT_EQ(OpenPGP::OldPacketHeader::best_length_type(0xffffffffU),
+	      OpenPGP::PacketLengthType::FourOctet);
+  }
+
+  {
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0),
+	      OpenPGP::PacketLengthType::OneOctet);
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0xbf),
+	      OpenPGP::PacketLengthType::OneOctet);
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0xc0),
+	      OpenPGP::PacketLengthType::TwoOctet);
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0x20bf),
+	      OpenPGP::PacketLengthType::TwoOctet);
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0x20c0),
+	      OpenPGP::PacketLengthType::FiveOctet);
+    ASSERT_EQ(OpenPGP::NewPacketLength::best_length_type(0xffffffffU),
+	      OpenPGP::PacketLengthType::FiveOctet);
+  }
 
 }

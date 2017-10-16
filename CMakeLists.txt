@@ -484,6 +484,7 @@ add_library(libneopg
   include/neopg/utils/time.h
   src/lib/utils/time.cpp
   include/neopg/openpgp/tag.h
+  src/openpgp/tag.cpp
 )
 target_compile_options(libneopg
   PRIVATE
