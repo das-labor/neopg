@@ -12,15 +12,14 @@ namespace OpenPGP {
 void MarkerPacket::write(std::ostream& out) {
   Packet::write(out);
 
-  if (!m_header) {
-    NewPacketHeader default_header(PacketType::Marker, 3);
-    default_header.write(out);
-  }
-
   out << (uint8_t)0x50;
   out << (uint8_t)0x47;
   out << (uint8_t)0x50;
 }
+
+PacketType MarkerPacket::type() { return PacketType::Marker; }
+
+uint32_t MarkerPacket::body_length() { return 3; }
 
 }  // namespace OpenPGP
 }  // namespace NeoPG

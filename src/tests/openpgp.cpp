@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 
 #include <neopg/openpgp/header.h>
+#include <neopg/openpgp/literal_data_packet.h>
 #include <neopg/openpgp/marker_packet.h>
 
 #include <memory>
@@ -142,7 +143,18 @@ TEST(NeoPGTest, openpg_test) {
     std::stringstream out;
     OpenPGP::MarkerPacket packet;
     packet.write(out);
-    ASSERT_EQ(out.str(), "\xca\x03PGP");
+    ASSERT_EQ(out.str(),
+              "\xca\x03"
+              "PGP");
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::LiteralDataPacket packet;
+    packet.write(out);
+    ASSERT_EQ(out.str(), std::string("\xCB\x6"
+                                     "b\0\0\0\0\0",
+                                     8));
   }
 
   /* Failures.  */
@@ -192,6 +204,13 @@ TEST(NeoPGTest, openpg_test) {
         OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker, 0,
                                  OpenPGP::PacketLengthType::Indeterminate),
         std::logic_error);
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::LiteralDataPacket packet;
+    packet.m_filename = std::string(256, 'A');
+    ASSERT_THROW(packet.write(out), std::logic_error);
   }
 
   {

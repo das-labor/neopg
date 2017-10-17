@@ -17,6 +17,8 @@ struct Packet {
   std::unique_ptr<PacketHeader> m_header;
 
   virtual void write(std::ostream& out) = 0;
+  virtual uint32_t body_length() = 0;
+  virtual PacketType type() = 0;
 };
 
 }  // namespace OpenPGP

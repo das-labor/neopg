@@ -70,7 +70,7 @@ struct OldPacketHeader : PacketHeader {
   void set_length(uint32_t length,
                   PacketLengthType length_type = PacketLengthType::Default);
 
-  void write(std::ostream& out);
+  void write(std::ostream& out) override;
 };
 
 struct NewPacketTag {
@@ -111,7 +111,7 @@ struct NewPacketHeader : PacketHeader {
                   PacketLengthType length_type = PacketLengthType::Default)
       : m_tag(packet_type), m_length(length, length_type) {}
 
-  void write(std::ostream& out);
+  void write(std::ostream& out) override;
 };
 
 }  // namespace OpenPGP

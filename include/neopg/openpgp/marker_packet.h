@@ -14,6 +14,8 @@ namespace OpenPGP {
 
 struct MarkerPacket : Packet {
   void write(std::ostream& out) override;
+  uint32_t body_length() override;
+  PacketType type() override;
 };
 
 }  // namespace OpenPGP

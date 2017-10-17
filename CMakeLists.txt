@@ -483,11 +483,13 @@ set(LIBNEOPG_INCLUDE include)
 
 add_library(libneopg
   include/neopg/openpgp/header.h
+  include/neopg/openpgp/literal_data_packet.h
   include/neopg/openpgp/marker_packet.h
   include/neopg/openpgp/packet.h
   include/neopg/utils/time.h
   src/lib/utils/time.cpp
   src/openpgp/header.cpp
+  src/openpgp/literal_data_packet.cpp
   src/openpgp/marker_packet.cpp
   src/openpgp/packet.cpp
 )

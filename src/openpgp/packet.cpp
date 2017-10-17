@@ -12,6 +12,9 @@ namespace OpenPGP {
 void Packet::write(std::ostream& out) {
   if (m_header) {
     m_header->write(out);
+  } else {
+    NewPacketHeader default_header(type(), body_length());
+    default_header.write(out);
   }
 }
 
