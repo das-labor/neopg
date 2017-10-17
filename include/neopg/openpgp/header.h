@@ -1,11 +1,11 @@
 /* OpenPGP format
-   Copyright 2017 Marcus Brinkmann
+   Copyright 2017 The NeoPG developers
 
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_TAG_H__
-#define NEOPG_OPENPGP_TAG_H__
+#ifndef NEOPG_OPENPGP_HEADER_H__
+#define NEOPG_OPENPGP_HEADER_H__
 
 #include <cstdint>
 #include <iostream>
@@ -116,4 +116,5 @@ struct NewPacketHeader : PacketHeader {
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
+
 #endif

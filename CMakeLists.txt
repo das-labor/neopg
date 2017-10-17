@@ -482,10 +482,14 @@ FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 set(LIBNEOPG_INCLUDE include)
 
 add_library(libneopg
+  include/neopg/openpgp/header.h
+  include/neopg/openpgp/marker_packet.h
+  include/neopg/openpgp/packet.h
   include/neopg/utils/time.h
   src/lib/utils/time.cpp
-  include/neopg/openpgp/tag.h
-  src/openpgp/tag.cpp
+  src/openpgp/header.cpp
+  src/openpgp/marker_packet.cpp
+  src/openpgp/packet.cpp
 )
 target_compile_options(libneopg
   PRIVATE

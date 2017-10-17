@@ -2,7 +2,8 @@
 
 #include "gtest/gtest.h"
 
-#include "neopg/openpgp/tag.h"
+#include <neopg/openpgp/header.h>
+#include <neopg/openpgp/marker_packet.h>
 
 using namespace NeoPG;
 
@@ -121,6 +122,13 @@ TEST(NeoPGTest, openpg_test) {
     OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 100000);
     header.write(out);
     ASSERT_EQ(out.str(), std::string("\xaa\x00\x01\x86\xa0", 5));
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::MarkerPacket packet;
+    packet.write(out);
+    ASSERT_EQ(out.str(), "\xca\x03PGP");
   }
 
   /* Failures.  */
