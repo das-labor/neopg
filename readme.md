@@ -55,21 +55,51 @@ $ make; make coverage-data
 * libgcrypt
 ** No dynamic code generation
 
-TOOD:
+## TODO
 
 * format strings for list-keys etc
 
-metriken:
+Code metrics:
 - sloccount
 - coverage
 - libksba
 - secretgrind
 
-windows
+Windows
 - chocolatey
 
-macos
+macOS
 - brew (homebrew)
 ascii armor default
 auto keylocate default auto keyretrieve
 dirmngr: hkps connections should default to system trust if --hkp-cacert is not given
+
+## Hacking
+
+### Fedora
+To get started on a Fedora 26, do the following
+
+```
+# Fedora 26 only comes with Botan 1.10. Here we enable a copr repo for Botan 2
+$ sudo dnf copr enable bkircher/botan2
+
+# Install dev dependencies
+$ sudo dnf install -y \
+    boost-devel \
+    botan2-devel \
+    cmake \
+    gcc-c++ \
+    gcovr \
+    git \
+    lcov \
+    libusb-devel \
+    python \
+    sqlite-devel \
+
+# Clone repo and build
+$ git clone --recursive git@github.com:zaolin/neopg.git
+$ cd neopg/build
+$ cmake ..
+$ make
+```
+Have fun!
