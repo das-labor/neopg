@@ -10,14 +10,14 @@
 #include <time.h>
 
 #define NEOPG_DLL __attribute__((visibility("default")))
-     
+
 namespace NeoPG {
 
-  /**
-     A replacement for timegm.
-  */
-  time_t NEOPG_DLL timegm(struct tm *tm);
+/**
+   A replacement for timegm.
+*/
+time_t NEOPG_DLL timegm(struct tm *tm);
 
-}
+}  // namespace NeoPG
 
 #endif

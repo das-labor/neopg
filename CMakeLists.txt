@@ -754,6 +754,32 @@ target_link_libraries(test-neopg PRIVATE
   GTest::GTest GTest::Main)
 add_test(NeoPGTest test-neopg COMMAND test-neopg test_xml_output --gtest_output=xml:test-neopg.xml)
 
+# get all project files
+file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/src/*.h ${CMAKE_SOURCE_DIR}/include/*.cpp ${CMAKE_SOURCE_DIR}/include/*.h )
+
+# additional target to perform cppcheck run, requires cppcheck
+
+add_custom_target(
+  lint
+  COMMAND cppcheck
+  --enable=warning,performance,portability,information,missingInclude
+  --std=c++11
+  --language=c++
+  --verbose
+  --quiet
+  ${ALL_SOURCE_FILES}
+)
+
+# additional target to perform clang-format run, requires clang-format
+
+
+add_custom_target(
+  pretty
+  COMMAND clang-format
+  -style=Google
+  -i
+  ${ALL_SOURCE_FILES}
+)
 
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
