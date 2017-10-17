@@ -488,12 +488,12 @@ add_library(libneopg
   include/neopg/openpgp/packet.h
   include/neopg/openpgp/user_id_packet.h
   include/neopg/utils/time.h
-  src/lib/utils/time.cpp
-  src/openpgp/header.cpp
-  src/openpgp/literal_data_packet.cpp
-  src/openpgp/marker_packet.cpp
-  src/openpgp/packet.cpp
-  src/openpgp/user_id_packet.cpp
+  lib/utils/time.cpp
+  lib/openpgp/header.cpp
+  lib/openpgp/literal_data_packet.cpp
+  lib/openpgp/marker_packet.cpp
+  lib/openpgp/packet.cpp
+  lib/openpgp/user_id_packet.cpp
 )
 target_compile_options(libneopg
   PRIVATE
