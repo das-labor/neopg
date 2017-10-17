@@ -73,9 +73,11 @@ void OldPacketHeader::write(std::ostream& out) {
       throw std::logic_error(
           "Indeterminate packet length type (shouldn't happen).");
 
+    // LCOV_EXCL_START
     case PacketLengthType::Default:
       throw std::logic_error(
-          "Unspecific packet length type (shouldn't happen).");  // LCOV_EXCL_LINE
+          "Unspecific packet length type (shouldn't happen).");
+      // LCOV_EXCL_END
   }
 }
 

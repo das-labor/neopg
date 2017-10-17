@@ -8,16 +8,15 @@
 #define NEOPG_OPENPGP_PACKET_H__
 
 #include <neopg/openpgp/header.h>
+#include <memory>
 
 namespace NeoPG {
 namespace OpenPGP {
 
 struct Packet {
-  PacketHeader* m_header;
+  std::unique_ptr<PacketHeader> m_header;
 
   virtual void write(std::ostream& out) = 0;
-
-  Packet();
 };
 
 }  // namespace OpenPGP

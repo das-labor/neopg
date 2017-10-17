@@ -33,12 +33,12 @@ APPEND_COVERAGE_COMPILER_FLAGS()
 set(COVERAGE_EXCLUDES '*/3rdparty/*' '*/legacy/*' '*/usr/*' '*/nix/store/*')
 SETUP_TARGET_FOR_COVERAGE(
      NAME coverage
-     EXECUTABLE ctest -j ${PROCESSOR_COUNT}
+     EXECUTABLE test-neopg
      DEPENDENCIES neopg
 )
 SETUP_TARGET_FOR_COVERAGE_COBERTURA(
      NAME coverage-data
-     EXECUTABLE ctest -j ${PROCESSOR_COUNT}
+     EXECUTABLE test-neopg
      DEPENDENCIES neopg
 )
 

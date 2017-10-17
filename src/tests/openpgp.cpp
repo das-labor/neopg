@@ -5,6 +5,8 @@
 #include <neopg/openpgp/header.h>
 #include <neopg/openpgp/marker_packet.h>
 
+#include <memory>
+
 using namespace NeoPG;
 
 TEST(NeoPGTest, openpg_test) {
@@ -122,6 +124,18 @@ TEST(NeoPGTest, openpg_test) {
     OpenPGP::OldPacketHeader header(OpenPGP::PacketType::Marker, 100000);
     header.write(out);
     ASSERT_EQ(out.str(), std::string("\xaa\x00\x01\x86\xa0", 5));
+  }
+
+  {
+    std::stringstream out;
+    OpenPGP::MarkerPacket packet;
+
+    OpenPGP::OldPacketHeader* header =
+        new OpenPGP::OldPacketHeader(OpenPGP::PacketType::Marker, 3);
+
+    packet.m_header = std::unique_ptr<OpenPGP::PacketHeader>(header);
+    packet.write(out);
+    ASSERT_EQ(out.str(), "\xa8\x03PGP");
   }
 
   {

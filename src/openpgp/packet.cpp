@@ -15,7 +15,5 @@ void Packet::write(std::ostream& out) {
   }
 }
 
-Packet::Packet() : m_header(0) {}
-
 }  // namespace OpenPGP
 }  // namespace NeoPG
