@@ -128,9 +128,9 @@ target_include_directories(gpg-error PRIVATE
   ${Intl_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(gpg-error PRIVATE
-  ${Intl_LDFLAGS} ${Intl_LIBRARIES}
   HAVE_CONFIG_H=1)
-target_link_libraries(gpg-error PRIVATE pthread)
+target_link_libraries(gpg-error PRIVATE pthread
+  ${Intl_LDFLAGS} ${Intl_LIBRARIES})
 target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(gpg-error-test
