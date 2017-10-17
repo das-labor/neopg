@@ -487,11 +487,11 @@ add_library(libneopg
   include/neopg/openpgp/marker_packet.h
   include/neopg/openpgp/packet.h
   include/neopg/utils/time.h
-  src/lib/utils/time.cpp
-  src/openpgp/header.cpp
-  src/openpgp/literal_data_packet.cpp
-  src/openpgp/marker_packet.cpp
-  src/openpgp/packet.cpp
+  lib/utils/time.cpp
+  lib/openpgp/header.cpp
+  lib/openpgp/literal_data_packet.cpp
+  lib/openpgp/marker_packet.cpp
+  lib/openpgp/packet.cpp
 )
 target_compile_options(libneopg
   PRIVATE
@@ -718,7 +718,7 @@ target_include_directories(neopg PRIVATE
   ${BOTAN2_INCLUDE_DIRS}
   ${LIBUSB_INCLUDE_DIRS}
   ${ICONV_INCLUDE_DIRS}
-  src/lib
+  include
 )
 target_compile_definitions(neopg PRIVATE
   HAVE_CONFIG_H=1)
