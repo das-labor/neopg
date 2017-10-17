@@ -69,6 +69,7 @@ if(BUILD_DOC)
 endif()
 
 find_package(Intl REQUIRED)
+find_package(iconv REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
@@ -710,6 +711,7 @@ target_include_directories(neopg PRIVATE
   ${SQLITE3_INCLUDE_DIRS}
   ${BOTAN2_INCLUDE_DIRS}
   ${LIBUSB_INCLUDE_DIRS}
+  ${ICONV_INCLUDE_DIRS}
   src/lib
 )
 target_compile_definitions(neopg PRIVATE
@@ -724,6 +726,7 @@ target_link_libraries(neopg PRIVATE
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
+${ICONV_LDFLAGS} ${ICONV_LIBRARIES}
  -lresolv -lz -lbz2 -lgnutls
  libneopg
 )
