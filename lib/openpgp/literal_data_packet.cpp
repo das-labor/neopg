@@ -20,7 +20,7 @@ void LiteralDataPacket::write(std::ostream& out) {
   }
 
   out << (uint8_t)m_filename.size();
-  out << m_filename;
+  out.write(m_filename.data(), m_filename.size());
 
   out << ((uint8_t)((m_timestamp >> 24) & 0xff))
       << ((uint8_t)((m_timestamp >> 16) & 0xff))
