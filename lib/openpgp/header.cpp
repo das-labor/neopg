@@ -162,7 +162,7 @@ void NewPacketLength::write(std::ostream& out) {
     case PacketLengthType::Default:
       throw std::logic_error(
           "Unspecific packet length type (shouldn't happen).");
-      // LCOV_EXCL_END
+      // LCOV_EXCL_STOP
   }
 }
 
