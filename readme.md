@@ -39,9 +39,16 @@ $ make test # or ./gpg-error-test
 
 ## Optional
 
+```
+$ make pretty
+$ make lint
+```
+
+```
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make; make coverage
+$ make; make coverage # FIXME: Add proper dependencies to target.
 $ make; make coverage-data
+```
 
 ## Things accomplished
 
@@ -61,18 +68,19 @@ $ make; make coverage-data
 
 Code metrics:
 - sloccount
-- coverage
-- libksba
 - secretgrind
+- sonarqube
 
 Windows
 - chocolatey
 
 macOS
 - brew (homebrew)
-ascii armor default
-auto keylocate default auto keyretrieve
-dirmngr: hkps connections should default to system trust if --hkp-cacert is not given
+
+openpgp profile
+- ascii armor default
+- auto keylocate default auto keyretrieve
+- dirmngr: hkps connections should default to system trust if --hkp-cacert is not given
 
 ## Hacking
 
