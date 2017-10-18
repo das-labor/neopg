@@ -158,10 +158,11 @@ void NewPacketLength::write(std::ostream& out) {
       uint8_t exp = __builtin_ctz(m_length);
       out << (uint8_t)((exp & 0x1f) + 0xe0);
     } break;
-
+    // LCOV_EXCL_START
     case PacketLengthType::Default:
       throw std::logic_error(
-          "Unspecific packet length type (shouldn't happen).");  // LCOV_EXCL_LINE
+          "Unspecific packet length type (shouldn't happen).");
+      // LCOV_EXCL_END
   }
 }
 
