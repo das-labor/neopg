@@ -10,33 +10,27 @@
 #include <neopg/common.h>
 #include <iostream>
 #include <streambuf>
+#include "gtest/gtest_prod.h"
 
 namespace NeoPG {
 
 class CountingStreamBuf : public std::streambuf {
  public:
-  CountingStreamBuf(){};
-  uint32_t bytes_written() { return m_bytes_written; }
+  uint32_t bytes_written();
 
  protected:
-  std::streamsize xsputn(const char_type* s, std::streamsize n) override {
-    m_bytes_written += n;
-    return n;
-  };
-
-  int_type overflow(int_type ch) override {
-    m_bytes_written++;
-    return 1;
-  }
+  std::streamsize xsputn(const char_type* s, std::streamsize n) override;
+  int_type overflow(int_type ch) override;
 
  private:
   uint32_t m_bytes_written = 0;
+  FRIEND_TEST(NeoPGTest, utils_stream_test);
 };
 
 class CountingStream : public std::ostream {
  public:
-  CountingStream() : std::ios(0), std::ostream(&m_counting_stream_buf) {}
-  uint32_t bytes_written() { return m_counting_stream_buf.bytes_written(); }
+  CountingStream();
+  uint32_t bytes_written();
 
  private:
   CountingStreamBuf m_counting_stream_buf;

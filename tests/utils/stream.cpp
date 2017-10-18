@@ -9,15 +9,29 @@
 
 using namespace NeoPG;
 
+namespace NeoPG {
+
 TEST(NeoPGTest, utils_stream_test) {
+  {
+    CountingStreamBuf::int_type result;
+    CountingStreamBuf buf;
+    ASSERT_EQ(buf.bytes_written(), 0);
+    result = buf.overflow(0x41);
+    ASSERT_EQ(result, 1);
+    ASSERT_EQ(buf.bytes_written(), 1);
+    result = buf.xsputn("Test", 4);
+    ASSERT_EQ(result, 4);
+    ASSERT_EQ(buf.bytes_written(), 5);
+  }
   {
     CountingStream out;
     ASSERT_EQ(out.bytes_written(), 0);
-    out << (uint8_t)0x41;
+    out.put(0x41);
     ASSERT_EQ(out.bytes_written(), 1);
     out << "NeoPG";
     ASSERT_EQ(out.bytes_written(), 6);
     out.write("Test", 4);
     ASSERT_EQ(out.bytes_written(), 10);
   }
+}
 }
