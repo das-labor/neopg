@@ -746,7 +746,8 @@ ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER})
 
 add_executable(test-neopg
-  src/tests/openpgp.cpp
+  tests/openpgp.cpp
+  tests/utils/stream.cpp
   )
 target_compile_options(test-neopg
   PRIVATE
