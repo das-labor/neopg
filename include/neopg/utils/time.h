@@ -4,12 +4,11 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_TIME_H__
-#define NEOPG_TIME_H__
+#ifndef NEOPG_UTILS_TIME_H__
+#define NEOPG_UTILS_TIME_H__
 
+#include <neopg/common.h>
 #include <time.h>
-
-#define NEOPG_DLL __attribute__((visibility("default")))
 
 namespace NeoPG {
 
