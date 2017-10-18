@@ -28,10 +28,12 @@ TEST(NeoPGTest, utils_stream_test) {
     ASSERT_EQ(out.bytes_written(), 0);
     out.put(0x41);
     ASSERT_EQ(out.bytes_written(), 1);
+    out << (uint8_t)0x42;
+    ASSERT_EQ(out.bytes_written(), 2);
     out << "NeoPG";
-    ASSERT_EQ(out.bytes_written(), 6);
+    ASSERT_EQ(out.bytes_written(), 7);
     out.write("Test", 4);
-    ASSERT_EQ(out.bytes_written(), 10);
+    ASSERT_EQ(out.bytes_written(), 11);
   }
 }
 }

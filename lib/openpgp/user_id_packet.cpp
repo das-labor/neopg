@@ -9,15 +9,11 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-void UserIdPacket::write(std::ostream& out) {
-  Packet::write(out);
-
+void UserIdPacket::write_body(std::ostream& out) {
   out.write(m_content.data(), m_content.size());
 }
 
 PacketType UserIdPacket::type() { return PacketType::UserID; }
-
-uint32_t UserIdPacket::body_length() { return m_content.size(); }
 
 }  // namespace OpenPGP
 }  // namespace NeoPG

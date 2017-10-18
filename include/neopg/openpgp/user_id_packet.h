@@ -15,8 +15,7 @@ namespace OpenPGP {
 struct UserIdPacket : Packet {
   std::string m_content;
 
-  void write(std::ostream& out) override;
-  uint32_t body_length() override;
+  void write_body(std::ostream& out) override;
   PacketType type() override;
 };
 

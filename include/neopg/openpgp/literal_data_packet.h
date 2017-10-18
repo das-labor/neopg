@@ -29,8 +29,7 @@ struct LiteralDataPacket : Packet {
   uint32_t m_timestamp = 0;
   std::vector<uint8_t> m_data;
 
-  void write(std::ostream& out) override;
-  uint32_t body_length() override;
+  void write_body(std::ostream& out) override;
   PacketType type() override;
 };
 

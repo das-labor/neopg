@@ -9,17 +9,13 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-void MarkerPacket::write(std::ostream& out) {
-  Packet::write(out);
-
+void MarkerPacket::write_body(std::ostream& out) {
   out << (uint8_t)0x50;
   out << (uint8_t)0x47;
   out << (uint8_t)0x50;
 }
 
 PacketType MarkerPacket::type() { return PacketType::Marker; }
-
-uint32_t MarkerPacket::body_length() { return 3; }
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
