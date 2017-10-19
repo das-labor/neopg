@@ -6,6 +6,7 @@
 add_executable(test-neopg
   openpgp.cpp
   utils/stream.cpp
+  parser/openpgp.cpp
 )
 
 target_compile_options(test-neopg
