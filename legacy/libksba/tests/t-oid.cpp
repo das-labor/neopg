@@ -201,7 +201,7 @@ oid_main (int argc, char **argv)
     }
   else
     {
-      fputs ("usage: "PGM" [--from-str|--to-str]\n", stderr);
+      fputs ("usage: " PGM " [--from-str|--to-str]\n", stderr);
       return 1;
     }
 
