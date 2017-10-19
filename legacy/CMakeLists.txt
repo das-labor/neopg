@@ -223,7 +223,6 @@ add_library(gcrypt
   libgcrypt/cipher/rfc2268.cpp
   libgcrypt/cipher/seed.cpp
   libgcrypt/cipher/mac-cmac.cpp
-  libgcrypt/cipher/serpent.cpp
   libgcrypt/cipher/cipher.cpp
   libgcrypt/cipher/cipher-internal.h
   libgcrypt/cipher/cipher-cbc.cpp
