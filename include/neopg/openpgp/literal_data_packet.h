@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_LITERAL_DATA_PACKET_H__
-#define NEOPG_OPENPGP_LITERAL_DATA_PACKET_H__
+#pragma once
 
 #include <neopg/openpgp/packet.h>
 #include <vector>
@@ -35,5 +34,3 @@ struct LiteralDataPacket : Packet {
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
-
-#endif

@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_USER_ID_PACKET_H__
-#define NEOPG_OPENPGP_USER_ID_PACKET_H__
+#pragma once
 
 #include <neopg/openpgp/packet.h>
 
@@ -21,5 +20,3 @@ struct UserIdPacket : Packet {
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
-
-#endif

@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_UTILS_STREAM_H__
-#define NEOPG_UTILS_STREAM_H__
+#pragma once
 
 #include <neopg/common.h>
 #include <iostream>
@@ -37,5 +36,3 @@ class CountingStream : public std::ostream {
 };
 
 }  // namespace NeoPG
-
-#endif

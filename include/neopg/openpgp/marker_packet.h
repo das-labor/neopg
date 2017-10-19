@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_MARKER_PACKET_H__
-#define NEOPG_OPENPGP_MARKER_PACKET_H__
+#pragma once
 
 #include <neopg/openpgp/packet.h>
 
@@ -19,5 +18,3 @@ struct MarkerPacket : Packet {
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
-
-#endif

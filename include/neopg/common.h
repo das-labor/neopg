@@ -4,9 +4,6 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_COMMON_H__
-#define NEOPG_COMMON_H__
+#pragma once
 
 #define NEOPG_DLL __attribute__((visibility("default")))
-
-#endif

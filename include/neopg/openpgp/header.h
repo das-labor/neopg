@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_HEADER_H__
-#define NEOPG_OPENPGP_HEADER_H__
+#pragma once
 
 #include <cstdint>
 #include <iostream>
@@ -116,5 +115,3 @@ struct NewPacketHeader : PacketHeader {
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
-
-#endif

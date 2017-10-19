@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_PARSER_OPENPGP_H__
-#define NEOPG_PARSER_OPENPGP_H__
+#pragma once
 
 // Protect our use of PEGTL from other library users.
 #define TAOCPP_PEGTL_NAMESPACE neopg_pegtl
@@ -247,7 +246,6 @@ struct packet : seq<verify_packet_tag, sor<uid_packet, unknown_packet> > {};
     };
   }
 #endif
-}
-}
-}
-#endif
+}  // namespace OpenPGP
+}  // namespace Parser
+}  // namespace NeoPG

@@ -4,8 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#ifndef NEOPG_OPENPGP_PACKET_H__
-#define NEOPG_OPENPGP_PACKET_H__
+#pragma once
 
 #include <neopg/openpgp/header.h>
 #include <memory>
@@ -14,14 +13,12 @@ namespace NeoPG {
 namespace OpenPGP {
 
 struct Packet {
-  std::unique_ptr<PacketHeader> m_header;
+  mutable std::unique_ptr<PacketHeader> m_header;
 
-  void write(std::ostream& out);
+  void write(std::ostream& out) const;
   virtual void write_body(std::ostream& out) = 0;
   virtual PacketType type() = 0;
 };
 
 }  // namespace OpenPGP
 }  // namespace NeoPG
-
-#endif
