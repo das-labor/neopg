@@ -15,6 +15,12 @@ int dirmngr_client_main(int argc, char** argv);
 int gpgsm_main(int argc, char** argv);
 int scd_main(int argc, char** argv);
 
+#if 0
+#include <neopg/openpgp.h>
+#include <tao/pegtl.hpp>
+#include <tao/pegtl/argv_input.hpp>
+#endif
+
 struct cli : args::group<cli> {
   static const char* help() { return "NeoPG implements the OpenPGP standard."; }
 };
@@ -168,6 +174,48 @@ struct dirmngr_client : cli::command<dirmngr_client> {
 bool dirmngr_client::no_help = true;
 
 char* neopg_program;
+
+#if 0
+struct openpgp : cli::command<openpgp>
+{
+    openpgp() {}
+    static bool no_help;
+    std::vector<std::string> openpgp_args;
+    template<class F>
+    void parse(F f)
+    {
+        f(openpgp_args, args::help("arguments"), args::take_unknown());
+    }
+
+    static const char* help()
+    {
+        return "Invoke openpgp";
+    }
+
+    void run()
+    {
+        openpgp_args.insert(openpgp_args.begin(), std::string("openpgp"));
+        int argc = openpgp_args.size();
+        std::vector<char*> argv;
+        for(auto&& value:openpgp_args) argv.push_back((char*)value.data());
+
+	std::string integer;
+	std::string id;
+	std::string body;
+
+	tao::neopg_pegtl::argv_input<> in( argv.data(), 1 );
+	// tao::neopg_pegtl::parse< NeoPG::grammar, NeoPG::action >( in, integer );
+	// std::cout << "Parse result: " << integer << std::endl;
+	tao::neopg_pegtl::parse< NeoPG::grammar, NeoPG::action >( in, id, body );
+	std::cout << "long literal id was: " << id << std::endl;
+	std::cout << "long literal body was: " << body << std::endl;
+
+    }
+};
+/* Suppress help output.  */
+bool openpgp::no_help = true;
+#endif
+
 #define GPGRT_ATTR_SENTINEL(a)
 #include "../legacy/gnupg/common/stringhelp.h"
 
