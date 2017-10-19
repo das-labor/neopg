@@ -28,8 +28,8 @@ struct LiteralDataPacket : Packet {
   uint32_t m_timestamp = 0;
   std::vector<uint8_t> m_data;
 
-  void write_body(std::ostream& out) override;
-  PacketType type() override;
+  void write_body(std::ostream& out) const override;
+  PacketType type() const override;
 };
 
 }  // namespace OpenPGP

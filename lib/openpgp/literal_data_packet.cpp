@@ -10,7 +10,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-void LiteralDataPacket::write_body(std::ostream& out) {
+void LiteralDataPacket::write_body(std::ostream& out) const {
   out << (uint8_t)m_data_type;
 
   if (m_filename.length() > 255) {
@@ -28,7 +28,7 @@ void LiteralDataPacket::write_body(std::ostream& out) {
   out.write((char*)m_data.data(), m_data.size());
 }
 
-PacketType LiteralDataPacket::type() { return PacketType::LiteralData; }
+PacketType LiteralDataPacket::type() const { return PacketType::LiteralData; }
 
 }  // namespace OpenPGP
 }  // namespace NeoPG

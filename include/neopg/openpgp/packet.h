@@ -16,8 +16,8 @@ struct Packet {
   mutable std::unique_ptr<PacketHeader> m_header;
 
   void write(std::ostream& out) const;
-  virtual void write_body(std::ostream& out) = 0;
-  virtual PacketType type() = 0;
+  virtual void write_body(std::ostream& out) const = 0;
+  virtual PacketType type() const = 0;
 };
 
 }  // namespace OpenPGP

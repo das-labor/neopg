@@ -10,7 +10,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-void Packet::write(std::ostream& out) {
+void Packet::write(std::ostream& out) const {
   if (m_header) {
     m_header->write(out);
   } else {

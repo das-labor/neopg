@@ -18,7 +18,7 @@ namespace NeoPG {
 namespace Parser {
 namespace OpenPGP {
 
-struct packet : one<0x80> {};
+struct packet : one<(char)0x80> {};
 
 struct packets : until<eof, packet> {};
 
