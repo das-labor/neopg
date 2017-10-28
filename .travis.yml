@@ -1,0 +1,13 @@
+sudo: required
+
+services:
+  - docker
+
+install: |
+  docker build -t neopg-build-env prov
+
+script: |
+  docker run \
+    --name neopg-build-env \
+    --rm neopg-build-env \
+    sh -c "git clone https://github.com/lambdafu/neopg.git && cd neopg/build && git checkout $TRAVIS_COMMIT && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"
