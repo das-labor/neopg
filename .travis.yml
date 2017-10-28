@@ -4,11 +4,12 @@ services:
   - docker
 
 install: |
-  docker build -t neopg-build-env prov
+  docker pull labor/neopg-build
 
 script: |
   docker run \
-    --name neopg-build-env \
-    --rm neopg-build-env \
+    --name neopg-build \
+    --rm \
+    labor/neopg-build \
     --volume $TRAVIS_BUILD_DIR:/neopg \
     sh -c "cd neopg/build && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"

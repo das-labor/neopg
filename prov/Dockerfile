@@ -27,13 +27,3 @@ RUN cd botan \
 	&& git checkout 2.3.0 \
 	&& ./configure.py \
 	&& make install
-
-ENV GIT_COMMIT=master
-#ENTRYPOINT git clone https://github.com/lambdafu/neopg.git \
-#	&& cd neopg \
-#	&& git checkout $GIT_COMMIT \
-#	&& cd build \
-#	&& cmake -DCMAKE_BUILD_TYPE=Debug .. \
-#	&& cmake --build \
-#	&& make test
-##tail -F /var/log/messages
