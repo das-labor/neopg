@@ -28,12 +28,13 @@ add_subdirectory(${PEGTL_ROOT} EXCLUDE_FROM_ALL)
 
 # CodeCoverage
 
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
-
 include(ProcessorCount)
 ProcessorCount(PROCESSOR_COUNT)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+if(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
 include(CodeCoverage)
 APPEND_COVERAGE_COMPILER_FLAGS()
 
