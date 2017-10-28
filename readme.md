@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/lambdafu/neopg.svg?branch=master)](https://travis-ci.org/lambdafu/neopg)
-[![Coverage Status](https://coveralls.io/repos/github/lambdafu/neopg/badge.svg?branch=master)](https://coveralls.io/github/lambdafu/neopg?branch=master)
-[![Coverity Scan](https://scan.coverity.com/projects/14168/badge.svg)](https://scan.coverity.com/projects/lambdafu-neopg)
+[![Build Status](https://travis-ci.org/das-labor/neopg.svg?branch=master)](https://travis-ci.org/das-labor/neopg)
 
 # NeoPG implements the OpenPGP standard.
 

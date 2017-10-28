@@ -29,7 +29,7 @@ RUN cd botan \
 	&& make install
 
 ENV GIT_COMMIT=master
-#ENTRYPOINT git clone https://github.com/lambdafu/neopg.git \
+#ENTRYPOINT git clone https://github.com/das-labor/neopg.git \
 #	&& cd neopg \
 #	&& git checkout $GIT_COMMIT \
 #	&& cd build \
