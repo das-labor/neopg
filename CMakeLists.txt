@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(NeoPG VERSION 0.1 LANGUAGES C CXX)
 
 # Google Test
-set(GTEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/googletest)
+set(GTEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/googletest/googletest/)
 set(GTEST_INCLUDE_DIR ${GTEST_ROOT}/include)
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
   set(gtest_force_shared_crt ON CACHE BOOL
