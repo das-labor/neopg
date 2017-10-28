@@ -10,6 +10,6 @@ script: |
   docker run \
     --name neopg-build \
     --rm \
-    labor/neopg-build \
     --volume $TRAVIS_BUILD_DIR:/neopg \
+    labor/neopg-build \
     sh -c "cd neopg/build && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"
