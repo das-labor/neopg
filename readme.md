@@ -23,6 +23,10 @@ Aside from a working C++ toolchain you'll need the following libraries.
 1. openldap
 1. zlib
 1. bzip2
+1. gcovr (debug builds only)
+1. clang-format (debug builds only)
+1. cppcheck (debug builds only)
+1. doxygen (debug builds only)
 
 ## Install
 
@@ -32,12 +36,15 @@ With all dependencies installed NeoPG can be build with CMake.
 $ git submodule update --init
 $ mkdir build
 $ cd build
-$ cmake ..   # or cmake -C ../src/clang.txt ..
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
+  # or cmake -DCMAKE_BUILD_TYPE=Release -C ../src/clang.txt ..
 $ make
 $ make test # or ./gpg-error-test
 ```
 
 ## Optional
+
+You need to have `gcovr`, `clang-format`, `doxygen` and `cppcheck` installed.
 
 ```
 $ make pretty
