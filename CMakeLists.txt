@@ -28,6 +28,8 @@ add_subdirectory(${PEGTL_ROOT} EXCLUDE_FROM_ALL)
 
 # CodeCoverage
 
+if(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
 include(ProcessorCount)
 ProcessorCount(PROCESSOR_COUNT)
 
@@ -46,6 +48,8 @@ SETUP_TARGET_FOR_COVERAGE_COBERTURA(
      EXECUTABLE test-neopg
      DEPENDENCIES neopg
 )
+
+endif(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 
 # Doxygen
