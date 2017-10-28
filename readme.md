@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/lambdafu/neopg.svg?branch=master)](https://travis-ci.org/lambdafu/neopg)
+[![Coverage Status](https://coveralls.io/repos/github/lambdafu/neopg/badge.svg?branch=master)](https://coveralls.io/github/lambdafu/neopg?branch=master)
+[![Coverity Scan](https://scan.coverity.com/projects/14168/badge.svg)](https://scan.coverity.com/projects/lambdafu-neopg)
+
 # NeoPG implements the OpenPGP standard.
 
 NeoPG is written in C++11 and released under the permissive
@@ -56,18 +60,6 @@ $ cmake -DCMAKE_BUILD_TYPE=Debug ..
 $ make; make coverage # FIXME: Add proper dependencies to target.
 $ make; make coverage-data
 ```
-
-## Things accomplished
-
-* build with clang (portability and allowing static analysis)
-* libgpg-error
-** No dynamic code generation (except preprocessor).
-** No lock objects.
-** Removed: gpg-error, gpg-error-config, documentation
-* libassuan
-** No dynamic code generation
-* libgcrypt
-** No dynamic code generation
 
 ## TODO
 
