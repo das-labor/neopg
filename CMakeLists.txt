@@ -3,7 +3,7 @@
 #
 # NeoPG is released under the Simplified BSD License (see license.txt)
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 project(NeoPG VERSION 0.1 LANGUAGES C CXX)
 
 # Google Test
