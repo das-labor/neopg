@@ -1,11 +1,11 @@
-#define LOCALEDIR "/tmp/neopg"
-#define GNUPG_LOCALSTATEDIR "/tmp/neopg"
+#define LOCALEDIR "/usr/share/neopg"
+#define GNUPG_LOCALSTATEDIR "/usr/share/neopg"
 
 #define GNUPG_BINDIR      "/usr/bin"
 #define GNUPG_LIBEXECDIR  "/usr/libexec"
 #define GNUPG_LIBDIR      "/usr/lib"
-#define GNUPG_DATADIR     "/usr/share/gnupg"
-#define GNUPG_SYSCONFDIR  "/etc/gnupg"
+#define GNUPG_DATADIR     "/usr/share/neopg"
+#define GNUPG_SYSCONFDIR  "/etc/neopg"
 
 #cmakedefine HAVE_MALLOC_H 1
 
@@ -310,22 +310,16 @@
 /* #undef ENABLE_SELINUX_HACKS */
 /* The executable file extension, if any */
 #define EXEEXT ""
-#define GNUPG_NAME "GnuPG"
+#define GNUPG_NAME "NeoPG"
 /* #undef GNUPG_REGISTRY_DIR */
-#define GPGCONF_DISP_NAME "GPGConf"
-#define GPGCONF_NAME "gpgconf"
-#define GPGEXT_GPG "gpg"
-#define GPGSM_DISP_NAME "GPGSM"
-#define GPGSM_NAME "gpgsm"
-#define GPGTAR_NAME "gpgtar"
-#define GPG_AGENT_BROWSER_SOCK_NAME "S.gpg-agent.browser"
-#define GPG_AGENT_DISP_NAME "GPG Agent"
-#define GPG_AGENT_EXTRA_SOCK_NAME "S.gpg-agent.extra"
-#define GPG_AGENT_NAME "gpg-agent"
-#define GPG_AGENT_SOCK_NAME "S.gpg-agent"
-#define GPG_AGENT_SSH_SOCK_NAME "S.gpg-agent.ssh"
-#define GPG_DISP_NAME "GnuPG"
-#define GPG_NAME "gpg"
+#define GPGCONF_NAME "neopgconf"
+#define GPGEXT_GPG "npg"
+#define GPGSM_DISP_NAME "NeoPGSM"
+#define GPGSM_NAME "neopgsm"
+#define GPGTAR_NAME "neopgtar"
+#define GPG_AGENT_NAME "neopg-agent"
+#define GPG_DISP_NAME "NeoPG"
+#define GPG_NAME "neopg"
 #define GPG_USE_AES128 1
 #define GPG_USE_AES192 1
 #define GPG_USE_AES256 1
@@ -518,14 +512,14 @@
 /* Some global constants. */
 #ifdef HAVE_DOSISH_SYSTEM
 # ifdef HAVE_DRIVE_LETTERS
-#  define GNUPG_DEFAULT_HOMEDIR "c:/gnupg"
+#  define GNUPG_DEFAULT_HOMEDIR "c:/neopg"
 # else
-#  define GNUPG_DEFAULT_HOMEDIR "/gnupg"
+#  define GNUPG_DEFAULT_HOMEDIR "/neopg"
 # endif
 #elif defined(__VMS)
-#define GNUPG_DEFAULT_HOMEDIR "/SYS$LOGIN/gnupg"
+#define GNUPG_DEFAULT_HOMEDIR "/SYS$LOGIN/neopg"
 #else
-#define GNUPG_DEFAULT_HOMEDIR "~/.gnupg"
+#define GNUPG_DEFAULT_HOMEDIR "~/.neopg"
 #endif
 #define GNUPG_PRIVATE_KEYS_DIR  "private-keys-v1.d"
 #define GNUPG_OPENPGP_REVOC_DIR "openpgp-revocs.d"
@@ -537,17 +531,17 @@
    only defaults.  */
 #ifdef HAVE_DOSISH_SYSTEM
 # ifdef HAVE_DRIVE_LETTERS
-#  define GNUPG_BINDIR      "c:\\gnupg"
-#  define GNUPG_LIBEXECDIR  "c:\\gnupg"
-#  define GNUPG_LIBDIR      "c:\\gnupg"
-#  define GNUPG_DATADIR     "c:\\gnupg"
-#  define GNUPG_SYSCONFDIR  "c:\\gnupg"
+#  define GNUPG_BINDIR      "c:\\neopg"
+#  define GNUPG_LIBEXECDIR  "c:\\neopg"
+#  define GNUPG_LIBDIR      "c:\\neopg"
+#  define GNUPG_DATADIR     "c:\\neopg"
+#  define GNUPG_SYSCONFDIR  "c:\\neopg"
 # else
-#  define GNUPG_BINDIR      "\\gnupg"
-#  define GNUPG_LIBEXECDIR  "\\gnupg"
-#  define GNUPG_LIBDIR      "\\gnupg"
-#  define GNUPG_DATADIR     "\\gnupg"
-#  define GNUPG_SYSCONFDIR  "\\gnupg"
+#  define GNUPG_BINDIR      "\\neopg"
+#  define GNUPG_LIBEXECDIR  "\\neopg"
+#  define GNUPG_LIBDIR      "\\neopg"
+#  define GNUPG_DATADIR     "\\neopg"
+#  define GNUPG_SYSCONFDIR  "\\neopg"
 # endif
 #endif
 
