@@ -143,6 +143,47 @@ function(SETUP_TARGET_FOR_COVERAGE)
         message(FATAL_ERROR "lcov not found! Aborting...")
     endif() # NOT LCOV_PATH
 
+    # Setup target
+    add_custom_target(${Coverage_NAME}
+
+        # Cleanup lcov
+        COMMAND ${LCOV_PATH} --directory . --zerocounters
+
+        # Run tests
+        COMMAND ${Coverage_EXECUTABLE}
+
+        # Capturing lcov counters and generating report
+        COMMAND ${LCOV_PATH} --directory . --capture --output-file _${Coverage_NAME}.info
+        COMMAND ${LCOV_PATH} --remove _${Coverage_NAME}.info ${COVERAGE_EXCLUDES} --output-file ${Coverage_NAME}.info
+        COMMAND ${CMAKE_COMMAND} -E remove _${Coverage_NAME}.info
+
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        DEPENDS ${Coverage_DEPENDENCIES}
+    )
+
+endfunction() # SETUP_TARGET_FOR_COVERAGE
+
+# Defines a target for running and collection code coverage information
+# Builds dependencies, runs the given executable and outputs reports.
+# NOTE! The executable should always have a ZERO as exit code otherwise
+# the coverage generation will not complete.
+#
+# SETUP_TARGET_FOR_COVERAGE_HTML(
+#     NAME testrunner_coverage                    # New target name
+#     EXECUTABLE testrunner -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
+#     DEPENDENCIES testrunner                     # Dependencies to build first
+# )
+function(SETUP_TARGET_FOR_COVERAGE_HTML)
+
+    set(options NONE)
+    set(oneValueArgs NAME)
+    set(multiValueArgs EXECUTABLE EXECUTABLE_ARGS DEPENDENCIES)
+    cmake_parse_arguments(Coverage "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(NOT LCOV_PATH)
+        message(FATAL_ERROR "lcov not found! Aborting...")
+    endif() # NOT LCOV_PATH
+
     if(NOT GENHTML_PATH)
         message(FATAL_ERROR "genhtml not found! Aborting...")
     endif() # NOT GENHTML_PATH
@@ -157,10 +198,10 @@ function(SETUP_TARGET_FOR_COVERAGE)
         COMMAND ${Coverage_EXECUTABLE}
 
         # Capturing lcov counters and generating report
-        COMMAND ${LCOV_PATH} --directory . --capture --output-file ${Coverage_NAME}.info
-        COMMAND ${LCOV_PATH} --remove ${Coverage_NAME}.info ${COVERAGE_EXCLUDES} --output-file ${Coverage_NAME}.info.cleaned
-        COMMAND ${GENHTML_PATH} --demangle-cpp -p ${CMAKE_SOURCE_DIR} -o ${Coverage_NAME} ${Coverage_NAME}.info.cleaned
-        COMMAND ${CMAKE_COMMAND} -E remove ${Coverage_NAME}.info ${Coverage_NAME}.info.cleaned
+        COMMAND ${LCOV_PATH} --directory . --capture --output-file _${Coverage_NAME}.info
+        COMMAND ${LCOV_PATH} --remove _${Coverage_NAME}.info ${COVERAGE_EXCLUDES} --output-file ${Coverage_NAME}.info
+        COMMAND ${GENHTML_PATH} --demangle-cpp -p ${CMAKE_SOURCE_DIR} -o ${Coverage_NAME} ${Coverage_NAME}.info
+        COMMAND ${CMAKE_COMMAND} -E remove _${Coverage_NAME}.info ${Coverage_NAME}.info
 
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         DEPENDS ${Coverage_DEPENDENCIES}
@@ -173,7 +214,7 @@ function(SETUP_TARGET_FOR_COVERAGE)
         COMMENT "Open ./${Coverage_NAME}/index.html in your browser to view the coverage report."
     )
 
-endfunction() # SETUP_TARGET_FOR_COVERAGE
+endfunction() # SETUP_TARGET_FOR_COVERAGE_HTML
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.

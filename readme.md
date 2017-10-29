@@ -55,8 +55,9 @@ $ make lint
 
 ```
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make; make coverage # FIXME: Add proper dependencies to target.
-$ make; make coverage-data
+$ make; make coverage      # Just coverage.info for codecov.io
+$ make; make coverage-html # Local HTML report
+$ make; make coverage-data # Cobertura XML report
 ```
 
 ## TODO
