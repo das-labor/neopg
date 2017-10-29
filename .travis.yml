@@ -4,11 +4,13 @@ services:
   - docker
 
 install: |
-  docker build -t neopg-build-env prov
+  docker pull labor/neopg-build
 
 script: |
-  docker run \
-    --name neopg-build-env \
-    --rm neopg-build-env \
-    sh -c "git clone https://github.com/das-labor/neopg.git && cd neopg/build && git checkout $TRAVIS_COMMIT && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage && curl -s https://codecov.io/bash | bash"
-
+  - docker run \
+    --name neopg-build \
+    --rm \
+    --volume $TRAVIS_BUILD_DIR:/neopg \
+    labor/neopg-build \
+    sh -c "cd neopg/build && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"
+  - bash <(curl -s https://codecov.io/bash)
