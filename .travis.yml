@@ -6,7 +6,7 @@ services:
 install: |
   docker pull labor/neopg-build
 
-script: |
+script:
   - docker run \
     --name neopg-build \
     --rm \
