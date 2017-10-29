@@ -10,4 +10,5 @@ script: |
   docker run \
     --name neopg-build-env \
     --rm neopg-build-env \
-    sh -c "git clone https://github.com/das-labor/neopg.git && cd neopg/build && git checkout $TRAVIS_COMMIT && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"
+    sh -c "git clone https://github.com/das-labor/neopg.git && cd neopg/build && git checkout $TRAVIS_COMMIT && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage && bash <(curl -s https://codecov.io/bash)"
+
