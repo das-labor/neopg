@@ -113,4 +113,36 @@ $ cd neopg/build
 $ cmake ..
 $ make
 ```
+
+### macOS
+
+To get started on macOS, follow these steps.
+For the dependencies use a package manager like [Homebrew](https://brew.sh):
+
+```
+$ brew install botan boost cmake doxygen gettext
+```
+
+gettext from Homebrew won't be symlinked to `/usr/local` for the build process
+to pick up the headers and libraries you need to configure the following environment
+variables: `CMAKE_INCLUDE_PATH`, `CMAKE_LIBRARY_PATH` and `CPATH`.
+
+For the default macOS shell:
+
+```
+$ export CMAKE_INCLUDE_PATH=/usr/local/opt/gettext/include
+$ export CMAKE_LIBRARY_PATH=/usr/local/opt/gettext/lib
+$ export CPATH=/usr/local/opt/gettext/include
+```
+
+Build it!
+
+```
+# Clone repo and build
+$ git clone --recursive git@github.com:das-labor/neopg.git
+$ cd neopg/build
+$ cmake ..
+$ make
+```
+
 Have fun!
