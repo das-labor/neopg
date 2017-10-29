@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <memory>
+
 #include <botan/hash.h>
 
 #include "gpg.h"
