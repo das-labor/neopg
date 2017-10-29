@@ -36,4 +36,5 @@ target_include_directories(libneopg PUBLIC
    ${LIBNEOPG_INCLUDE}
    ${PEGTL_INCLUDE_DIR}
    ${GTEST_INCLUDE_DIR}
+   ${Boost_INCLUDE_DIR}
 )

@@ -215,6 +215,7 @@ target_include_directories(neopg PRIVATE
   ${BOTAN2_INCLUDE_DIRS}
   ${LIBUSB_INCLUDE_DIRS}
   ${ICONV_INCLUDE_DIRS}
+  ${GNUTLS_INCLUDE_DIRS}
   ../include
 )
 target_compile_definitions(neopg PRIVATE
@@ -231,7 +232,8 @@ ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
 ${ICONV_LDFLAGS} ${ICONV_LIBRARIES}
- -lresolv -lz -lbz2 -lgnutls
+${GNUTLS_LDFLAGS} ${GNUTLS_LIBRARIES}
+ -lresolv -lz -lbz2
  libneopg
 )
 target_compile_options(neopg PUBLIC

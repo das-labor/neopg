@@ -90,6 +90,7 @@ find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
 pkg_check_modules(BOTAN2 REQUIRED botan-2)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+pkg_check_modules(GNUTLS REQUIRED gnutls)
 
 include(CheckIncludeFiles)
 check_include_files(malloc.h HAVE_MALLOC_H)
