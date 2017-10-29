@@ -44,6 +44,11 @@ SETUP_TARGET_FOR_COVERAGE(
      EXECUTABLE test-neopg
      DEPENDENCIES neopg
 )
+SETUP_TARGET_FOR_COVERAGE_HTML(
+     NAME coverage-html
+     EXECUTABLE test-neopg
+     DEPENDENCIES neopg
+)
 SETUP_TARGET_FOR_COVERAGE_COBERTURA(
      NAME coverage-data
      EXECUTABLE test-neopg

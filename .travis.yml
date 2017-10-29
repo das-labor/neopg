@@ -7,9 +7,10 @@ install: |
   docker pull labor/neopg-build
 
 script: |
-  docker run \
+  - docker run \
     --name neopg-build \
     --rm \
     --volume $TRAVIS_BUILD_DIR:/neopg \
     labor/neopg-build \
     sh -c "cd neopg/build && git submodule update --init && cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . && make test && make coverage"
+  - bash <(curl -s https://codecov.io/bash)

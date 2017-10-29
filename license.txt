@@ -1,3 +1,30 @@
+New code contributed by the NeoPG developers is licensed under the
+terms at the bottom (BSD 2-clause "Simplified" license).  Existing
+code is licensed under various terms by their original authors, the
+most restrictive being the GPLv3.  Please see the notices at the top
+of each individual file, and the files legacy/*/COPYING* and
+legacy/*/AUTHORS for more detalis.
+
+AT THIS TIME, THE COMPLETE WORK IS NECESSARILY LICENSED UNDER THE MOST
+RESTRICTIVE LICENSE OF ANY OF ITS PARTS, THE GPLv3.
+
+NeoPG is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+NeoPG is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+---------------------------
+
+Files authored by the NeoPG developers are licensed under:
+
 Copyright (C) 2017 The NeoPG developers
 All rights reserved.
 

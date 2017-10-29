@@ -1,20 +1,22 @@
-[![Build Status](https://travis-ci.org/lambdafu/neopg.svg?branch=master)](https://travis-ci.org/lambdafu/neopg)
-[![Coverage Status](https://coveralls.io/repos/github/lambdafu/neopg/badge.svg?branch=master)](https://coveralls.io/github/lambdafu/neopg?branch=master)
-[![Coverity Scan](https://scan.coverity.com/projects/14168/badge.svg)](https://scan.coverity.com/projects/lambdafu-neopg)
+[![Build Status](https://travis-ci.org/das-labor/neopg.svg?branch=master)](https://travis-ci.org/das-labor/neopg)
 
 # NeoPG implements the OpenPGP standard.
 
-NeoPG is written in C++11 and released under the permissive
-`Simplified BSD` license (the same license as Botan, the cryptography
-library).
+NeoPG is written in C++11.  It starts out as an opinionated fork of
+the GnuPG code base, and hopefully will evolve to something entirely
+different.
 
-Some (many) parts of NeoPG are currently under a more restrictive
-license, because they are derived from other projects (in particular
-GnuPG).  Please refer to the copyright notice at the top of every
-file.
+For now, many parts of NeoPG are licensed by the upstream authors
+under various licenses, including GPL and LGPL variants.  Please refer
+to the copyright notice at the top of every file.
+
+New source code contributed by the NeoPG authors is licensed under the
+permissive `Simplified BSD` license (the same license as Botan, the
+cryptography library we want to use).
 
 The dependencies are also released under their respective various
 licenses.
+
 
 ## Dependencies
 
@@ -57,8 +59,9 @@ $ make lint
 
 ```
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make; make coverage # FIXME: Add proper dependencies to target.
-$ make; make coverage-data
+$ make; make coverage      # Just coverage.info for codecov.io
+$ make; make coverage-html # Local HTML report
+$ make; make coverage-data # Cobertura XML report
 ```
 
 ## TODO
