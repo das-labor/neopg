@@ -108,7 +108,7 @@ $ sudo dnf install -y \
     sqlite-devel \
 
 # Clone repo and build
-$ git clone --recursive git@github.com:zaolin/neopg.git
+$ git clone --recursive git@github.com:das-labor/neopg.git
 $ cd neopg/build
 $ cmake ..
 $ make
