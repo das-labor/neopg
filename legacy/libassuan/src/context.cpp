@@ -77,10 +77,6 @@ assuan_set_flag (assuan_context_t ctx, assuan_flag_t flag, int value)
       ctx->flags.confidential = value;
       break;
 
-    case ASSUAN_NO_FIXSIGNALS:
-      ctx->flags.no_fixsignals = value;
-      break;
-
     case ASSUAN_CONVEY_COMMENTS:
       ctx->flags.convey_comments = value;
       break;
@@ -115,10 +111,6 @@ assuan_get_flag (assuan_context_t ctx, assuan_flag_t flag)
 
     case ASSUAN_CONFIDENTIAL:
       res = ctx->flags.confidential;
-      break;
-
-    case ASSUAN_NO_FIXSIGNALS:
-      res = ctx->flags.no_fixsignals;
       break;
 
     case ASSUAN_CONVEY_COMMENTS:

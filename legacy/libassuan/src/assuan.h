@@ -232,8 +232,6 @@ typedef unsigned int assuan_flag_t;
 /* This flag indicates whether Assuan logging is in confidential mode.
    You can use assuan_{begin,end}_condidential to change the mode.  */
 #define ASSUAN_CONFIDENTIAL 2
-/* This flag suppresses fix up of signal handlers for pipes.  */
-#define ASSUAN_NO_FIXSIGNALS 3
 /* This flag changes assuan_transact to return comment lines via the
    status callback.  The default is to skip comment lines.  */
 #define ASSUAN_CONVEY_COMMENTS 4

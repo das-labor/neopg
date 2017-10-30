@@ -84,7 +84,6 @@ struct assuan_context_s
   {
     unsigned int no_waitpid : 1;
     unsigned int confidential : 1;
-    unsigned int no_fixsignals : 1;
     unsigned int convey_comments : 1;
     unsigned int no_logging : 1;
     unsigned int force_close : 1;

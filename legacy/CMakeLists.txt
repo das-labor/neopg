@@ -89,12 +89,10 @@ add_library(assuan
   libassuan/src/assuan.h
   libassuan/src/client.cpp
   libassuan/src/context.cpp
-  libassuan/src/conversion.cpp
   libassuan/src/debug.cpp
   libassuan/src/debug.h
   libassuan/src/server.cpp
   libassuan/src/system.cpp
-  libassuan/src/sysutils.cpp
 )
 
 if(WIN32)

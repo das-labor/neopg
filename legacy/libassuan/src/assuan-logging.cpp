@@ -67,8 +67,6 @@ _assuan_init_log_envvars (void)
     log_cats = atoi (flagstr);
   else /* Default to log the control channel.  */
     log_cats = (1 << (ASSUAN_LOG_CONTROL - 1));
-
-  _assuan_sysutils_blurb (); /* Make sure this code gets linked in.  */
 }
 
 
