@@ -2593,6 +2593,7 @@ cookie_read (void *cookie, void *buffer, size_t size)
             }
           if (nread == GNUTLS_E_REHANDSHAKE)
             goto again; /* A client is allowed to just ignore this request. */
+#ifdef GNUTLS_E_PREMATURE_TERMINATION
           if (nread == GNUTLS_E_PREMATURE_TERMINATION)
             {
               /* The server terminated the connection.  Close the TLS
@@ -2600,6 +2601,7 @@ cookie_read (void *cookie, void *buffer, size_t size)
               close_tls_session (c->session);
               return 0;
             }
+#endif
           log_info ("TLS network read failed: %s\n", gnutls_strerror (nread));
           gpg_err_set_errno (EIO);
           return -1;
