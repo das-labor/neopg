@@ -1,6 +1,6 @@
 language: cpp
 
-sudo: false
+sudo: true
 dist: trusty
 
 os:
@@ -11,11 +11,38 @@ compiler:
   - clang
   - gcc
 
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:samuel-bachmann/boost'
+    packages: &base_packages
+      - libsqlite3-dev
+      - libbotan1.10-dev
+      - libz-dev
+      - bzip2
+      - gcovr
+      - cppcheck
+      - doxygen
+      - lcov
+      - libboost-date-time1.60-dev
+      - pkg-config
+      - libusb-1.0-0-dev
+      - libbz2-dev
+      - libgnutls-dev
+
 install:
   - |
     if [ $TRAVIS_OS_NAME = osx ]; then
-      brew upgrade
-      brew install cmake
+      brew update
+      brew install botan doxygen gettext lcov gcovr libusb gnutls
+      brew link --force gettext
+      # Already installed: cmake boost
+    else
+        git clone https://github.com/randombit/botan.git
+        (cd botan;
+        git checkout 2.3.0;
+        ./configure.py;
+        sudo make install)
     fi;
 
 matrix:
@@ -25,8 +52,10 @@ matrix:
       addons:
         apt:
           sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
             - ubuntu-toolchain-r-test
           packages:
+            - *base_packages
             - g++-4.9
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
@@ -36,8 +65,10 @@ matrix:
       addons:
         apt:
           sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
             - ubuntu-toolchain-r-test
           packages:
+            - *base_packages
             - g++-5
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
@@ -47,8 +78,10 @@ matrix:
       addons:
         apt:
           sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
             - ubuntu-toolchain-r-test
           packages:
+            - *base_packages
             - g++-6
       env:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
@@ -58,8 +91,10 @@ matrix:
       addons:
         apt:
           sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
             - ubuntu-toolchain-r-test
           packages:
+            - *base_packages
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
