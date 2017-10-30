@@ -163,8 +163,7 @@ pipe_connect (assuan_context_t ctx,
   if (!ctx || !name || !argv || !argv[0])
     return GPG_ERR_ASS_INV_VALUE;
 
-  if (! ctx->flags.no_fixsignals)
-    fix_signals ();
+  fix_signals ();
 
   if (_assuan_pipe (ctx, rp, 1) < 0)
     return gpg_error_from_syserror ();
@@ -291,8 +290,7 @@ socketpair_connect (assuan_context_t ctx,
       || (!name && !argv))
     return GPG_ERR_ASS_INV_VALUE;
 
-  if (! ctx->flags.no_fixsignals)
-    fix_signals ();
+  fix_signals ();
 
   sprintf (mypidstr, "%lu", (unsigned long)getpid ());
 
