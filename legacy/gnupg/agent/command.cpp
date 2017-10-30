@@ -2182,7 +2182,7 @@ register_commands (assuan_context_t ctx)
     { "DELETE_KEY",     cmd_delete_key, hlp_delete_key },
     { "GETINFO",        cmd_getinfo,   hlp_getinfo },
     { "KEYTOCARD",      cmd_keytocard, hlp_keytocard },
-    { NULL }
+    { NULL, NULL, NULL }
   };
   int i, rc;
 
