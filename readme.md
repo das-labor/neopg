@@ -1,3 +1,4 @@
+[![Gitter](https://badges.gitter.im/das-labor/neopg.svg)](https://gitter.im/das-labor/neopg)
 [![Build Status](https://travis-ci.org/das-labor/neopg.svg?branch=master)](https://travis-ci.org/das-labor/neopg)
 [![Code Coverage](https://codecov.io/gh/das-labor/neopg/branch/master/graph/badge.svg)](https://codecov.io/gh/das-labor/neopg)
 
