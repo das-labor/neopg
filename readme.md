@@ -28,7 +28,6 @@ Aside from a working C++ toolchain you'll need the following libraries.
 1. Botan >= 2.0
 1. CMake >= 3.2
 1. Boost >= 1.64.0
-1. openldap
 1. zlib
 1. bzip2
 1. gcovr (debug builds only)
