@@ -2346,7 +2346,8 @@ class CommandGroup
                const std::string &help_, Options options_ = Options::None,
                const T &defaultValue_ = T())
       : MapPositional<std::string, T, ValueReader<std::string>>(
-            group_, name_, help_, {}, options_, defaultValue_) {}
+            group_, name_, help_, std::unordered_map<std::string, T>(),
+            options_, defaultValue_) {}
 
   virtual ~CommandGroup() {}
 
