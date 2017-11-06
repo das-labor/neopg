@@ -6,4 +6,4 @@
 	url = https://github.com/taocpp/PEGTL.git
 [submodule "3rdparty/rang"]
 	path = 3rdparty/rang
-	url = https://github.com/agauniyal/rang
+	url = https://github.com/agauniyal/rang.git
