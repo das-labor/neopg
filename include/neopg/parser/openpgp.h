@@ -126,7 +126,7 @@ struct old_packet_header
           old_packet_header_with_tag<8>, old_packet_header_with_tag<9>,
           old_packet_header_with_tag<10>, old_packet_header_with_tag<11>,
           old_packet_header_with_tag<12>,
-          // old_packet_header_with_tag<13>,
+          // uid_packet: old_packet_header_with_tag<13>,
           old_packet_header_with_tag<14>, old_packet_header_with_tag<15> > {};
 
 // New packet length.
