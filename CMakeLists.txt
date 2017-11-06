@@ -24,7 +24,13 @@ set(PEGTL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/pegtl)
 set(PEGTL_INCLUDE_DIR ${PEGTL_ROOT}/include)
 set(PEGTL_BUILD_TESTS OFF CACHE BOOL "")
 add_subdirectory(${PEGTL_ROOT} EXCLUDE_FROM_ALL)
-# taocpp:pegtl
+
+
+# Rang
+set(RANG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rang)
+set(RANG_INCLUDE_DIR ${RANG_ROOT}/include)
+add_subdirectory(${RANG_ROOT} EXCLUDE_FROM_ALL)
+
 
 # CodeCoverage
 

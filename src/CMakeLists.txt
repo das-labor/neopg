@@ -217,6 +217,7 @@ target_include_directories(neopg PRIVATE
   ${LIBUSB_INCLUDE_DIRS}
   ${ICONV_INCLUDE_DIRS}
   ${GNUTLS_INCLUDE_DIRS}
+  ${RANG_INCLUDE_DIR}
   ../include
 )
 target_compile_definitions(neopg PRIVATE
