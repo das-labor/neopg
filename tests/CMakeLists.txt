@@ -11,7 +11,7 @@ add_executable(test-neopg
 
 target_compile_options(test-neopg
   PRIVATE
-  -std=c++14
+  -std=c++11
   -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 )
 
