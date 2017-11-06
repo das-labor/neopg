@@ -201,6 +201,7 @@ add_executable(neopg
   ../legacy/gnupg/scd/command.cpp
   ../legacy/gnupg/scd/iso7816.cpp
 
+  args.h
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE
@@ -239,6 +240,6 @@ ${GNUTLS_LDFLAGS} ${GNUTLS_LIBRARIES}
 target_compile_options(neopg PUBLIC
  -fpermissive
   -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
--std=c++14
+-std=c++11
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER})

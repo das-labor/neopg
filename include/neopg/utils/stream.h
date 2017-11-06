@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <gtest/gtest_prod.h>
 #include <neopg/common.h>
 #include <iostream>
 #include <streambuf>
-#include <gtest/gtest_prod.h>
 
 namespace NeoPG {
 
