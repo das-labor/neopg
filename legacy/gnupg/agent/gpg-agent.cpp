@@ -52,7 +52,6 @@
 
 #include "../common/i18n.h"
 #include "../common/sysutils.h"
-#include "../common/gc-opt-flags.h"
 #include "../common/exechelp.h"
 #include "../common/asshelp.h"
 #include "../common/init.h"
@@ -65,8 +64,6 @@ enum cmd_and_opt_values
   oVerbose	  = 'v',
 
   oNoVerbose = 500,
-  aGPGConfList,
-  aGPGConfTest,
   oOptions,
   oDebug,
   oDebugAll,
@@ -101,9 +98,6 @@ enum cmd_and_opt_values
 
 
 static ARGPARSE_OPTS opts[] = {
-
-  ARGPARSE_c (aGPGConfList, "gpgconf-list", "@"),
-  ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@"),
 
   ARGPARSE_group (301, N_("@Options:\n ")),
 
@@ -507,7 +501,6 @@ agent_main (int argc, char **argv )
   int csh_style = 0;
   char *logfile = NULL;
   int debug_wait = 0;
-  int gpgconf_list = 0;
   gpg_error_t err;
   struct assuan_malloc_hooks malloc_hooks;
 
@@ -630,8 +623,6 @@ agent_main (int argc, char **argv )
         continue; /* Already handled */
       switch (pargs.r_opt)
         {
-        case aGPGConfList: gpgconf_list = 1; break;
-        case aGPGConfTest: gpgconf_list = 2; break;
         case oBatch: opt.batch=1; break;
 
         case oOptions:
@@ -712,7 +703,7 @@ agent_main (int argc, char **argv )
     bind_textdomain_codeset (PACKAGE_GT, "UTF-8");
 #endif
 
-  if (!pipe_server && !is_daemon && !gpgconf_list && !is_supervised)
+  if (!pipe_server && !is_daemon && !is_supervised)
     {
      /* We have been called without any command and thus we merely
         check whether an agent is already running.  We do this right
@@ -743,74 +734,6 @@ agent_main (int argc, char **argv )
                  (unsigned int)getpid());
       gnupg_sleep (debug_wait);
       log_debug ("... okay\n");
-    }
-
-  if (gpgconf_list == 3)
-    {
-      /* We now use the standard socket always - return true for
-         backward compatibility.  */
-      agent_exit (0);
-    }
-  else if (gpgconf_list == 2)
-    agent_exit (0);
-  else if (gpgconf_list)
-    {
-      char *filename;
-      char *filename_esc;
-
-      /* List options and default values in the GPG Conf format.  */
-      filename = make_filename (gnupg_homedir (),
-                                GPG_AGENT_NAME EXTSEP_S "conf", NULL);
-      filename_esc = percent_escape (filename, NULL);
-
-      es_printf ("%s-%s.conf:%lu:\"%s\n",
-                 GPGCONF_NAME, GPG_AGENT_NAME,
-                 GC_OPT_FLAG_DEFAULT, filename_esc);
-      xfree (filename);
-      xfree (filename_esc);
-
-      es_printf ("verbose:%lu:\n"
-              "quiet:%lu:\n"
-              "debug-level:%lu:\"none:\n"
-              "log-file:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME,
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME,
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME,
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME );
-      es_printf ("default-cache-ttl:%lu:%d:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME, DEFAULT_CACHE_TTL );
-      es_printf ("max-cache-ttl:%lu:%d:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME, MAX_CACHE_TTL );
-      es_printf ("enforce-passphrase-constraints:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("min-passphrase-len:%lu:%d:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME, MIN_PASSPHRASE_LEN );
-      es_printf ("min-passphrase-nonalpha:%lu:%d:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME,
-              MIN_PASSPHRASE_NONALPHA);
-      es_printf ("check-passphrase-pattern:%lu:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME);
-      es_printf ("max-passphrase-days:%lu:%d:\n",
-              GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME,
-              MAX_PASSPHRASE_DAYS);
-      es_printf ("enable-passphrase-history:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("no-grab:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("ignore-cache-for-signing:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("no-allow-external-cache:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("no-allow-mark-trusted:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("disable-scdaemon:%lu:\n",
-              GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-      es_printf ("pinentry-timeout:%lu:0:\n",
-                 GC_OPT_FLAG_DEFAULT|GC_OPT_FLAG_RUNTIME);
-      es_printf ("enable-extended-key-format:%lu:\n",
-                 GC_OPT_FLAG_NONE|GC_OPT_FLAG_RUNTIME);
-
-      agent_exit (0);
     }
 
   /* Now start with logging to a file if this is desired. */

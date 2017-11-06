@@ -37,7 +37,6 @@
 #include "../common/i18n.h"
 #include "keydb.h"
 #include "../common/sysutils.h"
-#include "../common/gc-opt-flags.h"
 #include "../common/asshelp.h"
 #include "../common/init.h"
 #include "../common/compliance.h"
@@ -83,8 +82,6 @@ enum cmd_and_opt_values {
   aCallDirmngr,
   aCallProtectTool,
   aPasswd,
-  aGPGConfList,
-  aGPGConfTest,
   aDumpKeys,
   aDumpChain,
   aDumpSecretKeys,
@@ -223,8 +220,6 @@ static ARGPARSE_OPTS opts[] = {
               N_("invoke gpg-protect-tool")),
   ARGPARSE_c (aPasswd, "change-passphrase", N_("change a passphrase")),
   ARGPARSE_c (aPasswd, "passwd", "@"),
-  ARGPARSE_c (aGPGConfList, "gpgconf-list", "@"),
-  ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@"),
 
   ARGPARSE_c (aDumpKeys, "dump-cert", "@"),
   ARGPARSE_c (aDumpKeys, "dump-keys", "@"),
@@ -414,9 +409,7 @@ static int maybe_setuid = 1;
 static const char *debug_level;
 static unsigned int debug_value;
 
-/* Default value for include-certs.  We need an extra macro for
-   gpgconf-list because the variable will be changed by the command
-   line option.
+/* Default value for include-certs.
 
    It is often cumbersome to locate intermediate certificates, thus by
    default we include all certificates in the chain.  However we leave
@@ -799,8 +792,6 @@ gpgsm_main ( int argc, char **argv)
 
   opt.autostart = 1;
 
-  /* Note: If you change this default cipher algorithm , please
-     remember to update the Gpgconflist entry as well.  */
   opt.def_cipher_algoid = DEFAULT_CIPHER_ALGO;
 
 
@@ -900,13 +891,6 @@ gpgsm_main ( int argc, char **argv)
     {
       switch (pargs.r_opt)
         {
-	case aGPGConfList:
-	case aGPGConfTest:
-          set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-          do_not_setup_keys = 1;
-          nogreeting = 1;
-          break;
-
         case aServer:
           opt.batch = 1;
           set_cmd (&cmd, aServer);
@@ -1379,24 +1363,21 @@ gpgsm_main ( int argc, char **argv)
   else if (!strcmp (opt.def_cipher_algoid, "CAMELLIA256") )
     opt.def_cipher_algoid = "1.2.392.200011.61.1.1.1.4";
 
-  if (cmd != aGPGConfList)
+  if ( !gcry_cipher_map_name (opt.def_cipher_algoid)
+       || !gcry_cipher_mode_from_oid (opt.def_cipher_algoid))
+    log_error (_("selected cipher algorithm is invalid\n"));
+  
+  if (forced_digest_algo)
     {
-      if ( !gcry_cipher_map_name (opt.def_cipher_algoid)
-           || !gcry_cipher_mode_from_oid (opt.def_cipher_algoid))
-        log_error (_("selected cipher algorithm is invalid\n"));
-
-      if (forced_digest_algo)
-        {
-          opt.forced_digest_algo = gcry_md_map_name (forced_digest_algo);
-          if (our_md_test_algo(opt.forced_digest_algo) )
-            log_error (_("selected digest algorithm is invalid\n"));
-        }
-      if (extra_digest_algo)
-        {
-          opt.extra_digest_algo = gcry_md_map_name (extra_digest_algo);
-          if (our_md_test_algo (opt.extra_digest_algo) )
-            log_error (_("selected digest algorithm is invalid\n"));
-        }
+      opt.forced_digest_algo = gcry_md_map_name (forced_digest_algo);
+      if (our_md_test_algo(opt.forced_digest_algo) )
+	log_error (_("selected digest algorithm is invalid\n"));
+    }
+  if (extra_digest_algo)
+    {
+      opt.extra_digest_algo = gcry_md_map_name (extra_digest_algo);
+      if (our_md_test_algo (opt.extra_digest_algo) )
+	log_error (_("selected digest algorithm is invalid\n"));
     }
 
   /* Check our chosen algorithms against the list of allowed
@@ -1518,46 +1499,6 @@ gpgsm_main ( int argc, char **argv)
   /* Dispatch command.  */
   switch (cmd)
     {
-    case aGPGConfList:
-      { /* List options and default values in the GPG Conf format.  */
-	char *config_filename_esc = percent_escape (opt.config_filename, NULL);
-
-        es_printf ("%s-%s.conf:%lu:\"%s\n",
-                   GPGCONF_NAME, GPGSM_NAME,
-                   GC_OPT_FLAG_DEFAULT, config_filename_esc);
-        xfree (config_filename_esc);
-
-        es_printf ("verbose:%lu:\n", GC_OPT_FLAG_NONE);
-	es_printf ("quiet:%lu:\n", GC_OPT_FLAG_NONE);
-	es_printf ("debug-level:%lu:\"none:\n", GC_OPT_FLAG_DEFAULT);
-	es_printf ("log-file:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("disable-crl-checks:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("enable-crl-checks:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("disable-trusted-cert-crl-check:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("enable-ocsp:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("include-certs:%lu:%d:\n", GC_OPT_FLAG_DEFAULT,
-                   DEFAULT_INCLUDE_CERTS);
-        es_printf ("disable-policy-checks:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("auto-issuer-key-retrieve:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("disable-dirmngr:%lu:\n", GC_OPT_FLAG_NONE);
-        es_printf ("cipher-algo:%lu:\"%s:\n", GC_OPT_FLAG_DEFAULT,
-                   DEFAULT_CIPHER_ALGO);
-        es_printf ("p12-charset:%lu:\n", GC_OPT_FLAG_DEFAULT);
-        es_printf ("default-key:%lu:\n", GC_OPT_FLAG_DEFAULT);
-        es_printf ("encrypt-to:%lu:\n", GC_OPT_FLAG_DEFAULT);
-
-        /* The next one is an info only item and should match what
-           proc_parameters actually implements.  */
-        es_printf ("default_pubkey_algo:%lu:\"%s:\n", GC_OPT_FLAG_DEFAULT,
-                   "RSA-2048");
-
-      }
-      break;
-    case aGPGConfTest:
-      /* This is merely a dummy command to test whether the
-         configuration file is valid.  */
-      break;
-
     case aServer:
       if (debug_wait)
         {

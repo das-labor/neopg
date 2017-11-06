@@ -46,9 +46,8 @@
 #include "../common/mbox-util.h"
 
 
-/* The default algorithms.  If you change them remember to change them
-   also in gpg.c:gpgconf_list.  You should also check that the value
-   is inside the bounds enforced by ask_keysize and gen_xxx.  See also
+/* The default algorithms.  You should also check that the value is
+   inside the bounds enforced by ask_keysize and gen_xxx.  See also
    get_keysize_range which encodes the allowed ranges.  */
 #define DEFAULT_STD_KEY_PARAM  "rsa2048/cert,sign+rsa2048/encr"
 #define FUTURE_STD_KEY_PARAM   "ed25519/cert,sign+cv25519/encr"
@@ -162,9 +161,7 @@ get_default_pubkey_algo (void)
       if (*opt.def_new_key_algo && !strchr (opt.def_new_key_algo, ':'))
         return opt.def_new_key_algo;
       /* To avoid checking that option every time we delay that until
-       * here.  The only thing we really need to make sure is that
-       * there is no colon in the string so that the --gpgconf-list
-       * command won't mess up its output.  */
+       * here.  */
       log_info (_("invalid value for option '%s'\n"), "--default-new-key-algo");
     }
   return DEFAULT_STD_KEY_PARAM;
@@ -3231,8 +3228,6 @@ get_parameter_algo( struct para_data_s *para, enum para_name key,
      strings directly because Libgcrypt folds them all to ECC.  */
   if (!ascii_strcasecmp (r->u.value, "default"))
     {
-      /* Note: If you change this default algo, remember to change it
-       * also in gpg.c:gpgconf_list.  */
       /* FIXME: We only allow the algo here and have a separate thing
        * for the curve etc.  That is a ugly but demanded for backward
        * compatibility with the batch key generation.  It would be

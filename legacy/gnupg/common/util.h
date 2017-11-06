@@ -229,8 +229,7 @@ const char *gnupg_cachedir (void);
 
 char *_gnupg_socketdir_internal (int skip_checks, unsigned *r_info);
 
-/* All module names.  We also include gpg and gpgsm for the sake for
-   gpgconf. */
+/* All module names.  */
 #define GNUPG_MODULE_NAME_AGENT        1
 #define GNUPG_MODULE_NAME_SCDAEMON     3
 #define GNUPG_MODULE_NAME_DIRMNGR      4

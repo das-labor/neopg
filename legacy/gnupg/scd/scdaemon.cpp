@@ -50,7 +50,6 @@
 #include "iso7816.h"
 #include "apdu.h"
 #include "ccid-driver.h"
-#include "../common/gc-opt-flags.h"
 #include "../common/asshelp.h"
 #include "../common/exechelp.h"
 #include "../common/init.h"
@@ -67,8 +66,6 @@ enum cmd_and_opt_values
   oVerbose        = 'v',
 
   oNoVerbose = 500,
-  aGPGConfList,
-  aGPGConfTest,
   oOptions,
   oDebug,
   oDebugAll,
@@ -97,9 +94,6 @@ enum cmd_and_opt_values
 
 
 static ARGPARSE_OPTS opts[] = {
-  ARGPARSE_c (aGPGConfList, "gpgconf-list", "@"),
-  ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@"),
-
   ARGPARSE_group (301, N_("@Options:\n ")),
 
   ARGPARSE_s_n (oServer,"server", N_("run in server mode (foreground)")),
@@ -338,8 +332,6 @@ scd_main (int argc, char **argv )
   int nodetach = 0;
   char *logfile = NULL;
   int debug_wait = 0;
-  int gpgconf_list = 0;
-  const char *config_filename = NULL;
   int allow_coredump = 0;
   struct assuan_malloc_hooks malloc_hooks;
   int res;
@@ -444,8 +436,6 @@ scd_main (int argc, char **argv )
     {
       switch (pargs.r_opt)
         {
-        case aGPGConfList: gpgconf_list = 1; break;
-        case aGPGConfTest: gpgconf_list = 2; break;
         case oQuiet: opt.quiet = 1; break;
         case oVerbose: opt.verbose++; break;
         case oBatch: opt.batch=1; break;
@@ -512,8 +502,6 @@ scd_main (int argc, char **argv )
     {
       fclose( configfp );
       configfp = NULL;
-      /* Keep a copy of the config name for use by --gpgconf-list. */
-      config_filename = configname;
       configname = NULL;
       goto next_pass;
     }
@@ -547,48 +535,6 @@ scd_main (int argc, char **argv )
     {
       log_error ("initialization failed\n");
       exit (1);
-    }
-
-  if (gpgconf_list == 2)
-    scd_exit (0);
-  if (gpgconf_list)
-    {
-      /* List options and default values in the GPG Conf format.  */
-      char *filename = NULL;
-      char *filename_esc;
-
-      if (config_filename)
-        filename = xstrdup (config_filename);
-      else
-        filename = make_filename (gnupg_homedir (),
-                                  SCDAEMON_NAME EXTSEP_S "conf", NULL);
-      filename_esc = percent_escape (filename, NULL);
-
-      es_printf ("%s-%s.conf:%lu:\"%s\n",
-                 GPGCONF_NAME, SCDAEMON_NAME,
-                 GC_OPT_FLAG_DEFAULT, filename_esc);
-      xfree (filename_esc);
-      xfree (filename);
-
-      es_printf ("verbose:%lu:\n"
-                 "quiet:%lu:\n"
-                 "debug-level:%lu:\"none:\n"
-                 "log-file:%lu:\n",
-                 GC_OPT_FLAG_NONE,
-                 GC_OPT_FLAG_NONE,
-                 GC_OPT_FLAG_DEFAULT,
-                 GC_OPT_FLAG_NONE );
-
-      es_printf ("reader-port:%lu:\n", GC_OPT_FLAG_NONE );
-#ifdef HAVE_LIBUSB
-      es_printf ("disable-ccid:%lu:\n", GC_OPT_FLAG_NONE );
-#endif
-      es_printf ("deny-admin:%lu:\n", GC_OPT_FLAG_NONE );
-      es_printf ("disable-pinpad:%lu:\n", GC_OPT_FLAG_NONE );
-      es_printf ("card-timeout:%lu:%d:\n", GC_OPT_FLAG_DEFAULT, 0);
-      es_printf ("enable-pinpad-varlen:%lu:\n", GC_OPT_FLAG_NONE );
-
-      scd_exit (0);
     }
 
   /* Now start with logging to a file if this is desired.  */

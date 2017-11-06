@@ -55,7 +55,6 @@
 #include "../common/status.h"
 #include "keyserver-internal.h"
 #include "exec.h"
-#include "../common/gc-opt-flags.h"
 #include "../common/asshelp.h"
 #include "call-dirmngr.h"
 #include "tofu.h"
@@ -132,8 +131,6 @@ enum cmd_and_opt_values
     aQuickRevUid,
     aQuickSetExpire,
     aQuickSetPrimaryUid,
-    aGPGConfList,
-    aGPGConfTest,
     aListPackets,
     aEditKey,
     aDeleteKeys,
@@ -452,8 +449,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aCardEdit,   "card-edit", "@"),
   ARGPARSE_c (aChangePIN,  "change-pin", N_("change a card's PIN")),
 #endif
-  ARGPARSE_c (aGPGConfList, "gpgconf-list", "@" ),
-  ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@" ),
   ARGPARSE_c (aListPackets, "list-packets","@"),
 
 #ifndef NO_TRUST_MODELS
@@ -1466,45 +1461,6 @@ print_algo_names(int (*checker)(int),const char *(*mapper)(int))
     }
 }
 
-/* List options and default values in the GPG Conf format.  This is a
-   new tool distributed with gnupg 1.9.x but we also want some limited
-   support in older gpg versions.  The output is the name of the
-   configuration file and a list of options available for editing by
-   gpgconf.  */
-static void
-gpgconf_list (const char *configfile)
-{
-  char *configfile_esc = percent_escape (configfile, NULL);
-
-  es_printf ("%s-%s.conf:%lu:\"%s\n",
-             GPGCONF_NAME, GPG_NAME,
-             GC_OPT_FLAG_DEFAULT,
-             configfile_esc ? configfile_esc : "/dev/null");
-  es_printf ("verbose:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("quiet:%lu:\n",   GC_OPT_FLAG_NONE);
-  es_printf ("keyserver:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("reader-port:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("default-key:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("encrypt-to:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("try-secret-key:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("auto-key-locate:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("auto-key-retrieve:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("log-file:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("debug-level:%lu:\"none:\n", GC_OPT_FLAG_DEFAULT);
-  es_printf ("group:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("compliance:%lu:\"%s:\n", GC_OPT_FLAG_DEFAULT, "gnupg");
-  es_printf ("default-new-key-algo:%lu:\n", GC_OPT_FLAG_NONE);
-  es_printf ("trust-model:%lu:\n", GC_OPT_FLAG_NONE);
-
-  /* The next one is an info only item and should match the macros at
-     the top of keygen.c  */
-  es_printf ("default_pubkey_algo:%lu:\"%s:\n", GC_OPT_FLAG_DEFAULT,
-             get_default_pubkey_algo ());
-
-  xfree (configfile_esc);
-}
-
-
 static int
 parse_subpacket_list(char *list)
 {
@@ -2124,13 +2080,6 @@ gpg_main (int argc, char **argv)
       {
 	switch( pargs.r_opt )
 	  {
-          case aGPGConfList:
-          case aGPGConfTest:
-            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-            /* Do not register a keyring for these commands.  */
-            default_keyring = -1;
-            break;
-
 	  case aCheckKeys:
 	  case aListPackets:
 	  case aImport:
@@ -2943,13 +2892,6 @@ gpg_main (int argc, char **argv)
     if (log_get_errorcount (0))
       g10_exit(2);
 
-    /* The command --gpgconf-list is pretty simple and may be called
-       directly after the option parsing. */
-    if (cmd == aGPGConfList)
-      {
-        gpgconf_list (save_configname ? save_configname : default_configname);
-        g10_exit (0);
-      }
     xfree (save_configname);
     xfree (default_configname);
 
@@ -3285,7 +3227,7 @@ gpg_main (int argc, char **argv)
      * We do not add any keyring if --no-keyring has been used.  */
     if (default_keyring >= 0
         && (ALWAYS_ADD_KEYRINGS
-            || (cmd != aDeArmor && cmd != aEnArmor && cmd != aGPGConfTest)))
+            || (cmd != aDeArmor && cmd != aEnArmor)))
       {
 	if (!nrings || default_keyring > 0)  /* Add default ring. */
 	    keydb_add_resource ("pubring" EXTSEP_S "kbx",
@@ -3294,10 +3236,6 @@ gpg_main (int argc, char **argv)
           keydb_add_resource (sl->d, sl->flags);
       }
     FREE_STRLIST(nrings);
-
-    if (cmd == aGPGConfTest)
-      g10_exit(0);
-
 
     if (pwfd != -1)  /* Read the passphrase now. */
       read_passphrase_from_fd (pwfd);

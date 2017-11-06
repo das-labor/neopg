@@ -60,7 +60,6 @@
 #include "misc.h"
 #include "../common/asshelp.h"
 #include "../common/init.h"
-#include "../common/gc-opt-flags.h"
 #include "dns-stuff.h"
 #include "http-common.h"
 
@@ -84,8 +83,6 @@ enum cmd_and_opt_values {
   aFetchCRL,
   aShutdown,
   aFlush,
-  aGPGConfList,
-  aGPGConfTest,
 
   oOptions,
   oDebug,
@@ -142,8 +139,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aFetchCRL, "fetch-crl", N_("|URL|fetch a CRL from URL")),
   ARGPARSE_c (aShutdown, "shutdown",  N_("shutdown the dirmngr")),
   ARGPARSE_c (aFlush,    "flush",     N_("flush the cache")),
-  ARGPARSE_c (aGPGConfList, "gpgconf-list", "@"),
-  ARGPARSE_c (aGPGConfTest, "gpgconf-test", "@"),
 
   ARGPARSE_group (301, N_("@\nOptions:\n ")),
 
@@ -741,8 +736,6 @@ dirmngr_main (int argc, char **argv)
 	case aListCRLs:
 	case aLoadCRL:
         case aFetchCRL:
-	case aGPGConfList:
-	case aGPGConfTest:
           cmd = (cmd_and_opt_values) pargs.r_opt;
           break;
 
@@ -935,66 +928,6 @@ dirmngr_main (int argc, char **argv)
       if (argc)
         wrong_args ("--flush");
       rc = crl_cache_flush();
-    }
-  else if (cmd == aGPGConfTest)
-    dirmngr_exit (0);
-  else if (cmd == aGPGConfList)
-    {
-      unsigned long flags = 0;
-      char *filename;
-      char *filename_esc;
-
-      /* First the configuration file.  This is not an option, but it
-	 is vital information for GPG Conf.  */
-      if (!opt.config_filename)
-        opt.config_filename = make_filename (gnupg_homedir (),
-                                             "dirmngr.conf", NULL );
-
-      filename = percent_escape (opt.config_filename, NULL);
-      es_printf ("gpgconf-dirmngr.conf:%lu:\"%s\n",
-              GC_OPT_FLAG_DEFAULT, filename);
-      xfree (filename);
-
-      es_printf ("verbose:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("quiet:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("debug-level:%lu:\"none\n", flags | GC_OPT_FLAG_DEFAULT);
-      es_printf ("log-file:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("force:%lu:\n", flags | GC_OPT_FLAG_NONE);
-
-      /* --csh and --sh are mutually exclusive, something we can not
-         express in GPG Conf.  --options is only usable from the
-         command line, really.  --debug-all interacts with --debug,
-         and having both of them is thus problematic.  --no-detach is
-         also only usable on the command line.  --batch is unused.  */
-
-      es_printf ("max-replies:%lu:%u\n",
-              flags | GC_OPT_FLAG_DEFAULT, DEFAULT_MAX_REPLIES);
-      es_printf ("allow-ocsp:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("allow-version-check:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ocsp-responder:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ocsp-signer:%lu:\n", flags | GC_OPT_FLAG_NONE);
-
-      es_printf ("faked-system-time:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("no-greeting:%lu:\n", flags | GC_OPT_FLAG_NONE);
-
-      es_printf ("disable-http:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("honor-http-proxy:%lu\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("http-proxy:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ignore-http-dp:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("ignore-ocsp-service-url:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      /* Note: The next one is to fix a typo in gpgconf - should be
-         removed eventually. */
-      es_printf ("ignore-ocsp-servic-url:%lu:\n", flags | GC_OPT_FLAG_NONE);
-
-      filename_esc = percent_escape (get_default_keyserver (0), NULL);
-      es_printf ("keyserver:%lu:\"%s:\n", flags | GC_OPT_FLAG_DEFAULT,
-                 filename_esc);
-      xfree (filename_esc);
-
-
-      es_printf ("nameserver:%lu:\n", flags | GC_OPT_FLAG_NONE);
-      es_printf ("resolver-timeout:%lu:%u\n",
-                 flags | GC_OPT_FLAG_DEFAULT, 0);
     }
   cleanup ();
   return !!rc;

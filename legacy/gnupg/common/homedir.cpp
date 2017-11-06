@@ -72,21 +72,6 @@ static byte non_default_homedir;
 
 
 #ifdef HAVE_W32_SYSTEM
-/* A flag used to indicate that a control file for gpgconf has been
-   detected.  Under Windows the presence of this file indicates a
-   portable installations and triggers several changes:
-
-   - The GNUGHOME directory is fixed relative to installation
-     directory.  All other means to set the home directory are ignore.
-
-   - All registry variables will be ignored.
-
-   This flag is not used on Unix systems.
- */
-static byte w32_portable_app;
-#endif /*HAVE_W32_SYSTEM*/
-
-#ifdef HAVE_W32_SYSTEM
 /* This flag is true if this process' binary has been installed under
    bin and not in the root directory as often used before GnuPG 2.1. */
 static byte w32_bin_is_bin;
@@ -268,34 +253,6 @@ default_homedir (void)
 
 
 #ifdef HAVE_W32_SYSTEM
-/* Check whether gpgconf is installed and if so read the gpgconf.ctl
-   file. */
-static void
-check_portable_app (const char *dir)
-{
-  char *fname;
-
-  fname = xstrconcat (dir, DIRSEP_S "gpgconf.exe", NULL);
-  if (!access (fname, F_OK))
-    {
-      strcpy (fname + strlen (fname) - 3, "ctl");
-      if (!access (fname, F_OK))
-        {
-          /* gpgconf.ctl file found.  Record this fact.  */
-          w32_portable_app = 1;
-          {
-            unsigned int flags;
-            log_get_prefix (&flags);
-            log_set_prefix (NULL, (flags | GPGRT_LOG_NO_REGISTRY));
-          }
-          /* FIXME: We should read the file to detect special flags
-             and print a warning if we don't understand them  */
-        }
-    }
-  xfree (fname);
-}
-
-
 /* Determine the root directory of the gnupg installation on Windows.  */
 static const char *
 w32_rootdir (void)
@@ -323,8 +280,6 @@ w32_rootdir (void)
       if (p)
         {
           *p = 0;
-
-          check_portable_app (dir);
 
           /* If we are installed below "bin" we strip that and use
              the top directory instead.  */
@@ -424,8 +379,7 @@ gnupg_default_homedir_p (void)
 }
 
 
-/* Helper for gnupg-socketdir.  This is a global function, so that
- * gpgconf can use it for its --create-socketdir command.  If
+/* Helper for gnupg-socketdir.  If
  * SKIP_CHECKS is set permission checks etc. are not done.  The
  * function always returns a malloced directory name and stores these
  * bit flags at R_INFO:
@@ -557,10 +511,7 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
           goto leave;
         }
 
-      /* Stat that directory and check constraints.
-       * The command
-       *    gpgconf --remove-socketdir
-       * can be used to remove that directory.  */
+      /* Stat that directory and check constraints.  */
       if (stat (name, &sb))
         {
           if (errno != ENOENT)
@@ -874,9 +825,6 @@ gnupg_module_name (int which)
 
     case GNUPG_MODULE_NAME_CONNECT_AGENT:
       X(bindir, "tools", "gpg-connect-agent");
-
-    case GNUPG_MODULE_NAME_GPGCONF:
-      X(bindir, "tools", "gpgconf");
 
     default:
       BUG ();

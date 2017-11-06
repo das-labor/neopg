@@ -464,8 +464,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
       return GPG_ERR_INV_PARAMETER;
     }
 
-  /* Check the keylength.  NOTE: If you change this make sure that it
-     macthes the gpgconflist item in gpgsm.c  */
+  /* Check the keylength.   */
   if (!get_parameter (para, pKEYLENGTH, 0))
     nbits = 2048;
   else
