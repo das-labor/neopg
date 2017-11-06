@@ -2216,7 +2216,7 @@ register_commands (assuan_context_t ctx)
     { "KS_FETCH",   cmd_ks_fetch,   hlp_ks_fetch },
     { "KS_PUT",     cmd_ks_put,     hlp_ks_put },
     { "GETINFO",    cmd_getinfo,    hlp_getinfo },
-    { NULL, NULL }
+    { NULL, NULL, NULL }
   };
   int i, j, rc;
 

@@ -1668,8 +1668,8 @@ register_commands (assuan_context_t ctx)
     { "PKSIGN",       cmd_pksign,   hlp_pksign },
     { "PKAUTH",       cmd_pkauth,   hlp_pkauth },
     { "PKDECRYPT",    cmd_pkdecrypt,hlp_pkdecrypt },
-    { "INPUT",        NULL },
-    { "OUTPUT",       NULL },
+    { "INPUT",        NULL, NULL },
+    { "OUTPUT",       NULL, NULL },
     { "GETATTR",      cmd_getattr,  hlp_getattr },
     { "SETATTR",      cmd_setattr,  hlp_setattr },
     { "WRITECERT",    cmd_writecert,hlp_writecert },
@@ -1685,7 +1685,7 @@ register_commands (assuan_context_t ctx)
     { "DISCONNECT",   cmd_disconnect,hlp_disconnect },
     { "APDU",         cmd_apdu,     hlp_apdu },
     { "KILLSCD",      cmd_killscd,  hlp_killscd },
-    { NULL }
+    { NULL, NULL, NULL }
   };
   int i, rc;
 

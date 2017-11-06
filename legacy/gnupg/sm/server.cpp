@@ -1107,7 +1107,7 @@ register_commands (assuan_context_t ctx)
     { "DELKEYS",       cmd_delkeys,   hlp_delkeys },
     { "GETINFO",       cmd_getinfo,   hlp_getinfo },
     { "PASSWD",        cmd_passwd,    hlp_passwd },
-    { NULL }
+    { NULL, NULL, NULL }
   };
   int i, rc;
 
