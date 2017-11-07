@@ -127,8 +127,11 @@ struct openpgp : cli::command<openpgp>
 };
 #endif
 
+#define GPGRT_ATTR_SENTINEL(a)
+#include "../legacy/gnupg/common/stringhelp.h"
+
 int main(int argc, char const* argv[]) {
-  neopg_program = (char*)"neopg";
+  neopg_program = make_absfilename(argv[0], NULL);
 
   const std::vector<std::string> args(argv + 1, argv + argc);
 
