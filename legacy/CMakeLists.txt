@@ -150,7 +150,6 @@ target_compile_definitions(npth PRIVATE
 target_compile_options(npth PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(npth-test
-  npth/tests/t-fork.cpp
   npth/tests/t-mutex.cpp
   npth/tests/t-support.h
   npth/tests/t-thread.cpp
