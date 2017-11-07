@@ -26,9 +26,10 @@ add_library(libneopg
   openpgp/user_id_packet.cpp
 )
 
+# On some systems, -U_GNU_SOURCE doesn't work (cmath tries to use ::isinf and fails).
 target_compile_options(libneopg
   PRIVATE
-  -fvisibility=hidden -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -fvisibility=hidden -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
   -std=c++11
 )
 
