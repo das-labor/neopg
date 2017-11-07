@@ -183,7 +183,11 @@
 #endif
 
 /* #undef USE_WINDOWS_THREADS */
-/* #undef _DARWIN_C_SOURCE */
+/* This makes sure libassuan gets CMSG macros to make descriptor
+   passing work.  */
+#ifdef __APPLE__
+#define _DARWIN_C_SOURCE 1
+#endif
 #ifndef _DARWIN_USE_64_BIT_INODE
 # define _DARWIN_USE_64_BIT_INODE 1
 #endif
