@@ -34,43 +34,6 @@ my_usleep(unsigned int usec)
   return nanosleep(&req, NULL);
 }
 
-#ifdef HAVE_LIB_DISPATCH
-# include <dispatch/dispatch.h>
-typedef dispatch_semaphore_t sem_t;
-
-
-/* This glue code is for macOS which does not have full implementation
-   of POSIX semaphore.  On macOS, using semaphore in Grand Central
-   Dispatch library is better than using the partial implementation of
-   POSIX semaphore where sem_init doesn't work well.
- */
-
-static int
-sem_init (sem_t *sem, int is_shared, unsigned int value)
-{
-  (void)is_shared;
-  if ((*sem = dispatch_semaphore_create (value)) == NULL)
-    return -1;
-  else
-    return 0;
-}
-
-static int
-sem_post (sem_t *sem)
-{
-  dispatch_semaphore_signal (*sem);
-  return 0;
-}
-
-static int
-sem_wait (sem_t *sem)
-{
-  dispatch_semaphore_wait (*sem, DISPATCH_TIME_FOREVER);
-  return 0;
-}
-#else
-# include <semaphore.h>
-#endif
 #include <unistd.h>
 #ifndef HAVE_PSELECT
 # include <signal.h>
@@ -78,60 +41,8 @@ sem_wait (sem_t *sem)
 
 #include "npth.h"
 
-
-/* The global lock that excludes all threads but one.  This is a
-   semaphore, because these can be safely used in a library even if
-   the application or other libraries call fork(), including from a
-   signal handler.  sem_post is async-signal-safe.  (The reason a
-   semaphore is safe and a mutex is not safe is that a mutex has an
-   owner, while a semaphore does not.)  We init sceptre to a static
-   buffer for use by sem_init; in case sem_open is used instead
-   SCEPTRE will changed to the value returned by sem_open.
-   GOT_SCEPTRE is a flag used for debugging to tell wether we hold
-   SCEPTRE.  */
-static sem_t sceptre_buffer;
-static sem_t *sceptre = &sceptre_buffer;
-static int got_sceptre;
-
-/* Configure defines HAVE_FORK_UNSAFE_SEMAPHORE if child process can't
-   access non-shared unnamed semaphore which is created by its parent.
-
-   We use unnamed semaphore (if available) for the global lock.  The
-   specific semaphore is only valid for those threads in a process,
-   and it is no use by other processes.  Thus, PSHARED argument for
-   sem_init is naturally 0.
-
-   However, there are daemon-like applications which use fork after
-   npth's initialization by npth_init.  In this case, a child process
-   uses the semaphore which was created by its parent process, while
-   parent does nothing with the semaphore.  In some system (e.g. AIX),
-   access by child process to non-shared unnamed semaphore is
-   prohibited.  For such a system, HAVE_FORK_UNSAFE_SEMAPHORE should
-   be defined, so that unnamed semaphore will be created with the
-   option PSHARED=1.  The purpose of the setting of PSHARED=1 is only
-   for allowing the access of the lock by child process.  For NPTH, it
-   does not mean any other interactions between processes.
-
- */
-#ifdef HAVE_FORK_UNSAFE_SEMAPHORE
-#define NPTH_SEMAPHORE_PSHARED 1
-#else
-#define NPTH_SEMAPHORE_PSHARED 0
-#endif
-
-/* The main thread is the active thread at the time pth_init was
-   called.  As of now it is only useful for debugging.  The volatile
-   make sure the compiler does not eliminate this set but not used
-   variable.  */
-static volatile pthread_t main_thread;
-
-/* This flag is set as soon as npth_init has been called or if any
- * thread has been created.  It will never be cleared again.  The only
- * purpose is to make npth_protect and npth_unprotect more robust in
- * that they can be shortcut when npth_init has not yet been called.
- * This is important for libraries which want to support nPth by using
- * those two functions but may have be initialized before pPth. */
-static int initialized_or_any_threads;
+/* The global lock that excludes all threads but one.  */
+pthread_mutex_t scepter = PTHREAD_MUTEX_INITIALIZER;
 
 /* Systems that don't have pthread_mutex_timedlock get a busy wait
    implementation that probes the lock every BUSY_WAIT_INTERVAL
@@ -185,8 +96,7 @@ enter_npth (void)
 {
   int res;
 
-  got_sceptre = 0;
-  res = sem_post (sceptre);
+  res = pthread_mutex_unlock (&scepter);
   assert (res == 0);
 }
 
@@ -198,11 +108,10 @@ leave_npth (void)
   int save_errno = errno;
 
   do {
-    res = sem_wait (sceptre);
+    res = pthread_mutex_lock(&scepter);
   } while (res < 0 && errno == EINTR);
 
   assert (!res);
-  got_sceptre = 1;
   errno = save_errno;
 }
 
@@ -215,33 +124,9 @@ npth_init (void)
 {
   int res;
 
-  main_thread = pthread_self();
-
-  /* Track that we have been initialized.  */
-  initialized_or_any_threads |= 1;
-
-  /* Better reset ERRNO so that we know that it has been set by
-     sem_init.  */
-  errno = 0;
-
-  /* The semaphore is binary.  */
-  res = sem_init (sceptre, NPTH_SEMAPHORE_PSHARED, 1);
-  /* There are some versions of operating systems which have sem_init
-     symbol defined but the call actually returns ENOSYS at runtime.
-     We know this problem for older versions of AIX (<= 4.3.3) and
-     macOS.  For macOS, we use semaphore in Grand Central Dispatch
-     library, so ENOSYS doesn't happen.  We only support AIX >= 5.2,
-     where sem_init is supported.
-   */
+  res = pthread_mutex_init(&scepter, NULL);
   if (res < 0)
-    {
-      /* POSIX.1-2001 defines the semaphore interface but does not
-         specify the return value for success.  Thus we better
-         bail out on error only on a POSIX.1-2008 system.  */
-#if _POSIX_C_SOURCE >= 200809L
-      return errno;
-#endif
-    }
+    return errno;
 
   LEAVE();
   return 0;
@@ -326,8 +211,6 @@ npth_create (npth_t *thread, const npth_attr_t *attr,
   startup = (startup_s*) malloc (sizeof (*startup));
   if (!startup)
     return errno;
-
-  initialized_or_any_threads |= 2;
 
   startup->start_routine = start_routine;
   startup->arg = arg;
@@ -728,32 +611,15 @@ npth_sendmsg (int fd, const struct msghdr *msg, int flags)
 
 
 void
-npth_unprotect (void)
-{
-  /* If we are not initialized we may not access the semaphore and
-   * thus we shortcut it. Note that in this case the unprotect/protect
-   * is not needed.  For failsafe reasons if an nPth thread has ever
-   * been created but nPth has accidentally not initialized we do not
-   * shortcut so that a stack backtrace (due to the access of the
-   * uninitialized semaphore) is more expressive.  */
-  if (initialized_or_any_threads)
-    ENTER();
-}
-
-
-void
 npth_protect (void)
 {
-  /* See npth_unprotect for commentary.  */
-  if (initialized_or_any_threads)
-    LEAVE();
+  LEAVE();
 }
 
-
-int
-npth_is_protected (void)
+void
+npth_unprotect (void)
 {
-  return got_sceptre;
+  ENTER();
 }
 
 
