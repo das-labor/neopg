@@ -46,7 +46,7 @@ $ cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
   # or cmake -DCMAKE_BUILD_TYPE=Release -C ../src/clang.txt ..
 $ make
-$ make test # or ./gpg-error-test
+$ make test # opt: ARGS=-V or CTEST_OUTPUT_ON_FAILURE=1
 ```
 
 ## Optional
