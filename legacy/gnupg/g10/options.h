@@ -228,7 +228,6 @@ struct options
   int key_origin;
 
   int passphrase_repeat;
-  int pinentry_mode;
 
   int unwrap_encryption;
   int only_sign_text_ids;

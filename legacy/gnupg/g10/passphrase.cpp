@@ -353,7 +353,6 @@ passphrase_to_dek (int cipher_algo, STRING2KEY *s2k,
 	  s2k_cacheid = s2k_cacheidbuf;
 	}
 
-      // if (opt.pinentry_mode == PINENTRY_MODE_LOOPBACK)
         {
           char buf[32];
 
