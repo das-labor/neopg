@@ -93,9 +93,6 @@ write_status_progress (const char *what,
    * should not have a noticeable effect except for rounding
    * imprecision. */
 
-  if (!total && opt.input_size_hint)
-    total = opt.input_size_hint;
-
   if (total)
     {
       if (current > total)
