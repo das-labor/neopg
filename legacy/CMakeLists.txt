@@ -137,7 +137,6 @@ add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_outp
 add_library(npth
   npth/src/npth.h
   npth/src/npth.cpp
-  npth/src/npth-sigev.cpp
 )
 add_library(neopg::npth ALIAS npth)
 

@@ -219,16 +219,6 @@ int npth_clock_gettime(struct timespec *tp);
     }									\
   } while (0)
 
-
-#if 0
-/* We do not support this on windows.  */
-void npth_sigev_init (void);
-void npth_sigev_add (int signum);
-void npth_sigev_fini (void);
-sigset_t *npth_sigev_sigmask (void);
-int npth_sigev_get_pending (int *r_signum);
-#endif
-
 #if 0 /* (Keep Emacsens' auto-indent happy.) */
 {
 #endif

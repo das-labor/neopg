@@ -384,59 +384,6 @@ int npth_clock_gettime (struct timespec *tp);
   } while (0)
 
 
-
-/* This is a support interface to make it easier to handle signals.
- *
- * The interfaces here support one (and only one) thread (here called
- * "main thread") in the application to monitor several signals while
- * selecting on filedescriptors.
- *
- * First, the main thread should call npth_sigev_init.  This
- * initializes some global data structures used to record interesting
- * and pending signals.
- *
- * Then, the main thread should call npth_sigev_add for every signal
- * it is interested in observing, and finally npth_sigev_fini.  This
- * will block the signal in the main threads sigmask.  Note that these
- * signals should also be blocked in all other threads.  Since they
- * are blocked in the main thread after calling npth_sigev_add, it is
- * recommended to call npth_sigev_add in the main thread before
- * creating any threads.
- *
- * The function npth_sigev_sigmask is a convenient function that
- * returns the sigmask of the thread at time of npth_sigev_init, but
- * with all registered signals unblocked.  It is recommended to do all
- * other changes to the main thread's sigmask before calling
- * npth_sigev_init, so that the return value of npth_sigev_sigmask can
- * be used in the npth_pselect invocation.
- *
- * In any case, the main thread should invoke npth_pselect with a
- * sigmask that has all signals that should be monitored unblocked.
- *
- * After npth_pselect returns, npth_sigev_get_pending can be called in
- * a loop until it returns 0 to iterate over the list of pending
- * signals.  Each time a signal is returned by that function, its
- * status is reset to non-pending.
- */
-
-/* Start setting up signal event handling.  */
-void npth_sigev_init (void);
-
-/* Add signal SIGNUM to the list of watched signals.  */
-void npth_sigev_add (int signum);
-
-/* Finish the list of watched signals.  This starts to block them,
-   too.  */
-void npth_sigev_fini (void);
-
-/* Get the sigmask as needed for pselect.  */
-sigset_t *npth_sigev_sigmask (void);
-
-/* Return the next signal event that occured.  Returns if none are
-   left, 1 on success.  */
-int npth_sigev_get_pending (int *r_signum);
-
-
 #if 0 /* (Keep Emacsens' auto-indent happy.) */
 {
 #endif
