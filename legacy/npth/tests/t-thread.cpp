@@ -47,7 +47,6 @@ thread_twoone (void *arg)
 {
   int rc, i;
 
-  npth_setname_np (npth_self (), "thread-twoone");
   info_msg ("thread-twoone started");
 
   rc = npth_detach (npth_self ());
@@ -131,12 +130,10 @@ thread_main (int argc, char *argv[])
   info_msg ("creating thread-one");
   rc = npth_create (&tid1, &tattr, thread_one, NULL);
   fail_if_err (rc);
-  npth_setname_np (tid1, "thread-one");
 
   info_msg ("creating thread-two");
   rc = npth_create (&tid2, &tattr, thread_two, NULL);
   fail_if_err (rc);
-  npth_setname_np (tid2, "thread-two");
 
   rc = npth_attr_destroy (&tattr);
   fail_if_err (rc);

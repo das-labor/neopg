@@ -44,52 +44,6 @@ my_usleep(unsigned int usec)
 /* The global lock that excludes all threads but one.  */
 pthread_mutex_t scepter = PTHREAD_MUTEX_INITIALIZER;
 
-/* Systems that don't have pthread_mutex_timedlock get a busy wait
-   implementation that probes the lock every BUSY_WAIT_INTERVAL
-   milliseconds.  */
-#define BUSY_WAIT_INTERVAL 200
-
-typedef int (*trylock_func_t) (void *);
-
-static int
-busy_wait_for (trylock_func_t trylock, void *lock,
-	       const struct timespec *abstime)
-{
-  int err;
-
-  /* This is not great, but better than nothing.  Only works for locks
-     which are mostly uncontested.  Provides absolutely no fairness at
-     all.  Creates many wake-ups.  */
-  while (1)
-    {
-      struct timespec ts;
-      err = npth_clock_gettime (&ts);
-      if (err < 0)
-	{
-	  /* Just for safety make sure we return some error.  */
-	  err = errno ? errno : EINVAL;
-	  break;
-	}
-
-      if (npth_timercmp (abstime, &ts, <))
-	{
-	  err = ETIMEDOUT;
-	  break;
-	}
-
-      err = (*trylock) (lock);
-      if (err != EBUSY)
-	break;
-
-      /* Try again after waiting a bit.  We could calculate the
-	 maximum wait time from ts and abstime, but we don't
-	 bother, as our granularity is pretty fine.  */
-      my_usleep (BUSY_WAIT_INTERVAL * 1000);
-    }
-
-  return err;
-}
-
 
 static void
 enter_npth (void)
@@ -130,44 +84,6 @@ npth_init (void)
 
   LEAVE();
   return 0;
-}
-
-
-int
-npth_getname_np (npth_t target_thread, char *buf, size_t buflen)
-{
-#ifdef HAVE_PTHREAD_GETNAME_NP
-  return pthread_getname_np (target_thread, buf, buflen);
-#else
-  (void)target_thread;
-  (void)buf;
-  (void)buflen;
-  return ENOSYS;
-#endif
-}
-
-
-int
-npth_setname_np (npth_t target_thread, const char *name)
-{
-#ifdef HAVE_PTHREAD_SETNAME_NP
-#ifdef __NetBSD__
-  return pthread_setname_np (target_thread, "%s", (void*) name);
-#else
-#ifdef __APPLE__
-  if (target_thread == npth_self ())
-    return pthread_setname_np (name);
-  else
-    return ENOTSUP;
-#else
-  return pthread_setname_np (target_thread, name);
-#endif
-#endif
-#else
-  (void)target_thread;
-  (void)name;
-  return ENOSYS;
-#endif
 }
 
 
@@ -274,28 +190,6 @@ npth_mutex_lock (npth_mutex_t *mutex)
 }
 
 
-int
-npth_mutex_timedlock (npth_mutex_t *mutex, const struct timespec *abstime)
-{
-  int err;
-
-  /* No need to allow competing threads to enter when we can get the
-     lock immediately.  */
-  err = pthread_mutex_trylock (mutex);
-  if (err != EBUSY)
-    return err;
-
-  ENTER();
-#if HAVE_PTHREAD_MUTEX_TIMEDLOCK
-  err = pthread_mutex_timedlock (mutex, abstime);
-#else
-  err = busy_wait_for ((trylock_func_t) pthread_mutex_trylock, mutex, abstime);
-#endif
-  LEAVE();
-  return err;
-}
-
-
 #ifndef _NPTH_NO_RWLOCK
 int
 npth_rwlock_rdlock (npth_rwlock_t *rwlock)
@@ -312,31 +206,6 @@ npth_rwlock_rdlock (npth_rwlock_t *rwlock)
 
   ENTER();
   err = pthread_rwlock_rdlock (rwlock);
-  LEAVE();
-  return err;
-}
-
-
-int
-npth_rwlock_timedrdlock (npth_rwlock_t *rwlock, const struct timespec *abstime)
-{
-  int err;
-
-#ifdef HAVE_PTHREAD_RWLOCK_TRYRDLOCK
-  /* No need to allow competing threads to enter when we can get the
-     lock immediately.  */
-  err = pthread_rwlock_tryrdlock (rwlock);
-  if (err != EBUSY)
-    return err;
-#endif
-
-  ENTER();
-#if HAVE_PTHREAD_RWLOCK_TIMEDRDLOCK
-  err = pthread_rwlock_timedrdlock (rwlock, abstime);
-#else
-  err = busy_wait_for ((trylock_func_t) pthread_rwlock_tryrdlock, rwlock,
-		       abstime);
-#endif
   LEAVE();
   return err;
 }
@@ -362,57 +231,8 @@ npth_rwlock_wrlock (npth_rwlock_t *rwlock)
 }
 
 
-int
-npth_rwlock_timedwrlock (npth_rwlock_t *rwlock, const struct timespec *abstime)
-{
-  int err;
-
-#ifdef HAVE_PTHREAD_RWLOCK_TRYWRLOCK
-  /* No need to allow competing threads to enter when we can get the
-     lock immediately.  */
-  err = pthread_rwlock_trywrlock (rwlock);
-  if (err != EBUSY)
-    return err;
 #endif
 
-  ENTER();
-#if HAVE_PTHREAD_RWLOCK_TIMEDWRLOCK
-  err = pthread_rwlock_timedwrlock (rwlock, abstime);
-#elif HAVE_PTHREAD_RWLOCK_TRYRDLOCK
-  err = busy_wait_for ((trylock_func_t) pthread_rwlock_trywrlock, rwlock,
-		       abstime);
-#else
-  err = ENOSYS;
-#endif
-  LEAVE();
-  return err;
-}
-#endif
-
-
-int
-npth_cond_wait (npth_cond_t *cond, npth_mutex_t *mutex)
-{
-  int err;
-
-  ENTER();
-  err = pthread_cond_wait (cond, mutex);
-  LEAVE();
-  return err;
-}
-
-
-int
-npth_cond_timedwait (npth_cond_t *cond, npth_mutex_t *mutex,
-		     const struct timespec *abstime)
-{
-  int err;
-
-  ENTER();
-  err = pthread_cond_timedwait (cond, mutex, abstime);
-  LEAVE();
-  return err;
-}
 
 
 /* Standard POSIX Replacement API */
@@ -620,26 +440,4 @@ void
 npth_unprotect (void)
 {
   ENTER();
-}
-
-
-int
-npth_clock_gettime (struct timespec *ts)
-{
-#if defined(CLOCK_REALTIME) && HAVE_CLOCK_GETTIME
-  return clock_gettime (CLOCK_REALTIME, ts);
-#elif HAVE_GETTIMEOFDAY
-  {
-    struct timeval tv;
-
-    if (gettimeofday (&tv, NULL))
-      return -1;
-    ts->tv_sec = tv.tv_sec;
-    ts->tv_nsec = tv.tv_usec * 1000;
-    return 0;
-  }
-#else
-  /* FIXME: fall back on time() with seconds resolution.  */
-# error clock_gettime not available - please provide a fallback.
-#endif
 }

@@ -23,11 +23,6 @@
  *
  * - Return the error number instead of setting errno,
  *
- * - have timedlock function instead of extra event argument,
- *
- * - have trylock function instead of extra event argument.  Can't mix
- *   timed and try.
- *
  * - No _new functions.  Use _init functions instead.
  *
  * - Attributes are set by specific instead of generic getter/setter
@@ -78,14 +73,8 @@ extern "C" {
 
 int npth_init(void);
 
-/* Not needed.  */
-/* pth_kill, pth_ctrl, pth_version */
-
 
 /* Thread Attribute Handling */
-
-/* Can't do that.  */
-/* pth_attr_of */
 
 #define npth_attr_t pthread_attr_t
 #define npth_attr_init pthread_attr_init
@@ -94,58 +83,18 @@ int npth_init(void);
 #define NPTH_CREATE_DETACHED PTHREAD_CREATE_DETACHED
 #define npth_attr_getdetachstate pthread_attr_getdetachstate
 #define npth_attr_setdetachstate pthread_attr_setdetachstate
-int npth_getname_np (npth_t target_thread, char *buf, size_t buflen);
-int npth_setname_np (npth_t target_thread, const char *name);
 
 
 /* Thread Control */
 int npth_create(npth_t *thread, const npth_attr_t *attr,
 		void *(*start_routine) (void *), void *arg);
 
-
-/* The Pth version of pth_once supports passing an argument, the
-   pthread version does not.  We would have to reimplement the whole
-   feature with a global table.  Not needed.  */
-/* pth_once */
-
 #define npth_self pthread_self
-
-/* No can do! */
-/* pth_suspend, pth_resume */
-
-/* Yield is considered harmful and should never be used in high-level
-   applications.  Use a condition instead to wait for a specific event
-   to happen, or, as a last resort, use npth_usleep to back off a hard
-   busy wait.  */
-/* pth_yield */
-
-/* Not needed.  */
-/* pth_nap */
-
-/* pth_wait, pth_cancel, pth_abort, pth_raise */
 
 int npth_join(npth_t thread, void **retval);
 #define npth_detach pthread_detach
 
 void npth_exit(void *retval);
-
-
-/* Utilities */
-
-/* pth_fdmode, pth_time, pth_timeout, pth_sfiodisc */
-
-
-/* Cancellation Management */
-
-/* Not needed.  */
-/* pth_cancel_state. npth_cancel_point */
-
-
-/* Event Handling */
-
-/* No equivalent in pthread.  */
-/* pth_event, pth_event_typeof, pth_event_extract, pth_event_concat, pth_event_isolate,
-   pth_event_walk, pth_event_status, pth_event_free */
 
 
 /* Key-Based Storage */
@@ -155,20 +104,6 @@ void npth_exit(void *retval);
 #define npth_key_delete pthread_key_delete
 #define npth_setspecific pthread_setspecific
 #define npth_getspecific pthread_getspecific
-
-
-/* Message Port Communication */
-
-/* No equivalent in pthread.  */
-/* pth_msgport_create, pth_msgport_destroy, pth_msgport_find,
-   pth_msgport_pending, pth_msgport_put, pth_msgport_get,
-   pth_msgport_reply. */
-
-
-/* Thread Cleanups */
-
-/* Not needed.  */
-/* pth_cleanup_push, pth_cleanup_pop */
 
 
 /* Process Forking */
@@ -210,7 +145,6 @@ void npth_exit(void *retval);
 #define npth_mutex_trylock pthread_mutex_trylock
 
 int npth_mutex_lock(npth_mutex_t *mutex);
-int npth_mutex_timedlock(npth_mutex_t *mutex, const struct timespec *abstime);
 
 #define npth_mutex_unlock pthread_mutex_unlock
 
@@ -230,13 +164,9 @@ typedef int npth_rwlockattr_t;
 typedef npth_mutex_t npth_rwlock_t;
 #define npth_rwlock_init(rwlock,attr) npth_mutex_init(rwlock,0)
 #define npth_rwlock_destroy npth_mutex_destroy
-#define npth_rwlock_tryrdlock npth_mutex_trylock
 #define npth_rwlock_rdlock npth_mutex_lock
-#define npth_rwlock_trywrlock npth_mutex_trylock
-#define npth_rwlock_timedrdlock npth_mutex_timedlock
 #define npth_rwlock_wrlock npth_mutex_lock
 #define npth_rwlock_rdlock npth_mutex_lock
-#define npth_rwlock_timedwrlock npth_mutex_timedlock
 #define npth_rwlock_unlock npth_mutex_unlock
 
 #else /* _NPTH_NO_RWLOCK */
@@ -269,61 +199,15 @@ typedef npth_mutex_t npth_rwlock_t;
 typedef pthread_rwlock_t npth_rwlock_t;
 #define npth_rwlock_init pthread_rwlock_init
 #define npth_rwlock_destroy pthread_rwlock_destroy
-#define npth_rwlock_tryrdlock pthread_rwlock_tryrdlock
 
 int npth_rwlock_rdlock (npth_rwlock_t *rwlock);
-
-int npth_rwlock_timedrdlock (npth_rwlock_t *rwlock,
-			     const struct timespec *abstime);
-
-#define npth_rwlock_trywrlock pthread_rwlock_trywrlock
 int npth_rwlock_wrlock (npth_rwlock_t *rwlock);
-int npth_rwlock_timedwrlock (npth_rwlock_t *rwlock,
-			     const struct timespec *abstime);
 #define npth_rwlock_unlock  pthread_rwlock_unlock
 
 #endif /* !_NPTH_NO_RWLOCK */
 
-
-typedef pthread_cond_t npth_cond_t;
-#define NPTH_COND_INITIALIZER PTHREAD_COND_INITIALIZER
-/* For now, we don't support any cond attributes.  */
-#define npth_cond_init pthread_cond_init
-#define npth_cond_broadcast pthread_cond_broadcast
-#define npth_cond_signal pthread_cond_signal
-#define npth_cond_destroy pthread_cond_destroy
-int npth_cond_wait(npth_cond_t *cond, npth_mutex_t *mutex);
-int npth_cond_timedwait(npth_cond_t *cond, npth_mutex_t *mutex,
-			const struct timespec *abstime);
-
-/* Not needed.  */
-
-/* pth_barrier_t, pth_barrier_init, pth_barrier_reach */
-
-
-/* User-Space Context */
-
-/* Can not be implemented.  */
-/* pth_uctx_create, pth_uctx_make, pth_uctx_switch, pth_uctx_destroy */
-
-
-/* Generalized POSIX Replacement API */
-
-/* In general, we can not support these easily.  */
-/* pth_sigwait_ev, pth_accept_ev, pth_connect_ev, pth_select_ev,
-   pth_poll_ev, pth_read_ev, pth_readv_ev, pth_write_ev,
-   pth_writev_ev, pth_recv_ev, pth_recvfrom_ev, pth_send_ev,
-   pth_sendto_ev */
-
 
 /* Standard POSIX Replacement API */
-
-/* We will provide a more specific way to handle signals.  */
-/* pth_sigmask, pth_sigwait */
-
-/* Not needed.  */
-/* pth_nanosleep, pth_system, pth_readv, pth_writev, pth_poll,
-   pth_recv, pth_send, pth_recvfrom, pth_sendto */
 
 int npth_usleep(unsigned int usec);
 unsigned int npth_sleep(unsigned int sec);
@@ -352,37 +236,6 @@ void npth_protect (void);
 /* If you run into problems with the above calls, this function can be
  * used to examine in which state nPth is.  */
 int npth_is_protected (void);
-
-
-/* Because the timed functions work on timespec, we provide a clock
-   interface for convenience and portability.  */
-int npth_clock_gettime (struct timespec *tp);
-
-/* CMP may be ==, < or >.  Do not use <= or >=.  */
-#define npth_timercmp(t1, t2, cmp)					\
-  (((t1)->tv_sec == (t2)->tv_sec) ?					\
-   ((t1)->tv_nsec cmp (t2)->tv_nsec) :					\
-   ((t1)->tv_sec cmp (t2)->tv_sec))
-#define npth_timeradd(t1, t2, result)					\
-  do {									\
-    (result)->tv_sec = (t1)->tv_sec + (t2)->tv_sec;			\
-    (result)->tv_nsec = (t1)->tv_nsec + (t2)->tv_nsec;			\
-    if ((result)->tv_nsec >= 1000000000)				\
-      {									\
-	++(result)->tv_sec;						\
-	(result)->tv_nsec -= 1000000000;				\
-      }									\
-  } while (0)
-#define npth_timersub(t1, t2, result)					\
-  do {									\
-    (result)->tv_sec = (t1)->tv_sec - (t2)->tv_sec;			\
-    (result)->tv_nsec = (t1)->tv_nsec - (t2)->tv_nsec;			\
-    if ((result)->tv_nsec < 0) {					\
-      --(result)->tv_sec;						\
-      (result)->tv_nsec += 1000000000;					\
-    }									\
-  } while (0)
-
 
 #if 0 /* (Keep Emacsens' auto-indent happy.) */
 {
