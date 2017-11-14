@@ -1156,15 +1156,6 @@ int  gpgrt_get_nonblock (gpgrt_stream_t stream);
 
 int gpgrt_poll (gpgrt_poll_t *fdlist, unsigned int nfds, int timeout);
 
-gpgrt_stream_t gpgrt_tmpfile (void);
-
-void gpgrt_opaque_set (gpgrt_stream_t _GPGRT__RESTRICT stream,
-                       void *_GPGRT__RESTRICT opaque);
-void *gpgrt_opaque_get (gpgrt_stream_t stream);
-
-void gpgrt_fname_set (gpgrt_stream_t stream, const char *fname);
-const char *gpgrt_fname_get (gpgrt_stream_t stream);
-
 int gpgrt_asprintf (char **r_buf, const char * _GPGRT__RESTRICT format, ...)
                     GPGRT_ATTR_PRINTF(2,3);
 int gpgrt_vasprintf (char **r_buf, const char * _GPGRT__RESTRICT format,
@@ -1252,11 +1243,6 @@ int gpgrt_vsnprintf (char *buf,size_t bufsize,
 # define es_set_nonblock      gpgrt_set_nonblock
 # define es_get_nonblock      gpgrt_get_nonblock
 # define es_poll              gpgrt_poll
-# define es_tmpfile           gpgrt_tmpfile
-# define es_opaque_set        gpgrt_opaque_set
-# define es_opaque_get        gpgrt_opaque_get
-# define es_fname_set         gpgrt_fname_set
-# define es_fname_get         gpgrt_fname_get
 # define es_asprintf          gpgrt_asprintf
 # define es_vasprintf         gpgrt_vasprintf
 # define es_bsprintf          gpgrt_bsprintf

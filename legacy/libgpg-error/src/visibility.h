@@ -121,11 +121,6 @@ MARK_VISIBLE (gpgrt_set_binary)
 MARK_VISIBLE (gpgrt_set_nonblock)
 MARK_VISIBLE (gpgrt_get_nonblock)
 MARK_VISIBLE (gpgrt_poll)
-MARK_VISIBLE (gpgrt_tmpfile)
-MARK_VISIBLE (gpgrt_opaque_set)
-MARK_VISIBLE (gpgrt_opaque_get)
-MARK_VISIBLE (gpgrt_fname_set)
-MARK_VISIBLE (gpgrt_fname_get)
 MARK_VISIBLE (gpgrt_asprintf)
 MARK_VISIBLE (gpgrt_vasprintf)
 MARK_VISIBLE (gpgrt_bsprintf)
@@ -221,11 +216,6 @@ MARK_VISIBLE (gpgrt_set_alloc_func)
 #define gpgrt_set_nonblock          _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_get_nonblock          _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_poll                  _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_tmpfile               _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_opaque_set            _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_opaque_get            _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_fname_set             _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_fname_get             _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_asprintf              _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_vasprintf             _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_bsprintf              _gpgrt_USE_UNDERSCORED_FUNCTION

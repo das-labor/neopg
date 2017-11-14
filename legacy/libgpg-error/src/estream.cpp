@@ -2000,7 +2000,6 @@ init_stream_obj (estream_t stream,
 {
   stream->intern->kind = kind;
   stream->intern->cookie = cookie;
-  stream->intern->opaque = NULL;
   stream->intern->offset = 0;
   stream->intern->func_read = functions.public_x.func_read;
   stream->intern->func_write = functions.public_x.func_write;
@@ -3093,18 +3092,6 @@ es_offset_calculate (estream_t stream)
     offset -= stream->unread_data_len;
 
   return offset;
-}
-
-
-static void
-es_opaque_ctrl (estream_t _GPGRT__RESTRICT stream,
-                void *_GPGRT__RESTRICT opaque_new,
-		void **_GPGRT__RESTRICT opaque_old)
-{
-  if (opaque_old)
-    *opaque_old = stream->intern->opaque;
-  if (opaque_new)
-    stream->intern->opaque = opaque_new;
 }
 
 
@@ -4584,51 +4571,6 @@ tmpfd (void)
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-estream_t
-_gpgrt_tmpfile (void)
-{
-  unsigned int modeflags;
-  int create_called = 0;
-  estream_t stream = NULL;
-  void *cookie = NULL;
-  int err;
-  int fd;
-  es_syshd_t syshd;
-
-  modeflags = O_RDWR | O_TRUNC | O_CREAT;
-
-  fd = tmpfd ();
-  if (fd == -1)
-    {
-      err = -1;
-      goto out;
-    }
-
-  err = func_fd_create (&cookie, fd, modeflags, 0);
-  if (err)
-    goto out;
-
-  syshd.type = ES_SYSHD_FD;
-  syshd.u.fd = fd;
-  create_called = 1;
-  err = create_stream (&stream, cookie, &syshd,
-                       BACKEND_FD, estream_functions_fd,
-                       modeflags, 0, 0);
-
- out:
-  if (err)
-    {
-      if (create_called)
-	func_fd_destroy (cookie);
-      else if (fd != -1)
-	close (fd);
-      stream = NULL;
-    }
-
-  return stream;
-}
-
-
 int
 _gpgrt_setvbuf (estream_t _GPGRT__RESTRICT stream,
                 char *_GPGRT__RESTRICT buf, int type, size_t size)
@@ -4968,28 +4910,6 @@ _gpgrt_poll (gpgrt_poll_t *fds, unsigned int nfds, int timeout)
 }
 
 
-void
-_gpgrt_opaque_set (estream_t stream, void *opaque)
-{
-  lock_stream (stream);
-  es_opaque_ctrl (stream, opaque, NULL);
-  unlock_stream (stream);
-}
-
-
-void *
-_gpgrt_opaque_get (estream_t stream)
-{
-  void *opaque;
-
-  lock_stream (stream);
-  es_opaque_ctrl (stream, NULL, &opaque);
-  unlock_stream (stream);
-
-  return opaque;
-}
-
-
 static void
 fname_set_internal (estream_t stream, const char *fname, int quote)
 {
@@ -5012,41 +4932,6 @@ fname_set_internal (estream_t stream, const char *fname, int quote)
     stream->intern->printable_fname[0] = '\\';
   strcpy (stream->intern->printable_fname+quote, fname);
 }
-
-
-/* Set the filename attribute of STREAM.  There is no error return.
-   as long as STREAM is valid.  This function is called internally by
-   functions which open a filename.  */
-void
-_gpgrt_fname_set (estream_t stream, const char *fname)
-{
-  if (fname)
-    {
-      lock_stream (stream);
-      fname_set_internal (stream, fname, 1);
-      unlock_stream (stream);
-    }
-}
-
-
-/* Return the filename attribute of STREAM.  In case no filename has
-   been set, "[?]" will be returned.  The returned file name is valid
-   as long as STREAM is valid.  */
-const char *
-_gpgrt_fname_get (estream_t stream)
-{
-  const char *fname;
-
-  lock_stream (stream);
-  fname = stream->intern->printable_fname;
-  if (fname)
-    stream->intern->printable_fname_inuse = 1;
-  unlock_stream (stream);
-  if (!fname)
-    fname = "[?]";
-  return fname;
-}
-
 
 
 /* Print a BUFFER to STREAM while replacing all control characters and

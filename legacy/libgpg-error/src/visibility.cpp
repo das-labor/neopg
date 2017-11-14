@@ -568,36 +568,6 @@ gpgrt_poll (gpgrt_poll_t *fds, unsigned int nfds, int timeout)
   return _gpgrt_poll (fds, nfds, timeout);
 }
 
-estream_t
-gpgrt_tmpfile (void)
-{
-  return _gpgrt_tmpfile ();
-}
-
-void
-gpgrt_opaque_set (estream_t stream, void *opaque)
-{
-  _gpgrt_opaque_set (stream, opaque);
-}
-
-void *
-gpgrt_opaque_get (estream_t stream)
-{
-  return _gpgrt_opaque_get (stream);
-}
-
-void
-gpgrt_fname_set (estream_t stream, const char *fname)
-{
-  _gpgrt_fname_set (stream, fname);
-}
-
-const char *
-gpgrt_fname_get (estream_t stream)
-{
-  return _gpgrt_fname_get (stream);
-}
-
 int
 gpgrt_asprintf (char **r_buf, const char *_GPGRT__RESTRICT format, ...)
 {
