@@ -152,8 +152,6 @@ struct options
     unsigned int export_options;
     char *http_proxy;
   } keyserver_options;
-  int exec_disable;
-  int exec_path_set;
   unsigned int import_options;
   unsigned int export_options;
   unsigned int list_options;

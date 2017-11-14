@@ -114,7 +114,6 @@ add_executable(neopg
   ../legacy/gnupg/g10/trustdb.cpp
   ../legacy/gnupg/g10/tdbio.cpp
   ../legacy/gnupg/g10/tdbdump.cpp
-  ../legacy/gnupg/g10/exec.cpp
   ../legacy/gnupg/g10/delkey.cpp
   ../legacy/gnupg/g10/dearmor.cpp
   ../legacy/gnupg/g10/tofu.cpp

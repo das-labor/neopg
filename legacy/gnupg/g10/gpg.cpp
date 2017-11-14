@@ -54,7 +54,6 @@
 #include "../common/sysutils.h"
 #include "../common/status.h"
 #include "keyserver-internal.h"
-#include "exec.h"
 #include "../common/asshelp.h"
 #include "call-dirmngr.h"
 #include "tofu.h"
@@ -286,7 +285,6 @@ enum cmd_and_opt_values
     oListOptions,
     oVerifyOptions,
     oTempDir,
-    oExecPath,
     oEncryptTo,
     oHiddenEncryptTo,
     oNoEncryptTo,
@@ -483,7 +481,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoDefRecipient, "no-default-recipient", "@"),
 
   ARGPARSE_s_s (oTempDir,  "temp-directory", "@"),
-  ARGPARSE_s_s (oExecPath, "exec-path", "@"),
   ARGPARSE_s_s (oEncryptTo,      "encrypt-to", "@"),
   ARGPARSE_s_n (oNoEncryptTo, "no-encrypt-to", "@"),
   ARGPARSE_s_s (oHiddenEncryptTo, "hidden-encrypt-to", "@"),
@@ -2036,17 +2033,6 @@ gpg_main (int argc, char **argv)
 
   next_pass:
     if( configname ) {
-      if(check_permissions(configname,1))
-	{
-	  /* If any options file is unsafe, then disable any external
-	     programs for keyserver calls.  Since the
-	     external program to call is set in the options file, a
-	     unsafe options file can lead to an arbitrary program
-	     being run. */
-
-	  opt.exec_disable=1;
-	}
-
 	configlineno = 0;
 	configfp = fopen( configname, "r" );
         if (configfp && is_secured_file (fileno (configfp)))
@@ -2655,12 +2641,6 @@ gpg_main (int argc, char **argv)
 	    }
 	    break;
 	  case oTempDir: opt.temp_dir=pargs.r.ret_str; break;
-	  case oExecPath:
-	    if(set_exec_path(pargs.r.ret_str))
-	      log_error(_("unable to set exec-path to %s\n"),pargs.r.ret_str);
-	    else
-	      opt.exec_path_set=1;
-	    break;
 	  case oSetNotation:
 	    add_notation_data( pargs.r.ret_str, 0 );
 	    add_notation_data( pargs.r.ret_str, 1 );
