@@ -237,7 +237,6 @@ enum cmd_and_opt_values
     oPassphrase,
     oPassphraseFD,
     oPassphraseFile,
-    oPinentryMode,
     oCommandFD,
     oCommandFile,
     oQuickRandom,
@@ -298,7 +297,6 @@ enum cmd_and_opt_values
     oNoAllowNonSelfsignedUID,
     oAllowFreeformUID,
     oNoAllowFreeformUID,
-    oAllowSecretKeyImport,
     oListOnly,
     oIgnoreTimeConflict,
     oIgnoreValidFrom,
@@ -608,7 +606,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oPassphrase,      "passphrase", "@"),
   ARGPARSE_s_i (oPassphraseFD,    "passphrase-fd", "@"),
   ARGPARSE_s_s (oPassphraseFile,  "passphrase-file", "@"),
-  ARGPARSE_s_s (oPinentryMode,    "pinentry-mode", "@"),
   ARGPARSE_s_i (oCommandFD, "command-fd", "@"),
   ARGPARSE_s_s (oCommandFile, "command-file", "@"),
   ARGPARSE_s_n (oQuickRandom, "debug-quick-random", "@"),
@@ -687,7 +684,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoAutoKeyRetrieve, "no-auto-key-retrieve", "@"),
   ARGPARSE_s_n (oNoSigCache,         "no-sig-cache", "@"),
   ARGPARSE_s_n (oMergeOnly,	  "merge-only", "@" ),
-  ARGPARSE_s_n (oAllowSecretKeyImport, "allow-secret-key-import", "@"),
   ARGPARSE_s_n (oTryAllSecrets,  "try-all-secrets", "@"),
   ARGPARSE_s_n (oPreservePermissions, "preserve-permissions", "@"),
   ARGPARSE_s_s (oDefaultPreferenceList,  "default-preference-list", "@"),
@@ -2684,7 +2680,6 @@ gpg_main (int argc, char **argv)
 				   "--import-options ","merge-only");
 		opt.import_options|=IMPORT_MERGE_ONLY;
 	    break;
-          case oAllowSecretKeyImport: /* obsolete */ break;
 	  case oTryAllSecrets: opt.try_all_secrets = 1; break;
           case oTrustedKey: register_trusted_key( pargs.r.ret_str ); break;
 
