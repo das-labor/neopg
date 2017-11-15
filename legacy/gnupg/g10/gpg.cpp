@@ -329,8 +329,6 @@ enum cmd_and_opt_values
     oGroup,
     oUnGroup,
     oNoGroups,
-    oMangleDosFilenames,
-    oNoMangleDosFilenames,
     oEnableProgressFilter,
     oMultifile,
     oKeyidFormat,
@@ -716,8 +714,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oGroup,      "group",      "@"),
   ARGPARSE_s_s (oUnGroup,    "ungroup",    "@"),
   ARGPARSE_s_n (oNoGroups,   "no-groups",  "@"),
-  ARGPARSE_s_n (oMangleDosFilenames,      "mangle-dos-filenames", "@"),
-  ARGPARSE_s_n (oNoMangleDosFilenames, "no-mangle-dos-filenames", "@"),
   ARGPARSE_s_n (oEnableProgressFilter, "enable-progress-filter", "@"),
   ARGPARSE_s_n (oMultifile, "multifile", "@"),
   ARGPARSE_s_s (oKeyidFormat, "keyid-format", "@"),
@@ -1943,7 +1939,6 @@ gpg_main (int argc, char **argv)
     opt.trust_model = TM_AUTO;
 #endif
     opt.tofu_default_policy = TOFU_POLICY_AUTO;
-    opt.mangle_dos_filenames = 0;
     opt.min_cert_level = 2;
     set_screen_dimensions ();
     opt.keyid_format = KF_NONE;
@@ -2748,8 +2743,6 @@ gpg_main (int argc, char **argv)
 	      }
 	    break;
 
-          case oMangleDosFilenames: opt.mangle_dos_filenames = 1; break;
-          case oNoMangleDosFilenames: opt.mangle_dos_filenames = 0; break;
           case oEnableProgressFilter: opt.enable_progress_filter = 1; break;
 	  case oMultifile: multifile=1; break;
 	  case oKeyidFormat:

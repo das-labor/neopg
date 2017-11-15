@@ -189,7 +189,6 @@ struct options
   int no_auto_check_trustdb;
   int preserve_permissions;
   struct groupitem *grouplist;
-  int mangle_dos_filenames;
   int enable_progress_filter;
   unsigned int screen_columns;
   unsigned int screen_lines;

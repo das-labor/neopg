@@ -222,43 +222,12 @@ open_outfile (int inp_fd, const char *iname, int mode, int restrictedperm,
         name = opt.outfile;
       else
         {
-#ifdef USE_ONLY_8DOT3
-          if (opt.mangle_dos_filenames)
-            {
-              /* It is quite common for DOS systems to have only one
-                 dot in a filename.  If we have something like this,
-                 we simple replace the suffix except in cases where
-                 the suffix is larger than 3 characters and not the
-                 same as the new one.  We don't map the filenames to
-                 8.3 because this is a duty of the file system.  */
-              char *dot;
-              const char *newsfx;
-
-              newsfx = (mode==1 ? ".asc" :
-                        mode==2 ? ".sig" :
-                        mode==3 ? ".rev" : ".gpg");
-
-              buf = xmalloc (strlen(iname)+4+1);
-              strcpy (buf, iname);
-              dot = strchr (buf, '.' );
-              if ( dot && dot > buf && dot[1] && strlen(dot) <= 4
-                   && CMP_FILENAME (newsfx, dot) )
-                strcpy (dot, newsfx);
-              else if (dot && !dot[1]) /* Do not duplicate a dot.  */
-                strcpy (dot, newsfx+1);
-              else
-                strcat (buf, newsfx);
-            }
-          if (!buf)
-#endif /* USE_ONLY_8DOT3 */
-            {
-              buf = xstrconcat (iname,
-                                (mode==1 ? EXTSEP_S "asc" :
-                                 mode==2 ? EXTSEP_S "sig" :
-                                 mode==3 ? EXTSEP_S "rev" :
-                                 /*     */ EXTSEP_S GPGEXT_GPG),
-                                NULL);
-            }
+	  buf = xstrconcat (iname,
+			    (mode==1 ? EXTSEP_S "asc" :
+			     mode==2 ? EXTSEP_S "sig" :
+			     mode==3 ? EXTSEP_S "rev" :
+			     /*     */ EXTSEP_S GPGEXT_GPG),
+			    NULL);
           name = buf;
         }
 
