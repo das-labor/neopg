@@ -29,42 +29,13 @@
 #include "packet.h"
 #include "keydb.h"
 
-#define USE_UNUSED_NODES 1
-
-static int cleanup_registered;
-static KBNODE unused_nodes;
-
-static void
-release_unused_nodes (void)
-{
-#if USE_UNUSED_NODES
-  while (unused_nodes)
-    {
-      kbnode_t next = unused_nodes->next;
-      xfree (unused_nodes);
-      unused_nodes = next;
-    }
-#endif /*USE_UNUSED_NODES*/
-}
-
 
 static kbnode_t
 alloc_node (void)
 {
   kbnode_t n;
 
-  n = unused_nodes;
-  if (n)
-    unused_nodes = n->next;
-  else
-    {
-      if (!cleanup_registered)
-        {
-          cleanup_registered = 1;
-          register_mem_cleanup_func (release_unused_nodes);
-        }
-      n = (kbnode_t) xmalloc (sizeof *n);
-    }
+  n = (kbnode_t) xmalloc (sizeof *n);
   n->next = NULL;
   n->pkt = NULL;
   n->flag = 0;
@@ -77,14 +48,7 @@ static void
 free_node( KBNODE n )
 {
   if (n)
-    {
-#if USE_UNUSED_NODES
-      n->next = unused_nodes;
-      unused_nodes = n;
-#else
       xfree (n);
-#endif
-    }
 }
 
 
