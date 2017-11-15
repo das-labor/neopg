@@ -156,7 +156,6 @@ enum cmd_and_opt_values
     aPrintMDs,
     aCheckTrustDB,
     aUpdateTrustDB,
-    aFixTrustDB,
     aListTrustDB,
     aListTrustPath,
     aExportOwnerTrust,
@@ -452,7 +451,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aUpdateTrustDB,"update-trustdb",
               N_("update the trust database")),
   ARGPARSE_c (aCheckTrustDB, "check-trustdb", "@"),
-  ARGPARSE_c (aFixTrustDB, "fix-trustdb", "@"),
 #endif
 
   ARGPARSE_c (aDeArmor, "dearmor", "@"),
@@ -2090,7 +2088,6 @@ gpg_main (int argc, char **argv)
 	  case aListTrustDB:
 	  case aCheckTrustDB:
 	  case aUpdateTrustDB:
-	  case aFixTrustDB:
 	  case aListTrustPath:
 	  case aDeArmor:
 	  case aEnArmor:
@@ -3227,7 +3224,6 @@ gpg_main (int argc, char **argv)
       case aDeArmor:
       case aEnArmor:
 	break;
-      case aFixTrustDB:
       case aExportOwnerTrust:
         rc = setup_trustdb (0, trustdb_name);
         break;
@@ -3956,10 +3952,6 @@ gpg_main (int argc, char **argv)
       case aCheckTrustDB:
         /* Old versions allowed for arguments - ignore them */
         check_trustdb (ctrl);
-	break;
-
-      case aFixTrustDB:
-        how_to_fix_the_trustdb ();
 	break;
 
       case aListTrustPath:

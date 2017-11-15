@@ -126,7 +126,6 @@ struct key_item *tdb_utks (void);
 void check_trustdb (ctrl_t ctrl);
 void update_trustdb (ctrl_t ctrl);
 int setup_trustdb( int level, const char *dbname );
-void how_to_fix_the_trustdb (void);
 const char *trust_model_string (int model);
 gpg_error_t init_trustdb (ctrl_t ctrl, int no_create);
 int have_trustdb (ctrl_t ctrl);

@@ -418,27 +418,6 @@ setup_trustdb( int level, const char *dbname )
     return 0;
 }
 
-void
-how_to_fix_the_trustdb ()
-{
-  const char *name = trustdb_args.dbname;
-
-  if (!name)
-    name = "trustdb.gpg";
-
-  log_info (_("You may try to re-create the trustdb using the commands:\n"));
-  log_info ("  cd %s\n", default_homedir ());
-  log_info ("  %s --export-ownertrust > otrust.tmp\n", GPG_NAME);
-#ifdef HAVE_W32_SYSTEM
-  log_info ("  del %s\n", name);
-#else
-  log_info ("  rm %s\n", name);
-#endif
-  log_info ("  %s --import-ownertrust < otrust.tmp\n", GPG_NAME);
-  log_info (_("If that does not work, please consult the manual\n"));
-}
-
-
 /* Initialize the trustdb.  With NO_CREATE set a missing trustdb is
  * not an error and the function won't terminate the process on error;
  * in that case 0 is returned if there is a trustdb or an error code
