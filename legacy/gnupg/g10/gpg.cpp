@@ -3665,25 +3665,29 @@ gpg_main (int argc, char **argv)
       case aListSigs:
 	opt.list_sigs = true; /* fall through */
       case aListKeys:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    add_to_strlist2( &sl, *argv, utf8_strings );
-	public_key_list (ctrl, sl, 0);
-	free_strlist(sl);
+	{
+	  std::vector<std::string> list;
+	  for( ; argc; argc--, argv++ )
+	    list.emplace(list.begin(), str_to_utf8(*argv, utf8_strings));
+	  public_key_list (ctrl, list, 0);
+	}
 	break;
       case aListSecretKeys:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    add_to_strlist2( &sl, *argv, utf8_strings );
-	secret_key_list (ctrl, sl);
-	free_strlist(sl);
+	{
+	  std::vector<std::string> list;
+	  for( ; argc; argc--, argv++ )
+	    list.emplace(list.begin(), str_to_utf8(*argv, utf8_strings));
+	  secret_key_list (ctrl, list);
+	}
 	break;
       case aLocateKeys:
-	sl = NULL;
-	for (; argc; argc--, argv++)
-          add_to_strlist2( &sl, *argv, utf8_strings );
-	public_key_list (ctrl, sl, 1);
-	free_strlist (sl);
+	{
+	  std::vector<std::string> list;
+	  for( ; argc; argc--, argv++ )
+	    list.emplace(list.begin(), str_to_utf8(*argv, utf8_strings));
+	  public_key_list (ctrl, list, 1);
+	  free_strlist (sl);
+	}
 	break;
 
       case aQuickKeygen:

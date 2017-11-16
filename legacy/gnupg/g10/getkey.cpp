@@ -65,36 +65,33 @@ struct getkey_ctx_s
      returns the key or subkey that matched whereas a non-exact search
      typically returns the primary key.  See finish_lookup for
      details.  */
-  int exact;
+  int exact {0};
 
   /* Part of the search criteria: Whether the caller only wants keys
      with an available secret key.  This is used by getkey_next to get
      the next result with the same initial criteria.  */
-  int want_secret;
+  int want_secret {0};
 
   /* Part of the search criteria: The type of the requested key.  A
      mask of PUBKEY_USAGE_SIG, PUBKEY_USAGE_ENC and PUBKEY_USAGE_CERT.
      If non-zero, then for a key to match, it must implement one of
      the required uses.  */
-  int req_usage;
+  int req_usage {0};
 
   /* The database handle.  */
-  KEYDB_HANDLE kr_handle;
+  KEYDB_HANDLE kr_handle {nullptr};
 
   /* Whether we should call xfree() on the context when the context is
      released using getkey_end()).  */
-  int not_allocated;
+  int not_allocated {0};
 
   /* This variable is used as backing store for strings which have
      their address used in ITEMS.  */
-  strlist_t extra_list;
+  std::vector<std::string> extra_list;
 
   /* Part of the search criteria: The low-level search specification
      as passed to keydb_search.  */
-  int nitems;
-  /* This must be the last element in the structure.  When we allocate
-     the structure, we allocate it so that ITEMS can hold NITEMS.  */
-  KEYDB_SEARCH_DESC items[1];
+  std::vector<KEYDB_SEARCH_DESC> items;
 };
 
 typedef struct keyid_list
@@ -706,7 +703,7 @@ get_pubkey (ctrl_t ctrl, PKT_public_key * pk, u32 * keyid)
     struct getkey_ctx_s ctx;
     KBNODE kb = NULL;
     KBNODE found_key = NULL;
-    memset (&ctx, 0, sizeof ctx);
+
     ctx.exact = 1; /* Use the key ID exactly as given.  */
     ctx.not_allocated = 1;
 
@@ -725,10 +722,11 @@ get_pubkey (ctrl_t ctrl, PKT_public_key * pk, u32 * keyid)
             goto leave;
           }
       }
-    ctx.nitems = 1;
-    ctx.items[0].mode = KEYDB_SEARCH_MODE_LONG_KID;
-    ctx.items[0].u.kid[0] = keyid[0];
-    ctx.items[0].u.kid[1] = keyid[1];
+
+    ctx.items.emplace_back();
+    ctx.items.back().mode = KEYDB_SEARCH_MODE_LONG_KID;
+    ctx.items.back().u.kid[0] = keyid[0];
+    ctx.items.back().u.kid[1] = keyid[1];
     ctx.req_usage = pk->req_usage;
     rc = lookup (ctrl, &ctx, 0, &kb, &found_key);
     if (!rc)
@@ -846,10 +844,10 @@ get_pubkeyblock (ctrl_t ctrl, u32 * keyid)
   ctx.kr_handle = keydb_new ();
   if (!ctx.kr_handle)
     return NULL;
-  ctx.nitems = 1;
-  ctx.items[0].mode = KEYDB_SEARCH_MODE_LONG_KID;
-  ctx.items[0].u.kid[0] = keyid[0];
-  ctx.items[0].u.kid[1] = keyid[1];
+  ctx.items.emplace_back();
+  ctx.items.back().mode = KEYDB_SEARCH_MODE_LONG_KID;
+  ctx.items.back().u.kid[0] = keyid[0];
+  ctx.items.back().u.kid[1] = keyid[1];
   rc = lookup (ctrl, &ctx, 0, &keyblock, NULL);
   getkey_end (ctrl, &ctx);
 
@@ -882,16 +880,15 @@ get_seckey (ctrl_t ctrl, PKT_public_key *pk, u32 *keyid)
   kbnode_t keyblock = NULL;
   kbnode_t found_key = NULL;
 
-  memset (&ctx, 0, sizeof ctx);
   ctx.exact = 1; /* Use the key ID exactly as given.  */
   ctx.not_allocated = 1;
   ctx.kr_handle = keydb_new ();
   if (!ctx.kr_handle)
     return gpg_error_from_syserror ();
-  ctx.nitems = 1;
-  ctx.items[0].mode = KEYDB_SEARCH_MODE_LONG_KID;
-  ctx.items[0].u.kid[0] = keyid[0];
-  ctx.items[0].u.kid[1] = keyid[1];
+  ctx.items.emplace_back();
+  ctx.items.back().mode = KEYDB_SEARCH_MODE_LONG_KID;
+  ctx.items.back().u.kid[0] = keyid[0];
+  ctx.items.back().u.kid[1] = keyid[1];
   ctx.req_usage = pk->req_usage;
   err = lookup (ctrl, &ctx, 1, &keyblock, &found_key);
   if (!err)
@@ -1015,7 +1012,7 @@ leave:
    returned.  In particular, GPG_ERR_NO_PUBKEY or GPG_ERR_NO_SECKEY
    (if want_secret is set) is returned if the key is not found.  */
 static int
-key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
+key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, const std::vector<std::string>& namelist,
 	    PKT_public_key *pk,
 	    int want_secret, int include_unusable,
 	    KBNODE * ret_kb, KEYDB_HANDLE * ret_kdbhd)
@@ -1023,7 +1020,7 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
   int rc = 0;
   int n;
   strlist_t r;
-  GETKEY_CTX ctx;
+  GETKEY_CTX ctx = new getkey_ctx_s;
   KBNODE help_kb = NULL;
   KBNODE found_key = NULL;
 
@@ -1037,12 +1034,11 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
   if (ret_kdbhd)
     *ret_kdbhd = NULL;
 
-  if (!namelist)
+  if (namelist.empty())
     /* No search terms: iterate over the whole DB.  */
     {
-      ctx = (GETKEY_CTX) xmalloc_clear (sizeof *ctx);
-      ctx->nitems = 1;
-      ctx->items[0].mode = KEYDB_SEARCH_MODE_FIRST;
+      ctx->items.emplace_back();
+      ctx->items.back().mode = KEYDB_SEARCH_MODE_FIRST;
       if (!include_unusable)
         {
           ctx->items[0].skipfnc = skip_unusable;
@@ -1052,20 +1048,13 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
   else
     {
       /* Build the search context.  */
-      for (n = 0, r = namelist; r; r = r->next)
-	n++;
-
-      /* CTX has space for a single search term at the end.  Thus, we
-	 need to allocate sizeof *CTX plus (n - 1) sizeof
-	 CTX->ITEMS.  */
-      ctx = (GETKEY_CTX) xmalloc_clear (sizeof *ctx + (n - 1) * sizeof ctx->items);
-      ctx->nitems = n;
-
-      for (n = 0, r = namelist; r; r = r->next, n++)
+      ctx->items.resize(namelist.size());
+      n = 0;
+      for (auto& name : namelist)
 	{
 	  gpg_error_t err;
 
-	  err = classify_user_id (r->d, &ctx->items[n], 1);
+	  err = classify_user_id (name.c_str(), &ctx->items[n], 1);
 
 	  if (ctx->items[n].exact)
 	    ctx->exact = 1;
@@ -1084,6 +1073,7 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, strlist_t namelist,
               ctx->items[n].skipfnc = skip_unusable;
               ctx->items[n].skipfncvalue = ctrl;
             }
+	  n++;
 	}
     }
 
@@ -1184,7 +1174,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 		   KEYDB_HANDLE * ret_kdbhd, int include_unusable, int no_akl)
 {
   int rc;
-  strlist_t namelist = NULL;
+  std::vector<std::string> namelist;
   struct akl *akl;
   int is_mbox;
   int nodefault = 0;
@@ -1259,7 +1249,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
        * NAME does not appear to be an email address (in which case we
        * only try the local keyring).  In this case, lookup NAME in
        * the local keyring.  */
-      add_to_strlist (&namelist, name);
+      namelist.emplace(namelist.begin(), name);
       rc = key_byname (ctrl, retctx, namelist, pk, 0,
 		       include_unusable, ret_keyblock, ret_kdbhd);
     }
@@ -1296,7 +1286,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 		  getkey_end (ctrl, *retctx);
 		  *retctx = NULL;
 		}
-	      add_to_strlist (&namelist, name);
+	      namelist.emplace(namelist.begin(), name);
 	      rc = key_byname (ctrl, anylocalfirst ? retctx : NULL,
 			       namelist, pk, 0,
 			       include_unusable, ret_keyblock, ret_kdbhd);
@@ -1384,8 +1374,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 
 	      log_assert (fpr_len <= MAX_FINGERPRINT_LEN);
 
-	      free_strlist (namelist);
-	      namelist = NULL;
+	      namelist.clear();
 
 	      bin2hex (fpr, fpr_len, fpr_string);
 
@@ -1393,7 +1382,7 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 		log_info ("auto-key-locate found fingerprint %s\n",
 			  fpr_string);
 
-	      add_to_strlist (&namelist, fpr_string);
+	      namelist.emplace(namelist.begin(), fpr_string);
 	    }
 	  else if (!rc && !fpr && !did_akl_local)
             { /* The acquisition method said no failure occurred, but
@@ -1442,11 +1431,8 @@ get_pubkey_byname (ctrl_t ctrl, GETKEY_CTX * retctx, PKT_public_key * pk,
 
   if (retctx && *retctx)
     {
-      log_assert (!(*retctx)->extra_list);
       (*retctx)->extra_list = namelist;
     }
-  else
-    free_strlist (namelist);
 
   return rc;
 }
@@ -1635,10 +1621,10 @@ get_best_pubkey_byname (ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
                     {
                       u32 *keyid = pk_keyid (&best.key);
                       ctx->exact = 1;
-                      ctx->nitems = 1;
-                      ctx->items[0].mode = KEYDB_SEARCH_MODE_LONG_KID;
-                      ctx->items[0].u.kid[0] = keyid[0];
-                      ctx->items[0].u.kid[1] = keyid[1];
+		      ctx->items.emplace_back();
+                      ctx->items.back().mode = KEYDB_SEARCH_MODE_LONG_KID;
+                      ctx->items.back().u.kid[0] = keyid[0];
+                      ctx->items.back().u.kid[1] = keyid[1];
 
                       if (ret_keyblock)
                         {
@@ -1770,10 +1756,10 @@ get_pubkey_byfprint (ctrl_t ctrl, PKT_public_key *pk, kbnode_t *r_keyblock,
       if (!ctx.kr_handle)
         return gpg_error_from_syserror ();
 
-      ctx.nitems = 1;
-      ctx.items[0].mode = fprint_len == 16 ? KEYDB_SEARCH_MODE_FPR16
+      ctx.items.emplace_back();
+      ctx.items.back().mode = fprint_len == 16 ? KEYDB_SEARCH_MODE_FPR16
 	: KEYDB_SEARCH_MODE_FPR20;
-      memcpy (ctx.items[0].u.fpr, fprint, fprint_len);
+      memcpy (ctx.items.back().u.fpr, fprint, fprint_len);
       rc = lookup (ctrl, &ctx, 0, &kb, &found_key);
       if (!rc && pk)
 	pk_from_block (pk, kb, found_key);
@@ -2002,19 +1988,17 @@ gpg_error_t
 get_seckey_default (ctrl_t ctrl, PKT_public_key *pk)
 {
   gpg_error_t err;
-  strlist_t namelist = NULL;
+  std::vector<std::string> namelist;
   int include_unusable = 1;
 
 
   const char *def_secret_key = parse_def_secret_key (ctrl);
   if (def_secret_key)
-    add_to_strlist (&namelist, def_secret_key);
+    namelist.emplace(namelist.begin(), def_secret_key);
   else
     include_unusable = 0;
 
   err = key_byname (ctrl, NULL, namelist, pk, 1, include_unusable, NULL, NULL);
-
-  free_strlist (namelist);
 
   return err;
 }
@@ -2058,7 +2042,7 @@ get_seckey_default (ctrl_t ctrl, PKT_public_key *pk)
  * (if want_secret is set) is returned if the key is not found.  */
 gpg_error_t
 getkey_bynames (ctrl_t ctrl, getkey_ctx_t *retctx, PKT_public_key *pk,
-                strlist_t names, int want_secret, kbnode_t *ret_keyblock)
+                const std::vector<std::string>& names, int want_secret, kbnode_t *ret_keyblock)
 {
   return key_byname (ctrl, retctx, names, pk, want_secret, 1,
                      ret_keyblock, NULL);
@@ -2110,7 +2094,7 @@ getkey_byname (ctrl_t ctrl, getkey_ctx_t *retctx, PKT_public_key *pk,
                const char *name, int want_secret, kbnode_t *ret_keyblock)
 {
   gpg_error_t err;
-  strlist_t namelist = NULL;
+  std::vector<std::string> namelist;
   int with_unusable = 1;
   const char *def_secret_key = NULL;
 
@@ -2118,9 +2102,9 @@ getkey_byname (ctrl_t ctrl, getkey_ctx_t *retctx, PKT_public_key *pk,
     def_secret_key = parse_def_secret_key (ctrl);
 
   if (want_secret && !name && def_secret_key)
-    add_to_strlist (&namelist, def_secret_key);
+    namelist.emplace(namelist.begin(), def_secret_key);
   else if (name)
-    add_to_strlist (&namelist, name);
+    namelist.emplace(namelist.begin(), name);
   else
     with_unusable = 0;
 
@@ -2129,8 +2113,6 @@ getkey_byname (ctrl_t ctrl, getkey_ctx_t *retctx, PKT_public_key *pk,
 
   /* FIXME: Check that we really return GPG_ERR_NO_SECKEY if
      WANT_SECRET has been used.  */
-
-  free_strlist (namelist);
 
   return err;
 }
@@ -2213,7 +2195,6 @@ getkey_end (ctrl_t ctrl, getkey_ctx_t ctx)
 
 #endif /*!HAVE_W32_SYSTEM*/
 
-      free_strlist (ctx->extra_list);
       if (!ctx->not_allocated)
 	xfree (ctx);
     }
@@ -3696,7 +3677,7 @@ lookup (ctrl_t ctrl, getkey_ctx_t ctx, int want_secret,
 
   for (;;)
     {
-      rc = keydb_search (ctx->kr_handle, ctx->items, ctx->nitems, NULL);
+      rc = keydb_search (ctx->kr_handle, ctx->items.data(), ctx->items.size(), NULL);
       if (rc)
         break;
 
@@ -3704,8 +3685,8 @@ lookup (ctrl_t ctrl, getkey_ctx_t ctx, int want_secret,
 	 change from KEYDB_SEARCH_MODE_FIRST, which does an implicit
 	 reset, to KEYDB_SEARCH_MODE_NEXT, which gets the next
 	 record.  */
-      if (ctx->nitems && ctx->items->mode == KEYDB_SEARCH_MODE_FIRST)
-	ctx->items->mode = KEYDB_SEARCH_MODE_NEXT;
+      if (!ctx->items.empty() && ctx->items[0].mode == KEYDB_SEARCH_MODE_FIRST)
+	ctx->items[0].mode = KEYDB_SEARCH_MODE_NEXT;
 
       rc = keydb_get_keyblock (ctx->kr_handle, &keyblock);
       if (rc)
@@ -3880,16 +3861,19 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
                   break;
 
                 case 3: /* Init search context to enum all secret keys.  */
-                  err = getkey_bynames (ctrl, &c->ctx, NULL, NULL, 1,
-                                        &keyblock);
-                  if (err)
-                    {
-                      release_kbnode (keyblock);
-                      keyblock = NULL;
-                      getkey_end (ctrl, c->ctx);
-                      c->ctx = NULL;
-                    }
-                  c->state++;
+		  {
+		    std::vector<std::string> namelist;
+		    err = getkey_bynames (ctrl, &c->ctx, NULL, namelist, 1,
+					  &keyblock);
+		    if (err)
+		      {
+			release_kbnode (keyblock);
+			keyblock = NULL;
+			getkey_end (ctrl, c->ctx);
+			c->ctx = NULL;
+		      }
+		    c->state++;
+		  }
                   break;
 
                 case 4: /* Get next item from the context.  */
@@ -3956,12 +3940,12 @@ get_seckey_default_or_card (ctrl_t ctrl, PKT_public_key *pk,
                             const byte *fpr_card, size_t fpr_len)
 {
   gpg_error_t err;
-  strlist_t namelist = NULL;
+  std::vector<std::string> namelist;
 
   const char *def_secret_key = parse_def_secret_key (ctrl);
 
   if (def_secret_key)
-    add_to_strlist (&namelist, def_secret_key);
+    namelist.emplace(namelist.begin(), def_secret_key);
   else if (fpr_card)
     return get_pubkey_byfprint (ctrl, pk, NULL, fpr_card, fpr_len);
 
@@ -3998,8 +3982,6 @@ get_seckey_default_or_card (ctrl_t ctrl, PKT_public_key *pk,
           }
       release_kbnode (keyblock);
     }
-
-  free_strlist (namelist);
 
   return err;
 }

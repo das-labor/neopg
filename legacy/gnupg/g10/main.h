@@ -435,8 +435,8 @@ struct revocation_reason_info * get_default_uid_revocation_reason(void);
 void release_revocation_reason_info( struct revocation_reason_info *reason );
 
 /*-- keylist.c --*/
-void public_key_list (ctrl_t ctrl, strlist_t list, int locate_mode );
-void secret_key_list (ctrl_t ctrl, strlist_t list );
+void public_key_list (ctrl_t ctrl, const std::vector<std::string>& list, int locate_mode );
+void secret_key_list (ctrl_t ctrl, const std::vector<std::string>& list );
 void print_subpackets_colon(PKT_signature *sig);
 void reorder_keyblock (KBNODE keyblock);
 void list_keyblock_direct (ctrl_t ctrl, kbnode_t keyblock, int secret,

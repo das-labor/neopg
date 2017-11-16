@@ -50,8 +50,8 @@
 
 static void list_all (ctrl_t, int, int);
 static void list_one (ctrl_t ctrl,
-                      strlist_t names, int secret, int mark_secret);
-static void locate_one (ctrl_t ctrl, strlist_t names);
+                      const std::vector<std::string>& names, int secret, int mark_secret);
+static void locate_one (ctrl_t ctrl, const std::vector<std::string>& names);
 static void print_card_serialno (const char *serialno);
 
 struct keylist_context
@@ -86,7 +86,7 @@ keylist_context_release (struct keylist_context *listctx)
    With LOCATE_MODE set the locate algorithm is used to find a
    key.  */
 void
-public_key_list (ctrl_t ctrl, strlist_t list, int locate_mode)
+public_key_list (ctrl_t ctrl, const std::vector<std::string>& list, int locate_mode)
 {
 #ifndef NO_TRUST_MODELS
   if (opt.with_colons)
@@ -141,7 +141,7 @@ public_key_list (ctrl_t ctrl, strlist_t list, int locate_mode)
 
   if (locate_mode)
     locate_one (ctrl, list);
-  else if (!list)
+  else if (list.empty())
     list_all (ctrl, 0, opt.with_secret);
   else
     list_one (ctrl, list, 0, opt.with_secret);
@@ -153,13 +153,13 @@ public_key_list (ctrl_t ctrl, strlist_t list, int locate_mode)
 
 
 void
-secret_key_list (ctrl_t ctrl, strlist_t list)
+secret_key_list (ctrl_t ctrl, const std::vector<std::string>& list)
 {
   (void)ctrl;
 
   check_trustdb_stale (ctrl);
 
-  if (!list)
+  if (list.empty())
     list_all (ctrl, 1, 0);
   else				/* List by user id */
     list_one (ctrl, list, 1, 0);
@@ -583,7 +583,7 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
 
 
 static void
-list_one (ctrl_t ctrl, strlist_t names, int secret, int mark_secret)
+list_one (ctrl_t ctrl, const std::vector<std::string>& names, int secret, int mark_secret)
 {
   int rc = 0;
   KBNODE keyblock = NULL;
@@ -639,10 +639,9 @@ list_one (ctrl_t ctrl, strlist_t names, int secret, int mark_secret)
 
 
 static void
-locate_one (ctrl_t ctrl, strlist_t names)
+locate_one (ctrl_t ctrl, const std::vector<std::string>& names)
 {
   int rc = 0;
-  strlist_t sl;
   GETKEY_CTX ctx = NULL;
   KBNODE keyblock = NULL;
   struct keylist_context listctx;
@@ -651,16 +650,16 @@ locate_one (ctrl_t ctrl, strlist_t names)
   if (opt.check_sigs)
     listctx.check_sigs = 1;
 
-  for (sl = names; sl; sl = sl->next)
+  for (auto& sl : names)
     {
-      rc = get_best_pubkey_byname (ctrl, &ctx, NULL, sl->d, &keyblock, 1, 0);
+      rc = get_best_pubkey_byname (ctrl, &ctx, NULL, sl.c_str(), &keyblock, 1, 0);
       if (rc)
 	{
 	  if (rc != GPG_ERR_NO_PUBKEY)
 	    log_error ("error reading key: %s\n", gpg_strerror (rc));
           else if (opt.verbose)
             log_info (_("key \"%s\" not found: %s\n"),
-                      sl->d, gpg_strerror (rc));
+                      sl.c_str(), gpg_strerror (rc));
 	}
       else
 	{

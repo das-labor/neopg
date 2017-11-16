@@ -22,6 +22,9 @@
 #ifndef G10_KEYDB_H
 #define G10_KEYDB_H
 
+#include <vector>
+#include <string>
+
 #include "../common/types.h"
 #include "../common/util.h"
 #include "packet.h"
@@ -355,7 +358,7 @@ gpg_error_t get_seckey_default_or_card (ctrl_t ctrl, PKT_public_key *pk,
 /* Search for keys matching some criteria.  */
 gpg_error_t getkey_bynames (ctrl_t ctrl,
                             getkey_ctx_t *retctx, PKT_public_key *pk,
-                            strlist_t names, int want_secret,
+                            const std::vector<std::string>& names, int want_secret,
                             kbnode_t *ret_keyblock);
 
 /* Search for one key matching some criteria.  */
