@@ -467,7 +467,7 @@ void decrypt_messages (ctrl_t ctrl, int nfiles, char *files[]);
 
 /*-- plaintext.c --*/
 int hash_datafiles( gcry_md_hd_t md, gcry_md_hd_t md2,
-		    strlist_t files, const char *sigfilename, int textmode);
+		    const boost::optional<std::vector<std::string>>& files, const char *sigfilename, int textmode);
 int hash_datafile_by_fd ( gcry_md_hd_t md, gcry_md_hd_t md2, int data_fd,
                           int textmode );
 PKT_plaintext *setup_plaintext_name(const char *filename,IOBUF iobuf);

@@ -55,7 +55,7 @@ verify_signatures (ctrl_t ctrl, int nfiles, char **files )
     progress_filter_context_t *pfx = new_progress_context ();
     const char *sigfile;
     int i, rc;
-    strlist_t sl;
+    std::vector<std::string> file_list;
 
     /* Decide whether we should handle a detached or a normal signature,
      * which is needed so that the code later can hash the correct data and
@@ -105,11 +105,9 @@ verify_signatures (ctrl_t ctrl, int nfiles, char **files )
 	push_armor_filter (afx, fp);
       }
 
-    sl = NULL;
-    for(i=nfiles-1 ; i > 0 ; i-- )
-	add_to_strlist( &sl, files[i] );
-    rc = proc_signature_packets (ctrl, NULL, fp, sl, sigfile );
-    free_strlist(sl);
+    for (i = 1; i < nfiles; i++)
+      file_list.emplace_back(files[i]);
+    rc = proc_signature_packets (ctrl, NULL, fp, file_list, sigfile );
     iobuf_close(fp);
     if( (afx && afx->no_openpgp_data && rc == -1)
         || rc == GPG_ERR_NO_DATA ) {
@@ -171,7 +169,7 @@ verify_one_file (ctrl_t ctrl, const char *name )
 	}
     }
 
-    rc = proc_signature_packets (ctrl, NULL, fp, NULL, name );
+    rc = proc_signature_packets (ctrl, NULL, fp, boost::none, name );
     iobuf_close(fp);
     write_status( STATUS_FILE_DONE );
 

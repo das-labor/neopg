@@ -22,6 +22,10 @@
 #ifndef G10_PACKET_H
 #define G10_PACKET_H
 
+#include <vector>
+#include <string>
+#include <boost/optional.hpp>
+
 #include "../common/types.h"
 #include "../common/iobuf.h"
 #include "../common/strlist.h"
@@ -598,7 +602,7 @@ typedef struct notation *notation_t;
 void reset_literals_seen(void);
 int proc_packets (ctrl_t ctrl, void *ctx, iobuf_t a );
 int proc_signature_packets (ctrl_t ctrl, void *ctx, iobuf_t a,
-			    strlist_t signedfiles, const char *sigfile );
+			    const boost::optional<std::vector<std::string>>& signedfiles, const char *sigfile );
 int proc_signature_packets_by_fd (ctrl_t ctrl,
                                   void *anchor, IOBUF a, int signed_data_fd );
 int proc_encryption_packets (ctrl_t ctrl, void *ctx, iobuf_t a);

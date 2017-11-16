@@ -607,12 +607,12 @@ leave:
 /* Hash the given files and append the hash to hash contexts MD and
  * MD2.  If FILES is NULL, stdin is hashed.  */
 int
-hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2, strlist_t files,
+hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2,
+		const boost::optional<std::vector<std::string>>& files,
 		const char *sigfilename, int textmode)
 {
   progress_filter_context_t *pfx;
   IOBUF fp;
-  strlist_t sl;
 
   pfx = new_progress_context ();
 
@@ -640,9 +640,9 @@ hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2, strlist_t files,
     }
 
 
-  for (sl = files; sl; sl = sl->next)
+  for (auto& sl : *files)
     {
-      fp = iobuf_open (sl->d);
+      fp = iobuf_open (sl.c_str());
       if (fp && is_secured_file (iobuf_get_fd (fp)))
 	{
 	  iobuf_close (fp);
@@ -653,11 +653,11 @@ hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2, strlist_t files,
 	{
 	  int rc = gpg_error_from_syserror ();
 	  log_error (_("can't open signed data '%s'\n"),
-		     print_fname_stdin (sl->d));
+		     print_fname_stdin (sl.c_str()));
 	  release_progress_context (pfx);
 	  return rc;
 	}
-      handle_progress (pfx, fp, sl->d);
+      handle_progress (pfx, fp, sl.c_str());
       do_hash (md, md2, fp, textmode);
       iobuf_close (fp);
     }
