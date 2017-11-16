@@ -321,7 +321,7 @@ proc_symkey_enc (CTX c, PACKET *pkt)
       if (opt.override_session_key)
         {
           c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
-          if (get_override_session_key (c->dek, opt.override_session_key))
+          if (get_override_session_key (c->dek, opt.override_session_key->c_str()))
             {
               xfree (c->dek);
               c->dek = NULL;
@@ -396,7 +396,7 @@ proc_pubkey_enc (ctrl_t ctrl, CTX c, PACKET *pkt)
        * secure memory because it has already been passed on the
        * command line and the GCHQ knows about it.  */
       c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
-      result = get_override_session_key (c->dek, opt.override_session_key);
+      result = get_override_session_key (c->dek, opt.override_session_key->c_str());
       if (result)
         {
           xfree (c->dek);
@@ -551,7 +551,7 @@ proc_encrypted (CTX c, PACKET *pkt)
       if (opt.override_session_key)
         {
           c->dek = (DEK*) xmalloc_clear (sizeof *c->dek);
-          result = get_override_session_key (c->dek, opt.override_session_key);
+          result = get_override_session_key (c->dek, opt.override_session_key->c_str());
           if (result)
             {
               xfree (c->dek);

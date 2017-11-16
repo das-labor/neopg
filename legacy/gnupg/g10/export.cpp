@@ -1239,7 +1239,7 @@ write_keyblock_to_output (kbnode_t keyblock, int with_armor,
   iobuf_t out_help = NULL;
   PKT_public_key *pk = NULL;
 
-  fname = opt.outfile? opt.outfile : "-";
+  fname = opt.outfile? opt.outfile->c_str() : "-";
   if (is_secured_filename (fname) )
     return GPG_ERR_EPERM;
 
@@ -2310,8 +2310,8 @@ export_ssh_key (ctrl_t ctrl, const char *userid)
   if (!identifier)
     goto leave;
 
-  if (opt.outfile && *opt.outfile && strcmp (opt.outfile, "-"))
-    fp = es_fopen ((fname = opt.outfile), "w");
+  if (opt.outfile && opt.outfile->length() && strcmp (opt.outfile->c_str(), "-"))
+    fp = es_fopen ((fname = opt.outfile->c_str()), "w");
   else
     fp = es_stdout;
   if (!fp)

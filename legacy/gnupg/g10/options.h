@@ -21,6 +21,11 @@
 #ifndef G10_OPTIONS_H
 #define G10_OPTIONS_H
 
+#include <vector>
+#include <string>
+#include <utility>
+#include <boost/optional.hpp>
+
 #include <sys/types.h>
 #include "../common/types.h"
 #include <stdint.h>
@@ -176,7 +181,7 @@ struct options
   bool quiet {false};
   unsigned debug {0};
   bool armor {false};
-  const char *outfile {nullptr};
+  boost::optional<std::string> outfile;
   estream_t outfp {0};  /* Hack, sometimes used in place of outfile.  */
   off_t max_output {0};
 
@@ -186,9 +191,9 @@ struct options
   bool mimemode {false};
   bool textmode {false};
   bool expert {false};
-  const char *def_sig_expire {"0"};
+  boost::optional<std::string> def_sig_expire {"0"};
   bool ask_sig_expire {false};
-  const char *def_cert_expire {"0"};
+  boost::optional<std::string> def_cert_expire {"0"};
   bool ask_cert_expire {false};
   bool batch {false};	    /* run in batch mode */
   bool answer_yes {false}; /* answer yes on most questions */
@@ -211,14 +216,14 @@ struct options
   int def_digest_algo {0};
   int cert_digest_algo {0};
   int compress_algo {-1}; /* defaults to DEFAULT_COMPRESS_ALGO */
-  strlist_t def_secret_key {nullptr};
-  char *def_recipient {nullptr};
+  std::vector<std::pair<std::string, unsigned int>> def_secret_key;
+  boost::optional<std::string> def_recipient;
   int def_recipient_self {0};
-  strlist_t secret_keys_to_try {nullptr};
+  std::vector<std::string> secret_keys_to_try;
 
   /* A list of mail addresses (addr-spec) provided by the user with
    * the option --sender.  */
-  strlist_t sender_list {nullptr};
+  std::vector<std::string> sender_list;
 
   int def_cert_level {0};
   int min_cert_level {2};
@@ -227,11 +232,11 @@ struct options
   int completes_needed {1};
   int max_cert_depth {5};
 
-  const char *def_new_key_algo {nullptr};
+  boost::optional<std::string> def_new_key_algo;
 
   /* Options to be passed to the gpg-agent */
-  char *lc_ctype {nullptr};
-  char *lc_messages {nullptr};
+  boost::optional<std::string> lc_ctype;
+  boost::optional<std::string> lc_messages;
 
   bool skip_verify {false};
   bool skip_hidden_recipients {false};
@@ -261,7 +266,7 @@ struct options
     unsigned int options {KEYSERVER_HONOR_PKA_RECORD};
     unsigned int import_options {(IMPORT_REPAIR_KEYS | IMPORT_REPAIR_PKS_SUBKEY_BUG)};
     unsigned int export_options {EXPORT_ATTRIBUTES};
-    char *http_proxy {nullptr};
+    boost::optional<std::string> http_proxy;
   } keyserver_options;
   unsigned int import_options {IMPORT_REPAIR_KEYS};
   unsigned int export_options {EXPORT_ATTRIBUTES};
@@ -271,34 +276,30 @@ struct options
 				| VERIFY_SHOW_POLICY_URLS
 				| VERIFY_SHOW_STD_NOTATIONS
 				| VERIFY_SHOW_KEYSERVER_URLS)};
-  const char *def_preference_list {nullptr};
-  const char *def_keyserver_url {nullptr};
+  boost::optional<std::string> def_preference_list;
+  boost::optional<std::string> def_keyserver_url;
   prefitem_t *personal_cipher_prefs {nullptr};
   prefitem_t *personal_digest_prefs {nullptr};
   prefitem_t *personal_compress_prefs {nullptr};
   struct weakhash *weak_digests {NULL};
   bool no_perm_warn {false};
-  char *temp_dir {nullptr};
   bool no_encrypt_to {false};
   int encrypt_to_default_key {0};
   bool interactive {false};
   struct notation *sig_notations {nullptr};
   struct notation *cert_notations {nullptr};
-  strlist_t sig_policy_url {nullptr};
-  strlist_t cert_policy_url {nullptr};
-  strlist_t sig_keyserver_url {nullptr};
-  strlist_t cert_subpackets {nullptr};
-  strlist_t sig_subpackets {nullptr};
+  std::vector<std::pair<std::string, unsigned int>> sig_policy_url;
+  std::vector<std::pair<std::string, unsigned int>> cert_policy_url;
+  std::vector<std::pair<std::string, unsigned int>> sig_keyserver_url;
   bool allow_non_selfsigned_uid {false};
   bool allow_freeform_uid {false};
   bool ignore_time_conflict {false};
   bool ignore_valid_from {false};
   bool ignore_crc_error {false};
   int command_fd {-1};
-  const char *override_session_key {nullptr};
+  boost::optional<std::string> override_session_key;
   bool show_session_key {false};
 
-  const char *gpg_agent_info {nullptr};
   bool try_all_secrets {false};
   bool no_sig_cache {false};
   bool no_auto_check_trustdb {false};

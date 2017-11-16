@@ -20,6 +20,9 @@
 #ifndef G10_MAIN_H
 #define G10_MAIN_H
 
+#include <string>
+#include <boost/optional.hpp>
+
 #include "../common/types.h"
 #include "../common/iobuf.h"
 #include "keydb.h"
@@ -288,7 +291,9 @@ gpg_error_t delete_keys (ctrl_t ctrl,
 /*-- keygen.c --*/
 const char *get_default_pubkey_algo (void);
 u32 parse_expire_string(const char *string);
+u32 parse_expire_string(boost::optional<std::string>);
 u32 ask_expire_interval(int object,const char *def_expire);
+u32 ask_expire_interval(int object,boost::optional<std::string>);
 u32 ask_expiredate(void);
 unsigned int ask_key_flags (int algo, int subkey, unsigned int current);
 void quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,

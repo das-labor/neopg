@@ -81,6 +81,23 @@ struct glo_ctrl glo_ctrl;
 int memory_debug_mode;
 int memory_stat_debug_mode;
 
+std::string
+str_to_utf8(const char *string, int is_utf8)
+{
+  if (is_utf8)
+    return string;
+  else
+    {
+      char *p = native_to_utf8( string );
+      std::string str {p};
+      xfree ( p );
+      return str;
+    }
+}
+
+
+
+
 enum cmd_and_opt_values
   {
     aNull = 0,
@@ -281,7 +298,6 @@ enum cmd_and_opt_values
     oExportFilter,
     oListOptions,
     oVerifyOptions,
-    oTempDir,
     oEncryptTo,
     oHiddenEncryptTo,
     oNoEncryptTo,
@@ -473,7 +489,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oDefRecipientSelf,  "default-recipient-self", "@"),
   ARGPARSE_s_n (oNoDefRecipient, "no-default-recipient", "@"),
 
-  ARGPARSE_s_s (oTempDir,  "temp-directory", "@"),
   ARGPARSE_s_s (oEncryptTo,      "encrypt-to", "@"),
   ARGPARSE_s_n (oNoEncryptTo, "no-encrypt-to", "@"),
   ARGPARSE_s_s (oHiddenEncryptTo, "hidden-encrypt-to", "@"),
@@ -2243,24 +2258,24 @@ gpg_main (int argc, char **argv)
 
 #endif /*!NO_TRUST_MODELS*/
 	  case oDefaultKey:
-            sl = add_to_strlist (&opt.def_secret_key, pargs.r.ret_str);
-            sl->flags = (pargs.r_opt << PK_LIST_SHIFT);
-            if (configfp)
-              sl->flags |= PK_LIST_CONFIG;
+            {
+	      unsigned int fl = 0;
+	      fl = (pargs.r_opt << PK_LIST_SHIFT);
+	      if (configfp)
+		fl |= PK_LIST_CONFIG;
+	      opt.def_secret_key.emplace_back(pargs.r.ret_str, fl);
+	    }
             break;
 	  case oDefRecipient:
             if( *pargs.r.ret_str )
-	      {
-		xfree (opt.def_recipient);
 		opt.def_recipient = make_username(pargs.r.ret_str);
-	      }
             break;
 	  case oDefRecipientSelf:
-            xfree(opt.def_recipient); opt.def_recipient = NULL;
+            opt.def_recipient = boost::none;
             opt.def_recipient_self = 1;
             break;
 	  case oNoDefRecipient:
-            xfree(opt.def_recipient); opt.def_recipient = NULL;
+            opt.def_recipient = boost::none;
             opt.def_recipient_self = 0;
             break;
 	  case oHomedir: break;
@@ -2420,8 +2435,7 @@ gpg_main (int argc, char **argv)
             break;
 
 	  case oTrySecretKey:
-	    add_to_strlist2 (&opt.secret_keys_to_try,
-                             pargs.r.ret_str, utf8_strings);
+	    opt.secret_keys_to_try.emplace_back(str_to_utf8(pargs.r.ret_str, utf8_strings));
 	    break;
 
           case oMimemode:
@@ -2502,7 +2516,7 @@ gpg_main (int argc, char **argv)
                            pargs.r.ret_str);
               else
                 {
-                  add_to_strlist (&opt.sender_list, mbox);
+		  opt.sender_list.emplace_back(mbox);
                   xfree (mbox);
                 }
             }
@@ -2683,7 +2697,6 @@ gpg_main (int argc, char **argv)
 		}
 	    }
 	    break;
-	  case oTempDir: opt.temp_dir=pargs.r.ret_str; break;
 	  case oSetNotation:
 	    add_notation_data( pargs.r.ret_str, 0 );
 	    add_notation_data( pargs.r.ret_str, 1 );
@@ -3127,7 +3140,7 @@ gpg_main (int argc, char **argv)
     /* This isn't actually needed, but does serve to error out if the
        string is invalid. */
     if(opt.def_preference_list &&
-	keygen_set_std_prefs(opt.def_preference_list,0))
+       keygen_set_std_prefs(opt.def_preference_list->c_str(),0))
       log_error(_("invalid default preferences\n"));
 
     if(pers_cipher_list &&
@@ -4544,7 +4557,6 @@ static void
 add_policy_url( const char *string, int which )
 {
   unsigned int i,critical=0;
-  strlist_t sl;
 
   if(*string=='!')
     {
@@ -4565,19 +4577,15 @@ add_policy_url( const char *string, int which )
     }
 
   if(which)
-    sl=add_to_strlist( &opt.cert_policy_url, string );
+    opt.cert_policy_url.emplace_back(string, critical ? 1 : 0);
   else
-    sl=add_to_strlist( &opt.sig_policy_url, string );
-
-  if(critical)
-    sl->flags |= 1;
+    opt.sig_policy_url.emplace_back(string, critical ? 1 : 0);
 }
 
 static void
 add_keyserver_url( const char *string, int which )
 {
   unsigned int i,critical=0;
-  strlist_t sl;
 
   if(*string=='!')
     {
@@ -4600,10 +4608,7 @@ add_keyserver_url( const char *string, int which )
   if(which)
     BUG();
   else
-    sl=add_to_strlist( &opt.sig_keyserver_url, string );
-
-  if(critical)
-    sl->flags |= 1;
+    opt.sig_keyserver_url.emplace_back(string, critical ? 1 : 0);
 }
 
 

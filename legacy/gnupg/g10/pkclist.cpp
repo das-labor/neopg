@@ -736,7 +736,7 @@ default_recipient(ctrl_t ctrl)
     int i;
 
     if( opt.def_recipient )
-	return xstrdup( opt.def_recipient );
+      return xstrdup( opt.def_recipient->c_str() );
     if( !opt.def_recipient_self )
 	return NULL;
     pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
@@ -989,7 +989,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
               pk_list = r;
             }
         }
-      else if (opt.def_secret_key)
+      else if (!opt.def_secret_key.empty())
         {
           if (! warned)
             log_info (_("option '%s' given, but no valid default keys given\n"),

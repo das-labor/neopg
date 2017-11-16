@@ -191,7 +191,8 @@ start_agent (ctrl_t ctrl, int flag_for_card)
   else
     {
       rc = start_new_gpg_agent (&agent_ctx,
-                                opt.lc_ctype, opt.lc_messages,
+                                opt.lc_ctype ? opt.lc_ctype->c_str() : NULL,
+				opt.lc_messages ? opt.lc_messages->c_str() : NULL,
                                 opt.autostart, opt.verbose, DBG_IPC,
                                 NULL, NULL);
       if (!opt.autostart && rc == GPG_ERR_NO_AGENT)

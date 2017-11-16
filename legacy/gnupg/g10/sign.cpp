@@ -100,50 +100,55 @@ mk_notation_policy_etc (PKT_signature *sig,
     }
 
   /* Set policy URL. */
-  if (IS_SIG(sig) && opt.sig_policy_url)
-    pu = opt.sig_policy_url;
-  else if (IS_CERT(sig) && opt.cert_policy_url)
-    pu = opt.cert_policy_url;
-
-  for (; pu; pu = pu->next)
+  std::vector<std::pair<std::string, unsigned int>> *policy_url = nullptr;
+  if (IS_SIG(sig) && !opt.sig_policy_url.empty())
+    policy_url = &opt.sig_policy_url;
+  else if (IS_CERT(sig) && !opt.cert_policy_url.empty())
+    policy_url = &opt.cert_policy_url;
+  if (policy_url)
     {
-      string = pu->d;
+      for (auto&& pu_ : *policy_url)
+	{
+	  string = pu_.first.c_str();
+	  unsigned int flags = pu_.second;
 
-      p = pct_expando (string, &args);
-      if (!p)
-        {
-          log_error(_("WARNING: unable to %%-expand policy URL "
-                      "(too large).  Using unexpanded.\n"));
-          p = xstrdup(string);
-        }
+	  p = pct_expando (string, &args);
+	  if (!p)
+	    {
+	      log_error(_("WARNING: unable to %%-expand policy URL "
+			  "(too large).  Using unexpanded.\n"));
+	      p = xstrdup(string);
+	    }
 
-      build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_POLICY
-                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
-                        (const byte*) (p), strlen (p));
+	  build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_POLICY
+						     | ((flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
+			    (const byte*) (p), strlen (p));
 
-      xfree (p);
+	  xfree (p);
+	}
     }
 
   /* Preferred keyserver URL. */
-  if (IS_SIG(sig) && opt.sig_keyserver_url)
-    pu = opt.sig_keyserver_url;
-
-  for (; pu; pu = pu->next)
+  if (IS_SIG(sig))
     {
-      string = pu->d;
+      for (auto&& pu_ : opt.sig_keyserver_url)
+	{
+	  string = pu_.first.c_str();
+	  unsigned int flags = pu_.second;
 
-      p = pct_expando (string, &args);
-      if (!p)
-        {
-          log_error (_("WARNING: unable to %%-expand preferred keyserver URL"
-                       " (too large).  Using unexpanded.\n"));
-          p = xstrdup (string);
-        }
+	  p = pct_expando (string, &args);
+	  if (!p)
+	    {
+	      log_error (_("WARNING: unable to %%-expand preferred keyserver URL"
+			   " (too large).  Using unexpanded.\n"));
+	      p = xstrdup (string);
+	    }
 
-      build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_PREF_KS
-                              | ((pu->flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
-                        (const byte*) (p), strlen (p));
-      xfree (p);
+	  build_sig_subpkt (sig, (sigsubpkttype_t) ((SIGSUBPKT_PREF_KS
+						     | ((flags & 1)?SIGSUBPKT_FLAG_CRITICAL:0))),
+			    (const byte*) (p), strlen (p));
+	  xfree (p);
+	}
     }
 
   /* Set signer's user id.  */
@@ -159,7 +164,7 @@ mk_notation_policy_etc (PKT_signature *sig,
           build_sig_subpkt (sig, SIGSUBPKT_SIGNERS_UID, (const byte*) (mbox), strlen (mbox));
           xfree (mbox);
         }
-      else if (opt.sender_list)
+      else if (! opt.sender_list.empty())
         {
           /* If a list of --sender was given we scan that list and use
            * the first one matching a user id of the current key.  */
@@ -171,8 +176,9 @@ mk_notation_policy_etc (PKT_signature *sig,
            * ids.  Too much of a change right now.  Let's take just
            * one from the supplied list and hope that the caller
            * passed a matching one.  */
+	  const std::string& sender {opt.sender_list[0]};
           build_sig_subpkt (sig, SIGSUBPKT_SIGNERS_UID,
-                            (const byte*) (opt.sender_list->d), strlen (opt.sender_list->d));
+                            (const byte*) sender.c_str(), sender.length());
         }
     }
 }
@@ -700,8 +706,8 @@ write_signature_packets (ctrl_t ctrl,
       if (!sig)
         return gpg_error_from_syserror ();
 
-      if (duration || opt.sig_policy_url
-          || opt.sig_notations || opt.sig_keyserver_url)
+      if (duration || !opt.sig_policy_url.empty()
+          || opt.sig_notations || !opt.sig_keyserver_url.empty())
         sig->version = 4;
       else
         sig->version = pk->version;

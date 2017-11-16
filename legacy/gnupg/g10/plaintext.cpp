@@ -67,7 +67,7 @@ get_output_file (iobuf_t data, char **fnamep, estream_t *fpp)
     }
   else if (opt.outfile)
     {
-      fname = xtrystrdup (opt.outfile);
+      fname = xtrystrdup (opt.outfile->c_str());
       if (!fname)
         {
           err = gpg_error_from_syserror ();

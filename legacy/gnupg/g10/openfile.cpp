@@ -219,7 +219,7 @@ open_outfile (int inp_fd, const char *iname, int mode, int restrictedperm,
       if (opt.dry_run)
         name = NAME_OF_DEV_NULL;
       else if (opt.outfile)
-        name = opt.outfile;
+        name = opt.outfile->c_str();
       else
         {
 	  buf = xstrconcat (iname,

@@ -44,7 +44,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 include(CodeCoverage)
 APPEND_COVERAGE_COMPILER_FLAGS()
 
-set(COVERAGE_EXCLUDES '*/3rdparty/*' '*/legacy/*' '*/usr/*' '*/nix/store/*')
+set(COVERAGE_EXCLUDES '*/3rdparty/*' '*/usr/*' '*/nix/store/*')
 SETUP_TARGET_FOR_COVERAGE(
      NAME coverage
      EXECUTABLE test-neopg

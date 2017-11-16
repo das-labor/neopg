@@ -158,8 +158,8 @@ get_default_pubkey_algo (void)
 {
   if (opt.def_new_key_algo)
     {
-      if (*opt.def_new_key_algo && !strchr (opt.def_new_key_algo, ':'))
-        return opt.def_new_key_algo;
+      if (opt.def_new_key_algo->length() && !strchr (opt.def_new_key_algo->c_str(), ':'))
+        return opt.def_new_key_algo->c_str();
       /* To avoid checking that option every time we delay that until
        * here.  */
       log_info (_("invalid value for option '%s'\n"), "--default-new-key-algo");
@@ -351,7 +351,7 @@ keygen_set_std_prefs (const char *string,int personal)
     if (!string || !ascii_strcasecmp (string, "default"))
       {
 	if (opt.def_preference_list)
-	  string=opt.def_preference_list;
+	  string=opt.def_preference_list->c_str();
 	else
 	  {
             int any_compress = 0;
@@ -753,8 +753,8 @@ keygen_add_keyserver_url(PKT_signature *sig, void *opaque)
 {
   const char *url= (const char*) opaque;
 
-  if(!url)
-    url=opt.def_keyserver_url;
+  if(!url && opt.def_keyserver_url)
+    url=opt.def_keyserver_url->c_str();
 
   if(url)
     build_sig_subpkt(sig,SIGSUBPKT_PREF_KS,(const byte*) (url),strlen(url));
@@ -2382,6 +2382,13 @@ parse_expire_string( const char *string )
   return seconds;
 }
 
+u32
+parse_expire_string(boost::optional<std::string> str)
+{
+  return parse_expire_string(str ? str->c_str() : NULL);
+}
+
+
 /* Parse a Creation-Date string which is either "1986-04-26" or
    "19860426T042640".  Returns 0 on error. */
 static u32
@@ -2503,6 +2510,12 @@ ask_expire_interval(int object,const char *def_expire)
 
     xfree(answer);
     return interval;
+}
+
+u32
+ask_expire_interval(int object, boost::optional<std::string>def_expire)
+{
+  return ask_expire_interval(object, def_expire ? def_expire->c_str() : NULL);
 }
 
 u32

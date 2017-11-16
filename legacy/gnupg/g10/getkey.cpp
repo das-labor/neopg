@@ -1850,21 +1850,23 @@ const char *
 parse_def_secret_key (ctrl_t ctrl)
 {
   KEYDB_HANDLE hd = NULL;
-  strlist_t t;
   static int warned;
+  const char* str = NULL;
 
-  for (t = opt.def_secret_key; t; t = t->next)
+  for (auto& t : opt.def_secret_key)
     {
       gpg_error_t err;
       KEYDB_SEARCH_DESC desc;
       KBNODE kb;
       KBNODE node;
 
-      err = classify_user_id (t->d, &desc, 1);
+      str = t.first.c_str();
+
+      err = classify_user_id (str, &desc, 1);
       if (err)
         {
           log_error (_("secret key \"%s\" not found: %s\n"),
-                     t->d, gpg_strerror (err));
+                     str, gpg_strerror (err));
           if (!opt.quiet)
             log_info (_("(check argument of option '%s')\n"), "--default-key");
           continue;
@@ -1886,8 +1888,8 @@ parse_def_secret_key (ctrl_t ctrl)
 
       if (err)
         {
-          log_error (_("key \"%s\" not found: %s\n"), t->d, gpg_strerror (err));
-          t = NULL;
+          log_error (_("key \"%s\" not found: %s\n"), str, gpg_strerror (err));
+          str = NULL;
           break;
         }
 
@@ -1947,7 +1949,7 @@ parse_def_secret_key (ctrl_t ctrl)
           if (! warned && ! opt.quiet)
             {
               log_info (_("Warning: not using '%s' as default key: %s\n"),
-                        t->d, gpg_strerror (GPG_ERR_NO_SECKEY));
+                        str, gpg_strerror (GPG_ERR_NO_SECKEY));
               print_reported_error (err, GPG_ERR_NO_SECKEY);
             }
         }
@@ -1955,12 +1957,12 @@ parse_def_secret_key (ctrl_t ctrl)
         {
           if (! warned && ! opt.quiet)
             log_info (_("using \"%s\" as default secret key for signing\n"),
-                      t->d);
+                      str);
           break;
         }
     }
 
-  if (! warned && opt.def_secret_key && ! t)
+  if (! warned && !opt.def_secret_key.empty() && ! str)
     log_info (_("all values passed to '%s' ignored\n"),
               "--default-key");
 
@@ -1969,9 +1971,7 @@ parse_def_secret_key (ctrl_t ctrl)
   if (hd)
     keydb_release (hd);
 
-  if (t)
-    return t->d;
-  return NULL;
+  return str;
 }
 
 
@@ -3818,7 +3818,7 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
   {
     int eof;
     int state;
-    strlist_t sl;
+    std::vector<std::string>::iterator sl;
     kbnode_t keyblock;
     kbnode_t node;
     getkey_ctx_t ctx;
@@ -3865,15 +3865,15 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
                   break;
 
                 case 1: /* Init list of keys to try.  */
-                  c->sl = opt.secret_keys_to_try;
+                  c->sl = opt.secret_keys_to_try.begin();
                   c->state++;
                   break;
 
                 case 2: /* Get next item from list.  */
-                  if (c->sl)
+                  if (c->sl != opt.secret_keys_to_try.end())
                     {
-                      name = c->sl->d;
-                      c->sl = c->sl->next;
+                      name = c->sl->c_str();
+                      c->sl++;
                     }
                   else
                     c->state++;

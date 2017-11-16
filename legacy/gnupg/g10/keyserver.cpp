@@ -146,9 +146,10 @@ parse_keyserver_options(char *options)
   int ret=1;
   char *tok;
   char *max_cert=NULL;
+  char *http_proxy = NULL;
 
   keyserver_opts[0].value=&max_cert;
-  keyserver_opts[1].value=&opt.keyserver_options.http_proxy;
+  keyserver_opts[0].value=&http_proxy;
 
   while((tok=optsep(&options)))
     {
@@ -168,6 +169,8 @@ parse_keyserver_options(char *options)
 	  warn_kshelper_option (tok, 1);
 	}
     }
+
+  opt.keyserver_options.http_proxy = http_proxy;
 
   if(max_cert)
     {

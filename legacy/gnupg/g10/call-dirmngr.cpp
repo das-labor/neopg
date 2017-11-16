@@ -164,7 +164,7 @@ create_context (ctrl_t ctrl, assuan_context_t *r_ctx)
       if (opt.keyserver_options.http_proxy)
         {
           line = xtryasprintf ("OPTION http-proxy=%s",
-                               opt.keyserver_options.http_proxy);
+                               opt.keyserver_options.http_proxy->c_str());
           if (!line)
             err = gpg_error_from_syserror ();
           else
