@@ -35,12 +35,6 @@
 #define TRUST_FLAG_SUB_REVOKED    64 /* r: revoked but for subkeys */
 #define TRUST_FLAG_DISABLED      128 /* d: key/uid disabled */
 #define TRUST_FLAG_PENDING_CHECK 256 /* a check-trustdb is pending */
-#define TRUST_FLAG_TOFU_BASED    512 /* The trust value is based on
-                                      * the TOFU information.  */
-
-/* Private value used in tofu.c - must be different from the trust
-   values.  */
-#define _tofu_GET_TRUST_ERROR 100
 
 /* Length of the hash used to select UIDs in keyedit.c.  */
 #define NAMEHASH_LEN  20

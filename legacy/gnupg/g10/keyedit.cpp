@@ -46,7 +46,6 @@
 #include "keyserver-internal.h"
 #include "call-agent.h"
 #include "../common/host2net.h"
-#include "tofu.h"
 #include "key-check.h"
 #include "keyedit.h"
 
@@ -3214,15 +3213,7 @@ show_key_with_all_names_colon (ctrl_t ctrl, estream_t fp, kbnode_t keyblock)
 	  if ((node->flag & NODFLG_MARK_A))
 	    es_putc ('m', fp);
 	  es_putc (':', fp);
-	  if (opt.trust_model == TM_TOFU || opt.trust_model == TM_TOFU_PGP)
-	    {
-#ifdef USE_TOFU
-	      enum tofu_policy policy;
-	      if (! tofu_get_policy (ctrl, primary, uid, &policy)
-		  && policy != TOFU_POLICY_NONE)
-		es_fprintf (fp, "%s", tofu_policy_str (policy));
-#endif /*USE_TOFU*/
-	    }
+	  /* TOFU */
 	  es_putc (':', fp);
 	  es_putc ('\n', fp);
 	}
@@ -3489,10 +3480,9 @@ show_key_with_all_names (ctrl_t ctrl, estream_t fp,
 		  tty_fprintf (fp, "%*s",
                                5, "");
 		  /* Ownertrust is only meaningful for the PGP or
-		     classic trust models, or PGP combined with TOFU */
+		     classic trust models.  */
 		  if (opt.trust_model == TM_PGP
-		      || opt.trust_model == TM_CLASSIC
-		      || opt.trust_model == TM_TOFU_PGP)
+		      || opt.trust_model == TM_CLASSIC)
 		    {
 		      int width = 14 - strlen (otrust);
 		      if (width <= 0)

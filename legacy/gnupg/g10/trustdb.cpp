@@ -40,7 +40,6 @@
 #include "../common/i18n.h"
 #include "tdbio.h"
 #include "trustdb.h"
-#include "tofu.h"
 
 
 typedef struct key_item **KeyHashTable; /* see new_key_hash_table() */
@@ -394,8 +393,6 @@ trust_model_string (int model)
     case TM_CLASSIC:  return "classic";
     case TM_PGP:      return "pgp";
     case TM_EXTERNAL: return "external";
-    case TM_TOFU:     return "tofu";
-    case TM_TOFU_PGP: return "tofu+pgp";
     case TM_ALWAYS:   return "always";
     case TM_DIRECT:   return "direct";
     default:          return "unknown";
@@ -460,8 +457,6 @@ init_trustdb (ctrl_t ctrl, int no_create)
       /* Sanity check this ;) */
       if(opt.trust_model != TM_CLASSIC
 	 && opt.trust_model != TM_PGP
-	 && opt.trust_model != TM_TOFU_PGP
-	 && opt.trust_model != TM_TOFU
 	 && opt.trust_model != TM_EXTERNAL)
 	{
 	  log_info(_("unable to use unknown trust model (%d) - "
@@ -474,8 +469,7 @@ init_trustdb (ctrl_t ctrl, int no_create)
                  trust_model_string (opt.trust_model));
     }
 
-  if (opt.trust_model==TM_PGP || opt.trust_model==TM_CLASSIC
-      || opt.trust_model == TM_TOFU || opt.trust_model == TM_TOFU_PGP)
+  if (opt.trust_model==TM_PGP || opt.trust_model==TM_CLASSIC)
     {
       /* Verify the list of ultimately trusted keys and move the
 	 --trusted-keys list there as well. */
@@ -509,8 +503,7 @@ void
 check_trustdb (ctrl_t ctrl)
 {
   init_trustdb (ctrl, 0);
-  if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC
-      || opt.trust_model == TM_TOFU_PGP || opt.trust_model == TM_TOFU)
+  if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC)
     {
       if (opt.batch && !opt.answer_yes)
 	{
@@ -546,8 +539,7 @@ void
 update_trustdb (ctrl_t ctrl)
 {
   init_trustdb (ctrl, 0);
-  if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC
-      || opt.trust_model == TM_TOFU_PGP || opt.trust_model == TM_TOFU)
+  if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC)
     validate_keys (ctrl, 1);
   else
     log_info (_("no need for a trustdb update with '%s' trust model\n"),
@@ -977,8 +969,7 @@ tdb_check_trustdb_stale (ctrl_t ctrl)
     return;  /* No trustdb => can't be stale.  */
 
   if (!did_nextcheck
-      && (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC
-          || opt.trust_model == TM_TOFU_PGP || opt.trust_model == TM_TOFU))
+      && (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC))
     {
       unsigned long scheduled;
 
@@ -1007,8 +998,7 @@ tdb_check_trustdb_stale (ctrl_t ctrl)
  * Return the validity information for KB/PK (at least one of them
  * must be non-NULL).  This is the core of get_validity.  If SIG is
  * not NULL, then the trust is being evaluated in the context of the
- * provided signature.  This is used by the TOFU code to record
- * statistics.
+ * provided signature.
  */
 unsigned int
 tdb_get_validity_core (ctrl_t ctrl,
@@ -1021,10 +1011,6 @@ tdb_get_validity_core (ctrl_t ctrl,
   TRUSTREC trec, vrec;
   gpg_error_t err = 0;
   unsigned long recno;
-#ifdef USE_TOFU
-  unsigned int tofu_validity = TRUST_UNKNOWN;
-  int free_kb = 0;
-#endif
   unsigned int validity = TRUST_UNKNOWN;
 
   if (kb && pk)
@@ -1036,11 +1022,6 @@ tdb_get_validity_core (ctrl_t ctrl,
       log_assert (kb);
       pk = kb->pkt->pkt.public_key;
     }
-
-#ifndef USE_TOFU
-  (void)sig;
-  (void)may_ask;
-#endif
 
   init_trustdb (ctrl, 0);
 
@@ -1061,124 +1042,7 @@ tdb_get_validity_core (ctrl_t ctrl,
       goto leave;
     }
 
-#ifdef USE_TOFU
-  if (opt.trust_model == TM_TOFU || opt.trust_model == TM_TOFU_PGP)
-    {
-      kbnode_t n = NULL;
-      strlist_t user_id_list = NULL;
-      int done = 0;
-
-      /* If the caller didn't supply a user id then use all uids.  */
-      if (! uid)
-        {
-          if (! kb)
-            {
-              kb = get_pubkeyblock (ctrl, main_pk->keyid);
-              free_kb = 1;
-            }
-          n = kb;
-        }
-
-      if (DBG_TRUST && sig && sig->signers_uid)
-        log_debug ("TOFU: only considering user id: '%s'\n",
-                   sig->signers_uid);
-
-      while (!done && (uid || (n = find_next_kbnode (n, PKT_USER_ID))))
-	{
-	  PKT_user_id *user_id;
-          int expired = 0;
-
-	  if (uid)
-            {
-              user_id = uid;
-              /* If the caller specified a user id, then we only
-                 process the specified user id and are done after the
-                 first iteration.  */
-              done = 1;
-            }
-	  else
-	    user_id = n->pkt->pkt.user_id;
-
-          if (user_id->attrib_data)
-            /* Skip user attributes.  */
-            continue;
-
-          if (sig && sig->signers_uid)
-            /* Make sure the UID matches.  */
-            {
-              char *email = mailbox_from_userid (user_id->name);
-              if (!email || !*email || strcmp (sig->signers_uid, email) != 0)
-                {
-                  if (DBG_TRUST)
-                    log_debug ("TOFU: skipping user id '%s', which does"
-                               " not match the signer's email ('%s')\n",
-                               email, sig->signers_uid);
-                  xfree (email);
-                  continue;
-                }
-              xfree (email);
-            }
-
-          /* If the user id is revoked or expired, then skip it.  */
-          if (user_id->flags.revoked || user_id->flags.expired)
-            {
-              if (DBG_TRUST)
-                {
-                  const char *s;
-                  if (user_id->flags.revoked && user_id->flags.expired)
-                    s = "revoked and expired";
-                  else if (user_id->flags.revoked)
-                    s = "revoked";
-                  else
-                    s = "expire";
-
-                  log_debug ("TOFU: Ignoring %s user id (%s)\n",
-                             s, user_id->name);
-                }
-
-              if (user_id->flags.revoked)
-                continue;
-
-              expired = 1;
-            }
-
-          add_to_strlist (&user_id_list, user_id->name);
-          user_id_list->flags = expired;
-        }
-
-      /* Process the user ids in the order they appear in the key
-         block.  */
-      strlist_rev (&user_id_list);
-
-      /* It only makes sense to observe any signature before getting
-         the validity.  This is because if the current signature
-         results in a conflict, then we damn well want to take that
-         into account.  */
-      if (sig)
-        {
-          err = tofu_register_signature (ctrl, main_pk, user_id_list,
-                                         sig->digest, sig->digest_len,
-                                         sig->timestamp, "unknown");
-          if (err)
-            {
-              log_error ("TOFU: error registering signature: %s\n",
-                         gpg_strerror (err));
-
-              tofu_validity = TRUST_UNKNOWN;
-            }
-        }
-      if (! err)
-        tofu_validity = tofu_get_validity (ctrl, main_pk, user_id_list,
-                                           may_ask);
-
-      free_strlist (user_id_list);
-      if (free_kb)
-        release_kbnode (kb);
-    }
-#endif /*USE_TOFU*/
-
-  if (opt.trust_model == TM_TOFU_PGP
-      || opt.trust_model == TM_CLASSIC
+  if (opt.trust_model == TM_CLASSIC
       || opt.trust_model == TM_PGP)
     {
       err = read_trust_record (ctrl, main_pk, &trec);
@@ -1235,9 +1099,6 @@ tdb_get_validity_core (ctrl_t ctrl,
     }
 
  leave:
-#ifdef USE_TOFU
-  validity = tofu_wot_trust_combine (tofu_validity, validity);
-#else /*!USE_TOFU*/
   validity &= TRUST_MASK;
 
   if (validity == TRUST_NEVER)
@@ -1246,10 +1107,8 @@ tdb_get_validity_core (ctrl_t ctrl,
   if (validity == TRUST_EXPIRED)
     /* TRUST_EXPIRED trumps everything but TRUST_NEVER.  */
     validity |= TRUST_EXPIRED;
-#endif /*!USE_TOFU*/
 
-  if (opt.trust_model != TM_TOFU
-      && pending_check_trustdb)
+  if (pending_check_trustdb)
     validity |= TRUST_FLAG_PENDING_CHECK;
 
   return validity;
@@ -1659,8 +1518,7 @@ validate_one_keyblock (ctrl_t ctrl, kbnode_t kb, struct key_item *klist,
              since we don't accept a regexp on the sig unless it's a
              trust sig. */
           if (kr && (!kr->trust_regexp
-                     || !(opt.trust_model == TM_PGP
-                          || opt.trust_model == TM_TOFU_PGP)
+                     || !(opt.trust_model == TM_PGP)
                      || (uidnode
                          && check_regexp(kr->trust_regexp,
                                          uidnode->pkt->pkt.user_id->name))))
@@ -1670,8 +1528,7 @@ validate_one_keyblock (ctrl_t ctrl, kbnode_t kb, struct key_item *klist,
                  lesser trust sig or value.  I could make a decent
                  argument for any of these cases, but this seems to be
                  what PGP does, and I'd like to be compatible. -dms */
-              if ((opt.trust_model == TM_PGP
-                   || opt.trust_model == TM_TOFU_PGP)
+              if ((opt.trust_model == TM_PGP)
                   && sig->trust_depth
                   && pk->trust_timestamp <= sig->timestamp)
 		{
@@ -2027,11 +1884,6 @@ validate_keys (ctrl_t ctrl, int interactive)
       release_kbnode (keyblock);
       do_sync ();
     }
-
-  if (opt.trust_model == TM_TOFU)
-    /* In the TOFU trust model, we only need to save the ultimately
-       trusted keys.  */
-    goto leave;
 
   klist = utk_list;
 

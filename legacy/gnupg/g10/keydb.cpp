@@ -1374,10 +1374,6 @@ keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
   if (err)
     return err;
 
-#ifdef USE_TOFU
-  tofu_notice_key_changed (ctrl, kb);
-#endif
-
   memset (&desc, 0, sizeof (desc));
   fingerprint_from_pk (pk, desc.u.fpr, &len);
   if (len == 20)

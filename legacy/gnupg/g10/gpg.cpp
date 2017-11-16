@@ -56,7 +56,6 @@
 #include "keyserver-internal.h"
 #include "../common/asshelp.h"
 #include "call-dirmngr.h"
-#include "tofu.h"
 #include "../common/init.h"
 #include "../common/mbox-util.h"
 #include "../common/compliance.h"
@@ -184,7 +183,6 @@ enum cmd_and_opt_values
     aCardEdit,
     aChangePIN,
     aPasswd,
-    aTOFUPolicy,
 
     oMimemode,
     oNoTextmode,
@@ -209,7 +207,6 @@ enum cmd_and_opt_values
     oWithWKDHash,
     oWithColons,
     oWithKeyData,
-    oWithTofuInfo,
     oWithSigList,
     oWithSigCheck,
     oAnswerYes,
@@ -358,7 +355,6 @@ enum cmd_and_opt_values
     oNoAutostart,
     oPrintPKARecords,
     oPrintDANERecords,
-    oTOFUDefaultPolicy,
     oDefaultNewKeyAlgo,
     oWeakDigest,
     oUnwrap,
@@ -471,8 +467,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_c (aEnArmor, "enarmour", "@"),
   ARGPARSE_c (aPrintMD, "print-md", N_("print message digests")),
   ARGPARSE_c (aGenRandom,"gen-random", "@" ),
-  ARGPARSE_c (aTOFUPolicy, "tofu-policy",
-	      N_("|VALUE|set the TOFU policy for a key")),
 
   ARGPARSE_group (301, N_("@\nOptions:\n ")),
 
@@ -642,7 +636,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oHomedir, "homedir", "@"),
   ARGPARSE_s_n (oNoBatch, "no-batch", "@"),
   ARGPARSE_s_n (oWithColons, "with-colons", "@"),
-  ARGPARSE_s_n (oWithTofuInfo,"with-tofu-info", "@"),
   ARGPARSE_s_n (oWithKeyData,"with-key-data", "@"),
   ARGPARSE_s_n (oWithSigList,"with-sig-list", "@"),
   ARGPARSE_s_n (oWithSigCheck,"with-sig-check", "@"),
@@ -654,7 +647,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoSkipHiddenRecipients, "no-skip-hidden-recipients", "@"),
   ARGPARSE_s_i (oDefCertLevel, "default-cert-check-level", "@"), /* old */
   ARGPARSE_s_s (oTrustModel, "trust-model", "@"),
-  ARGPARSE_s_s (oTOFUDefaultPolicy, "tofu-default-policy", "@"),
   ARGPARSE_s_s (oSetFilename, "set-filename", "@"),
   ARGPARSE_s_s (oSetPolicyURL,  "set-policy-url", "@"),
   ARGPARSE_s_s (oSigPolicyURL,  "sig-policy-url", "@"),
@@ -1619,51 +1611,12 @@ parse_trust_model(const char *model)
     opt.trust_model=TM_ALWAYS;
   else if(ascii_strcasecmp(model,"direct")==0)
     opt.trust_model=TM_DIRECT;
-#ifdef USE_TOFU
-  else if(ascii_strcasecmp(model,"tofu")==0)
-    opt.trust_model=TM_TOFU;
-  else if(ascii_strcasecmp(model,"tofu+pgp")==0)
-    opt.trust_model=TM_TOFU_PGP;
-#endif /*USE_TOFU*/
   else if(ascii_strcasecmp(model,"auto")==0)
     opt.trust_model=TM_AUTO;
   else
     log_error("unknown trust model '%s'\n",model);
 }
 #endif /*NO_TRUST_MODELS*/
-
-
-static int
-parse_tofu_policy (const char *policystr)
-{
-#ifdef USE_TOFU
-  struct { const char *keyword; int policy; } list[] = {
-    { "auto",    TOFU_POLICY_AUTO },
-    { "good",    TOFU_POLICY_GOOD },
-    { "unknown", TOFU_POLICY_UNKNOWN },
-    { "bad",     TOFU_POLICY_BAD },
-    { "ask",     TOFU_POLICY_ASK }
-  };
-  int i;
-
-  if (!ascii_strcasecmp (policystr, "help"))
-    {
-      log_info (_("valid values for option '%s':\n"), "--tofu-policy");
-      for (i=0; i < DIM (list); i++)
-        log_info ("  %s\n", list[i].keyword);
-      g10_exit (1);
-    }
-
-  for (i=0; i < DIM (list); i++)
-    if (!ascii_strcasecmp (policystr, list[i].keyword))
-      return list[i].policy;
-#endif /*USE_TOFU*/
-
-  log_error (_("unknown TOFU policy '%s'\n"), policystr);
-  if (!opt.quiet)
-    log_info (_("(use \"help\" to list choices)\n"));
-  g10_exit (1);
-}
 
 
 static struct gnupg_compliance_option compliance_options[] =
@@ -1760,9 +1713,6 @@ gpg_init_default_ctrl (ctrl_t ctrl)
 static void
 gpg_deinit_default_ctrl (ctrl_t ctrl)
 {
-#ifdef USE_TOFU
-  tofu_closedbs (ctrl);
-#endif
   gpg_dirmngr_deinit_session_data (ctrl);
 
   keydb_release (ctrl->cached_getkey_kdb);
@@ -2101,10 +2051,6 @@ gpg_main (int argc, char **argv)
 	  case aVerifyFiles: multifile=1; /* fall through */
 	  case aVerify: set_cmd( &cmd, aVerify); break;
 
-          case aTOFUPolicy:
-            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-            break;
-
 	  case oArmor:
 	    opt.armor = true;
 	    opt.no_armor = false;
@@ -2282,10 +2228,6 @@ gpg_main (int argc, char **argv)
 	    opt.batch = false;
 	    break;
 
-          case oWithTofuInfo:
-	    opt.with_tofu_info = true;
-	    break;
-
 	  case oWithKeyData:
 	    opt.with_key_data = true; /*FALLTHRU*/
 	  case oWithColons:
@@ -2317,9 +2259,6 @@ gpg_main (int argc, char **argv)
 	    parse_trust_model(pargs.r.ret_str);
 	    break;
 #endif /*!NO_TRUST_MODELS*/
-	  case oTOFUDefaultPolicy:
-	    opt.tofu_default_policy = (tofu_policy) parse_tofu_policy (pargs.r.ret_str);
-	    break;
 
 	  case oForceOwnertrust:
 	    log_info(_("Note: %s is not for normal use!\n"),
@@ -4133,90 +4072,6 @@ gpg_main (int argc, char **argv)
             wrong_args ("--change-pin [no]");
         break;
 #endif /* ENABLE_CARD_SUPPORT*/
-
-      case aTOFUPolicy:
-#ifdef USE_TOFU
-	{
-	  int policy;
-	  int i;
-	  KEYDB_HANDLE hd;
-
-	  if (argc < 2)
-	    wrong_args ("--tofu-policy POLICY KEYID [KEYID...]");
-
-	  policy = parse_tofu_policy (argv[0]);
-
-	  hd = keydb_new ();
-	  if (! hd)
-            g10_exit (1);
-
-          tofu_begin_batch_update (ctrl);
-
-	  for (i = 1; i < argc; i ++)
-	    {
-	      KEYDB_SEARCH_DESC desc;
-	      kbnode_t kb;
-
-	      rc = classify_user_id (argv[i], &desc, 0);
-	      if (rc)
-		{
-		  log_error (_("error parsing key specification '%s': %s\n"),
-                             argv[i], gpg_strerror (rc));
-		  g10_exit (1);
-		}
-
-	      if (! (desc.mode == KEYDB_SEARCH_MODE_SHORT_KID
-		     || desc.mode == KEYDB_SEARCH_MODE_LONG_KID
-		     || desc.mode == KEYDB_SEARCH_MODE_FPR16
-		     || desc.mode == KEYDB_SEARCH_MODE_FPR20
-		     || desc.mode == KEYDB_SEARCH_MODE_FPR
-		     || desc.mode == KEYDB_SEARCH_MODE_KEYGRIP))
-		{
-		  log_error (_("'%s' does not appear to be a valid"
-			       " key ID, fingerprint or keygrip\n"),
-			     argv[i]);
-		  g10_exit (1);
-		}
-
-	      rc = keydb_search_reset (hd);
-	      if (rc)
-		{
-                  /* This should not happen, thus no need to tranalate
-                     the string.  */
-                  log_error ("keydb_search_reset failed: %s\n",
-                             gpg_strerror (rc));
-		  g10_exit (1);
-		}
-
-	      rc = keydb_search (hd, &desc, 1, NULL);
-	      if (rc)
-		{
-		  log_error (_("key \"%s\" not found: %s\n"), argv[i],
-                             gpg_strerror (rc));
-		  g10_exit (1);
-		}
-
-	      rc = keydb_get_keyblock (hd, &kb);
-	      if (rc)
-		{
-		  log_error (_("error reading keyblock: %s\n"),
-                             gpg_strerror (rc));
-		  g10_exit (1);
-		}
-
-	      merge_keys_and_selfsig (ctrl, kb);
-	      if (tofu_set_policy (ctrl, kb, (tofu_policy) (policy)))
-		g10_exit (1);
-
-              release_kbnode (kb);
-	    }
-
-          tofu_end_batch_update (ctrl);
-
-	  keydb_release (hd);
-	}
-#endif /*USE_TOFU*/
-	break;
 
       default:
         if (!opt.quiet)

@@ -2125,9 +2125,7 @@ check_sig_and_print (CTX c, kbnode_t node)
                                mainpkhex);
 	}
 
-      /* For good signatures compute and print the trust information.
-         Note that in the Tofu trust model this may ask the user on
-         how to resolve a conflict.  */
+      /* For good signatures compute and print the trust information.  */
       if (!rc)
         {
           if ((opt.verify_options & VERIFY_PKA_LOOKUPS))

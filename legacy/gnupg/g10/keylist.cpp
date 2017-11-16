@@ -44,7 +44,6 @@
 #include "call-agent.h"
 #include "../common/mbox-util.h"
 #include "../common/zb32.h"
-#include "tofu.h"
 #include "../common/compliance.h"
 
 
@@ -103,8 +102,7 @@ public_key_list (ctrl_t ctrl, const std::vector<std::string>& list, int locate_m
 	es_fprintf (es_stdout, "o");
       if (trust_model != opt.trust_model)
 	es_fprintf (es_stdout, "t");
-      if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC
-	  || opt.trust_model == TM_TOFU_PGP)
+      if (opt.trust_model == TM_PGP || opt.trust_model == TM_CLASSIC)
 	{
 	  if (marginals != opt.marginals_needed)
 	    es_fprintf (es_stdout, "m");
@@ -135,20 +133,12 @@ public_key_list (ctrl_t ctrl, const std::vector<std::string>& list, int locate_m
      which is associated with the inode of a deleted file.  */
   check_trustdb_stale (ctrl);
 
-#ifdef USE_TOFU
-  tofu_begin_batch_update (ctrl);
-#endif
-
   if (locate_mode)
     locate_one (ctrl, list);
   else if (list.empty())
     list_all (ctrl, 0, opt.with_secret);
   else
     list_one (ctrl, list, 0, opt.with_secret);
-
-#ifdef USE_TOFU
-  tofu_end_batch_update (ctrl);
-#endif
 }
 
 
@@ -1363,14 +1353,6 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
           es_putc (':', es_stdout);	/* End of field 19 (last_update). */
           es_putc (':', es_stdout);	/* End of field 20 (origin). */
 	  es_putc ('\n', es_stdout);
-#ifdef USE_TOFU
-	  if (!uid->attrib_data && opt.with_tofu_info
-              && (opt.trust_model == TM_TOFU || opt.trust_model == TM_TOFU_PGP))
-	    {
-              /* Print a "tfs" record.  */
-              tofu_write_tfs_record (ctrl, es_stdout, pk, uid->name);
-	    }
-#endif /*USE_TOFU*/
 	}
       else if (node->pkt->pkttype == PKT_PUBLIC_SUBKEY)
 	{

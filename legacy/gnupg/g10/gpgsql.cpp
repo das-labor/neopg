@@ -88,10 +88,6 @@ gpgsql_stepx (sqlite3 *db,
 
       /* Make sure this statement is associated with the supplied db.  */
       log_assert (db == sqlite3_db_handle (stmt));
-
-#if DEBUG_TOFU_CACHE
-      prepares_saved ++;
-#endif
     }
   else
     {
@@ -117,10 +113,6 @@ gpgsql_stepx (sqlite3 *db,
       if (stmtp)
         *stmtp = stmt;
     }
-
-#if DEBUG_TOFU_CACHE
-  queries ++;
-#endif
 
   args = sqlite3_bind_parameter_count (stmt);
   va_start (va, sql);

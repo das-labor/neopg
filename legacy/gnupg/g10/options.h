@@ -31,7 +31,6 @@
 #include <stdint.h>
 #include "main.h"
 #include "packet.h"
-#include "tofu.h"
 #include "../common/compliance.h"
 
 /* Declaration of a keyserver spec type.  The definition is found in
@@ -47,7 +46,7 @@ enum
 enum
 {
  TM_CLASSIC=0, TM_PGP=1, TM_EXTERNAL=2,
- TM_ALWAYS, TM_DIRECT, TM_AUTO, TM_TOFU, TM_TOFU_PGP
+ TM_ALWAYS, TM_DIRECT, TM_AUTO
 };
 
 enum {
@@ -205,7 +204,6 @@ struct options
   bool with_fingerprint {false}; /* Option --with-fingerprint active.  */
   bool with_subkey_fingerprint {false}; /* Option --with-subkey-fingerprint active.  */
   bool with_keygrip {false};     /* Option --with-keygrip active.  */
-  bool with_tofu_info {false};   /* Option --with-tofu_info active.  */
   bool with_secret {false};      /* Option --with-secret active.  */
   bool with_wkd_hash {false};    /* Option --with-wkd-hash.  */
   int fingerprint {0}; /* list fingerprints */
@@ -250,7 +248,6 @@ struct options
   {TM_AUTO}
 #endif
   ;
-  enum tofu_policy tofu_default_policy {TOFU_POLICY_AUTO};
   int force_ownertrust {0};
   enum gnupg_compliance_mode compliance {CO_GNUPG};
   int keyid_format {KF_NONE};

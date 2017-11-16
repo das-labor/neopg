@@ -36,7 +36,6 @@
 #include "../common/ttyio.h"
 #include "../common/status.h"
 #include "../common/i18n.h"
-#include "tofu.h"
 
 #define CONTROL_D ('D' - 'A' + 1)
 
@@ -444,8 +443,6 @@ do_we_trust( PKT_public_key *pk, unsigned int trustlevel )
       return 1; /* yes */
 
     case TRUST_NEVER:
-      /* This can be returned by TOFU, which can return negative
-         assertions.  */
       log_info(_("%s: This key is bad!  It has been marked as untrusted!\n"),
                keystr_from_pk(pk));
       return 0; /* no */
@@ -519,12 +516,7 @@ write_trust_status (int statuscode, int trustlevel)
 #else /* NO_TRUST_MODELS */
   int tm;
 
-  /* For the combined tofu+pgp method, we return the trust model which
-   * was responsible for the trustlevel.  */
-  if (opt.trust_model == TM_TOFU_PGP)
-    tm = (trustlevel & TRUST_FLAG_TOFU_BASED)? TM_TOFU : TM_PGP;
-  else
-    tm = opt.trust_model;
+  tm = opt.trust_model;
   write_status_strings (statuscode, "0 ", trust_model_string (tm), NULL);
 #endif /* NO_TRUST_MODELS */
 }
@@ -660,8 +652,6 @@ check_signatures_trust (ctrl_t ctrl, PKT_signature *sig)
       break;
 
     case TRUST_NEVER:
-      /* This level can be returned by TOFU, which supports negative
-       * assertions.  */
       write_trust_status (STATUS_TRUST_NEVER, trustlevel);
       log_info(_("WARNING: We do NOT trust this key!\n"));
       log_info(_("         The signature is probably a FORGERY.\n"));
@@ -1307,29 +1297,6 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
       write_status_text (STATUS_NO_RECP, "0");
       rc = GPG_ERR_NO_USER_ID;
     }
-
-#ifdef USE_TOFU
-  if (! rc && (opt.trust_model == TM_TOFU_PGP || opt.trust_model == TM_TOFU))
-    {
-      PK_LIST iter;
-      for (iter = pk_list; iter; iter = iter->next)
-        {
-          int rc2;
-
-          /* Note: we already resolved any conflict when looking up
-             the key.  Don't annoy the user again if she selected
-             accept once.  */
-          rc2 = tofu_register_encryption (ctrl, iter->pk, NULL, 0);
-          if (rc2)
-            log_info ("WARNING: Failed to register encryption to %s"
-                      " with TOFU engine\n",
-                      keystr (pk_main_keyid (iter->pk)));
-          else if (DBG_TRUST)
-            log_debug ("Registered encryption to %s with TOFU DB.\n",
-                      keystr (pk_main_keyid (iter->pk)));
-        }
-    }
-#endif /*USE_TOFU*/
 
  fail:
 

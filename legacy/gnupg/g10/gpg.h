@@ -55,11 +55,6 @@ typedef struct kbnode_struct *kbnode_t;
 /* The handle for keydb operations.  */
 typedef struct keydb_handle *KEYDB_HANDLE;
 
-/* TOFU database meta object.  */
-struct tofu_dbs_s;
-typedef struct tofu_dbs_s *tofu_dbs_t;
-
-
 #if SIZEOF_UNSIGNED_LONG == 8
 # define SERVER_CONTROL_MAGIC 0x53616c696e676572
 #else
@@ -79,12 +74,6 @@ struct server_control_s
 
   /* Local data for call-dirmngr.c  */
   dirmngr_local_t dirmngr_local;
-
-  /* Local data for tofu.c  */
-  struct {
-    tofu_dbs_t dbs;
-    int batch_updated_wanted;
-  } tofu;
 
   /* This is used to cache a key data base handle.  */
   KEYDB_HANDLE cached_getkey_kdb;
