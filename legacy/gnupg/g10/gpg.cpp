@@ -365,7 +365,6 @@ enum cmd_and_opt_values
     oOnlySignTextIDs,
     oDisableSignerUID,
     oSender,
-    oKeyOrigin,
 
     oNoop
   };
@@ -539,7 +538,6 @@ static ARGPARSE_OPTS opts[] = {
 
   ARGPARSE_s_s (oKeyServer, "keyserver", "@"),
   ARGPARSE_s_s (oKeyServerOptions, "keyserver-options", "@"),
-  ARGPARSE_s_s (oKeyOrigin, "key-origin", "@"),
   ARGPARSE_s_s (oImportOptions, "import-options", "@"),
   ARGPARSE_s_s (oImportFilter,  "import-filter", "@"),
   ARGPARSE_s_s (oExportOptions, "export-options", "@"),
@@ -2900,12 +2898,6 @@ gpg_main (int argc, char **argv)
 	    release_akl();
 	    break;
 
-	  case oKeyOrigin:
-	    if(!parse_key_origin (pargs.r.ret_str))
-              log_error (_("invalid argument for option \"%.50s\"\n"),
-                         "--key-origin");
-	    break;
-
 	  case oEnableLargeRSA:
 #if SECMEM_BUFFER_SIZE >= 65536
             opt.flags.large_rsa = true;
@@ -3833,7 +3825,7 @@ gpg_main (int argc, char **argv)
         opt.import_options |= IMPORT_FAST; /* fall through */
       case aImport:
 	import_keys (ctrl, argc? argv:NULL, argc, NULL,
-                     opt.import_options, opt.key_origin);
+                     opt.import_options);
 	break;
 
 	/* TODO: There are a number of command that use this same
@@ -3922,7 +3914,7 @@ gpg_main (int argc, char **argv)
 	  std::vector<std::string> urilist;
 	  for( ; argc; argc--, argv++ )
 	    urilist.emplace(urilist.begin(), str_to_utf8(*argv, utf8_strings));
-	  rc = keyserver_fetch (ctrl, urilist, opt.key_origin);
+	  rc = keyserver_fetch (ctrl, urilist);
 	  if(rc)
 	    {
 	      write_status_failure ("fetch-keys", rc);

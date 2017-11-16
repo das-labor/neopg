@@ -815,7 +815,7 @@ fetch_url (ctrl_t ctrl)
       else if (info.pubkey_url && *info.pubkey_url)
         {
 	  std::vector<std::string> urilist {info.pubkey_url};
-          rc = keyserver_fetch (ctrl, urilist, KEYORG_URL);
+          rc = keyserver_fetch (ctrl, urilist);
         }
       else if (info.fpr1valid)
 	{

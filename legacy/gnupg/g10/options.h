@@ -337,9 +337,6 @@ struct options
      keyring. */
   struct akl *auto_key_locate {nullptr};
 
-  /* The value of --key-origin.  See parse_key_origin().  */
-  int key_origin {0};
-
   bool unwrap_encryption {false};
   int only_sign_text_ids {false};
 };
