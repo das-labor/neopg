@@ -1855,7 +1855,7 @@ keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
    that the fetch operation ignores the configured keyservers and
    instead directly retrieves the keys.  */
 int
-keyserver_fetch (ctrl_t ctrl, strlist_t urilist, int origin)
+keyserver_fetch (ctrl_t ctrl, const std::vector<std::string>& urilist, int origin)
 {
   gpg_error_t err;
   strlist_t sl;
@@ -1867,12 +1867,12 @@ keyserver_fetch (ctrl_t ctrl, strlist_t urilist, int origin)
      Instead we do it once at the end. */
   opt.keyserver_options.import_options |= IMPORT_FAST;
 
-  for (sl=urilist; sl; sl=sl->next)
+  for (auto& sl : urilist)
     {
       if (!opt.quiet)
-        log_info (_("requesting key from '%s'\n"), sl->d);
+        log_info (_("requesting key from '%s'\n"), sl.c_str());
 
-      err = gpg_dirmngr_ks_fetch (ctrl, sl->d, &datastream);
+      err = gpg_dirmngr_ks_fetch (ctrl, sl.c_str(), &datastream);
       if (!err)
         {
           import_stats_t stats_handle;
@@ -1887,7 +1887,7 @@ keyserver_fetch (ctrl_t ctrl, strlist_t urilist, int origin)
         }
       else
         log_info (_("WARNING: unable to fetch URI %s: %s\n"),
-                  sl->d, gpg_strerror (err));
+                  sl.c_str(), gpg_strerror (err));
       es_fclose (datastream);
     }
 

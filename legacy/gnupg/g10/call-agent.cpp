@@ -1011,8 +1011,8 @@ agent_scd_readcert (const char *certidstr,
 }
 
 struct card_cardlist_parm_s {
-  int error;
-  strlist_t list;
+  int error {0};
+  std::vector<std::string> list;
 };
 
 
@@ -1040,7 +1040,7 @@ card_cardlist_cb (void *opaque, const char *line)
       if (!n || (n&1) || *s)
         parm->error = GPG_ERR_ASS_PARAMETER;
       else
-        add_to_strlist (&parm->list, line);
+        parm->list.emplace_back(line);
     }
 
   return 0;
@@ -1048,14 +1048,13 @@ card_cardlist_cb (void *opaque, const char *line)
 
 /* Return cardlist.  */
 int
-agent_scd_cardlist (strlist_t *result)
+agent_scd_cardlist (std::vector<std::string>& result)
 {
   int err;
   char line[ASSUAN_LINELENGTH];
   struct card_cardlist_parm_s parm;
 
-  memset (&parm, 0, sizeof parm);
-  *result = NULL;
+  result.clear();
   err = start_agent (NULL, 1);
   if (err)
     return err;
@@ -1069,9 +1068,7 @@ agent_scd_cardlist (strlist_t *result)
     err = parm.error;
 
   if (!err)
-    *result = parm.list;
-  else
-    free_strlist (parm.list);
+    result = parm.list;
 
   return 0;
 }

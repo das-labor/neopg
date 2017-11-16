@@ -251,7 +251,7 @@ do_delete_key (ctrl_t ctrl, const char *username, int secret, int force,
  * Delete a public or secret key from a keyring.
  */
 gpg_error_t
-delete_keys (ctrl_t ctrl, strlist_t names, int secret, int allow_both)
+delete_keys (ctrl_t ctrl, const std::vector<std::string>& names, int secret, int allow_both)
 {
   gpg_error_t err;
   int avail;
@@ -260,21 +260,21 @@ delete_keys (ctrl_t ctrl, strlist_t names, int secret, int allow_both)
   /* Force allows us to delete a public key even if a secret key
      exists. */
 
-  for ( ;names ; names=names->next )
+  for (auto& name : names)
     {
-      err = do_delete_key (ctrl, names->d, secret, force, &avail);
+      err = do_delete_key (ctrl, name.c_str(), secret, force, &avail);
       if (err && avail)
         {
           if (allow_both)
             {
-              err = do_delete_key (ctrl, names->d, 1, 0, &avail);
+              err = do_delete_key (ctrl, name.c_str(), 1, 0, &avail);
               if (!err)
-                err = do_delete_key (ctrl, names->d, 0, 0, &avail);
+                err = do_delete_key (ctrl, name.c_str(), 0, 0, &avail);
             }
           else
             {
               log_error (_("there is a secret key for public key \"%s\"!\n"),
-                         names->d);
+                         name.c_str());
               log_info(_("use option \"--delete-secret-keys\" to delete"
                          " it first.\n"));
               write_status_text (STATUS_DELETE_PROBLEM, "2");
@@ -285,7 +285,7 @@ delete_keys (ctrl_t ctrl, strlist_t names, int secret, int allow_both)
       if (err)
         {
           log_error ("%s: delete key failed: %s\n",
-                     names->d, gpg_strerror (err));
+                     name.c_str(), gpg_strerror (err));
           return err;
         }
     }

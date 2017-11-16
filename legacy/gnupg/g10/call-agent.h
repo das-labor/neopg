@@ -19,6 +19,8 @@
 #ifndef GNUPG_G10_CALL_AGENT_H
 #define GNUPG_G10_CALL_AGENT_H
 
+#include <string>
+#include <vector>
 
 struct agent_card_info_s
 {
@@ -77,7 +79,7 @@ void agent_release_card_info (struct agent_card_info_s *info);
 int agent_scd_learn (struct agent_card_info_s *info, int force);
 
 /* Return list of cards.  */
-int agent_scd_cardlist (strlist_t *result);
+int agent_scd_cardlist (std::vector<std::string>& result);
 
 /* Return the serial number, possibly select by DEMAND.  */
 int agent_scd_serialno (char **r_serialno, const char *demand);

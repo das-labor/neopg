@@ -20,6 +20,7 @@
 #ifndef G10_MAIN_H
 #define G10_MAIN_H
 
+#include <vector>
 #include <string>
 #include <boost/optional.hpp>
 
@@ -286,7 +287,7 @@ gpg_error_t check_signature_over_key_or_uid (ctrl_t ctrl,
 
 /*-- delkey.c --*/
 gpg_error_t delete_keys (ctrl_t ctrl,
-                         strlist_t names, int secret, int allow_both);
+                         const std::vector<std::string>& names, int secret, int allow_both);
 
 /*-- keygen.c --*/
 const char *get_default_pubkey_algo (void);
@@ -481,7 +482,7 @@ gpg_error_t gpg_proxy_pinentry_notify (ctrl_t ctrl,
 /*-- card-util.c --*/
 void change_pin (int no, int allow_admin);
 void card_status (ctrl_t ctrl, estream_t fp, const char *serialno);
-void card_edit (ctrl_t ctrl, strlist_t commands);
+void card_edit (ctrl_t ctrl, const std::vector<std::string>& commands);
 gpg_error_t  card_generate_subkey (ctrl_t ctrl, kbnode_t pub_keyblock);
 int  card_store_subkey (KBNODE node, int use);
 #endif

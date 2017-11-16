@@ -3648,15 +3648,16 @@ gpg_main (int argc, char **argv)
       case aDeleteKeys:
       case aDeleteSecretKeys:
       case aDeleteSecretAndPublicKeys:
-	sl = NULL;
-	/* I'm adding these in reverse order as add_to_strlist2
-           reverses them again, and it's easier to understand in the
-           proper order :) */
-	for( ; argc; argc-- )
-	  add_to_strlist2( &sl, argv[argc-1], utf8_strings );
-	delete_keys (ctrl, sl,
-                     cmd==aDeleteSecretKeys, cmd==aDeleteSecretAndPublicKeys);
-	free_strlist(sl);
+	{
+	  std::vector<std::string> names;
+	  /* I'm adding these in reverse order as add_to_strlist2
+	     reverses them again, and it's easier to understand in the
+	     proper order :) */
+	  for( ; argc; argc-- )
+	    names.emplace(names.begin(), str_to_utf8(argv[argc-1], utf8_strings));
+	  delete_keys (ctrl, names,
+		       cmd==aDeleteSecretKeys, cmd==aDeleteSecretAndPublicKeys);
+	}
 	break;
 
       case aCheckKeys:
@@ -3913,16 +3914,17 @@ gpg_main (int argc, char **argv)
 	break;
 
       case aFetchKeys:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    append_to_strlist2( &sl, *argv, utf8_strings );
-	rc = keyserver_fetch (ctrl, sl, opt.key_origin);
-	if(rc)
-          {
-            write_status_failure ("fetch-keys", rc);
-            log_error ("key fetch failed: %s\n",gpg_strerror (rc));
-          }
-	free_strlist(sl);
+	{
+	  std::vector<std::string> urilist;
+	  for( ; argc; argc--, argv++ )
+	    urilist.emplace(urilist.begin(), str_to_utf8(*argv, utf8_strings));
+	  rc = keyserver_fetch (ctrl, urilist, opt.key_origin);
+	  if(rc)
+	    {
+	      write_status_failure ("fetch-keys", rc);
+	      log_error ("key fetch failed: %s\n",gpg_strerror (rc));
+	    }
+	}
 	break;
 
       case aExportSecret:
@@ -4116,14 +4118,14 @@ gpg_main (int argc, char **argv)
 
       case aCardEdit:
         if (argc) {
-            sl = NULL;
+	    std::vector<std::string> commands;
             for (argc--, argv++ ; argc; argc--, argv++)
-                append_to_strlist (&sl, *argv);
-            card_edit (ctrl, sl);
-            free_strlist (sl);
+	      commands.emplace(commands.begin(), *argv);
+            card_edit (ctrl, commands);
+	} else {
+	  std::vector<std::string> commands;
+          card_edit (ctrl, commands);
 	}
-        else
-          card_edit (ctrl, NULL);
         break;
 
       case aChangePIN:

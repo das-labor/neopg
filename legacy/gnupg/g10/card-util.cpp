@@ -633,7 +633,7 @@ void
 card_status (ctrl_t ctrl, estream_t fp, const char *serialno)
 {
   int err;
-  strlist_t card_list, sl;
+  std::vector<std::string> card_list;
   char *serialno0;
   int all_cards = 0;
 
@@ -656,16 +656,16 @@ card_status (ctrl_t ctrl, estream_t fp, const char *serialno)
       return;
     }
 
-  err = agent_scd_cardlist (&card_list);
+  err = agent_scd_cardlist (card_list);
 
-  for (sl = card_list; sl; sl = sl->next)
+  for (auto& sl : card_list)
     {
       char *serialno1;
 
-      if (!all_cards && strcmp (serialno, sl->d))
+      if (!all_cards && strcmp (serialno, sl.c_str()))
         continue;
 
-      err = agent_scd_serialno (&serialno1, sl->d);
+      err = agent_scd_serialno (&serialno1, sl.c_str());
       if (err)
         {
           if (opt.verbose)
@@ -686,7 +686,6 @@ card_status (ctrl_t ctrl, estream_t fp, const char *serialno)
 
  leave:
   xfree (serialno0);
-  free_strlist (card_list);
 }
 
 
@@ -815,11 +814,8 @@ fetch_url (ctrl_t ctrl)
 		  gpg_strerror(rc));
       else if (info.pubkey_url && *info.pubkey_url)
         {
-          strlist_t sl = NULL;
-
-          add_to_strlist (&sl, info.pubkey_url);
-          rc = keyserver_fetch (ctrl, sl, KEYORG_URL);
-          free_strlist (sl);
+	  std::vector<std::string> urilist {info.pubkey_url};
+          rc = keyserver_fetch (ctrl, urilist, KEYORG_URL);
         }
       else if (info.fpr1valid)
 	{
@@ -1955,10 +1951,10 @@ card_edit_completion(const char *text, int start, int end)
 /* Menu to edit all user changeable values on an OpenPGP card.  Only
    Key creation is not handled here. */
 void
-card_edit (ctrl_t ctrl, strlist_t commands)
+card_edit (ctrl_t ctrl, const std::vector<std::string>& commands)
 {
   enum cmdids cmd = cmdNOP;
-  int have_commands = !!commands;
+  int have_commands = !commands.empty();
   int redisplay = 1;
   char *answer = NULL;
   int allow_admin=0;
@@ -1981,6 +1977,7 @@ card_edit (ctrl_t ctrl, strlist_t commands)
       char *p;
       int i;
       int cmd_admin_only;
+      auto cur_cmd = commands.begin();
 
       tty_printf("\n");
       if (redisplay)
@@ -2005,10 +2002,10 @@ card_edit (ctrl_t ctrl, strlist_t commands)
           xfree (answer);
           if (have_commands)
             {
-              if (commands)
+              if (cur_cmd != commands.end())
                 {
-                  answer = xstrdup (commands->d);
-                  commands = commands->next;
+                  answer = xstrdup (cur_cmd->c_str());
+                  cur_cmd++;
 		}
               else if (opt.batch)
                 {
