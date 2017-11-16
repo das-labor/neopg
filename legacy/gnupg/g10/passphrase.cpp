@@ -362,7 +362,7 @@ passphrase_to_dek (int cipher_algo, STRING2KEY *s2k,
 
       /* Divert to the gpg-agent. */
       pw = passphrase_get (create && nocache, s2k_cacheid,
-                           create? opt.passphrase_repeat : 0,
+                           create? 1 /* repeat once */ : 0,
                            tryagain_text, canceled);
       if (*canceled)
         {

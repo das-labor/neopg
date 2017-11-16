@@ -99,7 +99,7 @@ enum cmd_and_opt_values
     oRecipient	  = 'r',
     oHiddenRecipient = 'R',
     aSign	  = 's',
-    oTextmodeShort= 't',
+    oTextmode     = 't',
     oLocalUser	  = 'u',
     oVerbose	  = 'v',
     oCompress	  = 'z',
@@ -170,7 +170,6 @@ enum cmd_and_opt_values
     aTOFUPolicy,
 
     oMimemode,
-    oTextmode,
     oNoTextmode,
     oExpert,
     oNoExpert,
@@ -486,7 +485,6 @@ static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_s (oTrySecretKey, "try-secret-key", "@"),
 
   ARGPARSE_s_n (oMimemode, "mimemode", "@"),
-  ARGPARSE_s_n (oTextmodeShort, NULL, "@"),
   ARGPARSE_s_n (oTextmode,   "textmode", N_("use canonical text mode")),
   ARGPARSE_s_n (oNoTextmode, "no-textmode", "@"),
 
@@ -1222,7 +1220,7 @@ check_permissions (const char *path, int item)
   int homedir=0,ret=0,checkonly=0;
   int perm=0,own=0,enc_dir_perm=0,enc_dir_own=0;
 
-  if(opt.no_perm_warn)
+  if (opt.no_perm_warn)
     return 0;
 
   log_assert(item==0 || item==1 || item==2);
@@ -1678,7 +1676,7 @@ set_compliance_option (enum cmd_and_opt_values option)
   switch (option)
     {
     case oRFC4880bis:
-      opt.flags.rfc4880bis = 1;
+      opt.flags.rfc4880bis = true;
       /* fall through.  */
     case oOpenPGP:
     case oRFC4880:
@@ -1686,11 +1684,11 @@ set_compliance_option (enum cmd_and_opt_values option)
          "--enable-dsa2 --no-rfc2440-text
          --require-cross-certification". */
       opt.compliance = CO_RFC4880;
-      opt.flags.dsa2 = 1;
-      opt.flags.require_cross_cert = 1;
-      opt.rfc2440_text = 0;
-      opt.allow_non_selfsigned_uid = 1;
-      opt.allow_freeform_uid = 1;
+      opt.flags.dsa2 = true;
+      opt.flags.require_cross_cert = true;
+      opt.rfc2440_text = false;
+      opt.allow_non_selfsigned_uid = true;
+      opt.allow_freeform_uid = true;
       opt.def_cipher_algo = 0;
       opt.def_digest_algo = 0;
       opt.cert_digest_algo = 0;
@@ -1701,10 +1699,10 @@ set_compliance_option (enum cmd_and_opt_values option)
       break;
     case oRFC2440:
       opt.compliance = CO_RFC2440;
-      opt.flags.dsa2 = 0;
-      opt.rfc2440_text = 1;
-      opt.allow_non_selfsigned_uid = 1;
-      opt.allow_freeform_uid = 1;
+      opt.flags.dsa2 = false;
+      opt.rfc2440_text = true;
+      opt.allow_non_selfsigned_uid = true;
+      opt.allow_freeform_uid = true;
       opt.def_cipher_algo = 0;
       opt.def_digest_algo = 0;
       opt.cert_digest_algo = 0;
@@ -1863,7 +1861,7 @@ gpg_main (int argc, char **argv)
     int ovrseskeyfd = -1;
     int fpr_maybe_cmd = 0; /* --fingerprint maybe a command.  */
     int any_explicit_recipient = 0;
-    int require_secmem = 0;
+    bool require_secmem = false;
     int got_secmem = 0;
     struct assuan_malloc_hooks malloc_hooks;
     ctrl_t ctrl;
@@ -1871,6 +1869,7 @@ gpg_main (int argc, char **argv)
     static int print_dane_records;
     static int print_pka_records;
 
+    opt = options();
 
     /* Please note that we may running SUID(ROOT), so be very CAREFUL
        when adding any stuff between here and the call to
@@ -1900,46 +1899,9 @@ gpg_main (int argc, char **argv)
     /* Tell the compliance module who we are.  */
     gnupg_initialize_compliance (GNUPG_MODULE_NAME_GPG);
 
-    opt.autostart = 1;
-
-    opt.command_fd = -1; /* no command fd */
     /* note: if you change these lines, look at oOpenPGP */
-    opt.def_cipher_algo = 0;
-    opt.def_digest_algo = 0;
-    opt.cert_digest_algo = 0;
-    opt.compress_algo = -1; /* defaults to DEFAULT_COMPRESS_ALGO */
-    opt.s2k_mode = 3; /* iterated+salted */
-    opt.s2k_count = 0; /* Auto-calibrate when needed.  */
-    opt.s2k_cipher_algo = DEFAULT_CIPHER_ALGO;
-    opt.completes_needed = 1;
-    opt.marginals_needed = 3;
-    opt.max_cert_depth = 5;
-    opt.flags.require_cross_cert = 1;
-    opt.import_options = IMPORT_REPAIR_KEYS;
-    opt.export_options = EXPORT_ATTRIBUTES;
-    opt.keyserver_options.import_options = (IMPORT_REPAIR_KEYS
-					    | IMPORT_REPAIR_PKS_SUBKEY_BUG);
-    opt.keyserver_options.export_options = EXPORT_ATTRIBUTES;
-    opt.keyserver_options.options = KEYSERVER_HONOR_PKA_RECORD;
-    opt.verify_options = (LIST_SHOW_UID_VALIDITY
-                          | VERIFY_SHOW_POLICY_URLS
-                          | VERIFY_SHOW_STD_NOTATIONS
-                          | VERIFY_SHOW_KEYSERVER_URLS);
-    opt.list_options   = (LIST_SHOW_UID_VALIDITY
-                          | LIST_SHOW_USAGE);
-#ifdef NO_TRUST_MODELS
-    opt.trust_model = TM_ALWAYS;
-#else
-    opt.trust_model = TM_AUTO;
-#endif
-    opt.tofu_default_policy = TOFU_POLICY_AUTO;
-    opt.min_cert_level = 2;
     set_screen_dimensions ();
-    opt.keyid_format = KF_NONE;
-    opt.def_sig_expire = "0";
-    opt.def_cert_expire = "0";
     gnupg_set_homedir (NULL);
-    opt.weak_digests = NULL;
     additional_weak_digest("MD5");
 
     /* Check whether we have a config file on the command line.  */
@@ -1966,7 +1928,7 @@ gpg_main (int argc, char **argv)
         else if( pargs.r_opt == oHomedir )
 	    gnupg_set_homedir (pargs.r.ret_str);
 	else if( pargs.r_opt == oNoPermissionWarn )
-	    opt.no_perm_warn=1;
+	    opt.no_perm_warn = true;
     }
 
 #ifdef HAVE_DOSISH_SYSTEM
@@ -2130,15 +2092,29 @@ gpg_main (int argc, char **argv)
             set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
             break;
 
-	  case oArmor: opt.armor = 1; opt.no_armor=0; break;
+	  case oArmor:
+	    opt.armor = true;
+	    opt.no_armor = false;
+	    break;
+
 	  case oOutput: opt.outfile = pargs.r.ret_str; break;
 
 	  case oMaxOutput: opt.max_output = pargs.r.ret_ulong; break;
 
-	  case oQuiet: opt.quiet = 1; break;
+	  case oQuiet:
+	    opt.quiet = true;
+	    break;
+
 	  case oNoTTY: tty_no_terminal(1); break;
-	  case oDryRun: opt.dry_run = 1; break;
-	  case oInteractive: opt.interactive = 1; break;
+
+	  case oDryRun:
+	    opt.dry_run = true;
+	    break;
+
+	  case oInteractive:
+	    opt.interactive = true;
+	    break;
+
 	  case oVerbose:
 	    opt.verbose++;
             gcry_control (GCRYCTL_SET_VERBOSITY, (int)opt.verbose);
@@ -2147,12 +2123,18 @@ gpg_main (int argc, char **argv)
 	    break;
 
 	  case oBatch:
-            opt.batch = 1;
+            opt.batch = true;
             nogreeting = 1;
             break;
 
-	  case oAnswerYes: opt.answer_yes = 1; break;
-	  case oAnswerNo: opt.answer_no = 1; break;
+	  case oAnswerYes:
+	    opt.answer_yes = true;
+	    break;
+
+	  case oAnswerNo:
+	    opt.answer_no = true;
+	    break;
+
 	  case oKeyring: append_to_strlist( &nrings, pargs.r.ret_str); break;
 	  case oPrimaryKeyring:
 	    sl = append_to_strlist (&nrings, pargs.r.ret_str);
@@ -2192,30 +2174,33 @@ gpg_main (int argc, char **argv)
             break;
 
 	  case oWithFingerprint:
-            opt.with_fingerprint = 1;
+            opt.with_fingerprint = true;
             opt.fingerprint++;
             break;
+
 	  case oWithSubkeyFingerprint:
-            opt.with_subkey_fingerprint = 1;
+            opt.with_subkey_fingerprint = true;
             break;
+
 	  case oWithICAOSpelling:
-            opt.with_icao_spelling = 1;
+            opt.with_icao_spelling = true;
             break;
+
 	  case oFingerprint:
             opt.fingerprint++;
             fpr_maybe_cmd = 1;
             break;
 
 	  case oWithKeygrip:
-            opt.with_keygrip = 1;
+            opt.with_keygrip = true;
             break;
 
 	  case oWithSecret:
-            opt.with_secret = 1;
+            opt.with_secret = true;
             break;
 
 	  case oWithWKDHash:
-            opt.with_wkd_hash = 1;
+            opt.with_wkd_hash = true;
             break;
 
 	  case oSecretKeyring:
@@ -2279,20 +2264,38 @@ gpg_main (int argc, char **argv)
             opt.def_recipient_self = 0;
             break;
 	  case oHomedir: break;
-	  case oNoBatch: opt.batch = 0; break;
 
-          case oWithTofuInfo: opt.with_tofu_info = 1; break;
+	  case oNoBatch:
+	    opt.batch = false;
+	    break;
 
-	  case oWithKeyData: opt.with_key_data=1; /*FALLTHRU*/
-	  case oWithColons: opt.with_colons=':'; break;
+          case oWithTofuInfo:
+	    opt.with_tofu_info = true;
+	    break;
 
-          case oWithSigCheck: opt.check_sigs = 1; /*FALLTHRU*/
-          case oWithSigList: opt.list_sigs = 1; break;
+	  case oWithKeyData:
+	    opt.with_key_data = true; /*FALLTHRU*/
+	  case oWithColons:
+	    opt.with_colons=true;
+	    break;
 
-	  case oSkipVerify: opt.skip_verify=1; break;
+          case oWithSigCheck:
+	    opt.check_sigs = true; /*FALLTHRU*/
+          case oWithSigList:
+	    opt.list_sigs = true;
+	    break;
 
-	  case oSkipHiddenRecipients: opt.skip_hidden_recipients = 1; break;
-	  case oNoSkipHiddenRecipients: opt.skip_hidden_recipients = 0; break;
+	  case oSkipVerify:
+	    opt.skip_verify = true;
+	    break;
+
+	  case oSkipHiddenRecipients:
+	    opt.skip_hidden_recipients = true;
+	    break;
+
+	  case oNoSkipHiddenRecipients:
+	    opt.skip_hidden_recipients = false;
+	    break;
 
 	  case aListSecretKeys: set_cmd( &cmd, aListSecretKeys); break;
 
@@ -2338,8 +2341,13 @@ gpg_main (int argc, char **argv)
             set_compliance_option ((cmd_and_opt_values) (pargs.r_opt));
             break;
 
-          case oRFC2440Text: opt.rfc2440_text=1; break;
-          case oNoRFC2440Text: opt.rfc2440_text=0; break;
+          case oRFC2440Text:
+	    opt.rfc2440_text = true;
+	    break;
+
+          case oNoRFC2440Text:
+	    opt.rfc2440_text = false;
+	    break;
 
 	  case oSetPolicyURL:
 	    add_policy_url(pargs.r.ret_str,0);
@@ -2348,10 +2356,18 @@ gpg_main (int argc, char **argv)
 	  case oSigPolicyURL: add_policy_url(pargs.r.ret_str,0); break;
 	  case oCertPolicyURL: add_policy_url(pargs.r.ret_str,1); break;
 	  case oSigKeyserverURL: add_keyserver_url(pargs.r.ret_str,0); break;
-	  case oThrowKeyids: opt.throw_keyids = 1; break;
-	  case oNoThrowKeyids: opt.throw_keyids = 0; break;
 
-          case oDisableSignerUID: opt.flags.disable_signer_uid = 1; break;
+	  case oThrowKeyids:
+	    opt.throw_keyids = true;
+	    break;
+
+	  case oNoThrowKeyids:
+	    opt.throw_keyids = false;
+	    break;
+
+          case oDisableSignerUID:
+	    opt.flags.disable_signer_uid = true;
+	    break;
 
 	  case oS2KMode:   opt.s2k_mode = pargs.r.ret_int; break;
 	  case oS2KDigest: s2k_digest_string = xstrdup(pargs.r.ret_str); break;
@@ -2396,8 +2412,9 @@ gpg_main (int argc, char **argv)
 	    break;
 
 	  case oNoEncryptTo:
-            opt.no_encrypt_to = 1;
+            opt.no_encrypt_to = true;
             break;
+
           case oEncryptToDefaultKey:
             opt.encrypt_to_default_key = configfp ? 2 : 1;
             break;
@@ -2407,13 +2424,28 @@ gpg_main (int argc, char **argv)
                              pargs.r.ret_str, utf8_strings);
 	    break;
 
-          case oMimemode: opt.mimemode = opt.textmode = 1; break;
-	  case oTextmodeShort: opt.textmode = 2; break;
-	  case oTextmode: opt.textmode=1;  break;
-	  case oNoTextmode: opt.textmode=opt.mimemode=0;  break;
+          case oMimemode:
+	    opt.mimemode = true;
+	    opt.textmode = true;
+	    break;
 
-	  case oExpert: opt.expert = 1; break;
-	  case oNoExpert: opt.expert = 0; break;
+	  case oTextmode:
+	    opt.textmode = true;
+	    break;
+
+	  case oNoTextmode:
+	    opt.textmode = false;
+	    opt.mimemode = false;
+	    break;
+
+	  case oExpert:
+	    opt.expert = true;
+	    break;
+
+	  case oNoExpert:
+	    opt.expert = false;
+	    break;
+
 	  case oDefSigExpire:
 	    if(*pargs.r.ret_str!='\0')
 	      {
@@ -2424,8 +2456,15 @@ gpg_main (int argc, char **argv)
 		  opt.def_sig_expire=pargs.r.ret_str;
 	      }
 	    break;
-	  case oAskSigExpire: opt.ask_sig_expire = 1; break;
-	  case oNoAskSigExpire: opt.ask_sig_expire = 0; break;
+
+	  case oAskSigExpire:
+	    opt.ask_sig_expire = true;
+	    break;
+
+	  case oNoAskSigExpire:
+	    opt.ask_sig_expire = false;
+	    break;
+
 	  case oDefCertExpire:
 	    if(*pargs.r.ret_str!='\0')
 	      {
@@ -2436,8 +2475,15 @@ gpg_main (int argc, char **argv)
 		  opt.def_cert_expire=pargs.r.ret_str;
 	      }
 	    break;
-	  case oAskCertExpire: opt.ask_cert_expire = 1; break;
-	  case oNoAskCertExpire: opt.ask_cert_expire = 0; break;
+
+	  case oAskCertExpire:
+	    opt.ask_cert_expire = true;
+	    break;
+
+	  case oNoAskCertExpire:
+	    opt.ask_cert_expire = false;
+	    break;
+
           case oDefCertLevel: opt.def_cert_level=pargs.r.ret_int; break;
           case oMinCertLevel: opt.min_cert_level=pargs.r.ret_int; break;
 	  case oAskCertLevel: opt.ask_cert_level = 1; break;
@@ -2517,9 +2563,18 @@ gpg_main (int argc, char **argv)
             gcry_control (GCRYCTL_DISABLE_SECMEM_WARN);
             break;
 
-	  case oRequireSecmem: require_secmem=1; break;
-	  case oNoRequireSecmem: require_secmem=0; break;
-	  case oNoPermissionWarn: opt.no_perm_warn=1; break;
+	  case oRequireSecmem:
+	    require_secmem = true;
+	    break;
+
+	  case oNoRequireSecmem:
+	    require_secmem = false;
+	    break;
+
+	  case oNoPermissionWarn:
+	    opt.no_perm_warn = true;
+	    break;
+
 	  case oKeyServer:
 	    {
 	      keyserver_spec_t keyserver;
@@ -2649,17 +2704,46 @@ gpg_main (int argc, char **argv)
               gcry_pk_ctl (GCRYCTL_DISABLE_ALGO, &algo, sizeof algo);
             }
             break;
-          case oNoSigCache: opt.no_sig_cache = 1; break;
-	  case oAllowNonSelfsignedUID: opt.allow_non_selfsigned_uid = 1; break;
-	  case oNoAllowNonSelfsignedUID: opt.allow_non_selfsigned_uid=0; break;
-	  case oAllowFreeformUID: opt.allow_freeform_uid = 1; break;
-	  case oNoAllowFreeformUID: opt.allow_freeform_uid = 0; break;
+
+          case oNoSigCache:
+	    opt.no_sig_cache = true;
+	    break;
+
+	  case oAllowNonSelfsignedUID:
+	    opt.allow_non_selfsigned_uid = true;
+	    break;
+
+	  case oNoAllowNonSelfsignedUID:
+	    opt.allow_non_selfsigned_uid = false;
+	    break;
+
+	  case oAllowFreeformUID:
+	    opt.allow_freeform_uid = true;
+	    break;
+
+	  case oNoAllowFreeformUID:
+	    opt.allow_freeform_uid = false;
+	    break;
+
 	  case oPrintPKARecords: print_pka_records = 1; break;
 	  case oPrintDANERecords: print_dane_records = 1; break;
-	  case oListOnly: opt.list_only=1; break;
-	  case oIgnoreTimeConflict: opt.ignore_time_conflict = 1; break;
-	  case oIgnoreValidFrom: opt.ignore_valid_from = 1; break;
-	  case oIgnoreCrcError: opt.ignore_crc_error = 1; break;
+
+	  case oListOnly:
+	    opt.list_only = true;
+	    break;
+
+	  case oIgnoreTimeConflict:
+	    opt.ignore_time_conflict = true;
+	    break;
+
+	  case oIgnoreValidFrom:
+	    opt.ignore_valid_from = true;
+	    break;
+
+	  case oIgnoreCrcError:
+	    opt.ignore_crc_error = true;
+	    break;
+
 	  case oNoRandomSeedFile: use_random_seed = 0; break;
 	  case oAutoKeyRetrieve:
 	  case oNoAutoKeyRetrieve:
@@ -2668,7 +2752,11 @@ gpg_main (int argc, char **argv)
 		else
 		  opt.keyserver_options.options&=~KEYSERVER_AUTO_KEY_RETRIEVE;
 		break;
-	  case oShowSessionKey: opt.show_session_key = 1; break;
+
+	  case oShowSessionKey:
+	    opt.show_session_key = 1;
+	    break;
+
 	  case oOverrideSessionKey:
 		opt.override_session_key = pargs.r.ret_str;
 		break;
@@ -2680,12 +2768,24 @@ gpg_main (int argc, char **argv)
 				   "--import-options ","merge-only");
 		opt.import_options|=IMPORT_MERGE_ONLY;
 	    break;
-	  case oTryAllSecrets: opt.try_all_secrets = 1; break;
+	  case oTryAllSecrets:
+	    opt.try_all_secrets = true;
+	    break;
+
           case oTrustedKey: register_trusted_key( pargs.r.ret_str ); break;
 
-          case oAutoCheckTrustDB: opt.no_auto_check_trustdb=0; break;
-          case oNoAutoCheckTrustDB: opt.no_auto_check_trustdb=1; break;
-          case oPreservePermissions: opt.preserve_permissions=1; break;
+          case oAutoCheckTrustDB:
+	    opt.no_auto_check_trustdb = false;
+	    break;
+
+          case oNoAutoCheckTrustDB:
+	    opt.no_auto_check_trustdb = true;
+	    break;
+
+          case oPreservePermissions:
+	    opt.preserve_permissions = true;
+	    break;
+
           case oDefaultPreferenceList:
 	    opt.def_preference_list = pargs.r.ret_str;
 	    break;
@@ -2713,11 +2813,13 @@ gpg_main (int argc, char **argv)
           case oWeakDigest:
 	    additional_weak_digest(pargs.r.ret_str);
 	    break;
+
           case oUnwrap:
-            opt.unwrap_encryption = 1;
+            opt.unwrap_encryption = true;
             break;
+
           case oOnlySignTextIDs:
-            opt.only_sign_text_ids = 1;
+            opt.only_sign_text_ids = true;
             break;
 
           case oLCctype: opt.lc_ctype = pargs.r.ret_str; break;
@@ -2735,7 +2837,10 @@ gpg_main (int argc, char **argv)
 	      }
 	    break;
 
-          case oEnableProgressFilter: opt.enable_progress_filter = 1; break;
+          case oEnableProgressFilter:
+	    opt.enable_progress_filter = true;
+	    break;
+
 	  case oMultifile: multifile=1; break;
 	  case oKeyidFormat:
 	    if(ascii_strcasecmp(pargs.r.ret_str,"short")==0)
@@ -2753,15 +2858,20 @@ gpg_main (int argc, char **argv)
 	    break;
 
           case oExitOnStatusWriteError:
-            opt.exit_on_status_write_error = 1;
+            opt.exit_on_status_write_error = true;
             break;
 
 	  case oLimitCardInsertTries:
             opt.limit_card_insert_tries = pargs.r.ret_int;
             break;
 
-	  case oRequireCrossCert: opt.flags.require_cross_cert=1; break;
-	  case oNoRequireCrossCert: opt.flags.require_cross_cert=0; break;
+	  case oRequireCrossCert:
+	    opt.flags.require_cross_cert = true;
+	    break;
+
+	  case oNoRequireCrossCert:
+	    opt.flags.require_cross_cert = false;
+	    break;
 
 	  case oAutoKeyLocate:
 	    if(!parse_auto_key_locate(pargs.r.ret_str))
@@ -2785,7 +2895,7 @@ gpg_main (int argc, char **argv)
 
 	  case oEnableLargeRSA:
 #if SECMEM_BUFFER_SIZE >= 65536
-            opt.flags.large_rsa=1;
+            opt.flags.large_rsa = true;
 #else
             if (configname)
               log_info("%s:%d: WARNING: gpg not built with large secure "
@@ -2796,11 +2906,18 @@ gpg_main (int argc, char **argv)
                          "memory buffer.  Ignoring --enable-large-rsa\n");
 #endif /* SECMEM_BUFFER_SIZE >= 65536 */
             break;
-	  case oDisableLargeRSA: opt.flags.large_rsa=0;
+
+	  case oDisableLargeRSA:
+	    opt.flags.large_rsa = false;
             break;
 
-	  case oEnableDSA2: opt.flags.dsa2=1; break;
-	  case oDisableDSA2: opt.flags.dsa2=0; break;
+	  case oEnableDSA2:
+	    opt.flags.dsa2 = true;
+	    break;
+
+	  case oDisableDSA2:
+	    opt.flags.dsa2 = false;
+	    break;
 
           case oFakedSystemTime:
             {
@@ -2821,7 +2938,9 @@ gpg_main (int argc, char **argv)
             }
             break;
 
-          case oNoAutostart: opt.autostart = 0; break;
+          case oNoAutostart:
+	    opt.autostart = false;
+	    break;
 
 	  case oDefaultNewKeyAlgo:
             opt.def_new_key_algo = pargs.r.ret_str;
@@ -2937,13 +3056,13 @@ gpg_main (int argc, char **argv)
       {
         /* That does not anymore work because we have no more support
            for v3 signatures.  */
-	opt.ask_sig_expire=0;
+	opt.ask_sig_expire = false;
       }
     else if(PGP7)
       {
         /* That does not anymore work because we have no more support
            for v3 signatures.  */
-	opt.ask_sig_expire=0;
+	opt.ask_sig_expire = false;
       }
     else if(PGP8)
       {
@@ -3205,7 +3324,7 @@ gpg_main (int argc, char **argv)
     fname = argc? *argv : NULL;
 
     if(fname && utf8_strings)
-      opt.flags.utf8_filename=1;
+      opt.flags.utf8_filename = true;
 
     ctrl = (ctrl_t) xcalloc (1, sizeof *ctrl);
     gpg_init_default_ctrl (ctrl);
@@ -3528,9 +3647,9 @@ gpg_main (int argc, char **argv)
 	break;
 
       case aCheckKeys:
-	opt.check_sigs = 1; /* fall through */
+	opt.check_sigs = true; /* fall through */
       case aListSigs:
-	opt.list_sigs = 1; /* fall through */
+	opt.list_sigs = true; /* fall through */
       case aListKeys:
 	sl = NULL;
 	for( ; argc; argc--, argv++ )
@@ -4121,7 +4240,7 @@ gpg_main (int argc, char **argv)
 		}
 	    }
 	    if( cmd == aListPackets ) {
-		opt.list_packets=1;
+		opt.list_packets = true;
 		set_packet_list_mode(1);
 	    }
 	    rc = proc_packets (ctrl, NULL, a );

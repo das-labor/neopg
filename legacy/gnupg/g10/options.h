@@ -64,188 +64,6 @@ struct akl
   struct akl *next;
 };
 
-/* Global options for GPG.  */
-struct options
-{
-  int verbose;
-  int quiet;
-  unsigned debug;
-  int armor;
-  const char *outfile;
-  estream_t outfp;  /* Hack, sometimes used in place of outfile.  */
-  off_t max_output;
-
-  int dry_run;
-  int autostart;
-  int list_only;
-  int mimemode;
-  int textmode;
-  int expert;
-  const char *def_sig_expire;
-  int ask_sig_expire;
-  const char *def_cert_expire;
-  int ask_cert_expire;
-  int batch;	    /* run in batch mode */
-  int answer_yes; /* answer yes on most questions */
-  int answer_no;  /* answer no on most questions */
-  int check_sigs; /* check key signatures */
-  int with_colons;
-  int with_key_data;
-  int with_icao_spelling; /* Print ICAO spelling with fingerprints.  */
-  int with_fingerprint; /* Option --with-fingerprint active.  */
-  int with_subkey_fingerprint; /* Option --with-subkey-fingerprint active.  */
-  int with_keygrip;     /* Option --with-keygrip active.  */
-  int with_tofu_info;   /* Option --with-tofu_info active.  */
-  int with_secret;      /* Option --with-secret active.  */
-  int with_wkd_hash;    /* Option --with-wkd-hash.  */
-  int fingerprint; /* list fingerprints */
-  int list_sigs;   /* list signatures */
-  int no_armor;
-  int list_packets; /* Option --list-packets active.  */
-  int def_cipher_algo;
-  int def_digest_algo;
-  int cert_digest_algo;
-  int compress_algo;
-  strlist_t def_secret_key;
-  char *def_recipient;
-  int def_recipient_self;
-  strlist_t secret_keys_to_try;
-
-  /* A list of mail addresses (addr-spec) provided by the user with
-   * the option --sender.  */
-  strlist_t sender_list;
-
-  int def_cert_level;
-  int min_cert_level;
-  int ask_cert_level;
-  int marginals_needed;
-  int completes_needed;
-  int max_cert_depth;
-
-  const char *def_new_key_algo;
-
-  /* Options to be passed to the gpg-agent */
-  char *lc_ctype;
-  char *lc_messages;
-
-  int skip_verify;
-  int skip_hidden_recipients;
-
-  /* TM_CLASSIC must be zero to accommodate trustdbsg generated before
-     we started storing the trust model inside the trustdb. */
-  int trust_model;
-  enum tofu_policy tofu_default_policy;
-  int force_ownertrust;
-  enum gnupg_compliance_mode compliance;
-  int keyid_format;
-  int throw_keyids;
-  int s2k_mode;
-  int s2k_digest_algo;
-  int s2k_cipher_algo;
-  unsigned char s2k_count; /* This is the encoded form, not the raw
-			      count */
-  keyserver_spec_t keyserver;  /* The list of configured keyservers.  */
-  struct
-  {
-    unsigned int options;
-    unsigned int import_options;
-    unsigned int export_options;
-    char *http_proxy;
-  } keyserver_options;
-  unsigned int import_options;
-  unsigned int export_options;
-  unsigned int list_options;
-  unsigned int verify_options;
-  const char *def_preference_list;
-  const char *def_keyserver_url;
-  prefitem_t *personal_cipher_prefs;
-  prefitem_t *personal_digest_prefs;
-  prefitem_t *personal_compress_prefs;
-  struct weakhash *weak_digests;
-  int no_perm_warn;
-  char *temp_dir;
-  int no_encrypt_to;
-  int encrypt_to_default_key;
-  int interactive;
-  struct notation *sig_notations;
-  struct notation *cert_notations;
-  strlist_t sig_policy_url;
-  strlist_t cert_policy_url;
-  strlist_t sig_keyserver_url;
-  strlist_t cert_subpackets;
-  strlist_t sig_subpackets;
-  int allow_non_selfsigned_uid;
-  int allow_freeform_uid;
-  int ignore_time_conflict;
-  int ignore_valid_from;
-  int ignore_crc_error;
-  int command_fd;
-  const char *override_session_key;
-  int show_session_key;
-
-  const char *gpg_agent_info;
-  int try_all_secrets;
-  int no_sig_cache;
-  int no_auto_check_trustdb;
-  int preserve_permissions;
-  struct groupitem *grouplist;
-  int enable_progress_filter;
-  unsigned int screen_columns;
-  unsigned int screen_lines;
-  byte *show_subpackets;
-  int rfc2440_text;
-
-  /* If true, let write failures on the status-fd exit the process. */
-  int exit_on_status_write_error;
-
-  /* If > 0, limit the number of card insertion prompts to this
-     value. */
-  int limit_card_insert_tries;
-
-  struct
-  {
-    /* If set, require an 0x19 backsig to be present on signatures
-       made by signing subkeys.  If not set, a missing backsig is not
-       an error (but an invalid backsig still is). */
-    unsigned int require_cross_cert:1;
-
-    unsigned int utf8_filename:1;
-    unsigned int dsa2:1;
-    unsigned int large_rsa:1;
-    unsigned int disable_signer_uid:1;
-    /* Flag to enbale experimental features from RFC4880bis.  */
-    unsigned int rfc4880bis:1;
-  } flags;
-
-  /* Linked list of ways to find a key if the key isn't on the local
-     keyring. */
-  struct akl *auto_key_locate;
-
-  /* The value of --key-origin.  See parse_key_origin().  */
-  int key_origin;
-
-  int passphrase_repeat;
-
-  int unwrap_encryption;
-  int only_sign_text_ids;
-};
-extern struct options gpg2_opt;
-#define opt gpg2_opt
-
-/* CTRL is used to keep some global variables we currently can't
-   avoid.  Future concurrent versions of gpg will put it into a per
-   request structure CTRL. */
-struct glo_ctrl {
-  int in_auto_key_retrieve; /* True if we are doing an
-                               auto_key_retrieve. */
-  /* Hack to store the last error.  We currently need it because the
-     proc_packet machinery is not able to reliabale return error
-     codes.  Thus for the --server purposes we store some of the error
-     codes here.  FIXME! */
-  gpg_error_t lasterr;
-};
-extern struct glo_ctrl glo_ctrl;
-
 #define DBG_PACKET_VALUE  1	/* debug packet reading/writing */
 #define DBG_MPI_VALUE	  2	/* debug mpi details */
 #define DBG_CRYPTO_VALUE  4	/* debug crypto handling */
@@ -350,6 +168,197 @@ extern int memory_stat_debug_mode;
 #define KEYSERVER_AUTO_KEY_RETRIEVE      (1<<3)
 #define KEYSERVER_HONOR_KEYSERVER_URL    (1<<4)
 #define KEYSERVER_HONOR_PKA_RECORD       (1<<5)
+
+/* Global options for GPG.  */
+struct options
+{
+  int verbose {0};
+  bool quiet {false};
+  unsigned debug {0};
+  bool armor {false};
+  const char *outfile {nullptr};
+  estream_t outfp {0};  /* Hack, sometimes used in place of outfile.  */
+  off_t max_output {0};
+
+  bool dry_run {false};
+  bool autostart {true};
+  bool list_only {false};
+  bool mimemode {false};
+  bool textmode {false};
+  bool expert {false};
+  const char *def_sig_expire {"0"};
+  bool ask_sig_expire {false};
+  const char *def_cert_expire {"0"};
+  bool ask_cert_expire {false};
+  bool batch {false};	    /* run in batch mode */
+  bool answer_yes {false}; /* answer yes on most questions */
+  bool answer_no {false};  /* answer no on most questions */
+  bool check_sigs {false}; /* check key signatures */
+  bool with_colons {false};
+  bool with_key_data {false};
+  bool with_icao_spelling {false}; /* Print ICAO spelling with fingerprints.  */
+  bool with_fingerprint {false}; /* Option --with-fingerprint active.  */
+  bool with_subkey_fingerprint {false}; /* Option --with-subkey-fingerprint active.  */
+  bool with_keygrip {false};     /* Option --with-keygrip active.  */
+  bool with_tofu_info {false};   /* Option --with-tofu_info active.  */
+  bool with_secret {false};      /* Option --with-secret active.  */
+  bool with_wkd_hash {false};    /* Option --with-wkd-hash.  */
+  int fingerprint {0}; /* list fingerprints */
+  bool list_sigs {false};   /* list signatures */
+  bool no_armor {false};
+  bool list_packets {false}; /* Option --list-packets active.  */
+  int def_cipher_algo {0};
+  int def_digest_algo {0};
+  int cert_digest_algo {0};
+  int compress_algo {-1}; /* defaults to DEFAULT_COMPRESS_ALGO */
+  strlist_t def_secret_key {nullptr};
+  char *def_recipient {nullptr};
+  int def_recipient_self {0};
+  strlist_t secret_keys_to_try {nullptr};
+
+  /* A list of mail addresses (addr-spec) provided by the user with
+   * the option --sender.  */
+  strlist_t sender_list {nullptr};
+
+  int def_cert_level {0};
+  int min_cert_level {2};
+  int ask_cert_level {0};
+  int marginals_needed {3};
+  int completes_needed {1};
+  int max_cert_depth {5};
+
+  const char *def_new_key_algo {nullptr};
+
+  /* Options to be passed to the gpg-agent */
+  char *lc_ctype {nullptr};
+  char *lc_messages {nullptr};
+
+  bool skip_verify {false};
+  bool skip_hidden_recipients {false};
+
+  /* TM_CLASSIC must be zero to accommodate trustdbsg generated before
+     we started storing the trust model inside the trustdb. */
+  int trust_model
+#ifdef NO_TRUST_MODELS
+  {TM_ALWAYS}
+#else
+  {TM_AUTO}
+#endif
+  ;
+  enum tofu_policy tofu_default_policy {TOFU_POLICY_AUTO};
+  int force_ownertrust {0};
+  enum gnupg_compliance_mode compliance {CO_GNUPG};
+  int keyid_format {KF_NONE};
+  bool throw_keyids {false};
+  int s2k_mode {3}; /* iterated+salted */
+  int s2k_digest_algo {0};
+  int s2k_cipher_algo {DEFAULT_CIPHER_ALGO};
+  /* This is the encoded form, not the raw count */
+  unsigned char s2k_count {0}; /* Auto-calibrate when needed.  */
+  keyserver_spec_t keyserver {nullptr};  /* The list of configured keyservers.  */
+  struct
+  {
+    unsigned int options {KEYSERVER_HONOR_PKA_RECORD};
+    unsigned int import_options {(IMPORT_REPAIR_KEYS | IMPORT_REPAIR_PKS_SUBKEY_BUG)};
+    unsigned int export_options {EXPORT_ATTRIBUTES};
+    char *http_proxy {nullptr};
+  } keyserver_options;
+  unsigned int import_options {IMPORT_REPAIR_KEYS};
+  unsigned int export_options {EXPORT_ATTRIBUTES};
+  unsigned int list_options {(LIST_SHOW_UID_VALIDITY
+			      | LIST_SHOW_USAGE)};
+  unsigned int verify_options {(LIST_SHOW_UID_VALIDITY
+				| VERIFY_SHOW_POLICY_URLS
+				| VERIFY_SHOW_STD_NOTATIONS
+				| VERIFY_SHOW_KEYSERVER_URLS)};
+  const char *def_preference_list {nullptr};
+  const char *def_keyserver_url {nullptr};
+  prefitem_t *personal_cipher_prefs {nullptr};
+  prefitem_t *personal_digest_prefs {nullptr};
+  prefitem_t *personal_compress_prefs {nullptr};
+  struct weakhash *weak_digests {NULL};
+  bool no_perm_warn {false};
+  char *temp_dir {nullptr};
+  bool no_encrypt_to {false};
+  int encrypt_to_default_key {0};
+  bool interactive {false};
+  struct notation *sig_notations {nullptr};
+  struct notation *cert_notations {nullptr};
+  strlist_t sig_policy_url {nullptr};
+  strlist_t cert_policy_url {nullptr};
+  strlist_t sig_keyserver_url {nullptr};
+  strlist_t cert_subpackets {nullptr};
+  strlist_t sig_subpackets {nullptr};
+  bool allow_non_selfsigned_uid {false};
+  bool allow_freeform_uid {false};
+  bool ignore_time_conflict {false};
+  bool ignore_valid_from {false};
+  bool ignore_crc_error {false};
+  int command_fd {-1};
+  const char *override_session_key {nullptr};
+  bool show_session_key {false};
+
+  const char *gpg_agent_info {nullptr};
+  bool try_all_secrets {false};
+  bool no_sig_cache {false};
+  bool no_auto_check_trustdb {false};
+  bool preserve_permissions {false};
+  struct groupitem *grouplist {nullptr};
+  bool enable_progress_filter {false};
+  unsigned int screen_columns {0};
+  unsigned int screen_lines {0};
+  byte *show_subpackets {nullptr};
+  bool rfc2440_text {false};
+
+  /* If true, let write failures on the status-fd exit the process. */
+  bool exit_on_status_write_error {false};
+
+  /* If > 0, limit the number of card insertion prompts to this
+     value. */
+  int limit_card_insert_tries {0};
+
+  struct
+  {
+    /* If set, require an 0x19 backsig to be present on signatures
+       made by signing subkeys.  If not set, a missing backsig is not
+       an error (but an invalid backsig still is). */
+    bool require_cross_cert {true};
+
+    bool utf8_filename {false};
+    bool dsa2 {false};
+    bool large_rsa {false};
+    bool disable_signer_uid {false};
+    /* Flag to enbale experimental features from RFC4880bis.  */
+    bool rfc4880bis {false};
+  } flags;
+
+  /* Linked list of ways to find a key if the key isn't on the local
+     keyring. */
+  struct akl *auto_key_locate {nullptr};
+
+  /* The value of --key-origin.  See parse_key_origin().  */
+  int key_origin {0};
+
+  bool unwrap_encryption {false};
+  int only_sign_text_ids {false};
+};
+extern struct options gpg2_opt;
+#define opt gpg2_opt
+
+/* CTRL is used to keep some global variables we currently can't
+   avoid.  Future concurrent versions of gpg will put it into a per
+   request structure CTRL. */
+struct glo_ctrl {
+  int in_auto_key_retrieve; /* True if we are doing an
+                               auto_key_retrieve. */
+  /* Hack to store the last error.  We currently need it because the
+     proc_packet machinery is not able to reliabale return error
+     codes.  Thus for the --server purposes we store some of the error
+     codes here.  FIXME! */
+  gpg_error_t lasterr;
+};
+extern struct glo_ctrl glo_ctrl;
+
 
 
 #endif /*G10_OPTIONS_H*/
