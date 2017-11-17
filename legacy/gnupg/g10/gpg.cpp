@@ -262,7 +262,6 @@ enum cmd_and_opt_values
     oNoArmor,
     oNoDefKeyring,
     oNoKeyring,
-    oNoGreeting,
     oNoTTY,
     oNoOptions,
     oNoBatch,
@@ -631,7 +630,6 @@ const static ARGPARSE_OPTS opts[] = {
   ARGPARSE_s_n (oNoArmor, "no-armour", "@"),
   ARGPARSE_s_n (oNoDefKeyring, "no-default-keyring", "@"),
   ARGPARSE_s_n (oNoKeyring, "no-keyring", "@"),
-  ARGPARSE_s_n (oNoGreeting, "no-greeting", "@"),
   ARGPARSE_s_n (oNoOptions, "no-options", "@"),
   ARGPARSE_s_s (oHomedir, "homedir", "@"),
   ARGPARSE_s_n (oNoBatch, "no-batch", "@"),
@@ -1789,8 +1787,6 @@ gpg_main (int argc, char **argv)
     int parse_debug = 0;
     int default_config = 1;
     int default_keyring = 1;
-    int greeting = 0;
-    int nogreeting = 0;
     char *logfile = NULL;
     int use_random_seed = 1;
     enum cmd_and_opt_values cmd = (cmd_and_opt_values) 0;
@@ -1816,9 +1812,6 @@ gpg_main (int argc, char **argv)
     int got_secmem = 0;
     struct assuan_malloc_hooks malloc_hooks;
     ctrl_t ctrl;
-
-    int print_dane_records;
-    int print_pka_records;
 
     opt = options();
 
@@ -2014,9 +2007,6 @@ gpg_main (int argc, char **argv)
 	  case aQuickSetPrimaryUid:
 	  case aExportOwnerTrust:
 	  case aImportOwnerTrust:
-            set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-            break;
-
 	  case aKeygen:
 	  case aFullKeygen:
 	  case aEditKey:
@@ -2025,7 +2015,6 @@ gpg_main (int argc, char **argv)
 	  case aDeleteKeys:
           case aPasswd:
             set_cmd (&cmd, (cmd_and_opt_values) (pargs.r_opt));
-            greeting=1;
             break;
 
 	  case aDetachedSign: detached_sig = 1; set_cmd( &cmd, aSign ); break;
@@ -2071,7 +2060,6 @@ gpg_main (int argc, char **argv)
 
 	  case oBatch:
             opt.batch = true;
-            nogreeting = 1;
             break;
 
 	  case oAnswerYes:
@@ -2174,7 +2162,6 @@ gpg_main (int argc, char **argv)
             default_keyring = -1;
             break;
 
-	  case oNoGreeting: nogreeting = 1; break;
 	  case oNoVerbose:
             opt.verbose = 0;
             gcry_control (GCRYCTL_SET_VERBOSITY, (int)opt.verbose);
@@ -2679,9 +2666,6 @@ gpg_main (int argc, char **argv)
 	    opt.allow_freeform_uid = false;
 	    break;
 
-	  case oPrintPKARecords: print_pka_records = 1; break;
-	  case oPrintDANERecords: print_dane_records = 1; break;
-
 	  case oListOnly:
 	    opt.list_only = true;
 	    break;
@@ -2915,27 +2899,10 @@ gpg_main (int argc, char **argv)
     xfree (save_configname);
     xfree (default_configname);
 
-    if (print_dane_records)
-      log_error ("invalid option \"%s\"; use \"%s\" instead\n",
-                 "--print-dane-records",
-                 "--export-options export-dane");
-    if (print_pka_records)
-      log_error ("invalid option \"%s\"; use \"%s\" instead\n",
-                 "--print-pks-records",
-                 "--export-options export-pka");
     if (log_get_errorcount (0))
       g10_exit(2);
 
 
-    if( nogreeting )
-	greeting = 0;
-
-    if( greeting )
-      {
-	es_fprintf (es_stderr, "%s %s; %s\n",
-                    strusage(11), strusage(13), strusage(14) );
-	es_fprintf (es_stderr, "%s\n", strusage(15) );
-      }
     /* FIXME: We should use logging to a file only in server mode;
        however we have not yet implemetyed that.  Thus we try to get
        away with --batch as indication for logging to file
