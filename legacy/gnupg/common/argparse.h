@@ -192,9 +192,9 @@ typedef struct
 #define ARGPARSE_INVALID_ARG       (-12)
 
 
-int arg_parse (ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts);
+int arg_parse (ARGPARSE_ARGS *arg, const ARGPARSE_OPTS *opts);
 int optfile_parse (FILE *fp, const char *filename, unsigned *lineno,
-		   ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts);
+		   ARGPARSE_ARGS *arg, const ARGPARSE_OPTS *opts);
 void usage (int level);
 const char *strusage (int level);
 void set_strusage (const char *(*f)( int ));

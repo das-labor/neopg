@@ -178,7 +178,7 @@ static const char *(*strusage_handler)( int ) = NULL;
 static int (*custom_outfnc) (int, const char *);
 
 static int  set_opt_arg(ARGPARSE_ARGS *arg, unsigned flags, char *s);
-static void show_help(ARGPARSE_OPTS *opts, unsigned flags);
+static void show_help(const ARGPARSE_OPTS *opts, unsigned flags);
 static void show_version(void);
 static int writestrings (int is_error, const char *string, ...)
 #if __GNUC__ >= 4
@@ -452,7 +452,7 @@ ignore_invalid_option_clear (ARGPARSE_ARGS *arg)
  */
 int
 optfile_parse (FILE *fp, const char *filename, unsigned *lineno,
-	       ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
+	       ARGPARSE_ARGS *arg, const ARGPARSE_OPTS *opts)
 {
   int state, i, c;
   int idx=0;
@@ -751,7 +751,7 @@ optfile_parse (FILE *fp, const char *filename, unsigned *lineno,
 
 static int
 find_long_option( ARGPARSE_ARGS *arg,
-		  ARGPARSE_OPTS *opts, const char *keyword )
+		  const ARGPARSE_OPTS *opts, const char *keyword )
 {
     int i;
     size_t n;
@@ -787,7 +787,7 @@ find_long_option( ARGPARSE_ARGS *arg,
 }
 
 int
-arg_parse( ARGPARSE_ARGS *arg, ARGPARSE_OPTS *opts)
+arg_parse( ARGPARSE_ARGS *arg, const ARGPARSE_OPTS *opts)
 {
   int idx;
   int argc;
@@ -1098,7 +1098,7 @@ set_opt_arg (ARGPARSE_ARGS *arg, unsigned flags, char *s)
 
 
 static size_t
-long_opt_strlen( ARGPARSE_OPTS *o )
+long_opt_strlen( const ARGPARSE_OPTS *o )
 {
   size_t n = strlen (o->long_opt);
 
@@ -1133,7 +1133,7 @@ long_opt_strlen( ARGPARSE_OPTS *o )
  *    bar and the next one as arguments of the long option.
  */
 static void
-show_help (ARGPARSE_OPTS *opts, unsigned int flags)
+show_help (const ARGPARSE_OPTS *opts, unsigned int flags)
 {
   const char *s;
   char tmp[2];

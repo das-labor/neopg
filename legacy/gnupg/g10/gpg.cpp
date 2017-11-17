@@ -366,7 +366,7 @@ enum cmd_and_opt_values
   };
 
 
-static ARGPARSE_OPTS opts[] = {
+const static ARGPARSE_OPTS opts[] = {
 
   ARGPARSE_group (300, N_("@Commands:\n ")),
 
@@ -746,7 +746,7 @@ static ARGPARSE_OPTS opts[] = {
 
 
 /* The list of supported debug flags.  */
-static struct debug_flags_s debug_flags [] =
+const static struct debug_flags_s debug_flags [] =
   {
     { DBG_PACKET_VALUE , "packet"  },
     { DBG_MPI_VALUE    , "mpi"     },
@@ -775,7 +775,7 @@ static struct debug_flags_s debug_flags [] =
 
 int g10_errors_seen = 0;
 
-static int utf8_strings = 0;
+
 static int maybe_setuid = 1;
 
 static char *build_list( const char *text, char letter,
@@ -783,7 +783,7 @@ static char *build_list( const char *text, char letter,
 static void set_cmd( enum cmd_and_opt_values *ret_cmd,
 			enum cmd_and_opt_values new_cmd );
 static void print_mds( const char *fname, int algo );
-static void add_notation_data( const char *string, int which );
+static void add_notation_data( const char *string, int which, bool utf8_strings );
 static void add_policy_url( const char *string, int which );
 static void add_keyserver_url( const char *string, int which );
 static void emergency_cleanup (void);
@@ -964,7 +964,7 @@ wrong_args( const char *text)
 
 
 static char *
-make_username( const char *string )
+make_username( const char *string, bool utf8_strings )
 {
     char *p;
     if( utf8_strings )
@@ -1141,7 +1141,7 @@ set_cmd( enum cmd_and_opt_values *ret_cmd, enum cmd_and_opt_values new_cmd )
 
 
 static void
-add_group(char *string)
+add_group(char *string, bool utf8_strings)
 {
   char *name,*value;
   auto item = opt.grouplist.begin();
@@ -1767,6 +1767,7 @@ get_default_configname (void)
 int
 gpg_main (int argc, char **argv)
 {
+    int utf8_strings = 0;
     ARGPARSE_ARGS pargs;
     IOBUF a;
     int rc=0;
@@ -1816,8 +1817,8 @@ gpg_main (int argc, char **argv)
     struct assuan_malloc_hooks malloc_hooks;
     ctrl_t ctrl;
 
-    static int print_dane_records;
-    static int print_pka_records;
+    int print_dane_records;
+    int print_pka_records;
 
     opt = options();
 
@@ -2201,7 +2202,7 @@ gpg_main (int argc, char **argv)
             break;
 	  case oDefRecipient:
             if( *pargs.r.ret_str )
-		opt.def_recipient = make_username(pargs.r.ret_str);
+	      opt.def_recipient = make_username(pargs.r.ret_str, utf8_strings);
             break;
 	  case oDefRecipientSelf:
             opt.def_recipient = boost::none;
@@ -2638,11 +2639,11 @@ gpg_main (int argc, char **argv)
 	    }
 	    break;
 	  case oSetNotation:
-	    add_notation_data( pargs.r.ret_str, 0 );
-	    add_notation_data( pargs.r.ret_str, 1 );
+	    add_notation_data( pargs.r.ret_str, 0, utf8_strings );
+	    add_notation_data( pargs.r.ret_str, 1, utf8_strings );
 	    break;
-	  case oSigNotation: add_notation_data( pargs.r.ret_str, 0 ); break;
-	  case oCertNotation: add_notation_data( pargs.r.ret_str, 1 ); break;
+	  case oSigNotation: add_notation_data( pargs.r.ret_str, 0, utf8_strings ); break;
+	  case oCertNotation: add_notation_data( pargs.r.ret_str, 1, utf8_strings ); break;
 	  case oUtf8Strings: utf8_strings = 1; break;
 	  case oNoUtf8Strings: utf8_strings = 0; break;
 	  case oDisableCipherAlgo:
@@ -2778,7 +2779,7 @@ gpg_main (int argc, char **argv)
           case oLCctype: opt.lc_ctype = pargs.r.ret_str; break;
           case oLCmessages: opt.lc_messages = pargs.r.ret_str; break;
 
-	  case oGroup: add_group(pargs.r.ret_str); break;
+	  case oGroup: add_group(pargs.r.ret_str, utf8_strings); break;
 	  case oUnGroup: rm_group(pargs.r.ret_str); break;
 	  case oNoGroups:
 	    opt.grouplist.clear();
@@ -3536,7 +3537,7 @@ gpg_main (int argc, char **argv)
 	    BUG();
 
 	  commands.emplace_back("save");
-	  username = make_username( fname );
+	  username = make_username( fname, utf8_strings );
 	  keyedit_menu (ctrl, username, locusr, commands, 0, 0 );
 	  xfree(username);
 	}
@@ -3548,7 +3549,7 @@ gpg_main (int argc, char **argv)
 
 	  if( !argc )
 	    wrong_args("--edit-key user-id [commands]");
-	  username = make_username( fname );
+	  username = make_username( fname, utf8_strings );
 	  if( argc > 1 ) {
 	    for( argc--, argv++ ; argc; argc--, argv++ )
 	      commands.emplace_back(*argv);
@@ -3565,7 +3566,7 @@ gpg_main (int argc, char **argv)
           wrong_args("--change-passphrase <user-id>");
         else
           {
-            username = make_username (fname);
+            username = make_username (fname, utf8_strings);
             keyedit_passwd (ctrl, username);
             xfree (username);
           }
@@ -3621,7 +3622,7 @@ gpg_main (int argc, char **argv)
 
           if (argc < 1 || argc > 4)
             wrong_args("--quick-generate-key USER-ID [ALGO [USAGE [EXPIRE]]]");
-          username = make_username (fname);
+          username = make_username (fname, utf8_strings);
           argv++, argc--;
           x_algo = "";
           x_usage = "";
@@ -3892,7 +3893,7 @@ gpg_main (int argc, char **argv)
       case aGenRevoke:
 	if( argc != 1 )
 	    wrong_args("--generate-revocation user-id");
-	username =  make_username(*argv);
+	username =  make_username(*argv, utf8_strings);
 	gen_revoke (ctrl, username );
 	xfree( username );
 	break;
@@ -3900,7 +3901,7 @@ gpg_main (int argc, char **argv)
       case aDesigRevoke:
 	if (argc != 1)
 	    wrong_args ("--generate-designated-revocation user-id");
-	username = make_username (*argv);
+	username = make_username (*argv, utf8_strings);
 	gen_desig_revoke (ctrl, username, locusr);
 	xfree (username);
 	break;
@@ -4023,7 +4024,7 @@ gpg_main (int argc, char **argv)
 	if( !argc )
 	    wrong_args("--list-trust-path <user-ids>");
 	for( ; argc; argc--, argv++ ) {
-	    username = make_username( *argv );
+	  username = make_username( *argv, utf8_strings );
 	    list_trust_path( username );
 	    xfree(username);
 	}
@@ -4385,7 +4386,7 @@ print_mds( const char *fname, int algo )
  * for cert notations.
 */
 static void
-add_notation_data( const char *string, int which )
+add_notation_data( const char *string, int which, bool utf8_strings )
 {
   struct notation *notation;
 
