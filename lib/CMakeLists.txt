@@ -15,6 +15,7 @@ add_library(libneopg
   ../include/neopg/openpgp/marker_packet.h
   ../include/neopg/openpgp/packet.h
   ../include/neopg/openpgp/user_id_packet.h
+  ../include/neopg/openpgp/user_attribute_packet.h
   ../include/neopg/parser/openpgp.h
   ../include/neopg/utils/time.h
   utils/time.cpp
@@ -24,6 +25,7 @@ add_library(libneopg
   openpgp/marker_packet.cpp
   openpgp/packet.cpp
   openpgp/user_id_packet.cpp
+  openpgp/user_attribute_packet.cpp
 )
 
 # On some systems, -U_GNU_SOURCE doesn't work (cmath tries to use ::isinf and fails).

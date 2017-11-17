@@ -8,6 +8,7 @@ add_executable(test-neopg
   openpgp/marker_packet.cpp
   openpgp/literal_data_packet.cpp
   openpgp/user_id_packet.cpp
+  openpgp/user_attribute_packet.cpp
   utils/stream.cpp
   parser/openpgp.cpp
 )
