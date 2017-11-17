@@ -13,7 +13,9 @@ namespace NeoPG {
 namespace OpenPGP {
 
 struct Packet {
-  mutable std::unique_ptr<PacketHeader> m_header;
+  /*! Use this to overwrite the default header.
+   */
+  std::unique_ptr<PacketHeader> m_header;
 
   void write(std::ostream& out) const;
   virtual void write_body(std::ostream& out) const = 0;

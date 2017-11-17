@@ -169,7 +169,6 @@ void NewPacketLength::write(std::ostream& out) {
 void NewPacketHeader::write(std::ostream& out) {
   m_tag.write(out);
   m_length.write(out);
-  int a;
 }
 
 }  // namespace OpenPGP

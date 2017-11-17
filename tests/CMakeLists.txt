@@ -4,7 +4,10 @@
 # NeoPG is released under the Simplified BSD License (see license.txt)
 
 add_executable(test-neopg
-  openpgp.cpp
+  openpgp/header.cpp
+  openpgp/marker_packet.cpp
+  openpgp/literal_data_packet.cpp
+  openpgp/user_id_packet.cpp
   utils/stream.cpp
   parser/openpgp.cpp
 )
