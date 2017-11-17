@@ -9,6 +9,11 @@ add_executable(test-neopg
   openpgp/literal_data_packet.cpp
   openpgp/user_id_packet.cpp
   openpgp/user_attribute_packet.cpp
+  openpgp/modification_detection_code_packet.cpp
+  openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp
+  openpgp/symmetrically_encrypted_data_packet.cpp
+  openpgp/compressed_data_packet.cpp
+  openpgp/trust_packet.cpp
   utils/stream.cpp
   parser/openpgp.cpp
 )

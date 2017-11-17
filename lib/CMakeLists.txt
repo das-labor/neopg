@@ -16,6 +16,11 @@ add_library(libneopg
   ../include/neopg/openpgp/packet.h
   ../include/neopg/openpgp/user_id_packet.h
   ../include/neopg/openpgp/user_attribute_packet.h
+  ../include/neopg/openpgp/modification_detection_code_packet.h
+  ../include/neopg/openpgp/symmetrically_encrypted_integrity_protected_data_packet.h
+  ../include/neopg/openpgp/symmetrically_encrypted_data_packet.h
+  ../include/neopg/openpgp/compressed_data_packet.h
+  ../include/neopg/openpgp/trust_packet.h
   ../include/neopg/parser/openpgp.h
   ../include/neopg/utils/time.h
   utils/time.cpp
@@ -26,6 +31,11 @@ add_library(libneopg
   openpgp/packet.cpp
   openpgp/user_id_packet.cpp
   openpgp/user_attribute_packet.cpp
+  openpgp/modification_detection_code_packet.cpp
+  openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp
+  openpgp/symmetrically_encrypted_data_packet.cpp
+  openpgp/compressed_data_packet.cpp
+  openpgp/trust_packet.cpp
 )
 
 # On some systems, -U_GNU_SOURCE doesn't work (cmath tries to use ::isinf and fails).

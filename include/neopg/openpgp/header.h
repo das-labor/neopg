@@ -30,12 +30,12 @@ enum class PacketType : uint8_t {
   UserID = 13,
   PublicSubkey = 14,
   UserAttribute = 17,
-  SymmetricallyEncryptedAndIntegrityProtectedData = 18,
+  SymmetricallyEncryptedIntegrityProtectedData = 18,
   ModificationDetectionCode = 19,
-  Private60 = 60,
-  Private61 = 61,
-  Private62 = 62,
-  Private63 = 63
+  Private_60 = 60,
+  Private_61 = 61,
+  Private_62 = 62,
+  Private_63 = 63
 };
 
 enum class PacketLengthType : uint8_t {
