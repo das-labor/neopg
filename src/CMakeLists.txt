@@ -199,7 +199,13 @@ add_executable(neopg
   ../legacy/gnupg/scd/command.cpp
   ../legacy/gnupg/scd/iso7816.cpp
 
-  args.h
+  ../include/neopg/cli/args.h
+  ../include/neopg/cli/command.h
+  ../include/neopg/cli/version_command.h
+  ../include/neopg/cli/packet_command.h
+  cli/command.cpp
+  cli/version_command.cpp
+  cli/packet_command.cpp
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE

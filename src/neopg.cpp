@@ -6,7 +6,11 @@
 
 #include <iostream>
 
-#include "args.h"
+#include <neopg/cli/command.h>
+#include <neopg/cli/packet_command.h>
+#include <neopg/cli/version_command.h>
+
+using namespace NeoPG::CLI;
 
 int gpg_main(int argc, char** argv);
 int agent_main(int argc, char** argv);
@@ -14,86 +18,6 @@ int dirmngr_main(int argc, char** argv);
 int dirmngr_client_main(int argc, char** argv);
 int gpgsm_main(int argc, char** argv);
 int scd_main(int argc, char** argv);
-
-using arg_iter_t = std::vector<std::string>::const_iterator;
-
-class Command : public args::Command<Command*> {
- public:
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args) = 0;
-  Command(args::CommandGroup<Command*>& group_, const std::string& name_,
-          const std::string& help_, args::Options options_ = {})
-      : args::Command<Command*>(group_, this, name_, help_, options_){};
-  virtual ~Command(){};
-};
-
-class LegacyCommand : public Command {
- public:
-  using main_fnc_t = std::function<int(int argc, char** argv)>;
-
- private:
-  const main_fnc_t main_fnc;
-
- public:
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args) override {
-    std::vector<char*> args = {(char*)Name().c_str()};
-    while (begin_args != end_args)
-      args.push_back(const_cast<char*>((begin_args++)->c_str()));
-    main_fnc(args.size(), args.data());
-    return 0;
-  }
-  LegacyCommand(args::CommandGroup<Command*>& group_,
-                const main_fnc_t& main_fnc_, const std::string& name_,
-                const std::string& help_, args::Options options_ = {})
-      : Command(group_, name_, help_, options_), main_fnc(main_fnc_){};
-  virtual ~LegacyCommand(){};
-};
-
-class SimpleCommand : public Command {
- public:
-  virtual void setup(args::ArgumentParser& parser){};
-  virtual int run(args::ArgumentParser& parser) = 0;
-
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args) {
-    args::ArgumentParser parser("");
-    parser.Prog(progname + " " + Name().c_str());
-    args::HelpFlag help(parser, "help", "display this help and exit", {"help"});
-    setup(parser);
-    try {
-      auto next = parser.ParseArgs(begin_args, end_args);
-      return run(parser);
-    } catch (args::Help) {
-      std::cout << parser;
-      return 0;
-    } catch (args::ParseError e) {
-      std::cerr << e.what() << std::endl;
-      std::cerr << parser;
-      return 1;
-    }
-  }
-
-  SimpleCommand(args::CommandGroup<Command*>& group_, const std::string& name_,
-                const std::string& help_, args::Options options_ = {})
-      : Command(group_, name_, help_, options_){};
-  virtual ~SimpleCommand(){};
-};
-
-class VersionCommand : public SimpleCommand {
- public:
-  int run() {
-    std::cout << "NeoPG 0.0\n";
-    return 0;
-  }
-
-  virtual int run(args::ArgumentParser& parser) { return run(); }
-
-  VersionCommand(args::CommandGroup<Command*>& group_, const std::string& name_,
-                 const std::string& help_, args::Options options_ = {})
-      : SimpleCommand(group_, name_, help_, options_){};
-  virtual ~VersionCommand(){};
-};
 
 char* neopg_program;
 
@@ -131,6 +55,7 @@ struct openpgp : cli::command<openpgp>
 #include "../legacy/gnupg/common/stringhelp.h"
 
 int main(int argc, char const* argv[]) {
+  /* This is also used to invoke ourself.  */
   neopg_program = make_absfilename(argv[0], NULL);
 
   const std::vector<std::string> args(argv + 1, argv + argc);
@@ -158,6 +83,8 @@ int main(int argc, char const* argv[]) {
   LegacyCommand cmd_dirmngr_client(cmd, dirmngr_client_main, "dirmngr-client",
                                    "invoke dirmngr-client");
 
+  PacketCommand cmd_packet(cmd, "packet", "read and write OpenPGP packets",
+                           args::Options::Hidden);
   VersionCommand cmd_version(cmd, "version", "show version info and exit",
                              args::Options::Hidden);
 
