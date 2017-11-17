@@ -748,23 +748,20 @@ default_recipient(ctrl_t ctrl)
 }
 
 static int
-expand_id(const char *id,strlist_t *into,unsigned int flags)
+expand_id(const char *id,
+	  std::vector<std::pair<std::string, unsigned int>>& into, unsigned int flags)
 {
-  struct groupitem *groups;
-  int count=0;
+  int count = 0;
 
-  for(groups=opt.grouplist;groups;groups=groups->next)
+  for(auto& group : opt.grouplist)
     {
       /* need strcasecmp() here, as this should be localized */
-      if(strcasecmp(groups->name,id)==0)
+      if(strcasecmp(group.name.c_str(), id)==0)
 	{
-	  strlist_t each,sl;
-
 	  /* this maintains the current utf8-ness */
-	  for(each=groups->values;each;each=each->next)
+	  for(auto& each : group.values)
 	    {
-	      sl=add_to_strlist(into,each->d);
-	      sl->flags=flags;
+	      into.emplace_back(each.c_str(), flags);
 	      count++;
 	    }
 
@@ -777,19 +774,17 @@ expand_id(const char *id,strlist_t *into,unsigned int flags)
 
 /* For simplicity, and to avoid potential loops, we only expand once -
  * you can't make an alias that points to an alias.  */
-static strlist_t
-expand_group (strlist_t input)
+static std::vector<std::pair<std::string, unsigned int>>
+expand_group (const std::vector<std::pair<std::string, unsigned int>>& input)
 {
-  strlist_t output = NULL;
-  strlist_t sl, rover;
+  std::vector<std::pair<std::string, unsigned int>> output;
 
-  for (rover = input; rover; rover = rover->next)
-    if (!(rover->flags & PK_LIST_FROM_FILE)
-        && !expand_id(rover->d,&output,rover->flags))
+  for (auto& rover : input)
+    if (!(rover.second & PK_LIST_FROM_FILE)
+        && !expand_id(rover.first.c_str(), output, rover.second))
       {
 	/* Didn't find any groups, so use the existing string */
-	sl=add_to_strlist(&output,rover->d);
-	sl->flags=rover->flags;
+	output.emplace_back(rover.first.c_str(), rover.second);
       }
 
   return output;
@@ -925,18 +920,19 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
  * not changed.
  */
 int
-build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
+build_pk_list (ctrl_t ctrl,
+	       const std::vector<std::pair<std::string, unsigned int>>& rcpts, PK_LIST *ret_pk_list)
 {
   PK_LIST pk_list = NULL;
   PKT_public_key *pk=NULL;
   int rc=0;
   int any_recipients=0;
-  strlist_t rov,remusr;
   char *def_rec = NULL;
   char pkstrbuf[PUBKEY_STRING_SIZE];
-
+  std::vector<std::pair<std::string, unsigned int>> remusr;
+  
   /* Try to expand groups if any have been defined. */
-  if (opt.grouplist)
+  if (!opt.grouplist.empty())
     remusr = expand_group (rcpts);
   else
     remusr = rcpts;
@@ -997,9 +993,9 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
 
   /* Check whether there are any recipients in the list and build the
    * list of the encrypt-to ones (we always trust them). */
-  for ( rov = remusr; rov; rov = rov->next )
+  for (auto& rov : remusr)
     {
-      if ( !(rov->flags & PK_LIST_ENCRYPT_TO) )
+      if ( !(rov.second & PK_LIST_ENCRYPT_TO) )
         {
           /* This is a regular recipient; i.e. not an encrypt-to
              one. */
@@ -1007,7 +1003,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
 
           /* Hidden recipients are not allowed while in PGP mode,
              issue a warning and switch into GnuPG mode. */
-          if ((rov->flags & PK_LIST_HIDDEN) && (PGP6 || PGP7 || PGP8))
+          if ((rov.second & PK_LIST_HIDDEN) && (PGP6 || PGP7 || PGP8))
             {
               log_info(_("you may not use %s while in %s mode\n"),
                        "--hidden-recipient",
@@ -1027,11 +1023,11 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
              we pass 1 for the second last argument and 1 as the last
              argument to disable AKL. */
           if ( (rc = get_pubkey_byname (ctrl,
-                                        NULL, pk, rov->d, NULL, NULL, 1, 1)) )
+                                        NULL, pk, rov.first.c_str(), NULL, NULL, 1, 1)) )
             {
               free_public_key ( pk ); pk = NULL;
-              log_error (_("%s: skipped: %s\n"), rov->d, gpg_strerror (rc) );
-              send_status_inv_recp (0, rov->d);
+              log_error (_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror (rc) );
+              send_status_inv_recp (0, rov.first.c_str());
               goto fail;
             }
           else if ( !(rc=openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo),
@@ -1044,7 +1040,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                   free_public_key (pk); pk = NULL;
                   if (!opt.quiet)
                     log_info (_("%s: skipped: public key already present\n"),
-                              rov->d);
+                              rov.first.c_str());
                 }
               else
                 {
@@ -1052,7 +1048,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
                   r = (PK_LIST) xmalloc( sizeof *r );
                   r->pk = pk; pk = NULL;
                   r->next = pk_list;
-                  r->flags = (rov->flags&PK_LIST_HIDDEN)?1:0;
+                  r->flags = (rov.second & PK_LIST_HIDDEN)?1:0;
                   pk_list = r;
 
                   /* Hidden encrypt-to recipients are not allowed while
@@ -1072,8 +1068,8 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
             {
               /* The public key is not usable for encryption. */
               free_public_key( pk ); pk = NULL;
-              log_error(_("%s: skipped: %s\n"), rov->d, gpg_strerror (rc) );
-              send_status_inv_recp (3, rov->d); /* Wrong key usage */
+              log_error(_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror (rc) );
+              send_status_inv_recp (3, rov.first.c_str()); /* Wrong key usage */
               goto fail;
             }
         }
@@ -1085,7 +1081,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
     {
       int have_def_rec;
       char *answer = NULL;
-      strlist_t backlog = NULL;
+      std::vector<std::pair<std::string, unsigned int>> backlog;
 
       if (pk_list)
         any_recipients = 1;
@@ -1104,10 +1100,11 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
               answer = def_rec;
               def_rec = NULL;
             }
-          else if (backlog)
+          else if (!backlog.empty())
             {
               /* This is part of our trick to expand and display groups. */
-              answer = strlist_pop (&backlog);
+              answer = strdup(backlog.back().first.c_str());
+	      backlog.pop_back();
             }
           else
             {
@@ -1157,7 +1154,7 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
           /* Do group expand here too.  The trick here is to continue
              the loop if any expansion occurred.  The code above will
              then list all expanded keys. */
-          if (expand_id(answer,&backlog,0))
+          if (expand_id(answer, backlog, 0))
             continue;
 
           /* Get and check key for the current name. */
@@ -1276,14 +1273,14 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
     {
       /* General case: Check all keys. */
       any_recipients = 0;
-      for (; remusr; remusr = remusr->next )
+      for (auto& remusr_ : remusr)
         {
-          if ( (remusr->flags & PK_LIST_ENCRYPT_TO) )
+          if ( (remusr_.second & PK_LIST_ENCRYPT_TO) )
             continue; /* encrypt-to keys are already handled. */
 
-          rc = find_and_check_key (ctrl, remusr->d, PUBKEY_USAGE_ENC,
-                                   !!(remusr->flags&PK_LIST_HIDDEN),
-                                   !!(remusr->flags&PK_LIST_FROM_FILE),
+          rc = find_and_check_key (ctrl, remusr_.first.c_str(), PUBKEY_USAGE_ENC,
+                                   !!(remusr_.second & PK_LIST_HIDDEN),
+                                   !!(remusr_.second & PK_LIST_FROM_FILE),
                                    &pk_list);
           if (rc)
             goto fail;
@@ -1304,8 +1301,6 @@ build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list)
     release_pk_list( pk_list );
   else
     *ret_pk_list = pk_list;
-  if (opt.grouplist)
-    free_strlist(remusr);
   return rc;
 }
 

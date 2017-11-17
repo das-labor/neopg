@@ -34,8 +34,10 @@
 #define NODFLG_SELSIG (1<<10)	/* Indicate a selected signature.  */
 
 /*-- keyedit.c --*/
-void keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
-		   strlist_t commands, int quiet, int seckey_check );
+void keyedit_menu (ctrl_t ctrl, const char *username,
+		   const std::vector<std::pair<std::string, unsigned int>>& locusr,
+		   const std::vector<std::string>& commands,
+		   int quiet, int seckey_check);
 void keyedit_passwd (ctrl_t ctrl, const char *username);
 void keyedit_quick_adduid (ctrl_t ctrl, const char *username,
                            const char *newuid);
@@ -44,7 +46,9 @@ void keyedit_quick_addkey (ctrl_t ctrl, const char *fpr, const char *algostr,
 void keyedit_quick_revuid (ctrl_t ctrl, const char *username,
                            const char *uidtorev);
 void keyedit_quick_sign (ctrl_t ctrl, const char *fpr,
-                         strlist_t uids, strlist_t locusr, int local);
+                         const std::vector<std::pair<std::string, unsigned int>>& uids,
+			 const std::vector<std::pair<std::string, unsigned int>>& locusr,
+			 int local);
 void keyedit_quick_set_expire (ctrl_t ctrl,
                                const char *fpr, const char *expirestr);
 void keyedit_quick_set_primary (ctrl_t ctrl, const char *username,

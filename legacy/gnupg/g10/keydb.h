@@ -217,7 +217,8 @@ void show_revocation_reason (ctrl_t ctrl, PKT_public_key *pk, int mode );
 int  check_signatures_trust (ctrl_t ctrl, PKT_signature *sig);
 
 void release_pk_list (PK_LIST pk_list);
-int  build_pk_list (ctrl_t ctrl, strlist_t rcpts, PK_LIST *ret_pk_list);
+int  build_pk_list (ctrl_t ctrl,
+		    const std::vector<std::pair<std::string, unsigned int>>& rcpts, PK_LIST *ret_pk_list);
 gpg_error_t find_and_check_key (ctrl_t ctrl,
                                 const char *name, unsigned int use,
                                 int mark_hidden, int from_file,
@@ -234,7 +235,7 @@ void warn_missing_aes_from_pklist (PK_LIST pk_list);
 /*-- skclist.c --*/
 int  random_is_faked (void);
 void release_sk_list( SK_LIST sk_list );
-gpg_error_t build_sk_list (ctrl_t ctrl, strlist_t locusr,
+gpg_error_t build_sk_list (ctrl_t ctrl, const std::vector<std::pair<std::string, unsigned int>>& locusr,
                            SK_LIST *ret_sk_list, unsigned use);
 
 /*-- passphrase.h --*/

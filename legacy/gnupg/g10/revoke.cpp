@@ -193,7 +193,7 @@ export_minimal_pk(IOBUF out,KBNODE keyblock,
  * Generate a revocation certificate for UNAME via a designated revoker
  */
 int
-gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
+gen_desig_revoke (ctrl_t ctrl, const char *uname, const std::vector<std::pair<std::string, unsigned int>>& locusr)
 {
     int rc = 0;
     armor_filter_context_t *afx;
@@ -249,7 +249,7 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 
     keyid_from_pk(pk,keyid);
 
-    if(locusr)
+    if (!locusr.empty())
       {
 	rc = build_sk_list (ctrl, locusr, &sk_list, PUBKEY_USAGE_CERT);
 	if(rc)

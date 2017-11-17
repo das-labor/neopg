@@ -73,10 +73,10 @@ static recsel_expr_t export_drop_subkey;
 
 
 /* Local prototypes.  */
-static int do_export (ctrl_t ctrl, strlist_t users, int secret,
+static int do_export (ctrl_t ctrl, const std::vector<std::string>& users, int secret,
                       unsigned int options, export_stats_t stats);
 static int do_export_stream (ctrl_t ctrl, iobuf_t out,
-                             strlist_t users, int secret,
+                             const std::vector<std::string>& users, int secret,
                              kbnode_t *keyblock_out, unsigned int options,
 			     export_stats_t stats, int *any);
 static gpg_error_t print_pka_or_dane_records
@@ -237,7 +237,7 @@ export_print_stats (export_stats_t stats)
  * This function is the core of "gpg --export".
  */
 int
-export_pubkeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+export_pubkeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                 export_stats_t stats)
 {
   return do_export (ctrl, users, 0, options, stats);
@@ -254,7 +254,7 @@ export_pubkeys (ctrl_t ctrl, strlist_t users, unsigned int options,
  * This function is the core of "gpg --export-secret-keys".
  */
 int
-export_seckeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+export_seckeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                 export_stats_t stats)
 {
   return do_export (ctrl, users, 1, options, stats);
@@ -273,7 +273,7 @@ export_seckeys (ctrl_t ctrl, strlist_t users, unsigned int options,
  * This function is the core of "gpg --export-secret-subkeys".
  */
 int
-export_secsubkeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+export_secsubkeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                    export_stats_t stats)
 {
   return do_export (ctrl, users, 2, options, stats);
@@ -292,15 +292,13 @@ export_pubkey_buffer (ctrl_t ctrl, const char *keyspec, unsigned int options,
   gpg_error_t err;
   iobuf_t iobuf;
   int any;
-  strlist_t helplist;
+  std::vector<std::string> helplist;
 
   *r_keyblock = NULL;
   *r_data = NULL;
   *r_datalen = 0;
 
-  helplist = NULL;
-  if (!add_to_strlist_try (&helplist, keyspec))
-    return gpg_error_from_syserror ();
+  helplist.emplace_back(keyspec);
 
   iobuf = iobuf_temp ();
   err = do_export_stream (ctrl, iobuf, helplist, 0, r_keyblock, options,
@@ -326,7 +324,6 @@ export_pubkey_buffer (ctrl_t ctrl, const char *keyspec, unsigned int options,
         }
     }
   iobuf_close (iobuf);
-  free_strlist (helplist);
   if (err && *r_keyblock)
     {
       release_kbnode (*r_keyblock);
@@ -342,7 +339,7 @@ export_pubkey_buffer (ctrl_t ctrl, const char *keyspec, unsigned int options,
    secret keyblock and 2 only the subkeys.  OPTIONS are the export
    options to apply.  */
 static int
-do_export (ctrl_t ctrl, strlist_t users, int secret, unsigned int options,
+do_export (ctrl_t ctrl, const std::vector<std::string>& users, int secret, unsigned int options,
            export_stats_t stats)
 {
   IOBUF out = NULL;
@@ -1819,7 +1816,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
    this case.  The caller must free the returned keyblock.  If any
    key has been exported true is stored at ANY. */
 static int
-do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
+do_export_stream (ctrl_t ctrl, iobuf_t out, const std::vector<std::string>& users, int secret,
 		  kbnode_t *keyblock_out, unsigned int options,
                   export_stats_t stats, int *any)
 {
@@ -1830,7 +1827,6 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
   size_t ndesc, descindex;
   KEYDB_SEARCH_DESC *desc = NULL;
   KEYDB_HANDLE kdbhd;
-  strlist_t sl;
   struct export_stats_s dummystats;
   iobuf_t out_help = NULL;
 
@@ -1851,7 +1847,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
         options |= EXPORT_MINIMAL | EXPORT_CLEAN;
     }
 
-  if (!users)
+  if (users.empty())
     {
       ndesc = 1;
       desc = (KEYDB_SEARCH_DESC*) xcalloc (ndesc, sizeof *desc);
@@ -1859,17 +1855,16 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
     }
   else
     {
-      for (ndesc=0, sl=users; sl; sl = sl->next, ndesc++)
-        ;
-      desc = (KEYDB_SEARCH_DESC*) xmalloc ( ndesc * sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xmalloc ( users.size() * sizeof *desc);
 
-      for (ndesc=0, sl=users; sl; sl = sl->next)
+      ndesc = 0;
+      for (auto& user : users)
         {
-          if (!(err=classify_user_id (sl->d, desc+ndesc, 1)))
+          if (!(err=classify_user_id (user.c_str(), desc+ndesc, 1)))
             ndesc++;
           else
             log_error (_("key \"%s\" not found: %s\n"),
-                       sl->d, gpg_strerror (err));
+                       user.c_str(), gpg_strerror (err));
         }
 
       keydb_disable_caching (kdbhd);  /* We are looping the search.  */
@@ -1897,7 +1892,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
       PKT_public_key *pk;
 
       err = keydb_search (kdbhd, desc, ndesc, &descindex);
-      if (!users)
+      if (users.empty())
         desc[0].mode = KEYDB_SEARCH_MODE_NEXT;
       if (err)
         break;

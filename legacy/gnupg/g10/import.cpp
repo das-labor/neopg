@@ -1139,8 +1139,8 @@ check_prefs (ctrl_t ctrl, kbnode_t keyblock)
 
       if(!opt.batch)
 	{
-	  strlist_t sl = NULL;
-          strlist_t locusr = NULL;
+	  std::vector<std::string> commands;
+	  std::vector<std::pair<std::string, unsigned int>> locusr;
 	  size_t fprlen=0;
 	  byte fpr[MAX_FINGERPRINT_LEN], *p;
 	  char username[(MAX_FINGERPRINT_LEN*2)+1];
@@ -1149,14 +1149,12 @@ check_prefs (ctrl_t ctrl, kbnode_t keyblock)
 	  p = fingerprint_from_pk (pk,fpr,&fprlen);
 	  for(i=0;i<fprlen;i++,p++)
 	    sprintf(username+2*i,"%02X",*p);
-	  add_to_strlist(&locusr,username);
+	  locusr.emplace_back(username, 0);
 
-	  append_to_strlist(&sl,"updpref");
-	  append_to_strlist(&sl,"save");
+	  commands.emplace_back("updpref");
+	  commands.emplace_back("save");
 
-	  keyedit_menu (ctrl, username, locusr, sl, 1, 1 );
-	  free_strlist(sl);
-	  free_strlist(locusr);
+	  keyedit_menu (ctrl, username, locusr, commands, 1, 1 );
 	}
       else if(!opt.quiet)
 	log_info(_("you can update your preferences with:"

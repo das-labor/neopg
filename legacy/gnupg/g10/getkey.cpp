@@ -19,6 +19,8 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <unordered_set>
+
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -427,7 +429,7 @@ get_pubkeys (ctrl_t ctrl,
 
      For each duplicate, we only want to show the key once.  Hence,
      this list.  */
-  static strlist_t key_dups;
+  std::unordered_set<std::string> key_dups;
 
   /* USE transformed to a string.  */
   const char *use_str;
@@ -598,7 +600,7 @@ get_pubkeys (ctrl_t ctrl,
         {
           hexfingerprint (r->keyblock->pkt->pkt.public_key,
                           fingerprint, sizeof fingerprint);
-          if (! strlist_find (key_dups, fingerprint))
+          if (key_dups.count(fingerprint) == 0)
             {
               char fingerprint_formatted[MAX_FORMATTED_FINGERPRINT_LEN + 1];
 
@@ -607,7 +609,7 @@ get_pubkeys (ctrl_t ctrl,
                                                fingerprint_formatted,
                                                sizeof fingerprint_formatted),
                         1 + dups);
-              add_to_strlist (&key_dups, fingerprint);
+              key_dups.insert(fingerprint);
             }
         }
     }
@@ -1019,7 +1021,6 @@ key_byname (ctrl_t ctrl, GETKEY_CTX *retctx, const std::vector<std::string>& nam
 {
   int rc = 0;
   int n;
-  strlist_t r;
   GETKEY_CTX ctx = new getkey_ctx_s;
   KBNODE help_kb = NULL;
   KBNODE found_key = NULL;
@@ -2196,7 +2197,7 @@ getkey_end (ctrl_t ctrl, getkey_ctx_t ctx)
 #endif /*!HAVE_W32_SYSTEM*/
 
       if (!ctx->not_allocated)
-	xfree (ctx);
+	delete (ctx);
     }
 }
 

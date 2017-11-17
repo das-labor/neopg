@@ -52,7 +52,7 @@
 static int recipient_digest_algo=0;
 
 /****************
- * Create notations and other stuff.  It is assumed that the stings in
+ * Create notations and other stuff.  It is assumed that the strings in
  * STRLIST are already checked to contain only printable data and have
  * a valid NAME=VALUE format.
  */
@@ -62,7 +62,6 @@ mk_notation_policy_etc (PKT_signature *sig,
 {
   const char *string;
   char *p = NULL;
-  strlist_t pu = NULL;
   struct notation *nd = NULL;
   struct expando_args args;
 
@@ -777,8 +776,10 @@ write_signature_packets (ctrl_t ctrl,
  * uncompressed, non-armored and in binary mode.
  */
 int
-sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
-	   int encryptflag, strlist_t remusr, const char *outfile )
+sign_file (ctrl_t ctrl, const std::vector<std::string>& filenames, int detached,
+	   const std::vector<std::pair<std::string, unsigned int>>& locusr,
+	   int encryptflag,
+	   const std::vector<std::pair<std::string, unsigned int>>& remusr, const char *outfile )
 {
     const char *fname;
     armor_filter_context_t *afx;
@@ -804,14 +805,14 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
     efx.ctrl = ctrl;
     init_packet( &pkt );
 
-    if( filenames ) {
-	fname = filenames->d;
-	multifile = !!filenames->next;
+    if( !filenames.empty() ) {
+        fname = filenames[0].c_str();
+	multifile = filenames.size() > 1;
     }
     else
 	fname = NULL;
 
-    if( fname && filenames->next && (!detached || encryptflag) )
+    if( fname && multifile && (!detached || encryptflag) )
 	log_bug("multiple files can only be detached signed");
 
     if(encryptflag==2
@@ -1029,14 +1030,11 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
     /* Setup the inner packet. */
     if( detached ) {
 	if( multifile ) {
-	    strlist_t sl;
 
 	    if( opt.verbose )
 		log_info(_("signing:") );
-	    /* must walk reverse trough this list */
-	    for( sl = strlist_last(filenames); sl;
-			sl = strlist_prev( filenames, sl ) ) {
-                inp = iobuf_open(sl->d);
+	    for( auto& filename: filenames) {
+	        inp = iobuf_open(filename.c_str());
                 if (inp && is_secured_file (iobuf_get_fd (inp)))
                   {
                     iobuf_close (inp);
@@ -1047,12 +1045,12 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
 		  {
                     rc = gpg_error_from_syserror ();
 		    log_error(_("can't open '%s': %s\n"),
-			      sl->d,strerror(errno));
+			      filename.c_str(), strerror(errno));
 		    goto leave;
 		  }
-                handle_progress (pfx, inp, sl->d);
+                handle_progress (pfx, inp, filename.c_str());
 		if( opt.verbose )
-                  log_printf (" '%s'", sl->d );
+                  log_printf (" '%s'", filename.c_str());
 		if(opt.textmode)
 		  {
 		    memset( &tfx, 0, sizeof tfx);
@@ -1115,7 +1113,8 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
  */
 int
 clearsign_file (ctrl_t ctrl,
-                const char *fname, strlist_t locusr, const char *outfile )
+                const char *fname,
+		const std::vector<std::pair<std::string, unsigned int>>& locusr, const char *outfile)
 {
     armor_filter_context_t *afx;
     progress_filter_context_t *pfx;
@@ -1244,7 +1243,8 @@ clearsign_file (ctrl_t ctrl,
  * FIXME: Far too much code is duplicated - revamp the whole file.
  */
 int
-sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
+sign_symencrypt_file (ctrl_t ctrl, const char *fname,
+		      const std::vector<std::pair<std::string, unsigned int>>& locusr)
 {
     armor_filter_context_t *afx;
     progress_filter_context_t *pfx;

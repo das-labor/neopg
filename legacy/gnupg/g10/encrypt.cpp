@@ -385,7 +385,7 @@ write_symkey_enc (STRING2KEY *symkey_s2k, DEK *symkey_dek, DEK *dek,
  */
 int
 encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
-               strlist_t remusr, int use_symkey, pk_list_t provided_keys,
+               const std::vector<std::pair<std::string, unsigned int>>& remusr, int use_symkey, pk_list_t provided_keys,
                int outputfd)
 {
   iobuf_t inp = NULL;
@@ -879,7 +879,8 @@ write_pubkey_enc_from_list (ctrl_t ctrl, PK_LIST pk_list, DEK *dek, iobuf_t out)
 }
 
 void
-encrypt_crypt_files (ctrl_t ctrl, int nfiles, char **files, strlist_t remusr)
+encrypt_crypt_files (ctrl_t ctrl, int nfiles, char **files,
+		     const std::vector<std::pair<std::string, unsigned int>>& remusr)
 {
   int rc = 0;
 

@@ -109,7 +109,7 @@ static gpg_error_t keyserver_get (ctrl_t ctrl,
                                   struct keyserver_spec *override_keyserver,
                                   int quick,
                                   unsigned char **r_fpr, size_t *r_fprlen);
-static gpg_error_t keyserver_put (ctrl_t ctrl, strlist_t keyspecs);
+static gpg_error_t keyserver_put (ctrl_t ctrl, const std::vector<std::string>& keyspecs);
 
 
 /* Reasonable guess.  The commonly used test key simon.josefsson.org
@@ -984,33 +984,32 @@ search_line_handler (void *opaque, int special, char *line)
 
 
 int
-keyserver_export (ctrl_t ctrl, strlist_t users)
+keyserver_export (ctrl_t ctrl, const std::vector<std::string>& users)
 {
   gpg_error_t err;
-  strlist_t sl=NULL;
+  std::vector<std::string> sl;
   KEYDB_SEARCH_DESC desc;
   int rc=0;
 
   /* Weed out descriptors that we don't support sending */
-  for(;users;users=users->next)
+  for (auto& user : users)
     {
-      err = classify_user_id (users->d, &desc, 1);
+      err = classify_user_id (user.c_str(), &desc, 1);
       if (err || (desc.mode    != KEYDB_SEARCH_MODE_SHORT_KID
                   && desc.mode != KEYDB_SEARCH_MODE_LONG_KID
                   && desc.mode != KEYDB_SEARCH_MODE_FPR16
                   && desc.mode != KEYDB_SEARCH_MODE_FPR20))
 	{
-	  log_error(_("\"%s\" not a key ID: skipping\n"),users->d);
+	  log_error(_("\"%s\" not a key ID: skipping\n"), user.c_str());
 	  continue;
 	}
       else
-	append_to_strlist(&sl,users->d);
+	sl.emplace_back(user);
     }
 
-  if(sl)
+  if(!sl.empty())
     {
       rc = keyserver_put (ctrl, sl);
-      free_strlist(sl);
     }
 
   return rc;
@@ -1097,7 +1096,7 @@ keyserver_retrieval_screener (kbnode_t keyblock, void *opaque)
 
 
 int
-keyserver_import (ctrl_t ctrl, strlist_t users)
+keyserver_import (ctrl_t ctrl, const std::vector<std::string>& users)
 {
   gpg_error_t err;
   KEYDB_SEARCH_DESC *desc;
@@ -1107,15 +1106,15 @@ keyserver_import (ctrl_t ctrl, strlist_t users)
   /* Build a list of key ids */
   desc= (KEYDB_SEARCH_DESC*) xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
 
-  for(;users;users=users->next)
+  for (auto& user : users)
     {
-      err = classify_user_id (users->d, &desc[count], 1);
+      err = classify_user_id (user.c_str(), &desc[count], 1);
       if (err || (desc[count].mode    != KEYDB_SEARCH_MODE_SHORT_KID
                   && desc[count].mode != KEYDB_SEARCH_MODE_LONG_KID
                   && desc[count].mode != KEYDB_SEARCH_MODE_FPR16
                   && desc[count].mode != KEYDB_SEARCH_MODE_FPR20))
 	{
-	  log_error (_("\"%s\" not a key ID: skipping\n"), users->d);
+	  log_error (_("\"%s\" not a key ID: skipping\n"), user.c_str());
 	  continue;
 	}
 
@@ -1201,7 +1200,7 @@ keyserver_import_keyid (ctrl_t ctrl,
 
 /* code mostly stolen from do_export_stream */
 static int
-keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
+keyidlist (ctrl_t ctrl, const std::vector<std::string>& users, KEYDB_SEARCH_DESC **klist,
            int *count, int fakev3)
 {
   int rc = 0;
@@ -1211,7 +1210,6 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
   KEYDB_HANDLE kdbhd;
   int ndesc;
   KEYDB_SEARCH_DESC *desc = NULL;
-  strlist_t sl;
 
   *count=0;
 
@@ -1225,7 +1223,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
     }
   keydb_disable_caching (kdbhd);  /* We are looping the search.  */
 
-  if(!users)
+  if(users.empty())
     {
       ndesc = 1;
       desc = (KEYDB_SEARCH_DESC*) xmalloc_clear ( ndesc * sizeof *desc);
@@ -1233,18 +1231,17 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
     }
   else
     {
-      for (ndesc=0, sl=users; sl; sl = sl->next, ndesc++)
-	;
-      desc = (KEYDB_SEARCH_DESC*) xmalloc ( ndesc * sizeof *desc);
+      desc = (KEYDB_SEARCH_DESC*) xmalloc ( users.size() * sizeof *desc);
 
-      for (ndesc=0, sl=users; sl; sl = sl->next)
+      ndesc = 0;
+      for (auto& user : users)
 	{
           gpg_error_t err;
-	  if (!(err = classify_user_id (sl->d, desc+ndesc, 1)))
+	  if (!(err = classify_user_id (user.c_str(), desc+ndesc, 1)))
 	    ndesc++;
 	  else
 	    log_error (_("key \"%s\" not found: %s\n"),
-		       sl->d, gpg_strerror (err));
+		       user.c_str(), gpg_strerror (err));
 	}
     }
 
@@ -1254,7 +1251,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
       if (rc)
         break;  /* ready.  */
 
-      if (!users)
+      if (users.empty())
 	desc[0].mode = KEYDB_SEARCH_MODE_NEXT;
 
       /* read the keyblock */
@@ -1375,7 +1372,7 @@ keyidlist (ctrl_t ctrl, strlist_t users, KEYDB_SEARCH_DESC **klist,
    usernames to refresh only part of the keyring. */
 
 gpg_error_t
-keyserver_refresh (ctrl_t ctrl, strlist_t users)
+keyserver_refresh (ctrl_t ctrl, const std::vector<std::string>& users)
 {
   gpg_error_t err;
   int count, numdesc;
@@ -1481,7 +1478,7 @@ keyserver_refresh (ctrl_t ctrl, strlist_t users)
 /* Search for keys on the keyservers.  The patterns are given in the
    string list TOKENS.  */
 gpg_error_t
-keyserver_search (ctrl_t ctrl, strlist_t tokens)
+keyserver_search (ctrl_t ctrl, const std::vector<std::string>& tokens)
 {
   gpg_error_t err;
   char *searchstr;
@@ -1489,7 +1486,7 @@ keyserver_search (ctrl_t ctrl, strlist_t tokens)
 
   memset (&parm, 0, sizeof parm);
 
-  if (!tokens)
+  if (tokens.empty())
     return 0;  /* Return success if no patterns are given.  */
 
   /* Write global options */
@@ -1504,14 +1501,15 @@ keyserver_search (ctrl_t ctrl, strlist_t tokens)
 
   {
     membuf_t mb;
-    strlist_t item;
+    bool first = true;
 
     init_membuf (&mb, 1024);
-    for (item = tokens; item; item = item->next)
+    for (auto& item : tokens)
     {
-      if (item != tokens)
+      if (!first)
         put_membuf (&mb, " ", 1);
-      put_membuf_str (&mb, item->d);
+      first = false;
+      put_membuf_str (&mb, item.c_str());
     }
     put_membuf (&mb, "", 1); /* Append Nul.  */
     searchstr = (char*) get_membuf (&mb, NULL);
@@ -1798,14 +1796,13 @@ keyserver_get (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
 
 /* Send all keys specified by KEYSPECS to the configured keyserver.  */
 static gpg_error_t
-keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
+keyserver_put (ctrl_t ctrl, const std::vector<std::string>& keyspecs)
 
 {
   gpg_error_t err;
-  strlist_t kspec;
   char *ksurl;
 
-  if (!keyspecs)
+  if (keyspecs.empty())
     return 0;  /* Return success if the list is empty.  */
 
   if (gpg_dirmngr_ks_list (ctrl, &ksurl))
@@ -1814,18 +1811,18 @@ keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
       return GPG_ERR_NO_KEYSERVER;
     }
 
-  for (kspec = keyspecs; kspec; kspec = kspec->next)
+  for (auto& kspec : keyspecs)
     {
       void *data;
       size_t datalen;
       kbnode_t keyblock;
 
-      err = export_pubkey_buffer (ctrl, kspec->d,
+      err = export_pubkey_buffer (ctrl, kspec.c_str(),
                                   opt.keyserver_options.export_options,
                                   NULL,
                                   &keyblock, &data, &datalen);
       if (err)
-        log_error (_("skipped \"%s\": %s\n"), kspec->d, gpg_strerror (err));
+        log_error (_("skipped \"%s\": %s\n"), kspec.c_str(), gpg_strerror (err));
       else
         {
           log_info (_("sending key %s to %s\n"),
@@ -1857,7 +1854,6 @@ int
 keyserver_fetch (ctrl_t ctrl, const std::vector<std::string>& urilist)
 {
   gpg_error_t err;
-  strlist_t sl;
   estream_t datastream;
   unsigned int save_options = opt.keyserver_options.import_options;
 
@@ -2086,7 +2082,6 @@ keyserver_import_ldap (ctrl_t ctrl,
 #if 0
   char *domain;
   struct keyserver_spec *keyserver;
-  strlist_t list=NULL;
   int rc,hostlen=1;
   struct srventry *srvlist=NULL;
   int srvcount,i;

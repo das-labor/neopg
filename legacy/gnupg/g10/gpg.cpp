@@ -1144,7 +1144,7 @@ static void
 add_group(char *string)
 {
   char *name,*value;
-  struct groupitem *item;
+  auto item = opt.grouplist.begin();
 
   /* Break off the group name */
   name=gpg_strsep(&string,"=");
@@ -1157,24 +1157,21 @@ add_group(char *string)
   trim_trailing_ws((unsigned char*) (name),strlen(name));
 
   /* Does this group already exist? */
-  for(item=opt.grouplist;item;item=item->next)
-    if(strcasecmp(item->name,name)==0)
-      break;
-
-  if(!item)
+  while (item != opt.grouplist.end()
+	 && strcasecmp(item->name.c_str(), name) != 0)
+    item++;
+  if (item == opt.grouplist.end())
     {
-      item= (groupitem*) xmalloc(sizeof(struct groupitem));
-      item->name=name;
-      item->next=opt.grouplist;
-      item->values=NULL;
-      opt.grouplist=item;
+      opt.grouplist.emplace_back();
+      item = std::prev(opt.grouplist.end());
+      item->name = name;
     }
 
   /* Break apart the values */
-  while ((value= gpg_strsep(&string," \t")))
+  while ((value = gpg_strsep(&string," \t")))
     {
       if (*value)
-        add_to_strlist2(&item->values,value,utf8_strings);
+        item->values.emplace_back(str_to_utf8(value,utf8_strings));
     }
 }
 
@@ -1182,24 +1179,15 @@ add_group(char *string)
 static void
 rm_group(char *name)
 {
-  struct groupitem *item,*last=NULL;
-
+  auto item = opt.grouplist.begin();
+  
   trim_trailing_ws((unsigned char*) (name),strlen(name));
 
-  for(item=opt.grouplist;item;last=item,item=item->next)
-    {
-      if(strcasecmp(item->name,name)==0)
-	{
-	  if(last)
-	    last->next=item->next;
-	  else
-	    opt.grouplist=item->next;
-
-	  free_strlist(item->values);
-	  xfree(item);
-	  break;
-	}
-    }
+  while (item != opt.grouplist.end()
+	 && strcasecmp(item->name.c_str(), name) != 0)
+    item++;
+  if (item != opt.grouplist.end())
+    opt.grouplist.erase(item);
 }
 
 
@@ -1787,10 +1775,9 @@ gpg_main (int argc, char **argv)
     const char *fname;
     char *username;
     int may_coredump;
-    strlist_t sl;
-    strlist_t remusr = NULL;
-    strlist_t locusr = NULL;
-    strlist_t nrings = NULL;
+    std::vector<std::pair<std::string, unsigned int>> remusr;
+    std::vector<std::pair<std::string, unsigned int>> locusr;
+    std::vector<std::pair<std::string, unsigned int>> nrings;
     armor_filter_context_t *afx = NULL;
     int detached_sig = 0;
     FILE *configfp = NULL;
@@ -2094,10 +2081,12 @@ gpg_main (int argc, char **argv)
 	    opt.answer_no = true;
 	    break;
 
-	  case oKeyring: append_to_strlist( &nrings, pargs.r.ret_str); break;
+	  case oKeyring:
+	    nrings.emplace_back(pargs.r.ret_str, 0);
+	    break;
+
 	  case oPrimaryKeyring:
-	    sl = append_to_strlist (&nrings, pargs.r.ret_str);
-	    sl->flags = KEYDB_RESOURCE_FLAG_PRIMARY;
+	    nrings.emplace_back(pargs.r.ret_str, KEYDB_RESOURCE_FLAG_PRIMARY);
 	    break;
 
 	  case oDebug:
@@ -2339,28 +2328,38 @@ gpg_main (int argc, char **argv)
              * option as private data in the flags.  This is achieved
              * by shifting the option value to the left so to keep
              * enough space for the flags.  */
-	    sl = add_to_strlist2( &remusr, pargs.r.ret_str, utf8_strings );
-	    sl->flags = (pargs.r_opt << PK_LIST_SHIFT);
-            if (configfp)
-              sl->flags |= PK_LIST_CONFIG;
-            if (pargs.r_opt == oHiddenRecipient
-                || pargs.r_opt == oHiddenRecipientFile)
-              sl->flags |= PK_LIST_HIDDEN;
-            if (pargs.r_opt == oRecipientFile
-                || pargs.r_opt == oHiddenRecipientFile)
-              sl->flags |= PK_LIST_FROM_FILE;
-            any_explicit_recipient = 1;
+	    {
+	      unsigned int flags = 0;
+
+	      flags = (pargs.r_opt << PK_LIST_SHIFT);
+	      if (configfp)
+		flags |= PK_LIST_CONFIG;
+	      if (pargs.r_opt == oHiddenRecipient
+		  || pargs.r_opt == oHiddenRecipientFile)
+		flags |= PK_LIST_HIDDEN;
+	      if (pargs.r_opt == oRecipientFile
+		  || pargs.r_opt == oHiddenRecipientFile)
+		flags |= PK_LIST_FROM_FILE;
+	      remusr.emplace_back(str_to_utf8(pargs.r.ret_str, utf8_strings), flags);
+	      any_explicit_recipient = 1;
+	    }
 	    break;
 
 	  case oEncryptTo:
 	  case oHiddenEncryptTo:
             /* Store an additional recipient.  */
-	    sl = add_to_strlist2( &remusr, pargs.r.ret_str, utf8_strings );
-	    sl->flags = ((pargs.r_opt << PK_LIST_SHIFT) | PK_LIST_ENCRYPT_TO);
-            if (configfp)
-              sl->flags |= PK_LIST_CONFIG;
-            if (pargs.r_opt == oHiddenEncryptTo)
-              sl->flags |= PK_LIST_HIDDEN;
+	    {
+	      unsigned int flags = 0;
+
+	      flags = (pargs.r_opt << PK_LIST_SHIFT)
+		| PK_LIST_ENCRYPT_TO;
+	      if (configfp)
+		flags |= PK_LIST_CONFIG;
+	      if (pargs.r_opt == oHiddenRecipient
+		  || pargs.r_opt == oHiddenEncryptTo)
+		flags |= PK_LIST_HIDDEN;
+	      remusr.emplace_back(str_to_utf8(pargs.r.ret_str, utf8_strings), flags);
+	    }
 	    break;
 
 	  case oNoEncryptTo:
@@ -2439,12 +2438,16 @@ gpg_main (int argc, char **argv)
           case oMinCertLevel: opt.min_cert_level=pargs.r.ret_int; break;
 	  case oAskCertLevel: opt.ask_cert_level = 1; break;
 	  case oNoAskCertLevel: opt.ask_cert_level = 0; break;
+
 	  case oLocalUser: /* store the local users */
-	    sl = add_to_strlist2( &locusr, pargs.r.ret_str, utf8_strings );
-            sl->flags = (pargs.r_opt << PK_LIST_SHIFT);
-            if (configfp)
-              sl->flags |= PK_LIST_CONFIG;
+            {
+	      unsigned int flags = (pargs.r_opt << PK_LIST_SHIFT);
+	      if (configfp)
+		flags |= PK_LIST_CONFIG;
+	      locusr.emplace_back(str_to_utf8(pargs.r.ret_str, utf8_strings), flags);
+	    }
 	    break;
+
 	  case oSender:
             {
               char *mbox = mailbox_from_userid (pargs.r.ret_str);
@@ -2778,13 +2781,7 @@ gpg_main (int argc, char **argv)
 	  case oGroup: add_group(pargs.r.ret_str); break;
 	  case oUnGroup: rm_group(pargs.r.ret_str); break;
 	  case oNoGroups:
-	    while(opt.grouplist)
-	      {
-		struct groupitem *iter=opt.grouplist;
-		free_strlist(iter->values);
-		opt.grouplist=opt.grouplist->next;
-		xfree(iter);
-	      }
+	    opt.grouplist.clear();
 	    break;
 
           case oEnableProgressFilter:
@@ -3251,13 +3248,12 @@ gpg_main (int argc, char **argv)
         && (ALWAYS_ADD_KEYRINGS
             || (cmd != aDeArmor && cmd != aEnArmor)))
       {
-	if (!nrings || default_keyring > 0)  /* Add default ring. */
-	    keydb_add_resource ("pubring" EXTSEP_S "kbx",
+	if (nrings.empty() || default_keyring > 0)  /* Add default ring. */
+	  keydb_add_resource ("pubring" EXTSEP_S "kbx",
                                 KEYDB_RESOURCE_FLAG_DEFAULT);
-	for (sl = nrings; sl; sl = sl->next )
-          keydb_add_resource (sl->d, sl->flags);
+	for (auto& nring : nrings)
+          keydb_add_resource (nring.first.c_str(), nring.second);
       }
-    FREE_STRLIST(nrings);
 
     if (pwfd != -1)  /* Read the passphrase now. */
       read_passphrase_from_fd (pwfd);
@@ -3386,73 +3382,70 @@ gpg_main (int argc, char **argv)
 	break;
 
       case aSign: /* sign the given file */
-	sl = NULL;
-	if( detached_sig ) { /* sign all files */
+	{
+	  std::vector<std::string> filenames;
+	  if( detached_sig ) { /* sign all files */
 	    for( ; argc; argc--, argv++ )
-		add_to_strlist( &sl, *argv );
-	}
-	else {
+	      filenames.emplace_back(*argv);
+	  }
+	  else {
 	    if( argc > 1 )
-		wrong_args("--sign [filename]");
+	      wrong_args("--sign [filename]");
 	    if( argc ) {
-		sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
-		strcpy(sl->d, fname);
+	      filenames.emplace_back(fname);
+	    }
+	  }
+	  std::vector<std::pair<std::string, unsigned int>> no_remusr;
+	  if ((rc = sign_file (ctrl, filenames, detached_sig, locusr, 0, no_remusr, NULL)))
+	    {
+	      write_status_failure ("sign", rc);
+	      log_error ("signing failed: %s\n", gpg_strerror (rc) );
 	    }
 	}
-	if ((rc = sign_file (ctrl, sl, detached_sig, locusr, 0, NULL, NULL)))
-          {
-            write_status_failure ("sign", rc);
-	    log_error ("signing failed: %s\n", gpg_strerror (rc) );
-          }
-	free_strlist(sl);
 	break;
 
       case aSignEncr: /* sign and encrypt the given file */
-	if( argc > 1 )
+	{
+	  std::vector<std::string> filenames;
+	  if( argc > 1 )
 	    wrong_args("--sign --encrypt [filename]");
-	if( argc ) {
-	    sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
-	    strcpy(sl->d, fname);
+	  if( argc )
+	    filenames.emplace_back(fname);
+	  if ((rc = sign_file (ctrl, filenames, detached_sig, locusr, 1, remusr, NULL)))
+	    {
+	      write_status_failure ("sign-encrypt", rc);
+	      log_error("%s: sign+encrypt failed: %s\n",
+			print_fname_stdin(fname), gpg_strerror (rc) );
+	    }
 	}
-	else
-	    sl = NULL;
-	if ((rc = sign_file (ctrl, sl, detached_sig, locusr, 1, remusr, NULL)))
-          {
-            write_status_failure ("sign-encrypt", rc);
-	    log_error("%s: sign+encrypt failed: %s\n",
-		      print_fname_stdin(fname), gpg_strerror (rc) );
-          }
-	free_strlist(sl);
 	break;
 
       case aSignEncrSym: /* sign and encrypt the given file */
-	if( argc > 1 )
+	{
+	  std::vector<std::string> filenames;
+	  if( argc > 1 )
 	    wrong_args("--symmetric --sign --encrypt [filename]");
-	else if(opt.s2k_mode==0)
-	  log_error(_("you cannot use --symmetric --sign --encrypt"
-		      " with --s2k-mode 0\n"));
-	else if(PGP6 || PGP7)
-	  log_error(_("you cannot use --symmetric --sign --encrypt"
-		      " while in %s mode\n"),
-		    gnupg_compliance_option_string (opt.compliance));
-	else
-	  {
-	    if( argc )
-	      {
-		sl = (strlist_t) xmalloc_clear( sizeof *sl + strlen(fname));
-		strcpy(sl->d, fname);
-	      }
-	    else
-	      sl = NULL;
-	    if ((rc = sign_file (ctrl, sl, detached_sig, locusr,
-                                 2, remusr, NULL)))
-              {
-                write_status_failure ("sign-encrypt", rc);
-                log_error("%s: symmetric+sign+encrypt failed: %s\n",
-                          print_fname_stdin(fname), gpg_strerror (rc) );
-              }
-	    free_strlist(sl);
-	  }
+	  else if(opt.s2k_mode==0)
+	    log_error(_("you cannot use --symmetric --sign --encrypt"
+			" with --s2k-mode 0\n"));
+	  else if(PGP6 || PGP7)
+	    log_error(_("you cannot use --symmetric --sign --encrypt"
+			" while in %s mode\n"),
+		      gnupg_compliance_option_string (opt.compliance));
+	  else
+	    {
+	      if( argc )
+		filenames.emplace_back(fname);
+	      
+	      if ((rc = sign_file (ctrl, filenames, detached_sig, locusr,
+				   2, remusr, NULL)))
+		{
+		  write_status_failure ("sign-encrypt", rc);
+		  log_error("%s: symmetric+sign+encrypt failed: %s\n",
+			    print_fname_stdin(fname), gpg_strerror (rc) );
+		}
+	    }
+	}
 	break;
 
       case aSignSym: /* sign and conventionally encrypt the given file */
@@ -3512,15 +3505,14 @@ gpg_main (int argc, char **argv)
       case aQuickLSignKey:
         {
           const char *fpr;
-
+	  std::vector<std::pair<std::string, unsigned int>> uids;
+	  
           if (argc < 1)
             wrong_args ("--quick-[l]sign-key fingerprint [userids]");
           fpr = *argv++; argc--;
-          sl = NULL;
           for( ; argc; argc--, argv++)
-	    append_to_strlist2 (&sl, *argv, utf8_strings);
-          keyedit_quick_sign (ctrl, fpr, sl, locusr, (cmd == aQuickLSignKey));
-          free_strlist (sl);
+	    uids.emplace_back(str_to_utf8 (*argv, utf8_strings), 0);
+          keyedit_quick_sign (ctrl, fpr, uids, locusr, (cmd == aQuickLSignKey));
         }
 	break;
 
@@ -3529,40 +3521,43 @@ gpg_main (int argc, char **argv)
 	  wrong_args("--sign-key user-id");
 	/* fall through */
       case aLSignKey:
-	if( argc != 1 )
-	  wrong_args("--lsign-key user-id");
-	/* fall through */
+	{
+	  std::vector<std::string> commands;
+	  
+	  if( argc != 1 )
+	    wrong_args("--lsign-key user-id");
+	  /* fall through */
+	  
+	  if(cmd==aSignKey)
+	    commands.emplace_back("sign");
+	  else if(cmd==aLSignKey)
+	    commands.emplace_back("lsign");
+	  else
+	    BUG();
 
-	sl=NULL;
-
-	if(cmd==aSignKey)
-	  append_to_strlist(&sl,"sign");
-	else if(cmd==aLSignKey)
-	  append_to_strlist(&sl,"lsign");
-	else
-	  BUG();
-
-	append_to_strlist( &sl, "save" );
-	username = make_username( fname );
-	keyedit_menu (ctrl, username, locusr, sl, 0, 0 );
-	xfree(username);
-	free_strlist(sl);
+	  commands.emplace_back("save");
+	  username = make_username( fname );
+	  keyedit_menu (ctrl, username, locusr, commands, 0, 0 );
+	  xfree(username);
+	}
 	break;
 
       case aEditKey: /* Edit a key signature */
-	if( !argc )
+	{
+	  std::vector<std::string> commands;
+
+	  if( !argc )
 	    wrong_args("--edit-key user-id [commands]");
-	username = make_username( fname );
-	if( argc > 1 ) {
-	    sl = NULL;
+	  username = make_username( fname );
+	  if( argc > 1 ) {
 	    for( argc--, argv++ ; argc; argc--, argv++ )
-		append_to_strlist( &sl, *argv );
-	    keyedit_menu (ctrl, username, locusr, sl, 0, 1 );
-	    free_strlist(sl);
+	      commands.emplace_back(*argv);
+	    keyedit_menu (ctrl, username, locusr, commands, 0, 1 );
+	  }
+	  else
+            keyedit_menu (ctrl, username, locusr, commands, 0, 1 );
+	  xfree(username);
 	}
-	else
-            keyedit_menu (ctrl, username, locusr, NULL, 0, 1 );
-	xfree(username);
 	break;
 
       case aPasswd:
@@ -3617,7 +3612,6 @@ gpg_main (int argc, char **argv)
 	  for( ; argc; argc--, argv++ )
 	    list.emplace(list.begin(), str_to_utf8(*argv, utf8_strings));
 	  public_key_list (ctrl, list, 1);
-	  free_strlist (sl);
 	}
 	break;
 
@@ -3775,40 +3769,41 @@ gpg_main (int argc, char **argv)
       case aExport:
       case aSendKeys:
       case aRecvKeys:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    append_to_strlist2( &sl, *argv, utf8_strings );
-	if( cmd == aSendKeys )
-            rc = keyserver_export (ctrl, sl );
-	else if( cmd == aRecvKeys )
-            rc = keyserver_import (ctrl, sl );
-	else
-          {
-            export_stats_t stats = export_new_stats ();
-            rc = export_pubkeys (ctrl, sl, opt.export_options, stats);
-            export_print_stats (stats);
-            export_release_stats (stats);
-          }
-	if(rc)
-	  {
-	    if(cmd==aSendKeys)
-              {
-                write_status_failure ("send-keys", rc);
-                log_error(_("keyserver send failed: %s\n"),gpg_strerror (rc));
-              }
-	    else if(cmd==aRecvKeys)
-              {
-                write_status_failure ("recv-keys", rc);
-                log_error (_("keyserver receive failed: %s\n"),
-                           gpg_strerror (rc));
-              }
-	    else
-              {
-                write_status_failure ("export", rc);
-                log_error (_("key export failed: %s\n"), gpg_strerror (rc));
-              }
-	  }
-	free_strlist(sl);
+	{
+	  std::vector<std::string> users;
+	  for( ; argc; argc--, argv++ )
+	    users.emplace_back(str_to_utf8(*argv, utf8_strings));
+	  if( cmd == aSendKeys )
+            rc = keyserver_export (ctrl, users);
+	  else if( cmd == aRecvKeys )
+            rc = keyserver_import (ctrl, users);
+	  else
+	    {
+	      export_stats_t stats = export_new_stats ();
+	      rc = export_pubkeys (ctrl, users, opt.export_options, stats);
+	      export_print_stats (stats);
+	      export_release_stats (stats);
+	    }
+	  if(rc)
+	    {
+	      if(cmd==aSendKeys)
+		{
+		  write_status_failure ("send-keys", rc);
+		  log_error(_("keyserver send failed: %s\n"),gpg_strerror (rc));
+		}
+	      else if(cmd==aRecvKeys)
+		{
+		  write_status_failure ("recv-keys", rc);
+		  log_error (_("keyserver receive failed: %s\n"),
+			     gpg_strerror (rc));
+		}
+	      else
+		{
+		  write_status_failure ("export", rc);
+		  log_error (_("key export failed: %s\n"), gpg_strerror (rc));
+		}
+	    }
+	}
 	break;
 
       case aExportSshKey:
@@ -3823,29 +3818,31 @@ gpg_main (int argc, char **argv)
 	break;
 
      case aSearchKeys:
-	sl = NULL;
-	for (; argc; argc--, argv++)
-	  append_to_strlist2 (&sl, *argv, utf8_strings);
-	rc = keyserver_search (ctrl, sl);
-	if (rc)
-          {
-            write_status_failure ("search-keys", rc);
-            log_error (_("keyserver search failed: %s\n"), gpg_strerror (rc));
-          }
-	free_strlist (sl);
-	break;
+       {
+	 std::vector<std::string> tokens;
+	 for (; argc; argc--, argv++)
+	   tokens.emplace_back(str_to_utf8(*argv, utf8_strings));
+	 rc = keyserver_search (ctrl, tokens);
+	 if (rc)
+	   {
+	     write_status_failure ("search-keys", rc);
+	     log_error (_("keyserver search failed: %s\n"), gpg_strerror (rc));
+	   }
+       }
+       break;
 
       case aRefreshKeys:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    append_to_strlist2( &sl, *argv, utf8_strings );
-	rc = keyserver_refresh (ctrl, sl);
-	if(rc)
-          {
-            write_status_failure ("refresh-keys", rc);
-            log_error (_("keyserver refresh failed: %s\n"),gpg_strerror (rc));
-          }
-	free_strlist(sl);
+	{
+	  std::vector<std::string> users;
+	  for( ; argc; argc--, argv++ )
+	    users.emplace_back(str_to_utf8(*argv, utf8_strings));
+	  rc = keyserver_refresh (ctrl, users);
+	  if(rc)
+	    {
+	      write_status_failure ("refresh-keys", rc);
+	      log_error (_("keyserver refresh failed: %s\n"),gpg_strerror (rc));
+	    }
+	}
 	break;
 
       case aFetchKeys:
@@ -3863,29 +3860,33 @@ gpg_main (int argc, char **argv)
 	break;
 
       case aExportSecret:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    add_to_strlist2( &sl, *argv, utf8_strings );
-        {
-          export_stats_t stats = export_new_stats ();
-          export_seckeys (ctrl, sl, opt.export_options, stats);
-          export_print_stats (stats);
-          export_release_stats (stats);
-        }
-	free_strlist(sl);
+	{
+	  std::vector<std::string> users;
+	  
+	  for( ; argc; argc--, argv++ )
+	    users.emplace_back(str_to_utf8(*argv, utf8_strings));
+	  {
+	    export_stats_t stats = export_new_stats ();
+	    export_seckeys (ctrl, users, opt.export_options, stats);
+	    export_print_stats (stats);
+	    export_release_stats (stats);
+	  }
+	}
 	break;
-
+	  
       case aExportSecretSub:
-	sl = NULL;
-	for( ; argc; argc--, argv++ )
-	    add_to_strlist2( &sl, *argv, utf8_strings );
-        {
-          export_stats_t stats = export_new_stats ();
-          export_secsubkeys (ctrl, sl, opt.export_options, stats);
-          export_print_stats (stats);
-          export_release_stats (stats);
-        }
-	free_strlist(sl);
+	{
+	  std::vector<std::string> users;
+	  
+	  for( ; argc; argc--, argv++ )
+	    users.emplace_back(str_to_utf8(*argv, utf8_strings));
+	  {
+	    export_stats_t stats = export_new_stats ();
+	    export_secsubkeys (ctrl, users, opt.export_options, stats);
+	    export_print_stats (stats);
+	    export_release_stats (stats);
+	  }
+	}
 	break;
 
       case aGenRevoke:
@@ -4125,8 +4126,6 @@ gpg_main (int argc, char **argv)
     gpg_deinit_default_ctrl (ctrl);
     xfree (ctrl);
     release_armor_context (afx);
-    FREE_STRLIST(remusr);
-    FREE_STRLIST(locusr);
     g10_exit(0);
     return 8; /*NEVER REACHED*/
 }

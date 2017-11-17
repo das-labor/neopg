@@ -70,9 +70,8 @@ typedef struct
 
 struct groupitem
 {
-  char *name;
-  strlist_t values;
-  struct groupitem *next;
+  std::string name;
+  std::vector<std::string> values;
 };
 
 struct weakhash
@@ -231,10 +230,11 @@ void encrypt_seskey (DEK *dek, DEK **seskey, byte *enckey);
 int encrypt_symmetric (const char *filename );
 int encrypt_store (const char *filename );
 int encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
-                   strlist_t remusr, int use_symkey, pk_list_t provided_keys,
+                   const std::vector<std::pair<std::string, unsigned int>>& remusr, int use_symkey, pk_list_t provided_keys,
                    int outputfd);
 void encrypt_crypt_files (ctrl_t ctrl,
-                          int nfiles, char **files, strlist_t remusr);
+                          int nfiles, char **files,
+			  const std::vector<std::pair<std::string, unsigned int>>& remusr);
 int encrypt_filter (void *opaque, int control,
 		    iobuf_t a, byte *buf, size_t *ret_len);
 
@@ -242,11 +242,17 @@ int write_pubkey_enc (ctrl_t ctrl, PKT_public_key *pk, int throw_keyid,
                       DEK *dek, iobuf_t out);
 
 /*-- sign.c --*/
-int sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
-	       int do_encrypt, strlist_t remusr, const char *outfile );
+int sign_file (ctrl_t ctrl, const std::vector<std::string>& filenames, int detached,
+	       const std::vector<std::pair<std::string, unsigned int>>& locusr,
+	       int do_encrypt,
+	       const std::vector<std::pair<std::string, unsigned int>>& remusr, const char *outfile );
 int clearsign_file (ctrl_t ctrl,
-                    const char *fname, strlist_t locusr, const char *outfile);
-int sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr);
+                    const char *fname,
+		    const std::vector<std::pair<std::string, unsigned int>>& locusr,
+		    const char *outfile);
+int sign_symencrypt_file (ctrl_t ctrl, const char *fname,
+			  const std::vector<std::pair<std::string, unsigned int>>& locusr);
+
 
 /*-- sig-check.c --*/
 void sig_check_dump_stats (void);
@@ -392,11 +398,11 @@ void export_print_stats (export_stats_t stats);
 int parse_export_options(char *str,unsigned int *options,int noisy);
 gpg_error_t parse_and_set_export_filter (const char *string);
 
-int export_pubkeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+int export_pubkeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                     export_stats_t stats);
-int export_seckeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+int export_seckeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                     export_stats_t stats);
-int export_secsubkeys (ctrl_t ctrl, strlist_t users, unsigned int options,
+int export_secsubkeys (ctrl_t ctrl, const std::vector<std::string>& users, unsigned int options,
                        export_stats_t stats);
 
 gpg_error_t export_pubkey_buffer (ctrl_t ctrl, const char *keyspec,
@@ -426,7 +432,7 @@ struct revocation_reason_info;
 int gen_standard_revoke (ctrl_t ctrl,
                          PKT_public_key *psk, const char *cache_nonce);
 int gen_revoke (ctrl_t ctrl, const char *uname);
-int gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr);
+int gen_desig_revoke (ctrl_t ctrl, const char *uname, const std::vector<std::pair<std::string, unsigned int>>& locusr);
 int revocation_reason_build_cb( PKT_signature *sig, void *opaque );
 struct revocation_reason_info *
 		ask_revocation_reason( int key_rev, int cert_rev, int hint );

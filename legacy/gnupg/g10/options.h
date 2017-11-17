@@ -301,7 +301,7 @@ struct options
   bool no_sig_cache {false};
   bool no_auto_check_trustdb {false};
   bool preserve_permissions {false};
-  struct groupitem *grouplist {nullptr};
+  std::vector<groupitem> grouplist;
   bool enable_progress_filter {false};
   unsigned int screen_columns {0};
   unsigned int screen_lines {0};

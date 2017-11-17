@@ -32,14 +32,14 @@ struct keyserver_spec *parse_keyserver_uri (const char *string,
                                             int require_scheme);
 struct keyserver_spec *parse_preferred_keyserver(PKT_signature *sig);
 int keyserver_any_configured (ctrl_t ctrl);
-int keyserver_export (ctrl_t ctrl, strlist_t users);
-int keyserver_import (ctrl_t ctrl, strlist_t users);
+int keyserver_export (ctrl_t ctrl, const std::vector<std::string>& users);
+int keyserver_import (ctrl_t ctrl, const std::vector<std::string>& users);
 int keyserver_import_fprint (ctrl_t ctrl, const byte *fprint,size_t fprint_len,
                              struct keyserver_spec *keyserver, int quick);
 int keyserver_import_keyid (ctrl_t ctrl, u32 *keyid,
                             struct keyserver_spec *keyserver, int quick);
-gpg_error_t keyserver_refresh (ctrl_t ctrl, strlist_t users);
-gpg_error_t keyserver_search (ctrl_t ctrl, strlist_t tokens);
+gpg_error_t keyserver_refresh (ctrl_t ctrl, const std::vector<std::string>& users);
+gpg_error_t keyserver_search (ctrl_t ctrl, const std::vector<std::string>& tokens);
 int keyserver_fetch (ctrl_t ctrl, const std::vector<std::string>& urilist);
 int keyserver_import_cert (ctrl_t ctrl, const char *name, int dane_mode,
                            unsigned char **fpr,size_t *fpr_len);

@@ -101,21 +101,9 @@ key_present_in_sk_list (SK_LIST sk_list, PKT_public_key *pk)
   return -1;
 }
 
-static int
-is_duplicated_entry (strlist_t list, strlist_t item)
-{
-  for (; list && list != item; list = list->next)
-    {
-      if (!strcmp (list->d, item->d))
-	return 1;
-    }
-  return 0;
-}
-
-
 gpg_error_t
 build_sk_list (ctrl_t ctrl,
-               strlist_t locusr, SK_LIST *ret_sk_list, unsigned int use)
+               const std::vector<std::pair<std::string, unsigned int>>& locusr, SK_LIST *ret_sk_list, unsigned int use)
 {
   gpg_error_t err;
   SK_LIST sk_list = NULL;
@@ -127,7 +115,7 @@ build_sk_list (ctrl_t ctrl,
      select the best key.  If a key specification is ambiguous and we
      are in batch mode, die.  */
 
-  if (!locusr) /* No user ids given - use the card key or the default key.  */
+  if (locusr.empty()) /* No user ids given - use the card key or the default key.  */
     {
       struct agent_card_info_s info;
       PKT_public_key *pk;
@@ -190,32 +178,31 @@ build_sk_list (ctrl_t ctrl,
     }
   else /* Check the given user ids.  */
     {
-      strlist_t locusr_orig = locusr;
-
-      for (; locusr; locusr = locusr->next)
+      for (auto& locusr_ : locusr)
 	{
+	  const char* usr = locusr_.first.c_str();
 	  PKT_public_key *pk;
 
 	  err = 0;
 	  /* Do an early check against duplicated entries.  However
 	   * this won't catch all duplicates because the user IDs may
 	   * be specified in different ways.  */
-	  if (is_duplicated_entry (locusr_orig, locusr))
+	  if (std::find(locusr.begin(), locusr.end(), locusr_) != locusr.end())
 	    {
-	      log_info (_("skipped \"%s\": duplicated\n"), locusr->d);
+	      log_info (_("skipped \"%s\": duplicated\n"), locusr_.first.c_str());
 	      continue;
 	    }
 	  pk = (PKT_public_key*) xmalloc_clear (sizeof *pk);
 	  pk->req_usage = use;
-          if ((err = getkey_byname (ctrl, NULL, pk, locusr->d, 1, NULL)))
+          if ((err = getkey_byname (ctrl, NULL, pk, usr, 1, NULL)))
 	    {
 	      free_public_key (pk);
 	      pk = NULL;
 	      log_error (_("skipped \"%s\": %s\n"),
-			 locusr->d, gpg_strerror (err));
+			 usr, gpg_strerror (err));
 	      write_status_text_and_buffer
 		(STATUS_INV_SGNR, get_inv_recpsgnr_code (err),
-		 locusr->d, strlen (locusr->d), -1);
+		 usr, strlen (usr), -1);
 	    }
 	  else if (!key_present_in_sk_list (sk_list, pk))
 	    {
@@ -227,10 +214,10 @@ build_sk_list (ctrl_t ctrl,
 	    {
 	      free_public_key (pk);
 	      pk = NULL;
-	      log_error ("skipped \"%s\": %s\n", locusr->d, gpg_strerror (err));
+	      log_error ("skipped \"%s\": %s\n", usr, gpg_strerror (err));
 	      write_status_text_and_buffer
 		(STATUS_INV_SGNR, get_inv_recpsgnr_code (err),
-		 locusr->d, strlen (locusr->d), -1);
+		 usr, strlen (usr), -1);
 	    }
 	  else
 	    {
@@ -239,7 +226,7 @@ build_sk_list (ctrl_t ctrl,
 	      if (pk->version == 4 && (use & PUBKEY_USAGE_SIG)
 		  && pk->pubkey_algo == PUBKEY_ALGO_ELGAMAL_E)
 		{
-		  log_info (_("skipped \"%s\": %s\n"), locusr->d,
+		  log_info (_("skipped \"%s\": %s\n"), usr,
 			    _("this is a PGP generated Elgamal key which"
 			      " is not secure for signatures!"));
 		  free_public_key (pk);
@@ -247,7 +234,7 @@ build_sk_list (ctrl_t ctrl,
 		  write_status_text_and_buffer
 		    (STATUS_INV_SGNR,
 		     get_inv_recpsgnr_code (GPG_ERR_WRONG_KEY_USAGE),
-		     locusr->d, strlen (locusr->d), -1);
+		     usr, strlen (usr), -1);
 		}
 	      else if (random_is_faked () && !is_insecure (ctrl, pk))
 		{
@@ -258,7 +245,7 @@ build_sk_list (ctrl_t ctrl,
 		  write_status_text_and_buffer
 		    (STATUS_INV_SGNR,
 		     get_inv_recpsgnr_code (GPG_ERR_NOT_TRUSTED),
-		     locusr->d, strlen (locusr->d), -1);
+		     usr, strlen (usr), -1);
 		}
 	      else
 		{

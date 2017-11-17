@@ -469,7 +469,8 @@ trustsig_prompt (byte * trust_value, byte * trust_depth, char **regexp)
  */
 static int
 sign_uids (ctrl_t ctrl, estream_t fp,
-           kbnode_t keyblock, strlist_t locusr, int *ret_modified,
+           kbnode_t keyblock,
+	   const std::vector<std::pair<std::string, unsigned int>>& locusr, int *ret_modified,
 	   int local, int nonrevocable, int trust, int interactive,
            int quick)
 {
@@ -1384,8 +1385,10 @@ keyedit_completion (const char *text, int start, int end)
 
 /* Main function of the menu driven key editor.  */
 void
-keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
-	      strlist_t commands, int quiet, int seckey_check)
+keyedit_menu (ctrl_t ctrl, const char *username,
+	      const std::vector<std::pair<std::string, unsigned int>>& locusr,
+	      const std::vector<std::string>& commands,
+	      int quiet, int seckey_check)
 {
   enum cmdids cmd = (cmdids) 0;
   gpg_error_t err = 0;
@@ -1397,7 +1400,8 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
   int modified = 0;
   int sec_shadowing = 0;
   int run_subkey_warnings = 0;
-  int have_commands = !!commands;
+  int have_commands = !commands.empty();
+  auto cur_cmd = commands.begin();
 
   if (opt.command_fd != -1)
     ;
@@ -1469,10 +1473,10 @@ keyedit_menu (ctrl_t ctrl, const char *username, strlist_t locusr,
 	  xfree (answer);
 	  if (have_commands)
 	    {
-	      if (commands)
+	      if (cur_cmd != commands.end())
 		{
-		  answer = xstrdup (commands->d);
-		  commands = commands->next;
+		  answer = xstrdup (cur_cmd->c_str());
+		  cur_cmd++;
 		}
 	      else if (opt.batch)
 		{
@@ -2576,8 +2580,9 @@ find_by_primary_fpr (ctrl_t ctrl, const char *fpr,
    user ids matching one of the entries of the list are signed.  With
    LOCAL being true the signatures are marked as non-exportable.  */
 void
-keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
-                    strlist_t locusr, int local)
+keyedit_quick_sign (ctrl_t ctrl, const char *fpr,
+		    const std::vector<std::pair<std::string, unsigned int>>& uids_,
+                    const std::vector<std::pair<std::string, unsigned int>>& locusr, int local)
 {
   gpg_error_t err;
   kbnode_t keyblock = NULL;
@@ -2585,8 +2590,8 @@ keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
   int modified = 0;
   PKT_public_key *pk;
   kbnode_t node;
-  strlist_t sl;
   int any;
+  std::vector<std::pair<std::string, unsigned int>> uids = uids_;
 
 #ifdef HAVE_W32_SYSTEM
   /* See keyedit_menu for why we need this.  */
@@ -2625,12 +2630,13 @@ keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
      that we match the same way as in the key lookup. */
   any = 0;
   menu_select_uid (keyblock, 0);   /* Better clear the flags first. */
-  for (sl=uids; sl; sl = sl->next)
+  for (auto sl : uids)
     {
-      const char *name = sl->d;
+      const char *name = sl.first.c_str();
+      unsigned int& flags = sl.second;
       int count = 0;
 
-      sl->flags &= ~(1|2);  /* Clear flags used for error reporting.  */
+      flags &= ~(1|2);  /* Clear flags used for error reporting.  */
 
       for (node = keyblock; node; node = node->next)
         {
@@ -2648,7 +2654,7 @@ keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
                   node->flag |= NODFLG_SELUID;
                   if (any != -1)
                     {
-                      sl->flags |= 1;  /* Report as found.  */
+                      flags |= 1;  /* Report as found.  */
                       any = 1;
                     }
                 }
@@ -2658,7 +2664,7 @@ keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
                   node->flag |= NODFLG_SELUID;
                   if (any != -1)
                     {
-                      sl->flags |= 1;  /* Report as found.  */
+                      flags |= 1;  /* Report as found.  */
                       any = 1;
                     }
                   count++;
@@ -2669,29 +2675,31 @@ keyedit_quick_sign (ctrl_t ctrl, const char *fpr, strlist_t uids,
       if (count > 1)
         {
           any = -1;        /* Force failure at end.  */
-          sl->flags |= 2;  /* Report as ambiguous.  */
+          flags |= 2;  /* Report as ambiguous.  */
         }
     }
 
   /* Check whether all given user ids were found.  */
-  for (sl=uids; sl; sl = sl->next)
-    if (!(sl->flags & 1))
+  for (auto& sl : uids)
+    if (!(sl.second & 1))
       any = -1;  /* That user id was not found.  */
-
+  
   /* Print an error if there was a problem with the user ids.  */
-  if (uids && any < 1)
+  if (!uids.empty() && any < 1)
     {
       if (!opt.verbose)
         show_key_with_all_names (ctrl, es_stdout, keyblock, 0, 0, 0, 0, 0, 1);
       es_fflush (es_stdout);
-      for (sl=uids; sl; sl = sl->next)
+      for (auto& sl : uids)
         {
-          if ((sl->flags & 2))
+	  const char* uid = sl.first.c_str();
+	  unsigned int& flags = sl.second;
+          if ((flags & 2))
             log_info (_("Invalid user ID '%s': %s\n"),
-                      sl->d, gpg_strerror (GPG_ERR_AMBIGUOUS_NAME));
-          else if (!(sl->flags & 1))
+                      uid, gpg_strerror (GPG_ERR_AMBIGUOUS_NAME));
+          else if (!(flags & 1))
             log_info (_("Invalid user ID '%s': %s\n"),
-                      sl->d, gpg_strerror (GPG_ERR_NOT_FOUND));
+                      uid, gpg_strerror (GPG_ERR_NOT_FOUND));
         }
       log_error ("%s  %s", _("No matching user IDs."), _("Nothing to sign.\n"));
       goto leave;
