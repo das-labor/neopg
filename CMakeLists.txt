@@ -31,6 +31,10 @@ set(RANG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/rang)
 set(RANG_INCLUDE_DIR ${RANG_ROOT}/include)
 add_subdirectory(${RANG_ROOT} EXCLUDE_FROM_ALL)
 
+# CLI11
+set(CLI11_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/CLI11)
+set(CLI11_INCLUDE_DIR ${CLI11_ROOT}/include)
+
 
 # CodeCoverage
 

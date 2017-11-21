@@ -11,32 +11,29 @@
 namespace NeoPG {
 namespace CLI {
 
-int SimpleCommand::run(const std::string& progname, arg_iter_t begin_args,
-                       arg_iter_t end_args) {
-  args::ArgumentParser parser("");
-  parser.Prog(progname + " " + Name().c_str());
-  args::HelpFlag help(parser, "help", "display this help and exit", {"help"});
-  setup(parser);
-  try {
-    auto next = parser.ParseArgs(begin_args, end_args);
-    return run(parser);
-  } catch (args::Help) {
-    std::cout << parser;
-    return 0;
-  } catch (args::ParseError e) {
-    std::cerr << e.what() << std::endl;
-    std::cerr << parser;
-    return 1;
-  }
+Command::Command(CLI::App& app, const std::string& flag,
+                 const std::string& description, const std::string& group_name)
+    : m_app(app), m_cmd(*app.add_subcommand(flag, description)) {
+  m_cmd.set_callback([this]() { this->run(); });
+  if (!group_name.empty()) m_cmd.group(group_name);
 }
 
-int LegacyCommand::run(const std::string& progname, arg_iter_t begin_args,
-                       arg_iter_t end_args) {
-  std::vector<char*> args = {(char*)Name().c_str()};
-  while (begin_args != end_args)
-    args.push_back(const_cast<char*>((begin_args++)->c_str()));
-  main_fnc(args.size(), args.data());
-  return 0;
+LegacyCommand::LegacyCommand(CLI::App& app, const main_fnc_t& main_fnc,
+                             const std::string& flag,
+                             const std::string& description,
+                             const std::string& group_name)
+    : Command(app, flag, description, group_name), m_main_fnc(main_fnc) {
+  m_cmd.set_help_flag();
+  m_cmd.prefix_command(true);
+}
+
+void LegacyCommand::run() {
+  std::vector<char*> args = {(char*)m_cmd.get_name().c_str()};
+  std::vector<std::string> remaining = m_cmd.remaining();
+  for (auto arg : remaining) {
+    args.push_back(const_cast<char*>(arg.c_str()));
+  }
+  m_main_fnc(args.size(), args.data());
 }
 
 }  // Namespace CLI

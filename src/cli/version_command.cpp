@@ -11,12 +11,7 @@
 namespace NeoPG {
 namespace CLI {
 
-int VersionCommand::run() {
-  std::cout << "NeoPG 0.0\n";
-  return 0;
-}
-
-int VersionCommand::run(args::ArgumentParser& parser) { return run(); }
+void VersionCommand::run() { std::cout << "NeoPG 0.0\n"; }
 
 }  // Namespace CLI
 }  // Namespace NeoPG

@@ -6,12 +6,13 @@
 
 #include <iostream>
 
+#include <neopg/cli/command.h>
 #include <neopg/cli/packet_command.h>
 
 namespace NeoPG {
 namespace CLI {
 
-int PacketCommand::run(args::ArgumentParser& parser) { return 0; }
+void PacketCommand::run() {}
 
 }  // Namespace CLI
 }  // Namespace NeoPG

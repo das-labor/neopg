@@ -11,13 +11,14 @@
 namespace NeoPG {
 namespace CLI {
 
-class PacketCommand : public SimpleCommand {
+class PacketCommand : public Command {
  public:
-  virtual int run(args::ArgumentParser& parser);
+  virtual void run();
 
-  PacketCommand(args::CommandGroup<Command*>& group_, const std::string& name_,
-                const std::string& help_, args::Options options_ = {})
-      : SimpleCommand(group_, name_, help_, options_) {}
+  PacketCommand(CLI::App& app, const std::string& flag,
+                const std::string& description,
+		const std::string& group_name = "")
+    : Command(app, flag, description, group_name) {}
   virtual ~PacketCommand() {}
 };
 

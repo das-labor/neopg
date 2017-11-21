@@ -11,17 +11,14 @@
 namespace NeoPG {
 namespace CLI {
 
-class VersionCommand : public SimpleCommand {
+class VersionCommand : public Command {
  public:
-  /* This is a method so it can be used independend of the normal command
-   * mechanism.  */
-  int run();
-
-  virtual int run(args::ArgumentParser& parser);
-
-  VersionCommand(args::CommandGroup<Command*>& group_, const std::string& name_,
-                 const std::string& help_, args::Options options_ = {})
-      : SimpleCommand(group_, name_, help_, options_) {}
+  void run() override;
+  VersionCommand(CLI::App& app, const std::string& flag,
+                 const std::string& description)
+      : Command(app, flag, description) {
+    m_cmd.group("");
+  }
   virtual ~VersionCommand() {}
 };
 

@@ -6,35 +6,23 @@
 
 #pragma once
 
-#include <neopg/cli/args.h>
+#include <CLI11.hpp>
 
 namespace NeoPG {
 namespace CLI {
 
-using arg_iter_t = std::vector<std::string>::const_iterator;
+using ::CLI::App;
 
-class Command : public args::Command<Command*> {
+class Command {
  public:
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args) = 0;
-  Command(args::CommandGroup<Command*>& group_, const std::string& name_,
-          const std::string& help_, args::Options options_ = {})
-      : args::Command<Command*>(group_, this, name_, help_, options_) {}
+  App& m_app;
+  App& m_cmd;
+
+  virtual void run() = 0;
+
+  Command(App& app, const std::string& flag,
+          const std::string& description, const std::string& group_name = "");
   virtual ~Command() {}
-};
-
-class SimpleCommand : public Command {
- public:
-  virtual void setup(args::ArgumentParser& parser) {}
-  virtual int run(args::ArgumentParser& parser) = 0;
-
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args);
-
-  SimpleCommand(args::CommandGroup<Command*>& group_, const std::string& name_,
-                const std::string& help_, args::Options options_ = {})
-      : Command(group_, name_, help_, options_){};
-  virtual ~SimpleCommand(){};
 };
 
 class LegacyCommand : public Command {
@@ -42,17 +30,14 @@ class LegacyCommand : public Command {
   using main_fnc_t = std::function<int(int argc, char** argv)>;
 
  private:
-  const main_fnc_t main_fnc;
+  const main_fnc_t m_main_fnc;
 
  public:
-  virtual int run(const std::string& progname, arg_iter_t begin_args,
-                  arg_iter_t end_args) override;
-
-  LegacyCommand(args::CommandGroup<Command*>& group_,
-                const main_fnc_t& main_fnc_, const std::string& name_,
-                const std::string& help_, args::Options options_ = {})
-      : Command(group_, name_, help_, options_), main_fnc(main_fnc_){};
-  virtual ~LegacyCommand(){};
+  void run() override;
+  LegacyCommand(App& app, const main_fnc_t& main_fnc,
+                const std::string& flag, const std::string& description,
+                const std::string& group_name = "");
+  virtual ~LegacyCommand() {}
 };
 
 }  // Namespace CLI

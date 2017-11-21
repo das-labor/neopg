@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include <CLI11.hpp>
+
 #include <neopg/cli/command.h>
 #include <neopg/cli/packet_command.h>
 #include <neopg/cli/version_command.h>
@@ -54,58 +56,47 @@ struct openpgp : cli::command<openpgp>
 #define GPGRT_ATTR_SENTINEL(a)
 #include "../legacy/gnupg/common/stringhelp.h"
 
-int main(int argc, char const* argv[]) {
+int main(int argc, char* argv[]) {
   /* This is also used to invoke ourself.  */
   neopg_program = make_absfilename(argv[0], NULL);
 
   const std::vector<std::string> args(argv + 1, argv + argc);
 
-  args::ArgumentParser parser(
-      "NeoPG implements the OpenPGP standard.",
-      "Report bugs to https://github.com/das-labor/neopg");
-  parser.helpParams.showTerminator = false;
-  args::HelpFlag o_help(parser, "help", "display this help and exit", {"help"});
-  args::Flag o_version(parser, "version", "output version information and exit",
-                       {"version"});
+  CLI::App app{"NeoPG implements the OpenPGP standard."};
+  app.set_footer("Report bugs to https://github.com/das-labor/neopg");
+  // app.require_subcommand(1);
+  app.set_help_flag("--help", "display this help and exit");
+  bool oVersion = false;
+  app.add_flag("--version", oVersion, "output version information and exit");
 
-  parser.Prog(neopg_program);
-  parser.ProglinePostfix("[<args>]");
+  VersionCommand cmd_version(app, "version",
+                             "output version information and exit");
 
-  args::CommandGroup<Command*> cmd(parser, "command",
-                                   "command to execute (GnuPG-compatible)");
-  cmd.KickOut(true);
+  app.set_callback([&oVersion, &cmd_version, &app]() {
+    if (oVersion) {
+      cmd_version.run();
+      throw CLI::Success();
+    } else if (app.get_subcommands().empty())
+      throw CLI::CallForHelp();
+  });
 
-  LegacyCommand cmd_gpg2(cmd, gpg_main, "gpg2", "invoke gpg2");
-  LegacyCommand cmd_gpgsm(cmd, gpgsm_main, "gpgsm", "invoke gpgsm");
-  LegacyCommand cmd_agent(cmd, agent_main, "agent", "invoke agent");
-  LegacyCommand cmd_scd(cmd, scd_main, "scd", "invoke scd");
-  LegacyCommand cmd_dirmngr(cmd, dirmngr_main, "dirmngr", "invoke dirmngr");
-  LegacyCommand cmd_dirmngr_client(cmd, dirmngr_client_main, "dirmngr-client",
-                                   "invoke dirmngr-client");
+  std::string legacy_group = "command to execute (GnuPG-compatible)";
+  LegacyCommand cmd_gpg2(app, gpg_main, "gpg2", "invoke gpg2", legacy_group);
+  LegacyCommand cmd_gpgsm(app, gpgsm_main, "gpgsm", "invoke gpgsm",
+                          legacy_group);
+  LegacyCommand cmd_agent(app, agent_main, "agent", "invoke agent",
+                          legacy_group);
+  LegacyCommand cmd_scd(app, scd_main, "scd", "invoke scd", legacy_group);
+  LegacyCommand cmd_dirmngr(app, dirmngr_main, "dirmngr", "invoke dirmngr",
+                            legacy_group);
+  LegacyCommand cmd_dirmngr_client(app, dirmngr_client_main, "dirmngr-client",
+                                   "invoke dirmngr-client", legacy_group);
 
-  PacketCommand cmd_packet(cmd, "packet", "read and write OpenPGP packets",
-                           args::Options::Hidden);
-  VersionCommand cmd_version(cmd, "version", "show version info and exit",
-                             args::Options::Hidden);
+  std::string tools_group = "tools (for experts)";
+  PacketCommand cmd_packet(app, "packet", "read and write OpenPGP packets", tools_group);
 
-  try {
-    auto next = parser.ParseArgs(args);
-    std::cout << std::boolalpha;
-    if (o_version) {
-      return cmd_version.run();
-    }
-    if (cmd) {
-      args::get(cmd)->run(neopg_program, next, std::end(args));
-    } else {
-      throw args::Help("");
-    }
-  } catch (args::Help) {
-    std::cout << parser;
-    return 0;
-  } catch (args::ParseError e) {
-    std::cerr << e.what() << std::endl;
-    std::cerr << parser;
-    return 1;
-  }
+  CLI11_PARSE(app, argc, argv);
+  if (oVersion) cmd_version.run();
+
   return 0;
 }
