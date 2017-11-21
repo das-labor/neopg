@@ -11,14 +11,41 @@
 namespace NeoPG {
 namespace CLI {
 
+class MarkerPacketCommand : public Command {
+ public:
+  MarkerPacketCommand(CLI::App& app, const std::string& flag,
+                      const std::string& description,
+                      const std::string& group_name = "")
+      : Command(app, flag, description, group_name) {}
+  void run();
+};
+
+class UserIdPacketCommand : public Command {
+ public:
+  std::string m_uid;
+
+  UserIdPacketCommand(CLI::App& app, const std::string& flag,
+                      const std::string& description,
+                      const std::string& group_name = "")
+      : Command(app, flag, description, group_name) {
+    m_cmd.add_option("data", m_uid, "user ID data");
+  }
+
+  void run();
+};
+
 class PacketCommand : public Command {
  public:
+  const std::string group = "Write packet";
+  MarkerPacketCommand cmd_marker;
+  UserIdPacketCommand cmd_uid;
+
   virtual void run();
 
   PacketCommand(CLI::App& app, const std::string& flag,
                 const std::string& description,
-		const std::string& group_name = "")
-    : Command(app, flag, description, group_name) {}
+                const std::string& group_name = "");
+
   virtual ~PacketCommand() {}
 };
 

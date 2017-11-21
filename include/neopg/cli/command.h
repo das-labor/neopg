@@ -20,8 +20,8 @@ class Command {
 
   virtual void run() = 0;
 
-  Command(App& app, const std::string& flag,
-          const std::string& description, const std::string& group_name = "");
+  Command(App& app, const std::string& flag, const std::string& description,
+          const std::string& group_name = "");
   virtual ~Command() {}
 };
 
@@ -34,8 +34,8 @@ class LegacyCommand : public Command {
 
  public:
   void run() override;
-  LegacyCommand(App& app, const main_fnc_t& main_fnc,
-                const std::string& flag, const std::string& description,
+  LegacyCommand(App& app, const main_fnc_t& main_fnc, const std::string& flag,
+                const std::string& description,
                 const std::string& group_name = "");
   virtual ~LegacyCommand() {}
 };

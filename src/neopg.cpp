@@ -93,7 +93,8 @@ int main(int argc, char* argv[]) {
                                    "invoke dirmngr-client", legacy_group);
 
   std::string tools_group = "tools (for experts)";
-  PacketCommand cmd_packet(app, "packet", "read and write OpenPGP packets", tools_group);
+  PacketCommand cmd_packet(app, "packet", "read and write OpenPGP packets",
+                           tools_group);
 
   CLI11_PARSE(app, argc, argv);
   if (oVersion) cmd_version.run();
