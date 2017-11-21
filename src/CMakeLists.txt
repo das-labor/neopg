@@ -199,7 +199,6 @@ add_executable(neopg
   ../legacy/gnupg/scd/command.cpp
   ../legacy/gnupg/scd/iso7816.cpp
 
-  ../include/neopg/cli/args.h
   ../include/neopg/cli/command.h
   ../include/neopg/cli/version_command.h
   ../include/neopg/cli/packet_command.h
