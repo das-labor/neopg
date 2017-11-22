@@ -118,7 +118,13 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
 
 
 # get all project files
-file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/src/*.h ${CMAKE_SOURCE_DIR}/include/*.cpp ${CMAKE_SOURCE_DIR}/include/*.h )
+file(GLOB_RECURSE ALL_SOURCE_FILES
+     ${CMAKE_SOURCE_DIR}/legacy/*.cpp
+     ${CMAKE_SOURCE_DIR}/legacy/*.h
+     ${CMAKE_SOURCE_DIR}/src/*.cpp
+     ${CMAKE_SOURCE_DIR}/src/*.h
+     ${CMAKE_SOURCE_DIR}/include/*.cpp
+     ${CMAKE_SOURCE_DIR}/include/*.h )
 
 # additional target to perform cppcheck run, requires cppcheck
 
