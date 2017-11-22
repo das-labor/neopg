@@ -29,6 +29,8 @@
 #include <locale.h>
 #endif
 
+#include <boost/algorithm/string.hpp>
+
 #include <assuan.h>
 #include "../common/asshelp.h"
 #include "../common/host2net.h"
@@ -1139,12 +1141,12 @@ static gpg_error_t keyinfo_status_cb(void *opaque, const char *line) {
      *      0        1        2        3       4          5
      *   <keygrip> <type> <serialno> <idstr> <cached> <protection>
      */
-    char *fields[6];
-
-    if (split_fields(s, fields, DIM(fields)) == 6) {
+    std::vector<std::string> fields;
+    boost::split(fields, s, boost::is_any_of(" "));
+    if (fields.size() == 6) {
       is_smartcard = (fields[1][0] == 'T');
-      if (is_smartcard && !data->serialno && strcmp(fields[2], "-"))
-        data->serialno = xtrystrdup(fields[2]);
+      if (is_smartcard && !data->serialno && fields[2] != "-")
+        data->serialno = xtrystrdup(fields[2].c_str());
       /* 'P' for protected, 'C' for clear */
       data->cleartext = (fields[5][0] == 'C');
     }

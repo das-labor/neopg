@@ -1640,7 +1640,6 @@ static gpg_error_t cmd_keytocard(assuan_context_t ctx, char *line) {
     goto leave;
   }
 
-  /* Fixme: Replace the parsing code by split_fields().  */
   line += 40;
   while (*line && (*line == ' ' || *line == '\t')) line++;
   serialno = line;

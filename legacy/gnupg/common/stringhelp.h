@@ -98,16 +98,7 @@ char *strconcat(const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
 /* Ditto, but die on error.  */
 char *xstrconcat(const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
 
-char **strsplit(char *string, char delim, char replacement, int *count);
-
 /* Tokenize STRING using the set of delimiters in DELIM.  */
 char **strtokenize(const char *string, const char *delim);
-
-/* Split STRING into space delimited fields and store them in the
- * provided ARRAY.  */
-int split_fields(char *string, char **array, int arraysize);
-
-/* Format a string so that it fits within about TARGET_COLS columns.  */
-char *format_text(const char *text, int target_cols, int max_cols);
 
 #endif /*GNUPG_COMMON_STRINGHELP_H*/
