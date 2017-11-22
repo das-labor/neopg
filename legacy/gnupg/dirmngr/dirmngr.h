@@ -22,80 +22,77 @@
 #ifndef DIRMNGR_H
 #define DIRMNGR_H
 
-#include <gpg-error.h>
+#include <set>
+#include <string>
+#include <vector>
+
 #include <errno.h>
 #include <gcrypt.h>
+#include <gpg-error.h>
 #include <ksba.h>
 
-#include "../common/util.h"
+#include "../common/asshelp.h" /* (assuan_context_t) */
+#include "../common/i18n.h"
 #include "../common/membuf.h"
 #include "../common/sysutils.h" /* (gnupg_fd_t) */
-#include "../common/asshelp.h"  /* (assuan_context_t) */
-#include "../common/i18n.h"
-#include "http.h"     /* (parsed_uri_t) */
-
+#include "../common/util.h"
+#include "http.h" /* (parsed_uri_t) */
 
 /* This objects is used to build a list of URI consisting of the
    original and the parsed URI.  */
-struct uri_item_s
-{
+struct uri_item_s {
   struct uri_item_s *next;
-  parsed_uri_t parsed_uri;  /* The broken down URI.  */
-  char uri[1];              /* The original URI.  */
+  parsed_uri_t parsed_uri; /* The broken down URI.  */
+  char uri[1];             /* The original URI.  */
 };
 typedef struct uri_item_s *uri_item_t;
-
 
 /* A list of fingerprints.  */
 struct fingerprint_list_s;
 typedef struct fingerprint_list_s *fingerprint_list_t;
-struct fingerprint_list_s
-{
+struct fingerprint_list_s {
   fingerprint_list_t next;
-  char hexfpr[20+20+1];
+  char hexfpr[20 + 20 + 1];
 };
 
-
 /* A large struct named "opt" to keep global flags.  */
-struct options
-{
-  unsigned int debug; /* debug flags (DBG_foo_VALUE) */
-  int verbose;        /* verbosity level */
-  int quiet;          /* be as quiet as possible */
-  int dry_run;        /* don't change any persistent data */
-  int batch;          /* batch mode */
+struct options {
+  unsigned int debug;        /* debug flags (DBG_foo_VALUE) */
+  int verbose;               /* verbosity level */
+  int quiet;                 /* be as quiet as possible */
+  int dry_run;               /* don't change any persistent data */
+  int batch;                 /* batch mode */
   const char *homedir_cache; /* Dir for cache files (/var/cache/dirmngr).  */
 
-  char *config_filename;     /* Name of a config file, which will be
-                                reread on a HUP if it is not NULL. */
+  char *config_filename; /* Name of a config file, which will be
+                            reread on a HUP if it is not NULL. */
 
   char *http_wrapper_program; /* Override value for the HTTP wrapper
                                  program.  */
 
-  int running_detached; /* We are running in detached mode.  */
+  int running_detached;    /* We are running in detached mode.  */
   int allow_version_check; /* --allow-version-check is active.  */
 
-  int force;          /* Force loading outdated CRLs. */
-
+  int force; /* Force loading outdated CRLs. */
 
   unsigned int connect_timeout;       /* Timeout for connect.  */
   unsigned int connect_quick_timeout; /* Shorter timeout for connect.  */
 
-  int disable_http;       /* Do not use HTTP at all.  */
-  int disable_ipv4;       /* Do not use legacy IP addresses.  */
-  int disable_ipv6;       /* Do not use standard IP addresses.  */
-  int honor_http_proxy;   /* Honor the http_proxy env variable. */
-  const char *http_proxy; /* The default HTTP proxy.  */
-  int ignore_http_dp;     /* Ignore HTTP CRL distribution points.  */
+  int disable_http;            /* Do not use HTTP at all.  */
+  int disable_ipv4;            /* Do not use legacy IP addresses.  */
+  int disable_ipv6;            /* Do not use standard IP addresses.  */
+  int honor_http_proxy;        /* Honor the http_proxy env variable. */
+  const char *http_proxy;      /* The default HTTP proxy.  */
+  int ignore_http_dp;          /* Ignore HTTP CRL distribution points.  */
   int ignore_ocsp_service_url; /* Ignore OCSP service URLs as given in
                                   the certificate.  */
 
   /* A list of certificate extension OIDs which are ignored so that
      one can claim that a critical extension has been handled.  One
      OID per string.  */
-  strlist_t ignored_cert_extensions;
+  std::set<std::string> ignored_cert_extensions;
 
-  int allow_ocsp;     /* Allow using OCSP. */
+  int allow_ocsp; /* Allow using OCSP. */
 
   int max_replies;
 
@@ -109,108 +106,99 @@ struct options
   unsigned int ocsp_current_period; /* Seconds a response is considered
                                        current after nextUpdate. */
 
-  strlist_t keyserver;              /* List of default keyservers.  */
+  std::vector<std::string> keyserver; /* List of default keyservers.  */
 };
 extern struct options dirmngr_opt;
 #define opt dirmngr_opt
 
-#define DBG_X509_VALUE    1	/* debug x.509 parsing */
-#define DBG_CRYPTO_VALUE  4	/* debug low level crypto */
-#define DBG_DNS_VALUE     16    /* debug DNS calls.  */
-#define DBG_MEMORY_VALUE  32	/* debug memory allocation stuff */
-#define DBG_CACHE_VALUE   64	/* debug the caching */
-#define DBG_MEMSTAT_VALUE 128	/* show memory statistics */
-#define DBG_HASHING_VALUE 512	/* debug hashing operations */
-#define DBG_IPC_VALUE     1024  /* debug assuan communication */
+#define DBG_X509_VALUE 1        /* debug x.509 parsing */
+#define DBG_CRYPTO_VALUE 4      /* debug low level crypto */
+#define DBG_DNS_VALUE 16        /* debug DNS calls.  */
+#define DBG_MEMORY_VALUE 32     /* debug memory allocation stuff */
+#define DBG_CACHE_VALUE 64      /* debug the caching */
+#define DBG_MEMSTAT_VALUE 128   /* show memory statistics */
+#define DBG_HASHING_VALUE 512   /* debug hashing operations */
+#define DBG_IPC_VALUE 1024      /* debug assuan communication */
 #define DBG_NETWORK_VALUE 2048  /* debug network I/O.  */
-#define DBG_LOOKUP_VALUE  8192  /* debug lookup details */
+#define DBG_LOOKUP_VALUE 8192   /* debug lookup details */
 #define DBG_EXTPROG_VALUE 16384 /* debug external program calls */
 
-#define DBG_X509    (opt.debug & DBG_X509_VALUE)
-#define DBG_CRYPTO  (opt.debug & DBG_CRYPTO_VALUE)
-#define DBG_DNS     (opt.debug & DBG_DNS_VALUE)
-#define DBG_MEMORY  (opt.debug & DBG_MEMORY_VALUE)
-#define DBG_CACHE   (opt.debug & DBG_CACHE_VALUE)
+#define DBG_X509 (opt.debug & DBG_X509_VALUE)
+#define DBG_CRYPTO (opt.debug & DBG_CRYPTO_VALUE)
+#define DBG_DNS (opt.debug & DBG_DNS_VALUE)
+#define DBG_MEMORY (opt.debug & DBG_MEMORY_VALUE)
+#define DBG_CACHE (opt.debug & DBG_CACHE_VALUE)
 #define DBG_HASHING (opt.debug & DBG_HASHING_VALUE)
-#define DBG_IPC     (opt.debug & DBG_IPC_VALUE)
+#define DBG_IPC (opt.debug & DBG_IPC_VALUE)
 #define DBG_NETWORK (opt.debug & DBG_NETWORK_VALUE)
-#define DBG_LOOKUP  (opt.debug & DBG_LOOKUP_VALUE)
+#define DBG_LOOKUP (opt.debug & DBG_LOOKUP_VALUE)
 #define DBG_EXTPROG (opt.debug & DBG_EXTPROG_VALUE)
 
 /* A simple list of certificate references.  FIXME: Better use
    certlist_t also for references (Store NULL at .cert) */
-struct cert_ref_s
-{
+struct cert_ref_s {
   struct cert_ref_s *next;
   unsigned char fpr[20];
 };
 typedef struct cert_ref_s *cert_ref_t;
 
-
 /* Forward references; access only through server.c.  */
 struct server_local_s;
 
 #if SIZEOF_UNSIGNED_LONG == 8
-# define SERVER_CONTROL_MAGIC 0x6469726d6e677220
+#define SERVER_CONTROL_MAGIC 0x6469726d6e677220
 #else
-# define SERVER_CONTROL_MAGIC 0x6469726d
+#define SERVER_CONTROL_MAGIC 0x6469726d
 #endif
 
 /* Connection control structure.  */
-struct server_control_s
-{
-  unsigned long magic;/* Always has SERVER_CONTROL_MAGIC.  */
-  int refcount;       /* Count additional references to this object.  */
-  int no_server;      /* We are not running under server control. */
-  int status_fd;      /* Only for non-server mode. */
+struct server_control_s {
+  unsigned long magic; /* Always has SERVER_CONTROL_MAGIC.  */
+  int refcount;        /* Count additional references to this object.  */
+  int no_server;       /* We are not running under server control. */
+  int status_fd;       /* Only for non-server mode. */
   struct server_local_s *server_local;
   int force_crl_refresh; /* Always load a fresh CRL. */
 
   int check_revocations_nest_level; /* Internal to check_revovations.  */
-  cert_ref_t ocsp_certs; /* Certificates from the current OCSP
-                            response. */
-  char *http_proxy;  /* The used http_proxy or NULL.  */
+  cert_ref_t ocsp_certs;            /* Certificates from the current OCSP
+                                       response. */
+  char *http_proxy;                 /* The used http_proxy or NULL.  */
 
   unsigned int timeout; /* Timeout for connect calls in ms.  */
 
-  unsigned int http_no_crl:1;  /* Do not check CRLs for https.  */
+  unsigned int http_no_crl : 1; /* Do not check CRLs for https.  */
 };
 
-
 /*-- dirmngr.c --*/
-void dirmngr_exit( int );  /* Wrapper for exit() */
-void dirmngr_init_default_ctrl (ctrl_t ctrl);
-void dirmngr_deinit_default_ctrl (ctrl_t ctrl);
-void dirmngr_sighup_action (void);
-const char* dirmngr_get_current_socket_name (void);
+void dirmngr_exit(int); /* Wrapper for exit() */
+void dirmngr_init_default_ctrl(ctrl_t ctrl);
+void dirmngr_deinit_default_ctrl(ctrl_t ctrl);
+void dirmngr_sighup_action(void);
+const char *dirmngr_get_current_socket_name(void);
 
 /*-- Various housekeeping functions.  --*/
-void ks_hkp_housekeeping (time_t curtime);
-void ks_hkp_reload (void);
-
+void ks_hkp_housekeeping(time_t curtime);
+void ks_hkp_reload(void);
 
 /*-- server.c --*/
-ksba_cert_t get_cert_local (ctrl_t ctrl, const char *issuer);
-ksba_cert_t get_issuing_cert_local (ctrl_t ctrl, const char *issuer);
-ksba_cert_t get_cert_local_ski (ctrl_t ctrl,
-                                const char *name, ksba_sexp_t keyid);
-gpg_error_t get_istrusted_from_client (ctrl_t ctrl, const char *hexfpr);
-int dirmngr_assuan_log_monitor (assuan_context_t ctx, unsigned int cat,
-                                const char *msg);
-void start_command_handler ();
-gpg_error_t dirmngr_status (ctrl_t ctrl, const char *keyword, ...);
-gpg_error_t dirmngr_status_help (ctrl_t ctrl, const char *text);
-gpg_error_t dirmngr_tick (ctrl_t ctrl);
+ksba_cert_t get_cert_local(ctrl_t ctrl, const char *issuer);
+ksba_cert_t get_issuing_cert_local(ctrl_t ctrl, const char *issuer);
+ksba_cert_t get_cert_local_ski(ctrl_t ctrl, const char *name,
+                               ksba_sexp_t keyid);
+gpg_error_t get_istrusted_from_client(ctrl_t ctrl, const char *hexfpr);
+int dirmngr_assuan_log_monitor(assuan_context_t ctx, unsigned int cat,
+                               const char *msg);
+void start_command_handler();
+gpg_error_t dirmngr_status(ctrl_t ctrl, const char *keyword, ...);
+gpg_error_t dirmngr_status_help(ctrl_t ctrl, const char *text);
+gpg_error_t dirmngr_tick(ctrl_t ctrl);
 
 /*-- http-ntbtls.c --*/
 /* Note that we don't use a callback for gnutls.  */
 
-gpg_error_t gnupg_http_tls_verify_cb (void *opaque,
-                                      http_t http,
-                                      http_session_t session,
-                                      unsigned int flags,
-                                      void *tls_context);
-
-
+gpg_error_t gnupg_http_tls_verify_cb(void *opaque, http_t http,
+                                     http_session_t session, unsigned int flags,
+                                     void *tls_context);
 
 #endif /*DIRMNGR_H*/

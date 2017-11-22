@@ -19,16 +19,16 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <assert.h>
 #include <unistd.h>
 #ifdef HAVE_SIGNAL_H
-# include <signal.h>
+#include <signal.h>
 #endif
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -37,9 +37,9 @@
 #endif
 #include <npth.h>
 
-#include "agent.h"
 #include <assuan.h>
 #include "../common/strlist.h"
+#include "agent.h"
 
 #ifdef _POSIX_OPEN_MAX
 #define MAX_OPEN_FDS _POSIX_OPEN_MAX
@@ -48,8 +48,7 @@
 #endif
 
 /* Definition of module local data of the CTRL structure.  */
-struct scd_local_s
-{
+struct scd_local_s {
   /* We keep a list of all allocated context with an anchor at
      SCD_LOCAL_LIST (see below). */
   struct scd_local_s *next_local;
@@ -64,38 +63,32 @@ struct scd_local_s
                            used with this connection. */
   int locked;           /* This flag is used to assert proper use of
                            start_scd and unlock_scd. */
-
 };
 
-
 /* Callback parameter for learn card */
-struct learn_parm_s
-{
-  void (*kpinfo_cb)(void*, const char *);
+struct learn_parm_s {
+  void (*kpinfo_cb)(void *, const char *);
   void *kpinfo_cb_arg;
-  void (*certinfo_cb)(void*, const char *);
+  void (*certinfo_cb)(void *, const char *);
   void *certinfo_cb_arg;
-  void (*sinfo_cb)(void*, const char *, size_t, const char *);
+  void (*sinfo_cb)(void *, const char *, size_t, const char *);
   void *sinfo_cb_arg;
 };
 
-
 /* Callback parameter used by inq_getpin and inq_writekey_parms.  */
-struct inq_needpin_parm_s
-{
+struct inq_needpin_parm_s {
   assuan_context_t ctx;
-  int (*getpin_cb)(void *, const char *, const char *, char*, size_t);
+  int (*getpin_cb)(void *, const char *, const char *, char *, size_t);
   void *getpin_cb_arg;
   const char *getpin_cb_desc;
-  assuan_context_t passthru;  /* If not NULL, pass unknown inquiries
-                                 up to the caller.  */
+  assuan_context_t passthru; /* If not NULL, pass unknown inquiries
+                                up to the caller.  */
   int any_inq_seen;
 
   /* The next fields are used by inq_writekey_parm.  */
   const unsigned char *keydata;
   size_t keydatalen;
 };
-
 
 /* To keep track of all active SCD contexts, we keep a linked list
    anchored at this variable. */
@@ -113,44 +106,30 @@ static assuan_context_t primary_scd_ctx;
    any connection. */
 static int primary_scd_ctx_reusable;
 
-
-
 /* Local prototypes.  */
 
-
-
-
 /* This function must be called once to initialize this module.  This
    has to be done before a second thread is spawned.  We can't do the
    static initialization because NPth emulation code might not be able
    to do a static init; in particular, it is not possible for W32. */
-void
-initialize_module_call_scd (void)
-{
+void initialize_module_call_scd(void) {
   static int initialized;
   int err;
 
-  if (!initialized)
-    {
-      err = npth_mutex_init (&start_scd_lock, NULL);
-      if (err)
-	log_fatal ("error initializing mutex: %s\n", strerror (err));
-      initialized = 1;
-    }
+  if (!initialized) {
+    err = npth_mutex_init(&start_scd_lock, NULL);
+    if (err) log_fatal("error initializing mutex: %s\n", strerror(err));
+    initialized = 1;
+  }
 }
-
 
 /* This function may be called to print information pertaining to the
    current state of this module to the log. */
-void
-agent_scd_dump_state (void)
-{
-  log_info ("agent_scd_dump_state: primary_scd_ctx=%p pid=%ld reusable=%d\n",
-            primary_scd_ctx,
-            (long)assuan_get_pid (primary_scd_ctx),
-            primary_scd_ctx_reusable);
+void agent_scd_dump_state(void) {
+  log_info("agent_scd_dump_state: primary_scd_ctx=%p pid=%ld reusable=%d\n",
+           primary_scd_ctx, (long)assuan_get_pid(primary_scd_ctx),
+           primary_scd_ctx_reusable);
 }
-
 
 /* The unlock_scd function shall be called after having accessed the
    SCD.  It is currently not very useful but gives an opportunity to
@@ -159,41 +138,31 @@ agent_scd_dump_state (void)
    called and error checked before any SCD operation.  CTRL is the
    usual connection context and RC the error code to be passed trhough
    the function. */
-static int
-unlock_scd (ctrl_t ctrl, int rc)
-{
-  if (ctrl->scd_local->locked != 1)
-    {
-      log_error ("unlock_scd: invalid lock count (%d)\n",
-                 ctrl->scd_local->locked);
-      if (!rc)
-        rc = GPG_ERR_INTERNAL;
-    }
+static int unlock_scd(ctrl_t ctrl, int rc) {
+  if (ctrl->scd_local->locked != 1) {
+    log_error("unlock_scd: invalid lock count (%d)\n", ctrl->scd_local->locked);
+    if (!rc) rc = GPG_ERR_INTERNAL;
+  }
   ctrl->scd_local->locked = 0;
   return rc;
 }
 
 /* To make sure we leave no secrets in our image after forking of the
    scdaemon, we use this callback. */
-static void
-atfork_cb (void *opaque, int where)
-{
+static void atfork_cb(void *opaque, int where) {
   (void)opaque;
 
-  if (!where)
-    gcry_control (GCRYCTL_TERM_SECMEM);
+  if (!where) gcry_control(GCRYCTL_TERM_SECMEM);
 }
 
-extern const char* neopg_program;
+extern const char *neopg_program;
 
 /* Fork off the SCdaemon if this has not already been done.  Lock the
    daemon and make sure that a proper context has been setup in CTRL.
    This function might also lock the daemon, which means that the
    caller must call unlock_scd after this function has returned
    success and the actual Assuan transaction been done. */
-static int
-start_scd (ctrl_t ctrl)
-{
+static int start_scd(ctrl_t ctrl) {
   gpg_error_t err = 0;
   const char *pgmname;
   assuan_context_t ctx = NULL;
@@ -204,29 +173,24 @@ start_scd (ctrl_t ctrl)
   char *abs_homedir = NULL;
   int j;
 
-  if (opt.disable_scdaemon)
-    return GPG_ERR_NOT_SUPPORTED;
+  if (opt.disable_scdaemon) return GPG_ERR_NOT_SUPPORTED;
 
   /* If this is the first call for this session, setup the local data
      structure. */
-  if (!ctrl->scd_local)
-    {
-      ctrl->scd_local = (struct scd_local_s*)xtrycalloc (1, sizeof *ctrl->scd_local);
-      if (!ctrl->scd_local)
-        return gpg_error_from_syserror ();
-      ctrl->scd_local->ctrl_backlink = ctrl;
-      ctrl->scd_local->next_local = scd_local_list;
-      scd_local_list = ctrl->scd_local;
-    }
-
+  if (!ctrl->scd_local) {
+    ctrl->scd_local =
+        (struct scd_local_s *)xtrycalloc(1, sizeof *ctrl->scd_local);
+    if (!ctrl->scd_local) return gpg_error_from_syserror();
+    ctrl->scd_local->ctrl_backlink = ctrl;
+    ctrl->scd_local->next_local = scd_local_list;
+    scd_local_list = ctrl->scd_local;
+  }
 
   /* Assert that the lock count is as expected. */
-  if (ctrl->scd_local->locked)
-    {
-      log_error ("start_scd: invalid lock count (%d)\n",
-                 ctrl->scd_local->locked);
-      return GPG_ERR_INTERNAL;
-    }
+  if (ctrl->scd_local->locked) {
+    log_error("start_scd: invalid lock count (%d)\n", ctrl->scd_local->locked);
+    return GPG_ERR_INTERNAL;
+  }
   ctrl->scd_local->locked++;
 
   if (ctrl->scd_local->ctx)
@@ -236,399 +200,318 @@ start_scd (ctrl_t ctrl)
                  not to check here but to let the connection run on an
                  error instead. */
 
-
   /* We need to protect the following code. */
-  rc = npth_mutex_lock (&start_scd_lock);
-  if (rc)
-    {
-      log_error ("failed to acquire the start_scd lock: %s\n",
-                 strerror (rc));
-      return GPG_ERR_INTERNAL;
-    }
+  rc = npth_mutex_lock(&start_scd_lock);
+  if (rc) {
+    log_error("failed to acquire the start_scd lock: %s\n", strerror(rc));
+    return GPG_ERR_INTERNAL;
+  }
 
   /* Check whether the pipe server has already been started and in
      this case either reuse a lingering pipe connection or establish a
      new socket based one. */
-  if (primary_scd_ctx && primary_scd_ctx_reusable)
-    {
-      ctx = primary_scd_ctx;
-      primary_scd_ctx_reusable = 0;
-      if (opt.verbose)
-        log_info ("new connection to SCdaemon established (reusing)\n");
-      goto leave;
-    }
+  if (primary_scd_ctx && primary_scd_ctx_reusable) {
+    ctx = primary_scd_ctx;
+    primary_scd_ctx_reusable = 0;
+    if (opt.verbose)
+      log_info("new connection to SCdaemon established (reusing)\n");
+    goto leave;
+  }
 
-  rc = assuan_new (&ctx);
-  if (rc)
-    {
-      log_error ("can't allocate assuan context: %s\n", gpg_strerror (rc));
-      err = rc;
-      goto leave;
-    }
+  rc = assuan_new(&ctx);
+  if (rc) {
+    log_error("can't allocate assuan context: %s\n", gpg_strerror(rc));
+    err = rc;
+    goto leave;
+  }
 
-  if (primary_scd_ctx)
-    {
-      log_info ("SCdaemon is running but won't accept further connections\n");
-      err = GPG_ERR_NO_SCDAEMON;
-      goto leave;
-    }
+  if (primary_scd_ctx) {
+    log_info("SCdaemon is running but won't accept further connections\n");
+    err = GPG_ERR_NO_SCDAEMON;
+    goto leave;
+  }
 
   /* Nope, it has not been started.  Fire it up now. */
-  if (opt.verbose)
-    log_info ("no running SCdaemon - starting it\n");
+  if (opt.verbose) log_info("no running SCdaemon - starting it\n");
 
   j = 0;
   argv[j++] = neopg_program;
   argv[j++] = "scd";
   argv[j++] = "--server";
-  if (gnupg_default_homedir_p ())
+  if (gnupg_default_homedir_p())
     argv[j++] = NULL;
-  else
-    {
-      abs_homedir = make_absfilename_try (gnupg_homedir (), NULL);
-      if (!abs_homedir)
-        {
-          log_error ("error building filename: %s\n",
-                     gpg_strerror (gpg_error_from_syserror ()));
-          goto leave;
-        }
-
-      argv[j++] = "--homedir";
-      argv[j++] = abs_homedir;
-      argv[j++] = NULL;
+  else {
+    abs_homedir = make_absfilename_try(gnupg_homedir(), NULL);
+    if (!abs_homedir) {
+      log_error("error building filename: %s\n",
+                gpg_strerror(gpg_error_from_syserror()));
+      goto leave;
     }
 
-  i=0;
-  if (!opt.running_detached)
-    {
-      if (log_get_fd () != -1)
-        no_close_list[i++] = assuan_fd_from_posix_fd (log_get_fd ());
-      no_close_list[i++] = assuan_fd_from_posix_fd (fileno (stderr));
-    }
+    argv[j++] = "--homedir";
+    argv[j++] = abs_homedir;
+    argv[j++] = NULL;
+  }
+
+  i = 0;
+  if (!opt.running_detached) {
+    if (log_get_fd() != -1)
+      no_close_list[i++] = assuan_fd_from_posix_fd(log_get_fd());
+    no_close_list[i++] = assuan_fd_from_posix_fd(fileno(stderr));
+  }
   no_close_list[i] = ASSUAN_INVALID_FD;
 
   /* Connect to the scdaemon and perform initial handshaking.  Use
      detached flag so that under Windows SCDAEMON does not show up a
      new window.  */
-  rc = assuan_pipe_connect (ctx, neopg_program, argv,
-			    no_close_list, atfork_cb, NULL,
-                            ASSUAN_PIPE_CONNECT_DETACHED);
-  if (rc)
-    {
-      log_error ("can't connect to the SCdaemon: %s\n",
-                 gpg_strerror (rc));
-      err = GPG_ERR_NO_SCDAEMON;
-      goto leave;
-    }
+  rc = assuan_pipe_connect(ctx, neopg_program, argv, no_close_list, atfork_cb,
+                           NULL, ASSUAN_PIPE_CONNECT_DETACHED);
+  if (rc) {
+    log_error("can't connect to the SCdaemon: %s\n", gpg_strerror(rc));
+    err = GPG_ERR_NO_SCDAEMON;
+    goto leave;
+  }
 
-  if (opt.verbose)
-    log_debug ("first connection to SCdaemon established\n");
+  if (opt.verbose) log_debug("first connection to SCdaemon established\n");
 
   primary_scd_ctx = ctx;
   primary_scd_ctx_reusable = 0;
 
- leave:
-  xfree (abs_homedir);
-  if (err)
-    {
-      unlock_scd (ctrl, err);
-      if (ctx)
-	assuan_release (ctx);
-    }
-  else
-    {
-      ctrl->scd_local->ctx = ctx;
-    }
-  rc = npth_mutex_unlock (&start_scd_lock);
-  if (rc)
-    log_error ("failed to release the start_scd lock: %s\n", strerror (rc));
+leave:
+  xfree(abs_homedir);
+  if (err) {
+    unlock_scd(ctrl, err);
+    if (ctx) assuan_release(ctx);
+  } else {
+    ctrl->scd_local->ctx = ctx;
+  }
+  rc = npth_mutex_unlock(&start_scd_lock);
+  if (rc) log_error("failed to release the start_scd lock: %s\n", strerror(rc));
   return err;
 }
 
-
 /* Reset the SCD if it has been used.  Actually it is not a reset but
    a cleanup of resources used by the current connection. */
-int
-agent_reset_scd (ctrl_t ctrl)
-{
-  if (ctrl->scd_local)
-    {
-      if (ctrl->scd_local->ctx)
-        {
-          /* We can't disconnect the primary context because libassuan
-             does a waitpid on it and thus the system would hang.
-             Instead we send a reset and keep that connection for
-             reuse. */
-          if (ctrl->scd_local->ctx == primary_scd_ctx)
-            {
-              /* Send a RESTART to the SCD.  This is required for the
-                 primary connection as a kind of virtual EOF; we don't
-                 have another way to tell it that the next command
-                 should be viewed as if a new connection has been
-                 made.  For the non-primary connections this is not
-                 needed as we simply close the socket.  We don't check
-                 for an error here because the RESTART may fail for
-                 example if the scdaemon has already been terminated.
-                 Anyway, we need to set the reusable flag to make sure
-                 that the aliveness check can clean it up. */
-              assuan_transact (primary_scd_ctx, "RESTART",
-                               NULL, NULL, NULL, NULL, NULL, NULL);
-              primary_scd_ctx_reusable = 1;
-            }
-          else
-            assuan_release (ctrl->scd_local->ctx);
-          ctrl->scd_local->ctx = NULL;
-        }
-
-      /* Remove the local context from our list and release it. */
-      if (!scd_local_list)
-        BUG ();
-      else if (scd_local_list == ctrl->scd_local)
-        scd_local_list = ctrl->scd_local->next_local;
-      else
-        {
-          struct scd_local_s *sl;
-
-          for (sl=scd_local_list; sl->next_local; sl = sl->next_local)
-            if (sl->next_local == ctrl->scd_local)
-              break;
-          if (!sl->next_local)
-            BUG ();
-          sl->next_local = ctrl->scd_local->next_local;
-        }
-      xfree (ctrl->scd_local);
-      ctrl->scd_local = NULL;
+int agent_reset_scd(ctrl_t ctrl) {
+  if (ctrl->scd_local) {
+    if (ctrl->scd_local->ctx) {
+      /* We can't disconnect the primary context because libassuan
+         does a waitpid on it and thus the system would hang.
+         Instead we send a reset and keep that connection for
+         reuse. */
+      if (ctrl->scd_local->ctx == primary_scd_ctx) {
+        /* Send a RESTART to the SCD.  This is required for the
+           primary connection as a kind of virtual EOF; we don't
+           have another way to tell it that the next command
+           should be viewed as if a new connection has been
+           made.  For the non-primary connections this is not
+           needed as we simply close the socket.  We don't check
+           for an error here because the RESTART may fail for
+           example if the scdaemon has already been terminated.
+           Anyway, we need to set the reusable flag to make sure
+           that the aliveness check can clean it up. */
+        assuan_transact(primary_scd_ctx, "RESTART", NULL, NULL, NULL, NULL,
+                        NULL, NULL);
+        primary_scd_ctx_reusable = 1;
+      } else
+        assuan_release(ctrl->scd_local->ctx);
+      ctrl->scd_local->ctx = NULL;
     }
+
+    /* Remove the local context from our list and release it. */
+    if (!scd_local_list)
+      BUG();
+    else if (scd_local_list == ctrl->scd_local)
+      scd_local_list = ctrl->scd_local->next_local;
+    else {
+      struct scd_local_s *sl;
+
+      for (sl = scd_local_list; sl->next_local; sl = sl->next_local)
+        if (sl->next_local == ctrl->scd_local) break;
+      if (!sl->next_local) BUG();
+      sl->next_local = ctrl->scd_local->next_local;
+    }
+    xfree(ctrl->scd_local);
+    ctrl->scd_local = NULL;
+  }
 
   return 0;
 }
 
-
-
-static gpg_error_t
-learn_status_cb (void *opaque, const char *line)
-{
-  struct learn_parm_s *parm = (struct learn_parm_s*) opaque;
+static gpg_error_t learn_status_cb(void *opaque, const char *line) {
+  struct learn_parm_s *parm = (struct learn_parm_s *)opaque;
   const char *keyword = line;
   int keywordlen;
 
-  for (keywordlen=0; *line && !spacep (line); line++, keywordlen++)
+  for (keywordlen = 0; *line && !spacep(line); line++, keywordlen++)
     ;
-  while (spacep (line))
-    line++;
-  if (keywordlen == 8 && !memcmp (keyword, "CERTINFO", keywordlen))
-    {
-      parm->certinfo_cb (parm->certinfo_cb_arg, line);
-    }
-  else if (keywordlen == 11 && !memcmp (keyword, "KEYPAIRINFO", keywordlen))
-    {
-      parm->kpinfo_cb (parm->kpinfo_cb_arg, line);
-    }
-  else if (keywordlen && *line)
-    {
-      parm->sinfo_cb (parm->sinfo_cb_arg, keyword, keywordlen, line);
-    }
+  while (spacep(line)) line++;
+  if (keywordlen == 8 && !memcmp(keyword, "CERTINFO", keywordlen)) {
+    parm->certinfo_cb(parm->certinfo_cb_arg, line);
+  } else if (keywordlen == 11 && !memcmp(keyword, "KEYPAIRINFO", keywordlen)) {
+    parm->kpinfo_cb(parm->kpinfo_cb_arg, line);
+  } else if (keywordlen && *line) {
+    parm->sinfo_cb(parm->sinfo_cb_arg, keyword, keywordlen, line);
+  }
 
   return 0;
 }
 
 /* Perform the LEARN command and return a list of all private keys
    stored on the card. */
-int
-agent_card_learn (ctrl_t ctrl,
-                  void (*kpinfo_cb)(void*, const char *),
-                  void *kpinfo_cb_arg,
-                  void (*certinfo_cb)(void*, const char *),
-                  void *certinfo_cb_arg,
-                  void (*sinfo_cb)(void*, const char *, size_t, const char *),
-                  void *sinfo_cb_arg)
-{
+int agent_card_learn(
+    ctrl_t ctrl, void (*kpinfo_cb)(void *, const char *), void *kpinfo_cb_arg,
+    void (*certinfo_cb)(void *, const char *), void *certinfo_cb_arg,
+    void (*sinfo_cb)(void *, const char *, size_t, const char *),
+    void *sinfo_cb_arg) {
   int rc;
   struct learn_parm_s parm;
 
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
-  memset (&parm, 0, sizeof parm);
+  memset(&parm, 0, sizeof parm);
   parm.kpinfo_cb = kpinfo_cb;
   parm.kpinfo_cb_arg = kpinfo_cb_arg;
   parm.certinfo_cb = certinfo_cb;
   parm.certinfo_cb_arg = certinfo_cb_arg;
   parm.sinfo_cb = sinfo_cb;
   parm.sinfo_cb_arg = sinfo_cb_arg;
-  rc = assuan_transact (ctrl->scd_local->ctx, "LEARN --force",
-                        NULL, NULL, NULL, NULL,
-                        learn_status_cb, &parm);
-  if (rc)
-    return unlock_scd (ctrl, rc);
+  rc = assuan_transact(ctrl->scd_local->ctx, "LEARN --force", NULL, NULL, NULL,
+                       NULL, learn_status_cb, &parm);
+  if (rc) return unlock_scd(ctrl, rc);
 
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
 
-
-
-static gpg_error_t
-get_serialno_cb (void *opaque, const char *line)
-{
-  char **serialno = (char **) opaque;
+static gpg_error_t get_serialno_cb(void *opaque, const char *line) {
+  char **serialno = (char **)opaque;
   const char *keyword = line;
   const char *s;
   int keywordlen, n;
 
-  for (keywordlen=0; *line && !spacep (line); line++, keywordlen++)
+  for (keywordlen = 0; *line && !spacep(line); line++, keywordlen++)
     ;
-  while (spacep (line))
-    line++;
+  while (spacep(line)) line++;
 
-  if (keywordlen == 8 && !memcmp (keyword, "SERIALNO", keywordlen))
-    {
-      if (*serialno)
-        return GPG_ERR_CONFLICT; /* Unexpected status line. */
-      for (n=0,s=line; hexdigitp (s); s++, n++)
-        ;
-      if (!n || (n&1)|| !(spacep (s) || !*s) )
-        return GPG_ERR_ASS_PARAMETER;
-      *serialno = (char*) xtrymalloc (n+1);
-      if (!*serialno)
-        return gpg_error_from_syserror ();
-      memcpy (*serialno, line, n);
-      (*serialno)[n] = 0;
-    }
+  if (keywordlen == 8 && !memcmp(keyword, "SERIALNO", keywordlen)) {
+    if (*serialno) return GPG_ERR_CONFLICT; /* Unexpected status line. */
+    for (n = 0, s = line; hexdigitp(s); s++, n++)
+      ;
+    if (!n || (n & 1) || !(spacep(s) || !*s)) return GPG_ERR_ASS_PARAMETER;
+    *serialno = (char *)xtrymalloc(n + 1);
+    if (!*serialno) return gpg_error_from_syserror();
+    memcpy(*serialno, line, n);
+    (*serialno)[n] = 0;
+  }
 
   return 0;
 }
 
 /* Return the serial number of the card or an appropriate error.  The
    serial number is returned as a hexstring. */
-int
-agent_card_serialno (ctrl_t ctrl, char **r_serialno, const char *demand)
-{
+int agent_card_serialno(ctrl_t ctrl, char **r_serialno, const char *demand) {
   int rc;
   char *serialno = NULL;
   char line[ASSUAN_LINELENGTH];
 
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
   if (!demand)
-    strcpy (line, "SERIALNO");
+    strcpy(line, "SERIALNO");
   else
-    snprintf (line, DIM(line), "SERIALNO --demand=%s", demand);
+    snprintf(line, DIM(line), "SERIALNO --demand=%s", demand);
 
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        NULL, NULL, NULL, NULL,
-                        get_serialno_cb, &serialno);
-  if (rc)
-    {
-      xfree (serialno);
-      return unlock_scd (ctrl, rc);
-    }
+  rc = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL, NULL, NULL,
+                       get_serialno_cb, &serialno);
+  if (rc) {
+    xfree(serialno);
+    return unlock_scd(ctrl, rc);
+  }
   *r_serialno = serialno;
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
 
-
-
-
 /* Handle the NEEDPIN inquiry. */
-static gpg_error_t
-inq_needpin (void *opaque, const char *line)
-{
-  struct inq_needpin_parm_s *parm = (struct inq_needpin_parm_s*) opaque;
+static gpg_error_t inq_needpin(void *opaque, const char *line) {
+  struct inq_needpin_parm_s *parm = (struct inq_needpin_parm_s *)opaque;
   const char *s;
   char *pin;
   size_t pinlen;
   int rc;
 
   parm->any_inq_seen = 1;
-  if ((s = has_leading_keyword (line, "NEEDPIN")))
-    {
-      line = s;
-      pinlen = 90;
-      pin = (char*) gcry_malloc_secure (pinlen);
-      if (!pin)
-        return gpg_error_from_syserror ();
+  if ((s = has_leading_keyword(line, "NEEDPIN"))) {
+    line = s;
+    pinlen = 90;
+    pin = (char *)gcry_malloc_secure(pinlen);
+    if (!pin) return gpg_error_from_syserror();
 
-      rc = parm->getpin_cb (parm->getpin_cb_arg, parm->getpin_cb_desc,
-                            line, pin, pinlen);
-      if (!rc)
-        rc = assuan_send_data (parm->ctx, pin, pinlen);
-      xfree (pin);
-    }
-  else if ((s = has_leading_keyword (line, "POPUPPINPADPROMPT")))
-    {
-      rc = parm->getpin_cb (parm->getpin_cb_arg, parm->getpin_cb_desc,
-                            s, NULL, 1);
-    }
-  else if ((s = has_leading_keyword (line, "DISMISSPINPADPROMPT")))
-    {
-      rc = parm->getpin_cb (parm->getpin_cb_arg, parm->getpin_cb_desc,
-                            "", NULL, 0);
-    }
-  else if (parm->passthru)
-    {
-      unsigned char *value;
-      size_t valuelen;
-      int rest;
-      int needrest = !strncmp (line, "KEYDATA", 8);
+    rc = parm->getpin_cb(parm->getpin_cb_arg, parm->getpin_cb_desc, line, pin,
+                         pinlen);
+    if (!rc) rc = assuan_send_data(parm->ctx, pin, pinlen);
+    xfree(pin);
+  } else if ((s = has_leading_keyword(line, "POPUPPINPADPROMPT"))) {
+    rc = parm->getpin_cb(parm->getpin_cb_arg, parm->getpin_cb_desc, s, NULL, 1);
+  } else if ((s = has_leading_keyword(line, "DISMISSPINPADPROMPT"))) {
+    rc =
+        parm->getpin_cb(parm->getpin_cb_arg, parm->getpin_cb_desc, "", NULL, 0);
+  } else if (parm->passthru) {
+    unsigned char *value;
+    size_t valuelen;
+    int rest;
+    int needrest = !strncmp(line, "KEYDATA", 8);
 
-      /* Pass the inquiry up to our caller.  We limit the maximum
-         amount to an arbitrary value.  As we know that the KEYDATA
-         enquiry is pretty sensitive we disable logging then */
-      if ((rest = (needrest
-                   && !assuan_get_flag (parm->passthru, ASSUAN_CONFIDENTIAL))))
-        assuan_begin_confidential (parm->passthru);
-      rc = assuan_inquire (parm->passthru, line, &value, &valuelen, 8096);
-      if (rest)
-        assuan_end_confidential (parm->passthru);
-      if (!rc)
-        {
-          if ((rest = (needrest
-                       && !assuan_get_flag (parm->ctx, ASSUAN_CONFIDENTIAL))))
-            assuan_begin_confidential (parm->ctx);
-          rc = assuan_send_data (parm->ctx, value, valuelen);
-          if (rest)
-            assuan_end_confidential (parm->ctx);
-          xfree (value);
-        }
-      else
-        log_error ("error forwarding inquiry '%s': %s\n",
-                   line, gpg_strerror (rc));
-    }
-  else
-    {
-      log_error ("unsupported inquiry '%s'\n", line);
-      rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
-    }
+    /* Pass the inquiry up to our caller.  We limit the maximum
+       amount to an arbitrary value.  As we know that the KEYDATA
+       enquiry is pretty sensitive we disable logging then */
+    if ((rest = (needrest &&
+                 !assuan_get_flag(parm->passthru, ASSUAN_CONFIDENTIAL))))
+      assuan_begin_confidential(parm->passthru);
+    rc = assuan_inquire(parm->passthru, line, &value, &valuelen, 8096);
+    if (rest) assuan_end_confidential(parm->passthru);
+    if (!rc) {
+      if ((rest =
+               (needrest && !assuan_get_flag(parm->ctx, ASSUAN_CONFIDENTIAL))))
+        assuan_begin_confidential(parm->ctx);
+      rc = assuan_send_data(parm->ctx, value, valuelen);
+      if (rest) assuan_end_confidential(parm->ctx);
+      xfree(value);
+    } else
+      log_error("error forwarding inquiry '%s': %s\n", line, gpg_strerror(rc));
+  } else {
+    log_error("unsupported inquiry '%s'\n", line);
+    rc = GPG_ERR_ASS_UNKNOWN_INQUIRE;
+  }
 
   return rc;
 }
 
-
 /* Helper returning a command option to describe the used hash
    algorithm.  See scd/command.c:cmd_pksign.  */
-static const char *
-hash_algo_option (int algo)
-{
-  switch (algo)
-    {
-    case GCRY_MD_MD5   : return "--hash=md5";
-    case GCRY_MD_RMD160: return "--hash=rmd160";
-    case GCRY_MD_SHA1  : return "--hash=sha1";
-    case GCRY_MD_SHA224: return "--hash=sha224";
-    case GCRY_MD_SHA256: return "--hash=sha256";
-    case GCRY_MD_SHA384: return "--hash=sha384";
-    case GCRY_MD_SHA512: return "--hash=sha512";
-    default:             return "";
-    }
+static const char *hash_algo_option(int algo) {
+  switch (algo) {
+    case GCRY_MD_MD5:
+      return "--hash=md5";
+    case GCRY_MD_RMD160:
+      return "--hash=rmd160";
+    case GCRY_MD_SHA1:
+      return "--hash=sha1";
+    case GCRY_MD_SHA224:
+      return "--hash=sha224";
+    case GCRY_MD_SHA256:
+      return "--hash=sha256";
+    case GCRY_MD_SHA384:
+      return "--hash=sha384";
+    case GCRY_MD_SHA512:
+      return "--hash=sha512";
+    default:
+      return "";
+  }
 }
 
-
-static gpg_error_t
-cancel_inquire (ctrl_t ctrl, gpg_error_t rc)
-{
+static gpg_error_t cancel_inquire(ctrl_t ctrl, gpg_error_t rc) {
   gpg_error_t oldrc = rc;
 
   /* The inquire callback was called and transact returned a
@@ -636,55 +519,45 @@ cancel_inquire (ctrl_t ctrl, gpg_error_t rc)
      CANCEL.  The passthrough code is not able to pass on the
      CANCEL and thus scdaemon would stuck on this.  As a
      workaround we send a CANCEL now.  */
-  rc = assuan_write_line (ctrl->scd_local->ctx, "CAN");
+  rc = assuan_write_line(ctrl->scd_local->ctx, "CAN");
   if (!rc) {
     char *line;
     size_t len;
 
-    rc = assuan_read_line (ctrl->scd_local->ctx, &line, &len);
-    if (!rc)
-      rc = oldrc;
+    rc = assuan_read_line(ctrl->scd_local->ctx, &line, &len);
+    if (!rc) rc = oldrc;
   }
 
   return rc;
 }
 
-
 /* Create a signature using the current card.  MDALGO is either 0 or
  * gives the digest algorithm.  DESC_TEXT is an additional parameter
  * passed to GETPIN_CB. */
-int
-agent_card_pksign (ctrl_t ctrl,
-                   const char *keyid,
-                   int (*getpin_cb)(void *, const char *,
-                                    const char *, char*, size_t),
-                   void *getpin_cb_arg,
-                   const char *desc_text,
-                   int mdalgo,
-                   const unsigned char *indata, size_t indatalen,
-                   unsigned char **r_buf, size_t *r_buflen)
-{
+int agent_card_pksign(ctrl_t ctrl, const char *keyid,
+                      int (*getpin_cb)(void *, const char *, const char *,
+                                       char *, size_t),
+                      void *getpin_cb_arg, const char *desc_text, int mdalgo,
+                      const unsigned char *indata, size_t indatalen,
+                      unsigned char **r_buf, size_t *r_buflen) {
   int rc;
   char line[ASSUAN_LINELENGTH];
   membuf_t data;
   struct inq_needpin_parm_s inqparm;
 
   *r_buf = NULL;
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
-  if (indatalen*2 + 50 > DIM(line))
-    return unlock_scd (ctrl, GPG_ERR_GENERAL);
+  if (indatalen * 2 + 50 > DIM(line)) return unlock_scd(ctrl, GPG_ERR_GENERAL);
 
-  bin2hex (indata, indatalen, stpcpy (line, "SETDATA "));
+  bin2hex(indata, indatalen, stpcpy(line, "SETDATA "));
 
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        NULL, NULL, NULL, NULL, NULL, NULL);
-  if (rc)
-    return unlock_scd (ctrl, rc);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL, NULL, NULL, NULL,
+                       NULL);
+  if (rc) return unlock_scd(ctrl, rc);
 
-  init_membuf (&data, 1024);
+  init_membuf(&data, 1024);
   inqparm.ctx = ctrl->scd_local->ctx;
   inqparm.getpin_cb = getpin_cb;
   inqparm.getpin_cb_arg = getpin_cb_arg;
@@ -695,64 +568,50 @@ agent_card_pksign (ctrl_t ctrl,
   inqparm.keydatalen = 0;
 
   if (ctrl->use_auth_call)
-    snprintf (line, sizeof line, "PKAUTH %s", keyid);
+    snprintf(line, sizeof line, "PKAUTH %s", keyid);
   else
-    snprintf (line, sizeof line, "PKSIGN %s %s",
-              hash_algo_option (mdalgo), keyid);
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        put_membuf_cb, &data,
-                        inq_needpin, &inqparm,
-                        NULL, NULL);
-  if (inqparm.any_inq_seen && (rc == GPG_ERR_CANCELED ||
-	rc == GPG_ERR_ASS_CANCELED))
-    rc = cancel_inquire (ctrl, rc);
+    snprintf(line, sizeof line, "PKSIGN %s %s", hash_algo_option(mdalgo),
+             keyid);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, put_membuf_cb, &data,
+                       inq_needpin, &inqparm, NULL, NULL);
+  if (inqparm.any_inq_seen &&
+      (rc == GPG_ERR_CANCELED || rc == GPG_ERR_ASS_CANCELED))
+    rc = cancel_inquire(ctrl, rc);
 
-  if (rc)
-    {
-      size_t len;
+  if (rc) {
+    size_t len;
 
-      xfree (get_membuf (&data, &len));
-      return unlock_scd (ctrl, rc);
-    }
+    xfree(get_membuf(&data, &len));
+    return unlock_scd(ctrl, rc);
+  }
 
-  *r_buf = (unsigned char*) get_membuf (&data, r_buflen);
-  return unlock_scd (ctrl, 0);
+  *r_buf = (unsigned char *)get_membuf(&data, r_buflen);
+  return unlock_scd(ctrl, 0);
 }
 
-
-
-
 /* Check whether there is any padding info from scdaemon.  */
-static gpg_error_t
-padding_info_cb (void *opaque, const char *line)
-{
-  int *r_padding = (int*) opaque;
+static gpg_error_t padding_info_cb(void *opaque, const char *line) {
+  int *r_padding = (int *)opaque;
   const char *s;
 
-  if ((s=has_leading_keyword (line, "PADDING")))
-    {
-      *r_padding = atoi (s);
-    }
+  if ((s = has_leading_keyword(line, "PADDING"))) {
+    *r_padding = atoi(s);
+  }
 
   return 0;
 }
-
 
 /* Decipher INDATA using the current card.  Note that the returned
  * value is not an s-expression but the raw data as returned by
  * scdaemon.  The padding information is stored at R_PADDING with -1
  * for not known.  DESC_TEXT is an additional parameter passed to
  * GETPIN_CB.  */
-int
-agent_card_pkdecrypt (ctrl_t ctrl,
-                      const char *keyid,
-                      int (*getpin_cb)(void *, const char *,
-                                       const char *, char*, size_t),
-                      void *getpin_cb_arg,
-                      const char *desc_text,
-                      const unsigned char *indata, size_t indatalen,
-                      char **r_buf, size_t *r_buflen, int *r_padding)
-{
+int agent_card_pkdecrypt(ctrl_t ctrl, const char *keyid,
+                         int (*getpin_cb)(void *, const char *, const char *,
+                                          char *, size_t),
+                         void *getpin_cb_arg, const char *desc_text,
+                         const unsigned char *indata, size_t indatalen,
+                         char **r_buf, size_t *r_buflen, int *r_padding) {
   int rc, i;
   char *p, line[ASSUAN_LINELENGTH];
   membuf_t data;
@@ -761,29 +620,24 @@ agent_card_pkdecrypt (ctrl_t ctrl,
 
   *r_buf = NULL;
   *r_padding = -1; /* Unknown.  */
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
   /* FIXME: use secure memory where appropriate */
 
-  for (len = 0; len < indatalen;)
-    {
-      p = stpcpy (line, "SETDATA ");
-      if (len)
-        p = stpcpy (p, "--append ");
-      for (i=0; len < indatalen && (i*2 < DIM(line)-50); i++, len++)
-        {
-          sprintf (p, "%02X", indata[len]);
-          p += 2;
-        }
-      rc = assuan_transact (ctrl->scd_local->ctx, line,
-                            NULL, NULL, NULL, NULL, NULL, NULL);
-      if (rc)
-        return unlock_scd (ctrl, rc);
+  for (len = 0; len < indatalen;) {
+    p = stpcpy(line, "SETDATA ");
+    if (len) p = stpcpy(p, "--append ");
+    for (i = 0; len < indatalen && (i * 2 < DIM(line) - 50); i++, len++) {
+      sprintf(p, "%02X", indata[len]);
+      p += 2;
     }
+    rc = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL, NULL, NULL,
+                         NULL, NULL);
+    if (rc) return unlock_scd(ctrl, rc);
+  }
 
-  init_membuf (&data, 1024);
+  init_membuf(&data, 1024);
   inqparm.ctx = ctrl->scd_local->ctx;
   inqparm.getpin_cb = getpin_cb;
   inqparm.getpin_cb_arg = getpin_cb_arg;
@@ -792,269 +646,218 @@ agent_card_pkdecrypt (ctrl_t ctrl,
   inqparm.any_inq_seen = 0;
   inqparm.keydata = NULL;
   inqparm.keydatalen = 0;
-  snprintf (line, DIM(line), "PKDECRYPT %s", keyid);
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        put_membuf_cb, &data,
-                        inq_needpin, &inqparm,
-                        padding_info_cb, r_padding);
-  if (inqparm.any_inq_seen && (rc == GPG_ERR_CANCELED ||
-	rc == GPG_ERR_ASS_CANCELED))
-    rc = cancel_inquire (ctrl, rc);
+  snprintf(line, DIM(line), "PKDECRYPT %s", keyid);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, put_membuf_cb, &data,
+                       inq_needpin, &inqparm, padding_info_cb, r_padding);
+  if (inqparm.any_inq_seen &&
+      (rc == GPG_ERR_CANCELED || rc == GPG_ERR_ASS_CANCELED))
+    rc = cancel_inquire(ctrl, rc);
 
-  if (rc)
-    {
-      xfree (get_membuf (&data, &len));
-      return unlock_scd (ctrl, rc);
-    }
-  *r_buf = (char*) get_membuf (&data, r_buflen);
-  if (!*r_buf)
-    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
+  if (rc) {
+    xfree(get_membuf(&data, &len));
+    return unlock_scd(ctrl, rc);
+  }
+  *r_buf = (char *)get_membuf(&data, r_buflen);
+  if (!*r_buf) return unlock_scd(ctrl, GPG_ERR_ENOMEM);
 
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
 
-
-
 /* Read a certificate with ID into R_BUF and R_BUFLEN. */
-int
-agent_card_readcert (ctrl_t ctrl,
-                     const char *id, char **r_buf, size_t *r_buflen)
-{
+int agent_card_readcert(ctrl_t ctrl, const char *id, char **r_buf,
+                        size_t *r_buflen) {
   int rc;
   char line[ASSUAN_LINELENGTH];
   membuf_t data;
   size_t len;
 
   *r_buf = NULL;
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
-  init_membuf (&data, 1024);
-  snprintf (line, DIM(line), "READCERT %s", id);
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        put_membuf_cb, &data,
-                        NULL, NULL,
-                        NULL, NULL);
-  if (rc)
-    {
-      xfree (get_membuf (&data, &len));
-      return unlock_scd (ctrl, rc);
-    }
-  *r_buf = (char*) get_membuf (&data, r_buflen);
-  if (!*r_buf)
-    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
+  init_membuf(&data, 1024);
+  snprintf(line, DIM(line), "READCERT %s", id);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, put_membuf_cb, &data, NULL,
+                       NULL, NULL, NULL);
+  if (rc) {
+    xfree(get_membuf(&data, &len));
+    return unlock_scd(ctrl, rc);
+  }
+  *r_buf = (char *)get_membuf(&data, r_buflen);
+  if (!*r_buf) return unlock_scd(ctrl, GPG_ERR_ENOMEM);
 
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
 
-
-
 /* Read a key with ID and return it in an allocate buffer pointed to
    by r_BUF as a valid S-expression. */
-int
-agent_card_readkey (ctrl_t ctrl, const char *id, unsigned char **r_buf)
-{
+int agent_card_readkey(ctrl_t ctrl, const char *id, unsigned char **r_buf) {
   int rc;
   char line[ASSUAN_LINELENGTH];
   membuf_t data;
   size_t len, buflen;
 
   *r_buf = NULL;
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
-  init_membuf (&data, 1024);
-  snprintf (line, DIM(line), "READKEY %s", id);
-  rc = assuan_transact (ctrl->scd_local->ctx, line,
-                        put_membuf_cb, &data,
-                        NULL, NULL,
-                        NULL, NULL);
-  if (rc)
-    {
-      xfree (get_membuf (&data, &len));
-      return unlock_scd (ctrl, rc);
-    }
-  *r_buf = (unsigned char*) get_membuf (&data, &buflen);
-  if (!*r_buf)
-    return unlock_scd (ctrl, GPG_ERR_ENOMEM);
+  init_membuf(&data, 1024);
+  snprintf(line, DIM(line), "READKEY %s", id);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, put_membuf_cb, &data, NULL,
+                       NULL, NULL, NULL);
+  if (rc) {
+    xfree(get_membuf(&data, &len));
+    return unlock_scd(ctrl, rc);
+  }
+  *r_buf = (unsigned char *)get_membuf(&data, &buflen);
+  if (!*r_buf) return unlock_scd(ctrl, GPG_ERR_ENOMEM);
 
-  if (!gcry_sexp_canon_len (*r_buf, buflen, NULL, NULL))
-    {
-      xfree (*r_buf); *r_buf = NULL;
-      return unlock_scd (ctrl, GPG_ERR_INV_VALUE);
-    }
+  if (!gcry_sexp_canon_len(*r_buf, buflen, NULL, NULL)) {
+    xfree(*r_buf);
+    *r_buf = NULL;
+    return unlock_scd(ctrl, GPG_ERR_INV_VALUE);
+  }
 
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
-
 
 /* Handle a KEYDATA inquiry.  Note, we only send the data,
    assuan_transact takes care of flushing and writing the end */
-static gpg_error_t
-inq_writekey_parms (void *opaque, const char *line)
-{
-  struct inq_needpin_parm_s *parm = (inq_needpin_parm_s*) opaque;
+static gpg_error_t inq_writekey_parms(void *opaque, const char *line) {
+  struct inq_needpin_parm_s *parm = (inq_needpin_parm_s *)opaque;
 
-  if (has_leading_keyword (line, "KEYDATA"))
-    return assuan_send_data (parm->ctx, parm->keydata, parm->keydatalen);
+  if (has_leading_keyword(line, "KEYDATA"))
+    return assuan_send_data(parm->ctx, parm->keydata, parm->keydatalen);
   else
-    return inq_needpin (opaque, line);
+    return inq_needpin(opaque, line);
 }
 
-
-int
-agent_card_writekey (ctrl_t ctrl,  int force, const char *serialno,
-                     const char *id, const char *keydata, size_t keydatalen,
-                     int (*getpin_cb)(void *, const char *,
-                                      const char *, char*, size_t),
-                     void *getpin_cb_arg)
-{
+int agent_card_writekey(ctrl_t ctrl, int force, const char *serialno,
+                        const char *id, const char *keydata, size_t keydatalen,
+                        int (*getpin_cb)(void *, const char *, const char *,
+                                         char *, size_t),
+                        void *getpin_cb_arg) {
   int rc;
   char line[ASSUAN_LINELENGTH];
   struct inq_needpin_parm_s parms;
 
   (void)serialno;
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
-  snprintf (line, DIM(line), "WRITEKEY %s%s", force ? "--force " : "", id);
+  snprintf(line, DIM(line), "WRITEKEY %s%s", force ? "--force " : "", id);
   parms.ctx = ctrl->scd_local->ctx;
   parms.getpin_cb = getpin_cb;
   parms.getpin_cb_arg = getpin_cb_arg;
-  parms.getpin_cb_desc= NULL;
+  parms.getpin_cb_desc = NULL;
   parms.passthru = 0;
   parms.any_inq_seen = 0;
-  parms.keydata = (const unsigned char*) keydata;
+  parms.keydata = (const unsigned char *)keydata;
   parms.keydatalen = keydatalen;
 
-  rc = assuan_transact (ctrl->scd_local->ctx, line, NULL, NULL,
-                        inq_writekey_parms, &parms, NULL, NULL);
-  if (parms.any_inq_seen && (rc == GPG_ERR_CANCELED ||
-                             rc == GPG_ERR_ASS_CANCELED))
-    rc = cancel_inquire (ctrl, rc);
-  return unlock_scd (ctrl, rc);
+  rc = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL,
+                       inq_writekey_parms, &parms, NULL, NULL);
+  if (parms.any_inq_seen &&
+      (rc == GPG_ERR_CANCELED || rc == GPG_ERR_ASS_CANCELED))
+    rc = cancel_inquire(ctrl, rc);
+  return unlock_scd(ctrl, rc);
 }
 
-
-
 /* Type used with the card_getattr_cb.  */
 struct card_getattr_parm_s {
-  const char *keyword;  /* Keyword to look for.  */
-  size_t keywordlen;    /* strlen of KEYWORD.  */
-  char *data;           /* Malloced and unescaped data.  */
-  int error;            /* ERRNO value or 0 on success. */
+  const char *keyword; /* Keyword to look for.  */
+  size_t keywordlen;   /* strlen of KEYWORD.  */
+  char *data;          /* Malloced and unescaped data.  */
+  int error;           /* ERRNO value or 0 on success. */
 };
 
 /* Callback function for agent_card_getattr.  */
-static gpg_error_t
-card_getattr_cb (void *opaque, const char *line)
-{
-  struct card_getattr_parm_s *parm = (card_getattr_parm_s*) opaque;
+static gpg_error_t card_getattr_cb(void *opaque, const char *line) {
+  struct card_getattr_parm_s *parm = (card_getattr_parm_s *)opaque;
   const char *keyword = line;
   int keywordlen;
 
-  if (parm->data)
-    return 0; /* We want only the first occurrence.  */
+  if (parm->data) return 0; /* We want only the first occurrence.  */
 
-  for (keywordlen=0; *line && !spacep (line); line++, keywordlen++)
+  for (keywordlen = 0; *line && !spacep(line); line++, keywordlen++)
     ;
-  while (spacep (line))
-    line++;
+  while (spacep(line)) line++;
 
-  if (keywordlen == parm->keywordlen
-      && !memcmp (keyword, parm->keyword, keywordlen))
-    {
-      parm->data = percent_plus_unescape ((const char*) ((const unsigned char*)line), 0xff);
-      if (!parm->data)
-        parm->error = errno;
-    }
+  if (keywordlen == parm->keywordlen &&
+      !memcmp(keyword, parm->keyword, keywordlen)) {
+    parm->data = percent_plus_unescape(
+        (const char *)((const unsigned char *)line), 0xff);
+    if (!parm->data) parm->error = errno;
+  }
 
   return 0;
 }
-
 
 /* Call the agent to retrieve a single line data object. On success
    the object is malloced and stored at RESULT; it is guaranteed that
    NULL is never stored in this case.  On error an error code is
    returned and NULL stored at RESULT. */
-gpg_error_t
-agent_card_getattr (ctrl_t ctrl, const char *name, char **result)
-{
+gpg_error_t agent_card_getattr(ctrl_t ctrl, const char *name, char **result) {
   int err;
   struct card_getattr_parm_s parm;
   char line[ASSUAN_LINELENGTH];
 
   *result = NULL;
 
-  if (!*name)
-    return GPG_ERR_INV_VALUE;
+  if (!*name) return GPG_ERR_INV_VALUE;
 
-  memset (&parm, 0, sizeof parm);
+  memset(&parm, 0, sizeof parm);
   parm.keyword = name;
-  parm.keywordlen = strlen (name);
+  parm.keywordlen = strlen(name);
 
   /* We assume that NAME does not need escaping. */
-  if (8 + strlen (name) > DIM(line)-1)
-    return GPG_ERR_TOO_LARGE;
-  stpcpy (stpcpy (line, "GETATTR "), name);
+  if (8 + strlen(name) > DIM(line) - 1) return GPG_ERR_TOO_LARGE;
+  stpcpy(stpcpy(line, "GETATTR "), name);
 
-  err = start_scd (ctrl);
-  if (err)
-    return err;
+  err = start_scd(ctrl);
+  if (err) return err;
 
-  err = assuan_transact (ctrl->scd_local->ctx, line,
-                         NULL, NULL, NULL, NULL,
-                         card_getattr_cb, &parm);
-  if (!err && parm.error)
-    err = gpg_error_from_errno (parm.error);
+  err = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL, NULL, NULL,
+                        card_getattr_cb, &parm);
+  if (!err && parm.error) err = gpg_error_from_errno(parm.error);
 
-  if (!err && !parm.data)
-    err = GPG_ERR_NO_DATA;
+  if (!err && !parm.data) err = GPG_ERR_NO_DATA;
 
   if (!err)
     *result = parm.data;
   else
-    xfree (parm.data);
+    xfree(parm.data);
 
-  return unlock_scd (ctrl, err);
+  return unlock_scd(ctrl, err);
 }
 
-
-
 struct card_cardlist_parm_s {
   int error;
-  strlist_t list;
+  std::vector<std::string> list;
 };
 
 /* Callback function for agent_card_cardlist.  */
-static gpg_error_t
-card_cardlist_cb (void *opaque, const char *line)
-{
-  struct card_cardlist_parm_s *parm = (card_cardlist_parm_s*) opaque;
+static gpg_error_t card_cardlist_cb(void *opaque, const char *line) {
+  struct card_cardlist_parm_s *parm = (card_cardlist_parm_s *)opaque;
   const char *keyword = line;
   int keywordlen;
 
-  for (keywordlen=0; *line && !spacep (line); line++, keywordlen++)
+  for (keywordlen = 0; *line && !spacep(line); line++, keywordlen++)
     ;
-  while (spacep (line))
-    line++;
+  while (spacep(line)) line++;
 
-  if (keywordlen == 8 && !memcmp (keyword, "SERIALNO", keywordlen))
-    {
-      const char *s;
-      int n;
+  if (keywordlen == 8 && !memcmp(keyword, "SERIALNO", keywordlen)) {
+    const char *s;
+    int n;
 
-      for (n=0,s=line; hexdigitp (s); s++, n++)
-        ;
+    for (n = 0, s = line; hexdigitp(s); s++, n++)
+      ;
 
-      if (!n || (n&1) || *s)
-        parm->error = GPG_ERR_ASS_PARAMETER;
-      else
-        add_to_strlist (&parm->list, line);
-    }
+    if (!n || (n & 1) || *s)
+      parm->error = GPG_ERR_ASS_PARAMETER;
+    else
+      parm->list.emplace_back(line);
+  }
 
   return 0;
 }
@@ -1062,121 +865,98 @@ card_cardlist_cb (void *opaque, const char *line)
 /* Call the scdaemon to retrieve list of available cards. On success
    the allocated strlist is stored at RESULT.  On error an error code is
    returned and NULL stored at RESULT. */
-gpg_error_t
-agent_card_cardlist (ctrl_t ctrl, strlist_t *result)
-{
+gpg_error_t agent_card_cardlist(ctrl_t ctrl, std::vector<std::string> &result) {
   int err;
   struct card_cardlist_parm_s parm;
   char line[ASSUAN_LINELENGTH];
 
-  *result = NULL;
+  result.clear();
 
-  memset (&parm, 0, sizeof parm);
-  strcpy (line, "GETINFO card_list");
+  memset(&parm, 0, sizeof parm);
+  strcpy(line, "GETINFO card_list");
 
-  err = start_scd (ctrl);
-  if (err)
-    return err;
+  err = start_scd(ctrl);
+  if (err) return err;
 
-  err = assuan_transact (ctrl->scd_local->ctx, line,
-                         NULL, NULL, NULL, NULL,
-                         card_cardlist_cb, &parm);
-  if (!err && parm.error)
-    err = parm.error;
+  err = assuan_transact(ctrl->scd_local->ctx, line, NULL, NULL, NULL, NULL,
+                        card_cardlist_cb, &parm);
+  if (!err && parm.error) err = parm.error;
 
-  if (!err)
-    *result = parm.list;
-  else
-    free_strlist (parm.list);
+  if (!err) result = parm.list;
 
-  return unlock_scd (ctrl, err);
+  return unlock_scd(ctrl, err);
 }
 
-
-
-static gpg_error_t
-pass_status_thru (void *opaque, const char *line)
-{
-  assuan_context_t ctx = (assuan_context_t) opaque;
+static gpg_error_t pass_status_thru(void *opaque, const char *line) {
+  assuan_context_t ctx = (assuan_context_t)opaque;
   char keyword[200];
   int i;
 
-  if (line[0] == '#' && (!line[1] || spacep (line+1)))
-    {
-      /* We are called in convey comments mode.  Now, if we see a
-         comment marker as keyword we forward the line verbatim to the
-         the caller.  This way the comment lines from scdaemon won't
-         appear as status lines with keyword '#'.  */
-      assuan_write_line (ctx, line);
-    }
-  else
-    {
-      for (i=0; *line && !spacep (line) && i < DIM(keyword)-1; line++, i++)
-        keyword[i] = *line;
-      keyword[i] = 0;
+  if (line[0] == '#' && (!line[1] || spacep(line + 1))) {
+    /* We are called in convey comments mode.  Now, if we see a
+       comment marker as keyword we forward the line verbatim to the
+       the caller.  This way the comment lines from scdaemon won't
+       appear as status lines with keyword '#'.  */
+    assuan_write_line(ctx, line);
+  } else {
+    for (i = 0; *line && !spacep(line) && i < DIM(keyword) - 1; line++, i++)
+      keyword[i] = *line;
+    keyword[i] = 0;
 
-      /* Truncate any remaining keyword stuff.  */
-      for (; *line && !spacep (line); line++)
-        ;
-      while (spacep (line))
-        line++;
+    /* Truncate any remaining keyword stuff.  */
+    for (; *line && !spacep(line); line++)
+      ;
+    while (spacep(line)) line++;
 
-      assuan_write_status (ctx, keyword, line);
-    }
+    assuan_write_status(ctx, keyword, line);
+  }
   return 0;
 }
 
-static gpg_error_t
-pass_data_thru (void *opaque, const void *buffer, size_t length)
-{
-  assuan_context_t ctx = (assuan_context_t) opaque;
+static gpg_error_t pass_data_thru(void *opaque, const void *buffer,
+                                  size_t length) {
+  assuan_context_t ctx = (assuan_context_t)opaque;
 
-  assuan_send_data (ctx, buffer, length);
+  assuan_send_data(ctx, buffer, length);
   return 0;
 }
-
 
 /* Send the line CMDLINE with command for the SCDdaemon to it and send
    all status messages back.  This command is used as a general quoting
    mechanism to pass everything verbatim to SCDAEMON.  The PIN
    inquiry is handled inside gpg-agent.  */
-int
-agent_card_scd (ctrl_t ctrl, const char *cmdline,
-                int (*getpin_cb)(void *, const char *,
-                                 const char *, char*, size_t),
-                void *getpin_cb_arg, void *assuan_context)
-{
+int agent_card_scd(ctrl_t ctrl, const char *cmdline,
+                   int (*getpin_cb)(void *, const char *, const char *, char *,
+                                    size_t),
+                   void *getpin_cb_arg, void *assuan_context) {
   int rc;
   struct inq_needpin_parm_s inqparm;
   int saveflag;
 
-  rc = start_scd (ctrl);
-  if (rc)
-    return rc;
+  rc = start_scd(ctrl);
+  if (rc) return rc;
 
   inqparm.ctx = ctrl->scd_local->ctx;
   inqparm.getpin_cb = getpin_cb;
   inqparm.getpin_cb_arg = getpin_cb_arg;
   inqparm.getpin_cb_desc = NULL;
-  inqparm.passthru = (assuan_context_t) assuan_context;
+  inqparm.passthru = (assuan_context_t)assuan_context;
   inqparm.any_inq_seen = 0;
   inqparm.keydata = NULL;
   inqparm.keydatalen = 0;
 
-  saveflag = assuan_get_flag (ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS);
-  assuan_set_flag (ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS, 1);
-  rc = assuan_transact (ctrl->scd_local->ctx, cmdline,
-                        pass_data_thru, assuan_context,
-                        inq_needpin, &inqparm,
-                        pass_status_thru, assuan_context);
+  saveflag = assuan_get_flag(ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS);
+  assuan_set_flag(ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS, 1);
+  rc = assuan_transact(ctrl->scd_local->ctx, cmdline, pass_data_thru,
+                       assuan_context, inq_needpin, &inqparm, pass_status_thru,
+                       assuan_context);
   if (inqparm.any_inq_seen && rc == GPG_ERR_ASS_CANCELED)
-    rc = cancel_inquire (ctrl, rc);
+    rc = cancel_inquire(ctrl, rc);
 
-  assuan_set_flag (ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS, saveflag);
-  if (rc)
-    {
-      return unlock_scd (ctrl, rc);
-    }
+  assuan_set_flag(ctrl->scd_local->ctx, ASSUAN_CONVEY_COMMENTS, saveflag);
+  if (rc) {
+    return unlock_scd(ctrl, rc);
+  }
 
-  return unlock_scd (ctrl, 0);
+  return unlock_scd(ctrl, 0);
 }
