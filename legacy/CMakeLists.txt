@@ -336,7 +336,6 @@ target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_P
 
 add_library(ksba
   libksba/src/ksba.h
-  libksba/src/visibility.cpp
   libksba/src/reader.cpp
   libksba/src/writer.cpp
   libksba/src/asn1-parse.cpp
