@@ -451,17 +451,6 @@ static int run_pubkey_selftests(int extended) {
   return anyerr;
 }
 
-/* Run self-tests for the random number generator.  Returns 0 on
-   success. */
-static int run_random_selftests(void) {
-  gpg_error_t err;
-
-  err = _gcry_random_selftest(reporter);
-  reporter("random", 0, NULL, err ? gpg_strerror(err) : NULL);
-
-  return !!err;
-}
-
 /* Run an integrity check on the binary.  Returns 0 on success.  */
 static int check_binary_integrity(void) {
 #ifdef ENABLE_HMAC_BINARY_CHECK
@@ -559,10 +548,6 @@ gpg_error_t _gcry_fips_run_selftests(int extended) {
   if (run_digest_selftests(extended)) goto leave;
 
   if (run_hmac_selftests(extended)) goto leave;
-
-  /* Run random tests before the pubkey tests because the latter
-     require random.  */
-  if (run_random_selftests()) goto leave;
 
   if (run_pubkey_selftests(extended)) goto leave;
 

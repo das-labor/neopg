@@ -169,7 +169,6 @@ gpg_error_t _gcry_kdf_derive(const void *passphrase, size_t passphraselen,
 gpg_error_t _gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
                                  unsigned int factor_bits, gcry_mpi_t **factors,
                                  gcry_prime_check_func_t cb_func, void *cb_arg,
-                                 gcry_random_level_t random_level,
                                  unsigned int flags);
 gpg_error_t _gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,
                                         gcry_mpi_t *factors,
@@ -177,15 +176,11 @@ gpg_error_t _gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,
 void _gcry_prime_release_factors(gcry_mpi_t *factors);
 gpg_error_t _gcry_prime_check(gcry_mpi_t x, unsigned int flags);
 
-void _gcry_randomize(void *buffer, size_t length, enum gcry_random_level level);
-gpg_error_t _gcry_random_add_bytes(const void *buffer, size_t length,
-                                   int quality);
-void *_gcry_random_bytes(size_t nbytes,
-                         enum gcry_random_level level) _GCRY_GCC_ATTR_MALLOC;
-void *_gcry_random_bytes_secure(size_t nbytes, enum gcry_random_level level)
-    _GCRY_GCC_ATTR_MALLOC;
-void _gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits,
-                         enum gcry_random_level level);
+void _gcry_randomize(void *buffer, size_t length);
+gpg_error_t _gcry_random_add_bytes(const void *buffer, size_t length);
+void *_gcry_random_bytes(size_t nbytes) _GCRY_GCC_ATTR_MALLOC;
+void *_gcry_random_bytes_secure(size_t nbytes) _GCRY_GCC_ATTR_MALLOC;
+void _gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits);
 void _gcry_create_nonce(void *buffer, size_t length);
 
 void _gcry_ctx_release(gcry_ctx_t ctx);

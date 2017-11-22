@@ -24,8 +24,6 @@
 
 #define DBG_CIPHER _gcry_get_debug_flag(1)
 
-#include "../random/random.h"
-
 #define PUBKEY_FLAG_NO_BLINDING (1 << 0)
 #define PUBKEY_FLAG_RFC6979 (1 << 1)
 #define PUBKEY_FLAG_FIXEDLEN (1 << 2)

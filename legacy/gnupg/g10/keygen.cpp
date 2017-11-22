@@ -2273,21 +2273,18 @@ static char *ask_user_id(int mode, int full, KBNODE keyblock) {
     xfree(uid);
     uid = p = (char *)xmalloc(strlen(aname) + strlen(amail) + strlen(acomment) +
                               12 + 10);
-    if (!*aname && *amail && !*acomment &&
-        !random_is_faked()) { /* Empty name and comment but with mail address.
-                                 Use
-                                 simplified form with only the
-                                 non-angle-bracketed mail
-                                 address.  */
+    if (!*aname && *amail &&
+        !*acomment) { /* Empty name and comment but with mail address.
+            Use
+            simplified form with only the
+            non-angle-bracketed mail
+            address.  */
       p = stpcpy(p, amail);
     } else {
       p = stpcpy(p, aname);
       if (*acomment) p = stpcpy(stpcpy(stpcpy(p, " ("), acomment), ")");
       if (*amail) p = stpcpy(stpcpy(stpcpy(p, " <"), amail), ">");
     }
-
-    /* Append a warning if the RNG is switched into fake mode.  */
-    if (random_is_faked()) strcpy(p, " (insecure!)");
 
     /* print a note in case that UTF8 mapping has to be done */
     for (p = uid; *p; p++) {

@@ -174,7 +174,6 @@ enum cmd_and_opt_values {
   oDisableCipherAlgo,
   oDisablePubkeyAlgo,
   oIgnoreTimeConflict,
-  oNoRandomSeedFile,
   oNoCommonCertsImport,
   oIgnoreCertExtension,
   oNoAutostart
@@ -365,7 +364,6 @@ static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_s(oDisableCipherAlgo, "disable-cipher-algo", "@"),
     ARGPARSE_s_s(oDisablePubkeyAlgo, "disable-pubkey-algo", "@"),
     ARGPARSE_s_n(oIgnoreTimeConflict, "ignore-time-conflict", "@"),
-    ARGPARSE_s_n(oNoRandomSeedFile, "no-random-seed-file", "@"),
     ARGPARSE_s_n(oNoCommonCertsImport, "no-common-certs-import", "@"),
     ARGPARSE_s_s(oIgnoreCertExtension, "ignore-cert-extension", "@"),
     ARGPARSE_s_n(oNoAutostart, "no-autostart", "@"),
@@ -698,7 +696,6 @@ int gpgsm_main(int argc, char **argv) {
   int greeting = 0;
   int nogreeting = 0;
   int debug_wait = 0;
-  int use_random_seed = 1;
   int no_common_certs_import = 0;
   int with_fpr = 0;
   const char *forced_digest_algo = NULL;
@@ -1211,9 +1208,6 @@ next_pass:
       case oIgnoreTimeConflict:
         opt.ignore_time_conflict = 1;
         break;
-      case oNoRandomSeedFile:
-        use_random_seed = 0;
-        break;
       case oNoCommonCertsImport:
         no_common_certs_import = 1;
         break;
@@ -1403,13 +1397,6 @@ next_pass:
               gnupg_compliance_option_string(opt.compliance));
 
   if (log_get_errorcount(0)) gpgsm_exit(2);
-
-  /* Set the random seed file. */
-  if (use_random_seed) {
-    char *p = make_filename(gnupg_homedir(), "random_seed", NULL);
-    gcry_control(GCRYCTL_SET_RANDOM_SEED_FILE, p);
-    xfree(p);
-  }
 
   if (!cmd && opt.fingerprint && !with_fpr) set_cmd(&cmd, aListKeys);
 
@@ -1744,10 +1731,8 @@ next_pass:
 static void emergency_cleanup(void) { gcry_control(GCRYCTL_TERM_SECMEM); }
 
 void gpgsm_exit(int rc) {
-  gcry_control(GCRYCTL_UPDATE_RANDOM_SEED_FILE);
   if (opt.debug & DBG_MEMSTAT_VALUE) {
     gcry_control(GCRYCTL_DUMP_MEMORY_STATS);
-    gcry_control(GCRYCTL_DUMP_RANDOM_STATS);
   }
   if (opt.debug) gcry_control(GCRYCTL_DUMP_SECMEM_STATS);
   emergency_cleanup();

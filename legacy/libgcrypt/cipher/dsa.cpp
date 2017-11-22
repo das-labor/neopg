@@ -195,7 +195,7 @@ static int test_keys(DSA_secret_key *sk, unsigned int qbits) {
   pk.y = sk->y;
 
   /* Create a random plaintext.  */
-  _gcry_mpi_randomize(data, qbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(data, qbits);
 
   /* Sign DATA using the secret key.  */
   sign(sig_a, sig_b, data, sk, 0, 0);
@@ -237,7 +237,6 @@ static gpg_error_t generate(DSA_secret_key *sk, unsigned int nbits,
   gcry_mpi_t x;    /* the secret exponent */
   gcry_mpi_t h, e; /* helper */
   unsigned char *rndbuf;
-  gcry_random_level_t random_level;
 
   if (qbits)
     ; /* Caller supplied qbits.  Use this value.  */
@@ -302,10 +301,7 @@ static gpg_error_t generate(DSA_secret_key *sk, unsigned int nbits,
    * does not check for 0 < x because it makes sure that Q is unsigned
    * and finally adds one to the result so that 0 will never be
    * returned.  We should replace the code below with _gcry_dsa_gen_k.
-   *
-   * This must be a very good random number because this is the secret
-   * part.  The random quality depends on the transient_key flag.  */
-  random_level = transient_key ? GCRY_STRONG_RANDOM : GCRY_VERY_STRONG_RANDOM;
+  */
   if (DBG_CIPHER)
     log_debug("choosing a random x%s\n",
               transient_key ? " (transient-key)" : "");
@@ -316,10 +312,9 @@ static gpg_error_t generate(DSA_secret_key *sk, unsigned int nbits,
   do {
     if (DBG_CIPHER) progress('.');
     if (!rndbuf)
-      rndbuf = (unsigned char *)_gcry_random_bytes_secure((qbits + 7) / 8,
-                                                          random_level);
+      rndbuf = (unsigned char *)_gcry_random_bytes_secure((qbits + 7) / 8);
     else { /* Change only some of the higher bits (= 2 bytes)*/
-      char *r = (char *)_gcry_random_bytes_secure(2, random_level);
+      char *r = (char *)_gcry_random_bytes_secure(2);
       memcpy(rndbuf, r, 2);
       xfree(r);
     }
@@ -479,7 +474,7 @@ static gpg_error_t generate_fips186(DSA_secret_key *sk, unsigned int nbits,
   /* FIPS 186-4 B.1.2 steps 4-6 */
   do {
     if (DBG_CIPHER) progress('.');
-    _gcry_mpi_randomize(value_c, qbits, GCRY_VERY_STRONG_RANDOM);
+    _gcry_mpi_randomize(value_c, qbits);
     mpi_clear_highbit(value_c, qbits + 1);
   } while (!(mpi_cmp_ui(value_c, 0) > 0 && mpi_cmp(value_c, value_qm2) < 0));
   /* while (mpi_cmp (value_c, value_qm2) > 0); */
@@ -614,7 +609,7 @@ again:
     if (rc) goto leave;
   } else {
     /* Select a random k with 0 < k < q */
-    k = _gcry_dsa_gen_k(skey->q, GCRY_STRONG_RANDOM);
+    k = _gcry_dsa_gen_k(skey->q);
   }
 
   /* r = (a^k mod p) mod q */

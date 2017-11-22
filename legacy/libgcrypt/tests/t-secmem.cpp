@@ -125,7 +125,6 @@ int secmem_main(int argc, char **argv) {
   }
 
   if (debug) xgcry_control(GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
-  xgcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
   xgcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
   gcry_set_outofcore_handler(outofcore_handler, NULL);
   xgcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);

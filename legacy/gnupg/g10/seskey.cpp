@@ -47,7 +47,7 @@ void make_session_key(DEK *dek) {
     log_fatal("XXX: %s %i\n", gpg_strerror(rc), dek->algo);
     BUG();
   }
-  gcry_randomize(dek->key, dek->keylen, GCRY_STRONG_RANDOM);
+  gcry_randomize(dek->key, dek->keylen);
   for (i = 0; i < 16; i++) {
     rc = gcry_cipher_setkey(chd, dek->key, dek->keylen);
     if (!rc) {
@@ -57,7 +57,7 @@ void make_session_key(DEK *dek) {
     if (rc != GPG_ERR_WEAK_KEY) BUG();
     log_info(_("weak key created - retrying\n"));
     /* Renew the session key until we get a non-weak key. */
-    gcry_randomize(dek->key, dek->keylen, GCRY_STRONG_RANDOM);
+    gcry_randomize(dek->key, dek->keylen);
   }
   log_fatal(_("cannot avoid weak key for symmetric cipher; "
               "tried %d times!\n"),
@@ -155,7 +155,7 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
      bytes.  See diagram above.  */
   i = nframe - 6 - dek->keylen;
   log_assert(i > 0);
-  p = (byte *)gcry_random_bytes_secure(i, GCRY_STRONG_RANDOM);
+  p = (byte *)gcry_random_bytes_secure(i);
   /* Replace zero bytes by new values.  */
   for (;;) {
     int j, k;
@@ -166,7 +166,7 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
       if (!p[j]) k++;
     if (!k) break;    /* Okay: no zero bytes. */
     k += k / 128 + 3; /* Better get some more. */
-    pp = (byte *)gcry_random_bytes_secure(k, GCRY_STRONG_RANDOM);
+    pp = (byte *)gcry_random_bytes_secure(k);
     for (j = 0; j < i && k;) {
       if (!p[j]) p[j] = pp[--k];
       if (p[j]) j++;

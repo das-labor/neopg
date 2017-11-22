@@ -101,7 +101,7 @@ static int init_dek(DEK dek) {
   }
 
   for (i = 0; i < 8; i++) {
-    gcry_randomize(dek->key, dek->keylen, GCRY_STRONG_RANDOM);
+    gcry_randomize(dek->key, dek->keylen);
     rc = gcry_cipher_setkey(dek->chd, dek->key, dek->keylen);
     if (rc != GPG_ERR_WEAK_KEY) break;
     log_info(_("weak key created - retrying\n"));

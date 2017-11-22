@@ -857,44 +857,42 @@ gpg_error_t gcry_kdf_derive(const void *passphrase, size_t passphraselen,
                           saltlen, iterations, keysize, keybuffer);
 }
 
-void gcry_randomize(void *buffer, size_t length, enum gcry_random_level level) {
+void gcry_randomize(void *buffer, size_t length) {
   if (!fips_is_operational()) {
     (void)fips_not_operational();
     fips_signal_fatal_error("called in non-operational state");
     fips_noreturn();
   }
-  _gcry_randomize(buffer, length, level);
+  _gcry_randomize(buffer, length);
 }
 
-gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length,
-                                  int quality) {
+gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length) {
   if (!fips_is_operational()) return fips_not_operational();
-  return _gcry_random_add_bytes(buffer, length, quality);
+  return _gcry_random_add_bytes(buffer, length);
 }
 
-void *gcry_random_bytes(size_t nbytes, enum gcry_random_level level) {
+void *gcry_random_bytes(size_t nbytes) {
   if (!fips_is_operational()) {
     (void)fips_not_operational();
     fips_signal_fatal_error("called in non-operational state");
     fips_noreturn();
   }
 
-  return _gcry_random_bytes(nbytes, level);
+  return _gcry_random_bytes(nbytes);
 }
 
-void *gcry_random_bytes_secure(size_t nbytes, enum gcry_random_level level) {
+void *gcry_random_bytes_secure(size_t nbytes) {
   if (!fips_is_operational()) {
     (void)fips_not_operational();
     fips_signal_fatal_error("called in non-operational state");
     fips_noreturn();
   }
 
-  return _gcry_random_bytes_secure(nbytes, level);
+  return _gcry_random_bytes_secure(nbytes);
 }
 
-void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits,
-                        enum gcry_random_level level) {
-  _gcry_mpi_randomize(w, nbits, level);
+void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits) {
+  _gcry_mpi_randomize(w, nbits);
 }
 
 void gcry_create_nonce(void *buffer, size_t length) {
@@ -909,10 +907,9 @@ void gcry_create_nonce(void *buffer, size_t length) {
 gpg_error_t gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
                                 unsigned int factor_bits, gcry_mpi_t **factors,
                                 gcry_prime_check_func_t cb_func, void *cb_arg,
-                                gcry_random_level_t random_level,
                                 unsigned int flags) {
   return _gcry_prime_generate(prime, prime_bits, factor_bits, factors, cb_func,
-                              cb_arg, random_level, flags);
+                              cb_arg, flags);
 }
 
 gpg_error_t gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,

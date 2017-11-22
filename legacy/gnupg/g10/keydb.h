@@ -219,7 +219,6 @@ void warn_missing_mdc_from_pklist(PK_LIST pk_list);
 void warn_missing_aes_from_pklist(PK_LIST pk_list);
 
 /*-- skclist.c --*/
-int random_is_faked(void);
 void release_sk_list(SK_LIST sk_list);
 gpg_error_t build_sk_list(
     ctrl_t ctrl,

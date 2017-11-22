@@ -301,10 +301,6 @@ gpg_error_t _gcry_cipher_open_internal(gcry_cipher_hd_t *handle, int algo,
   gcry_cipher_hd_t h = NULL;
   gpg_error_t err;
 
-  /* If the application missed to call the random poll function, we do
-     it here to ensure that it is used once in a while. */
-  _gcry_fast_random_poll();
-
   spec = spec_from_algo(algo);
   if (!spec)
     err = GPG_ERR_CIPHER_ALGO;

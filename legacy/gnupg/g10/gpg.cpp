@@ -245,7 +245,6 @@ enum cmd_and_opt_values {
   oPassphraseFile,
   oCommandFD,
   oCommandFile,
-  oQuickRandom,
   oNoVerbose,
   oTrustDBName,
   oNoSecmemWarn,
@@ -308,7 +307,6 @@ enum cmd_and_opt_values {
   oShowSessionKey,
   oOverrideSessionKey,
   oOverrideSessionKeyFD,
-  oNoRandomSeedFile,
   oAutoKeyRetrieve,
   oNoAutoKeyRetrieve,
   oUseAgent,
@@ -593,7 +591,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_s(oPassphraseFile, "passphrase-file", "@"),
     ARGPARSE_s_i(oCommandFD, "command-fd", "@"),
     ARGPARSE_s_s(oCommandFile, "command-file", "@"),
-    ARGPARSE_s_n(oQuickRandom, "debug-quick-random", "@"),
     ARGPARSE_s_n(oNoVerbose, "no-verbose", "@"),
 
 #ifndef NO_TRUST_MODELS
@@ -661,7 +658,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_n(oShowSessionKey, "show-session-key", "@"),
     ARGPARSE_s_s(oOverrideSessionKey, "override-session-key", "@"),
     ARGPARSE_s_i(oOverrideSessionKeyFD, "override-session-key-fd", "@"),
-    ARGPARSE_s_n(oNoRandomSeedFile, "no-random-seed-file", "@"),
     ARGPARSE_s_n(oAutoKeyRetrieve, "auto-key-retrieve", "@"),
     ARGPARSE_s_n(oNoAutoKeyRetrieve, "no-auto-key-retrieve", "@"),
     ARGPARSE_s_n(oNoSigCache, "no-sig-cache", "@"),
@@ -1606,7 +1602,6 @@ int gpg_main(int argc, char **argv) {
   int default_config = 1;
   int default_keyring = 1;
   char *logfile = NULL;
-  int use_random_seed = 1;
   enum cmd_and_opt_values cmd = (cmd_and_opt_values)0;
   const char *debug_level = NULL;
 #ifndef NO_TRUST_MODELS
@@ -1994,9 +1989,6 @@ next_pass:
         opt.verbose = 0;
         gcry_control(GCRYCTL_SET_VERBOSITY, (int)opt.verbose);
         opt.list_sigs = 0;
-        break;
-      case oQuickRandom:
-        gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
         break;
       case oCompletesNeeded:
         opt.completes_needed = pargs.r.ret_int;
@@ -2509,17 +2501,6 @@ next_pass:
         opt.ignore_crc_error = true;
         break;
 
-      case oNoRandomSeedFile:
-        use_random_seed = 0;
-        break;
-      case oAutoKeyRetrieve:
-      case oNoAutoKeyRetrieve:
-        if (pargs.r_opt == oAutoKeyRetrieve)
-          opt.keyserver_options.options |= KEYSERVER_AUTO_KEY_RETRIEVE;
-        else
-          opt.keyserver_options.options &= ~KEYSERVER_AUTO_KEY_RETRIEVE;
-        break;
-
       case oShowSessionKey:
         opt.show_session_key = 1;
         break;
@@ -2995,14 +2976,6 @@ next_pass:
 
   /* Fail hard.  */
   if (log_get_errorcount(0)) g10_exit(2);
-
-  /* Set the random seed file. */
-  if (use_random_seed) {
-    char *p = make_filename(gnupg_homedir(), "random_seed", NULL);
-    gcry_control(GCRYCTL_SET_RANDOM_SEED_FILE, p);
-    if (!access(p, F_OK)) register_secured_file(p);
-    xfree(p);
-  }
 
   /* If there is no command but the --fingerprint is given, default
      to the --list-keys command.  */
@@ -3600,7 +3573,7 @@ next_pass:
       int count = argc > 1 ? atoi(argv[1]) : 0;
       int endless = !count;
 
-      if (argc < 1 || argc > 2 || level < 0 || level > 2 || count < 0)
+      if (argc < 1 || argc > 2 || count < 0)
         wrong_args("--gen-random 0|1|2 [count]");
 
       while (endless || count) {
@@ -3611,7 +3584,7 @@ next_pass:
            other tools */
         size_t n = !endless && count < 99 ? count : 99;
 
-        p = (byte *)gcry_random_bytes(n, (gcry_random_level)(level));
+        p = (byte *)gcry_random_bytes(n);
 #ifdef HAVE_DOSISH_SYSTEM
         setmode(fileno(stdout), O_BINARY);
 #endif
@@ -3783,14 +3756,12 @@ next_pass:
 static void emergency_cleanup(void) { gcry_control(GCRYCTL_TERM_SECMEM); }
 
 void g10_exit(int rc) {
-  gcry_control(GCRYCTL_UPDATE_RANDOM_SEED_FILE);
   if (DBG_CLOCK) log_clock("stop");
 
   if ((opt.debug & DBG_MEMSTAT_VALUE)) {
     keydb_dump_stats();
     sig_check_dump_stats();
     gcry_control(GCRYCTL_DUMP_MEMORY_STATS);
-    gcry_control(GCRYCTL_DUMP_RANDOM_STATS);
   }
   if (opt.debug) gcry_control(GCRYCTL_DUMP_SECMEM_STATS);
 

@@ -131,30 +131,24 @@ static gpg_error_t nist_generate_key(ECC_secret_key *sk, elliptic_curve_t *E,
                                      unsigned int nbits, gcry_mpi_t *r_x,
                                      gcry_mpi_t *r_y) {
   mpi_point_struct Q;
-  gcry_random_level_t random_level;
   gcry_mpi_t x, y;
   const unsigned int pbits = mpi_get_nbits(E->p);
 
   point_init(&Q);
-
-  if ((flags & PUBKEY_FLAG_TRANSIENT_KEY))
-    random_level = GCRY_STRONG_RANDOM;
-  else
-    random_level = GCRY_VERY_STRONG_RANDOM;
 
   /* Generate a secret.  */
   if (ctx->dialect == ECC_DIALECT_ED25519 || (flags & PUBKEY_FLAG_DJB_TWEAK)) {
     char *rndbuf;
 
     sk->d = mpi_snew(256);
-    rndbuf = (char *)_gcry_random_bytes_secure(32, random_level);
+    rndbuf = (char *)_gcry_random_bytes_secure(32);
     rndbuf[0] &= 0x7f;  /* Clear bit 255. */
     rndbuf[0] |= 0x40;  /* Set bit 254.   */
     rndbuf[31] &= 0xf8; /* Clear bits 2..0 so that d mod 8 == 0  */
     _gcry_mpi_set_buffer(sk->d, rndbuf, 32, 0);
     xfree(rndbuf);
   } else
-    sk->d = _gcry_dsa_gen_k(E->n, random_level);
+    sk->d = _gcry_dsa_gen_k(E->n);
 
   /* Compute Q.  */
   _gcry_mpi_ec_mul_point(&Q, sk->d, &E->G, ctx);
@@ -263,7 +257,7 @@ static void test_keys(ECC_secret_key *sk, unsigned int nbits) {
   point_init(&pk.Q);
   point_set(&pk.Q, &sk->Q);
 
-  _gcry_mpi_randomize(test, nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(test, nbits);
 
   if (_gcry_ecc_ecdsa_sign(test, sk, r, s, 0, 0))
     log_fatal("ECDSA operation: sign failed\n");
@@ -305,7 +299,7 @@ static void test_ecdh_only_keys(ECC_secret_key *sk, unsigned int nbits,
     char *rndbuf;
 
     test = mpi_new(256);
-    rndbuf = (char *)_gcry_random_bytes(32, GCRY_WEAK_RANDOM);
+    rndbuf = (char *)_gcry_random_bytes(32);
     rndbuf[0] &= 0x7f;  /* Clear bit 255. */
     rndbuf[0] |= 0x40;  /* Set bit 254.   */
     rndbuf[31] &= 0xf8; /* Clear bits 2..0 so that d mod 8 == 0  */
@@ -313,7 +307,7 @@ static void test_ecdh_only_keys(ECC_secret_key *sk, unsigned int nbits,
     xfree(rndbuf);
   } else {
     test = mpi_new(nbits);
-    _gcry_mpi_randomize(test, nbits, GCRY_WEAK_RANDOM);
+    _gcry_mpi_randomize(test, nbits);
   }
 
   ec = _gcry_mpi_ec_p_internal_new(pk.E.model, pk.E.dialect, flags, pk.E.p,

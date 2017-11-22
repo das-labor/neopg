@@ -33,9 +33,6 @@
 #include "options.h"
 #include "packet.h"
 
-/* Return true if Libgcrypt's RNG is in faked mode.  */
-int random_is_faked(void) { return !!gcry_control(GCRYCTL_FAKED_RANDOM_P, 0); }
-
 void release_sk_list(SK_LIST sk_list) {
   SK_LIST sk_rover;
 
@@ -130,22 +127,12 @@ gpg_error_t build_sk_list(
     } else {
       SK_LIST r;
 
-      if (random_is_faked() && !is_insecure(ctrl, pk)) {
-        log_info(
-            _("key is not flagged as insecure - "
-              "can't use it with the faked RNG!\n"));
-        free_public_key(pk);
-        pk = NULL;
-        write_status_text(STATUS_INV_SGNR,
-                          get_inv_recpsgnr_code(GPG_ERR_NOT_TRUSTED));
-      } else {
-        r = (SK_LIST)xmalloc(sizeof *r);
-        r->pk = pk;
-        pk = NULL;
-        r->next = sk_list;
-        r->mark = 0;
-        sk_list = r;
-      }
+      r = (SK_LIST)xmalloc(sizeof *r);
+      r->pk = pk;
+      pk = NULL;
+      r->next = sk_list;
+      r->mark = 0;
+      sk_list = r;
     }
   } else /* Check the given user ids.  */
   {
@@ -193,15 +180,6 @@ gpg_error_t build_sk_list(
           write_status_text_and_buffer(
               STATUS_INV_SGNR, get_inv_recpsgnr_code(GPG_ERR_WRONG_KEY_USAGE),
               usr, strlen(usr), -1);
-        } else if (random_is_faked() && !is_insecure(ctrl, pk)) {
-          log_info(
-              _("key is not flagged as insecure - "
-                "can't use it with the faked RNG!\n"));
-          free_public_key(pk);
-          pk = NULL;
-          write_status_text_and_buffer(
-              STATUS_INV_SGNR, get_inv_recpsgnr_code(GPG_ERR_NOT_TRUSTED), usr,
-              strlen(usr), -1);
         } else {
           r = (SK_LIST)xmalloc(sizeof *r);
           r->pk = pk;

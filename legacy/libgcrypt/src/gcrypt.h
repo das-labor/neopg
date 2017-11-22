@@ -169,7 +169,6 @@ enum gcry_ctl_cmds {
   GCRYCTL_GET_ASNOID = 10,
   GCRYCTL_ENABLE_ALGO = 11,
   GCRYCTL_DISABLE_ALGO = 12,
-  GCRYCTL_DUMP_RANDOM_STATS = 13,
   GCRYCTL_DUMP_SECMEM_STATS = 14,
   GCRYCTL_GET_ALGO_NPKEY = 15,
   GCRYCTL_GET_ALGO_NSKEY = 16,
@@ -198,16 +197,7 @@ enum gcry_ctl_cmds {
   GCRYCTL_ANY_INITIALIZATION_P = 40,
   GCRYCTL_SET_CBC_CTS = 41,
   GCRYCTL_SET_CBC_MAC = 42,
-  /* Note: 43 is not anymore used. */
-  GCRYCTL_ENABLE_QUICK_RANDOM = 44,
-  GCRYCTL_SET_RANDOM_SEED_FILE = 45,
-  GCRYCTL_UPDATE_RANDOM_SEED_FILE = 46,
   GCRYCTL_SET_THREAD_CBS = 47,
-  GCRYCTL_FAST_POLL = 48,
-  GCRYCTL_SET_RANDOM_DAEMON_SOCKET = 49,
-  GCRYCTL_USE_RANDOM_DAEMON = 50,
-  GCRYCTL_FAKED_RANDOM_P = 51,
-  GCRYCTL_SET_RNDEGD_SOCKET = 52,
   GCRYCTL_PRINT_CONFIG = 53,
   GCRYCTL_OPERATIONAL_P = 54,
   GCRYCTL_FIPS_MODE_P = 55,
@@ -221,7 +211,6 @@ enum gcry_ctl_cmds {
   GCRYCTL_DISABLE_LOCKED_SECMEM = 67,
   GCRYCTL_DISABLE_PRIV_DROP = 68,
   GCRYCTL_SET_CCM_LENGTHS = 69,
-  GCRYCTL_CLOSE_RANDOM_DEVICE = 70,
   GCRYCTL_INACTIVATE_FIPS_FLAG = 71,
   GCRYCTL_REACTIVATE_FIPS_FLAG = 72,
   GCRYCTL_SET_SBOX = 73,
@@ -1375,54 +1364,28 @@ gpg_error_t gcry_kdf_derive(const void *passphrase, size_t passphraselen,
  *                                  *
  ************************************/
 
-/* The type of the random number generator.  */
-enum gcry_rng_types {
-  GCRY_RNG_TYPE_STANDARD = 1, /* The default CSPRNG generator.  */
-  GCRY_RNG_TYPE_FIPS = 2,     /* The FIPS X9.31 AES generator.  */
-  GCRY_RNG_TYPE_SYSTEM = 3    /* The system's native generator. */
-};
-
-/* The possible values for the random quality.  The rule of thumb is
-   to use STRONG for session keys and VERY_STRONG for key material.
-   WEAK is usually an alias for STRONG and should not be used anymore
-   (except with gcry_mpi_randomize); use gcry_create_nonce instead. */
-typedef enum gcry_random_level {
-  GCRY_WEAK_RANDOM = 0,
-  GCRY_STRONG_RANDOM = 1,
-  GCRY_VERY_STRONG_RANDOM = 2
-} gcry_random_level_t;
-
 /* Fill BUFFER with LENGTH bytes of random, using random numbers of
    quality LEVEL. */
-void gcry_randomize(void *buffer, size_t length, enum gcry_random_level level);
+void gcry_randomize(void *buffer, size_t length);
 
 /* Add the external random from BUFFER with LENGTH bytes into the
    pool. QUALITY should either be -1 for unknown or in the range of 0
    to 100 */
-gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length,
-                                  int quality);
-
-/* If random numbers are used in an application, this macro should be
-   called from time to time so that new stuff gets added to the
-   internal pool of the RNG.  */
-#define gcry_fast_random_poll() gcry_control(GCRYCTL_FAST_POLL, NULL)
+gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length);
 
 /* Return NBYTES of allocated random using a random numbers of quality
    LEVEL. */
-void *gcry_random_bytes(size_t nbytes,
-                        enum gcry_random_level level) _GCRY_GCC_ATTR_MALLOC;
+void *gcry_random_bytes(size_t nbytes) _GCRY_GCC_ATTR_MALLOC;
 
 /* Return NBYTES of allocated random using a random numbers of quality
    LEVEL.  The random numbers are created returned in "secure"
    memory. */
-void *gcry_random_bytes_secure(size_t nbytes, enum gcry_random_level level)
-    _GCRY_GCC_ATTR_MALLOC;
+void *gcry_random_bytes_secure(size_t nbytes) _GCRY_GCC_ATTR_MALLOC;
 
 /* Set the big integer W to a random value of NBITS using a random
    generator with quality LEVEL.  Note that by using a level of
    GCRY_WEAK_RANDOM gcry_create_nonce is used internally. */
-void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits,
-                        enum gcry_random_level level);
+void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits);
 
 /* Create an unpredicable nonce of LENGTH bytes in BUFFER. */
 void gcry_create_nonce(void *buffer, size_t length);
@@ -1461,7 +1424,6 @@ typedef int (*gcry_prime_check_func_t)(void *arg, int mode,
 gpg_error_t gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
                                 unsigned int factor_bits, gcry_mpi_t **factors,
                                 gcry_prime_check_func_t cb_func, void *cb_arg,
-                                gcry_random_level_t random_level,
                                 unsigned int flags);
 
 /* Find a generator for PRIME where the factorization of (prime-1) is

@@ -68,7 +68,7 @@ static void write_header(cipher_filter_context_t *cfx, IOBUF a) {
   pkt.pkt.encrypted = &ed;
   if (build_packet(a, &pkt)) log_bug("build_packet(ENCR_DATA) failed\n");
   nprefix = blocksize;
-  gcry_randomize(temp, nprefix, GCRY_STRONG_RANDOM);
+  gcry_randomize(temp, nprefix);
   temp[nprefix] = temp[nprefix - 2];
   temp[nprefix + 1] = temp[nprefix - 1];
   print_cipher_algo_note((cipher_algo_t)(cfx->dek->algo));

@@ -85,9 +85,6 @@ static void global_init(void) {
   if (any_init_done) return;
   any_init_done = 1;
 
-  /* Tell the random module that we have seen an init call.  */
-  _gcry_set_preferred_rng_type(0);
-
   /* Get the system call clamp functions.  */
   if (!pre_syscall_func)
     gpgrt_get_syscall_clamp(&pre_syscall_func, &post_syscall_func);
@@ -284,24 +281,6 @@ static void print_config(const char *what, gpgrt_stream_t fp) {
     gpgrt_fprintf(fp, "fips-mode:%c:%c:\n", fips_mode() ? 'y' : 'n',
                   _gcry_enforced_fips_mode() ? 'y' : 'n');
   }
-
-  if (!what || !strcmp(what, "rng-type")) {
-    i = _gcry_get_rng_type(0);
-    switch (i) {
-      case GCRY_RNG_TYPE_STANDARD:
-        s = "standard";
-        break;
-      case GCRY_RNG_TYPE_FIPS:
-        s = "fips";
-        break;
-      case GCRY_RNG_TYPE_SYSTEM:
-        s = "system";
-        break;
-      default:
-        BUG();
-    }
-    gpgrt_fprintf(fp, "rng-type:%s:%d:\n", s, i);
-  }
 }
 
 /* With a MODE of 0 return a malloced string with configured features.
@@ -363,22 +342,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       _gcry_private_enable_m_guard();
       break;
 
-    case GCRYCTL_ENABLE_QUICK_RANDOM:
-      _gcry_set_preferred_rng_type(0);
-      _gcry_enable_quick_random_gen();
-      break;
-
-    case GCRYCTL_FAKED_RANDOM_P:
-      /* Return an error if the RNG is faked one (e.g. enabled by
-         ENABLE_QUICK_RANDOM. */
-      if (_gcry_random_is_faked())
-        rc = GPG_ERR_GENERAL; /* Use as TRUE value.  */
-      break;
-
-    case GCRYCTL_DUMP_RANDOM_STATS:
-      _gcry_random_dump_stats();
-      break;
-
     case GCRYCTL_DUMP_MEMORY_STATS:
       /*m_print_stats("[fixme: prefix]");*/
       break;
@@ -410,40 +373,21 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       break;
 
     case GCRYCTL_DISABLE_SECMEM_WARN:
-      _gcry_set_preferred_rng_type(0);
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_NO_WARNING));
       break;
 
     case GCRYCTL_SUSPEND_SECMEM_WARN:
-      _gcry_set_preferred_rng_type(0);
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_SUSPEND_WARNING));
       break;
 
     case GCRYCTL_RESUME_SECMEM_WARN:
-      _gcry_set_preferred_rng_type(0);
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() & ~GCRY_SECMEM_FLAG_SUSPEND_WARNING));
       break;
 
-    case GCRYCTL_USE_SECURE_RNDPOOL:
-      global_init();
-      _gcry_secure_random_alloc(); /* Put random number into secure memory. */
-      break;
-
-    case GCRYCTL_SET_RANDOM_SEED_FILE:
-      _gcry_set_preferred_rng_type(0);
-      _gcry_set_random_seed_file(va_arg(arg_ptr, const char *));
-      break;
-
-    case GCRYCTL_UPDATE_RANDOM_SEED_FILE:
-      _gcry_set_preferred_rng_type(0);
-      if (fips_is_operational()) _gcry_update_random_seed_file();
-      break;
-
     case GCRYCTL_SET_VERBOSITY:
-      _gcry_set_preferred_rng_type(0);
       _gcry_set_log_verbosity(va_arg(arg_ptr, int));
       break;
 
@@ -476,9 +420,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
          been done. */
       if (!init_finished) {
         global_init();
-        /* Do only a basic random initialization, i.e. init the
-           mutexes. */
-        _gcry_random_initialize(0);
         init_finished = 1;
         /* Force us into operational state if in FIPS mode.  */
         (void)fips_is_operational();
@@ -488,43 +429,7 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
     case GCRYCTL_SET_THREAD_CBS:
       /* This is now a dummy call.  We used to install our own thread
          library here. */
-      _gcry_set_preferred_rng_type(0);
       global_init();
-      break;
-
-    case GCRYCTL_FAST_POLL:
-      _gcry_set_preferred_rng_type(0);
-      /* We need to do make sure that the random pool is really
-         initialized so that the poll function is not a NOP. */
-      _gcry_random_initialize(1);
-
-      if (fips_is_operational()) _gcry_fast_random_poll();
-      break;
-
-    case GCRYCTL_SET_RNDEGD_SOCKET:
-#if USE_RNDEGD
-      _gcry_set_preferred_rng_type(0);
-      rc = _gcry_rndegd_set_socket_name(va_arg(arg_ptr, const char *));
-#else
-      rc = GPG_ERR_NOT_SUPPORTED;
-#endif
-      break;
-
-    case GCRYCTL_SET_RANDOM_DAEMON_SOCKET:
-      _gcry_set_preferred_rng_type(0);
-      _gcry_set_random_daemon_socket(va_arg(arg_ptr, const char *));
-      break;
-
-    case GCRYCTL_USE_RANDOM_DAEMON:
-      /* We need to do make sure that the random pool is really
-         initialized so that the poll function is not a NOP. */
-      _gcry_set_preferred_rng_type(0);
-      _gcry_random_initialize(1);
-      _gcry_use_random_daemon(!!va_arg(arg_ptr, int));
-      break;
-
-    case GCRYCTL_CLOSE_RANDOM_DEVICE:
-      _gcry_random_close_fds();
       break;
 
     /* This command dumps information pertaining to the
@@ -534,7 +439,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
     case GCRYCTL_PRINT_CONFIG: {
       FILE *fp = va_arg(arg_ptr, FILE *);
       char *tmpstr;
-      _gcry_set_preferred_rng_type(0);
       tmpstr = _gcry_get_config(0, NULL);
       if (tmpstr) {
         if (fp)
@@ -548,7 +452,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
     case GCRYCTL_OPERATIONAL_P:
       /* Returns true if the library is in an operational state.  This
          is always true for non-fips mode.  */
-      _gcry_set_preferred_rng_type(0);
       if (_gcry_fips_test_operational())
         rc = GPG_ERR_GENERAL; /* Used as TRUE value */
       break;
@@ -563,7 +466,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
          the library has already been initialized into fips mode, a
          selftest is triggered.  It is not possible to put the libraty
          into fips mode after having passed the initialization. */
-      _gcry_set_preferred_rng_type(0);
       if (!any_init_done) {
         /* Not yet initialized at all.  Set a flag so that we are put
            into fips mode during initialization.  */
@@ -591,23 +493,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 #endif
-    case PRIV_CTL_INIT_EXTRNG_TEST: /* Init external random test.  */
-      rc = GPG_ERR_NOT_SUPPORTED;
-      break;
-    case PRIV_CTL_RUN_EXTRNG_TEST: /* Run external DRBG test.  */
-    {
-      struct gcry_drbg_test_vector *test =
-          va_arg(arg_ptr, struct gcry_drbg_test_vector *);
-      unsigned char *buf = va_arg(arg_ptr, unsigned char *);
-
-      if (buf)
-        rc = _gcry_rngdrbg_cavs_test(test, buf);
-      else
-        rc = _gcry_rngdrbg_healthcheck_one(test);
-    } break;
-    case PRIV_CTL_DEINIT_EXTRNG_TEST: /* Deinit external random test.  */
-      rc = GPG_ERR_NOT_SUPPORTED;
-      break;
     case PRIV_CTL_EXTERNAL_LOCK_TEST: /* Run external lock test */
       rc = external_lock_test(va_arg(arg_ptr, int));
       break;
@@ -626,34 +511,17 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
     case GCRYCTL_SET_ENFORCED_FIPS_FLAG:
       if (!any_init_done) {
         /* Not yet initialized at all.  Set the enforced fips mode flag */
-        _gcry_set_preferred_rng_type(0);
         _gcry_set_enforced_fips_mode();
       } else
         rc = GPG_ERR_GENERAL;
       break;
 
-    case GCRYCTL_SET_PREFERRED_RNG_TYPE:
-      /* This may be called before gcry_check_version.  */
-      {
-        int i = va_arg(arg_ptr, int);
-        /* Note that we may not pass 0 to _gcry_set_preferred_rng_type.  */
-        if (i > 0) _gcry_set_preferred_rng_type(i);
-      }
-      break;
-
-    case GCRYCTL_GET_CURRENT_RNG_TYPE: {
-      int *ip = va_arg(arg_ptr, int *);
-      if (ip) *ip = _gcry_get_rng_type(!any_init_done);
-    } break;
-
     case GCRYCTL_DISABLE_LOCKED_SECMEM:
-      _gcry_set_preferred_rng_type(0);
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_NO_MLOCK));
       break;
 
     case GCRYCTL_DISABLE_PRIV_DROP:
-      _gcry_set_preferred_rng_type(0);
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_NO_PRIV_DROP));
       break;
@@ -663,25 +531,12 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       rc = GPG_ERR_NOT_IMPLEMENTED;
       break;
 
-    case GCRYCTL_DRBG_REINIT: {
-      const char *flagstr = va_arg(arg_ptr, const char *);
-      gcry_buffer_t *pers = va_arg(arg_ptr, gcry_buffer_t *);
-      int npers = va_arg(arg_ptr, int);
-      if (va_arg(arg_ptr, void *) || npers < 0)
-        rc = GPG_ERR_INV_ARG;
-      else if (_gcry_get_rng_type(!any_init_done) != GCRY_RNG_TYPE_FIPS)
-        rc = GPG_ERR_NOT_SUPPORTED;
-      else
-        rc = _gcry_rngdrbg_reinit(flagstr, pers, npers);
-    } break;
-
     case GCRYCTL_REINIT_SYSCALL_CLAMP:
       if (!pre_syscall_func)
         gpgrt_get_syscall_clamp(&pre_syscall_func, &post_syscall_func);
       break;
 
     default:
-      _gcry_set_preferred_rng_type(0);
       rc = GPG_ERR_INV_OP;
   }
 
@@ -1052,7 +907,6 @@ void _gcry_set_progress_handler(void (*cb)(void *, const char *, int, int, int),
   _gcry_register_pk_elg_progress(cb, cb_data);
 #endif
   _gcry_register_primegen_progress(cb, cb_data);
-  _gcry_register_random_progress(cb, cb_data);
 }
 
 /* This is a helper for the regression test suite to test Libgcrypt's locks.

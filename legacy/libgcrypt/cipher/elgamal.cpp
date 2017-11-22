@@ -133,7 +133,7 @@ static int test_keys(ELG_secret_key *sk, unsigned int nbits, int nodie) {
   pk.g = sk->g;
   pk.y = sk->y;
 
-  _gcry_mpi_randomize(test, nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(test, nbits);
 
   do_encrypt(out1_a, out1_b, test, &pk);
   decrypt(out2, out1_a, out1_b, sk);
@@ -187,14 +187,14 @@ static gcry_mpi_t gen_k(gcry_mpi_t p, int small_k) {
   for (;;) {
     if (!rndbuf || nbits < 32) {
       xfree(rndbuf);
-      rndbuf = (char *)_gcry_random_bytes_secure(nbytes, GCRY_STRONG_RANDOM);
+      rndbuf = (char *)_gcry_random_bytes_secure(nbytes);
     } else {
       /* Change only some of the higher bits.  We could improve
          this by directly requesting more memory at the first call
          to get_random_bytes() and use this the here maybe it is
          easier to do this directly in random.c Anyway, it is
          highly inlikely that we will ever reach this code. */
-      char *pp = (char *)_gcry_random_bytes_secure(4, GCRY_STRONG_RANDOM);
+      char *pp = (char *)_gcry_random_bytes_secure(4);
       memcpy(rndbuf, pp, 4);
       xfree(pp);
     }
@@ -278,16 +278,14 @@ static gpg_error_t generate(ELG_secret_key *sk, unsigned int nbits,
       if (xbits < 16) /* should never happen ... */
       {
         xfree(rndbuf);
-        rndbuf = (byte *)_gcry_random_bytes_secure((xbits + 7) / 8,
-                                                   GCRY_VERY_STRONG_RANDOM);
+        rndbuf = (byte *)_gcry_random_bytes_secure((xbits + 7) / 8);
       } else {
-        char *r = (char *)_gcry_random_bytes_secure(2, GCRY_VERY_STRONG_RANDOM);
+        char *r = (char *)_gcry_random_bytes_secure(2);
         memcpy(rndbuf, r, 2);
         xfree(r);
       }
     } else {
-      rndbuf = (byte *)_gcry_random_bytes_secure((xbits + 7) / 8,
-                                                 GCRY_VERY_STRONG_RANDOM);
+      rndbuf = (byte *)_gcry_random_bytes_secure((xbits + 7) / 8);
     }
     _gcry_mpi_set_buffer(x, rndbuf, (xbits + 7) / 8, 0);
     mpi_clear_highbit(x, xbits + 1);
@@ -465,7 +463,7 @@ static void decrypt(gcry_mpi_t output, gcry_mpi_t a, gcry_mpi_t b,
 
   /* We need a random number of about the prime size.  The random
      number merely needs to be unpredictable; thus we use level 0.  */
-  _gcry_mpi_randomize(r, nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(r, nbits);
 
   /* t1 = r^x mod p */
   mpi_powm(t1, r, skey->x, skey->p);

@@ -295,9 +295,6 @@ static gpg_error_t md_open(gcry_md_hd_t *h, int algo, unsigned int flags) {
   }
 
   if (!err) {
-    /* Hmmm, should we really do that? - yes [-wk] */
-    _gcry_fast_random_poll();
-
     if (algo) {
       err = md_enable(hd, algo);
       if (err) md_close(hd);

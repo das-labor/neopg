@@ -104,7 +104,7 @@ gpg_error_t _gcry_rsa_pkcs1_encode_for_enc(gcry_mpi_t *r_result,
     memcpy(frame + n, random_override, random_override_len);
     n += random_override_len;
   } else {
-    p = (unsigned char *)_gcry_random_bytes_secure(i, GCRY_STRONG_RANDOM);
+    p = (unsigned char *)_gcry_random_bytes_secure(i);
     /* Replace zero bytes by new values. */
     for (;;) {
       int j, k;
@@ -117,7 +117,7 @@ gpg_error_t _gcry_rsa_pkcs1_encode_for_enc(gcry_mpi_t *r_result,
       if (!k) break; /* Okay: no (more) zero bytes. */
 
       k += k / 128 + 3; /* Better get some more. */
-      pp = (unsigned char *)_gcry_random_bytes_secure(k, GCRY_STRONG_RANDOM);
+      pp = (unsigned char *)_gcry_random_bytes_secure(k);
       for (j = 0; j < i && k;) {
         if (!p[j]) p[j] = pp[--k];
         if (p[j]) j++;
@@ -483,7 +483,7 @@ gpg_error_t _gcry_rsa_oaep_encode(gcry_mpi_t *r_result, unsigned int nbits,
     }
     memcpy(frame + 1, random_override, hlen);
   } else
-    _gcry_randomize(frame + 1, hlen, GCRY_STRONG_RANDOM);
+    _gcry_randomize(frame + 1, hlen);
 
   /* Step 2e and 2f: Create maskedDB.  */
   {
@@ -770,7 +770,7 @@ gpg_error_t _gcry_rsa_pss_encode(gcry_mpi_t *r_result, unsigned int nbits,
       }
       memcpy(salt, random_override, saltlen);
     } else
-      _gcry_randomize(salt, saltlen, GCRY_STRONG_RANDOM);
+      _gcry_randomize(salt, saltlen);
   }
 
   /* Step 5 and 6: M' = Hash(Padding1 || mHash || salt).  */

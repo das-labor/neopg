@@ -80,7 +80,7 @@ gpg_error_t _gcry_ecc_gost_sign(gcry_mpi_t input, ECC_secret_key *skey,
   do {
     do {
       mpi_free(k);
-      k = _gcry_dsa_gen_k(skey->E.n, GCRY_STRONG_RANDOM);
+      k = _gcry_dsa_gen_k(skey->E.n);
 
       _gcry_mpi_ec_mul_point(&I, k, &skey->E.G, ctx);
       if (_gcry_mpi_ec_get_affine(x, NULL, &I, ctx)) {

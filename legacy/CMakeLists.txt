@@ -282,15 +282,7 @@ add_library(gcrypt
   libgcrypt/mpi/generic/mpih-rshift.cpp
   libgcrypt/mpi/generic/mpih-sub1.cpp
   libgcrypt/mpi/generic/udiv-w-sdiv.cpp
-  libgcrypt/random/rand-internal.h
   libgcrypt/random/random.cpp
-  libgcrypt/random/random-csprng.cpp
-  libgcrypt/random/random-drbg.cpp
-  libgcrypt/random/random-fips.cpp
-  libgcrypt/random/random.h
-  libgcrypt/random/random-system.cpp
-  libgcrypt/random/rndhw.cpp
-  libgcrypt/random/rndlinux.cpp
 )
 add_library(neopg::gcrypt ALIAS gcrypt)
 
@@ -298,10 +290,13 @@ target_include_directories(gcrypt PRIVATE
   libgpg-error/src
   libgcrypt/mpi
   libgcrypt/src
+  ../include
+  ${BOTAN2_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(gcrypt PRIVATE
   HAVE_CONFIG_H=1)
-
+  target_link_libraries(gcrypt PRIVATE
+  libneopg)
 target_compile_options(gcrypt PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
 add_executable(gcrypt-test

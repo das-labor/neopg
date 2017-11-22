@@ -417,7 +417,6 @@ gpg_error_t _gcry_ecc_eddsa_genkey(ECC_secret_key *sk, elliptic_curve_t *E,
   int b = 256 / 8; /* The only size we currently support.  */
   gcry_mpi_t a, x, y;
   mpi_point_struct Q;
-  gcry_random_level_t random_level;
   char *dbuf;
   size_t dlen;
   gcry_buffer_t hvec[1];
@@ -425,11 +424,6 @@ gpg_error_t _gcry_ecc_eddsa_genkey(ECC_secret_key *sk, elliptic_curve_t *E,
 
   point_init(&Q);
   memset(hvec, 0, sizeof hvec);
-
-  if ((flags & PUBKEY_FLAG_TRANSIENT_KEY))
-    random_level = GCRY_STRONG_RANDOM;
-  else
-    random_level = GCRY_VERY_STRONG_RANDOM;
 
   a = mpi_snew(0);
   x = mpi_new(0);
@@ -442,7 +436,7 @@ gpg_error_t _gcry_ecc_eddsa_genkey(ECC_secret_key *sk, elliptic_curve_t *E,
     goto leave;
   }
   dlen = b;
-  dbuf = (char *)_gcry_random_bytes_secure(dlen, random_level);
+  dbuf = (char *)_gcry_random_bytes_secure(dlen);
 
   /* Compute the A value.  */
   hvec[0].data = dbuf;

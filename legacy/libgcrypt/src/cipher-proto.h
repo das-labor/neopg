@@ -227,6 +227,4 @@ gpg_error_t _gcry_pk_selftest(int algo, int extended,
 gpg_error_t _gcry_hmac_selftest(int algo, int extended,
                                 selftest_report_func_t report);
 
-gpg_error_t _gcry_random_selftest(selftest_report_func_t report);
-
 #endif /*G10_CIPHER_PROTO_H*/

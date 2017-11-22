@@ -32,7 +32,7 @@
  * Generate a random secret exponent K less than Q.
  * Note that ECDSA uses this code also to generate D.
  */
-gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q, int security_level) {
+gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q) {
   gcry_mpi_t k = mpi_alloc_secure(mpi_get_nlimbs(q));
   unsigned int nbits = mpi_get_nbits(q);
   unsigned int nbytes = (nbits + 7) / 8;
@@ -43,21 +43,17 @@ gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q, int security_level) {
      Algorithm with Partially Known Nonces" by Nguyen and Shparlinski.
      Journal of Cryptology, New York. Vol 15, nr 3 (2003)  */
 
-  if (DBG_CIPHER)
-    log_debug("choosing a random k of %u bits at seclevel %d\n", nbits,
-              security_level);
+  if (DBG_CIPHER) log_debug("choosing a random k of %u bits\n", nbits);
   for (;;) {
     if (!rndbuf || nbits < 32) {
       xfree(rndbuf);
-      rndbuf = (char *)_gcry_random_bytes_secure(
-          nbytes, (gcry_random_level)(security_level));
+      rndbuf = (char *)_gcry_random_bytes_secure(nbytes);
     } else { /* Change only some of the higher bits.  We could improve
                 this by directly requesting more memory at the first call
                 to get_random_bytes() and use these extra bytes here.
                 However the required management code is more complex and
                 thus we better use this simple method.  */
-      char *pp = (char *)_gcry_random_bytes_secure(
-          4, (gcry_random_level)(security_level));
+      char *pp = (char *)_gcry_random_bytes_secure(4);
       memcpy(rndbuf, pp, 4);
       xfree(pp);
     }

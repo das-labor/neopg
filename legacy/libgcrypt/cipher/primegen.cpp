@@ -30,7 +30,7 @@
 #include "g10lib.h"
 #include "mpi.h"
 
-static gcry_mpi_t gen_prime(unsigned int nbits, int secret, int randomlevel,
+static gcry_mpi_t gen_prime(unsigned int nbits, int secret,
                             int (*extra_check)(void *, gcry_mpi_t),
                             void *extra_check_arg);
 static int check_prime(gcry_mpi_t prime, gcry_mpi_t val_2, int rm_rounds,
@@ -108,7 +108,6 @@ struct primepool_s {
   struct primepool_s *next;
   gcry_mpi_t prime; /* If this is NULL the entry is not used. */
   unsigned int nbits;
-  gcry_random_level_t randomlevel;
 };
 struct primepool_s *primepool;
 /* Mutex used to protect access to the primepool.  */
@@ -120,11 +119,11 @@ gpg_error_t _gcry_primegen_init(void) {
   return 0;
 }
 
-/* Save PRIME which has been generated at RANDOMLEVEL for later
+/* Save PRIME for later
    use. Needs to be called while primepool_lock is being hold.  Note
    that PRIME should be considered released after calling this
    function. */
-static void save_pool_prime(gcry_mpi_t prime, gcry_random_level_t randomlevel) {
+static void save_pool_prime(gcry_mpi_t prime) {
   struct primepool_s *item, *item2;
   size_t n;
 
@@ -155,19 +154,16 @@ static void save_pool_prime(gcry_mpi_t prime, gcry_random_level_t randomlevel) {
   }
   item->prime = prime;
   item->nbits = mpi_get_nbits(prime);
-  item->randomlevel = randomlevel;
 }
 
 /* Return a prime for the prime pool or NULL if none has been found.
-   The prime needs to match NBITS and randomlevel. This function needs
+   The prime needs to match NBITS. This function needs
    to be called with the primepool_look is being hold. */
-static gcry_mpi_t get_pool_prime(unsigned int nbits,
-                                 gcry_random_level_t randomlevel) {
+static gcry_mpi_t get_pool_prime(unsigned int nbits) {
   struct primepool_s *item;
 
   for (item = primepool; item; item = item->next)
-    if (item->prime && item->nbits == nbits &&
-        item->randomlevel == randomlevel) {
+    if (item->prime && item->nbits == nbits) {
       gcry_mpi_t prime = item->prime;
       item->prime = NULL;
       gcry_assert(nbits == mpi_get_nbits(prime));
@@ -191,12 +187,11 @@ static void progress(int c) {
  * Generate a prime number (stored in secure memory)
  */
 gcry_mpi_t _gcry_generate_secret_prime(unsigned int nbits,
-                                       gcry_random_level_t random_level,
                                        int (*extra_check)(void *, gcry_mpi_t),
                                        void *extra_check_arg) {
   gcry_mpi_t prime;
 
-  prime = gen_prime(nbits, 1, random_level, extra_check, extra_check_arg);
+  prime = gen_prime(nbits, 1, extra_check, extra_check_arg);
   progress('\n');
   return prime;
 }
@@ -204,12 +199,11 @@ gcry_mpi_t _gcry_generate_secret_prime(unsigned int nbits,
 /* Generate a prime number which may be public, i.e. not allocated in
    secure memory.  */
 gcry_mpi_t _gcry_generate_public_prime(unsigned int nbits,
-                                       gcry_random_level_t random_level,
                                        int (*extra_check)(void *, gcry_mpi_t),
                                        void *extra_check_arg) {
   gcry_mpi_t prime;
 
-  prime = gen_prime(nbits, 0, random_level, extra_check, extra_check_arg);
+  prime = gen_prime(nbits, 0, extra_check, extra_check_arg);
   progress('\n');
   return prime;
 }
@@ -230,7 +224,6 @@ gcry_mpi_t _gcry_generate_public_prime(unsigned int nbits,
    RET_FACTORS: if not NULL, an array with all factors are stored at
                 that address.
    ALL_FACTORS: If set to true all factors of prime-1 are returned.
-   RANDOMLEVEL:  How strong should the random numers be.
    FLAGS: Prime generation bit flags. Currently supported:
           GCRY_PRIME_FLAG_SECRET - The prime needs to be kept secret.
    CB_FUNC, CB_ARG:  Callback to be used for extra checks.
@@ -239,35 +232,30 @@ gcry_mpi_t _gcry_generate_public_prime(unsigned int nbits,
 static gpg_error_t prime_generate_internal(
     int need_q_factor, gcry_mpi_t *prime_generated, unsigned int pbits,
     unsigned int qbits, gcry_mpi_t g, gcry_mpi_t **ret_factors,
-    gcry_random_level_t randomlevel, unsigned int flags, int all_factors,
-    gcry_prime_check_func_t cb_func, void *cb_arg) {
+    unsigned int flags, int all_factors, gcry_prime_check_func_t cb_func,
+    void *cb_arg) {
   gpg_error_t err = 0;
-  gcry_mpi_t *factors_new = NULL;      /* Factors to return to the
-                                          caller.  */
-  gcry_mpi_t *factors = NULL;          /* Current factors.  */
-  gcry_random_level_t poolrandomlevel; /* Random level used for pool primes. */
-  gcry_mpi_t *pool = NULL;             /* Pool of primes.  */
-  int *pool_in_use = NULL;     /* Array with currently used POOL elements. */
-  unsigned char *perms = NULL; /* Permutations of POOL.  */
-  gcry_mpi_t q_factor = NULL;  /* Used if QBITS is non-zero.  */
-  unsigned int fbits = 0;      /* Length of prime factors.  */
-  unsigned int n = 0;          /* Number of factors.  */
-  unsigned int m = 0;          /* Number of primes in pool.  */
-  gcry_mpi_t q = NULL;         /* First prime factor.  */
-  gcry_mpi_t prime = NULL;     /* Prime candidate.  */
-  unsigned int nprime = 0;     /* Bits of PRIME.  */
-  unsigned int req_qbits;      /* The original QBITS value.  */
-  gcry_mpi_t val_2;            /* For check_prime().  */
-  int is_locked = 0;           /* Flag to help unlocking the primepool. */
+  gcry_mpi_t *factors_new = NULL; /* Factors to return to the
+                                     caller.  */
+  gcry_mpi_t *factors = NULL;     /* Current factors.  */
+  gcry_mpi_t *pool = NULL;        /* Pool of primes.  */
+  int *pool_in_use = NULL;        /* Array with currently used POOL elements. */
+  unsigned char *perms = NULL;    /* Permutations of POOL.  */
+  gcry_mpi_t q_factor = NULL;     /* Used if QBITS is non-zero.  */
+  unsigned int fbits = 0;         /* Length of prime factors.  */
+  unsigned int n = 0;             /* Number of factors.  */
+  unsigned int m = 0;             /* Number of primes in pool.  */
+  gcry_mpi_t q = NULL;            /* First prime factor.  */
+  gcry_mpi_t prime = NULL;        /* Prime candidate.  */
+  unsigned int nprime = 0;        /* Bits of PRIME.  */
+  unsigned int req_qbits;         /* The original QBITS value.  */
+  gcry_mpi_t val_2;               /* For check_prime().  */
+  int is_locked = 0;              /* Flag to help unlocking the primepool. */
   unsigned int is_secret = (flags & GCRY_PRIME_FLAG_SECRET);
   unsigned int count1 = 0, count2 = 0;
   unsigned int i = 0, j = 0;
 
   if (pbits < 48) return GPG_ERR_INV_ARG;
-
-  /* We won't use a too strong random elvel for the pooled subprimes. */
-  poolrandomlevel =
-      (randomlevel > GCRY_STRONG_RANDOM ? GCRY_STRONG_RANDOM : randomlevel);
 
   /* If QBITS is not given, assume a reasonable value. */
   if (!qbits) qbits = pbits / 3;
@@ -303,11 +291,10 @@ static gpg_error_t prime_generate_internal(
   prime = mpi_new(pbits);
 
   /* Generate first prime factor.  */
-  q = gen_prime(qbits, is_secret, randomlevel, NULL, NULL);
+  q = gen_prime(qbits, is_secret, NULL, NULL);
 
   /* Generate a specific Q-Factor if requested. */
-  if (need_q_factor)
-    q_factor = gen_prime(req_qbits, is_secret, randomlevel, NULL, NULL);
+  if (need_q_factor) q_factor = gen_prime(req_qbits, is_secret, NULL, NULL);
 
   /* Allocate an array to hold all factors + 2 for later usage.  */
   factors = (gcry_mpi **)xtrycalloc(n + 2, sizeof(*factors));
@@ -366,10 +353,7 @@ static gpg_error_t prime_generate_internal(
 
       for (i = 0; i < n; i++) {
         perms[i] = 1;
-        /* At a maximum we use strong random for the factors.
-           This saves us a lot of entropy. Given that Q and
-           possible Q-factor are also used in the final prime
-           this should be acceptable.  We also don't allocate in
+        /*   We don't allocate in
            secure memory to save on that scare resource too.  If
            Q has been allocated in secure memory, the final
            prime will be saved there anyway.  This is because
@@ -377,15 +361,14 @@ static gpg_error_t prime_generate_internal(
            this way ever since.  */
         pool[i] = NULL;
         if (is_locked) {
-          pool[i] = get_pool_prime(fbits, poolrandomlevel);
+          pool[i] = get_pool_prime(fbits);
           if (!pool[i]) {
             err = gpgrt_lock_unlock(&primepool_lock);
             if (err) goto leave;
             is_locked = 0;
           }
         }
-        if (!pool[i])
-          pool[i] = gen_prime(fbits, 0, poolrandomlevel, NULL, NULL);
+        if (!pool[i]) pool[i] = gen_prime(fbits, 0, NULL, NULL);
         pool_in_use[i] = i;
         factors[i] = pool[i];
       }
@@ -403,14 +386,13 @@ static gpg_error_t prime_generate_internal(
         if (perms[i]) {
           /* If the subprime has not yet beed generated do it now. */
           if (!pool[i] && is_locked) {
-            pool[i] = get_pool_prime(fbits, poolrandomlevel);
+            pool[i] = get_pool_prime(fbits);
             if (!pool[i]) {
               if ((err = gpgrt_lock_unlock(&primepool_lock))) goto leave;
               is_locked = 0;
             }
           }
-          if (!pool[i])
-            pool[i] = gen_prime(fbits, 0, poolrandomlevel, NULL, NULL);
+          if (!pool[i]) pool[i] = gen_prime(fbits, 0, NULL, NULL);
           pool_in_use[j] = i;
           factors[j++] = pool[i];
         }
@@ -443,7 +425,7 @@ static gpg_error_t prime_generate_internal(
         qbits++;
         progress('>');
         mpi_free(q);
-        q = gen_prime(qbits, is_secret, randomlevel, NULL, NULL);
+        q = gen_prime(qbits, is_secret, NULL, NULL);
         goto next_try;
       }
     } else
@@ -455,7 +437,7 @@ static gpg_error_t prime_generate_internal(
         qbits--;
         progress('<');
         mpi_free(q);
-        q = gen_prime(qbits, is_secret, randomlevel, NULL, NULL);
+        q = gen_prime(qbits, is_secret, NULL, NULL);
         goto next_try;
       }
     } else
@@ -546,7 +528,7 @@ leave:
           if (pool_in_use[j] == i) break;
         if (j == n && is_locked) {
           /* This pooled subprime has not been used. */
-          save_pool_prime(pool[i], poolrandomlevel);
+          save_pool_prime(pool[i]);
         } else
           mpi_free(pool[i]);
       }
@@ -589,11 +571,10 @@ gpg_error_t _gcry_generate_elg_prime(int mode, unsigned pbits, unsigned qbits,
   *r_prime = NULL;
   if (ret_factors) *ret_factors = NULL;
   return prime_generate_internal((mode == 1), r_prime, pbits, qbits, g,
-                                 ret_factors, GCRY_WEAK_RANDOM, 0, 0, NULL,
-                                 NULL);
+                                 ret_factors, 0, 0, NULL, NULL);
 }
 
-static gcry_mpi_t gen_prime(unsigned int nbits, int secret, int randomlevel,
+static gcry_mpi_t gen_prime(unsigned int nbits, int secret,
                             int (*extra_check)(void *, gcry_mpi_t),
                             void *extra_check_arg) {
   gcry_mpi_t prime, ptest, pminus1, val_2, val_3, result;
@@ -621,7 +602,7 @@ static gcry_mpi_t gen_prime(unsigned int nbits, int secret, int randomlevel,
     int dotcount = 0;
 
     /* generate a random number */
-    _gcry_mpi_randomize(prime, nbits, (gcry_random_level)(randomlevel));
+    _gcry_mpi_randomize(prime, nbits);
 
     /* Set high order bit to 1, set low order bit to 1.  If we are
        generating a secret prime we are most probably doing that
@@ -756,7 +737,7 @@ static int is_prime(gcry_mpi_t n, int steps, unsigned int *count) {
     if (!i) {
       mpi_set_ui(x, 2);
     } else {
-      _gcry_mpi_randomize(x, nbits, GCRY_WEAK_RANDOM);
+      _gcry_mpi_randomize(x, nbits);
 
       /* Make sure that the number is smaller than the prime and
          keep the randomness of the high bit. */
@@ -896,7 +877,6 @@ leave:
 gpg_error_t _gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
                                  unsigned int factor_bits, gcry_mpi_t **factors,
                                  gcry_prime_check_func_t cb_func, void *cb_arg,
-                                 gcry_random_level_t random_level,
                                  unsigned int flags) {
   gpg_error_t rc = 0;
   gcry_mpi_t *factors_generated = NULL;
@@ -909,10 +889,9 @@ gpg_error_t _gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
   if (flags & GCRY_PRIME_FLAG_SPECIAL_FACTOR) mode = 1;
 
   /* Generate.  */
-  rc = prime_generate_internal((mode == 1), &prime_generated, prime_bits,
-                               factor_bits, NULL,
-                               factors ? &factors_generated : NULL,
-                               random_level, flags, 1, cb_func, cb_arg);
+  rc = prime_generate_internal(
+      (mode == 1), &prime_generated, prime_bits, factor_bits, NULL,
+      factors ? &factors_generated : NULL, flags, 1, cb_func, cb_arg);
 
   if (!rc && cb_func) {
     /* Additional check. */

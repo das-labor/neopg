@@ -124,7 +124,7 @@ static int test_keys(RSA_secret_key *sk, unsigned int nbits) {
   pk.e = sk->e;
 
   /* Create a random plaintext.  */
-  _gcry_mpi_randomize(plaintext, nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(plaintext, nbits);
 
   /* Encrypt using the public key.  */
   public_x(ciphertext, plaintext, &pk);
@@ -141,7 +141,7 @@ static int test_keys(RSA_secret_key *sk, unsigned int nbits) {
     goto leave; /* Plaintext does not match.  */
 
   /* Create another random plaintext as data for signature checking.  */
-  _gcry_mpi_randomize(plaintext, nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(plaintext, nbits);
 
   /* Use the RSA secret function to create a signature of the plaintext.  */
   secret(signature, plaintext, sk);
@@ -203,15 +203,11 @@ static gpg_error_t generate_std(RSA_secret_key *sk, unsigned int nbits,
   gcry_mpi_t phi; /* helper: (p-1)(q-1) */
   gcry_mpi_t g;
   gcry_mpi_t f;
-  gcry_random_level_t random_level;
 
   if (fips_mode()) {
     if (nbits < 1024) return GPG_ERR_INV_VALUE;
     if (transient_key) return GPG_ERR_INV_VALUE;
   }
-
-  /* The random quality depends on the transient_key flag.  */
-  random_level = transient_key ? GCRY_STRONG_RANDOM : GCRY_VERY_STRONG_RANDOM;
 
   /* Make sure that nbits is even so that we generate p, q of equal size. */
   if ((nbits & 1)) nbits++;
@@ -245,13 +241,11 @@ static gpg_error_t generate_std(RSA_secret_key *sk, unsigned int nbits,
     if (q) _gcry_mpi_release(q);
     if (use_e) { /* Do an extra test to ensure that the given exponent is
                     suitable. */
-      p = _gcry_generate_secret_prime(nbits / 2, random_level, check_exponent,
-                                      e);
-      q = _gcry_generate_secret_prime(nbits / 2, random_level, check_exponent,
-                                      e);
+      p = _gcry_generate_secret_prime(nbits / 2, check_exponent, e);
+      q = _gcry_generate_secret_prime(nbits / 2, check_exponent, e);
     } else { /* We check the exponent later. */
-      p = _gcry_generate_secret_prime(nbits / 2, random_level, NULL, NULL);
-      q = _gcry_generate_secret_prime(nbits / 2, random_level, NULL, NULL);
+      p = _gcry_generate_secret_prime(nbits / 2, NULL, NULL);
+      q = _gcry_generate_secret_prime(nbits / 2, NULL, NULL);
     }
     if (mpi_cmp(p, q) > 0) /* p shall be smaller than q (for calc of u)*/
       mpi_swap(p, q);
@@ -356,7 +350,6 @@ static gpg_error_t generate_fips(RSA_secret_key *sk, unsigned int nbits,
   gcry_mpi_t g;
   gcry_mpi_t minp;
   gcry_mpi_t diff, mindiff;
-  gcry_random_level_t random_level;
   unsigned int pbits = nbits / 2;
   unsigned int i;
   int pqswitch;
@@ -365,9 +358,6 @@ static gpg_error_t generate_fips(RSA_secret_key *sk, unsigned int nbits,
   if (nbits < 1024 || (nbits & 0x1FF)) return GPG_ERR_INV_VALUE;
   if (_gcry_enforced_fips_mode() && nbits != 2048 && nbits != 3072)
     return GPG_ERR_INV_VALUE;
-
-  /* The random quality depends on the transient_key flag.  */
-  random_level = transient_key ? GCRY_STRONG_RANDOM : GCRY_VERY_STRONG_RANDOM;
 
   if (testparms) {
     /* Parameters to derive the key are given.  */
@@ -436,7 +426,7 @@ retry:
   for (i = 0; i < 5 * pbits; i++) {
   ploop:
     if (!testparms) {
-      _gcry_mpi_randomize(p, pbits, random_level);
+      _gcry_mpi_randomize(p, pbits);
     }
     if (mpi_cmp(p, minp) < 0) {
       if (testparms) goto err;
@@ -458,7 +448,7 @@ retry:
   for (i = 0; i < 5 * pbits; i++) {
   qloop:
     if (!testparms) {
-      _gcry_mpi_randomize(q, pbits, random_level);
+      _gcry_mpi_randomize(q, pbits);
     }
     if (mpi_cmp(q, minp) < 0) {
       if (testparms) goto err;
@@ -577,7 +567,7 @@ static gcry_mpi_t gen_x931_parm_xp(unsigned int nbits) {
   gcry_mpi_t xp;
 
   xp = mpi_snew(nbits);
-  _gcry_mpi_randomize(xp, nbits, GCRY_VERY_STRONG_RANDOM);
+  _gcry_mpi_randomize(xp, nbits);
 
   /* The requirement for Xp is:
 
@@ -598,7 +588,7 @@ static gcry_mpi_t gen_x931_parm_xi(void) {
   gcry_mpi_t xi;
 
   xi = mpi_snew(101);
-  _gcry_mpi_randomize(xi, 101, GCRY_VERY_STRONG_RANDOM);
+  _gcry_mpi_randomize(xi, 101);
   mpi_set_highbit(xi, 100);
   gcry_assert(mpi_get_nbits(xi) == 101);
 
@@ -934,7 +924,7 @@ static void secret_core_crt(gcry_mpi_t M, gcry_mpi_t C, gcry_mpi_t D,
 
   /* d_blind = (d mod (p-1)) + (p-1) * r            */
   /* m1 = c ^ d_blind mod p */
-  _gcry_mpi_randomize(r, r_nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(r, r_nbits);
   mpi_set_highbit(r, r_nbits - 1);
   mpi_sub_ui(h, P, 1);
   mpi_mul(D_blind, h, r);
@@ -944,7 +934,7 @@ static void secret_core_crt(gcry_mpi_t M, gcry_mpi_t C, gcry_mpi_t D,
 
   /* d_blind = (d mod (q-1)) + (q-1) * r            */
   /* m2 = c ^ d_blind mod q */
-  _gcry_mpi_randomize(r, r_nbits, GCRY_WEAK_RANDOM);
+  _gcry_mpi_randomize(r, r_nbits);
   mpi_set_highbit(r, r_nbits - 1);
   mpi_sub_ui(h, Q, 1);
   mpi_mul(D_blind, h, r);
@@ -1001,7 +991,7 @@ static void secret_blinded(gcry_mpi_t output, gcry_mpi_t input,
   bldata = mpi_snew(nbits);
 
   do {
-    _gcry_mpi_randomize(r, nbits, GCRY_WEAK_RANDOM);
+    _gcry_mpi_randomize(r, nbits);
     mpi_mod(r, r, sk->n);
   } while (!mpi_invm(ri, r, sk->n));
 

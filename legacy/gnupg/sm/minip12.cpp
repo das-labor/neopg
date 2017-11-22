@@ -1484,7 +1484,7 @@ static unsigned char *create_final(struct buffer_s *sequences, const char *pw,
   if (with_mac) {
     /* Intermezzo to compute the MAC. */
     maclen = p - macstart;
-    gcry_randomize(salt, 8, GCRY_STRONG_RANDOM);
+    gcry_randomize(salt, 8);
     if (string_to_key(3, salt, 8, 2048, pw, 20, keybuf)) {
       gcry_free(result);
       return NULL;
@@ -2065,7 +2065,7 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
     if (!buffer) goto failure;
 
     /* Encrypt it. */
-    gcry_randomize(salt, 8, GCRY_STRONG_RANDOM);
+    gcry_randomize(salt, 8);
     crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, pw,
                 GCRY_CIPHER_RFC2268_40, 1);
 
@@ -2084,7 +2084,7 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
     if (!buffer) goto failure;
 
     /* Encrypt it. */
-    gcry_randomize(salt, 8, GCRY_STRONG_RANDOM);
+    gcry_randomize(salt, 8);
     crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, pw, GCRY_CIPHER_3DES,
                 1);
 

@@ -77,7 +77,7 @@ gpg_error_t _gcry_rsa_pss_verify(gcry_mpi_t value, gcry_mpi_t encoded,
                                  unsigned int nbits, int algo, size_t saltlen);
 
 /*-- dsa-common.c --*/
-gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q, int security_level);
+gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q);
 gpg_error_t _gcry_dsa_gen_rfc6979_k(gcry_mpi_t *r_k, gcry_mpi_t dsa_q,
                                     gcry_mpi_t dsa_x, const unsigned char *h1,
                                     unsigned int h1len, int halgo,

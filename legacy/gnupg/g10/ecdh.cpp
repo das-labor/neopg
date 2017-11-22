@@ -391,7 +391,7 @@ static gcry_mpi_t gen_k(unsigned nbits) {
   k = gcry_mpi_snew(nbits);
   if (DBG_CRYPTO) log_debug("choosing a random k of %u bits\n", nbits);
 
-  gcry_mpi_randomize(k, nbits - 1, GCRY_STRONG_RANDOM);
+  gcry_mpi_randomize(k, nbits - 1);
 
   if (DBG_CRYPTO) {
     unsigned char *buffer;
