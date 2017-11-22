@@ -49,7 +49,7 @@
 #define MAX_PASSPHRASE_LEN 255
 
 /* A large struct name "opt" to keep global flags */
-struct options {
+struct agent_options {
   unsigned int debug; /* Debug flags (DBG_foo_VALUE) */
   int verbose;        /* Verbosity level */
   int quiet;          /* Be as quiet as possible */
@@ -114,7 +114,7 @@ struct options {
      to allow it to enable such a cache.  */
   int allow_external_cache;
 };
-extern struct options agent_opt;
+extern struct agent_options agent_opt;
 #define opt agent_opt
 
 /* Bit values for the --debug option.  */

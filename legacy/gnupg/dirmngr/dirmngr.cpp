@@ -66,7 +66,7 @@
 #define ENAMETOOLONG EINVAL
 #endif
 
-struct options dirmngr_opt;
+struct dirmngr_options dirmngr_opt;
 
 enum cmd_and_opt_values {
   aNull = 0,
@@ -520,7 +520,7 @@ static int parse_rereadable_options(ARGPARSE_ARGS *pargs, int reread) {
     } break;
 
     case oIgnoreCertExtension:
-      opt.ignored_cert_extensions.insert(pargs->r.ret_str);
+      opt.ignored_cert_extensions.emplace((std::string)pargs->r.ret_str);
       break;
 
     case oStandardResolver:

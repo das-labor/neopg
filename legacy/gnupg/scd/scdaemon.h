@@ -49,7 +49,8 @@ struct {
   int disable_pinpad;         /* Do not use a pinpad. */
   int enable_pinpad_varlen;   /* Use variable length input for pinpad. */
   unsigned long card_timeout; /* Disconnect after N seconds of inactivity.  */
-} opt;
+} scd_opt;
+#define opt scd_opt
 
 #define DBG_MPI_VALUE 2       /* debug mpi details */
 #define DBG_CRYPTO_VALUE 4    /* debug low level crypto */

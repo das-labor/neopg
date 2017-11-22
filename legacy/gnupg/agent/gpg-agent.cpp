@@ -56,7 +56,7 @@
 #include "../common/init.h"
 #include "../common/sysutils.h"
 
-struct options opt;
+struct agent_options opt;
 
 enum cmd_and_opt_values {
   aNull = 0,

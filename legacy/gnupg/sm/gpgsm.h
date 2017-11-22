@@ -114,7 +114,8 @@ struct {
   strlist_t ignored_cert_extensions;
 
   enum gnupg_compliance_mode compliance;
-} opt;
+} gpgsm_opt;
+#define opt gpgsm_opt
 
 /* Debug values and macros.  */
 #define DBG_X509_VALUE 1      /* debug x.509 data reading/writing */

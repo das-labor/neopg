@@ -56,7 +56,7 @@ struct fingerprint_list_s {
 };
 
 /* A large struct named "opt" to keep global flags.  */
-struct options {
+struct dirmngr_options {
   unsigned int debug;        /* debug flags (DBG_foo_VALUE) */
   int verbose;               /* verbosity level */
   int quiet;                 /* be as quiet as possible */
@@ -108,7 +108,7 @@ struct options {
 
   std::vector<std::string> keyserver; /* List of default keyservers.  */
 };
-extern struct options dirmngr_opt;
+extern struct dirmngr_options dirmngr_opt;
 #define opt dirmngr_opt
 
 #define DBG_X509_VALUE 1        /* debug x.509 parsing */
