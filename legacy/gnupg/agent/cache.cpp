@@ -26,9 +26,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <botan/auto_rng.h>
 #include <botan/rfc3394.h>
-#include <botan/rng.h>
+#include <neopg/crypto/rng.h>
 
 #include "agent.h"
 
@@ -95,8 +94,8 @@ static gpg_error_t init_encryption(void) {
 
   if (encryption_handle) return 0;
 
-  std::unique_ptr<Botan::RandomNumberGenerator> rng(new Botan::AutoSeeded_RNG);
-  encryption_handle = new Botan::SymmetricKey(*rng, ENCRYPTION_KEYSIZE);
+  encryption_handle =
+      new Botan::SymmetricKey(*NeoPG::Crypto::rng, ENCRYPTION_KEYSIZE);
 
   return 0;
 }

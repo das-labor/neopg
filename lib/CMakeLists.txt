@@ -10,6 +10,7 @@ FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 set(LIBNEOPG_INCLUDE ../include)
 
 add_library(libneopg
+  ../include/neopg/crypto/rng.h
   ../include/neopg/openpgp/header.h
   ../include/neopg/openpgp/literal_data_packet.h
   ../include/neopg/openpgp/marker_packet.h
@@ -25,6 +26,7 @@ add_library(libneopg
   ../include/neopg/utils/time.h
   utils/time.cpp
   utils/stream.cpp
+  crypto/rng.cpp
   openpgp/header.cpp
   openpgp/literal_data_packet.cpp
   openpgp/marker_packet.cpp
@@ -43,6 +45,7 @@ target_compile_options(libneopg
   PRIVATE
   -fvisibility=hidden -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
   -std=c++11
+  ${BOTAN2_CFLAGS_OTHER}
 )
 
 target_include_directories(libneopg PUBLIC
@@ -50,4 +53,9 @@ target_include_directories(libneopg PUBLIC
    ${PEGTL_INCLUDE_DIR}
    ${GTEST_INCLUDE_DIR}
    ${Boost_INCLUDE_DIR}
+   ${BOTAN2_INCLUDE_DIRS}
+)
+
+target_link_libraries(libneopg PRIVATE
+${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 )
