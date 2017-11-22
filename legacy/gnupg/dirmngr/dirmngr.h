@@ -57,54 +57,56 @@ struct fingerprint_list_s {
 
 /* A large struct named "opt" to keep global flags.  */
 struct dirmngr_options {
-  unsigned int debug;        /* debug flags (DBG_foo_VALUE) */
-  int verbose;               /* verbosity level */
-  int quiet;                 /* be as quiet as possible */
-  int dry_run;               /* don't change any persistent data */
-  int batch;                 /* batch mode */
-  const char *homedir_cache; /* Dir for cache files (/var/cache/dirmngr).  */
+  unsigned int debug{0}; /* debug flags (DBG_foo_VALUE) */
+  int verbose{0};        /* verbosity level */
+  int quiet{0};          /* be as quiet as possible */
+  int dry_run{0};        /* don't change any persistent data */
+  int batch{0};          /* batch mode */
+  const char *homedir_cache{
+      nullptr}; /* Dir for cache files (/var/cache/dirmngr).  */
 
-  char *config_filename; /* Name of a config file, which will be
-                            reread on a HUP if it is not NULL. */
+  char *config_filename{nullptr}; /* Name of a config file, which will be
+                           reread on a HUP if it is not NULL. */
 
-  char *http_wrapper_program; /* Override value for the HTTP wrapper
-                                 program.  */
+  char *http_wrapper_program{nullptr}; /* Override value for the HTTP wrapper
+                                program.  */
 
-  int running_detached;    /* We are running in detached mode.  */
-  int allow_version_check; /* --allow-version-check is active.  */
+  int running_detached{0};    /* We are running in detached mode.  */
+  int allow_version_check{0}; /* --allow-version-check is active.  */
 
-  int force; /* Force loading outdated CRLs. */
+  int force{0}; /* Force loading outdated CRLs. */
 
-  unsigned int connect_timeout;       /* Timeout for connect.  */
-  unsigned int connect_quick_timeout; /* Shorter timeout for connect.  */
+  unsigned int connect_timeout{0};       /* Timeout for connect.  */
+  unsigned int connect_quick_timeout{0}; /* Shorter timeout for connect.  */
 
-  int disable_http;            /* Do not use HTTP at all.  */
-  int disable_ipv4;            /* Do not use legacy IP addresses.  */
-  int disable_ipv6;            /* Do not use standard IP addresses.  */
-  int honor_http_proxy;        /* Honor the http_proxy env variable. */
-  const char *http_proxy;      /* The default HTTP proxy.  */
-  int ignore_http_dp;          /* Ignore HTTP CRL distribution points.  */
-  int ignore_ocsp_service_url; /* Ignore OCSP service URLs as given in
-                                  the certificate.  */
+  int disable_http{0};            /* Do not use HTTP at all.  */
+  int disable_ipv4{0};            /* Do not use legacy IP addresses.  */
+  int disable_ipv6{0};            /* Do not use standard IP addresses.  */
+  int honor_http_proxy{0};        /* Honor the http_proxy env variable. */
+  const char *http_proxy{0};      /* The default HTTP proxy.  */
+  int ignore_http_dp{0};          /* Ignore HTTP CRL distribution points.  */
+  int ignore_ocsp_service_url{0}; /* Ignore OCSP service URLs as given in
+                                 the certificate.  */
 
   /* A list of certificate extension OIDs which are ignored so that
      one can claim that a critical extension has been handled.  One
      OID per string.  */
   std::set<std::string> ignored_cert_extensions;
 
-  int allow_ocsp; /* Allow using OCSP. */
+  int allow_ocsp{0}; /* Allow using OCSP. */
 
-  int max_replies;
+  int max_replies{0};
 
-  const char *ocsp_responder;     /* Standard OCSP responder's URL. */
-  fingerprint_list_t ocsp_signer; /* The list of fingerprints with allowed
-                                     standard OCSP signer certificates.  */
+  const char *ocsp_responder{nullptr}; /* Standard OCSP responder's URL. */
+  fingerprint_list_t ocsp_signer{
+      nullptr}; /* The list of fingerprints with allowed
+         standard OCSP signer certificates.  */
 
-  unsigned int ocsp_max_clock_skew; /* Allowed seconds of clocks skew. */
-  unsigned int ocsp_max_period;     /* Seconds a response is at maximum
-                                       considered valid after thisUpdate. */
-  unsigned int ocsp_current_period; /* Seconds a response is considered
-                                       current after nextUpdate. */
+  unsigned int ocsp_max_clock_skew{0}; /* Allowed seconds of clocks skew. */
+  unsigned int ocsp_max_period{0};     /* Seconds a response is at maximum
+                                      considered valid after thisUpdate. */
+  unsigned int ocsp_current_period{0}; /* Seconds a response is considered
+                                      current after nextUpdate. */
 
   std::vector<std::string> keyserver; /* List of default keyservers.  */
 };
