@@ -11,16 +11,14 @@
 namespace NeoPG {
 namespace CLI {
 
-class VersionCommand : public Command {
+class RandomCommand : public Command {
  public:
   void run() override;
-  VersionCommand(CLI::App& app, const std::string& flag,
-                 const std::string& description)
-      : Command(app, flag, description) {
-    // Hide this option.
-    m_cmd.group("");
-  }
-  virtual ~VersionCommand() {}
+  RandomCommand(CLI::App& app, const std::string& flag,
+                const std::string& description,
+                const std::string& group_name = "")
+      : Command(app, flag, description, group_name) {}
+  virtual ~RandomCommand() {}
 };
 
 }  // Namespace CLI
