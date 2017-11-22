@@ -30,7 +30,7 @@ LegacyCommand::LegacyCommand(CLI::App& app, const main_fnc_t& main_fnc,
 void LegacyCommand::run() {
   std::vector<char*> args = {(char*)m_cmd.get_name().c_str()};
   std::vector<std::string> remaining = m_cmd.remaining();
-  for (auto arg : remaining) {
+  for (auto& arg : remaining) {
     args.push_back(const_cast<char*>(arg.c_str()));
   }
   m_main_fnc(args.size(), args.data());
