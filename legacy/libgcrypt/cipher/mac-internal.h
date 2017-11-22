@@ -77,7 +77,6 @@ typedef struct gcry_mac_spec {
   int algo;
   struct {
     unsigned int disabled : 1;
-    unsigned int fips : 1;
   } flags;
   const char *name;
   const gcry_mac_spec_ops_t *ops;

@@ -89,7 +89,6 @@ static const struct {
 typedef struct {
   const char *desc;      /* Description of the curve.  */
   unsigned int nbits;    /* Number of bits.  */
-  unsigned int fips : 1; /* True if this is a FIPS140-2 approved curve. */
 
   /* The model describing this curve.  This is mainly used to select
      the group equation. */
@@ -111,7 +110,7 @@ typedef struct {
 /* This static table defines all available curves.  */
 static const ecc_domain_parms_t domain_parms[] = {
     {/* (-x^2 + y^2 = 1 + dx^2y^2) */
-     "Ed25519", 256, 0, (enum gcry_mpi_ec_models)MPI_EC_EDWARDS,
+     "Ed25519", 256, (enum gcry_mpi_ec_models)MPI_EC_EDWARDS,
      (ecc_dialects)ECC_DIALECT_ED25519,
      "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED",
      "-0x01",
@@ -121,7 +120,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x6666666666666666666666666666666666666666666666666666666666666658",
      "0x08"},
     {/* (y^2 = x^3 + 486662*x^2 + x) */
-     "Curve25519", 256, 0, (enum gcry_mpi_ec_models)MPI_EC_MONTGOMERY,
+     "Curve25519", 256, (enum gcry_mpi_ec_models)MPI_EC_MONTGOMERY,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED",
      "0x01DB41", "0x01",
@@ -135,7 +134,7 @@ static const ecc_domain_parms_t domain_parms[] = {
       "Curve3617",
       "0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
       "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF",
-      (enum gcry_mpi_ec_models) MPI_EC_EDWARDS, 0,
+      (enum gcry_mpi_ec_models) MPI_EC_EDWARDS,
       "0x01",
       "0x0e21",
       "0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEB3CC92414CF"
@@ -146,7 +145,7 @@ static const ecc_domain_parms_t domain_parms[] = {
       "0x08"
     },
 #endif /*0*/
-    {"NIST P-192", 192, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"NIST P-192", 192, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xfffffffffffffffffffffffffffffffeffffffffffffffff",
      "0xfffffffffffffffffffffffffffffffefffffffffffffffc",
@@ -155,7 +154,7 @@ static const ecc_domain_parms_t domain_parms[] = {
 
      "0x188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012",
      "0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811", "0x01"},
-    {"NIST P-224", 224, 1, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"NIST P-224", 224, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xffffffffffffffffffffffffffffffff000000000000000000000001",
      "0xfffffffffffffffffffffffffffffffefffffffffffffffffffffffe",
@@ -164,7 +163,7 @@ static const ecc_domain_parms_t domain_parms[] = {
 
      "0xb70e0cbd6bb4bf7f321390b94a03c1d356c21122343280d6115c1d21",
      "0xbd376388b5f723fb4c22dfe6cd4375a05a07476444d5819985007e34", "0x01"},
-    {"NIST P-256", 256, 1, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"NIST P-256", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff",
      "0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
@@ -174,7 +173,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296",
      "0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
      "0x01"},
-    {"NIST P-384", 384, 1, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"NIST P-384", 384, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"
      "ffffffff0000000000000000ffffffff",
@@ -190,7 +189,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c0"
      "0a60b1ce1d7e819d7a431d7c90ea0e5f",
      "0x01"},
-    {"NIST P-521", 521, 1, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"NIST P-521", 521, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
      "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -207,7 +206,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650",
      "0x01"},
 
-    {"brainpoolP160r1", 160, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP160r1", 160, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xe95e4a5f737059dc60dfc7ad95b3d8139515620f",
      "0x340e7be2a280eb74e2be61bada745d97e8f7c300",
@@ -216,7 +215,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0xbed5af16ea3f6a4f62938c4631eb5af7bdbcdbc3",
      "0x1667cb477a1a8ec338f94741669c976316da6321", "0x01"},
 
-    {"brainpoolP192r1", 192, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP192r1", 192, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xc302f41d932a36cda7a3463093d18db78fce476de1a86297",
      "0x6a91174076b1e0e19c39c031fe8685c1cae040e5c69a28ef",
@@ -225,7 +224,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0xc0a0647eaab6a48753b033c56cb0f0900a2f5c4853375fd6",
      "0x14b690866abd5bb88b5f4828c1490002e6773fa2fa299b8f", "0x01"},
 
-    {"brainpoolP224r1", 224, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP224r1", 224, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xd7c134aa264366862a18302575d1d787b09f075797da89f57ec8c0ff",
      "0x68a5e62ca9ce6c1c299803a6c1530b514e182ad8b0042a59cad29f43",
@@ -234,7 +233,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0d9029ad2c7e5cf4340823b2a87dc68c9e4ce3174c1e6efdee12c07d",
      "0x58aa56f772c0726f24c6b89e4ecdac24354b9e99caa3f6d3761402cd", "0x01"},
 
-    {"brainpoolP256r1", 256, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP256r1", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xa9fb57dba1eea9bc3e660a909d838d726e3bf623d52620282013481d1f6e5377",
      "0x7d5a0975fc2c3057eef67530417affe7fb8055c126dc5c6ce94a4b44f330b5d9",
@@ -244,7 +243,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x547ef835c3dac4fd97f8461a14611dc9c27745132ded8e545c1d54c72f046997",
      "0x01"},
 
-    {"brainpoolP320r1", 320, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP320r1", 320, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xd35e472036bc4fb7e13c785ed201e065f98fcfa6f6f40def4f92b9ec7893ec28"
      "fcd412b1f1b32e27",
@@ -260,7 +259,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "d35245d1692e8ee1",
      "0x01"},
 
-    {"brainpoolP384r1", 384, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP384r1", 384, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x8cb91e82a3386d280f5d6f7e50e641df152f7109ed5456b412b1da197fb71123"
      "acd3a729901d1a71874700133107ec53",
@@ -276,7 +275,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0e4646217791811142820341263c5315",
      "0x01"},
 
-    {"brainpoolP512r1", 512, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"brainpoolP512r1", 512, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xaadd9db8dbe9c48b3fd4e6ae33c9fc07cb308db3b3c9d20ed6639cca70330871"
      "7d4d9b009bc66842aecda12ae6a380e62881ff2f2d82c68528aa6056583a48f3",
@@ -291,7 +290,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x7dde385d566332ecc0eabfa9cf7822fdf209f70024a57b1aa000c55b881f8111"
      "b2dcde494a5f485e5bca4bd88a2763aed1ca2b2fa8f0540678cd1e0f3ad80892",
      "0x01"},
-    {"GOST2001-test", 256, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2001-test", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x8000000000000000000000000000000000000000000000000000000000000431",
      "0x0000000000000000000000000000000000000000000000000000000000000007",
@@ -301,7 +300,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000002",
      "0x08e2a8a0e65147d4bd6316030e16d19c85c97f0a9ca267122b96abbcea7e8fc8",
      "0x01"},
-    {"GOST2001-CryptoPro-A", 256, 0,
+    {"GOST2001-CryptoPro-A", 256,
      (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd97",
@@ -311,7 +310,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000001",
      "0x8d91e471e0989cda27df505a453f2b7635294f2ddf23e3b122acc99c9e9f1e14",
      "0x01"},
-    {"GOST2001-CryptoPro-B", 256, 0,
+    {"GOST2001-CryptoPro-B", 256,
      (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x8000000000000000000000000000000000000000000000000000000000000c99",
@@ -321,7 +320,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000001",
      "0x3fa8124359f96680b83d1c3eb2c070e5c545c9858d03ecfb744bf8d717717efc",
      "0x01"},
-    {"GOST2001-CryptoPro-C", 256, 0,
+    {"GOST2001-CryptoPro-C", 256,
      (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x9b9f605f5a858107ab1ec85e6b41c8aacf846e86789051d37998f7b9022d759b",
@@ -331,7 +330,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000000",
      "0x41ece55743711a8c3cbf3783cd08c0ee4d4dc440d4641a8f366e550dfdb3bb67",
      "0x01"},
-    {"GOST2012-test", 511, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2012-test", 511, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x4531acd1fe0023c7550d267b6b2fee80922b14b2ffb90f04d4eb7c09b5d2d15d"
      "f1d852741af4704a0458047e80e4546d35b8336fac224dd81664bbf528be6373",
@@ -346,7 +345,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x2bb312a43bd2ce6e0d020613c857acddcfbf061e91e5f2c3f32447c259f39b2"
      "c83ab156d77f1496bf7eb3351e1ee4e43dc1a18b91b24640b6dbb92cb1add371e",
      "0x01"},
-    {"GOST2012-tc26-A", 512, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2012-tc26-A", 512, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
      "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc7",
@@ -361,7 +360,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x7503cfe87a836ae3a61b8816e25450e6ce5e1c93acf1abc1778064fdcbefa921"
      "df1626be4fd036e93d75e6a50e3a41e98028fe5fc235f5b889a589cb5215f2a4",
      "0x01"},
-    {"GOST2012-tc26-B", 512, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2012-tc26-B", 512, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x8000000000000000000000000000000000000000000000000000000000000000"
      "000000000000000000000000000000000000000000000000000000000000006f",
@@ -377,7 +376,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "dcb228fd1edf4a39152cbcaaf8c0398828041055f94ceeec7e21340780fe41bd",
      "0x01"},
 
-    {"secp256k1", 256, 0, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"secp256k1", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
      "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -387,7 +386,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
      "0x01"},
 
-    {NULL, 0, 0, (enum gcry_mpi_ec_models)0, (ecc_dialects)0, NULL, NULL, NULL,
+    {NULL, 0, (enum gcry_mpi_ec_models)0, (ecc_dialects)0, NULL, NULL, NULL,
      NULL, NULL}};
 
 /* Return a copy of POINT.  */
@@ -461,11 +460,6 @@ gpg_error_t _gcry_ecc_fill_in_curve(unsigned int nbits, const char *name,
   if (idx < 0) return GPG_ERR_UNKNOWN_CURVE;
 
   resname = domain_parms[idx].desc;
-
-  /* In fips mode we only support NIST curves.  Note that it is
-     possible to bypass this check by specifying the curve parameters
-     directly.  */
-  if (fips_mode() && !domain_parms[idx].fips) return GPG_ERR_NOT_SUPPORTED;
 
   switch (domain_parms[idx].model) {
     case MPI_EC_WEIERSTRASS:

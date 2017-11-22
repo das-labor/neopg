@@ -256,11 +256,6 @@ static gpg_error_t generate(DSA_secret_key *sk, unsigned int nbits,
   if (qbits < 160 || qbits > 512 || (qbits % 8)) return GPG_ERR_INV_VALUE;
   if (nbits < 2 * qbits || nbits > 15360) return GPG_ERR_INV_VALUE;
 
-  if (fips_mode()) {
-    if (nbits < 1024) return GPG_ERR_INV_VALUE;
-    if (transient_key) return GPG_ERR_INV_VALUE;
-  }
-
   if (domain->p && domain->q && domain->g) {
     /* Domain parameters are given; use them.  */
     p = mpi_copy(domain->p);
@@ -358,7 +353,6 @@ static gpg_error_t generate(DSA_secret_key *sk, unsigned int nbits,
     sk->y = NULL;
     _gcry_mpi_release(sk->x);
     sk->x = NULL;
-    fips_signal_error("self-test after key generation failed");
     return GPG_ERR_SELFTEST_FAILED;
   }
   return 0;
@@ -533,7 +527,6 @@ leave:
     sk->y = NULL;
     _gcry_mpi_release(sk->x);
     sk->x = NULL;
-    fips_signal_error("self-test after key generation failed");
     ec = GPG_ERR_SELFTEST_FAILED;
   }
 
@@ -827,7 +820,7 @@ static gpg_error_t dsa_generate(const gcry_sexp_t genparms,
   }
 
   if (deriveparms || (flags & PUBKEY_FLAG_USE_FIPS186) ||
-      (flags & PUBKEY_FLAG_USE_FIPS186_2) || fips_mode()) {
+      (flags & PUBKEY_FLAG_USE_FIPS186_2)) {
     int counter;
     void *seed;
     size_t seedlen;
@@ -974,7 +967,7 @@ static gpg_error_t dsa_sign(gcry_sexp_t *r_sig, gcry_sexp_t s_data,
     log_mpidump("dsa_sign      q", sk.q);
     log_mpidump("dsa_sign      g", sk.g);
     log_mpidump("dsa_sign      y", sk.y);
-    if (!fips_mode()) log_mpidump("dsa_sign      x", sk.x);
+    log_mpidump("dsa_sign      x", sk.x);
   }
 
   sig_r = mpi_new(0);

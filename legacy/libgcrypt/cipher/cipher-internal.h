@@ -231,7 +231,6 @@ struct gcry_cipher_handle {
       unsigned int ghash_aad_finalized : 1;
 
       unsigned int datalen_over_limits : 1;
-      unsigned int disallow_encryption_because_of_setiv_in_fips_mode : 1;
 
       /* --- Following members are not cleared in gcry_cipher_reset --- */
 

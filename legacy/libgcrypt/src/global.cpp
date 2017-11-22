@@ -46,10 +46,6 @@
  */
 static unsigned int debug_flags;
 
-/* gcry_control (GCRYCTL_SET_FIPS_MODE), sets this flag so that the
-   initialization code switched fips mode on.  */
-static int force_fips_mode;
-
 /* Controlled by global_init().  */
 static int any_init_done;
 
@@ -89,24 +85,12 @@ static void global_init(void) {
   if (!pre_syscall_func)
     gpgrt_get_syscall_clamp(&pre_syscall_func, &post_syscall_func);
 
-  /* See whether the system is in FIPS mode.  This needs to come as
-     early as possible but after ATH has been initialized.  */
-  _gcry_initialize_fips_mode(force_fips_mode);
-
   /* Before we do any other initialization we need to test available
      hardware features.  */
   _gcry_detect_hw_features();
 
   /* Initialize the modules - this is mainly allocating some memory and
      creating mutexes.  */
-  err = _gcry_cipher_init();
-  if (err) goto fail;
-  err = _gcry_md_init();
-  if (err) goto fail;
-  err = _gcry_mac_init();
-  if (err) goto fail;
-  err = _gcry_pk_init();
-  if (err) goto fail;
   err = _gcry_primegen_init();
   if (err) goto fail;
   err = _gcry_secmem_module_init();
@@ -118,35 +102,6 @@ static void global_init(void) {
 
 fail:
   BUG();
-}
-
-/* This function is called by the macro fips_is_operational and makes
-   sure that the minimal initialization has been done.  This is far
-   from a perfect solution and hides problems with an improper
-   initialization but at least in single-threaded mode it should work
-   reliable.
-
-   The reason we need this is that a lot of applications don't use
-   Libgcrypt properly by not running any initialization code at all.
-   They just call a Libgcrypt function and that is all what they want.
-   Now with the FIPS mode, that has the side effect of entering FIPS
-   mode (for security reasons, FIPS mode is the default if no
-   initialization has been done) and bailing out immediately because
-   the FSM is in the wrong state.  If we always run the init code,
-   Libgcrypt can test for FIPS mode and at least if not in FIPS mode,
-   it will behave as before.  Note that this on-the-fly initialization
-   is only done for the cryptographic functions subject to FIPS mode
-   and thus not all API calls will do such an initialization.  */
-int _gcry_global_is_operational(void) {
-  if (!any_init_done) {
-#ifdef HAVE_SYSLOG
-    syslog(LOG_USER | LOG_WARNING,
-           "Libgcrypt warning: "
-           "missing initialization - please fix the application");
-#endif /*HAVE_SYSLOG*/
-    global_init();
-  }
-  return _gcry_fips_is_operational();
 }
 
 /* Version number parsing.  */
@@ -272,14 +227,6 @@ static void print_config(const char *what, gpgrt_stream_t fp) {
     for (i = 0; (s = _gcry_enum_hw_features(i, &afeature)); i++)
       if ((hwfeatures & afeature)) gpgrt_fprintf(fp, "%s:", s);
     gpgrt_fprintf(fp, "\n");
-  }
-
-  if (!what || !strcmp(what, "fips-mode")) {
-    /* We use y/n instead of 1/0 for the stupid reason that
-     * Emacsen's compile error parser would accidentally flag that
-     * line when printed during "make check" as an error.  */
-    gpgrt_fprintf(fp, "fips-mode:%c:%c:\n", fips_mode() ? 'y' : 'n',
-                  _gcry_enforced_fips_mode() ? 'y' : 'n');
   }
 }
 
@@ -421,8 +368,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       if (!init_finished) {
         global_init();
         init_finished = 1;
-        /* Force us into operational state if in FIPS mode.  */
-        (void)fips_is_operational();
       }
       break;
 
@@ -449,46 +394,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       }
     } break;
 
-    case GCRYCTL_OPERATIONAL_P:
-      /* Returns true if the library is in an operational state.  This
-         is always true for non-fips mode.  */
-      if (_gcry_fips_test_operational())
-        rc = GPG_ERR_GENERAL; /* Used as TRUE value */
-      break;
-
-    case GCRYCTL_FIPS_MODE_P:
-      if (fips_mode() && !_gcry_is_fips_mode_inactive() && !no_secure_memory)
-        rc = GPG_ERR_GENERAL; /* Used as TRUE value */
-      break;
-
-    case GCRYCTL_FORCE_FIPS_MODE:
-      /* Performing this command puts the library into fips mode.  If
-         the library has already been initialized into fips mode, a
-         selftest is triggered.  It is not possible to put the libraty
-         into fips mode after having passed the initialization. */
-      if (!any_init_done) {
-        /* Not yet initialized at all.  Set a flag so that we are put
-           into fips mode during initialization.  */
-        force_fips_mode = 1;
-      } else {
-        /* Already initialized.  If we are already operational we
-           run a selftest.  If not we use the is_operational call to
-           force us into operational state if possible.  */
-        if (_gcry_fips_test_error_or_operational()) _gcry_fips_run_selftests(1);
-        if (_gcry_fips_is_operational())
-          rc = GPG_ERR_GENERAL; /* Used as TRUE value */
-      }
-      break;
-
-    case GCRYCTL_SELFTEST:
-      /* Run a selftest.  This works in fips mode as well as in
-         standard mode.  In contrast to the power-up tests, we use an
-         extended version of the selftests. Returns 0 on success or an
-         error code. */
-      global_init();
-      rc = _gcry_fips_run_selftests(1);
-      break;
-
 #if _GCRY_GCC_VERSION >= 40600
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
@@ -508,14 +413,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       rc = _gcry_disable_hw_feature(name);
     } break;
 
-    case GCRYCTL_SET_ENFORCED_FIPS_FLAG:
-      if (!any_init_done) {
-        /* Not yet initialized at all.  Set the enforced fips mode flag */
-        _gcry_set_enforced_fips_mode();
-      } else
-        rc = GPG_ERR_GENERAL;
-      break;
-
     case GCRYCTL_DISABLE_LOCKED_SECMEM:
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_NO_MLOCK));
@@ -524,11 +421,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
     case GCRYCTL_DISABLE_PRIV_DROP:
       _gcry_secmem_set_flags(
           (_gcry_secmem_get_flags() | GCRY_SECMEM_FLAG_NO_PRIV_DROP));
-      break;
-
-    case GCRYCTL_INACTIVATE_FIPS_FLAG:
-    case GCRYCTL_REACTIVATE_FIPS_FLAG:
-      rc = GPG_ERR_NOT_IMPLEMENTED;
       break;
 
     case GCRYCTL_REINIT_SYSCALL_CLAMP:
@@ -555,13 +447,6 @@ void _gcry_set_allocation_handler(
     gcry_handler_free_t new_free_func) {
   global_init();
 
-  if (fips_mode()) {
-    /* We do not want to enforce the fips mode, but merely set a
-       flag so that the application may check whether it is still in
-       fips mode.  */
-    _gcry_inactivate_fips_mode("custom allocation handler");
-  }
-
   alloc_func = new_alloc_func;
   alloc_secure_func = new_alloc_secure_func;
   is_secure_func = new_is_secure_func;
@@ -587,11 +472,6 @@ void _gcry_set_outofcore_handler(int (*f)(void *, size_t, unsigned int),
                                  void *value) {
   global_init();
 
-  if (fips_mode()) {
-    log_info("out of core handler ignored in FIPS mode\n");
-    return;
-  }
-
   outofcore_handler = f;
   outofcore_handler_value = value;
 }
@@ -599,10 +479,6 @@ void _gcry_set_outofcore_handler(int (*f)(void *, size_t, unsigned int),
 /* Return the no_secure_memory flag.  */
 static int get_no_secure_memory(void) {
   if (!no_secure_memory) return 0;
-  if (_gcry_enforced_fips_mode()) {
-    no_secure_memory = 0;
-    return 0;
-  }
   return no_secure_memory;
 }
 
@@ -766,7 +642,7 @@ void *_gcry_xmalloc(size_t n) {
   void *p;
 
   while (!(p = _gcry_malloc(n))) {
-    if (fips_mode() || !outofcore_handler ||
+    if (!outofcore_handler ||
         !outofcore_handler(outofcore_handler_value, n, 0)) {
       _gcry_fatal_error(gpg_error_from_errno(errno), NULL);
     }
@@ -778,7 +654,7 @@ void *_gcry_xrealloc(void *a, size_t n) {
   void *p;
 
   while (!(p = _gcry_realloc_core(a, n, 1))) {
-    if (fips_mode() || !outofcore_handler ||
+    if (!outofcore_handler ||
         !outofcore_handler(outofcore_handler_value, n,
                            _gcry_is_secure(a) ? 3 : 2)) {
       _gcry_fatal_error(gpg_error_from_errno(errno), NULL);
@@ -791,7 +667,7 @@ void *_gcry_xmalloc_secure(size_t n) {
   void *p;
 
   while (!(p = _gcry_malloc_secure_core(n, 1))) {
-    if (fips_mode() || !outofcore_handler ||
+    if (!outofcore_handler ||
         !outofcore_handler(outofcore_handler_value, n, 1)) {
       _gcry_fatal_error(gpg_error_from_errno(errno),
                         _("out of core in secure memory"));
@@ -837,7 +713,7 @@ char *_gcry_xstrdup(const char *string) {
     size_t n = strlen(string);
     int is_sec = !!_gcry_is_secure(string);
 
-    if (fips_mode() || !outofcore_handler ||
+    if (!outofcore_handler ||
         !outofcore_handler(outofcore_handler_value, n, is_sec)) {
       _gcry_fatal_error(gpg_error_from_errno(errno),
                         is_sec ? _("out of core in secure memory") : NULL);
@@ -858,7 +734,6 @@ void _gcry_post_syscall(void) {
 }
 
 int _gcry_get_debug_flag(unsigned int mask) {
-  if (fips_mode()) return 0;
   return (debug_flags & mask);
 }
 

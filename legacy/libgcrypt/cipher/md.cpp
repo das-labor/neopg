@@ -340,15 +340,6 @@ static gpg_error_t md_enable(gcry_md_hd_t hd, int algorithm) {
     err = GPG_ERR_DIGEST_ALGO;
   }
 
-  if (!err && algorithm == GCRY_MD_MD5 && fips_mode()) {
-    _gcry_inactivate_fips_mode("MD5 used");
-    if (_gcry_enforced_fips_mode()) {
-      /* We should never get to here because we do not register
-         MD5 in enforced fips mode. But better throw an error.  */
-      err = GPG_ERR_DIGEST_ALGO;
-    }
-  }
-
   if (!err && h->flags.hmac && spec->read == NULL) {
     /* Expandable output function cannot act as part of HMAC. */
     err = GPG_ERR_DIGEST_ALGO;
@@ -458,8 +449,6 @@ gpg_error_t _gcry_md_copy(gcry_md_hd_t *handle, gcry_md_hd_t hd) {
 void _gcry_md_reset(gcry_md_hd_t a) {
   GcryDigestEntry *r;
 
-  /* Note: We allow this even in fips non operational mode.  */
-
   a->bufpos = a->ctx->flags.finalized = 0;
 
   if (a->ctx->flags.hmac)
@@ -491,7 +480,6 @@ static void md_close(gcry_md_hd_t a) {
 }
 
 void _gcry_md_close(gcry_md_hd_t hd) {
-  /* Note: We allow this even in fips non operational mode.  */
   md_close(hd);
 }
 
@@ -789,7 +777,6 @@ gpg_error_t _gcry_md_get(gcry_md_hd_t hd, int algo, byte *buffer, int buflen) {
   (void)buflen;
 
   /*md_digest ... */
-  fips_signal_error("unimplemented function called");
   return GPG_ERR_INTERNAL;
 }
 
@@ -816,7 +803,7 @@ void _gcry_md_hash_buffer(int algo, void *digest, const void *buffer,
     _gcry_sha1_hash_buffer(digest, buffer, length);
 #endif
 #if USE_RMD160
-  else if (algo == GCRY_MD_RMD160 && !fips_mode())
+  else if (algo == GCRY_MD_RMD160)
     _gcry_rmd160_hash_buffer(digest, buffer, length);
 #endif
   else {
@@ -824,15 +811,6 @@ void _gcry_md_hash_buffer(int algo, void *digest, const void *buffer,
        normal functions. */
     gcry_md_hd_t h;
     gpg_error_t err;
-
-    if (algo == GCRY_MD_MD5 && fips_mode()) {
-      _gcry_inactivate_fips_mode("MD5 used");
-      if (_gcry_enforced_fips_mode()) {
-        /* We should never get to here because we do not register
-           MD5 in enforced fips mode.  */
-        _gcry_fips_noreturn();
-      }
-    }
 
     err = md_open(&h, algo, 0);
     if (err)
@@ -889,15 +867,6 @@ gpg_error_t _gcry_md_hash_buffers(int algo, unsigned int flags, void *digest,
     gpg_error_t rc;
     int dlen;
 
-    if (algo == GCRY_MD_MD5 && fips_mode()) {
-      _gcry_inactivate_fips_mode("MD5 used");
-      if (_gcry_enforced_fips_mode()) {
-        /* We should never get to here because we do not register
-           MD5 in enforced fips mode.  */
-        _gcry_fips_noreturn();
-      }
-    }
-
     /* Detect SHAKE128 like algorithms which we can't use because
      * our API does not allow for a variable length digest.  */
     dlen = md_digest_length(algo);
@@ -930,7 +899,6 @@ static int md_get_algo(gcry_md_hd_t a) {
   GcryDigestEntry *r = a->ctx->list;
 
   if (r && r->next) {
-    fips_signal_error("possible usage error");
     log_error("WARNING: more than one algorithm in md_get_algo()\n");
   }
   return r ? r->spec->algo : 0;
@@ -982,8 +950,6 @@ static const byte *md_asn_oid(int algorithm, size_t *asnlen, size_t *mdlen) {
  *  GCRYCTL_GET_ASNOID:
  *	Return the ASNOID of the algorithm in buffer. if buffer is NULL, only
  *	the required length is returned.
- *  GCRYCTL_SELFTEST
- *      Helper for the regression tests - shall not be used by applications.
  *
  * Note:  Because this function is in most cases used to return an
  * integer value, we can make it easier for the caller to just look at
@@ -1026,11 +992,6 @@ gpg_error_t _gcry_md_algo_info(int algo, int what, void *buffer,
       }
       break;
 
-    case GCRYCTL_SELFTEST:
-      /* Helper function for the regression tests.  */
-      rc = _gcry_md_selftest(algo, nbytes ? (int)*nbytes : 0, NULL);
-      break;
-
     default:
       rc = GPG_ERR_INV_OP;
       break;
@@ -1042,8 +1003,6 @@ gpg_error_t _gcry_md_algo_info(int algo, int what, void *buffer,
 static void md_start_debug(gcry_md_hd_t md, const char *suffix) {
   static int idx = 0;
   char buf[50];
-
-  if (fips_mode()) return;
 
   if (md->ctx->debug) {
     log_debug("Oops: md debug already started\n");
@@ -1116,20 +1075,6 @@ gpg_error_t _gcry_md_info(gcry_md_hd_t h, int cmd, void *buffer,
   return rc;
 }
 
-/* Explicitly initialize this module.  */
-gpg_error_t _gcry_md_init(void) {
-  if (fips_mode()) {
-    /* disable algorithms that are disallowed in fips */
-    int idx;
-    gcry_md_spec_t *spec;
-
-    for (idx = 0; (spec = digest_list[idx]); idx++)
-      if (!spec->flags.fips) spec->flags.disabled = 1;
-  }
-
-  return 0;
-}
-
 int _gcry_md_is_secure(gcry_md_hd_t a) {
   size_t value;
 
@@ -1145,28 +1090,4 @@ int _gcry_md_is_enabled(gcry_md_hd_t a, int algo) {
   value = sizeof algo;
   if (_gcry_md_info(a, GCRYCTL_IS_ALGO_ENABLED, &algo, &value)) value = 0;
   return value;
-}
-
-/* Run the selftests for digest algorithm ALGO with optional reporting
-   function REPORT.  */
-gpg_error_t _gcry_md_selftest(int algo, int extended,
-                              selftest_report_func_t report) {
-  gpg_error_t ec = 0;
-  gcry_md_spec_t *spec;
-
-  spec = spec_from_algo(algo);
-  if (spec && !spec->flags.disabled && spec->selftest)
-    ec = spec->selftest(algo, extended, report);
-  else {
-    ec = (spec && spec->selftest) ? GPG_ERR_DIGEST_ALGO
-                                  /* */
-                                  : GPG_ERR_NOT_IMPLEMENTED;
-    if (report)
-      report("digest", algo, "module",
-             (spec && !spec->flags.disabled)
-                 ? "no selftest available"
-                 : spec ? "algorithm disabled" : "algorithm not found");
-  }
-
-  return ec;
 }

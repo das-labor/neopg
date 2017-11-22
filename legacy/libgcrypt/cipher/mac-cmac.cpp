@@ -121,45 +121,45 @@ static gcry_mac_spec_ops_t cmac_ops = {
 
 #if USE_BLOWFISH
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_blowfish = {
-    GCRY_MAC_CMAC_BLOWFISH, {0, 0}, "CMAC_BLOWFISH", &cmac_ops};
+    GCRY_MAC_CMAC_BLOWFISH, {0}, "CMAC_BLOWFISH", &cmac_ops};
 #endif
 #if USE_DES
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_tripledes = {
-    GCRY_MAC_CMAC_3DES, {0, 1}, "CMAC_3DES", &cmac_ops};
+    GCRY_MAC_CMAC_3DES, {0}, "CMAC_3DES", &cmac_ops};
 #endif
 #if USE_CAST5
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_cast5 = {
-    GCRY_MAC_CMAC_CAST5, {0, 0}, "CMAC_CAST5", &cmac_ops};
+    GCRY_MAC_CMAC_CAST5, {0}, "CMAC_CAST5", &cmac_ops};
 #endif
 #if USE_AES
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_aes = {
-    GCRY_MAC_CMAC_AES, {0, 1}, "CMAC_AES", &cmac_ops};
+    GCRY_MAC_CMAC_AES, {0}, "CMAC_AES", &cmac_ops};
 #endif
 #if USE_TWOFISH
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_twofish = {
-    GCRY_MAC_CMAC_TWOFISH, {0, 0}, "CMAC_TWOFISH", &cmac_ops};
+    GCRY_MAC_CMAC_TWOFISH, {0}, "CMAC_TWOFISH", &cmac_ops};
 #endif
 #if USE_SERPENT
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_serpent = {
-    GCRY_MAC_CMAC_SERPENT, {0, 0}, "CMAC_SERPENT", &cmac_ops};
+    GCRY_MAC_CMAC_SERPENT, {0}, "CMAC_SERPENT", &cmac_ops};
 #endif
 #if USE_RFC2268
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_rfc2268 = {
-    GCRY_MAC_CMAC_RFC2268, {0, 0}, "CMAC_RFC2268", &cmac_ops};
+    GCRY_MAC_CMAC_RFC2268, {0}, "CMAC_RFC2268", &cmac_ops};
 #endif
 #if USE_SEED
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_seed = {
-    GCRY_MAC_CMAC_SEED, {0, 0}, "CMAC_SEED", &cmac_ops};
+    GCRY_MAC_CMAC_SEED, {0}, "CMAC_SEED", &cmac_ops};
 #endif
 #if USE_CAMELLIA
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_camellia = {
-    GCRY_MAC_CMAC_CAMELLIA, {0, 0}, "CMAC_CAMELLIA", &cmac_ops};
+    GCRY_MAC_CMAC_CAMELLIA, {0}, "CMAC_CAMELLIA", &cmac_ops};
 #endif
 #ifdef USE_IDEA
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_idea = {
-    GCRY_MAC_CMAC_IDEA, {0, 0}, "CMAC_IDEA", &cmac_ops};
+    GCRY_MAC_CMAC_IDEA, {0}, "CMAC_IDEA", &cmac_ops};
 #endif
 #if USE_GOST28147
 gcry_mac_spec_t _gcry_mac_type_spec_cmac_gost28147 = {
-    GCRY_MAC_CMAC_GOST28147, {0, 0}, "CMAC_GOST28147", &cmac_ops};
+    GCRY_MAC_CMAC_GOST28147, {0}, "CMAC_GOST28147", &cmac_ops};
 #endif

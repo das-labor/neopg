@@ -174,67 +174,67 @@ static const gcry_mac_spec_ops_t hmac_ops = {
 
 #if USE_SHA1
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha1 = {
-    GCRY_MAC_HMAC_SHA1, {0, 1}, "HMAC_SHA1", &hmac_ops};
+    GCRY_MAC_HMAC_SHA1, {0}, "HMAC_SHA1", &hmac_ops};
 #endif
 #if USE_SHA256
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha256 = {
-    GCRY_MAC_HMAC_SHA256, {0, 1}, "HMAC_SHA256", &hmac_ops};
+    GCRY_MAC_HMAC_SHA256, {0}, "HMAC_SHA256", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha224 = {
-    GCRY_MAC_HMAC_SHA224, {0, 1}, "HMAC_SHA224", &hmac_ops};
+    GCRY_MAC_HMAC_SHA224, {0}, "HMAC_SHA224", &hmac_ops};
 #endif
 #if USE_SHA512
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha512 = {
-    GCRY_MAC_HMAC_SHA512, {0, 1}, "HMAC_SHA512", &hmac_ops};
+    GCRY_MAC_HMAC_SHA512, {0}, "HMAC_SHA512", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha384 = {
-    GCRY_MAC_HMAC_SHA384, {0, 1}, "HMAC_SHA384", &hmac_ops};
+    GCRY_MAC_HMAC_SHA384, {0}, "HMAC_SHA384", &hmac_ops};
 #endif
 #if USE_SHA3
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha3_224 = {
-    GCRY_MAC_HMAC_SHA3_224, {0, 1}, "HMAC_SHA3_224", &hmac_ops};
+    GCRY_MAC_HMAC_SHA3_224, {0}, "HMAC_SHA3_224", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha3_256 = {
-    GCRY_MAC_HMAC_SHA3_256, {0, 1}, "HMAC_SHA3_256", &hmac_ops};
+    GCRY_MAC_HMAC_SHA3_256, {0}, "HMAC_SHA3_256", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha3_384 = {
-    GCRY_MAC_HMAC_SHA3_384, {0, 1}, "HMAC_SHA3_384", &hmac_ops};
+    GCRY_MAC_HMAC_SHA3_384, {0}, "HMAC_SHA3_384", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_sha3_512 = {
-    GCRY_MAC_HMAC_SHA3_512, {0, 1}, "HMAC_SHA3_512", &hmac_ops};
+    GCRY_MAC_HMAC_SHA3_512, {0}, "HMAC_SHA3_512", &hmac_ops};
 #endif
 #ifdef USE_GOST_R_3411_94
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_gost3411_94 = {
-    GCRY_MAC_HMAC_GOSTR3411_94, {0, 0}, "HMAC_GOSTR3411_94", &hmac_ops};
+    GCRY_MAC_HMAC_GOSTR3411_94, {0}, "HMAC_GOSTR3411_94", &hmac_ops};
 #endif
 #ifdef USE_GOST_R_3411_12
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_stribog256 = {
-    GCRY_MAC_HMAC_STRIBOG256, {0, 0}, "HMAC_STRIBOG256", &hmac_ops};
+    GCRY_MAC_HMAC_STRIBOG256, {0}, "HMAC_STRIBOG256", &hmac_ops};
 
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_stribog512 = {
-    GCRY_MAC_HMAC_STRIBOG512, {0, 0}, "HMAC_STRIBOG512", &hmac_ops};
+    GCRY_MAC_HMAC_STRIBOG512, {0}, "HMAC_STRIBOG512", &hmac_ops};
 #endif
 #if USE_WHIRLPOOL
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_whirlpool = {
-    GCRY_MAC_HMAC_WHIRLPOOL, {0, 0}, "HMAC_WHIRLPOOL", &hmac_ops};
+    GCRY_MAC_HMAC_WHIRLPOOL, {0}, "HMAC_WHIRLPOOL", &hmac_ops};
 #endif
 #if USE_RMD160
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_rmd160 = {
-    GCRY_MAC_HMAC_RMD160, {0, 0}, "HMAC_RIPEMD160", &hmac_ops};
+    GCRY_MAC_HMAC_RMD160, {0}, "HMAC_RIPEMD160", &hmac_ops};
 #endif
 #if USE_TIGER
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_tiger1 = {
-    GCRY_MAC_HMAC_TIGER1, {0, 0}, "HMAC_TIGER", &hmac_ops};
+    GCRY_MAC_HMAC_TIGER1, {0}, "HMAC_TIGER", &hmac_ops};
 #endif
 #if USE_MD5
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_md5 = {
-    GCRY_MAC_HMAC_MD5, {0, 0}, "HMAC_MD5", &hmac_ops};
+    GCRY_MAC_HMAC_MD5, {0}, "HMAC_MD5", &hmac_ops};
 #endif
 #if USE_MD4
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_md4 = {
-    GCRY_MAC_HMAC_MD4, {0, 0}, "HMAC_MD4", &hmac_ops};
+    GCRY_MAC_HMAC_MD4, {0}, "HMAC_MD4", &hmac_ops};
 #endif
 #if USE_MD2
 gcry_mac_spec_t _gcry_mac_type_spec_hmac_md2 = {
-    GCRY_MAC_HMAC_MD2, {0, 0}, "HMAC_MD2", &hmac_ops};
+    GCRY_MAC_HMAC_MD2, {0}, "HMAC_MD2", &hmac_ops};
 #endif

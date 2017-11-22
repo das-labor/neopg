@@ -204,11 +204,6 @@ static gpg_error_t generate_std(RSA_secret_key *sk, unsigned int nbits,
   gcry_mpi_t g;
   gcry_mpi_t f;
 
-  if (fips_mode()) {
-    if (nbits < 1024) return GPG_ERR_INV_VALUE;
-    if (transient_key) return GPG_ERR_INV_VALUE;
-  }
-
   /* Make sure that nbits is even so that we generate p, q of equal size. */
   if ((nbits & 1)) nbits++;
 
@@ -319,7 +314,6 @@ static gpg_error_t generate_std(RSA_secret_key *sk, unsigned int nbits,
     sk->d = NULL;
     _gcry_mpi_release(sk->u);
     sk->u = NULL;
-    fips_signal_error("self-test after key generation failed");
     return GPG_ERR_SELFTEST_FAILED;
   }
 
@@ -356,8 +350,6 @@ static gpg_error_t generate_fips(RSA_secret_key *sk, unsigned int nbits,
   gpg_error_t ec = GPG_ERR_NO_PRIME;
 
   if (nbits < 1024 || (nbits & 0x1FF)) return GPG_ERR_INV_VALUE;
-  if (_gcry_enforced_fips_mode() && nbits != 2048 && nbits != 3072)
-    return GPG_ERR_INV_VALUE;
 
   if (testparms) {
     /* Parameters to derive the key are given.  */
@@ -554,7 +546,6 @@ err:
     _gcry_mpi_release(sk->u);
     sk->u = NULL;
     if (!ec) {
-      fips_signal_error("self-test after key generation failed");
       return GPG_ERR_SELFTEST_FAILED;
     }
   }
@@ -789,7 +780,6 @@ static gpg_error_t generate_x931(RSA_secret_key *sk, unsigned int nbits,
     sk->d = NULL;
     _gcry_mpi_release(sk->u);
     sk->u = NULL;
-    fips_signal_error("self-test after key generation failed");
     return GPG_ERR_SELFTEST_FAILED;
   }
 
@@ -1076,7 +1066,7 @@ static gpg_error_t rsa_generate(const gcry_sexp_t genparms,
                             : NULL);
 
     /* Generate.  */
-    if (deriveparms || fips_mode()) {
+    if (deriveparms) {
       ec = generate_fips(&sk, nbits, evalue, deriveparms,
                          !!(flags & PUBKEY_FLAG_TRANSIENT_KEY));
     } else {
@@ -1220,12 +1210,10 @@ static gpg_error_t rsa_decrypt(gcry_sexp_t *r_plain, gcry_sexp_t s_data,
   if (DBG_CIPHER) {
     log_printmpi("rsa_decrypt    n", sk.n);
     log_printmpi("rsa_decrypt    e", sk.e);
-    if (!fips_mode()) {
-      log_printmpi("rsa_decrypt    d", sk.d);
-      log_printmpi("rsa_decrypt    p", sk.p);
-      log_printmpi("rsa_decrypt    q", sk.q);
-      log_printmpi("rsa_decrypt    u", sk.u);
-    }
+    log_printmpi("rsa_decrypt    d", sk.d);
+    log_printmpi("rsa_decrypt    p", sk.p);
+    log_printmpi("rsa_decrypt    q", sk.q);
+    log_printmpi("rsa_decrypt    u", sk.u);    
   }
 
   /* Better make sure that there are no superfluous leading zeroes in
@@ -1320,12 +1308,10 @@ static gpg_error_t rsa_sign(gcry_sexp_t *r_sig, gcry_sexp_t s_data,
   if (DBG_CIPHER) {
     log_printmpi("rsa_sign      n", sk.n);
     log_printmpi("rsa_sign      e", sk.e);
-    if (!fips_mode()) {
-      log_printmpi("rsa_sign      d", sk.d);
-      log_printmpi("rsa_sign      p", sk.p);
-      log_printmpi("rsa_sign      q", sk.q);
-      log_printmpi("rsa_sign      u", sk.u);
-    }
+    log_printmpi("rsa_sign      d", sk.d);
+    log_printmpi("rsa_sign      p", sk.p);
+    log_printmpi("rsa_sign      q", sk.q);
+    log_printmpi("rsa_sign      u", sk.u);
   }
 
   /* Do RSA computation.  */

@@ -706,7 +706,7 @@ static gpg_error_t ecc_check_secret_key(gcry_sexp_t keyparms) {
     log_printmpi("ecc_testkey   n", sk.E.n);
     log_printmpi("ecc_testkey   h", sk.E.h);
     log_printmpi("ecc_testkey   q", mpi_q);
-    if (!fips_mode()) log_printmpi("ecc_testkey   d", sk.d);
+    log_printmpi("ecc_testkey   d", sk.d);
   }
   if (!sk.E.p || !sk.E.a || !sk.E.b || !sk.E.G.x || !sk.E.n || !sk.E.h ||
       !sk.d) {
@@ -819,7 +819,7 @@ static gpg_error_t ecc_sign(gcry_sexp_t *r_sig, gcry_sexp_t s_data,
     log_printmpi("ecc_sign      n", sk.E.n);
     log_printmpi("ecc_sign      h", sk.E.h);
     log_printmpi("ecc_sign      q", mpi_q);
-    if (!fips_mode()) log_printmpi("ecc_sign      d", sk.d);
+    log_printmpi("ecc_sign      d", sk.d);
   }
   if (!sk.E.p || !sk.E.a || !sk.E.b || !sk.E.G.x || !sk.E.n || !sk.E.h ||
       !sk.d) {
@@ -1359,7 +1359,7 @@ static gpg_error_t ecc_decrypt_raw(gcry_sexp_t *r_plain, gcry_sexp_t s_data,
     log_printpnt("ecc_decrypt  g", &sk.E.G, NULL);
     log_printmpi("ecc_decrypt    n", sk.E.n);
     log_printmpi("ecc_decrypt    h", sk.E.h);
-    if (!fips_mode()) log_printmpi("ecc_decrypt    d", sk.d);
+    log_printmpi("ecc_decrypt    d", sk.d);
   }
   if (!sk.E.p || !sk.E.a || !sk.E.b || !sk.E.G.x || !sk.E.n || !sk.E.h ||
       !sk.d) {

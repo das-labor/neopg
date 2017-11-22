@@ -366,9 +366,9 @@ gpg_error_t _gcry_cipher_open_internal(gcry_cipher_hd_t *handle, int algo,
 
       case GCRY_CIPHER_MODE_NONE:
         /* This mode may be used for debugging.  It copies the main
-           text verbatim to the ciphertext.  We do not allow this in
-           fips mode or if no debug flag has been set.  */
-        if (fips_mode() || !_gcry_get_debug_flag(0))
+           text verbatim to the ciphertext.  We do not allow this if
+           no debug flag has been set.  */
+        if (!_gcry_get_debug_flag(0))
           err = GPG_ERR_INV_CIPHER_MODE;
         break;
 
@@ -556,19 +556,12 @@ void _gcry_cipher_close(gcry_cipher_hd_t h) {
 /* Set the key to be used for the encryption context C to KEY with
    length KEYLEN.  The length should match the required length. */
 static gpg_error_t cipher_setkey(gcry_cipher_hd_t c, byte *key, size_t keylen) {
-  gpg_error_t rc;
-
+  gpg_error_t rc
+;
   if (c->mode == GCRY_CIPHER_MODE_XTS) {
     /* XTS uses two keys. */
     if (keylen % 2) return GPG_ERR_INV_KEYLEN;
     keylen /= 2;
-
-    if (fips_mode()) {
-      /* Reject key if subkeys Key_1 and Key_2 are equal.
-         See "Implementation Guidance for FIPS 140-2, A.9 XTS-AES
-         Key Generation Requirements" for details.  */
-      if (buf_eq_const(key, key + keylen, keylen)) return GPG_ERR_WEAK_KEY;
-    }
   }
 
   rc = c->spec->setkey(&c->context.c, key, keylen);
@@ -627,7 +620,6 @@ static gpg_error_t cipher_setiv(gcry_cipher_hd_t c, const byte *iv,
     if (ivlen != c->spec->blocksize) {
       log_info("WARNING: cipher_setiv: ivlen=%u blklen=%u\n",
                (unsigned int)ivlen, (unsigned int)c->spec->blocksize);
-      fips_signal_error("IV length does not match blocklength");
     }
     if (ivlen > c->spec->blocksize) ivlen = c->spec->blocksize;
     memcpy(c->u_iv.iv, iv, ivlen);
@@ -811,8 +803,7 @@ static gpg_error_t cipher_encrypt(gcry_cipher_hd_t c, byte *outbuf,
       break;
 
     case GCRY_CIPHER_MODE_NONE:
-      if (fips_mode() || !_gcry_get_debug_flag(0)) {
-        fips_signal_error("cipher mode NONE used");
+      if (!_gcry_get_debug_flag(0)) {
         rc = GPG_ERR_INV_CIPHER_MODE;
       } else {
         if (inbuf != outbuf) memmove(outbuf, inbuf, inbuflen);
@@ -927,8 +918,7 @@ static gpg_error_t cipher_decrypt(gcry_cipher_hd_t c, byte *outbuf,
       break;
 
     case GCRY_CIPHER_MODE_NONE:
-      if (fips_mode() || !_gcry_get_debug_flag(0)) {
-        fips_signal_error("cipher mode NONE used");
+      if ( !_gcry_get_debug_flag(0)) {
         rc = GPG_ERR_INV_CIPHER_MODE;
       } else {
         if (inbuf != outbuf) memmove(outbuf, inbuf, inbuflen);
@@ -1421,20 +1411,6 @@ size_t _gcry_cipher_get_algo_blklen(int algo) {
 
   if (_gcry_cipher_algo_info(algo, GCRYCTL_GET_BLKLEN, NULL, &n)) n = 0;
   return n;
-}
-
-/* Explicitly initialize this module.  */
-gpg_error_t _gcry_cipher_init(void) {
-  if (fips_mode()) {
-    /* disable algorithms that are disallowed in fips */
-    int idx;
-    gcry_cipher_spec_t *spec;
-
-    for (idx = 0; (spec = cipher_list[idx]); idx++)
-      if (!spec->flags.fips) spec->flags.disabled = 1;
-  }
-
-  return 0;
 }
 
 /* Run the selftests for cipher algorithm ALGO with optional reporting

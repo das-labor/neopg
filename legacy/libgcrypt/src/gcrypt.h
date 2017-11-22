@@ -199,20 +199,11 @@ enum gcry_ctl_cmds {
   GCRYCTL_SET_CBC_MAC = 42,
   GCRYCTL_SET_THREAD_CBS = 47,
   GCRYCTL_PRINT_CONFIG = 53,
-  GCRYCTL_OPERATIONAL_P = 54,
-  GCRYCTL_FIPS_MODE_P = 55,
-  GCRYCTL_FORCE_FIPS_MODE = 56,
-  GCRYCTL_SELFTEST = 57,
   /* Note: 58 .. 62 are used internally.  */
   GCRYCTL_DISABLE_HWF = 63,
-  GCRYCTL_SET_ENFORCED_FIPS_FLAG = 64,
-  GCRYCTL_SET_PREFERRED_RNG_TYPE = 65,
-  GCRYCTL_GET_CURRENT_RNG_TYPE = 66,
   GCRYCTL_DISABLE_LOCKED_SECMEM = 67,
   GCRYCTL_DISABLE_PRIV_DROP = 68,
   GCRYCTL_SET_CCM_LENGTHS = 69,
-  GCRYCTL_INACTIVATE_FIPS_FLAG = 71,
-  GCRYCTL_REACTIVATE_FIPS_FLAG = 72,
   GCRYCTL_SET_SBOX = 73,
   GCRYCTL_DRBG_REINIT = 74,
   GCRYCTL_SET_TAGLEN = 75,
@@ -1537,9 +1528,6 @@ void gcry_free(void *a);
 
 /* Return true if A is allocated in "secure" memory. */
 int gcry_is_secure(const void *a) _GCRY_GCC_ATTR_PURE;
-
-/* Return true if Libgcrypt is in FIPS mode.  */
-#define gcry_fips_mode_active() !!gcry_control(GCRYCTL_FIPS_MODE_P, 0)
 
 #if 0 /* (Keep Emacsens' auto-indent happy.) */
 {

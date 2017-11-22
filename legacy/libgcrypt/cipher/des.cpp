@@ -558,16 +558,7 @@ static void des_key_schedule(const byte *rawkey, u32 *subkey) {
  * Does not check for weak keys.
  */
 static int des_setkey(struct _des_ctx *ctx, const byte *key) {
-  static const char *selftest_failed;
   int i;
-
-  if (!fips_mode() && !initialized) {
-    initialized = 1;
-    selftest_failed = selftest();
-
-    if (selftest_failed) log_error("%s\n", selftest_failed);
-  }
-  if (selftest_failed) return GPG_ERR_SELFTEST_FAILED;
 
   des_key_schedule(key, ctx->encrypt_subkeys);
   _gcry_burn_stack(32);
@@ -651,16 +642,7 @@ static int tripledes_set2keys(struct _tripledes_ctx *ctx, const byte *key1,
  */
 static int tripledes_set3keys(struct _tripledes_ctx *ctx, const byte *key1,
                               const byte *key2, const byte *key3) {
-  static const char *selftest_failed;
   int i;
-
-  if (!fips_mode() && !initialized) {
-    initialized = 1;
-    selftest_failed = selftest();
-
-    if (selftest_failed) log_error("%s\n", selftest_failed);
-  }
-  if (selftest_failed) return GPG_ERR_SELFTEST_FAILED;
 
   des_key_schedule(key1, ctx->encrypt_subkeys);
   des_key_schedule(key2, &(ctx->decrypt_subkeys[32]));

@@ -507,11 +507,6 @@ static void *_gcry_secmem_malloc_internal(size_t size, int xhint) {
       return NULL;
     }
   }
-  if (not_locked && fips_mode()) {
-    log_info(_("secure memory pool is not locked while in FIPS mode\n"));
-    gpg_err_set_errno(ENOMEM);
-    return NULL;
-  }
   if (show_warning && !suspend_warning) {
     show_warning = 0;
     print_warn();
@@ -527,9 +522,8 @@ static void *_gcry_secmem_malloc_internal(size_t size, int xhint) {
   }
 
   /* If we are called from xmalloc style function resort to the
-   * overflow pools to return memory.  We don't do this in FIPS mode,
-   * though. */
-  if (xhint && !fips_mode()) {
+   * overflow pools to return memory.  */
+  if (xhint) {
     for (pool = pool->next; pool; pool = pool->next) {
       mb = mb_get_new(pool, (memblock_t *)pool->mem, size);
       if (mb) {

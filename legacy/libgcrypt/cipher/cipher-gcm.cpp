@@ -494,9 +494,6 @@ gpg_error_t _gcry_cipher_gcm_encrypt(gcry_cipher_hd_t c, byte *outbuf,
 
   if (!c->marks.iv) _gcry_cipher_gcm_setiv(c, zerobuf, GCRY_GCM_BLOCK_LEN);
 
-  if (c->u_mode.gcm.disallow_encryption_because_of_setiv_in_fips_mode)
-    return GPG_ERR_INV_STATE;
-
   if (!c->u_mode.gcm.ghash_aad_finalized) {
     /* Start of encryption marks end of AAD stream. */
     do_ghash_buf(c, c->u_mode.gcm.u_tag.tag, NULL, 0, 1);
@@ -640,12 +637,6 @@ gpg_error_t _gcry_cipher_gcm_setiv(gcry_cipher_hd_t c, const byte *iv,
                                    size_t ivlen) {
   c->marks.iv = 0;
   c->marks.tag = 0;
-  c->u_mode.gcm.disallow_encryption_because_of_setiv_in_fips_mode = 0;
-
-  if (fips_mode()) {
-    /* Direct invocation of GCM setiv in FIPS mode disables encryption. */
-    c->u_mode.gcm.disallow_encryption_because_of_setiv_in_fips_mode = 1;
-  }
 
   return _gcry_cipher_gcm_initiv(c, iv, ivlen);
 }
@@ -673,7 +664,6 @@ _gcry_cipher_gcm_geniv (gcry_cipher_hd_t c,
 
   c->marks.iv = 0;
   c->marks.tag = 0;
-  c->u_mode.gcm.disallow_encryption_because_of_setiv_in_fips_mode = 0;
 
   _gcry_cipher_gcm_initiv (c, iv, IVLEN);
 
@@ -758,9 +748,6 @@ static gpg_error_t _gcry_cipher_gcm_tag(gcry_cipher_hd_t c, byte *outbuf,
 gpg_error_t _gcry_cipher_gcm_get_tag(gcry_cipher_hd_t c, unsigned char *outtag,
                                      size_t taglen) {
   /* Outputting authentication tag is part of encryption. */
-  if (c->u_mode.gcm.disallow_encryption_because_of_setiv_in_fips_mode)
-    return GPG_ERR_INV_STATE;
-
   return _gcry_cipher_gcm_tag(c, outtag, taglen, 0);
 }
 

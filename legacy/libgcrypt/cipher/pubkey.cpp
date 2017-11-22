@@ -783,20 +783,6 @@ gpg_error_t _gcry_pubkey_get_sexp(gcry_sexp_t *r_sexp, int mode,
   return GPG_ERR_WRONG_CRYPT_CTX;
 }
 
-/* Explicitly initialize this module.  */
-gpg_error_t _gcry_pk_init(void) {
-  if (fips_mode()) {
-    /* disable algorithms that are disallowed in fips */
-    int idx;
-    gcry_pk_spec_t *spec;
-
-    for (idx = 0; (spec = pubkey_list[idx]); idx++)
-      if (!spec->flags.fips) spec->flags.disabled = 1;
-  }
-
-  return 0;
-}
-
 /* Run the selftests for pubkey algorithm ALGO with optional reporting
    function REPORT.  */
 gpg_error_t _gcry_pk_selftest(int algo, int extended,

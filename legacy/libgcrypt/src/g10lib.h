@@ -366,45 +366,4 @@ char *_gcry_sexp_nth_string(const gcry_sexp_t list, int number);
 gpg_error_t _gcry_sexp_vextract_param(gcry_sexp_t sexp, const char *path,
                                       const char *list, va_list arg_ptr);
 
-/*-- fips.c --*/
-
-void _gcry_initialize_fips_mode(int force);
-
-int _gcry_fips_mode(void);
-#define fips_mode() _gcry_fips_mode()
-
-int _gcry_enforced_fips_mode(void);
-
-void _gcry_set_enforced_fips_mode(void);
-
-void _gcry_inactivate_fips_mode(const char *text);
-int _gcry_is_fips_mode_inactive(void);
-
-void _gcry_fips_signal_error(const char *srcfile, int srcline,
-                             const char *srcfunc, int is_fatal,
-                             const char *description);
-#ifdef JNLIB_GCC_M_FUNCTION
-#define fips_signal_error(a) \
-  _gcry_fips_signal_error(__FILE__, __LINE__, __FUNCTION__, 0, (a))
-#define fips_signal_fatal_error(a) \
-  _gcry_fips_signal_error(__FILE__, __LINE__, __FUNCTION__, 1, (a))
-#else
-#define fips_signal_error(a) \
-  _gcry_fips_signal_error(__FILE__, __LINE__, NULL, 0, (a))
-#define fips_signal_fatal_error(a) \
-  _gcry_fips_signal_error(__FILE__, __LINE__, NULL, 1, (a))
-#endif
-
-int _gcry_fips_is_operational(void);
-#define fips_is_operational() (_gcry_global_is_operational())
-#define fips_not_operational() (GPG_ERR_NOT_OPERATIONAL)
-
-int _gcry_fips_test_operational(void);
-int _gcry_fips_test_error_or_operational(void);
-
-gpg_error_t _gcry_fips_run_selftests(int extended);
-
-void _gcry_fips_noreturn(void);
-#define fips_noreturn() (_gcry_fips_noreturn())
-
 #endif /* G10LIB_H */

@@ -447,11 +447,6 @@ gcry_mpi_t _gcry_mpi_get_const(int no) {
 
 gpg_error_t gcry_cipher_open(gcry_cipher_hd_t *handle, int algo, int mode,
                              unsigned int flags) {
-  if (!fips_is_operational()) {
-    *handle = NULL;
-    return fips_not_operational();
-  }
-
   return _gcry_cipher_open(handle, algo, mode, flags);
 }
 
@@ -459,50 +454,36 @@ void gcry_cipher_close(gcry_cipher_hd_t h) { _gcry_cipher_close(h); }
 
 gpg_error_t gcry_cipher_setkey(gcry_cipher_hd_t hd, const void *key,
                                size_t keylen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_setkey(hd, key, keylen);
 }
 
 gpg_error_t gcry_cipher_setiv(gcry_cipher_hd_t hd, const void *iv,
                               size_t ivlen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_setiv(hd, iv, ivlen);
 }
 
 gpg_error_t gcry_cipher_setctr(gcry_cipher_hd_t hd, const void *ctr,
                                size_t ctrlen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_setctr(hd, ctr, ctrlen);
 }
 
 gpg_error_t gcry_cipher_authenticate(gcry_cipher_hd_t hd, const void *abuf,
                                      size_t abuflen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_authenticate(hd, abuf, abuflen);
 }
 
 gpg_error_t gcry_cipher_gettag(gcry_cipher_hd_t hd, void *outtag,
                                size_t taglen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_gettag(hd, outtag, taglen);
 }
 
 gpg_error_t gcry_cipher_checktag(gcry_cipher_hd_t hd, const void *intag,
                                  size_t taglen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_checktag(hd, intag, taglen);
 }
 
 gpg_error_t gcry_cipher_ctl(gcry_cipher_hd_t h, int cmd, void *buffer,
                             size_t buflen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_ctl(h, cmd, buffer, buflen);
 }
 
@@ -513,8 +494,6 @@ gpg_error_t gcry_cipher_info(gcry_cipher_hd_t h, int what, void *buffer,
 
 gpg_error_t gcry_cipher_algo_info(int algo, int what, void *buffer,
                                   size_t *nbytes) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_algo_info(algo, what, buffer, nbytes);
 }
 
@@ -532,19 +511,11 @@ int gcry_cipher_mode_from_oid(const char *string) {
 
 gpg_error_t gcry_cipher_encrypt(gcry_cipher_hd_t h, void *out, size_t outsize,
                                 const void *in, size_t inlen) {
-  if (!fips_is_operational()) {
-    /* Make sure that the plaintext will never make it to OUT. */
-    if (out) memset(out, 0x42, outsize);
-    return fips_not_operational();
-  }
-
   return _gcry_cipher_encrypt(h, out, outsize, in, inlen);
 }
 
 gpg_error_t gcry_cipher_decrypt(gcry_cipher_hd_t h, void *out, size_t outsize,
                                 const void *in, size_t inlen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_cipher_decrypt(h, out, outsize, in, inlen);
 }
 
@@ -558,8 +529,6 @@ size_t gcry_cipher_get_algo_blklen(int algo) {
 
 gpg_error_t gcry_mac_algo_info(int algo, int what, void *buffer,
                                size_t *nbytes) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_algo_info(algo, what, buffer, nbytes);
 }
 
@@ -581,96 +550,61 @@ unsigned int gcry_mac_get_algo_keylen(int algo) {
 
 gpg_error_t gcry_mac_open(gcry_mac_hd_t *handle, int algo, unsigned int flags,
                           gcry_ctx_t ctx) {
-  if (!fips_is_operational()) {
-    *handle = NULL;
-    return fips_not_operational();
-  }
-
   return _gcry_mac_open(handle, algo, flags, ctx);
 }
 
 void gcry_mac_close(gcry_mac_hd_t hd) { _gcry_mac_close(hd); }
 
 gpg_error_t gcry_mac_setkey(gcry_mac_hd_t hd, const void *key, size_t keylen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_setkey(hd, key, keylen);
 }
 
 gpg_error_t gcry_mac_setiv(gcry_mac_hd_t hd, const void *iv, size_t ivlen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_setiv(hd, iv, ivlen);
 }
 
 gpg_error_t gcry_mac_write(gcry_mac_hd_t hd, const void *buf, size_t buflen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_write(hd, buf, buflen);
 }
 
 gpg_error_t gcry_mac_read(gcry_mac_hd_t hd, void *outbuf, size_t *outlen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_read(hd, outbuf, outlen);
 }
 
 gpg_error_t gcry_mac_verify(gcry_mac_hd_t hd, const void *buf, size_t buflen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_verify(hd, buf, buflen);
 }
 
 gpg_error_t gcry_mac_ctl(gcry_mac_hd_t h, int cmd, void *buffer,
                          size_t buflen) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_mac_ctl(h, cmd, buffer, buflen);
 }
 
 gpg_error_t gcry_pk_encrypt(gcry_sexp_t *result, gcry_sexp_t data,
                             gcry_sexp_t pkey) {
-  if (!fips_is_operational()) {
-    *result = NULL;
-    return fips_not_operational();
-  }
   return _gcry_pk_encrypt(result, data, pkey);
 }
 
 gpg_error_t gcry_pk_decrypt(gcry_sexp_t *result, gcry_sexp_t data,
                             gcry_sexp_t skey) {
-  if (!fips_is_operational()) {
-    *result = NULL;
-    return fips_not_operational();
-  }
   return _gcry_pk_decrypt(result, data, skey);
 }
 
 gpg_error_t gcry_pk_sign(gcry_sexp_t *result, gcry_sexp_t data,
                          gcry_sexp_t skey) {
-  if (!fips_is_operational()) {
-    *result = NULL;
-    return fips_not_operational();
-  }
   return _gcry_pk_sign(result, data, skey);
 }
 
 gpg_error_t gcry_pk_verify(gcry_sexp_t sigval, gcry_sexp_t data,
                            gcry_sexp_t pkey) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_pk_verify(sigval, data, pkey);
 }
 
 gpg_error_t gcry_pk_testkey(gcry_sexp_t key) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_pk_testkey(key);
 }
 
 gpg_error_t gcry_pk_genkey(gcry_sexp_t *r_key, gcry_sexp_t s_parms) {
-  if (!fips_is_operational()) {
-    *r_key = NULL;
-    return fips_not_operational();
-  }
   return _gcry_pk_genkey(r_key, s_parms);
 }
 
@@ -680,8 +614,6 @@ gpg_error_t gcry_pk_ctl(int cmd, void *buffer, size_t buflen) {
 
 gpg_error_t gcry_pk_algo_info(int algo, int what, void *buffer,
                               size_t *nbytes) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_pk_algo_info(algo, what, buffer, nbytes);
 }
 
@@ -692,84 +624,48 @@ const char *gcry_pk_algo_name(int algorithm) {
 int gcry_pk_map_name(const char *name) { return _gcry_pk_map_name(name); }
 
 unsigned int gcry_pk_get_nbits(gcry_sexp_t key) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return 0;
-  }
-
   return _gcry_pk_get_nbits(key);
 }
 
 unsigned char *gcry_pk_get_keygrip(gcry_sexp_t key, unsigned char *array) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return NULL;
-  }
   return _gcry_pk_get_keygrip(key, array);
 }
 
 const char *gcry_pk_get_curve(gcry_sexp_t key, int iterator,
                               unsigned int *r_nbits) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return NULL;
-  }
   return _gcry_pk_get_curve(key, iterator, r_nbits);
 }
 
 gcry_sexp_t gcry_pk_get_param(int algo, const char *name) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return NULL;
-  }
   return _gcry_pk_get_param(algo, name);
 }
 
 gpg_error_t gcry_pubkey_get_sexp(gcry_sexp_t *r_sexp, int mode,
                                  gcry_ctx_t ctx) {
-  if (!fips_is_operational()) {
-    *r_sexp = NULL;
-    return fips_not_operational();
-  }
   return _gcry_pubkey_get_sexp(r_sexp, mode, ctx);
 }
 
 gpg_error_t gcry_md_open(gcry_md_hd_t *h, int algo, unsigned int flags) {
-  if (!fips_is_operational()) {
-    *h = NULL;
-    return fips_not_operational();
-  }
-
   return _gcry_md_open(h, algo, flags);
 }
 
 void gcry_md_close(gcry_md_hd_t hd) { _gcry_md_close(hd); }
 
 gpg_error_t gcry_md_enable(gcry_md_hd_t hd, int algo) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_md_enable(hd, algo);
 }
 
 gpg_error_t gcry_md_copy(gcry_md_hd_t *bhd, gcry_md_hd_t ahd) {
-  if (!fips_is_operational()) {
-    *bhd = NULL;
-    return fips_not_operational();
-  }
   return _gcry_md_copy(bhd, ahd);
 }
 
 void gcry_md_reset(gcry_md_hd_t hd) { _gcry_md_reset(hd); }
 
 gpg_error_t gcry_md_ctl(gcry_md_hd_t hd, int cmd, void *buffer, size_t buflen) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_md_ctl(hd, cmd, buffer, buflen);
 }
 
 void gcry_md_write(gcry_md_hd_t hd, const void *buffer, size_t length) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return;
-  }
   _gcry_md_write(hd, buffer, length);
 }
 
@@ -784,28 +680,15 @@ gpg_error_t gcry_md_extract(gcry_md_hd_t hd, int algo, void *buffer,
 
 void gcry_md_hash_buffer(int algo, void *digest, const void *buffer,
                          size_t length) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_error("called in non-operational state");
-  }
   _gcry_md_hash_buffer(algo, digest, buffer, length);
 }
 
 gpg_error_t gcry_md_hash_buffers(int algo, unsigned int flags, void *digest,
                                  const gcry_buffer_t *iov, int iovcnt) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_error("called in non-operational state");
-  }
   return _gcry_md_hash_buffers(algo, flags, digest, iov, iovcnt);
 }
 
 int gcry_md_get_algo(gcry_md_hd_t hd) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_error("used in non-operational state");
-    return 0;
-  }
   return _gcry_md_get_algo(hd);
 }
 
@@ -814,11 +697,6 @@ unsigned int gcry_md_get_algo_dlen(int algo) {
 }
 
 int gcry_md_is_enabled(gcry_md_hd_t a, int algo) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    return 0;
-  }
-
   return _gcry_md_is_enabled(a, algo);
 }
 
@@ -826,8 +704,6 @@ int gcry_md_is_secure(gcry_md_hd_t a) { return _gcry_md_is_secure(a); }
 
 gpg_error_t gcry_md_info(gcry_md_hd_t h, int what, void *buffer,
                          size_t *nbytes) {
-  if (!fips_is_operational()) return fips_not_operational();
-
   return _gcry_md_info(h, what, buffer, nbytes);
 }
 
@@ -841,7 +717,6 @@ const char *gcry_md_algo_name(int algo) { return _gcry_md_algo_name(algo); }
 int gcry_md_map_name(const char *name) { return _gcry_md_map_name(name); }
 
 gpg_error_t gcry_md_setkey(gcry_md_hd_t hd, const void *key, size_t keylen) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_md_setkey(hd, key, keylen);
 }
 
@@ -858,36 +733,18 @@ gpg_error_t gcry_kdf_derive(const void *passphrase, size_t passphraselen,
 }
 
 void gcry_randomize(void *buffer, size_t length) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_fatal_error("called in non-operational state");
-    fips_noreturn();
-  }
   _gcry_randomize(buffer, length);
 }
 
 gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length) {
-  if (!fips_is_operational()) return fips_not_operational();
   return _gcry_random_add_bytes(buffer, length);
 }
 
 void *gcry_random_bytes(size_t nbytes) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_fatal_error("called in non-operational state");
-    fips_noreturn();
-  }
-
   return _gcry_random_bytes(nbytes);
 }
 
 void *gcry_random_bytes_secure(size_t nbytes) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_fatal_error("called in non-operational state");
-    fips_noreturn();
-  }
-
   return _gcry_random_bytes_secure(nbytes);
 }
 
@@ -896,11 +753,6 @@ void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits) {
 }
 
 void gcry_create_nonce(void *buffer, size_t length) {
-  if (!fips_is_operational()) {
-    (void)fips_not_operational();
-    fips_signal_fatal_error("called in non-operational state");
-    fips_noreturn();
-  }
   _gcry_create_nonce(buffer, length);
 }
 

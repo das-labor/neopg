@@ -116,20 +116,6 @@ static gcry_mac_spec_t *mac_list[] = {
     NULL,
 };
 
-/* Explicitly initialize this module.  */
-gpg_error_t _gcry_mac_init(void) {
-  if (fips_mode()) {
-    /* disable algorithms that are disallowed in fips */
-    int idx;
-    gcry_mac_spec_t *spec;
-
-    for (idx = 0; (spec = mac_list[idx]); idx++)
-      if (!spec->flags.fips) spec->flags.disabled = 1;
-  }
-
-  return 0;
-}
-
 /* Return the spec structure for the MAC algorithm ALGO.  For an
    unknown algorithm NULL is returned.  */
 static gcry_mac_spec_t *spec_from_algo(int algo) {

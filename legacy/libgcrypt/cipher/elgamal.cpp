@@ -799,7 +799,7 @@ static gpg_error_t elg_decrypt(gcry_sexp_t *r_plain, gcry_sexp_t s_data,
     log_printmpi("elg_decrypt    p", sk.p);
     log_printmpi("elg_decrypt    g", sk.g);
     log_printmpi("elg_decrypt    y", sk.y);
-    if (!fips_mode()) log_printmpi("elg_decrypt    x", sk.x);
+    log_printmpi("elg_decrypt    x", sk.x);
   }
 
   plain = mpi_snew(ctx.nbits);
@@ -878,7 +878,7 @@ static gpg_error_t elg_sign(gcry_sexp_t *r_sig, gcry_sexp_t s_data,
     log_mpidump("elg_sign      p", sk.p);
     log_mpidump("elg_sign      g", sk.g);
     log_mpidump("elg_sign      y", sk.y);
-    if (!fips_mode()) log_mpidump("elg_sign      x", sk.x);
+    log_mpidump("elg_sign      x", sk.x);
   }
 
   sig_r = mpi_new(0);

@@ -169,7 +169,6 @@ add_library(gcrypt
   libgcrypt/src/context.cpp
   libgcrypt/src/context.h
   libgcrypt/src/ec-context.h
-  libgcrypt/src/fips.cpp
   libgcrypt/src/g10lib.h
   libgcrypt/src/gcrypt-int.h
   libgcrypt/src/gcrypt-testapi.h

@@ -211,9 +211,6 @@ static unsigned int do_decrypt(const RIJNDAEL_context *ctx, unsigned char *bx,
 /* All the numbers.  */
 #include "rijndael-tables.h"
 
-/* Function prototypes.  */
-static const char *selftest(void);
-
 /* Prefetching for encryption/decryption tables. */
 static void prefetch_table(const volatile byte *tab, size_t len) {
   size_t i;
@@ -245,8 +242,6 @@ static void prefetch_dec(void) {
 /* Perform the key setup.  */
 static gpg_error_t do_setkey(RIJNDAEL_context *ctx, const byte *key,
                              const unsigned keylen) {
-  static int initialized = 0;
-  static const char *selftest_failed = 0;
   int rounds;
   int i, j, r, t, rconpointer = 0;
   int KC;
@@ -254,20 +249,6 @@ static gpg_error_t do_setkey(RIJNDAEL_context *ctx, const byte *key,
     defined(USE_ARM_CE)
   unsigned int hwfeatures;
 #endif
-
-  /* The on-the-fly self tests are only run in non-fips mode. In fips
-     mode explicit self-tests are required.  Actually the on-the-fly
-     self-tests are not fully thread-safe and it might happen that a
-     failed self-test won't get noticed in another thread.
-
-     FIXME: We might want to have a central registry of succeeded
-     self-tests. */
-  if (!fips_mode() && !initialized) {
-    initialized = 1;
-    selftest_failed = selftest();
-    if (selftest_failed) log_error("%s\n", selftest_failed);
-  }
-  if (selftest_failed) return GPG_ERR_SELFTEST_FAILED;
 
   if (keylen == 128 / 8) {
     rounds = 10;

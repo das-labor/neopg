@@ -158,8 +158,6 @@ static void parse_hwf_deny_file(void) {
 void _gcry_detect_hw_features(void) {
   hw_features = 0;
 
-  if (fips_mode()) return; /* Hardware support is not to be evaluated.  */
-
   parse_hwf_deny_file();
 
 #if defined(HAVE_CPU_ARCH_X86)
