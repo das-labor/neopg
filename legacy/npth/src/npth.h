@@ -34,7 +34,6 @@
 #ifndef _NPTH_H
 #define _NPTH_H
 
-#include <signal.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -44,6 +43,10 @@
 #include <unistd.h>
 #define _npth_socklen_t socklen_t
 #include <pthread.h>
+
+
+/* MacOS has trouble finding NSIG if this comes too early.  */
+#include <signal.h>
 
 #ifdef __ANDROID__
 #include <android/api-level.h>

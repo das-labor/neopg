@@ -17,8 +17,9 @@
  * License along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <config.h>
+
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
