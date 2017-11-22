@@ -31,7 +31,7 @@
 /* Modified for GnuPG use by Werner Koch <wk@gnupg.org>, 2007 */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@
    ISO C 99.  So we can use this feature only on selected systems (e.g.
    those using GNU C Library).  */
 #if defined _LIBC || (defined __GNU_LIBRARY__ && __GNU_LIBRARY__ >= 2)
-# define HAVE_LOCALE_NULL
+#define HAVE_LOCALE_NULL
 #endif
 
 /* Use a dummy value for LC_MESSAGES in case it is not defined.  This
@@ -60,7 +60,6 @@
 #define LC_MESSAGES 0
 #endif
 
-
 /* Determine the current locale's name, and canonicalize it into XPG syntax
      language[_territory[.codeset]][@modifier]
    The codeset part in the result is not reliable; the locale_charset()
@@ -68,59 +67,52 @@
    The result must not be freed; it is statically allocated.  */
 
 #ifndef HAVE_W32_SYSTEM
-static const char *
-do_nl_locale_name (int category, const char *categoryname)
-{
+static const char *do_nl_locale_name(int category, const char *categoryname) {
   const char *retval;
 
-  /* Use the POSIX methods of looking to 'LC_ALL', 'LC_xxx', and 'LANG'.
-     On some systems this can be done by the 'setlocale' function itself.  */
-# if defined HAVE_SETLOCALE && defined HAVE_LC_MESSAGES && defined HAVE_LOCALE_NULL
+/* Use the POSIX methods of looking to 'LC_ALL', 'LC_xxx', and 'LANG'.
+   On some systems this can be done by the 'setlocale' function itself.  */
+#if defined HAVE_SETLOCALE && defined HAVE_LC_MESSAGES && \
+    defined HAVE_LOCALE_NULL
   (void)categoryname;
-  retval = setlocale (category, NULL);
-# else
+  retval = setlocale(category, NULL);
+#else
   (void)category;
   /* Setting of LC_ALL overwrites all other.  */
-  retval = getenv ("LC_ALL");
-  if (retval == NULL || retval[0] == '\0')
-    {
-      /* Next comes the name of the desired category.  */
-      retval = getenv (categoryname);
+  retval = getenv("LC_ALL");
+  if (retval == NULL || retval[0] == '\0') {
+    /* Next comes the name of the desired category.  */
+    retval = getenv(categoryname);
+    if (retval == NULL || retval[0] == '\0') {
+      /* Last possibility is the LANG environment variable.  */
+      retval = getenv("LANG");
       if (retval == NULL || retval[0] == '\0')
-	{
-	  /* Last possibility is the LANG environment variable.  */
-	  retval = getenv ("LANG");
-	  if (retval == NULL || retval[0] == '\0')
-	    /* We use C as the default domain.  POSIX says this is
-	       implementation defined.  */
-	    retval = "C";
-	}
+        /* We use C as the default domain.  POSIX says this is
+           implementation defined.  */
+        retval = "C";
     }
-# endif
+  }
+#endif
 
   return retval;
 }
 #endif /* HAVE_W32_SYSTEM */
 
-
-
 /* Return the locale used for translatable messages.  The standard C
    and POSIX are locale names are mapped to an empty string.  If a
    locale can't be found an empty string will be returned.  */
-const char *
-gnupg_messages_locale_name (void)
-{
+const char *gnupg_messages_locale_name(void) {
   const char *s;
 
 #ifdef HAVE_W32_SYSTEM
   /* We use the localename function libgpg-error.  */
-  s = gettext_localename ();
+  s = gettext_localename();
 #else
-  s = do_nl_locale_name (LC_MESSAGES, "LC_MESSAGES");
+  s = do_nl_locale_name(LC_MESSAGES, "LC_MESSAGES");
 #endif
   if (!s)
     s = "";
-  else if (!strcmp (s, "C") || !strcmp (s, "POSIX"))
+  else if (!strcmp(s, "C") || !strcmp(s, "POSIX"))
     s = "";
 
   return s;

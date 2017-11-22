@@ -18,212 +18,164 @@
  */
 
 /*-- sha1.c --*/
-void sha1_hash_buffer (char *outbuf, const char *buffer, size_t length);
+void sha1_hash_buffer(char *outbuf, const char *buffer, size_t length);
 
+#define digitp(p) (*(p) >= '0' && *(p) <= '9')
 
+#define fail_if_err(a)                                               \
+  do {                                                               \
+    if (a) {                                                         \
+      fprintf(stderr, "%s:%d: KSBA error: %s\n", __FILE__, __LINE__, \
+              gpg_strerror(a));                                      \
+      exit(1);                                                       \
+    }                                                                \
+  } while (0)
 
-#define digitp(p)   (*(p) >= '0' && *(p) <= '9')
+#define fail_if_err2(f, a)                                              \
+  do {                                                                  \
+    if (a) {                                                            \
+      fprintf(stderr, "%s:%d: KSBA error on file `%s': %s\n", __FILE__, \
+              __LINE__, (f), gpg_strerror(a));                          \
+      exit(1);                                                          \
+    }                                                                   \
+  } while (0)
 
-#define fail_if_err(a) do { if(a) {                                       \
-                              fprintf (stderr, "%s:%d: KSBA error: %s\n", \
-                              __FILE__, __LINE__, gpg_strerror(a));   \
-                              exit (1); }                              \
-                           } while(0)
+#define fail(s)                                              \
+  do {                                                       \
+    fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, (s)); \
+    exit(1);                                                 \
+  } while (0)
 
+#define xfree(a) ksba_free(a)
 
-#define fail_if_err2(f, a) do { if(a) {\
-            fprintf (stderr, "%s:%d: KSBA error on file `%s': %s\n", \
-                       __FILE__, __LINE__, (f), gpg_strerror(a));   \
-                            exit (1); }                              \
-                           } while(0)
-
-#define fail(s)  do { fprintf (stderr, "%s:%d: %s\n", __FILE__,__LINE__, (s));\
-                      exit (1); } while(0)
-
-#define xfree(a)  ksba_free (a)
-
-
-static void *
-xmalloc (size_t n)
-{
-  char *p = (char*) ksba_malloc (n);
-  if (!p)
-    {
-      fprintf (stderr, "out of core\n");
-      exit (1);
-    }
+static void *xmalloc(size_t n) {
+  char *p = (char *)ksba_malloc(n);
+  if (!p) {
+    fprintf(stderr, "out of core\n");
+    exit(1);
+  }
   return p;
 }
 
-
 /* Prepend FNAME with the srcdir environment variable's value and
    retrun an allocated filename. */
-static char *
-prepend_srcdir (const char *fname)
-{
+static char *prepend_srcdir(const char *fname) {
   static const char *srcdir;
   char *result;
 
   if (!srcdir)
-    if(!(srcdir = getenv ("srcdir")))
-      srcdir = ".";
+    if (!(srcdir = getenv("srcdir"))) srcdir = ".";
 
-  result = (char*) xmalloc (strlen (srcdir) + 1 + strlen (fname) + 1);
-  strcpy (result, srcdir);
-  strcat (result, "/");
-  strcat (result, fname);
+  result = (char *)xmalloc(strlen(srcdir) + 1 + strlen(fname) + 1);
+  strcpy(result, srcdir);
+  strcat(result, "/");
+  strcat(result, fname);
   return result;
 }
 
-
-
-static void
-print_hex (const unsigned char *p, size_t n)
-{
+static void print_hex(const unsigned char *p, size_t n) {
   if (!p)
-    fputs ("none", stdout);
-  else
-    {
-      for (; n; n--, p++)
-        printf ("%02X", *p);
-    }
+    fputs("none", stdout);
+  else {
+    for (; n; n--, p++) printf("%02X", *p);
+  }
 }
 
-
-static void
-print_sexp (ksba_const_sexp_t p)
-{
+static void print_sexp(ksba_const_sexp_t p) {
   int level = 0;
 
   if (!p)
-    fputs ("[none]", stdout);
-  else
-    {
-      for (;;)
-        {
-          if (*p == '(')
-            {
-              putchar (*p);
-              p++;
-              level++;
-            }
-          else if (*p == ')')
-            {
-              putchar (*p);
-              p++;
-              if (--level <= 0 )
-                return;
-            }
-          else if (!digitp (p))
-            {
-              fputs ("[invalid s-exp]", stdout);
-              return;
-            }
-          else
-            {
-              char *endp;
-              const unsigned char *s;
-              unsigned long len, n;
+    fputs("[none]", stdout);
+  else {
+    for (;;) {
+      if (*p == '(') {
+        putchar(*p);
+        p++;
+        level++;
+      } else if (*p == ')') {
+        putchar(*p);
+        p++;
+        if (--level <= 0) return;
+      } else if (!digitp(p)) {
+        fputs("[invalid s-exp]", stdout);
+        return;
+      } else {
+        char *endp;
+        const unsigned char *s;
+        unsigned long len, n;
 
-              len = strtoul ((const char*) (p), &endp, 10);
-              p = (ksba_const_sexp_t) endp;
-              if (*p != ':')
-                {
-                  fputs ("[invalid s-exp]", stdout);
-                  return;
-                }
-              p++;
-              for (s=p,n=0; n < len; n++, s++)
-                if ( !((*s >= 'a' && *s <= 'z')
-                       || (*s >= 'A' && *s <= 'Z')
-                       || (*s >= '0' && *s <= '9')
-                       || *s == '-' || *s == '.'))
-                  break;
-              if (n < len)
-                {
-                  putchar('#');
-                  for (n=0; n < len; n++, p++)
-                    printf ("%02X", *p);
-                  putchar('#');
-                }
-              else
-                {
-                  for (n=0; n < len; n++, p++)
-                    putchar (*p);
-                }
-            }
+        len = strtoul((const char *)(p), &endp, 10);
+        p = (ksba_const_sexp_t)endp;
+        if (*p != ':') {
+          fputs("[invalid s-exp]", stdout);
+          return;
         }
+        p++;
+        for (s = p, n = 0; n < len; n++, s++)
+          if (!((*s >= 'a' && *s <= 'z') || (*s >= 'A' && *s <= 'Z') ||
+                (*s >= '0' && *s <= '9') || *s == '-' || *s == '.'))
+            break;
+        if (n < len) {
+          putchar('#');
+          for (n = 0; n < len; n++, p++) printf("%02X", *p);
+          putchar('#');
+        } else {
+          for (n = 0; n < len; n++, p++) putchar(*p);
+        }
+      }
     }
+  }
 }
 
 /* Variant of print_sexp which forces printing the values in hex.  */
-static void
-print_sexp_hex (ksba_const_sexp_t p)
-{
+static void print_sexp_hex(ksba_const_sexp_t p) {
   int level = 0;
 
   if (!p)
-    fputs ("[none]", stdout);
-  else
-    {
-      for (;;)
-        {
-          if (*p == '(')
-            {
-              putchar (*p);
-              p++;
-              level++;
-            }
-          else if (*p == ')')
-            {
-              putchar (*p);
-              p++;
-              if (--level <= 0 )
-                return;
-            }
-          else if (!digitp (p))
-            {
-              fputs ("[invalid s-exp]", stdout);
-              return;
-            }
-          else
-            {
-              char *endp;
-              unsigned long len, n;
+    fputs("[none]", stdout);
+  else {
+    for (;;) {
+      if (*p == '(') {
+        putchar(*p);
+        p++;
+        level++;
+      } else if (*p == ')') {
+        putchar(*p);
+        p++;
+        if (--level <= 0) return;
+      } else if (!digitp(p)) {
+        fputs("[invalid s-exp]", stdout);
+        return;
+      } else {
+        char *endp;
+        unsigned long len, n;
 
-              len = strtoul ((const char*) (p), &endp, 10);
-              p = (ksba_const_sexp_t) endp;
-              if (*p != ':')
-                {
-                  fputs ("[invalid s-exp]", stdout);
-                  return;
-                }
-              p++;
-              putchar('#');
-              for (n=0; n < len; n++, p++)
-                printf ("%02X", *p);
-              putchar('#');
-            }
+        len = strtoul((const char *)(p), &endp, 10);
+        p = (ksba_const_sexp_t)endp;
+        if (*p != ':') {
+          fputs("[invalid s-exp]", stdout);
+          return;
         }
+        p++;
+        putchar('#');
+        for (n = 0; n < len; n++, p++) printf("%02X", *p);
+        putchar('#');
+      }
     }
+  }
 }
 
-
-static void
-print_dn (char *p)
-{
+static void print_dn(char *p) {
   if (!p)
-    fputs ("error", stdout);
+    fputs("error", stdout);
   else
-    printf ("`%s'", p);
+    printf("`%s'", p);
 }
 
-
-static void
-print_time (ksba_isotime_t t)
-{
+static void print_time(ksba_isotime_t t) {
   if (!t || !*t)
-    fputs ("none", stdout);
+    fputs("none", stdout);
   else
-    printf ("%.4s-%.2s-%.2s %.2s:%.2s:%s", t, t+4, t+6, t+9, t+11, t+13);
+    printf("%.4s-%.2s-%.2s %.2s:%.2s:%s", t, t + 4, t + 6, t + 9, t + 11,
+           t + 13);
 }

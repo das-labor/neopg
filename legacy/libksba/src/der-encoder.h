@@ -36,39 +36,33 @@
 struct der_encoder_s;
 typedef struct der_encoder_s *DerEncoder;
 
-DerEncoder _ksba_der_encoder_new (void);
-void       _ksba_der_encoder_release (DerEncoder d);
+DerEncoder _ksba_der_encoder_new(void);
+void _ksba_der_encoder_release(DerEncoder d);
 
-gpg_error_t _ksba_der_encoder_set_module (DerEncoder d, ksba_asn_tree_t module);
-gpg_error_t _ksba_der_encoder_set_writer (DerEncoder d, ksba_writer_t w);
+gpg_error_t _ksba_der_encoder_set_module(DerEncoder d, ksba_asn_tree_t module);
+gpg_error_t _ksba_der_encoder_set_writer(DerEncoder d, ksba_writer_t w);
 
+gpg_error_t _ksba_der_write_integer(ksba_writer_t w,
+                                    const unsigned char *value);
+gpg_error_t _ksba_der_write_algorithm_identifier(ksba_writer_t w,
+                                                 const char *oid,
+                                                 const void *parm,
+                                                 size_t parmlen);
 
-gpg_error_t _ksba_der_write_integer (ksba_writer_t w,
-                                     const unsigned char *value);
-gpg_error_t _ksba_der_write_algorithm_identifier (
-            ksba_writer_t w, const char *oid, const void *parm, size_t parmlen);
+gpg_error_t _ksba_der_copy_tree(AsnNode dst, AsnNode src,
+                                const unsigned char *srcimage);
 
+gpg_error_t _ksba_der_store_time(AsnNode node, const ksba_isotime_t atime);
+gpg_error_t _ksba_der_store_string(AsnNode node, const char *string);
+gpg_error_t _ksba_der_store_integer(AsnNode node, const unsigned char *value);
+gpg_error_t _ksba_der_store_oid(AsnNode node, const char *oid);
+gpg_error_t _ksba_der_store_octet_string(AsnNode node, const char *buf,
+                                         size_t len);
+gpg_error_t _ksba_der_store_sequence(AsnNode node, const unsigned char *buf,
+                                     size_t len);
+gpg_error_t _ksba_der_store_null(AsnNode node);
 
-
-gpg_error_t _ksba_der_copy_tree (AsnNode dst,
-                               AsnNode src, const unsigned char *srcimage);
-
-
-
-gpg_error_t _ksba_der_store_time (AsnNode node, const ksba_isotime_t atime);
-gpg_error_t _ksba_der_store_string (AsnNode node, const char *string);
-gpg_error_t _ksba_der_store_integer (AsnNode node, const unsigned char *value);
-gpg_error_t _ksba_der_store_oid (AsnNode node, const char *oid);
-gpg_error_t _ksba_der_store_octet_string (AsnNode node,
-                                        const char *buf, size_t len);
-gpg_error_t _ksba_der_store_sequence (AsnNode node,
-                                      const unsigned char *buf, size_t len);
-gpg_error_t _ksba_der_store_null (AsnNode node);
-
-
-gpg_error_t _ksba_der_encode_tree (AsnNode root,
-                                 unsigned char **r_image, size_t *r_imagelen);
-
-
+gpg_error_t _ksba_der_encode_tree(AsnNode root, unsigned char **r_image,
+                                  size_t *r_imagelen);
 
 #endif /*DER_ENCODER_H*/

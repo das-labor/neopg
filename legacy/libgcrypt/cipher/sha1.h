@@ -22,19 +22,17 @@
 #include "hash-common.h"
 
 /* We need this here for direct use by random-csprng.c. */
-typedef struct
-{
+typedef struct {
   gcry_md_block_ctx_t bctx;
-  u32          h0,h1,h2,h3,h4;
-  unsigned int use_ssse3:1;
-  unsigned int use_avx:1;
-  unsigned int use_bmi2:1;
-  unsigned int use_neon:1;
-  unsigned int use_arm_ce:1;
+  u32 h0, h1, h2, h3, h4;
+  unsigned int use_ssse3 : 1;
+  unsigned int use_avx : 1;
+  unsigned int use_bmi2 : 1;
+  unsigned int use_neon : 1;
+  unsigned int use_arm_ce : 1;
 } SHA1_CONTEXT;
 
-
-void _gcry_sha1_mixblock_init (SHA1_CONTEXT *hd);
-unsigned int _gcry_sha1_mixblock (SHA1_CONTEXT *hd, void *blockof64byte);
+void _gcry_sha1_mixblock_init(SHA1_CONTEXT *hd);
+unsigned int _gcry_sha1_mixblock(SHA1_CONTEXT *hd, void *blockof64byte);
 
 #endif /*GCRY_SHA1_H*/

@@ -30,20 +30,20 @@
 #ifndef GNUPG_COMMON_KEYSERVER_H
 #define GNUPG_COMMON_KEYSERVER_H
 
-#define KEYSERVER_PROTO_VERSION    1
+#define KEYSERVER_PROTO_VERSION 1
 
 /* These are usable for return codes for the gpgkeys_ process, and
    also KEY FAILED codes. */
-#define KEYSERVER_OK               0 /* not an error */
-#define KEYSERVER_INTERNAL_ERROR   1 /* gpgkeys_ internal error */
-#define KEYSERVER_NOT_SUPPORTED    2 /* operation not supported */
-#define KEYSERVER_VERSION_ERROR    3 /* VERSION mismatch */
-#define KEYSERVER_GENERAL_ERROR    4 /* keyserver internal error */
-#define KEYSERVER_NO_MEMORY        5 /* out of memory */
-#define KEYSERVER_KEY_NOT_FOUND    6 /* key not found */
-#define KEYSERVER_KEY_EXISTS       7 /* key already exists */
-#define KEYSERVER_KEY_INCOMPLETE   8 /* key incomplete (EOF) */
-#define KEYSERVER_UNREACHABLE      9 /* unable to contact keyserver */
+#define KEYSERVER_OK 0             /* not an error */
+#define KEYSERVER_INTERNAL_ERROR 1 /* gpgkeys_ internal error */
+#define KEYSERVER_NOT_SUPPORTED 2  /* operation not supported */
+#define KEYSERVER_VERSION_ERROR 3  /* VERSION mismatch */
+#define KEYSERVER_GENERAL_ERROR 4  /* keyserver internal error */
+#define KEYSERVER_NO_MEMORY 5      /* out of memory */
+#define KEYSERVER_KEY_NOT_FOUND 6  /* key not found */
+#define KEYSERVER_KEY_EXISTS 7     /* key already exists */
+#define KEYSERVER_KEY_INCOMPLETE 8 /* key incomplete (EOF) */
+#define KEYSERVER_UNREACHABLE 9    /* unable to contact keyserver */
 
 /* Must be 127 due to shell internal magic. */
 #define KEYSERVER_SCHEME_NOT_FOUND 127
@@ -52,8 +52,7 @@
    allows building a list of keyservers.  Note that g10/options.h has
    a typedef for this.  FIXME: We should make use of the
    parse_uri_t. */
-struct keyserver_spec
-{
+struct keyserver_spec {
   struct keyserver_spec *next;
   char *uri;
   char *scheme;
@@ -63,11 +62,9 @@ struct keyserver_spec
   char *path;
   char *opaque;
   strlist_t options;
-  struct
-  {
-    unsigned int direct_uri:1;
+  struct {
+    unsigned int direct_uri : 1;
   } flags;
 };
-
 
 #endif /*GNUPG_COMMON_KEYSERVER_H*/

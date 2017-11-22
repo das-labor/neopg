@@ -45,17 +45,15 @@
  */
 
 #include <config.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <errno.h>
 
 #include "g10lib.h"
-#include "stdmem.h"
 #include "secmem.h"
-
-
+#include "stdmem.h"
 
 #define MAGIC_NOR_BYTE 0x55
 #define MAGIC_SEC_BYTE 0xcc
@@ -67,176 +65,133 @@
 #define EXTRA_ALIGN 0
 #endif
 
-
 static int use_m_guard = 0;
 
 /****************
  * Warning: Never use this function after any of the functions
  * here have been used.
  */
-void
-_gcry_private_enable_m_guard (void)
-{
-  use_m_guard = 1;
-}
-
+void _gcry_private_enable_m_guard(void) { use_m_guard = 1; }
 
 /*
  * Allocate memory of size n.
  * Return NULL if we are out of memory.
  */
-void *
-_gcry_private_malloc (size_t n)
-{
-  if (!n)
-    {
-      gpg_err_set_errno (EINVAL);
-      return NULL; /* Allocating 0 bytes is undefined - we better return
-                      an error to detect such coding errors.  */
-    }
+void *_gcry_private_malloc(size_t n) {
+  if (!n) {
+    gpg_err_set_errno(EINVAL);
+    return NULL; /* Allocating 0 bytes is undefined - we better return
+                    an error to detect such coding errors.  */
+  }
 
-  if (use_m_guard)
-    {
-      char *p;
+  if (use_m_guard) {
+    char *p;
 
-      if ( !(p = (char*) malloc (n + EXTRA_ALIGN+5)) )
-        return NULL;
-      ((byte*)p)[EXTRA_ALIGN+0] = n;
-      ((byte*)p)[EXTRA_ALIGN+1] = n >> 8 ;
-      ((byte*)p)[EXTRA_ALIGN+2] = n >> 16 ;
-      ((byte*)p)[EXTRA_ALIGN+3] = MAGIC_NOR_BYTE;
-      p[4+EXTRA_ALIGN+n] = MAGIC_END_BYTE;
-      return p+EXTRA_ALIGN+4;
-    }
-  else
-    {
-      return malloc( n );
-    }
+    if (!(p = (char *)malloc(n + EXTRA_ALIGN + 5))) return NULL;
+    ((byte *)p)[EXTRA_ALIGN + 0] = n;
+    ((byte *)p)[EXTRA_ALIGN + 1] = n >> 8;
+    ((byte *)p)[EXTRA_ALIGN + 2] = n >> 16;
+    ((byte *)p)[EXTRA_ALIGN + 3] = MAGIC_NOR_BYTE;
+    p[4 + EXTRA_ALIGN + n] = MAGIC_END_BYTE;
+    return p + EXTRA_ALIGN + 4;
+  } else {
+    return malloc(n);
+  }
 }
-
 
 /*
  * Allocate memory of size N from the secure memory pool.  Return NULL
  * if we are out of memory.  XHINT tells the allocator that the caller
  * used an xmalloc style call.
  */
-void *
-_gcry_private_malloc_secure (size_t n, int xhint)
-{
-  if (!n)
-    {
-      gpg_err_set_errno (EINVAL);
-      return NULL; /* Allocating 0 bytes is undefined - better return an
-                      error to detect such coding errors.  */
-    }
+void *_gcry_private_malloc_secure(size_t n, int xhint) {
+  if (!n) {
+    gpg_err_set_errno(EINVAL);
+    return NULL; /* Allocating 0 bytes is undefined - better return an
+                    error to detect such coding errors.  */
+  }
 
-  if (use_m_guard)
-    {
-      char *p;
+  if (use_m_guard) {
+    char *p;
 
-      if (!(p = (char*) _gcry_secmem_malloc (n + EXTRA_ALIGN + 5, xhint)))
-        return NULL;
-      ((byte*)p)[EXTRA_ALIGN+0] = n;
-      ((byte*)p)[EXTRA_ALIGN+1] = n >> 8 ;
-      ((byte*)p)[EXTRA_ALIGN+2] = n >> 16 ;
-      ((byte*)p)[EXTRA_ALIGN+3] = MAGIC_SEC_BYTE;
-      p[4+EXTRA_ALIGN+n] = MAGIC_END_BYTE;
-      return p+EXTRA_ALIGN+4;
-    }
-  else
-    {
-      return _gcry_secmem_malloc (n, xhint);
-    }
+    if (!(p = (char *)_gcry_secmem_malloc(n + EXTRA_ALIGN + 5, xhint)))
+      return NULL;
+    ((byte *)p)[EXTRA_ALIGN + 0] = n;
+    ((byte *)p)[EXTRA_ALIGN + 1] = n >> 8;
+    ((byte *)p)[EXTRA_ALIGN + 2] = n >> 16;
+    ((byte *)p)[EXTRA_ALIGN + 3] = MAGIC_SEC_BYTE;
+    p[4 + EXTRA_ALIGN + n] = MAGIC_END_BYTE;
+    return p + EXTRA_ALIGN + 4;
+  } else {
+    return _gcry_secmem_malloc(n, xhint);
+  }
 }
-
 
 /*
  * Realloc and clear the old space.  XHINT tells the allocator that
  * the caller used an xmalloc style call.  Returns NULL if there is
  * not enough memory.
  */
-void *
-_gcry_private_realloc (void *a, size_t n, int xhint)
-{
-  if (use_m_guard)
-    {
-      unsigned char *p = (unsigned char*) a;
-      char *b;
-      size_t len;
+void *_gcry_private_realloc(void *a, size_t n, int xhint) {
+  if (use_m_guard) {
+    unsigned char *p = (unsigned char *)a;
+    char *b;
+    size_t len;
 
-      if (!a)
-        return _gcry_private_malloc(n);
+    if (!a) return _gcry_private_malloc(n);
 
-      _gcry_private_check_heap(p);
-      len  = p[-4];
-      len |= p[-3] << 8;
-      len |= p[-2] << 16;
-      if( len >= n ) /* We don't shrink for now. */
-        return a;
-      if (p[-1] == MAGIC_SEC_BYTE)
-        b = (char*) _gcry_private_malloc_secure (n, xhint);
-      else
-        b = (char*) _gcry_private_malloc(n);
-      if (!b)
-        return NULL;
-      memcpy (b, a, len);
-      memset (b+len, 0, n-len);
-      _gcry_private_free (p);
-      return b;
-    }
-  else if ( _gcry_private_is_secure(a) )
-    {
-      return _gcry_secmem_realloc (a, n, xhint);
-    }
-  else
-    {
-      return realloc( a, n );
-    }
+    _gcry_private_check_heap(p);
+    len = p[-4];
+    len |= p[-3] << 8;
+    len |= p[-2] << 16;
+    if (len >= n) /* We don't shrink for now. */
+      return a;
+    if (p[-1] == MAGIC_SEC_BYTE)
+      b = (char *)_gcry_private_malloc_secure(n, xhint);
+    else
+      b = (char *)_gcry_private_malloc(n);
+    if (!b) return NULL;
+    memcpy(b, a, len);
+    memset(b + len, 0, n - len);
+    _gcry_private_free(p);
+    return b;
+  } else if (_gcry_private_is_secure(a)) {
+    return _gcry_secmem_realloc(a, n, xhint);
+  } else {
+    return realloc(a, n);
+  }
 }
 
+void _gcry_private_check_heap(const void *a) {
+  if (use_m_guard) {
+    const byte *p = (const byte *)a;
+    size_t len;
 
-void
-_gcry_private_check_heap (const void *a)
-{
-  if (use_m_guard)
-    {
-      const byte *p = (const byte*) a;
-      size_t len;
+    if (!p) return;
 
-      if (!p)
-        return;
-
-      if ( !(p[-1] == MAGIC_NOR_BYTE || p[-1] == MAGIC_SEC_BYTE) )
-        _gcry_log_fatal ("memory at %p corrupted (underflow=%02x)\n", p, p[-1]);
-      len  = p[-4];
-      len |= p[-3] << 8;
-      len |= p[-2] << 16;
-      if ( p[len] != MAGIC_END_BYTE )
-        _gcry_log_fatal ("memory at %p corrupted (overflow=%02x)\n", p, p[-1]);
-    }
+    if (!(p[-1] == MAGIC_NOR_BYTE || p[-1] == MAGIC_SEC_BYTE))
+      _gcry_log_fatal("memory at %p corrupted (underflow=%02x)\n", p, p[-1]);
+    len = p[-4];
+    len |= p[-3] << 8;
+    len |= p[-2] << 16;
+    if (p[len] != MAGIC_END_BYTE)
+      _gcry_log_fatal("memory at %p corrupted (overflow=%02x)\n", p, p[-1]);
+  }
 }
-
 
 /*
  * Free a memory block allocated by this or the secmem module
  */
-void
-_gcry_private_free (void *a)
-{
-  unsigned char *p = (unsigned char*) a;
+void _gcry_private_free(void *a) {
+  unsigned char *p = (unsigned char *)a;
 
-  if (!p)
-    return;
-  if (use_m_guard )
-    {
-      _gcry_private_check_heap(p);
-      if (! _gcry_secmem_free (p - EXTRA_ALIGN - 4))
-        {
-          free (p - EXTRA_ALIGN - 4);
-	}
+  if (!p) return;
+  if (use_m_guard) {
+    _gcry_private_check_heap(p);
+    if (!_gcry_secmem_free(p - EXTRA_ALIGN - 4)) {
+      free(p - EXTRA_ALIGN - 4);
     }
-  else if (!_gcry_secmem_free (p))
-    {
-      free(p);
-    }
+  } else if (!_gcry_secmem_free(p)) {
+    free(p);
+  }
 }

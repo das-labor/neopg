@@ -21,20 +21,15 @@
 #define GCRY_KDF_INTERNAL_H
 
 /*-- kdf.c --*/
-gpg_error_t
-_gcry_kdf_pkdf2 (const void *passphrase, size_t passphraselen,
-                 int hashalgo,
-                 const void *salt, size_t saltlen,
-                 unsigned long iterations,
-                 size_t keysize, void *keybuffer);
+gpg_error_t _gcry_kdf_pkdf2(const void *passphrase, size_t passphraselen,
+                            int hashalgo, const void *salt, size_t saltlen,
+                            unsigned long iterations, size_t keysize,
+                            void *keybuffer);
 
 /*-- scrypt.c --*/
-gpg_error_t
-_gcry_kdf_scrypt (const unsigned char *passwd, size_t passwdlen,
-                  int algo, int subalgo,
-                  const unsigned char *salt, size_t saltlen,
-                  unsigned long iterations,
-                  size_t dklen, unsigned char *dk);
-
+gpg_error_t _gcry_kdf_scrypt(const unsigned char *passwd, size_t passwdlen,
+                             int algo, int subalgo, const unsigned char *salt,
+                             size_t saltlen, unsigned long iterations,
+                             size_t dklen, unsigned char *dk);
 
 #endif /*GCRY_KDF_INTERNAL_H*/

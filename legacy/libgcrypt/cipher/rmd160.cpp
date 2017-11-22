@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cipher.h" /* Only used for the rmd160_hash_buffer() prototype. */
 #include "g10lib.h"
 #include "hash-common.h"
-#include "cipher.h" /* Only used for the rmd160_hash_buffer() prototype. */
 
 #include "bithelp.h"
 #include "bufhelp.h"
@@ -120,7 +120,7 @@
  *	     T := rol_s(j)(A [+] f(j, B, C, D) [+] X[i][r(j)] [+] K(j)) [+] E;
  *	     A := E; E := D; D := rol_10(C); C := B; B := T;
  *	     T := rol_s'(j)(A' [+] f(79-j, B', C', D') [+] X[i][r'(j)]
-						       [+] K'(j)) [+] E';
+                                                       [+] K'(j)) [+] E';
  *	     A' := E'; E' := D'; D' := rol_10(C'); C' := B'; B' := T;
  *	 }
  *	 T := h1 [+] C [+] D'; h1 := h2 [+] D [+] E'; h2 := h3 [+] E [+] A';
@@ -140,20 +140,16 @@
  * 1 million times "a"   52783243c1697bdbe16d37f97f68f08325dc1528
  */
 
-typedef struct
-{
+typedef struct {
   gcry_md_block_ctx_t bctx;
-  u32  h0,h1,h2,h3,h4;
+  u32 h0, h1, h2, h3, h4;
 } RMD160_CONTEXT;
 
+static unsigned int transform(void *ctx, const unsigned char *data,
+                              size_t nblks);
 
-static unsigned int
-transform ( void *ctx, const unsigned char *data, size_t nblks );
-
-static void
-rmd160_init (void *context, unsigned int flags)
-{
-  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
+static void rmd160_init(void *context, unsigned int flags) {
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT *)context;
 
   (void)flags;
 
@@ -170,40 +166,38 @@ rmd160_init (void *context, unsigned int flags)
   hd->bctx.bwrite = transform;
 }
 
-
 /****************
  * Transform the message X which consists of 16 32-bit-words
  */
-static unsigned int
-transform_blk ( void *ctx, const unsigned char *data )
-{
-  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) ctx;
+static unsigned int transform_blk(void *ctx, const unsigned char *data) {
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT *)ctx;
   register u32 al, ar, bl, br, cl, cr, dl, dr, el, er;
   u32 x[16];
   int i;
 
-  for ( i = 0; i < 16; i++ )
-    x[i] = buf_get_le32(data + i * 4);
+  for (i = 0; i < 16; i++) x[i] = buf_get_le32(data + i * 4);
 
-#define K0  0x00000000
-#define K1  0x5A827999
-#define K2  0x6ED9EBA1
-#define K3  0x8F1BBCDC
-#define K4  0xA953FD4E
+#define K0 0x00000000
+#define K1 0x5A827999
+#define K2 0x6ED9EBA1
+#define K3 0x8F1BBCDC
+#define K4 0xA953FD4E
 #define KK0 0x50A28BE6
 #define KK1 0x5C4DD124
 #define KK2 0x6D703EF3
 #define KK3 0x7A6D76E9
 #define KK4 0x00000000
-#define F0(x,y,z)   ( (x) ^ (y) ^ (z) )
-#define F1(x,y,z)   ( ((x) & (y)) | (~(x) & (z)) )
-#define F2(x,y,z)   ( ((x) | ~(y)) ^ (z) )
-#define F3(x,y,z)   ( ((x) & (z)) | ((y) & ~(z)) )
-#define F4(x,y,z)   ( (x) ^ ((y) | ~(z)) )
-#define R(a,b,c,d,e,f,k,r,s) do { a += f(b,c,d) + k + x[r]; \
-				  a = rol(a,s) + e;	       \
-				  c = rol(c,10);	       \
-				} while(0)
+#define F0(x, y, z) ((x) ^ (y) ^ (z))
+#define F1(x, y, z) (((x) & (y)) | (~(x) & (z)))
+#define F2(x, y, z) (((x) | ~(y)) ^ (z))
+#define F3(x, y, z) (((x) & (z)) | ((y) & ~(z)))
+#define F4(x, y, z) ((x) ^ ((y) | ~(z)))
+#define R(a, b, c, d, e, f, k, r, s) \
+  do {                               \
+    a += f(b, c, d) + k + x[r];      \
+    a = rol(a, s) + e;               \
+    c = rol(c, 10);                  \
+  } while (0)
 
   /* left lane and right lanes interleaved */
   al = ar = hd->h0;
@@ -211,166 +205,166 @@ transform_blk ( void *ctx, const unsigned char *data )
   cl = cr = hd->h2;
   dl = dr = hd->h3;
   el = er = hd->h4;
-  R( al, bl, cl, dl, el, F0, K0,  0, 11 );
-  R( ar, br, cr, dr, er, F4, KK0,	5,  8);
-  R( el, al, bl, cl, dl, F0, K0,  1, 14 );
-  R( er, ar, br, cr, dr, F4, KK0, 14,  9);
-  R( dl, el, al, bl, cl, F0, K0,  2, 15 );
-  R( dr, er, ar, br, cr, F4, KK0,	7,  9);
-  R( cl, dl, el, al, bl, F0, K0,  3, 12 );
-  R( cr, dr, er, ar, br, F4, KK0,	0, 11);
-  R( bl, cl, dl, el, al, F0, K0,  4,  5 );
-  R( br, cr, dr, er, ar, F4, KK0,	9, 13);
-  R( al, bl, cl, dl, el, F0, K0,  5,  8 );
-  R( ar, br, cr, dr, er, F4, KK0,	2, 15);
-  R( el, al, bl, cl, dl, F0, K0,  6,  7 );
-  R( er, ar, br, cr, dr, F4, KK0, 11, 15);
-  R( dl, el, al, bl, cl, F0, K0,  7,  9 );
-  R( dr, er, ar, br, cr, F4, KK0,	4,  5);
-  R( cl, dl, el, al, bl, F0, K0,  8, 11 );
-  R( cr, dr, er, ar, br, F4, KK0, 13,  7);
-  R( bl, cl, dl, el, al, F0, K0,  9, 13 );
-  R( br, cr, dr, er, ar, F4, KK0,	6,  7);
-  R( al, bl, cl, dl, el, F0, K0, 10, 14 );
-  R( ar, br, cr, dr, er, F4, KK0, 15,  8);
-  R( el, al, bl, cl, dl, F0, K0, 11, 15 );
-  R( er, ar, br, cr, dr, F4, KK0,	8, 11);
-  R( dl, el, al, bl, cl, F0, K0, 12,  6 );
-  R( dr, er, ar, br, cr, F4, KK0,	1, 14);
-  R( cl, dl, el, al, bl, F0, K0, 13,  7 );
-  R( cr, dr, er, ar, br, F4, KK0, 10, 14);
-  R( bl, cl, dl, el, al, F0, K0, 14,  9 );
-  R( br, cr, dr, er, ar, F4, KK0,	3, 12);
-  R( al, bl, cl, dl, el, F0, K0, 15,  8 );
-  R( ar, br, cr, dr, er, F4, KK0, 12,  6);
-  R( el, al, bl, cl, dl, F1, K1,  7,  7 );
-  R( er, ar, br, cr, dr, F3, KK1,	6,  9);
-  R( dl, el, al, bl, cl, F1, K1,  4,  6 );
-  R( dr, er, ar, br, cr, F3, KK1, 11, 13);
-  R( cl, dl, el, al, bl, F1, K1, 13,  8 );
-  R( cr, dr, er, ar, br, F3, KK1,	3, 15);
-  R( bl, cl, dl, el, al, F1, K1,  1, 13 );
-  R( br, cr, dr, er, ar, F3, KK1,	7,  7);
-  R( al, bl, cl, dl, el, F1, K1, 10, 11 );
-  R( ar, br, cr, dr, er, F3, KK1,	0, 12);
-  R( el, al, bl, cl, dl, F1, K1,  6,  9 );
-  R( er, ar, br, cr, dr, F3, KK1, 13,  8);
-  R( dl, el, al, bl, cl, F1, K1, 15,  7 );
-  R( dr, er, ar, br, cr, F3, KK1,	5,  9);
-  R( cl, dl, el, al, bl, F1, K1,  3, 15 );
-  R( cr, dr, er, ar, br, F3, KK1, 10, 11);
-  R( bl, cl, dl, el, al, F1, K1, 12,  7 );
-  R( br, cr, dr, er, ar, F3, KK1, 14,  7);
-  R( al, bl, cl, dl, el, F1, K1,  0, 12 );
-  R( ar, br, cr, dr, er, F3, KK1, 15,  7);
-  R( el, al, bl, cl, dl, F1, K1,  9, 15 );
-  R( er, ar, br, cr, dr, F3, KK1,	8, 12);
-  R( dl, el, al, bl, cl, F1, K1,  5,  9 );
-  R( dr, er, ar, br, cr, F3, KK1, 12,  7);
-  R( cl, dl, el, al, bl, F1, K1,  2, 11 );
-  R( cr, dr, er, ar, br, F3, KK1,	4,  6);
-  R( bl, cl, dl, el, al, F1, K1, 14,  7 );
-  R( br, cr, dr, er, ar, F3, KK1,	9, 15);
-  R( al, bl, cl, dl, el, F1, K1, 11, 13 );
-  R( ar, br, cr, dr, er, F3, KK1,	1, 13);
-  R( el, al, bl, cl, dl, F1, K1,  8, 12 );
-  R( er, ar, br, cr, dr, F3, KK1,	2, 11);
-  R( dl, el, al, bl, cl, F2, K2,  3, 11 );
-  R( dr, er, ar, br, cr, F2, KK2, 15,  9);
-  R( cl, dl, el, al, bl, F2, K2, 10, 13 );
-  R( cr, dr, er, ar, br, F2, KK2,	5,  7);
-  R( bl, cl, dl, el, al, F2, K2, 14,  6 );
-  R( br, cr, dr, er, ar, F2, KK2,	1, 15);
-  R( al, bl, cl, dl, el, F2, K2,  4,  7 );
-  R( ar, br, cr, dr, er, F2, KK2,	3, 11);
-  R( el, al, bl, cl, dl, F2, K2,  9, 14 );
-  R( er, ar, br, cr, dr, F2, KK2,	7,  8);
-  R( dl, el, al, bl, cl, F2, K2, 15,  9 );
-  R( dr, er, ar, br, cr, F2, KK2, 14,  6);
-  R( cl, dl, el, al, bl, F2, K2,  8, 13 );
-  R( cr, dr, er, ar, br, F2, KK2,	6,  6);
-  R( bl, cl, dl, el, al, F2, K2,  1, 15 );
-  R( br, cr, dr, er, ar, F2, KK2,	9, 14);
-  R( al, bl, cl, dl, el, F2, K2,  2, 14 );
-  R( ar, br, cr, dr, er, F2, KK2, 11, 12);
-  R( el, al, bl, cl, dl, F2, K2,  7,  8 );
-  R( er, ar, br, cr, dr, F2, KK2,	8, 13);
-  R( dl, el, al, bl, cl, F2, K2,  0, 13 );
-  R( dr, er, ar, br, cr, F2, KK2, 12,  5);
-  R( cl, dl, el, al, bl, F2, K2,  6,  6 );
-  R( cr, dr, er, ar, br, F2, KK2,	2, 14);
-  R( bl, cl, dl, el, al, F2, K2, 13,  5 );
-  R( br, cr, dr, er, ar, F2, KK2, 10, 13);
-  R( al, bl, cl, dl, el, F2, K2, 11, 12 );
-  R( ar, br, cr, dr, er, F2, KK2,	0, 13);
-  R( el, al, bl, cl, dl, F2, K2,  5,  7 );
-  R( er, ar, br, cr, dr, F2, KK2,	4,  7);
-  R( dl, el, al, bl, cl, F2, K2, 12,  5 );
-  R( dr, er, ar, br, cr, F2, KK2, 13,  5);
-  R( cl, dl, el, al, bl, F3, K3,  1, 11 );
-  R( cr, dr, er, ar, br, F1, KK3,	8, 15);
-  R( bl, cl, dl, el, al, F3, K3,  9, 12 );
-  R( br, cr, dr, er, ar, F1, KK3,	6,  5);
-  R( al, bl, cl, dl, el, F3, K3, 11, 14 );
-  R( ar, br, cr, dr, er, F1, KK3,	4,  8);
-  R( el, al, bl, cl, dl, F3, K3, 10, 15 );
-  R( er, ar, br, cr, dr, F1, KK3,	1, 11);
-  R( dl, el, al, bl, cl, F3, K3,  0, 14 );
-  R( dr, er, ar, br, cr, F1, KK3,	3, 14);
-  R( cl, dl, el, al, bl, F3, K3,  8, 15 );
-  R( cr, dr, er, ar, br, F1, KK3, 11, 14);
-  R( bl, cl, dl, el, al, F3, K3, 12,  9 );
-  R( br, cr, dr, er, ar, F1, KK3, 15,  6);
-  R( al, bl, cl, dl, el, F3, K3,  4,  8 );
-  R( ar, br, cr, dr, er, F1, KK3,	0, 14);
-  R( el, al, bl, cl, dl, F3, K3, 13,  9 );
-  R( er, ar, br, cr, dr, F1, KK3,	5,  6);
-  R( dl, el, al, bl, cl, F3, K3,  3, 14 );
-  R( dr, er, ar, br, cr, F1, KK3, 12,  9);
-  R( cl, dl, el, al, bl, F3, K3,  7,  5 );
-  R( cr, dr, er, ar, br, F1, KK3,	2, 12);
-  R( bl, cl, dl, el, al, F3, K3, 15,  6 );
-  R( br, cr, dr, er, ar, F1, KK3, 13,  9);
-  R( al, bl, cl, dl, el, F3, K3, 14,  8 );
-  R( ar, br, cr, dr, er, F1, KK3,	9, 12);
-  R( el, al, bl, cl, dl, F3, K3,  5,  6 );
-  R( er, ar, br, cr, dr, F1, KK3,	7,  5);
-  R( dl, el, al, bl, cl, F3, K3,  6,  5 );
-  R( dr, er, ar, br, cr, F1, KK3, 10, 15);
-  R( cl, dl, el, al, bl, F3, K3,  2, 12 );
-  R( cr, dr, er, ar, br, F1, KK3, 14,  8);
-  R( bl, cl, dl, el, al, F4, K4,  4,  9 );
-  R( br, cr, dr, er, ar, F0, KK4, 12,  8);
-  R( al, bl, cl, dl, el, F4, K4,  0, 15 );
-  R( ar, br, cr, dr, er, F0, KK4, 15,  5);
-  R( el, al, bl, cl, dl, F4, K4,  5,  5 );
-  R( er, ar, br, cr, dr, F0, KK4, 10, 12);
-  R( dl, el, al, bl, cl, F4, K4,  9, 11 );
-  R( dr, er, ar, br, cr, F0, KK4,	4,  9);
-  R( cl, dl, el, al, bl, F4, K4,  7,  6 );
-  R( cr, dr, er, ar, br, F0, KK4,	1, 12);
-  R( bl, cl, dl, el, al, F4, K4, 12,  8 );
-  R( br, cr, dr, er, ar, F0, KK4,	5,  5);
-  R( al, bl, cl, dl, el, F4, K4,  2, 13 );
-  R( ar, br, cr, dr, er, F0, KK4,	8, 14);
-  R( el, al, bl, cl, dl, F4, K4, 10, 12 );
-  R( er, ar, br, cr, dr, F0, KK4,	7,  6);
-  R( dl, el, al, bl, cl, F4, K4, 14,  5 );
-  R( dr, er, ar, br, cr, F0, KK4,	6,  8);
-  R( cl, dl, el, al, bl, F4, K4,  1, 12 );
-  R( cr, dr, er, ar, br, F0, KK4,	2, 13);
-  R( bl, cl, dl, el, al, F4, K4,  3, 13 );
-  R( br, cr, dr, er, ar, F0, KK4, 13,  6);
-  R( al, bl, cl, dl, el, F4, K4,  8, 14 );
-  R( ar, br, cr, dr, er, F0, KK4, 14,  5);
-  R( el, al, bl, cl, dl, F4, K4, 11, 11 );
-  R( er, ar, br, cr, dr, F0, KK4,	0, 15);
-  R( dl, el, al, bl, cl, F4, K4,  6,  8 );
-  R( dr, er, ar, br, cr, F0, KK4,	3, 13);
-  R( cl, dl, el, al, bl, F4, K4, 15,  5 );
-  R( cr, dr, er, ar, br, F0, KK4,	9, 11);
-  R( bl, cl, dl, el, al, F4, K4, 13,  6 );
-  R( br, cr, dr, er, ar, F0, KK4, 11, 11);
+  R(al, bl, cl, dl, el, F0, K0, 0, 11);
+  R(ar, br, cr, dr, er, F4, KK0, 5, 8);
+  R(el, al, bl, cl, dl, F0, K0, 1, 14);
+  R(er, ar, br, cr, dr, F4, KK0, 14, 9);
+  R(dl, el, al, bl, cl, F0, K0, 2, 15);
+  R(dr, er, ar, br, cr, F4, KK0, 7, 9);
+  R(cl, dl, el, al, bl, F0, K0, 3, 12);
+  R(cr, dr, er, ar, br, F4, KK0, 0, 11);
+  R(bl, cl, dl, el, al, F0, K0, 4, 5);
+  R(br, cr, dr, er, ar, F4, KK0, 9, 13);
+  R(al, bl, cl, dl, el, F0, K0, 5, 8);
+  R(ar, br, cr, dr, er, F4, KK0, 2, 15);
+  R(el, al, bl, cl, dl, F0, K0, 6, 7);
+  R(er, ar, br, cr, dr, F4, KK0, 11, 15);
+  R(dl, el, al, bl, cl, F0, K0, 7, 9);
+  R(dr, er, ar, br, cr, F4, KK0, 4, 5);
+  R(cl, dl, el, al, bl, F0, K0, 8, 11);
+  R(cr, dr, er, ar, br, F4, KK0, 13, 7);
+  R(bl, cl, dl, el, al, F0, K0, 9, 13);
+  R(br, cr, dr, er, ar, F4, KK0, 6, 7);
+  R(al, bl, cl, dl, el, F0, K0, 10, 14);
+  R(ar, br, cr, dr, er, F4, KK0, 15, 8);
+  R(el, al, bl, cl, dl, F0, K0, 11, 15);
+  R(er, ar, br, cr, dr, F4, KK0, 8, 11);
+  R(dl, el, al, bl, cl, F0, K0, 12, 6);
+  R(dr, er, ar, br, cr, F4, KK0, 1, 14);
+  R(cl, dl, el, al, bl, F0, K0, 13, 7);
+  R(cr, dr, er, ar, br, F4, KK0, 10, 14);
+  R(bl, cl, dl, el, al, F0, K0, 14, 9);
+  R(br, cr, dr, er, ar, F4, KK0, 3, 12);
+  R(al, bl, cl, dl, el, F0, K0, 15, 8);
+  R(ar, br, cr, dr, er, F4, KK0, 12, 6);
+  R(el, al, bl, cl, dl, F1, K1, 7, 7);
+  R(er, ar, br, cr, dr, F3, KK1, 6, 9);
+  R(dl, el, al, bl, cl, F1, K1, 4, 6);
+  R(dr, er, ar, br, cr, F3, KK1, 11, 13);
+  R(cl, dl, el, al, bl, F1, K1, 13, 8);
+  R(cr, dr, er, ar, br, F3, KK1, 3, 15);
+  R(bl, cl, dl, el, al, F1, K1, 1, 13);
+  R(br, cr, dr, er, ar, F3, KK1, 7, 7);
+  R(al, bl, cl, dl, el, F1, K1, 10, 11);
+  R(ar, br, cr, dr, er, F3, KK1, 0, 12);
+  R(el, al, bl, cl, dl, F1, K1, 6, 9);
+  R(er, ar, br, cr, dr, F3, KK1, 13, 8);
+  R(dl, el, al, bl, cl, F1, K1, 15, 7);
+  R(dr, er, ar, br, cr, F3, KK1, 5, 9);
+  R(cl, dl, el, al, bl, F1, K1, 3, 15);
+  R(cr, dr, er, ar, br, F3, KK1, 10, 11);
+  R(bl, cl, dl, el, al, F1, K1, 12, 7);
+  R(br, cr, dr, er, ar, F3, KK1, 14, 7);
+  R(al, bl, cl, dl, el, F1, K1, 0, 12);
+  R(ar, br, cr, dr, er, F3, KK1, 15, 7);
+  R(el, al, bl, cl, dl, F1, K1, 9, 15);
+  R(er, ar, br, cr, dr, F3, KK1, 8, 12);
+  R(dl, el, al, bl, cl, F1, K1, 5, 9);
+  R(dr, er, ar, br, cr, F3, KK1, 12, 7);
+  R(cl, dl, el, al, bl, F1, K1, 2, 11);
+  R(cr, dr, er, ar, br, F3, KK1, 4, 6);
+  R(bl, cl, dl, el, al, F1, K1, 14, 7);
+  R(br, cr, dr, er, ar, F3, KK1, 9, 15);
+  R(al, bl, cl, dl, el, F1, K1, 11, 13);
+  R(ar, br, cr, dr, er, F3, KK1, 1, 13);
+  R(el, al, bl, cl, dl, F1, K1, 8, 12);
+  R(er, ar, br, cr, dr, F3, KK1, 2, 11);
+  R(dl, el, al, bl, cl, F2, K2, 3, 11);
+  R(dr, er, ar, br, cr, F2, KK2, 15, 9);
+  R(cl, dl, el, al, bl, F2, K2, 10, 13);
+  R(cr, dr, er, ar, br, F2, KK2, 5, 7);
+  R(bl, cl, dl, el, al, F2, K2, 14, 6);
+  R(br, cr, dr, er, ar, F2, KK2, 1, 15);
+  R(al, bl, cl, dl, el, F2, K2, 4, 7);
+  R(ar, br, cr, dr, er, F2, KK2, 3, 11);
+  R(el, al, bl, cl, dl, F2, K2, 9, 14);
+  R(er, ar, br, cr, dr, F2, KK2, 7, 8);
+  R(dl, el, al, bl, cl, F2, K2, 15, 9);
+  R(dr, er, ar, br, cr, F2, KK2, 14, 6);
+  R(cl, dl, el, al, bl, F2, K2, 8, 13);
+  R(cr, dr, er, ar, br, F2, KK2, 6, 6);
+  R(bl, cl, dl, el, al, F2, K2, 1, 15);
+  R(br, cr, dr, er, ar, F2, KK2, 9, 14);
+  R(al, bl, cl, dl, el, F2, K2, 2, 14);
+  R(ar, br, cr, dr, er, F2, KK2, 11, 12);
+  R(el, al, bl, cl, dl, F2, K2, 7, 8);
+  R(er, ar, br, cr, dr, F2, KK2, 8, 13);
+  R(dl, el, al, bl, cl, F2, K2, 0, 13);
+  R(dr, er, ar, br, cr, F2, KK2, 12, 5);
+  R(cl, dl, el, al, bl, F2, K2, 6, 6);
+  R(cr, dr, er, ar, br, F2, KK2, 2, 14);
+  R(bl, cl, dl, el, al, F2, K2, 13, 5);
+  R(br, cr, dr, er, ar, F2, KK2, 10, 13);
+  R(al, bl, cl, dl, el, F2, K2, 11, 12);
+  R(ar, br, cr, dr, er, F2, KK2, 0, 13);
+  R(el, al, bl, cl, dl, F2, K2, 5, 7);
+  R(er, ar, br, cr, dr, F2, KK2, 4, 7);
+  R(dl, el, al, bl, cl, F2, K2, 12, 5);
+  R(dr, er, ar, br, cr, F2, KK2, 13, 5);
+  R(cl, dl, el, al, bl, F3, K3, 1, 11);
+  R(cr, dr, er, ar, br, F1, KK3, 8, 15);
+  R(bl, cl, dl, el, al, F3, K3, 9, 12);
+  R(br, cr, dr, er, ar, F1, KK3, 6, 5);
+  R(al, bl, cl, dl, el, F3, K3, 11, 14);
+  R(ar, br, cr, dr, er, F1, KK3, 4, 8);
+  R(el, al, bl, cl, dl, F3, K3, 10, 15);
+  R(er, ar, br, cr, dr, F1, KK3, 1, 11);
+  R(dl, el, al, bl, cl, F3, K3, 0, 14);
+  R(dr, er, ar, br, cr, F1, KK3, 3, 14);
+  R(cl, dl, el, al, bl, F3, K3, 8, 15);
+  R(cr, dr, er, ar, br, F1, KK3, 11, 14);
+  R(bl, cl, dl, el, al, F3, K3, 12, 9);
+  R(br, cr, dr, er, ar, F1, KK3, 15, 6);
+  R(al, bl, cl, dl, el, F3, K3, 4, 8);
+  R(ar, br, cr, dr, er, F1, KK3, 0, 14);
+  R(el, al, bl, cl, dl, F3, K3, 13, 9);
+  R(er, ar, br, cr, dr, F1, KK3, 5, 6);
+  R(dl, el, al, bl, cl, F3, K3, 3, 14);
+  R(dr, er, ar, br, cr, F1, KK3, 12, 9);
+  R(cl, dl, el, al, bl, F3, K3, 7, 5);
+  R(cr, dr, er, ar, br, F1, KK3, 2, 12);
+  R(bl, cl, dl, el, al, F3, K3, 15, 6);
+  R(br, cr, dr, er, ar, F1, KK3, 13, 9);
+  R(al, bl, cl, dl, el, F3, K3, 14, 8);
+  R(ar, br, cr, dr, er, F1, KK3, 9, 12);
+  R(el, al, bl, cl, dl, F3, K3, 5, 6);
+  R(er, ar, br, cr, dr, F1, KK3, 7, 5);
+  R(dl, el, al, bl, cl, F3, K3, 6, 5);
+  R(dr, er, ar, br, cr, F1, KK3, 10, 15);
+  R(cl, dl, el, al, bl, F3, K3, 2, 12);
+  R(cr, dr, er, ar, br, F1, KK3, 14, 8);
+  R(bl, cl, dl, el, al, F4, K4, 4, 9);
+  R(br, cr, dr, er, ar, F0, KK4, 12, 8);
+  R(al, bl, cl, dl, el, F4, K4, 0, 15);
+  R(ar, br, cr, dr, er, F0, KK4, 15, 5);
+  R(el, al, bl, cl, dl, F4, K4, 5, 5);
+  R(er, ar, br, cr, dr, F0, KK4, 10, 12);
+  R(dl, el, al, bl, cl, F4, K4, 9, 11);
+  R(dr, er, ar, br, cr, F0, KK4, 4, 9);
+  R(cl, dl, el, al, bl, F4, K4, 7, 6);
+  R(cr, dr, er, ar, br, F0, KK4, 1, 12);
+  R(bl, cl, dl, el, al, F4, K4, 12, 8);
+  R(br, cr, dr, er, ar, F0, KK4, 5, 5);
+  R(al, bl, cl, dl, el, F4, K4, 2, 13);
+  R(ar, br, cr, dr, er, F0, KK4, 8, 14);
+  R(el, al, bl, cl, dl, F4, K4, 10, 12);
+  R(er, ar, br, cr, dr, F0, KK4, 7, 6);
+  R(dl, el, al, bl, cl, F4, K4, 14, 5);
+  R(dr, er, ar, br, cr, F0, KK4, 6, 8);
+  R(cl, dl, el, al, bl, F4, K4, 1, 12);
+  R(cr, dr, er, ar, br, F0, KK4, 2, 13);
+  R(bl, cl, dl, el, al, F4, K4, 3, 13);
+  R(br, cr, dr, er, ar, F0, KK4, 13, 6);
+  R(al, bl, cl, dl, el, F4, K4, 8, 14);
+  R(ar, br, cr, dr, er, F0, KK4, 14, 5);
+  R(el, al, bl, cl, dl, F4, K4, 11, 11);
+  R(er, ar, br, cr, dr, F0, KK4, 0, 15);
+  R(dl, el, al, bl, cl, F4, K4, 6, 8);
+  R(dr, er, ar, br, cr, F0, KK4, 3, 13);
+  R(cl, dl, el, al, bl, F4, K4, 15, 5);
+  R(cr, dr, er, ar, br, F0, KK4, 9, 11);
+  R(bl, cl, dl, el, al, F4, K4, 13, 6);
+  R(br, cr, dr, er, ar, F0, KK4, 11, 11);
 
   dr += cl + hd->h1;
   hd->h1 = hd->h2 + dl + er;
@@ -379,38 +373,32 @@ transform_blk ( void *ctx, const unsigned char *data )
   hd->h4 = hd->h0 + bl + cr;
   hd->h0 = dr;
 
-  return /*burn_stack*/ 104+5*sizeof(void*);
+  return /*burn_stack*/ 104 + 5 * sizeof(void *);
 }
 
-
-static unsigned int
-transform ( void *c, const unsigned char *data, size_t nblks )
-{
+static unsigned int transform(void *c, const unsigned char *data,
+                              size_t nblks) {
   unsigned int burn;
 
-  do
-    {
-      burn = transform_blk (c, data);
-      data += 64;
-    }
-  while (--nblks);
+  do {
+    burn = transform_blk(c, data);
+    data += 64;
+  } while (--nblks);
 
   return burn;
 }
 
-
 /*
  * The routine terminates the computation
  */
-static void
-rmd160_final( void *context )
-{
-  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
+static void rmd160_final(void *context) {
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT *)context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
 
-  _gcry_md_block_write(hd, NULL, 0); /* flush */;
+  _gcry_md_block_write(hd, NULL, 0); /* flush */
+  ;
 
   t = hd->bctx.nblocks;
   if (sizeof t == sizeof hd->bctx.nblocks)
@@ -423,36 +411,37 @@ rmd160_final( void *context )
   msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if( (lsb += hd->bctx.count) < t )
-    msb++;
+  if ((lsb += hd->bctx.count) < t) msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
   lsb <<= 3;
   msb <<= 3;
   msb |= t >> 29;
 
-  if( hd->bctx.count < 56 )  /* enough room */
-    {
-      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad */
-      while( hd->bctx.count < 56 )
-        hd->bctx.buf[hd->bctx.count++] = 0;  /* pad */
-    }
-  else  /* need one extra block */
-    {
-      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
-      while( hd->bctx.count < 64 )
-        hd->bctx.buf[hd->bctx.count++] = 0;
-      _gcry_md_block_write(hd, NULL, 0);  /* flush */;
-      memset(hd->bctx.buf, 0, 56 ); /* fill next block with zeroes */
-    }
+  if (hd->bctx.count < 56) /* enough room */
+  {
+    hd->bctx.buf[hd->bctx.count++] = 0x80;                          /* pad */
+    while (hd->bctx.count < 56) hd->bctx.buf[hd->bctx.count++] = 0; /* pad */
+  } else /* need one extra block */
+  {
+    hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
+    while (hd->bctx.count < 64) hd->bctx.buf[hd->bctx.count++] = 0;
+    _gcry_md_block_write(hd, NULL, 0); /* flush */
+    ;
+    memset(hd->bctx.buf, 0, 56); /* fill next block with zeroes */
+  }
   /* append the 64 bit count */
   buf_put_le32(hd->bctx.buf + 56, lsb);
   buf_put_le32(hd->bctx.buf + 60, msb);
-  burn = transform ( hd, hd->bctx.buf, 1 );
-  _gcry_burn_stack (burn);
+  burn = transform(hd, hd->bctx.buf, 1);
+  _gcry_burn_stack(burn);
 
   p = hd->bctx.buf;
-#define X(a) do { buf_put_le32(p, hd->h##a); p += 4; } while(0)
+#define X(a)                   \
+  do {                         \
+    buf_put_le32(p, hd->h##a); \
+    p += 4;                    \
+  } while (0)
   X(0);
   X(1);
   X(2);
@@ -461,48 +450,46 @@ rmd160_final( void *context )
 #undef X
 }
 
-static byte *
-rmd160_read( void *context )
-{
-  RMD160_CONTEXT *hd = (RMD160_CONTEXT*) context;
+static byte *rmd160_read(void *context) {
+  RMD160_CONTEXT *hd = (RMD160_CONTEXT *)context;
 
   return hd->bctx.buf;
 }
-
-
 
 /****************
  * Shortcut functions which puts the hash value of the supplied buffer
  * into outbuf which must have a size of 20 bytes.
  */
-void
-_gcry_rmd160_hash_buffer (void *outbuf, const void *buffer, size_t length )
-{
+void _gcry_rmd160_hash_buffer(void *outbuf, const void *buffer, size_t length) {
   RMD160_CONTEXT hd;
 
-  rmd160_init (&hd, 0);
-  _gcry_md_block_write ( &hd, buffer, length );
-  rmd160_final ( &hd );
-  memcpy ( outbuf, hd.bctx.buf, 20 );
+  rmd160_init(&hd, 0);
+  _gcry_md_block_write(&hd, buffer, length);
+  rmd160_final(&hd);
+  memcpy(outbuf, hd.bctx.buf, 20);
 }
 
 static byte asn[15] = /* Object ID is 1.3.36.3.2.1 */
-  { 0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x24, 0x03,
-    0x02, 0x01, 0x05, 0x00, 0x04, 0x14 };
+    {0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x24,
+     0x03, 0x02, 0x01, 0x05, 0x00, 0x04, 0x14};
 
-static gcry_md_oid_spec_t oid_spec_rmd160[] =
-  {
+static gcry_md_oid_spec_t oid_spec_rmd160[] = {
     /* rsaSignatureWithripemd160 */
-    { "1.3.36.3.3.1.2" },
+    {"1.3.36.3.3.1.2"},
     /* TeleTrust hash algorithm.  */
-    { "1.3.36.3.2.1" },
-    { NULL }
-  };
+    {"1.3.36.3.2.1"},
+    {NULL}};
 
-gcry_md_spec_t _gcry_digest_spec_rmd160 =
-  {
-    GCRY_MD_RMD160, {0, 0},
-    "RIPEMD160", asn, DIM (asn), oid_spec_rmd160, 20,
-    rmd160_init, _gcry_md_block_write, rmd160_final, rmd160_read, NULL,
-    sizeof (RMD160_CONTEXT)
-  };
+gcry_md_spec_t _gcry_digest_spec_rmd160 = {GCRY_MD_RMD160,
+                                           {0, 0},
+                                           "RIPEMD160",
+                                           asn,
+                                           DIM(asn),
+                                           oid_spec_rmd160,
+                                           20,
+                                           rmd160_init,
+                                           _gcry_md_block_write,
+                                           rmd160_final,
+                                           rmd160_read,
+                                           NULL,
+                                           sizeof(RMD160_CONTEXT)};

@@ -12,22 +12,19 @@
 
 #include "t-support.h"
 
-
-int
-mutex_main (int argc, char *argv[])
-{
+int mutex_main(int argc, char *argv[]) {
   int rc;
   npth_mutex_t mutex;
 
-  rc = npth_init ();
-  fail_if_err (rc);
+  rc = npth_init();
+  fail_if_err(rc);
 
-  rc = npth_mutex_init (&mutex, NULL);
-  fail_if_err (rc);
-  rc = npth_mutex_lock (&mutex);
-  fail_if_err (rc);
-  rc = npth_mutex_unlock (&mutex);
-  fail_if_err (rc);
+  rc = npth_mutex_init(&mutex, NULL);
+  fail_if_err(rc);
+  rc = npth_mutex_lock(&mutex);
+  fail_if_err(rc);
+  rc = npth_mutex_unlock(&mutex);
+  fail_if_err(rc);
 
   return 0;
 }

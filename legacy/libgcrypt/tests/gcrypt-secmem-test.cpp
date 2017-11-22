@@ -2,9 +2,9 @@
 
 #include "gtest/gtest.h"
 
-  int secmem_main(int argc, char* argv[]);
+int secmem_main(int argc, char* argv[]);
 
 TEST(GcryptTest, secmem) {
-    int result = secmem_main(0, NULL);
-    ASSERT_EQ(result, 0);
+  int result = secmem_main(0, NULL);
+  ASSERT_EQ(result, 0);
 }

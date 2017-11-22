@@ -29,15 +29,16 @@
 #ifndef GNUPG_COMMON_RECSEL_H
 #define GNUPG_COMMON_RECSEL_H
 
+#include <gpg-error.h>
+
 struct recsel_expr_s;
 typedef struct recsel_expr_s *recsel_expr_t;
 
-gpg_error_t recsel_parse_expr (recsel_expr_t *selector, const char *expr);
-void recsel_release (recsel_expr_t a);
-void recsel_dump (recsel_expr_t selector);
-int recsel_select (recsel_expr_t selector,
-                   const char *(*getval)(void *cookie, const char *propname),
-                   void *cookie);
-
+gpg_error_t recsel_parse_expr(recsel_expr_t *selector, const char *expr);
+void recsel_release(recsel_expr_t a);
+void recsel_dump(recsel_expr_t selector);
+int recsel_select(recsel_expr_t selector,
+                  const char *(*getval)(void *cookie, const char *propname),
+                  void *cookie);
 
 #endif /*GNUPG_COMMON_RECSEL_H*/

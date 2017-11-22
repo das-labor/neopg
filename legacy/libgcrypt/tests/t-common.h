@@ -22,32 +22,34 @@
 #include "../src/gcrypt.h"
 
 #ifndef PGM
-# error Macro PGM not defined.
+#error Macro PGM not defined.
 #endif
 
 /* A couple of useful macros.  */
 #ifndef DIM
-# define DIM(v)		     (sizeof(v)/sizeof((v)[0]))
+#define DIM(v) (sizeof(v) / sizeof((v)[0]))
 #endif
-#define DIMof(type,member)   DIM(((type *)0)->member)
-#define xmalloc(a)    gcry_xmalloc ((a))
-#define xcalloc(a,b)  gcry_xcalloc ((a),(b))
-#define xstrdup(a)    gcry_xstrdup ((a))
-#define xfree(a)      gcry_free ((a))
-#define my_isascii(c) (!((c) & 0x80))
-#define digitp(p)     (*(p) >= '0' && *(p) <= '9')
-#define hexdigitp(a)  (digitp (a)                     \
-                       || (*(a) >= 'A' && *(a) <= 'F')  \
-                       || (*(a) >= 'a' && *(a) <= 'f'))
-#define xtoi_1(p)     (*(p) <= '9'? (*(p)- '0'): \
-                       *(p) <= 'F'? (*(p)-'A'+10):(*(p)-'a'+10))
-#define xtoi_2(p)     ((xtoi_1(p) * 16) + xtoi_1((p)+1))
-#define xmalloc(a)    gcry_xmalloc ((a))
-#define xcalloc(a,b)  gcry_xcalloc ((a),(b))
-#define xstrdup(a)    gcry_xstrdup ((a))
-#define xfree(a)      gcry_free ((a))
-#define pass()        do { ; } while (0)
-
+#define DIMof(type, member) DIM(((type *)0)->member)
+#define xmalloc(a) gcry_xmalloc((a))
+#define xcalloc(a, b) gcry_xcalloc((a), (b))
+#define xstrdup(a) gcry_xstrdup((a))
+#define xfree(a) gcry_free((a))
+#define my_isascii(c) (!((c)&0x80))
+#define digitp(p) (*(p) >= '0' && *(p) <= '9')
+#define hexdigitp(a) \
+  (digitp(a) || (*(a) >= 'A' && *(a) <= 'F') || (*(a) >= 'a' && *(a) <= 'f'))
+#define xtoi_1(p)             \
+  (*(p) <= '9' ? (*(p) - '0') \
+               : *(p) <= 'F' ? (*(p) - 'A' + 10) : (*(p) - 'a' + 10))
+#define xtoi_2(p) ((xtoi_1(p) * 16) + xtoi_1((p) + 1))
+#define xmalloc(a) gcry_xmalloc((a))
+#define xcalloc(a, b) gcry_xcalloc((a), (b))
+#define xstrdup(a) gcry_xstrdup((a))
+#define xfree(a) gcry_free((a))
+#define pass() \
+  do {         \
+    ;          \
+  } while (0)
 
 /* Standard global variables.  */
 static const char *wherestr;
@@ -58,100 +60,81 @@ static int die_on_error;
 
 /* If we have a decent libgpg-error we can use some gcc attributes.  */
 #ifdef GPGRT_ATTR_NORETURN
-static void die (const char *format, ...)
-  GPGRT_ATTR_UNUSED GPGRT_ATTR_NR_PRINTF(1,2);
-static void fail (const char *format, ...)
-  GPGRT_ATTR_UNUSED GPGRT_ATTR_PRINTF(1,2);
-static void info (const char *format, ...) \
-  GPGRT_ATTR_UNUSED GPGRT_ATTR_PRINTF(1,2);
+static void die(const char *format, ...) GPGRT_ATTR_UNUSED
+    GPGRT_ATTR_NR_PRINTF(1, 2);
+static void fail(const char *format, ...) GPGRT_ATTR_UNUSED
+    GPGRT_ATTR_PRINTF(1, 2);
+static void info(const char *format, ...) GPGRT_ATTR_UNUSED
+    GPGRT_ATTR_PRINTF(1, 2);
 #endif /*GPGRT_ATTR_NORETURN*/
 
-
 /* Reporting functions.  */
-static void
-die (const char *format, ...)
-{
-  va_list arg_ptr ;
+static void die(const char *format, ...) {
+  va_list arg_ptr;
 
   /* Avoid warning.  */
-  (void) debug;
+  (void)debug;
 
-  fflush (stdout);
+  fflush(stdout);
 #ifdef HAVE_FLOCKFILE
-  flockfile (stderr);
+  flockfile(stderr);
 #endif
-  fprintf (stderr, "%s: ", PGM);
-  if (wherestr)
-    fprintf (stderr, "%s: ", wherestr);
-  va_start (arg_ptr, format) ;
-  vfprintf (stderr, format, arg_ptr);
-  va_end (arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
+  fprintf(stderr, "%s: ", PGM);
+  if (wherestr) fprintf(stderr, "%s: ", wherestr);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  va_end(arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
 #ifdef HAVE_FLOCKFILE
-  funlockfile (stderr);
+  funlockfile(stderr);
 #endif
-  exit (1);
+  exit(1);
 }
 
-
-static void
-fail (const char *format, ...)
-{
+static void fail(const char *format, ...) {
   va_list arg_ptr;
 
-  fflush (stdout);
+  fflush(stdout);
 #ifdef HAVE_FLOCKFILE
-  flockfile (stderr);
+  flockfile(stderr);
 #endif
-  fprintf (stderr, "%s: ", PGM);
-  if (wherestr)
-    fprintf (stderr, "%s: ", wherestr);
-  va_start (arg_ptr, format);
-  vfprintf (stderr, format, arg_ptr);
-  va_end (arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
+  fprintf(stderr, "%s: ", PGM);
+  if (wherestr) fprintf(stderr, "%s: ", wherestr);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  va_end(arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
 #ifdef HAVE_FLOCKFILE
-  funlockfile (stderr);
+  funlockfile(stderr);
 #endif
-  if (die_on_error)
-    exit (1);
+  if (die_on_error) exit(1);
   error_count++;
-  if (error_count >= 50)
-    die ("stopped after 50 errors.");
+  if (error_count >= 50) die("stopped after 50 errors.");
 }
 
-
-static void
-info (const char *format, ...)
-{
+static void info(const char *format, ...) {
   va_list arg_ptr;
 
-  if (!verbose)
-    return;
+  if (!verbose) return;
 #ifdef HAVE_FLOCKFILE
-  flockfile (stderr);
+  flockfile(stderr);
 #endif
-  fprintf (stderr, "%s: ", PGM);
-  if (wherestr)
-    fprintf (stderr, "%s: ", wherestr);
-  va_start (arg_ptr, format);
-  vfprintf (stderr, format, arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
-  va_end (arg_ptr);
+  fprintf(stderr, "%s: ", PGM);
+  if (wherestr) fprintf(stderr, "%s: ", wherestr);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
+  va_end(arg_ptr);
 #ifdef HAVE_FLOCKFILE
-  funlockfile (stderr);
+  funlockfile(stderr);
 #endif
 }
-
 
 /* Convenience macro for initializing gcrypt with error checking.  */
-#define xgcry_control(cmd...)                                   \
-  do {                                                          \
-    gpg_error_t err__ = gcry_control ((gcry_ctl_cmds) cmd);                    \
-    if (err__)                                                  \
-      die ("line %d: gcry_control (%s) failed: %s",             \
-           __LINE__, #cmd, gpg_strerror (err__));              \
+#define xgcry_control(cmd...)                                      \
+  do {                                                             \
+    gpg_error_t err__ = gcry_control((gcry_ctl_cmds)cmd);          \
+    if (err__)                                                     \
+      die("line %d: gcry_control (%s) failed: %s", __LINE__, #cmd, \
+          gpg_strerror(err__));                                    \
   } while (0)

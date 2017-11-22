@@ -29,14 +29,14 @@
  */
 
 #include <config.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <unistd.h>
 
 #if defined(HAVE_W32_SYSTEM)
-# define USE_W32_CONSOLE 1
+#define USE_W32_CONSOLE 1
 #endif
 
 #ifdef HAVE_TCGETATTR
@@ -48,37 +48,34 @@
 #define termios termio
 #define tcsetattr ioctl
 #define TCSAFLUSH TCSETAF
-#define tcgetattr(A,B) ioctl(A,TCGETA,B)
+#define tcgetattr(A, B) ioctl(A, TCGETA, B)
 #define HAVE_TCGETATTR
 #endif
 #endif
 #ifdef USE_W32_CONSOLE
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif
-# include <windows.h>
-# ifdef HAVE_TCGETATTR
-#  error mingw32 and termios
-# endif
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
 #endif
-#include <errno.h>
+#include <windows.h>
+#ifdef HAVE_TCGETATTR
+#error mingw32 and termios
+#endif
+#endif
 #include <ctype.h>
+#include <errno.h>
 
-#include "util.h"
-#include "ttyio.h"
 #include "common-defs.h"
+#include "ttyio.h"
+#include "util.h"
 
 #define CONTROL_D ('D' - 'A' + 1)
 
-
 #ifdef USE_W32_CONSOLE
-static struct {
-    HANDLE in, out;
-} con;
-#define DEF_INPMODE  (ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT    \
-					|ENABLE_PROCESSED_INPUT )
-#define HID_INPMODE  (ENABLE_LINE_INPUT|ENABLE_PROCESSED_INPUT )
-#define DEF_OUTMODE  (ENABLE_WRAP_AT_EOL_OUTPUT|ENABLE_PROCESSED_OUTPUT)
+static struct { HANDLE in, out; } con;
+#define DEF_INPMODE \
+  (ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT)
+#define HID_INPMODE (ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT)
+#define DEF_OUTMODE (ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_PROCESSED_OUTPUT)
 
 #else /* yeah, we have a real OS */
 static FILE *ttyfp = NULL;
@@ -90,198 +87,125 @@ static int batchmode;
 static int no_terminal;
 
 #ifdef HAVE_TCGETATTR
-    static struct termios termsave;
-    static int restore_termios;
+static struct termios termsave;
+static int restore_termios;
 #endif
 
 /* Hooks set by gpgrlhelp.c if required. */
-static void (*my_rl_set_completer) (rl_completion_func_t *);
-static void (*my_rl_inhibit_completion) (int);
-static void (*my_rl_cleanup_after_signal) (void);
-static void (*my_rl_init_stream) (FILE *);
-static char *(*my_rl_readline) (const char*);
-static void (*my_rl_add_history) (const char*);
-
+static void (*my_rl_set_completer)(rl_completion_func_t *);
+static void (*my_rl_inhibit_completion)(int);
+static void (*my_rl_cleanup_after_signal)(void);
+static void (*my_rl_init_stream)(FILE *);
+static char *(*my_rl_readline)(const char *);
+static void (*my_rl_add_history)(const char *);
 
 /* This is a wrapper around ttyname so that we can use it even when
    the standard streams are redirected.  It figures the name out the
    first time and returns it in a statically allocated buffer. */
-const char *
-tty_get_ttyname (void)
-{
+const char *tty_get_ttyname(void) {
   static char *name;
 
-  /* On a GNU system ctermid() always return /dev/tty, so this does
-     not make much sense - however if it is ever changed we do the
-     Right Thing now. */
+/* On a GNU system ctermid() always return /dev/tty, so this does
+   not make much sense - however if it is ever changed we do the
+   Right Thing now. */
 #ifdef HAVE_CTERMID
   static int got_name;
 
-  if (!got_name)
-    {
-      const char *s;
-      /* Note that despite our checks for these macros the function is
-         not necessarily thread save.  We mainly do this for
-         portability reasons, in case L_ctermid is not defined. */
-# if defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(_POSIX_TRHEADS)
-      char buffer[L_ctermid];
-      s = ctermid (buffer);
-# else
-      s = ctermid (NULL);
-# endif
-      if (s)
-        name = strdup (s);
-      got_name = 1;
-    }
+  if (!got_name) {
+    const char *s;
+/* Note that despite our checks for these macros the function is
+   not necessarily thread save.  We mainly do this for
+   portability reasons, in case L_ctermid is not defined. */
+#if defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(_POSIX_TRHEADS)
+    char buffer[L_ctermid];
+    s = ctermid(buffer);
+#else
+    s = ctermid(NULL);
+#endif
+    if (s) name = strdup(s);
+    got_name = 1;
+  }
 #endif /*HAVE_CTERMID*/
   /* Assume the standard tty on memory error or when there is no
      ctermid. */
-  return name? name : "/dev/tty";
+  return name ? name : "/dev/tty";
 }
 
-
-
 #ifdef HAVE_TCGETATTR
-static void
-cleanup(void)
-{
-    if( restore_termios ) {
-	restore_termios = 0; /* do it prios in case it is interrupted again */
-	if( tcsetattr(fileno(ttyfp), TCSAFLUSH, &termsave) )
-	    log_error("tcsetattr() failed: %s\n", strerror(errno) );
-    }
+static void cleanup(void) {
+  if (restore_termios) {
+    restore_termios = 0; /* do it prios in case it is interrupted again */
+    if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &termsave))
+      log_error("tcsetattr() failed: %s\n", strerror(errno));
+  }
 }
 #endif
 
-static void
-init_ttyfp(void)
-{
-    if( initialized )
-	return;
+static void init_ttyfp(void) {
+  if (initialized) return;
 
 #if defined(USE_W32_CONSOLE)
-    {
-	SECURITY_ATTRIBUTES sa;
+  {
+    SECURITY_ATTRIBUTES sa;
 
-	memset(&sa, 0, sizeof(sa));
-	sa.nLength = sizeof(sa);
-	sa.bInheritHandle = TRUE;
-	con.out = CreateFileA( "CONOUT$", GENERIC_READ|GENERIC_WRITE,
-			       FILE_SHARE_READ|FILE_SHARE_WRITE,
-			       &sa, OPEN_EXISTING, 0, 0 );
-	if( con.out == INVALID_HANDLE_VALUE )
-	    log_fatal("open(CONOUT$) failed: rc=%d", (int)GetLastError() );
-	memset(&sa, 0, sizeof(sa));
-	sa.nLength = sizeof(sa);
-	sa.bInheritHandle = TRUE;
-	con.in = CreateFileA( "CONIN$", GENERIC_READ|GENERIC_WRITE,
-			       FILE_SHARE_READ|FILE_SHARE_WRITE,
-			       &sa, OPEN_EXISTING, 0, 0 );
-	if( con.in == INVALID_HANDLE_VALUE )
-	    log_fatal("open(CONIN$) failed: rc=%d", (int)GetLastError() );
-    }
-    SetConsoleMode(con.in, DEF_INPMODE );
-    SetConsoleMode(con.out, DEF_OUTMODE );
+    memset(&sa, 0, sizeof(sa));
+    sa.nLength = sizeof(sa);
+    sa.bInheritHandle = TRUE;
+    con.out = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE, &sa,
+                          OPEN_EXISTING, 0, 0);
+    if (con.out == INVALID_HANDLE_VALUE)
+      log_fatal("open(CONOUT$) failed: rc=%d", (int)GetLastError());
+    memset(&sa, 0, sizeof(sa));
+    sa.nLength = sizeof(sa);
+    sa.bInheritHandle = TRUE;
+    con.in = CreateFileA("CONIN$", GENERIC_READ | GENERIC_WRITE,
+                         FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING,
+                         0, 0);
+    if (con.in == INVALID_HANDLE_VALUE)
+      log_fatal("open(CONIN$) failed: rc=%d", (int)GetLastError());
+  }
+  SetConsoleMode(con.in, DEF_INPMODE);
+  SetConsoleMode(con.out, DEF_OUTMODE);
 
 #elif defined(__EMX__)
-    ttyfp = stdout; /* Fixme: replace by the real functions: see wklib */
-    if (my_rl_init_stream)
-      my_rl_init_stream (ttyfp);
+  ttyfp = stdout; /* Fixme: replace by the real functions: see wklib */
+  if (my_rl_init_stream) my_rl_init_stream(ttyfp);
 #else
-    ttyfp = batchmode? stderr : fopen (tty_get_ttyname (), "r+");
-    if( !ttyfp ) {
-	log_error("cannot open '%s': %s\n", tty_get_ttyname (),
-                  strerror(errno) );
-	exit(2);
-    }
-    if (my_rl_init_stream)
-      my_rl_init_stream (ttyfp);
+  ttyfp = batchmode ? stderr : fopen(tty_get_ttyname(), "r+");
+  if (!ttyfp) {
+    log_error("cannot open '%s': %s\n", tty_get_ttyname(), strerror(errno));
+    exit(2);
+  }
+  if (my_rl_init_stream) my_rl_init_stream(ttyfp);
 #endif
-
 
 #ifdef HAVE_TCGETATTR
-    atexit( cleanup );
+  atexit(cleanup);
 #endif
-    initialized = 1;
+  initialized = 1;
 }
 
-
-int
-tty_batchmode( int onoff )
-{
-    int old = batchmode;
-    if( onoff != -1 )
-	batchmode = onoff;
-    return old;
+int tty_batchmode(int onoff) {
+  int old = batchmode;
+  if (onoff != -1) batchmode = onoff;
+  return old;
 }
 
-int
-tty_no_terminal(int onoff)
-{
-    int old = no_terminal;
-    no_terminal = onoff ? 1 : 0;
-    return old;
+int tty_no_terminal(int onoff) {
+  int old = no_terminal;
+  no_terminal = onoff ? 1 : 0;
+  return old;
 }
 
-void
-tty_printf( const char *fmt, ... )
-{
-    va_list arg_ptr;
-
-    if (no_terminal)
-	return;
-
-    if( !initialized )
-	init_ttyfp();
-
-    va_start( arg_ptr, fmt ) ;
-#ifdef USE_W32_CONSOLE
-    {
-        char *buf = NULL;
-        int n;
-	DWORD nwritten;
-
-	n = vasprintf(&buf, fmt, arg_ptr);
-	if( !buf )
-	    log_bug("vasprintf() failed\n");
-
-	if( !WriteConsoleA( con.out, buf, n, &nwritten, NULL ) )
-	    log_fatal("WriteConsole failed: rc=%d", (int)GetLastError() );
-	if( n != nwritten )
-	    log_fatal("WriteConsole failed: %d != %d\n", n, (int)nwritten );
-	last_prompt_len += n;
-        xfree (buf);
-    }
-#else
-    last_prompt_len += vfprintf(ttyfp,fmt,arg_ptr) ;
-    fflush(ttyfp);
-#endif
-    va_end(arg_ptr);
-}
-
-
-/* Same as tty_printf but if FP is not NULL, behave like a regular
-   fprintf. */
-void
-tty_fprintf (estream_t fp, const char *fmt, ... )
-{
+void tty_printf(const char *fmt, ...) {
   va_list arg_ptr;
 
-  if (fp)
-    {
-      va_start (arg_ptr, fmt) ;
-      es_vfprintf (fp, fmt, arg_ptr );
-      va_end (arg_ptr);
-      return;
-    }
+  if (no_terminal) return;
 
-  if (no_terminal)
-    return;
+  if (!initialized) init_ttyfp();
 
-  if (!initialized)
-    init_ttyfp ();
-
-  va_start (arg_ptr, fmt);
+  va_start(arg_ptr, fmt);
 #ifdef USE_W32_CONSOLE
   {
     char *buf = NULL;
@@ -289,344 +213,321 @@ tty_fprintf (estream_t fp, const char *fmt, ... )
     DWORD nwritten;
 
     n = vasprintf(&buf, fmt, arg_ptr);
-    if (!buf)
-      log_bug("vasprintf() failed\n");
+    if (!buf) log_bug("vasprintf() failed\n");
 
-    if (!WriteConsoleA( con.out, buf, n, &nwritten, NULL ))
-      log_fatal("WriteConsole failed: rc=%d", (int)GetLastError() );
+    if (!WriteConsoleA(con.out, buf, n, &nwritten, NULL))
+      log_fatal("WriteConsole failed: rc=%d", (int)GetLastError());
     if (n != nwritten)
-      log_fatal("WriteConsole failed: %d != %d\n", n, (int)nwritten );
+      log_fatal("WriteConsole failed: %d != %d\n", n, (int)nwritten);
     last_prompt_len += n;
-    xfree (buf);
+    xfree(buf);
   }
 #else
-  last_prompt_len += vfprintf(ttyfp,fmt,arg_ptr) ;
+  last_prompt_len += vfprintf(ttyfp, fmt, arg_ptr);
   fflush(ttyfp);
 #endif
   va_end(arg_ptr);
 }
 
+/* Same as tty_printf but if FP is not NULL, behave like a regular
+   fprintf. */
+void tty_fprintf(estream_t fp, const char *fmt, ...) {
+  va_list arg_ptr;
+
+  if (fp) {
+    va_start(arg_ptr, fmt);
+    es_vfprintf(fp, fmt, arg_ptr);
+    va_end(arg_ptr);
+    return;
+  }
+
+  if (no_terminal) return;
+
+  if (!initialized) init_ttyfp();
+
+  va_start(arg_ptr, fmt);
+#ifdef USE_W32_CONSOLE
+  {
+    char *buf = NULL;
+    int n;
+    DWORD nwritten;
+
+    n = vasprintf(&buf, fmt, arg_ptr);
+    if (!buf) log_bug("vasprintf() failed\n");
+
+    if (!WriteConsoleA(con.out, buf, n, &nwritten, NULL))
+      log_fatal("WriteConsole failed: rc=%d", (int)GetLastError());
+    if (n != nwritten)
+      log_fatal("WriteConsole failed: %d != %d\n", n, (int)nwritten);
+    last_prompt_len += n;
+    xfree(buf);
+  }
+#else
+  last_prompt_len += vfprintf(ttyfp, fmt, arg_ptr);
+  fflush(ttyfp);
+#endif
+  va_end(arg_ptr);
+}
 
 /* Print a string, but filter all control characters out.  If FP is
  * not NULL print to that stream instead to the tty.  */
-static void
-do_print_string (estream_t fp, const byte *p, size_t n )
-{
-  if (no_terminal && !fp)
+static void do_print_string(estream_t fp, const byte *p, size_t n) {
+  if (no_terminal && !fp) return;
+
+  if (!initialized && !fp) init_ttyfp();
+
+  if (fp) {
+    print_utf8_buffer(fp, p, n);
     return;
-
-  if (!initialized && !fp)
-    init_ttyfp();
-
-  if (fp)
-    {
-      print_utf8_buffer (fp, p, n);
-      return;
-    }
+  }
 
 #ifdef USE_W32_CONSOLE
   /* Not so effective, change it if you want */
-  for (; n; n--, p++)
-    {
-      if (iscntrl (*p))
-        {
-          if( *p == '\n' )
-            tty_printf ("\\n");
-          else if( !*p )
-            tty_printf ("\\0");
-          else
-            tty_printf ("\\x%02x", *p);
-        }
+  for (; n; n--, p++) {
+    if (iscntrl(*p)) {
+      if (*p == '\n')
+        tty_printf("\\n");
+      else if (!*p)
+        tty_printf("\\0");
       else
-        tty_printf ("%c", *p);
-    }
+        tty_printf("\\x%02x", *p);
+    } else
+      tty_printf("%c", *p);
+  }
 #else
-  for (; n; n--, p++)
-    {
-      if (iscntrl (*p))
-        {
-          putc ('\\', ttyfp);
-          if ( *p == '\n' )
-            putc ('n', ttyfp);
-          else if ( !*p )
-            putc ('0', ttyfp);
-          else
-            fprintf (ttyfp, "x%02x", *p );
-        }
+  for (; n; n--, p++) {
+    if (iscntrl(*p)) {
+      putc('\\', ttyfp);
+      if (*p == '\n')
+        putc('n', ttyfp);
+      else if (!*p)
+        putc('0', ttyfp);
       else
-        putc (*p, ttyfp);
-    }
+        fprintf(ttyfp, "x%02x", *p);
+    } else
+      putc(*p, ttyfp);
+  }
 #endif
 }
 
+void tty_print_utf8_string2(estream_t fp, const byte *p, size_t n,
+                            size_t max_n) {
+  size_t i;
+  char *buf;
 
-void
-tty_print_utf8_string2 (estream_t fp, const byte *p, size_t n, size_t max_n)
-{
-    size_t i;
-    char *buf;
+  if (no_terminal && !fp) return;
 
-    if (no_terminal && !fp)
-	return;
-
-    /* we can handle plain ascii simpler, so check for it first */
-    for(i=0; i < n; i++ ) {
-	if( p[i] & 0x80 )
-	    break;
+  /* we can handle plain ascii simpler, so check for it first */
+  for (i = 0; i < n; i++) {
+    if (p[i] & 0x80) break;
+  }
+  if (i < n) {
+    buf = utf8_to_native((const char *)p, n, 0);
+    if (max_n && (strlen(buf) > max_n)) {
+      buf[max_n] = 0;
     }
-    if( i < n ) {
-	buf = utf8_to_native( (const char *)p, n, 0 );
-	if( max_n && (strlen( buf ) > max_n )) {
-	    buf[max_n] = 0;
-	}
-	/*(utf8 conversion already does the control character quoting)*/
-	tty_fprintf (fp, "%s", buf);
-	xfree (buf);
+    /*(utf8 conversion already does the control character quoting)*/
+    tty_fprintf(fp, "%s", buf);
+    xfree(buf);
+  } else {
+    if (max_n && (n > max_n)) {
+      n = max_n;
     }
-    else {
-	if( max_n && (n > max_n) ) {
-	    n = max_n;
-	}
-	do_print_string (fp, p, n );
-    }
+    do_print_string(fp, p, n);
+  }
 }
 
-
-void
-tty_print_utf8_string( const byte *p, size_t n )
-{
-  tty_print_utf8_string2 (NULL, p, n, 0);
+void tty_print_utf8_string(const byte *p, size_t n) {
+  tty_print_utf8_string2(NULL, p, n, 0);
 }
 
+static char *do_get(const char *prompt, int hidden) {
+  char *buf;
+  byte cbuf[1];
+  int c, n, i;
 
-static char *
-do_get( const char *prompt, int hidden )
-{
-    char *buf;
-    byte cbuf[1];
-    int c, n, i;
+  if (batchmode) {
+    log_error("Sorry, we are in batchmode - can't get input\n");
+    exit(2);
+  }
 
-    if( batchmode ) {
-	log_error("Sorry, we are in batchmode - can't get input\n");
-	exit(2);
-    }
+  if (no_terminal) {
+    log_error("Sorry, no terminal at all requested - can't get input\n");
+    exit(2);
+  }
 
-    if (no_terminal) {
-	log_error("Sorry, no terminal at all requested - can't get input\n");
-	exit(2);
-    }
+  if (!initialized) init_ttyfp();
 
-    if( !initialized )
-	init_ttyfp();
-
-    last_prompt_len = 0;
-    tty_printf( "%s", prompt );
-    buf = (char*) xmalloc((n=50));
-    i = 0;
+  last_prompt_len = 0;
+  tty_printf("%s", prompt);
+  buf = (char *)xmalloc((n = 50));
+  i = 0;
 
 #ifdef USE_W32_CONSOLE
-    if( hidden )
-	SetConsoleMode(con.in, HID_INPMODE );
+  if (hidden) SetConsoleMode(con.in, HID_INPMODE);
 
-    for(;;) {
-	DWORD nread;
+  for (;;) {
+    DWORD nread;
 
-	if( !ReadConsoleA( con.in, cbuf, 1, &nread, NULL ) )
-	    log_fatal("ReadConsole failed: rc=%d", (int)GetLastError() );
-	if( !nread )
-	    continue;
-	if( *cbuf == '\n' )
-	    break;
+    if (!ReadConsoleA(con.in, cbuf, 1, &nread, NULL))
+      log_fatal("ReadConsole failed: rc=%d", (int)GetLastError());
+    if (!nread) continue;
+    if (*cbuf == '\n') break;
 
-	if( !hidden )
-	    last_prompt_len++;
-	c = *cbuf;
-	if( c == '\t' )
-	    c = ' ';
-	else if( c > 0xa0 )
-	    ; /* we don't allow 0xa0, as this is a protected blank which may
-	       * confuse the user */
-	else if( iscntrl(c) )
-	    continue;
-	if( !(i < n-1) ) {
-	    n += 50;
-	    buf = xrealloc (buf, n);
-	}
-	buf[i++] = c;
+    if (!hidden) last_prompt_len++;
+    c = *cbuf;
+    if (c == '\t')
+      c = ' ';
+    else if (c > 0xa0)
+      ; /* we don't allow 0xa0, as this is a protected blank which may
+         * confuse the user */
+    else if (iscntrl(c))
+      continue;
+    if (!(i < n - 1)) {
+      n += 50;
+      buf = xrealloc(buf, n);
     }
+    buf[i++] = c;
+  }
 
-    if( hidden )
-	SetConsoleMode(con.in, DEF_INPMODE );
+  if (hidden) SetConsoleMode(con.in, DEF_INPMODE);
 
 #else /* Other systems. */
-    if( hidden ) {
+  if (hidden) {
 #ifdef HAVE_TCGETATTR
-	struct termios term;
+    struct termios term;
 
-	if( tcgetattr(fileno(ttyfp), &termsave) )
-	    log_fatal("tcgetattr() failed: %s\n", strerror(errno) );
-	restore_termios = 1;
-	term = termsave;
-	term.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
-	if( tcsetattr( fileno(ttyfp), TCSAFLUSH, &term ) )
-	    log_fatal("tcsetattr() failed: %s\n", strerror(errno) );
+    if (tcgetattr(fileno(ttyfp), &termsave))
+      log_fatal("tcgetattr() failed: %s\n", strerror(errno));
+    restore_termios = 1;
+    term = termsave;
+    term.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
+    if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &term))
+      log_fatal("tcsetattr() failed: %s\n", strerror(errno));
 #endif
-    }
+  }
 
-    /* fixme: How can we avoid that the \n is echoed w/o disabling
-     * canonical mode - w/o this kill_prompt can't work */
-    while( read(fileno(ttyfp), cbuf, 1) == 1 && *cbuf != '\n' ) {
-	if( !hidden )
-	    last_prompt_len++;
-	c = *cbuf;
-	if( c == CONTROL_D )
-	    log_info("control d found\n");
-	if( c == '\t' )
-	    c = ' ';
-	else if( c > 0xa0 )
-	    ; /* we don't allow 0xa0, as this is a protected blank which may
-	       * confuse the user */
-	else if( iscntrl(c) )
-	    continue;
-	if( !(i < n-1) ) {
-	    n += 50;
-	    buf = (char*) xrealloc (buf, n );
-	}
-	buf[i++] = c;
+  /* fixme: How can we avoid that the \n is echoed w/o disabling
+   * canonical mode - w/o this kill_prompt can't work */
+  while (read(fileno(ttyfp), cbuf, 1) == 1 && *cbuf != '\n') {
+    if (!hidden) last_prompt_len++;
+    c = *cbuf;
+    if (c == CONTROL_D) log_info("control d found\n");
+    if (c == '\t')
+      c = ' ';
+    else if (c > 0xa0)
+      ; /* we don't allow 0xa0, as this is a protected blank which may
+         * confuse the user */
+    else if (iscntrl(c))
+      continue;
+    if (!(i < n - 1)) {
+      n += 50;
+      buf = (char *)xrealloc(buf, n);
     }
-    if( *cbuf != '\n' ) {
-	buf[0] = CONTROL_D;
-	i = 1;
-    }
+    buf[i++] = c;
+  }
+  if (*cbuf != '\n') {
+    buf[0] = CONTROL_D;
+    i = 1;
+  }
 
-    if( hidden ) {
+  if (hidden) {
 #ifdef HAVE_TCGETATTR
-	if( tcsetattr(fileno(ttyfp), TCSAFLUSH, &termsave) )
-	    log_error("tcsetattr() failed: %s\n", strerror(errno) );
-	restore_termios = 0;
+    if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &termsave))
+      log_error("tcsetattr() failed: %s\n", strerror(errno));
+    restore_termios = 0;
 #endif
-    }
+  }
 #endif /* end unix version */
-    buf[i] = 0;
-    return buf;
+  buf[i] = 0;
+  return buf;
 }
 
+char *tty_get(const char *prompt) {
+  if (!batchmode && !no_terminal && my_rl_readline && my_rl_add_history) {
+    char *line;
+    char *buf;
 
-char *
-tty_get( const char *prompt )
-{
-  if (!batchmode && !no_terminal && my_rl_readline && my_rl_add_history)
-    {
-      char *line;
-      char *buf;
+    if (!initialized) init_ttyfp();
 
-      if (!initialized)
-	init_ttyfp();
+    last_prompt_len = 0;
 
-      last_prompt_len = 0;
+    line = my_rl_readline(prompt ? prompt : "");
 
-      line = my_rl_readline (prompt?prompt:"");
-
-      /* We need to copy it to memory controlled by our malloc
-         implementations; further we need to convert an EOF to our
-         convention. */
-      buf = (char*) xmalloc(line? strlen(line)+1:2);
-      if (line)
-        {
-          strcpy (buf, line);
-          trim_spaces (buf);
-          if (strlen (buf) > 2 )
-            my_rl_add_history (line); /* Note that we test BUF but add LINE. */
-          free (line);
-        }
-      else
-        {
-          buf[0] = CONTROL_D;
-          buf[1] = 0;
-        }
-      return buf;
+    /* We need to copy it to memory controlled by our malloc
+       implementations; further we need to convert an EOF to our
+       convention. */
+    buf = (char *)xmalloc(line ? strlen(line) + 1 : 2);
+    if (line) {
+      strcpy(buf, line);
+      trim_spaces(buf);
+      if (strlen(buf) > 2)
+        my_rl_add_history(line); /* Note that we test BUF but add LINE. */
+      free(line);
+    } else {
+      buf[0] = CONTROL_D;
+      buf[1] = 0;
     }
-  else
-    return do_get ( prompt, 0 );
+    return buf;
+  } else
+    return do_get(prompt, 0);
 }
 
 /* Variable argument version of tty_get.  The prompt is actually a
    format string with arguments.  */
-char *
-tty_getf (const char *promptfmt, ... )
-{
+char *tty_getf(const char *promptfmt, ...) {
   va_list arg_ptr;
   char *prompt;
   char *answer;
 
-  va_start (arg_ptr, promptfmt);
-  if (gpgrt_vasprintf (&prompt, promptfmt, arg_ptr) < 0)
-    log_fatal ("estream_vasprintf failed: %s\n", strerror (errno));
-  va_end (arg_ptr);
-  answer = tty_get (prompt);
-  xfree (prompt);
+  va_start(arg_ptr, promptfmt);
+  if (gpgrt_vasprintf(&prompt, promptfmt, arg_ptr) < 0)
+    log_fatal("estream_vasprintf failed: %s\n", strerror(errno));
+  va_end(arg_ptr);
+  answer = tty_get(prompt);
+  xfree(prompt);
   return answer;
 }
 
+char *tty_get_hidden(const char *prompt) { return do_get(prompt, 1); }
 
+void tty_kill_prompt() {
+  if (no_terminal) return;
 
-char *
-tty_get_hidden( const char *prompt )
-{
-    return do_get( prompt, 1 );
-}
+  if (!initialized) init_ttyfp();
 
-
-void
-tty_kill_prompt()
-{
-    if ( no_terminal )
-	return;
-
-    if( !initialized )
-	init_ttyfp();
-
-    if( batchmode )
-	last_prompt_len = 0;
-    if( !last_prompt_len )
-	return;
+  if (batchmode) last_prompt_len = 0;
+  if (!last_prompt_len) return;
 #ifdef USE_W32_CONSOLE
-    tty_printf("\r%*s\r", last_prompt_len, "");
+  tty_printf("\r%*s\r", last_prompt_len, "");
 #else
-    {
-	int i;
-	putc('\r', ttyfp);
-	for(i=0; i < last_prompt_len; i ++ )
-	    putc(' ', ttyfp);
-	putc('\r', ttyfp);
-	fflush(ttyfp);
-    }
+  {
+    int i;
+    putc('\r', ttyfp);
+    for (i = 0; i < last_prompt_len; i++) putc(' ', ttyfp);
+    putc('\r', ttyfp);
+    fflush(ttyfp);
+  }
 #endif
-    last_prompt_len = 0;
+  last_prompt_len = 0;
 }
 
-
-int
-tty_get_answer_is_yes( const char *prompt )
-{
-    int yes;
-    char *p = tty_get( prompt );
-    tty_kill_prompt();
-    yes = answer_is_yes(p);
-    xfree(p);
-    return yes;
+int tty_get_answer_is_yes(const char *prompt) {
+  int yes;
+  char *p = tty_get(prompt);
+  tty_kill_prompt();
+  yes = answer_is_yes(p);
+  xfree(p);
+  return yes;
 }
-
 
 /* Called by gnupg_rl_initialize to setup the readline support. */
-void
-tty_private_set_rl_hooks (void (*init_stream) (FILE *),
-                          void (*set_completer) (rl_completion_func_t*),
-                          void (*inhibit_completion) (int),
-                          void (*cleanup_after_signal) (void),
-                          char *(*readline_fun) (const char*),
-                          void (*add_history_fun) (const char*))
-{
+void tty_private_set_rl_hooks(void (*init_stream)(FILE *),
+                              void (*set_completer)(rl_completion_func_t *),
+                              void (*inhibit_completion)(int),
+                              void (*cleanup_after_signal)(void),
+                              char *(*readline_fun)(const char *),
+                              void (*add_history_fun)(const char *)) {
   my_rl_init_stream = init_stream;
   my_rl_set_completer = set_completer;
   my_rl_inhibit_completion = inhibit_completion;
@@ -635,44 +536,30 @@ tty_private_set_rl_hooks (void (*init_stream) (FILE *),
   my_rl_add_history = add_history_fun;
 }
 
-
 #ifdef HAVE_LIBREADLINE
-void
-tty_enable_completion (rl_completion_func_t *completer)
-{
-  if (no_terminal || !my_rl_set_completer )
-    return;
+void tty_enable_completion(rl_completion_func_t *completer) {
+  if (no_terminal || !my_rl_set_completer) return;
 
-  if (!initialized)
-    init_ttyfp();
+  if (!initialized) init_ttyfp();
 
-  my_rl_set_completer (completer);
+  my_rl_set_completer(completer);
 }
 
-void
-tty_disable_completion (void)
-{
-  if (no_terminal || !my_rl_inhibit_completion)
-    return;
+void tty_disable_completion(void) {
+  if (no_terminal || !my_rl_inhibit_completion) return;
 
-  if (!initialized)
-    init_ttyfp();
+  if (!initialized) init_ttyfp();
 
-  my_rl_inhibit_completion (1);
+  my_rl_inhibit_completion(1);
 }
 #endif
 
-void
-tty_cleanup_after_signal (void)
-{
+void tty_cleanup_after_signal(void) {
 #ifdef HAVE_TCGETATTR
-  cleanup ();
+  cleanup();
 #endif
 }
 
-void
-tty_cleanup_rl_after_signal (void)
-{
-  if (my_rl_cleanup_after_signal)
-    my_rl_cleanup_after_signal ();
+void tty_cleanup_rl_after_signal(void) {
+  if (my_rl_cleanup_after_signal) my_rl_cleanup_after_signal();
 }

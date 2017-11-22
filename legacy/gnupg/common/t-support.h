@@ -35,46 +35,45 @@
 #error The regression tests should not include with gcrypt.h
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <gpg-error.h>
 
-
 #ifndef DIM
-# define DIM(v)		     (sizeof(v)/sizeof((v)[0]))
-# define DIMof(type,member)   DIM(((type *)0)->member)
+#define DIM(v) (sizeof(v) / sizeof((v)[0]))
+#define DIMof(type, member) DIM(((type *)0)->member)
 #endif
 
-
 /* Replacement prototypes. */
-void *gcry_xmalloc (size_t n);
-void *gcry_xcalloc (size_t n, size_t m);
-void *gcry_xrealloc (void *a, size_t n);
-char *gcry_xstrdup (const char * a);
-void  gcry_free (void *a);
+void *gcry_xmalloc(size_t n);
+void *gcry_xcalloc(size_t n, size_t m);
+void *gcry_xrealloc(void *a, size_t n);
+char *gcry_xstrdup(const char *a);
+void gcry_free(void *a);
 
 /* Map the used xmalloc functions to those implemented by t-support.c */
-#define xmalloc(a)    gcry_xmalloc ( (a) )
-#define xcalloc(a,b)  gcry_xcalloc ( (a), (b) )
-#define xrealloc(a,n) gcry_xrealloc ( (a), (n) )
-#define xstrdup(a)    gcry_xstrdup ( (a) )
-#define xfree(a)      gcry_free ( (a) )
-
+#define xmalloc(a) gcry_xmalloc((a))
+#define xcalloc(a, b) gcry_xcalloc((a), (b))
+#define xrealloc(a, n) gcry_xrealloc((a), (n))
+#define xstrdup(a) gcry_xstrdup((a))
+#define xfree(a) gcry_free((a))
 
 /* Macros to print the result of a test.  */
-#define pass()  do { ; } while(0)
-#define fail(a)  do { fprintf (stderr, "%s:%d: test %d failed\n",\
-                               __FILE__,__LINE__, (a));          \
-                      errcount++;                                \
-                      if (!no_exit_on_fail)                      \
-                         exit (1);                               \
-                   } while(0)
+#define pass() \
+  do {         \
+    ;          \
+  } while (0)
+#define fail(a)                                                          \
+  do {                                                                   \
+    fprintf(stderr, "%s:%d: test %d failed\n", __FILE__, __LINE__, (a)); \
+    errcount++;                                                          \
+    if (!no_exit_on_fail) exit(1);                                       \
+  } while (0)
 
 /* If this flag is set the fail macro does not call exit.  */
 static int no_exit_on_fail;
 /* Error counter.  */
 static int errcount;
-
 
 #endif /*GNUPG_COMMON_T_SUPPORT_H*/

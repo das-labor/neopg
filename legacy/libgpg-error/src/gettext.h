@@ -23,11 +23,11 @@
 #if ENABLE_NLS
 
 #if _WIN32
-  /* We have a gettext implementation in gpg-error.h which get
-     included anyway.  */
+/* We have a gettext implementation in gpg-error.h which get
+   included anyway.  */
 #else
-  /* Get declarations of GNU message catalog functions.  */
-# include <libintl.h>
+/* Get declarations of GNU message catalog functions.  */
+#include <libintl.h>
 #endif
 
 #else /*!ENABLE_NLS*/
@@ -37,18 +37,18 @@
    for invalid uses of the value returned from these functions.
    On pre-ANSI systems without 'const', the config.h file is supposed to
    contain "#define const".  */
-# define gettext(Msgid) ((const char *) (Msgid))
-# define dgettext(Domainname, Msgid) ((const char *) (Msgid))
-# define dcgettext(Domainname, Msgid, Category) ((const char *) (Msgid))
-# define ngettext(Msgid1, Msgid2, N) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define dngettext(Domainname, Msgid1, Msgid2, N) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define dcngettext(Domainname, Msgid1, Msgid2, N, Category) \
-    ((N) == 1 ? (const char *) (Msgid1) : (const char *) (Msgid2))
-# define textdomain(Domainname) ((const char *) (Domainname))
-# define bindtextdomain(Domainname, Dirname) ((const char *) (Dirname))
-# define bind_textdomain_codeset(Domainname, Codeset) ((const char *) (Codeset))
+#define gettext(Msgid) ((const char *)(Msgid))
+#define dgettext(Domainname, Msgid) ((const char *)(Msgid))
+#define dcgettext(Domainname, Msgid, Category) ((const char *)(Msgid))
+#define ngettext(Msgid1, Msgid2, N) \
+  ((N) == 1 ? (const char *)(Msgid1) : (const char *)(Msgid2))
+#define dngettext(Domainname, Msgid1, Msgid2, N) \
+  ((N) == 1 ? (const char *)(Msgid1) : (const char *)(Msgid2))
+#define dcngettext(Domainname, Msgid1, Msgid2, N, Category) \
+  ((N) == 1 ? (const char *)(Msgid1) : (const char *)(Msgid2))
+#define textdomain(Domainname) ((const char *)(Domainname))
+#define bindtextdomain(Domainname, Dirname) ((const char *)(Dirname))
+#define bind_textdomain_codeset(Domainname, Codeset) ((const char *)(Codeset))
 
 #endif /*!ENABLE_NLS*/
 
@@ -60,7 +60,5 @@
    The macro's expansion is not parenthesized, so that it is suitable as
    initializer for static 'char[]' or 'const char[]' variables.  */
 #define gettext_noop(String) String
-
-
 
 #endif /* _LIBGETTEXT_H */

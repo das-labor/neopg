@@ -34,26 +34,23 @@
 #include "ksba.h"
 
 #ifndef HAVE_TYPEDEFD_ASNNODE
-typedef struct asn_node_struct *AsnNode;  /* FIXME: should not go here */
+typedef struct asn_node_struct *AsnNode; /* FIXME: should not go here */
 #define HAVE_TYPEDEFD_ASNNODE
 #endif
-
 
 /* This structure is used to store the results of a BER parser run. */
 struct value_tree_s {
   struct value_tree_s *next;
-  AsnNode root;  /* root of the tree with the values */
+  AsnNode root; /* root of the tree with the values */
   unsigned char *image;
   size_t imagelen;
 };
-
 
 struct enc_val_s {
   char *algo;
   unsigned char *value;
   size_t valuelen;
 };
-
 
 struct oidlist_s {
   struct oidlist_s *next;
@@ -68,12 +65,11 @@ struct oidparmlist_s {
   unsigned char parm[1];
 };
 
-
 struct certlist_s {
   struct certlist_s *next;
   ksba_cert_t cert;
-  int  msg_digest_len;  /* used length of .. */
-  char msg_digest[64];  /* enough space to store a SHA-512 hash */
+  int msg_digest_len;  /* used length of .. */
+  char msg_digest[64]; /* enough space to store a SHA-512 hash */
   ksba_isotime_t signing_time;
   struct {
     AsnNode root;
@@ -82,10 +78,9 @@ struct certlist_s {
   struct enc_val_s enc_val; /* used for creating enveloped data */
 };
 
-
 struct signer_info_s {
   struct signer_info_s *next;
-  AsnNode root;  /* root of the tree with the values */
+  AsnNode root; /* root of the tree with the values */
   unsigned char *image;
   size_t imagelen;
   struct {
@@ -151,17 +146,13 @@ struct ksba_cms_s {
   struct enc_val_s *enc_val;
 };
 
-
 /*-- cms.c --*/
 
-
 /*-- cms-parser.c --*/
-gpg_error_t _ksba_cms_parse_content_info (ksba_cms_t cms);
-gpg_error_t _ksba_cms_parse_signed_data_part_1 (ksba_cms_t cms);
-gpg_error_t _ksba_cms_parse_signed_data_part_2 (ksba_cms_t cms);
-gpg_error_t _ksba_cms_parse_enveloped_data_part_1 (ksba_cms_t cms);
-gpg_error_t _ksba_cms_parse_enveloped_data_part_2 (ksba_cms_t cms);
-
-
+gpg_error_t _ksba_cms_parse_content_info(ksba_cms_t cms);
+gpg_error_t _ksba_cms_parse_signed_data_part_1(ksba_cms_t cms);
+gpg_error_t _ksba_cms_parse_signed_data_part_2(ksba_cms_t cms);
+gpg_error_t _ksba_cms_parse_enveloped_data_part_1(ksba_cms_t cms);
+gpg_error_t _ksba_cms_parse_enveloped_data_part_2(ksba_cms_t cms);
 
 #endif /*CMS_H*/

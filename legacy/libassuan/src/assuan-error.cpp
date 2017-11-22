@@ -21,42 +21,31 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 
 #undef _ASSUAN_IN_LIBASSUAN /* undef to get all error codes. */
-#include "assuan.h"
 #include "assuan-defs.h"
-
+#include "assuan.h"
 
 /* A small helper function to treat EAGAIN transparently to the
    caller.  */
-int
-_assuan_error_is_eagain (assuan_context_t ctx, gpg_error_t err)
-{
-  if (err == GPG_ERR_EAGAIN)
-    {
-      /* Avoid spinning by sleeping for one tenth of a second.  */
-      _assuan_usleep (ctx, 100000);
-      return 1;
-    }
-  else
+int _assuan_error_is_eagain(assuan_context_t ctx, gpg_error_t err) {
+  if (err == GPG_ERR_EAGAIN) {
+    /* Avoid spinning by sleeping for one tenth of a second.  */
+    _assuan_usleep(ctx, 100000);
+    return 1;
+  } else
     return 0;
 }
 
-
-
 #ifdef HAVE_W32_SYSTEM
-char *
-_assuan_w32_strerror (assuan_context_t ctx, int ec)
-{
-  if (ec == -1)
-    ec = (int)GetLastError ();
-  FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, ec,
-                 MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 ctx->w32_strerror, sizeof (ctx->w32_strerror) - 1, NULL);
+char* _assuan_w32_strerror(assuan_context_t ctx, int ec) {
+  if (ec == -1) ec = (int)GetLastError();
+  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, ec,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), ctx->w32_strerror,
+                sizeof(ctx->w32_strerror) - 1, NULL);
   return ctx->w32_strerror;
 }
 #endif
-

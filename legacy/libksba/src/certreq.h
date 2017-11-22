@@ -34,12 +34,11 @@
 #include "ksba.h"
 
 #ifndef HAVE_TYPEDEFD_ASNNODE
-typedef struct asn_node_struct *AsnNode;  /* FIXME: should not go here */
+typedef struct asn_node_struct *AsnNode; /* FIXME: should not go here */
 #define HAVE_TYPEDEFD_ASNNODE
 #endif
 
-struct extn_list_s
-{
+struct extn_list_s {
   struct extn_list_s *next;
   const char *oid;
   int critical;
@@ -47,22 +46,18 @@ struct extn_list_s
   unsigned char der[1];
 };
 
-
 /* Object to collect information for building a GeneralNames. */
-struct general_names_s
-{
+struct general_names_s {
   struct general_names_s *next;
-  int tag;   /* The GeneralName CHOICE.  Only certain values are
-                supported. This is not strictly required because DATA
-                below has already been prefixed with the DER encoded
-                tag. */
+  int tag;        /* The GeneralName CHOICE.  Only certain values are
+                     supported. This is not strictly required because DATA
+                     below has already been prefixed with the DER encoded
+                     tag. */
   size_t datalen; /* Length of the data. */
   char data[1];   /* The actual data:  encoded tag, llength and value. */
 };
 
-
-struct ksba_certreq_s
-{
+struct ksba_certreq_s {
   gpg_error_t last_error;
 
   ksba_writer_t writer;
@@ -74,8 +69,8 @@ struct ksba_certreq_s
 
   struct {
     struct {
-      char *der;  /* Malloced serialno; if this is set we want to
-                          build a real X.509 certificate.  */
+      char *der; /* Malloced serialno; if this is set we want to
+                         build a real X.509 certificate.  */
       size_t derlen;
     } serial;
     struct {
@@ -114,11 +109,6 @@ struct ksba_certreq_s
     unsigned char *value;
     size_t valuelen;
   } sig_val;
-
-
-
 };
-
-
 
 #endif /*CERTREQ_H*/

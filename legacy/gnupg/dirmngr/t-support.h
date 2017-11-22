@@ -32,11 +32,14 @@
 #define DIRMNGR_T_SUPPORT_H 1
 
 /* Macros to print the result of a test.  */
-#define pass()  do { ; } while(0)
-#define fail(a)  do { fprintf (stderr, "%s:%d: test %d failed\n",\
-                               __FILE__,__LINE__, (a));          \
-                     exit (1);                                   \
-                   } while(0)
-
+#define pass() \
+  do {         \
+    ;          \
+  } while (0)
+#define fail(a)                                                          \
+  do {                                                                   \
+    fprintf(stderr, "%s:%d: test %d failed\n", __FILE__, __LINE__, (a)); \
+    exit(1);                                                             \
+  } while (0)
 
 #endif /* DIRMNGR_T_SUPPORT_H */

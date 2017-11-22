@@ -18,21 +18,17 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "cipher.h"
 #include "./mac-internal.h"
+#include "cipher.h"
+#include "g10lib.h"
 
-
-static int
-map_mac_algo_to_cipher (int mac_algo)
-{
-  switch (mac_algo)
-    {
+static int map_mac_algo_to_cipher(int mac_algo) {
+  switch (mac_algo) {
     default:
       return GCRY_CIPHER_NONE;
     case GCRY_MAC_GMAC_AES:
@@ -45,141 +41,93 @@ map_mac_algo_to_cipher (int mac_algo)
       return GCRY_CIPHER_SERPENT128;
     case GCRY_MAC_GMAC_SEED:
       return GCRY_CIPHER_SEED;
-    }
+  }
 }
 
-
-static gpg_error_t
-gmac_open (gcry_mac_hd_t h)
-{
+static gpg_error_t gmac_open(gcry_mac_hd_t h) {
   gpg_error_t err;
   gcry_cipher_hd_t hd;
   int secure = (h->magic == CTX_MAGIC_SECURE);
   int cipher_algo;
   unsigned int flags;
 
-  cipher_algo = map_mac_algo_to_cipher (h->spec->algo);
+  cipher_algo = map_mac_algo_to_cipher(h->spec->algo);
   flags = (secure ? GCRY_CIPHER_SECURE : 0);
 
-  err = _gcry_cipher_open_internal (&hd, cipher_algo, GCRY_CIPHER_MODE_GCM,
-                                    flags);
-  if (err)
-    return err;
+  err =
+      _gcry_cipher_open_internal(&hd, cipher_algo, GCRY_CIPHER_MODE_GCM, flags);
+  if (err) return err;
 
   h->u.gmac.cipher_algo = cipher_algo;
   h->u.gmac.ctx = hd;
   return 0;
 }
 
-
-static void
-gmac_close (gcry_mac_hd_t h)
-{
-  _gcry_cipher_close (h->u.gmac.ctx);
+static void gmac_close(gcry_mac_hd_t h) {
+  _gcry_cipher_close(h->u.gmac.ctx);
   h->u.gmac.ctx = NULL;
 }
 
-
-static gpg_error_t
-gmac_setkey (gcry_mac_hd_t h, const unsigned char *key, size_t keylen)
-{
-  return _gcry_cipher_setkey (h->u.gmac.ctx, key, keylen);
+static gpg_error_t gmac_setkey(gcry_mac_hd_t h, const unsigned char *key,
+                               size_t keylen) {
+  return _gcry_cipher_setkey(h->u.gmac.ctx, key, keylen);
 }
 
-
-static gpg_error_t
-gmac_setiv (gcry_mac_hd_t h, const unsigned char *iv, size_t ivlen)
-{
-  return _gcry_cipher_setiv (h->u.gmac.ctx, iv, ivlen);
+static gpg_error_t gmac_setiv(gcry_mac_hd_t h, const unsigned char *iv,
+                              size_t ivlen) {
+  return _gcry_cipher_setiv(h->u.gmac.ctx, iv, ivlen);
 }
 
-
-static gpg_error_t
-gmac_reset (gcry_mac_hd_t h)
-{
-  return _gcry_cipher_reset (h->u.gmac.ctx);
+static gpg_error_t gmac_reset(gcry_mac_hd_t h) {
+  return _gcry_cipher_reset(h->u.gmac.ctx);
 }
 
-
-static gpg_error_t
-gmac_write (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
-{
-  return _gcry_cipher_authenticate (h->u.gmac.ctx, buf, buflen);
+static gpg_error_t gmac_write(gcry_mac_hd_t h, const unsigned char *buf,
+                              size_t buflen) {
+  return _gcry_cipher_authenticate(h->u.gmac.ctx, buf, buflen);
 }
 
-
-static gpg_error_t
-gmac_read (gcry_mac_hd_t h, unsigned char *outbuf, size_t * outlen)
-{
-  if (*outlen > GCRY_GCM_BLOCK_LEN)
-    *outlen = GCRY_GCM_BLOCK_LEN;
-  return _gcry_cipher_gettag (h->u.gmac.ctx, outbuf, *outlen);
+static gpg_error_t gmac_read(gcry_mac_hd_t h, unsigned char *outbuf,
+                             size_t *outlen) {
+  if (*outlen > GCRY_GCM_BLOCK_LEN) *outlen = GCRY_GCM_BLOCK_LEN;
+  return _gcry_cipher_gettag(h->u.gmac.ctx, outbuf, *outlen);
 }
 
-
-static gpg_error_t
-gmac_verify (gcry_mac_hd_t h, const unsigned char *buf, size_t buflen)
-{
-  return _gcry_cipher_checktag (h->u.gmac.ctx, buf, buflen);
+static gpg_error_t gmac_verify(gcry_mac_hd_t h, const unsigned char *buf,
+                               size_t buflen) {
+  return _gcry_cipher_checktag(h->u.gmac.ctx, buf, buflen);
 }
 
-
-static unsigned int
-gmac_get_maclen (int algo)
-{
+static unsigned int gmac_get_maclen(int algo) {
   (void)algo;
   return GCRY_GCM_BLOCK_LEN;
 }
 
-
-static unsigned int
-gmac_get_keylen (int algo)
-{
-  return _gcry_cipher_get_algo_keylen (map_mac_algo_to_cipher (algo));
+static unsigned int gmac_get_keylen(int algo) {
+  return _gcry_cipher_get_algo_keylen(map_mac_algo_to_cipher(algo));
 }
 
-
 static gcry_mac_spec_ops_t gmac_ops = {
-  gmac_open,
-  gmac_close,
-  gmac_setkey,
-  gmac_setiv,
-  gmac_reset,
-  gmac_write,
-  gmac_read,
-  gmac_verify,
-  gmac_get_maclen,
-  gmac_get_keylen
-};
-
+    gmac_open,  gmac_close, gmac_setkey, gmac_setiv,      gmac_reset,
+    gmac_write, gmac_read,  gmac_verify, gmac_get_maclen, gmac_get_keylen};
 
 #if USE_AES
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_aes = {
-  GCRY_MAC_GMAC_AES, {0, 1}, "GMAC_AES",
-  &gmac_ops
-};
+    GCRY_MAC_GMAC_AES, {0, 1}, "GMAC_AES", &gmac_ops};
 #endif
 #if USE_TWOFISH
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_twofish = {
-  GCRY_MAC_GMAC_TWOFISH, {0, 0}, "GMAC_TWOFISH",
-  &gmac_ops
-};
+    GCRY_MAC_GMAC_TWOFISH, {0, 0}, "GMAC_TWOFISH", &gmac_ops};
 #endif
 #if USE_SERPENT
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_serpent = {
-  GCRY_MAC_GMAC_SERPENT, {0, 0}, "GMAC_SERPENT",
-  &gmac_ops
-};
+    GCRY_MAC_GMAC_SERPENT, {0, 0}, "GMAC_SERPENT", &gmac_ops};
 #endif
 #if USE_SEED
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_seed = {
-  GCRY_MAC_GMAC_SEED, {0, 0}, "GMAC_SEED",
-  &gmac_ops
-};
+    GCRY_MAC_GMAC_SEED, {0, 0}, "GMAC_SEED", &gmac_ops};
 #endif
 #if USE_CAMELLIA
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_camellia = {
-  GCRY_MAC_GMAC_CAMELLIA, {0, 0}, "GMAC_CAMELLIA",
-  &gmac_ops
-};
+    GCRY_MAC_GMAC_CAMELLIA, {0, 0}, "GMAC_CAMELLIA", &gmac_ops};
 #endif

@@ -36,18 +36,15 @@
 
 /* Return the length of the next S-Exp part and update the pointer to
    the first data byte.  0 is returned on error */
-static inline size_t
-snext (unsigned char const **buf)
-{
+static inline size_t snext(unsigned char const **buf) {
   const unsigned char *s;
   int n;
 
   s = *buf;
-  for (n=0; *s && *s != ':' && (*s >= '0' && *s <= '9'); s++)
-    n = n*10 + (*s - '0');
-  if (!n || *s != ':')
-    return 0; /* we don't allow empty lengths */
-  *buf = s+1;
+  for (n = 0; *s && *s != ':' && (*s >= '0' && *s <= '9'); s++)
+    n = n * 10 + (*s - '0');
+  if (!n || *s != ':') return 0; /* we don't allow empty lengths */
+  *buf = s + 1;
   return n;
 }
 
@@ -57,56 +54,42 @@ snext (unsigned char const **buf)
    remainder of an S-Expression if the current position is somewhere
    in an S-Expression.  The function may return an error code if it
    encounters an impossible conditions */
-static inline gpg_error_t
-sskip (unsigned char const **buf, int *depth)
-{
+static inline gpg_error_t sskip(unsigned char const **buf, int *depth) {
   const unsigned char *s = *buf;
   size_t n;
   int d = *depth;
 
-  while (d > 0)
-    {
-      if (*s == '(')
-        {
-          d++;
-          s++;
-        }
-      else if (*s == ')')
-        {
-          d--;
-          s++;
-        }
-      else
-        {
-          if (!d)
-            return GPG_ERR_INV_SEXP;
-          n = snext (&s);
-          if (!n)
-            return GPG_ERR_INV_SEXP;
-          s += n;
-        }
+  while (d > 0) {
+    if (*s == '(') {
+      d++;
+      s++;
+    } else if (*s == ')') {
+      d--;
+      s++;
+    } else {
+      if (!d) return GPG_ERR_INV_SEXP;
+      n = snext(&s);
+      if (!n) return GPG_ERR_INV_SEXP;
+      s += n;
     }
+  }
   *buf = s;
   *depth = d;
   return 0;
 }
 
-
 /* Check whether the the string at the address BUF points to matches
    the token.  Return true on match and update BUF to point behind the
    token.  Return false and do not update the buffer if it does not
    match. */
-static inline int
-smatch (unsigned char const **buf, size_t buflen, const char *token)
-{
-  size_t toklen = strlen (token);
+static inline int smatch(unsigned char const **buf, size_t buflen,
+                         const char *token) {
+  size_t toklen = strlen(token);
 
-  if (buflen != toklen || memcmp (*buf, token, toklen))
-    return 0;
+  if (buflen != toklen || memcmp(*buf, token, toklen)) return 0;
   *buf += toklen;
   return 1;
 }
-
 
 /* Format VALUE for use as the length indicatior of an S-expression.
    The caller needs to provide a buffer HELP_BUFFER with a length of
@@ -115,25 +98,20 @@ smatch (unsigned char const **buf, size_t buflen, const char *token)
    appended.  HELP_BUFLEN must be at least 3 - a more useful value is
    15.  If LENGTH is not NULL, the LENGTH of the resulting string
    (excluding the terminating nul) is stored at that address. */
-static inline char *
-smklen (char *help_buffer, size_t help_buflen, size_t value, size_t *length)
-{
+static inline char *smklen(char *help_buffer, size_t help_buflen, size_t value,
+                           size_t *length) {
   char *p = help_buffer + help_buflen;
 
-  if (help_buflen >= 3)
-    {
-      *--p = 0;
-      *--p = ':';
-      do
-        {
-          *--p = '0' + (value % 10);
-          value /= 10;
-        }
-      while (value && p > help_buffer);
-    }
+  if (help_buflen >= 3) {
+    *--p = 0;
+    *--p = ':';
+    do {
+      *--p = '0' + (value % 10);
+      value /= 10;
+    } while (value && p > help_buffer);
+  }
 
-  if (length)
-    *length = (help_buffer + help_buflen) - p;
+  if (length) *length = (help_buffer + help_buflen) - p;
   return p;
 }
 

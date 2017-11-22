@@ -28,78 +28,62 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <errno.h>
 
-#include "util.h"
 #include "asn1-func.h"
-#include "convert.h"
 #include "ber-help.h"
-
+#include "convert.h"
+#include "util.h"
 
 struct ksba_name_s {
   int ref_count;
-  int n_names;   /* number of names */
-  char **names;  /* array with the parsed names */
+  int n_names;  /* number of names */
+  char **names; /* array with the parsed names */
 };
-
 
 /* Also this is a public function it is not yet usable becuase we
    don't have a way to set real information.  */
-gpg_error_t
-ksba_name_new (ksba_name_t *r_name)
-{
-  *r_name = (ksba_name_t) xtrycalloc (1, sizeof **r_name);
-  if (!*r_name)
-    return gpg_error_from_errno (errno);
+gpg_error_t ksba_name_new(ksba_name_t *r_name) {
+  *r_name = (ksba_name_t)xtrycalloc(1, sizeof **r_name);
+  if (!*r_name) return gpg_error_from_errno(errno);
   (*r_name)->ref_count++;
 
   return 0;
 }
 
-void
-ksba_name_ref (ksba_name_t name)
-{
+void ksba_name_ref(ksba_name_t name) {
   if (!name)
-    fprintf (stderr, "BUG: ksba_name_ref for NULL\n");
+    fprintf(stderr, "BUG: ksba_name_ref for NULL\n");
   else
     ++name->ref_count;
 }
 
-
-void
-ksba_name_release (ksba_name_t name)
-{
+void ksba_name_release(ksba_name_t name) {
   int i;
 
-  if (!name)
+  if (!name) return;
+  if (name->ref_count < 1) {
+    fprintf(stderr, "BUG: trying to release an already released name\n");
     return;
-  if (name->ref_count < 1)
-    {
-      fprintf (stderr, "BUG: trying to release an already released name\n");
-      return;
-    }
-  if (--name->ref_count)
-    return;
+  }
+  if (--name->ref_count) return;
 
-  for (i=0; i < name->n_names; i++)
-    xfree (name->names[i]);
-  xfree (name->names);
+  for (i = 0; i < name->n_names; i++) xfree(name->names[i]);
+  xfree(name->names);
   name->n_names = 0;
-  xfree (name);
+  xfree(name);
 }
-
 
 /* This is an internal function to create an ksba_name_t object from an
    DER encoded image which must point to an GeneralNames object */
-gpg_error_t
-_ksba_name_new_from_der (ksba_name_t *r_name,
-                         const unsigned char *image, size_t imagelen)
-{
+gpg_error_t _ksba_name_new_from_der(ksba_name_t *r_name,
+                                    const unsigned char *image,
+                                    size_t imagelen) {
   gpg_error_t err;
   ksba_name_t name;
   struct tag_info ti;
@@ -108,8 +92,7 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
   int n;
   char *p;
 
-  if (!r_name || !image)
-    return GPG_ERR_INV_VALUE;
+  if (!r_name || !image) return GPG_ERR_INV_VALUE;
 
   *r_name = NULL;
 
@@ -118,108 +101,94 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
   der = image;
   derlen = imagelen;
   n = 0;
-  while (derlen)
-    {
-      err = _ksba_ber_parse_tl (&der, &derlen, &ti);
-      if (err)
-        return err;
-      if (ti.klasse != CLASS_CONTEXT)
-        return GPG_ERR_INV_CERT_OBJ; /* we expected a tag */
-      if (ti.ndef)
-        return GPG_ERR_NOT_DER_ENCODED;
-      if (derlen < ti.length)
-        return GPG_ERR_BAD_BER;
-      switch (ti.tag)
-        {
-        case 1: /* rfc822Name - this is an imlicit IA5_STRING */
-        case 4: /* Name */
-        case 6: /* URI */
-          n++;
-          break;
-        default:
-          break;
-        }
-
-      /* advance pointer */
-      der += ti.length;
-      derlen -= ti.length;
+  while (derlen) {
+    err = _ksba_ber_parse_tl(&der, &derlen, &ti);
+    if (err) return err;
+    if (ti.klasse != CLASS_CONTEXT)
+      return GPG_ERR_INV_CERT_OBJ; /* we expected a tag */
+    if (ti.ndef) return GPG_ERR_NOT_DER_ENCODED;
+    if (derlen < ti.length) return GPG_ERR_BAD_BER;
+    switch (ti.tag) {
+      case 1: /* rfc822Name - this is an imlicit IA5_STRING */
+      case 4: /* Name */
+      case 6: /* URI */
+        n++;
+        break;
+      default:
+        break;
     }
+
+    /* advance pointer */
+    der += ti.length;
+    derlen -= ti.length;
+  }
 
   /* allocate array and set all slots to NULL for easier error recovery */
-  err = ksba_name_new (&name);
-  if (err)
-    return err;
-  if (!n)
-    return 0; /* empty GeneralNames */
-  name->names = (char**) xtrycalloc (n, sizeof *name->names);
-  if (!name->names)
-    {
-      ksba_name_release (name);
-      return GPG_ERR_ENOMEM;
-    }
+  err = ksba_name_new(&name);
+  if (err) return err;
+  if (!n) return 0; /* empty GeneralNames */
+  name->names = (char **)xtrycalloc(n, sizeof *name->names);
+  if (!name->names) {
+    ksba_name_release(name);
+    return GPG_ERR_ENOMEM;
+  }
   name->n_names = n;
 
   /* start the second pass */
   der = image;
   derlen = imagelen;
   n = 0;
-  while (derlen)
-    {
-      char numbuf[21];
+  while (derlen) {
+    char numbuf[21];
 
-      err = _ksba_ber_parse_tl (&der, &derlen, &ti);
-      assert (!err);
-      switch (ti.tag)
-        {
-        case 1: /* rfc822Name - this is an imlicit IA5_STRING */
-          p = name->names[n] = (char*) xtrymalloc (ti.length+3);
-          if (!p)
-            {
-              ksba_name_release (name);
-              return GPG_ERR_ENOMEM;
-            }
-          *p++ = '<';
-          memcpy (p, der, ti.length);
-          p += ti.length;
-          *p++ = '>';
-          *p = 0;
-          n++;
-          break;
-        case 4: /* Name */
-          err = _ksba_derdn_to_str (der, ti.length, &p);
-          if (err)
-            return err; /* FIXME: we need to release some of the memory */
-          name->names[n++] = p;
-          break;
-        case 6: /* URI */
-          sprintf (numbuf, "%u:", (unsigned int)ti.length);
-          p = name->names[n] = (char*) xtrymalloc (1+5+strlen (numbuf)
-                                           + ti.length +1+1);
-          if (!p)
-            {
-              ksba_name_release (name);
-              return GPG_ERR_ENOMEM;
-            }
-          p = stpcpy (p, "(3:uri");
-          p = stpcpy (p, numbuf);
-          memcpy (p, der, ti.length);
-          p += ti.length;
-          *p++ = ')';
-          *p = 0; /* extra safeguard null */
-          n++;
-          break;
-        default:
-          break;
+    err = _ksba_ber_parse_tl(&der, &derlen, &ti);
+    assert(!err);
+    switch (ti.tag) {
+      case 1: /* rfc822Name - this is an imlicit IA5_STRING */
+        p = name->names[n] = (char *)xtrymalloc(ti.length + 3);
+        if (!p) {
+          ksba_name_release(name);
+          return GPG_ERR_ENOMEM;
         }
-
-      /* advance pointer */
-      der += ti.length;
-      derlen -= ti.length;
+        *p++ = '<';
+        memcpy(p, der, ti.length);
+        p += ti.length;
+        *p++ = '>';
+        *p = 0;
+        n++;
+        break;
+      case 4: /* Name */
+        err = _ksba_derdn_to_str(der, ti.length, &p);
+        if (err) return err; /* FIXME: we need to release some of the memory */
+        name->names[n++] = p;
+        break;
+      case 6: /* URI */
+        sprintf(numbuf, "%u:", (unsigned int)ti.length);
+        p = name->names[n] =
+            (char *)xtrymalloc(1 + 5 + strlen(numbuf) + ti.length + 1 + 1);
+        if (!p) {
+          ksba_name_release(name);
+          return GPG_ERR_ENOMEM;
+        }
+        p = stpcpy(p, "(3:uri");
+        p = stpcpy(p, numbuf);
+        memcpy(p, der, ti.length);
+        p += ti.length;
+        *p++ = ')';
+        *p = 0; /* extra safeguard null */
+        n++;
+        break;
+      default:
+        break;
     }
+
+    /* advance pointer */
+    der += ti.length;
+    derlen -= ti.length;
+  }
   *r_name = name;
   return 0;
 }
-
 
 /* By iterating IDX up starting with 0, this function returns the all
    General Names stored in NAME. The format of the returned name is
@@ -236,13 +205,9 @@ _ksba_name_new_from_der (ksba_name_t *r_name,
    Resource Identifier which has the S-expression: "(uri <urivalue>)".
 
    The return string has the same lifetime as NAME. */
-const char *
-ksba_name_enum (ksba_name_t name, int idx)
-{
-  if (!name || idx < 0)
-    return NULL;
-  if (idx >= name->n_names)
-    return NULL;  /* end of list */
+const char *ksba_name_enum(ksba_name_t name, int idx) {
+  if (!name || idx < 0) return NULL;
+  if (idx >= name->n_names) return NULL; /* end of list */
 
   return name->names[idx];
 }
@@ -250,26 +215,20 @@ ksba_name_enum (ksba_name_t name, int idx)
 /* Convenience function to return names representing an URI.  Caller
    must free the return value.  Note that this function should not be
    used for enumeration */
-char *
-ksba_name_get_uri (ksba_name_t name, int idx)
-{
-  const char *s = ksba_name_enum (name, idx);
+char *ksba_name_get_uri(ksba_name_t name, int idx) {
+  const char *s = ksba_name_enum(name, idx);
   int n;
   char *buf;
 
-  if (!s || strncmp (s, "(3:uri", 6))
-    return NULL;  /* we do only return URIs */
+  if (!s || strncmp(s, "(3:uri", 6)) return NULL; /* we do only return URIs */
   s += 6;
-  for (n=0; *s && *s != ':' && digitp (s); s++)
-    n = n*10 + atoi_1 (s);
-  if (!n || *s != ':')
-    return NULL; /* oops */
+  for (n = 0; *s && *s != ':' && digitp(s); s++) n = n * 10 + atoi_1(s);
+  if (!n || *s != ':') return NULL; /* oops */
   s++;
-  buf = (char*) xtrymalloc (n+1);
-  if (buf)
-    {
-      memcpy (buf, s, n);
-      buf[n] = 0;
-    }
+  buf = (char *)xtrymalloc(n + 1);
+  if (buf) {
+    memcpy(buf, s, n);
+    buf[n] = 0;
+  }
   return buf;
 }

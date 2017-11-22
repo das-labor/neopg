@@ -41,35 +41,30 @@ enum writer_type {
   WRITER_TYPE_MEM
 };
 
-
 struct ksba_writer_s {
   int error;
   unsigned long nwritten;
   enum writer_type type;
   int ndef_is_open;
 
-  gpg_error_t (*filter)(void*,
-                      const void *,size_t, size_t *,
-                      void *, size_t, size_t *);
+  gpg_error_t (*filter)(void *, const void *, size_t, size_t *, void *, size_t,
+                        size_t *);
   void *filter_arg;
 
   union {
-    int fd;  /* for WRITER_TYPE_FD */
+    int fd;     /* for WRITER_TYPE_FD */
     FILE *file; /* for WRITER_TYPE_FILE */
     struct {
-      int (*fnc)(void*,const void *,size_t);
+      int (*fnc)(void *, const void *, size_t);
       void *value;
-    } cb;   /* for WRITER_TYPE_CB */
+    } cb; /* for WRITER_TYPE_CB */
     struct {
       unsigned char *buffer;
       size_t size;
-    } mem;   /* for WRITER_TYPE_MEM */
+    } mem; /* for WRITER_TYPE_MEM */
   } u;
-  void (*notify_cb)(void*,ksba_writer_t);
+  void (*notify_cb)(void *, ksba_writer_t);
   void *notify_cb_value;
 };
-
-
-
 
 #endif /*WRITER_H*/

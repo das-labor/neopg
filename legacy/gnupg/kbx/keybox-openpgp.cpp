@@ -24,19 +24,19 @@
    parsing.  Note that we don't support old ElGamal v3 keys
    anymore. */
 
-#include <config.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include <assert.h>
+#include <config.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "keybox-defs.h"
 
 #include <gcrypt.h>
 
-#include "../common/openpgpdefs.h"
 #include "../common/host2net.h"
+#include "../common/openpgpdefs.h"
 
 /* Assume a valid OpenPGP packet at the address pointed to by BUFBTR
    which has a maximum length as stored at BUFLEN.  Return the header
@@ -54,73 +54,63 @@
 
    Note that these values are only updated on success.
 */
-static gpg_error_t
-next_packet (unsigned char const **bufptr, size_t *buflen,
-             unsigned char const **r_data, size_t *r_datalen, int *r_pkttype,
-             size_t *r_ntotal)
-{
+static gpg_error_t next_packet(unsigned char const **bufptr, size_t *buflen,
+                               unsigned char const **r_data, size_t *r_datalen,
+                               int *r_pkttype, size_t *r_ntotal) {
   const unsigned char *buf = *bufptr;
   size_t len = *buflen;
   int c, ctb, pkttype;
   unsigned long pktlen;
 
-  if (!len)
-    return GPG_ERR_NO_DATA;
+  if (!len) return GPG_ERR_NO_DATA;
 
-  ctb = *buf++; len--;
-  if ( !(ctb & 0x80) )
-    return GPG_ERR_INV_PACKET; /* Invalid CTB. */
+  ctb = *buf++;
+  len--;
+  if (!(ctb & 0x80)) return GPG_ERR_INV_PACKET; /* Invalid CTB. */
 
-  if ((ctb & 0x40))  /* New style (OpenPGP) CTB.  */
-    {
-      pkttype = (ctb & 0x3f);
-      if (!len)
-        return GPG_ERR_INV_PACKET; /* No 1st length byte. */
-      c = *buf++; len--;
-      if (pkttype == PKT_COMPRESSED)
-        return GPG_ERR_UNEXPECTED; /* ... packet in a keyblock. */
-      if ( c < 192 )
-        pktlen = c;
-      else if ( c < 224 )
-        {
-          pktlen = (c - 192) * 256;
-          if (!len)
-            return GPG_ERR_INV_PACKET; /* No 2nd length byte. */
-          c = *buf++; len--;
-          pktlen += c + 192;
-        }
-      else if (c == 255)
-        {
-          if (len <4 )
-            return GPG_ERR_INV_PACKET; /* No length bytes. */
-          pktlen = buf32_to_ulong (buf);
-          buf += 4;
-          len -= 4;
-      }
-      else /* Partial length encoding is not allowed for key packets. */
-        return GPG_ERR_UNEXPECTED;
+  if ((ctb & 0x40)) /* New style (OpenPGP) CTB.  */
+  {
+    pkttype = (ctb & 0x3f);
+    if (!len) return GPG_ERR_INV_PACKET; /* No 1st length byte. */
+    c = *buf++;
+    len--;
+    if (pkttype == PKT_COMPRESSED)
+      return GPG_ERR_UNEXPECTED; /* ... packet in a keyblock. */
+    if (c < 192)
+      pktlen = c;
+    else if (c < 224) {
+      pktlen = (c - 192) * 256;
+      if (!len) return GPG_ERR_INV_PACKET; /* No 2nd length byte. */
+      c = *buf++;
+      len--;
+      pktlen += c + 192;
+    } else if (c == 255) {
+      if (len < 4) return GPG_ERR_INV_PACKET; /* No length bytes. */
+      pktlen = buf32_to_ulong(buf);
+      buf += 4;
+      len -= 4;
+    } else /* Partial length encoding is not allowed for key packets. */
+      return GPG_ERR_UNEXPECTED;
+  } else /* Old style CTB.  */
+  {
+    int lenbytes;
+
+    pktlen = 0;
+    pkttype = (ctb >> 2) & 0xf;
+    lenbytes = ((ctb & 3) == 3) ? 0 : (1 << (ctb & 3));
+    if (!lenbytes) /* Not allowed in key packets.  */
+      return GPG_ERR_UNEXPECTED;
+    if (len < lenbytes)
+      return GPG_ERR_INV_PACKET; /* Not enough length bytes.  */
+    for (; lenbytes; lenbytes--) {
+      pktlen <<= 8;
+      pktlen |= *buf++;
+      len--;
     }
-  else /* Old style CTB.  */
-    {
-      int lenbytes;
-
-      pktlen = 0;
-      pkttype = (ctb>>2)&0xf;
-      lenbytes = ((ctb&3)==3)? 0 : (1<<(ctb & 3));
-      if (!lenbytes) /* Not allowed in key packets.  */
-        return GPG_ERR_UNEXPECTED;
-      if (len < lenbytes)
-        return GPG_ERR_INV_PACKET; /* Not enough length bytes.  */
-      for (; lenbytes; lenbytes--)
-        {
-          pktlen <<= 8;
-          pktlen |= *buf++; len--;
-	}
-    }
+  }
 
   /* Do some basic sanity check.  */
-  switch (pkttype)
-    {
+  switch (pkttype) {
     case PKT_SIGNATURE:
     case PKT_SECRET_KEY:
     case PKT_PUBLIC_KEY:
@@ -136,7 +126,7 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
       break; /* Okay these are allowed packets. */
     default:
       return GPG_ERR_UNEXPECTED;
-    }
+  }
 
   if (pkttype == 63 && pktlen == 0xFFFFFFFF)
     /* Sometimes the decompressing layer enters an error state in
@@ -158,18 +148,14 @@ next_packet (unsigned char const **bufptr, size_t *buflen,
 
   *bufptr = buf + pktlen;
   *buflen = len - pktlen;
-  if (!*buflen)
-    *bufptr = NULL;
+  if (!*buflen) *bufptr = NULL;
 
   return 0;
 }
 
-
 /* Parse a key packet and store the information in KI. */
-static gpg_error_t
-parse_key (const unsigned char *data, size_t datalen,
-           struct _keybox_openpgp_key_info *ki)
-{
+static gpg_error_t parse_key(const unsigned char *data, size_t datalen,
+                             struct _keybox_openpgp_key_info *ki) {
   gpg_error_t err;
   const unsigned char *data_start = data;
   int i, version, algorithm;
@@ -181,28 +167,27 @@ parse_key (const unsigned char *data, size_t datalen,
   gcry_md_hd_t md;
   int is_ecc = 0;
 
-  if (datalen < 5)
-    return GPG_ERR_INV_PACKET;
-  version = *data++; datalen--;
-  if (version < 2 || version > 4 )
+  if (datalen < 5) return GPG_ERR_INV_PACKET;
+  version = *data++;
+  datalen--;
+  if (version < 2 || version > 4)
     return GPG_ERR_INV_PACKET; /* Invalid version. */
 
   /*timestamp = ((data[0]<<24)|(data[1]<<16)|(data[2]<<8)|(data[3]));*/
-  data +=4; datalen -=4;
+  data += 4;
+  datalen -= 4;
 
-  if (version < 4)
-    {
-      if (datalen < 2)
-        return GPG_ERR_INV_PACKET;
-      data +=2; datalen -= 2;
-    }
+  if (version < 4) {
+    if (datalen < 2) return GPG_ERR_INV_PACKET;
+    data += 2;
+    datalen -= 2;
+  }
 
-  if (!datalen)
-    return GPG_ERR_INV_PACKET;
-  algorithm = *data++; datalen--;
+  if (!datalen) return GPG_ERR_INV_PACKET;
+  algorithm = *data++;
+  datalen--;
 
-  switch (algorithm)
-    {
+  switch (algorithm) {
     case PUBKEY_ALGO_RSA:
     case PUBKEY_ALGO_RSA_E:
     case PUBKEY_ALGO_RSA_S:
@@ -226,111 +211,89 @@ parse_key (const unsigned char *data, size_t datalen,
       break;
     default: /* Unknown algorithm. */
       return GPG_ERR_UNKNOWN_ALGORITHM;
-    }
+  }
 
   ki->algo = algorithm;
 
-  for (i=0; i < npkey; i++ )
-    {
-      unsigned int nbits, nbytes;
+  for (i = 0; i < npkey; i++) {
+    unsigned int nbits, nbytes;
 
-      if (datalen < 2)
-        return GPG_ERR_INV_PACKET;
+    if (datalen < 2) return GPG_ERR_INV_PACKET;
 
-      if (is_ecc && (i == 0 || i == 2))
-        {
-          nbytes = data[0];
-          if (nbytes < 2 || nbytes > 254)
-            return GPG_ERR_INV_PACKET;
-          nbytes++; /* The size byte itself.  */
-          if (datalen < nbytes)
-            return GPG_ERR_INV_PACKET;
-        }
-      else
-        {
-          nbits = ((data[0]<<8)|(data[1]));
-          data += 2;
-          datalen -= 2;
-          nbytes = (nbits+7) / 8;
-          if (datalen < nbytes)
-            return GPG_ERR_INV_PACKET;
-          /* For use by v3 fingerprint calculation we need to know the RSA
-             modulus and exponent. */
-          if (i==0)
-            {
-              mpi_n = data;
-              mpi_n_len = nbytes;
-            }
-          else if (i==1)
-            mpi_e_len = nbytes;
-        }
-
-      data += nbytes; datalen -= nbytes;
+    if (is_ecc && (i == 0 || i == 2)) {
+      nbytes = data[0];
+      if (nbytes < 2 || nbytes > 254) return GPG_ERR_INV_PACKET;
+      nbytes++; /* The size byte itself.  */
+      if (datalen < nbytes) return GPG_ERR_INV_PACKET;
+    } else {
+      nbits = ((data[0] << 8) | (data[1]));
+      data += 2;
+      datalen -= 2;
+      nbytes = (nbits + 7) / 8;
+      if (datalen < nbytes) return GPG_ERR_INV_PACKET;
+      /* For use by v3 fingerprint calculation we need to know the RSA
+         modulus and exponent. */
+      if (i == 0) {
+        mpi_n = data;
+        mpi_n_len = nbytes;
+      } else if (i == 1)
+        mpi_e_len = nbytes;
     }
+
+    data += nbytes;
+    datalen -= nbytes;
+  }
   n = data - data_start;
 
-  if (version < 4)
-    {
-      /* We do not support any other algorithm than RSA in v3
-         packets. */
-      if (algorithm < 1 || algorithm > 3)
-        return GPG_ERR_UNSUPPORTED_ALGORITHM;
+  if (version < 4) {
+    /* We do not support any other algorithm than RSA in v3
+       packets. */
+    if (algorithm < 1 || algorithm > 3) return GPG_ERR_UNSUPPORTED_ALGORITHM;
 
-      err = gcry_md_open (&md, GCRY_MD_MD5, 0);
-      if (err)
-        return err; /* Oops */
-      gcry_md_write (md, mpi_n, mpi_n_len);
-      gcry_md_write (md, mpi_n+mpi_n_len+2, mpi_e_len);
-      memcpy (ki->fpr, gcry_md_read (md, 0), 16);
-      gcry_md_close (md);
-      ki->fprlen = 16;
+    err = gcry_md_open(&md, GCRY_MD_MD5, 0);
+    if (err) return err; /* Oops */
+    gcry_md_write(md, mpi_n, mpi_n_len);
+    gcry_md_write(md, mpi_n + mpi_n_len + 2, mpi_e_len);
+    memcpy(ki->fpr, gcry_md_read(md, 0), 16);
+    gcry_md_close(md);
+    ki->fprlen = 16;
 
-      if (mpi_n_len < 8)
-        {
-          /* Moduli less than 64 bit are out of the specs scope.  Zero
-             them out because this is what gpg does too. */
-          memset (ki->keyid, 0, 8);
-        }
-      else
-        memcpy (ki->keyid, mpi_n + mpi_n_len - 8, 8);
+    if (mpi_n_len < 8) {
+      /* Moduli less than 64 bit are out of the specs scope.  Zero
+         them out because this is what gpg does too. */
+      memset(ki->keyid, 0, 8);
+    } else
+      memcpy(ki->keyid, mpi_n + mpi_n_len - 8, 8);
+  } else {
+    /* Its a pity that we need to prefix the buffer with the tag
+       and a length header: We can't simply pass it to the fast
+       hashing function for that reason.  It might be a good idea to
+       have a scatter-gather enabled hash function. What we do here
+       is to use a static buffer if this one is large enough and
+       only use the regular hash functions if this buffer is not
+       large enough. */
+    if (3 + n < sizeof hashbuffer) {
+      hashbuffer[0] = 0x99;     /* CTB */
+      hashbuffer[1] = (n >> 8); /* 2 byte length header. */
+      hashbuffer[2] = n;
+      memcpy(hashbuffer + 3, data_start, n);
+      gcry_md_hash_buffer(GCRY_MD_SHA1, ki->fpr, hashbuffer, 3 + n);
+    } else {
+      err = gcry_md_open(&md, GCRY_MD_SHA1, 0);
+      if (err) return err;        /* Oops */
+      gcry_md_putc(md, 0x99);     /* CTB */
+      gcry_md_putc(md, (n >> 8)); /* 2 byte length header. */
+      gcry_md_putc(md, n);
+      gcry_md_write(md, data_start, n);
+      memcpy(ki->fpr, gcry_md_read(md, 0), 20);
+      gcry_md_close(md);
     }
-  else
-    {
-      /* Its a pity that we need to prefix the buffer with the tag
-         and a length header: We can't simply pass it to the fast
-         hashing function for that reason.  It might be a good idea to
-         have a scatter-gather enabled hash function. What we do here
-         is to use a static buffer if this one is large enough and
-         only use the regular hash functions if this buffer is not
-         large enough. */
-      if ( 3 + n < sizeof hashbuffer )
-        {
-          hashbuffer[0] = 0x99;     /* CTB */
-          hashbuffer[1] = (n >> 8); /* 2 byte length header. */
-          hashbuffer[2] = n;
-          memcpy (hashbuffer + 3, data_start, n);
-          gcry_md_hash_buffer (GCRY_MD_SHA1, ki->fpr, hashbuffer, 3 + n);
-        }
-      else
-        {
-          err = gcry_md_open (&md, GCRY_MD_SHA1, 0);
-          if (err)
-            return err; /* Oops */
-          gcry_md_putc (md, 0x99 );     /* CTB */
-          gcry_md_putc (md, (n >> 8) ); /* 2 byte length header. */
-          gcry_md_putc (md, n );
-          gcry_md_write (md, data_start, n);
-          memcpy (ki->fpr, gcry_md_read (md, 0), 20);
-          gcry_md_close (md);
-        }
-      ki->fprlen = 20;
-      memcpy (ki->keyid, ki->fpr+12, 8);
-    }
+    ki->fprlen = 20;
+    memcpy(ki->keyid, ki->fpr + 12, 8);
+  }
 
   return 0;
 }
-
-
 
 /* The caller must pass the address of an INFO structure which will
    get filled on success with information pertaining to the OpenPGP
@@ -338,10 +301,8 @@ parse_key (const unsigned char *data, size_t datalen,
    need to release this INFO structure if the function returns
    success.  If NPARSED is not NULL the actual number of bytes parsed
    will be stored at this address.  */
-gpg_error_t
-_keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
-                       size_t *nparsed, keybox_openpgp_info_t info)
-{
+gpg_error_t _keybox_parse_openpgp(const unsigned char *image, size_t imagelen,
+                                  size_t *nparsed, keybox_openpgp_info_t info) {
   gpg_error_t err = 0;
   const unsigned char *image_start, *data;
   size_t n, datalen;
@@ -351,172 +312,129 @@ _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
   struct _keybox_openpgp_key_info *k, **ktail = NULL;
   struct _keybox_openpgp_uid_info *u, **utail = NULL;
 
-  memset (info, 0, sizeof *info);
-  if (nparsed)
-    *nparsed = 0;
+  memset(info, 0, sizeof *info);
+  if (nparsed) *nparsed = 0;
 
   image_start = image;
-  while (image)
-    {
-      err = next_packet (&image, &imagelen, &data, &datalen, &pkttype, &n);
-      if (err)
-        {
-          read_error = 1;
+  while (image) {
+    err = next_packet(&image, &imagelen, &data, &datalen, &pkttype, &n);
+    if (err) {
+      read_error = 1;
+      break;
+    }
+
+    if (first) {
+      if (pkttype == PKT_PUBLIC_KEY)
+        ;
+      else if (pkttype == PKT_SECRET_KEY)
+        info->is_secret = 1;
+      else {
+        err = GPG_ERR_UNEXPECTED;
+        if (nparsed) *nparsed += n;
+        break;
+      }
+      first = 0;
+    } else if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY)
+      break; /* Next keyblock encountered - ready. */
+
+    if (nparsed) *nparsed += n;
+
+    if (pkttype == PKT_SIGNATURE) {
+      /* For now we only count the total number of signatures. */
+      info->nsigs++;
+    } else if (pkttype == PKT_USER_ID) {
+      info->nuids++;
+      if (info->nuids == 1) {
+        info->uids.off = data - image_start;
+        info->uids.len = datalen;
+        utail = &info->uids.next;
+      } else {
+        u = (_keybox_openpgp_uid_info *)xtrycalloc(1, sizeof *u);
+        if (!u) {
+          err = gpg_error_from_syserror();
           break;
         }
-
-      if (first)
-        {
-          if (pkttype == PKT_PUBLIC_KEY)
-            ;
-          else if (pkttype == PKT_SECRET_KEY)
-            info->is_secret = 1;
-          else
-            {
-              err = GPG_ERR_UNEXPECTED;
-              if (nparsed)
-                *nparsed += n;
-              break;
-            }
-          first = 0;
+        u->off = data - image_start;
+        u->len = datalen;
+        *utail = u;
+        utail = &u->next;
+      }
+    } else if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY) {
+      err = parse_key(data, datalen, &info->primary);
+      if (err) break;
+    } else if (pkttype == PKT_PUBLIC_SUBKEY && datalen && *data == '#') {
+      /* Early versions of GnuPG used old PGP comment packets;
+       * luckily all those comments are prefixed by a hash
+       * sign - ignore these packets. */
+    } else if (pkttype == PKT_PUBLIC_SUBKEY || pkttype == PKT_SECRET_SUBKEY) {
+      info->nsubkeys++;
+      if (info->nsubkeys == 1) {
+        err = parse_key(data, datalen, &info->subkeys);
+        if (err) {
+          info->nsubkeys--;
+          /* We ignore subkeys with unknown algorithms. */
+          if (err == GPG_ERR_UNKNOWN_ALGORITHM ||
+              err == GPG_ERR_UNSUPPORTED_ALGORITHM)
+            err = 0;
+          if (err) break;
+        } else
+          ktail = &info->subkeys.next;
+      } else {
+        k = (_keybox_openpgp_key_info *)xtrycalloc(1, sizeof *k);
+        if (!k) {
+          err = gpg_error_from_syserror();
+          break;
         }
-      else if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY)
-        break; /* Next keyblock encountered - ready. */
-
-      if (nparsed)
-        *nparsed += n;
-
-      if (pkttype == PKT_SIGNATURE)
-        {
-          /* For now we only count the total number of signatures. */
-          info->nsigs++;
+        err = parse_key(data, datalen, k);
+        if (err) {
+          xfree(k);
+          info->nsubkeys--;
+          /* We ignore subkeys with unknown algorithms. */
+          if (err == GPG_ERR_UNKNOWN_ALGORITHM ||
+              err == GPG_ERR_UNSUPPORTED_ALGORITHM)
+            err = 0;
+          if (err) break;
+        } else {
+          *ktail = k;
+          ktail = &k->next;
         }
-      else if (pkttype == PKT_USER_ID)
-        {
-          info->nuids++;
-          if (info->nuids == 1)
-            {
-              info->uids.off = data - image_start;
-              info->uids.len = datalen;
-              utail = &info->uids.next;
-            }
-          else
-            {
-              u = (_keybox_openpgp_uid_info*) xtrycalloc (1, sizeof *u);
-              if (!u)
-                {
-                  err = gpg_error_from_syserror ();
-                  break;
-                }
-              u->off = data - image_start;
-              u->len = datalen;
-              *utail = u;
-              utail = &u->next;
-            }
-        }
-      else if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY)
-        {
-          err = parse_key (data, datalen, &info->primary);
-          if (err)
-            break;
-        }
-      else if( pkttype == PKT_PUBLIC_SUBKEY && datalen && *data == '#' )
-        {
-          /* Early versions of GnuPG used old PGP comment packets;
-           * luckily all those comments are prefixed by a hash
-           * sign - ignore these packets. */
-        }
-      else if (pkttype == PKT_PUBLIC_SUBKEY || pkttype == PKT_SECRET_SUBKEY)
-        {
-          info->nsubkeys++;
-          if (info->nsubkeys == 1)
-            {
-              err = parse_key (data, datalen, &info->subkeys);
-              if (err)
-                {
-                  info->nsubkeys--;
-                  /* We ignore subkeys with unknown algorithms. */
-                  if (err == GPG_ERR_UNKNOWN_ALGORITHM
-                      || err == GPG_ERR_UNSUPPORTED_ALGORITHM)
-                    err = 0;
-                  if (err)
-                    break;
-                }
-              else
-                ktail = &info->subkeys.next;
-            }
-          else
-            {
-              k = (_keybox_openpgp_key_info*) xtrycalloc (1, sizeof *k);
-              if (!k)
-                {
-                  err = gpg_error_from_syserror ();
-                  break;
-                }
-              err = parse_key (data, datalen, k);
-              if (err)
-                {
-                  xfree (k);
-                  info->nsubkeys--;
-                  /* We ignore subkeys with unknown algorithms. */
-                  if (err == GPG_ERR_UNKNOWN_ALGORITHM
-                      || err == GPG_ERR_UNSUPPORTED_ALGORITHM)
-                    err = 0;
-                  if (err)
-                    break;
-                }
-              else
-                {
-                  *ktail = k;
-                  ktail = &k->next;
-                }
-            }
-        }
+      }
     }
+  }
 
-  if (err)
-    {
-      _keybox_destroy_openpgp_info (info);
-      if (!read_error)
-        {
-          /* Packet parsing worked, thus we should be able to skip the
-             rest of the keyblock.  */
-          while (image)
-            {
-              if (next_packet (&image, &imagelen,
-                               &data, &datalen, &pkttype, &n) )
-                break; /* Another error - stop here. */
+  if (err) {
+    _keybox_destroy_openpgp_info(info);
+    if (!read_error) {
+      /* Packet parsing worked, thus we should be able to skip the
+         rest of the keyblock.  */
+      while (image) {
+        if (next_packet(&image, &imagelen, &data, &datalen, &pkttype, &n))
+          break; /* Another error - stop here. */
 
-              if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY)
-                break; /* Next keyblock encountered - ready. */
+        if (pkttype == PKT_PUBLIC_KEY || pkttype == PKT_SECRET_KEY)
+          break; /* Next keyblock encountered - ready. */
 
-              if (nparsed)
-                *nparsed += n;
-            }
-        }
+        if (nparsed) *nparsed += n;
+      }
     }
+  }
 
   return err;
 }
 
-
 /* Release any malloced data in INFO but not INFO itself! */
-void
-_keybox_destroy_openpgp_info (keybox_openpgp_info_t info)
-{
+void _keybox_destroy_openpgp_info(keybox_openpgp_info_t info) {
   struct _keybox_openpgp_key_info *k, *k2;
   struct _keybox_openpgp_uid_info *u, *u2;
 
-  assert (!info->primary.next);
-  for (k=info->subkeys.next; k; k = k2)
-    {
-      k2 = k->next;
-      xfree (k);
-    }
+  assert(!info->primary.next);
+  for (k = info->subkeys.next; k; k = k2) {
+    k2 = k->next;
+    xfree(k);
+  }
 
-  for (u=info->uids.next; u; u = u2)
-    {
-      u2 = u->next;
-      xfree (u);
-    }
+  for (u = info->uids.next; u; u = u2) {
+    u2 = u->next;
+    xfree(u);
+  }
 }

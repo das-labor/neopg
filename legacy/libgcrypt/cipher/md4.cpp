@@ -52,26 +52,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "g10lib.h"
 #include "cipher.h"
+#include "g10lib.h"
 
 #include "bithelp.h"
 #include "bufhelp.h"
 #include "hash-common.h"
 
-
 typedef struct {
-    gcry_md_block_ctx_t bctx;
-    u32 A,B,C,D;	  /* chaining variables */
+  gcry_md_block_ctx_t bctx;
+  u32 A, B, C, D; /* chaining variables */
 } MD4_CONTEXT;
 
-static unsigned int
-transform ( void *c, const unsigned char *data, size_t nblks );
+static unsigned int transform(void *c, const unsigned char *data, size_t nblks);
 
-static void
-md4_init (void *context, unsigned int flags)
-{
-  MD4_CONTEXT *ctx = (MD4_CONTEXT*) context;
+static void md4_init(void *context, unsigned int flags) {
+  MD4_CONTEXT *ctx = (MD4_CONTEXT *)context;
 
   (void)flags;
 
@@ -91,14 +87,11 @@ md4_init (void *context, unsigned int flags)
 #define G(x, y, z) (((x) & (y)) | ((x) & (z)) | ((y) & (z)))
 #define H(x, y, z) ((x) ^ (y) ^ (z))
 
-
 /****************
  * transform 64 bytes
  */
-static unsigned int
-transform_blk ( void *c, const unsigned char *data )
-{
-  MD4_CONTEXT *ctx = (MD4_CONTEXT*) c;
+static unsigned int transform_blk(void *c, const unsigned char *data) {
+  MD4_CONTEXT *ctx = (MD4_CONTEXT *)c;
   u32 in[16];
   register u32 A = ctx->A;
   register u32 B = ctx->B;
@@ -106,72 +99,72 @@ transform_blk ( void *c, const unsigned char *data )
   register u32 D = ctx->D;
   int i;
 
-  for ( i = 0; i < 16; i++ )
-    in[i] = buf_get_le32(data + i * 4);
+  for (i = 0; i < 16; i++) in[i] = buf_get_le32(data + i * 4);
 
-  /* Round 1.  */
-#define function(a,b,c,d,k,s) a=rol(a+F(b,c,d)+in[k],s);
-  function(A,B,C,D, 0, 3);
-  function(D,A,B,C, 1, 7);
-  function(C,D,A,B, 2,11);
-  function(B,C,D,A, 3,19);
-  function(A,B,C,D, 4, 3);
-  function(D,A,B,C, 5, 7);
-  function(C,D,A,B, 6,11);
-  function(B,C,D,A, 7,19);
-  function(A,B,C,D, 8, 3);
-  function(D,A,B,C, 9, 7);
-  function(C,D,A,B,10,11);
-  function(B,C,D,A,11,19);
-  function(A,B,C,D,12, 3);
-  function(D,A,B,C,13, 7);
-  function(C,D,A,B,14,11);
-  function(B,C,D,A,15,19);
-
-#undef function
-
-  /* Round 2.  */
-#define function(a,b,c,d,k,s) a=rol(a+G(b,c,d)+in[k]+0x5a827999,s);
-
-  function(A,B,C,D, 0, 3);
-  function(D,A,B,C, 4, 5);
-  function(C,D,A,B, 8, 9);
-  function(B,C,D,A,12,13);
-  function(A,B,C,D, 1, 3);
-  function(D,A,B,C, 5, 5);
-  function(C,D,A,B, 9, 9);
-  function(B,C,D,A,13,13);
-  function(A,B,C,D, 2, 3);
-  function(D,A,B,C, 6, 5);
-  function(C,D,A,B,10, 9);
-  function(B,C,D,A,14,13);
-  function(A,B,C,D, 3, 3);
-  function(D,A,B,C, 7, 5);
-  function(C,D,A,B,11, 9);
-  function(B,C,D,A,15,13);
+/* Round 1.  */
+#define function(a, b, c, d, k, s) a = rol(a + F(b, c, d) + in[k], s);
+  function(A, B, C, D, 0, 3);
+  function(D, A, B, C, 1, 7);
+  function(C, D, A, B, 2, 11);
+  function(B, C, D, A, 3, 19);
+  function(A, B, C, D, 4, 3);
+  function(D, A, B, C, 5, 7);
+  function(C, D, A, B, 6, 11);
+  function(B, C, D, A, 7, 19);
+  function(A, B, C, D, 8, 3);
+  function(D, A, B, C, 9, 7);
+  function(C, D, A, B, 10, 11);
+  function(B, C, D, A, 11, 19);
+  function(A, B, C, D, 12, 3);
+  function(D, A, B, C, 13, 7);
+  function(C, D, A, B, 14, 11);
+  function(B, C, D, A, 15, 19);
 
 #undef function
 
-  /* Round 3.  */
-#define function(a,b,c,d,k,s) a=rol(a+H(b,c,d)+in[k]+0x6ed9eba1,s);
+/* Round 2.  */
+#define function(a, b, c, d, k, s) \
+  a = rol(a + G(b, c, d) + in[k] + 0x5a827999, s);
 
-  function(A,B,C,D, 0, 3);
-  function(D,A,B,C, 8, 9);
-  function(C,D,A,B, 4,11);
-  function(B,C,D,A,12,15);
-  function(A,B,C,D, 2, 3);
-  function(D,A,B,C,10, 9);
-  function(C,D,A,B, 6,11);
-  function(B,C,D,A,14,15);
-  function(A,B,C,D, 1, 3);
-  function(D,A,B,C, 9, 9);
-  function(C,D,A,B, 5,11);
-  function(B,C,D,A,13,15);
-  function(A,B,C,D, 3, 3);
-  function(D,A,B,C,11, 9);
-  function(C,D,A,B, 7,11);
-  function(B,C,D,A,15,15);
+  function(A, B, C, D, 0, 3);
+  function(D, A, B, C, 4, 5);
+  function(C, D, A, B, 8, 9);
+  function(B, C, D, A, 12, 13);
+  function(A, B, C, D, 1, 3);
+  function(D, A, B, C, 5, 5);
+  function(C, D, A, B, 9, 9);
+  function(B, C, D, A, 13, 13);
+  function(A, B, C, D, 2, 3);
+  function(D, A, B, C, 6, 5);
+  function(C, D, A, B, 10, 9);
+  function(B, C, D, A, 14, 13);
+  function(A, B, C, D, 3, 3);
+  function(D, A, B, C, 7, 5);
+  function(C, D, A, B, 11, 9);
+  function(B, C, D, A, 15, 13);
 
+#undef function
+
+/* Round 3.  */
+#define function(a, b, c, d, k, s) \
+  a = rol(a + H(b, c, d) + in[k] + 0x6ed9eba1, s);
+
+  function(A, B, C, D, 0, 3);
+  function(D, A, B, C, 8, 9);
+  function(C, D, A, B, 4, 11);
+  function(B, C, D, A, 12, 15);
+  function(A, B, C, D, 2, 3);
+  function(D, A, B, C, 10, 9);
+  function(C, D, A, B, 6, 11);
+  function(B, C, D, A, 14, 15);
+  function(A, B, C, D, 1, 3);
+  function(D, A, B, C, 9, 9);
+  function(C, D, A, B, 5, 11);
+  function(B, C, D, A, 13, 15);
+  function(A, B, C, D, 3, 3);
+  function(D, A, B, C, 11, 9);
+  function(C, D, A, B, 7, 11);
+  function(B, C, D, A, 15, 15);
 
   /* Put checksum in context given as argument.  */
   ctx->A += A;
@@ -179,25 +172,20 @@ transform_blk ( void *c, const unsigned char *data )
   ctx->C += C;
   ctx->D += D;
 
-  return /*burn_stack*/ 80+6*sizeof(void*);
+  return /*burn_stack*/ 80 + 6 * sizeof(void *);
 }
 
-
-static unsigned int
-transform ( void *c, const unsigned char *data, size_t nblks )
-{
+static unsigned int transform(void *c, const unsigned char *data,
+                              size_t nblks) {
   unsigned int burn;
 
-  do
-    {
-      burn = transform_blk (c, data);
-      data += 64;
-    }
-  while (--nblks);
+  do {
+    burn = transform_blk(c, data);
+    data += 64;
+  } while (--nblks);
 
   return burn;
 }
-
 
 /* The routine final terminates the message-digest computation and
  * ends with the desired message digest in mdContext->digest[0...15].
@@ -205,15 +193,14 @@ transform ( void *c, const unsigned char *data, size_t nblks )
  * Returns 16 bytes representing the digest.
  */
 
-static void
-md4_final( void *context )
-{
-  MD4_CONTEXT *hd = (MD4_CONTEXT*) context;
+static void md4_final(void *context) {
+  MD4_CONTEXT *hd = (MD4_CONTEXT *)context;
   u32 t, th, msb, lsb;
   byte *p;
   unsigned int burn;
 
-  _gcry_md_block_write(hd, NULL, 0); /* flush */;
+  _gcry_md_block_write(hd, NULL, 0); /* flush */
+  ;
 
   t = hd->bctx.nblocks;
   if (sizeof t == sizeof hd->bctx.nblocks)
@@ -226,66 +213,69 @@ md4_final( void *context )
   msb = (th << 6) | (t >> 26);
   /* add the count */
   t = lsb;
-  if( (lsb += hd->bctx.count) < t )
-    msb++;
+  if ((lsb += hd->bctx.count) < t) msb++;
   /* multiply by 8 to make a bit count */
   t = lsb;
   lsb <<= 3;
   msb <<= 3;
   msb |= t >> 29;
 
-  if( hd->bctx.count < 56 )  /* enough room */
-    {
-      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad */
-      while( hd->bctx.count < 56 )
-        hd->bctx.buf[hd->bctx.count++] = 0;  /* pad */
-    }
-  else /* need one extra block */
-    {
-      hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
-      while( hd->bctx.count < 64 )
-        hd->bctx.buf[hd->bctx.count++] = 0;
-      _gcry_md_block_write(hd, NULL, 0);  /* flush */;
-      memset(hd->bctx.buf, 0, 56 ); /* fill next block with zeroes */
-    }
+  if (hd->bctx.count < 56) /* enough room */
+  {
+    hd->bctx.buf[hd->bctx.count++] = 0x80;                          /* pad */
+    while (hd->bctx.count < 56) hd->bctx.buf[hd->bctx.count++] = 0; /* pad */
+  } else /* need one extra block */
+  {
+    hd->bctx.buf[hd->bctx.count++] = 0x80; /* pad character */
+    while (hd->bctx.count < 64) hd->bctx.buf[hd->bctx.count++] = 0;
+    _gcry_md_block_write(hd, NULL, 0); /* flush */
+    ;
+    memset(hd->bctx.buf, 0, 56); /* fill next block with zeroes */
+  }
   /* append the 64 bit count */
   buf_put_le32(hd->bctx.buf + 56, lsb);
   buf_put_le32(hd->bctx.buf + 60, msb);
-  burn = transform ( hd, hd->bctx.buf, 1 );
-  _gcry_burn_stack (burn);
+  burn = transform(hd, hd->bctx.buf, 1);
+  _gcry_burn_stack(burn);
 
   p = hd->bctx.buf;
-#define X(a) do { buf_put_le32(p, hd->a); p += 4; } while(0)
+#define X(a)                \
+  do {                      \
+    buf_put_le32(p, hd->a); \
+    p += 4;                 \
+  } while (0)
   X(A);
   X(B);
   X(C);
   X(D);
 #undef X
-
 }
 
-static byte *
-md4_read (void *context)
-{
-  MD4_CONTEXT *hd = (MD4_CONTEXT*) context;
+static byte *md4_read(void *context) {
+  MD4_CONTEXT *hd = (MD4_CONTEXT *)context;
   return hd->bctx.buf;
 }
 
 static byte asn[18] = /* Object ID is 1.2.840.113549.2.4 */
-  { 0x30, 0x20, 0x30, 0x0c, 0x06, 0x08, 0x2a, 0x86,0x48,
-    0x86, 0xf7, 0x0d, 0x02, 0x04, 0x05, 0x00, 0x04, 0x10 };
+    {0x30, 0x20, 0x30, 0x0c, 0x06, 0x08, 0x2a, 0x86, 0x48,
+     0x86, 0xf7, 0x0d, 0x02, 0x04, 0x05, 0x00, 0x04, 0x10};
 
-static gcry_md_oid_spec_t oid_spec_md4[] =
-  {
+static gcry_md_oid_spec_t oid_spec_md4[] = {
     /* iso.member-body.us.rsadsi.digestAlgorithm.md4 */
-    { "1.2.840.113549.2.4" },
-    { NULL },
-  };
+    {"1.2.840.113549.2.4"},
+    {NULL},
+};
 
-gcry_md_spec_t _gcry_digest_spec_md4 =
-  {
-    GCRY_MD_MD4, {0, 0},
-    "MD4", asn, DIM (asn), oid_spec_md4,16,
-    md4_init, _gcry_md_block_write, md4_final, md4_read, NULL,
-    sizeof (MD4_CONTEXT)
-  };
+gcry_md_spec_t _gcry_digest_spec_md4 = {GCRY_MD_MD4,
+                                        {0, 0},
+                                        "MD4",
+                                        asn,
+                                        DIM(asn),
+                                        oid_spec_md4,
+                                        16,
+                                        md4_init,
+                                        _gcry_md_block_write,
+                                        md4_final,
+                                        md4_read,
+                                        NULL,
+                                        sizeof(MD4_CONTEXT)};

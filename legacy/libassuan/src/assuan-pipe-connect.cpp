@@ -20,25 +20,25 @@
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <signal.h>
-#include <unistd.h>
 #include <errno.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 #ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
+#include <sys/types.h>
 #endif
 #ifndef _WIN32
-# include <sys/wait.h>
+#include <sys/wait.h>
 #else
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif
-# include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#include <windows.h>
 #endif
 
 #include "assuan-defs.h"
@@ -46,81 +46,66 @@
 
 /* Hacks for Slowaris.  */
 #ifndef PF_LOCAL
-# ifdef PF_UNIX
-#  define PF_LOCAL PF_UNIX
-# else
-#  define PF_LOCAL AF_UNIX
-# endif
+#ifdef PF_UNIX
+#define PF_LOCAL PF_UNIX
+#else
+#define PF_LOCAL AF_UNIX
+#endif
 #endif
 #ifndef AF_LOCAL
-# define AF_LOCAL AF_UNIX
+#define AF_LOCAL AF_UNIX
 #endif
 
-
 /* This should be called to make sure that SIGPIPE gets ignored.  */
-static void
-fix_signals (void)
-{
-#ifndef HAVE_DOSISH_SYSTEM  /* No SIGPIPE for these systems.  */
+static void fix_signals(void) {
+#ifndef HAVE_DOSISH_SYSTEM /* No SIGPIPE for these systems.  */
   static int fixed_signals;
 
-  if (!fixed_signals)
-    {
-      struct sigaction act;
+  if (!fixed_signals) {
+    struct sigaction act;
 
-      sigaction (SIGPIPE, NULL, &act);
-      if (act.sa_handler == SIG_DFL)
-	{
-	  act.sa_handler = SIG_IGN;
-	  sigemptyset (&act.sa_mask);
-	  act.sa_flags = 0;
-	  sigaction (SIGPIPE, &act, NULL);
-        }
-      fixed_signals = 1;
-      /* FIXME: This is not MT safe */
+    sigaction(SIGPIPE, NULL, &act);
+    if (act.sa_handler == SIG_DFL) {
+      act.sa_handler = SIG_IGN;
+      sigemptyset(&act.sa_mask);
+      act.sa_flags = 0;
+      sigaction(SIGPIPE, &act, NULL);
     }
+    fixed_signals = 1;
+    /* FIXME: This is not MT safe */
+  }
 #endif /*HAVE_DOSISH_SYSTEM*/
 }
 
-
 /* Helper for pipe_connect. */
-static gpg_error_t
-initial_handshake (assuan_context_t ctx)
-{
+static gpg_error_t initial_handshake(assuan_context_t ctx) {
   assuan_response_t response;
   int off;
   gpg_error_t err;
 
-  err = _assuan_read_from_server (ctx, &response, &off, 0);
+  err = _assuan_read_from_server(ctx, &response, &off, 0);
   if (err)
-    TRACE1 (ctx, ASSUAN_LOG_SYSIO, "initial_handshake", ctx,
-	    "can't connect server: %s", gpg_strerror (err));
-  else if (response != ASSUAN_RESPONSE_OK)
-    {
-      TRACE1 (ctx, ASSUAN_LOG_SYSIO, "initial_handshake", ctx,
-	      "can't connect server: `%s'", ctx->inbound.line);
-      err = GPG_ERR_ASS_CONNECT_FAILED;
-    }
+    TRACE1(ctx, ASSUAN_LOG_SYSIO, "initial_handshake", ctx,
+           "can't connect server: %s", gpg_strerror(err));
+  else if (response != ASSUAN_RESPONSE_OK) {
+    TRACE1(ctx, ASSUAN_LOG_SYSIO, "initial_handshake", ctx,
+           "can't connect server: `%s'", ctx->inbound.line);
+    err = GPG_ERR_ASS_CONNECT_FAILED;
+  }
 
   return err;
 }
 
-
-struct at_pipe_fork
-{
-  void (*user_atfork) (void *opaque, int reserved);
+struct at_pipe_fork {
+  void (*user_atfork)(void *opaque, int reserved);
   void *user_atforkvalue;
   pid_t parent_pid;
 };
 
+static void at_pipe_fork_cb(void *opaque, int reserved) {
+  struct at_pipe_fork *atp = (at_pipe_fork *)opaque;
 
-static void
-at_pipe_fork_cb (void *opaque, int reserved)
-{
-  struct at_pipe_fork *atp = (at_pipe_fork*) opaque;
-
-  if (atp->user_atfork)
-    atp->user_atfork (atp->user_atforkvalue, reserved);
+  if (atp->user_atfork) atp->user_atfork(atp->user_atforkvalue, reserved);
 
 #ifndef _WIN32
   {
@@ -130,24 +115,20 @@ at_pipe_fork_cb (void *opaque, int reserved)
        assuan server is able to read the actual pid of the client.
        The server can't use getppid because it might have been double
        forked before the assuan server has been initialized. */
-    sprintf (mypidstr, "%lu", (unsigned long) atp->parent_pid);
-    setenv ("_assuan_pipe_connect_pid", mypidstr, 1);
+    sprintf(mypidstr, "%lu", (unsigned long)atp->parent_pid);
+    setenv("_assuan_pipe_connect_pid", mypidstr, 1);
 
     /* Make sure that we never pass a connection fd variable when
        using a simple pipe.  */
-    unsetenv ("_assuan_connection_fd");
+    unsetenv("_assuan_connection_fd");
   }
 #endif
 }
 
-
-static gpg_error_t
-pipe_connect (assuan_context_t ctx,
-	      const char *name, const char **argv,
-	      assuan_fd_t *fd_child_list,
-	      void (*atfork) (void *opaque, int reserved),
-	      void *atforkvalue, unsigned int flags)
-{
+static gpg_error_t pipe_connect(assuan_context_t ctx, const char *name,
+                                const char **argv, assuan_fd_t *fd_child_list,
+                                void (*atfork)(void *opaque, int reserved),
+                                void *atforkvalue, unsigned int flags) {
   gpg_error_t rc;
   assuan_fd_t rp[2];
   assuan_fd_t wp[2];
@@ -158,43 +139,39 @@ pipe_connect (assuan_context_t ctx,
 
   atp.user_atfork = atfork;
   atp.user_atforkvalue = atforkvalue;
-  atp.parent_pid = getpid ();
+  atp.parent_pid = getpid();
 
-  if (!ctx || !name || !argv || !argv[0])
-    return GPG_ERR_ASS_INV_VALUE;
+  if (!ctx || !name || !argv || !argv[0]) return GPG_ERR_ASS_INV_VALUE;
 
-  fix_signals ();
+  fix_signals();
 
-  if (_assuan_pipe (ctx, rp, 1) < 0)
-    return gpg_error_from_syserror ();
+  if (_assuan_pipe(ctx, rp, 1) < 0) return gpg_error_from_syserror();
 
-  if (_assuan_pipe (ctx, wp, 0) < 0)
-    {
-      _assuan_close (ctx, rp[0]);
-      _assuan_close_inheritable (ctx, rp[1]);
-      return gpg_error_from_syserror ();
-    }
+  if (_assuan_pipe(ctx, wp, 0) < 0) {
+    _assuan_close(ctx, rp[0]);
+    _assuan_close_inheritable(ctx, rp[1]);
+    return gpg_error_from_syserror();
+  }
 
   spawn_flags = 0;
   if (flags & ASSUAN_PIPE_CONNECT_DETACHED)
     spawn_flags |= ASSUAN_SPAWN_DETACHED;
 
   /* FIXME: Use atfork handler that closes child fds on Unix.  */
-  res = _assuan_spawn (ctx, &pid, name, argv, wp[0], rp[1],
-		       fd_child_list, at_pipe_fork_cb, &atp, spawn_flags);
-  if (res < 0)
-    {
-      rc = gpg_error_from_syserror ();
-      _assuan_close (ctx, rp[0]);
-      _assuan_close_inheritable (ctx, rp[1]);
-      _assuan_close_inheritable (ctx, wp[0]);
-      _assuan_close (ctx, wp[1]);
-      return rc;
-    }
+  res = _assuan_spawn(ctx, &pid, name, argv, wp[0], rp[1], fd_child_list,
+                      at_pipe_fork_cb, &atp, spawn_flags);
+  if (res < 0) {
+    rc = gpg_error_from_syserror();
+    _assuan_close(ctx, rp[0]);
+    _assuan_close_inheritable(ctx, rp[1]);
+    _assuan_close_inheritable(ctx, wp[0]);
+    _assuan_close(ctx, wp[1]);
+    return rc;
+  }
 
   /* Close the stdin/stdout child fds in the parent.  */
-  _assuan_close_inheritable (ctx, rp[1]);
-  _assuan_close_inheritable (ctx, wp[0]);
+  _assuan_close_inheritable(ctx, rp[1]);
+  _assuan_close_inheritable(ctx, wp[0]);
 
   ctx->engine.release = _assuan_client_release;
   ctx->engine.readfnc = _assuan_simple_read;
@@ -204,38 +181,31 @@ pipe_connect (assuan_context_t ctx,
   ctx->finish_handler = _assuan_client_finish;
   ctx->max_accepts = 1;
   ctx->accept_handler = NULL;
-  ctx->inbound.fd  = rp[0];  /* Our inbound is read end of read pipe. */
-  ctx->outbound.fd = wp[1];  /* Our outbound is write end of write pipe. */
+  ctx->inbound.fd = rp[0];  /* Our inbound is read end of read pipe. */
+  ctx->outbound.fd = wp[1]; /* Our outbound is write end of write pipe. */
   ctx->pid = pid;
 
-  rc = initial_handshake (ctx);
-  if (rc)
-    _assuan_reset (ctx);
+  rc = initial_handshake(ctx);
+  if (rc) _assuan_reset(ctx);
   return rc;
 }
-
 
 /* FIXME: For socketpair_connect, use spawn function and add atfork
    handler to do the right thing.  Instead of stdin and stdout, we
    extend the fd_child_list by fds[1].  */
 
 #ifndef _WIN32
-struct at_socketpair_fork
-{
+struct at_socketpair_fork {
   assuan_fd_t peer_fd;
-  void (*user_atfork) (void *opaque, int reserved);
+  void (*user_atfork)(void *opaque, int reserved);
   void *user_atforkvalue;
   pid_t parent_pid;
 };
 
+static void at_socketpair_fork_cb(void *opaque, int reserved) {
+  struct at_socketpair_fork *atp = (at_socketpair_fork *)opaque;
 
-static void
-at_socketpair_fork_cb (void *opaque, int reserved)
-{
-  struct at_socketpair_fork *atp = (at_socketpair_fork*) opaque;
-
-  if (atp->user_atfork)
-    atp->user_atfork (atp->user_atforkvalue, reserved);
+  if (atp->user_atfork) atp->user_atfork(atp->user_atforkvalue, reserved);
 
 #ifndef _WIN32
   {
@@ -245,28 +215,23 @@ at_socketpair_fork_cb (void *opaque, int reserved)
        assuan server is able to read the actual pid of the client.
        The server can't use getppid because it might have been double
        forked before the assuan server has been initialized. */
-    sprintf (mypidstr, "%lu", (unsigned long) atp->parent_pid);
-    setenv ("_assuan_pipe_connect_pid", mypidstr, 1);
+    sprintf(mypidstr, "%lu", (unsigned long)atp->parent_pid);
+    setenv("_assuan_pipe_connect_pid", mypidstr, 1);
 
     /* Now set the environment variable used to convey the
        connection's file descriptor.  */
-    sprintf (mypidstr, "%d", atp->peer_fd);
-    if (setenv ("_assuan_connection_fd", mypidstr, 1))
-      _exit (4);
+    sprintf(mypidstr, "%d", atp->peer_fd);
+    if (setenv("_assuan_connection_fd", mypidstr, 1)) _exit(4);
   }
 #endif
 }
 
-
 /* This function is similar to pipe_connect but uses a socketpair and
    sets the I/O up to use sendmsg/recvmsg. */
-static gpg_error_t
-socketpair_connect (assuan_context_t ctx,
-                    const char *name, const char **argv,
-                    assuan_fd_t *fd_child_list,
-                    void (*atfork) (void *opaque, int reserved),
-                    void *atforkvalue)
-{
+static gpg_error_t socketpair_connect(
+    assuan_context_t ctx, const char *name, const char **argv,
+    assuan_fd_t *fd_child_list, void (*atfork)(void *opaque, int reserved),
+    void *atforkvalue) {
   gpg_error_t err;
   int idx;
   int fds[2];
@@ -277,92 +242,82 @@ socketpair_connect (assuan_context_t ctx,
   struct at_socketpair_fork atp;
   int rc;
 
-  TRACE_BEG3 (ctx, ASSUAN_LOG_CTX, "socketpair_connect", ctx,
-	      "name=%s,atfork=%p,atforkvalue=%p", name ? name : "(null)",
-	      atfork, atforkvalue);
+  TRACE_BEG3(ctx, ASSUAN_LOG_CTX, "socketpair_connect", ctx,
+             "name=%s,atfork=%p,atforkvalue=%p", name ? name : "(null)", atfork,
+             atforkvalue);
 
   atp.user_atfork = atfork;
   atp.user_atforkvalue = atforkvalue;
-  atp.parent_pid = getpid ();
+  atp.parent_pid = getpid();
 
-  if (!ctx
-      || (name && (!argv || !argv[0]))
-      || (!name && !argv))
+  if (!ctx || (name && (!argv || !argv[0])) || (!name && !argv))
     return GPG_ERR_ASS_INV_VALUE;
 
-  fix_signals ();
+  fix_signals();
 
-  sprintf (mypidstr, "%lu", (unsigned long)getpid ());
+  sprintf(mypidstr, "%lu", (unsigned long)getpid());
 
   if (fd_child_list)
-    while (fd_child_list[child_fds_cnt] != ASSUAN_INVALID_FD)
-      child_fds_cnt++;
-  child_fds = (int*) _assuan_malloc (ctx, (child_fds_cnt + 2) * sizeof (int));
-  if (! child_fds)
-    return TRACE_ERR (gpg_error_from_syserror ());
+    while (fd_child_list[child_fds_cnt] != ASSUAN_INVALID_FD) child_fds_cnt++;
+  child_fds = (int *)_assuan_malloc(ctx, (child_fds_cnt + 2) * sizeof(int));
+  if (!child_fds) return TRACE_ERR(gpg_error_from_syserror());
   child_fds[1] = ASSUAN_INVALID_FD;
   if (fd_child_list)
-    memcpy (&child_fds[1], fd_child_list, (child_fds_cnt + 1) * sizeof (int));
+    memcpy(&child_fds[1], fd_child_list, (child_fds_cnt + 1) * sizeof(int));
 
-  if (_assuan_socketpair (ctx, AF_LOCAL, SOCK_STREAM, 0, fds))
-    {
-      TRACE_LOG1 ("socketpair failed: %s", strerror (errno));
-      _assuan_free (ctx, child_fds);
-      return TRACE_ERR (GPG_ERR_ASS_GENERAL);
-    }
+  if (_assuan_socketpair(ctx, AF_LOCAL, SOCK_STREAM, 0, fds)) {
+    TRACE_LOG1("socketpair failed: %s", strerror(errno));
+    _assuan_free(ctx, child_fds);
+    return TRACE_ERR(GPG_ERR_ASS_GENERAL);
+  }
   atp.peer_fd = fds[1];
   child_fds[0] = fds[1];
 
-  rc = _assuan_spawn (ctx, &pid, name, argv, ASSUAN_INVALID_FD,
-		      ASSUAN_INVALID_FD, child_fds, at_socketpair_fork_cb,
-		      &atp, 0);
-  if (rc < 0)
-    {
-      err = gpg_error_from_syserror ();
-      _assuan_close (ctx, fds[0]);
-      _assuan_close (ctx, fds[1]);
-      _assuan_free (ctx, child_fds);
-      return TRACE_ERR (err);
-    }
+  rc =
+      _assuan_spawn(ctx, &pid, name, argv, ASSUAN_INVALID_FD, ASSUAN_INVALID_FD,
+                    child_fds, at_socketpair_fork_cb, &atp, 0);
+  if (rc < 0) {
+    err = gpg_error_from_syserror();
+    _assuan_close(ctx, fds[0]);
+    _assuan_close(ctx, fds[1]);
+    _assuan_free(ctx, child_fds);
+    return TRACE_ERR(err);
+  }
 
   /* For W32, the user needs to know the server-local names of the
      inherited handles.  Return them here.  Note that the translation
      of the peer socketpair fd (fd_child_list[0]) must be done by the
      wrapper program based on the environment variable
      _assuan_connection_fd.  */
-  if (fd_child_list)
-    {
-      for (idx = 0; fd_child_list[idx] != -1; idx++)
-	/* We add 1 to skip over the socketpair end.  */
-	fd_child_list[idx] = child_fds[idx + 1];
-    }
+  if (fd_child_list) {
+    for (idx = 0; fd_child_list[idx] != -1; idx++)
+      /* We add 1 to skip over the socketpair end.  */
+      fd_child_list[idx] = child_fds[idx + 1];
+  }
 
-  _assuan_free (ctx, child_fds);
+  _assuan_free(ctx, child_fds);
 
   /* If this is the server child process, exit early.  */
-  if (! name && (*argv)[0] == 's')
-    {
-      _assuan_close (ctx, fds[0]);
-      return 0;
-    }
+  if (!name && (*argv)[0] == 's') {
+    _assuan_close(ctx, fds[0]);
+    return 0;
+  }
 
-  _assuan_close (ctx, fds[1]);
+  _assuan_close(ctx, fds[1]);
 
   ctx->engine.release = _assuan_client_release;
   ctx->finish_handler = _assuan_client_finish;
   ctx->max_accepts = 1;
-  ctx->inbound.fd  = fds[0];
+  ctx->inbound.fd = fds[0];
   ctx->outbound.fd = fds[0];
-  _assuan_init_uds_io (ctx);
+  _assuan_init_uds_io(ctx);
 
-  err = initial_handshake (ctx);
-  if (err)
-    _assuan_reset (ctx);
+  err = initial_handshake(ctx);
+  if (err) _assuan_reset(ctx);
   return err;
 }
 #endif /*!_WIN32*/
 
-
 /* Connect to a server over a full-duplex socket (i.e. created by
    socketpair), creating the assuan context and returning it in CTX.
    The server filename is NAME, the argument vector in ARGV.
@@ -392,27 +347,21 @@ socketpair_connect (assuan_context_t ctx,
    child or the parent continues, the child returns "client" or
    "server" in *ARGV (but it is sufficient to check only the first
    character).  This feature is only available on POSIX platforms.  */
-gpg_error_t
-assuan_pipe_connect (assuan_context_t ctx,
-		     const char *name, const char *argv[],
-		     assuan_fd_t *fd_child_list,
-		     void (*atfork) (void *opaque, int reserved),
-		     void *atforkvalue, unsigned int flags)
-{
-  TRACE2 (ctx, ASSUAN_LOG_CTX, "assuan_pipe_connect", ctx,
-	  "name=%s, flags=0x%x", name ? name : "(null)", flags);
+gpg_error_t assuan_pipe_connect(assuan_context_t ctx, const char *name,
+                                const char *argv[], assuan_fd_t *fd_child_list,
+                                void (*atfork)(void *opaque, int reserved),
+                                void *atforkvalue, unsigned int flags) {
+  TRACE2(ctx, ASSUAN_LOG_CTX, "assuan_pipe_connect", ctx, "name=%s, flags=0x%x",
+         name ? name : "(null)", flags);
 
-  if (flags & ASSUAN_PIPE_CONNECT_FDPASSING)
-    {
+  if (flags & ASSUAN_PIPE_CONNECT_FDPASSING) {
 #ifdef _WIN32
-      return GPG_ERR_NOT_IMPLEMENTED;
+    return GPG_ERR_NOT_IMPLEMENTED;
 #else
-      return socketpair_connect (ctx, name, argv, fd_child_list,
-                                 atfork, atforkvalue);
+    return socketpair_connect(ctx, name, argv, fd_child_list, atfork,
+                              atforkvalue);
 #endif
-    }
-  else
-    return pipe_connect (ctx, name, argv, fd_child_list, atfork, atforkvalue,
-                         flags);
+  } else
+    return pipe_connect(ctx, name, argv, fd_child_list, atfork, atforkvalue,
+                        flags);
 }
-

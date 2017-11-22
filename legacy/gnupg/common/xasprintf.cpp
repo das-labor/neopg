@@ -28,8 +28,8 @@
  */
 
 #include <config.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "util.h"
 
@@ -40,31 +40,26 @@
    FIXME: We should remove these functions in favor of gpgrt_bsprintf
    and a xgpgrt_bsprintf or rename them to xbsprintf and
    xtrybsprintf.  */
-char *
-xasprintf (const char *fmt, ...)
-{
+char *xasprintf(const char *fmt, ...) {
   va_list ap;
   char *buf;
 
-  va_start (ap, fmt);
-  if (gpgrt_vasprintf (&buf, fmt, ap) < 0)
-    log_fatal ("estream_asprintf failed: %s\n", strerror (errno));
-  va_end (ap);
+  va_start(ap, fmt);
+  if (gpgrt_vasprintf(&buf, fmt, ap) < 0)
+    log_fatal("estream_asprintf failed: %s\n", strerror(errno));
+  va_end(ap);
   return buf;
 }
 
 /* Same as above but return NULL on memory failure.  */
-char *
-xtryasprintf (const char *fmt, ...)
-{
+char *xtryasprintf(const char *fmt, ...) {
   int rc;
   va_list ap;
   char *buf;
 
-  va_start (ap, fmt);
-  rc = gpgrt_vasprintf (&buf, fmt, ap);
-  va_end (ap);
-  if (rc < 0)
-    return NULL;
+  va_start(ap, fmt);
+  rc = gpgrt_vasprintf(&buf, fmt, ap);
+  va_end(ap);
+  if (rc < 0) return NULL;
   return buf;
 }

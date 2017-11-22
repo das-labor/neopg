@@ -19,22 +19,20 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "cipher.h"
-#include "bufhelp.h"
 #include "./cipher-internal.h"
+#include "bufhelp.h"
+#include "cipher.h"
+#include "g10lib.h"
 
-
-gpg_error_t
-_gcry_cipher_cfb_encrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cfb_encrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                     size_t outbuflen,
+                                     const unsigned char *inbuf,
+                                     size_t inbuflen) {
   unsigned char *ivp;
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   size_t blocksize = c->spec->blocksize;
@@ -46,97 +44,85 @@ _gcry_cipher_cfb_encrypt (gcry_cipher_hd_t c,
   if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
     return GPG_ERR_INV_LENGTH;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
-  if ( inbuflen <= c->unused )
-    {
-      /* Short enough to be encoded by the remaining XOR mask. */
-      /* XOR the input with the IV and store input into IV. */
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor_2dst(outbuf, ivp, inbuf, inbuflen);
-      c->unused -= inbuflen;
-      return 0;
-    }
+  if (inbuflen <= c->unused) {
+    /* Short enough to be encoded by the remaining XOR mask. */
+    /* XOR the input with the IV and store input into IV. */
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor_2dst(outbuf, ivp, inbuf, inbuflen);
+    c->unused -= inbuflen;
+    return 0;
+  }
 
   burn = 0;
 
-  if ( c->unused )
-    {
-      /* XOR the input with the IV and store input into IV */
-      inbuflen -= c->unused;
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor_2dst(outbuf, ivp, inbuf, c->unused);
-      outbuf += c->unused;
-      inbuf += c->unused;
-      c->unused = 0;
-    }
+  if (c->unused) {
+    /* XOR the input with the IV and store input into IV */
+    inbuflen -= c->unused;
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor_2dst(outbuf, ivp, inbuf, c->unused);
+    outbuf += c->unused;
+    inbuf += c->unused;
+    c->unused = 0;
+  }
 
   /* Now we can process complete blocks.  We use a loop as long as we
      have at least 2 blocks and use conditions for the rest.  This
      also allows to use a bulk encryption function if available.  */
-  if (inbuflen >= blocksize_x_2 && c->bulk.cfb_enc)
-    {
-      size_t nblocks = inbuflen / blocksize;
-      c->bulk.cfb_enc (&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
-      outbuf += nblocks * blocksize;
-      inbuf  += nblocks * blocksize;
-      inbuflen -= nblocks * blocksize;
-    }
-  else
-    {
-      while ( inbuflen >= blocksize_x_2 )
-        {
-          /* Encrypt the IV. */
-          nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-          burn = nburn > burn ? nburn : burn;
-          /* XOR the input with the IV and store input into IV.  */
-          buf_xor_2dst(outbuf, c->u_iv.iv, inbuf, blocksize);
-          outbuf += blocksize;
-          inbuf += blocksize;
-          inbuflen -= blocksize;
-        }
-    }
-
-  if ( inbuflen >= blocksize )
-    {
-      /* Save the current IV and then encrypt the IV. */
-      buf_cpy( c->lastiv, c->u_iv.iv, blocksize );
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
+  if (inbuflen >= blocksize_x_2 && c->bulk.cfb_enc) {
+    size_t nblocks = inbuflen / blocksize;
+    c->bulk.cfb_enc(&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
+    outbuf += nblocks * blocksize;
+    inbuf += nblocks * blocksize;
+    inbuflen -= nblocks * blocksize;
+  } else {
+    while (inbuflen >= blocksize_x_2) {
+      /* Encrypt the IV. */
+      nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
       burn = nburn > burn ? nburn : burn;
-      /* XOR the input with the IV and store input into IV */
+      /* XOR the input with the IV and store input into IV.  */
       buf_xor_2dst(outbuf, c->u_iv.iv, inbuf, blocksize);
       outbuf += blocksize;
       inbuf += blocksize;
       inbuflen -= blocksize;
     }
-  if ( inbuflen )
-    {
-      /* Save the current IV and then encrypt the IV. */
-      buf_cpy( c->lastiv, c->u_iv.iv, blocksize );
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
-      c->unused = blocksize;
-      /* Apply the XOR. */
-      c->unused -= inbuflen;
-      buf_xor_2dst(outbuf, c->u_iv.iv, inbuf, inbuflen);
-      outbuf += inbuflen;
-      inbuf += inbuflen;
-      inbuflen = 0;
-    }
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (inbuflen >= blocksize) {
+    /* Save the current IV and then encrypt the IV. */
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    /* XOR the input with the IV and store input into IV */
+    buf_xor_2dst(outbuf, c->u_iv.iv, inbuf, blocksize);
+    outbuf += blocksize;
+    inbuf += blocksize;
+    inbuflen -= blocksize;
+  }
+  if (inbuflen) {
+    /* Save the current IV and then encrypt the IV. */
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    c->unused = blocksize;
+    /* Apply the XOR. */
+    c->unused -= inbuflen;
+    buf_xor_2dst(outbuf, c->u_iv.iv, inbuf, inbuflen);
+    outbuf += inbuflen;
+    inbuf += inbuflen;
+    inbuflen = 0;
+  }
+
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }
 
-
-gpg_error_t
-_gcry_cipher_cfb_decrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cfb_decrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                     size_t outbuflen,
+                                     const unsigned char *inbuf,
+                                     size_t inbuflen) {
   unsigned char *ivp;
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   size_t blocksize = c->spec->blocksize;
@@ -148,178 +134,156 @@ _gcry_cipher_cfb_decrypt (gcry_cipher_hd_t c,
   if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
     return GPG_ERR_INV_LENGTH;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
-  if (inbuflen <= c->unused)
-    {
-      /* Short enough to be encoded by the remaining XOR mask. */
-      /* XOR the input with the IV and store input into IV. */
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor_n_copy(outbuf, ivp, inbuf, inbuflen);
-      c->unused -= inbuflen;
-      return 0;
-    }
+  if (inbuflen <= c->unused) {
+    /* Short enough to be encoded by the remaining XOR mask. */
+    /* XOR the input with the IV and store input into IV. */
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor_n_copy(outbuf, ivp, inbuf, inbuflen);
+    c->unused -= inbuflen;
+    return 0;
+  }
 
   burn = 0;
 
-  if (c->unused)
-    {
-      /* XOR the input with the IV and store input into IV. */
-      inbuflen -= c->unused;
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor_n_copy(outbuf, ivp, inbuf, c->unused);
-      outbuf += c->unused;
-      inbuf += c->unused;
-      c->unused = 0;
-    }
+  if (c->unused) {
+    /* XOR the input with the IV and store input into IV. */
+    inbuflen -= c->unused;
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor_n_copy(outbuf, ivp, inbuf, c->unused);
+    outbuf += c->unused;
+    inbuf += c->unused;
+    c->unused = 0;
+  }
 
   /* Now we can process complete blocks.  We use a loop as long as we
      have at least 2 blocks and use conditions for the rest.  This
      also allows to use a bulk encryption function if available.  */
-  if (inbuflen >= blocksize_x_2 && c->bulk.cfb_dec)
-    {
-      size_t nblocks = inbuflen / blocksize;
-      c->bulk.cfb_dec (&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
-      outbuf += nblocks * blocksize;
-      inbuf  += nblocks * blocksize;
-      inbuflen -= nblocks * blocksize;
-    }
-  else
-    {
-      while (inbuflen >= blocksize_x_2 )
-        {
-          /* Encrypt the IV. */
-          nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-          burn = nburn > burn ? nburn : burn;
-          /* XOR the input with the IV and store input into IV. */
-          buf_xor_n_copy(outbuf, c->u_iv.iv, inbuf, blocksize);
-          outbuf += blocksize;
-          inbuf += blocksize;
-          inbuflen -= blocksize;
-        }
-    }
-
-  if (inbuflen >= blocksize )
-    {
-      /* Save the current IV and then encrypt the IV. */
-      buf_cpy ( c->lastiv, c->u_iv.iv, blocksize);
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
+  if (inbuflen >= blocksize_x_2 && c->bulk.cfb_dec) {
+    size_t nblocks = inbuflen / blocksize;
+    c->bulk.cfb_dec(&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
+    outbuf += nblocks * blocksize;
+    inbuf += nblocks * blocksize;
+    inbuflen -= nblocks * blocksize;
+  } else {
+    while (inbuflen >= blocksize_x_2) {
+      /* Encrypt the IV. */
+      nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
       burn = nburn > burn ? nburn : burn;
-      /* XOR the input with the IV and store input into IV */
+      /* XOR the input with the IV and store input into IV. */
       buf_xor_n_copy(outbuf, c->u_iv.iv, inbuf, blocksize);
       outbuf += blocksize;
       inbuf += blocksize;
       inbuflen -= blocksize;
     }
+  }
 
-  if (inbuflen)
-    {
-      /* Save the current IV and then encrypt the IV. */
-      buf_cpy ( c->lastiv, c->u_iv.iv, blocksize );
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
-      c->unused = blocksize;
-      /* Apply the XOR. */
-      c->unused -= inbuflen;
-      buf_xor_n_copy(outbuf, c->u_iv.iv, inbuf, inbuflen);
-      outbuf += inbuflen;
-      inbuf += inbuflen;
-      inbuflen = 0;
-    }
+  if (inbuflen >= blocksize) {
+    /* Save the current IV and then encrypt the IV. */
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    /* XOR the input with the IV and store input into IV */
+    buf_xor_n_copy(outbuf, c->u_iv.iv, inbuf, blocksize);
+    outbuf += blocksize;
+    inbuf += blocksize;
+    inbuflen -= blocksize;
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (inbuflen) {
+    /* Save the current IV and then encrypt the IV. */
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    c->unused = blocksize;
+    /* Apply the XOR. */
+    c->unused -= inbuflen;
+    buf_xor_n_copy(outbuf, c->u_iv.iv, inbuf, inbuflen);
+    outbuf += inbuflen;
+    inbuf += inbuflen;
+    inbuflen = 0;
+  }
+
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }
 
-
-gpg_error_t
-_gcry_cipher_cfb8_encrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cfb8_encrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                      size_t outbuflen,
+                                      const unsigned char *inbuf,
+                                      size_t inbuflen) {
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   size_t blocksize = c->spec->blocksize;
   unsigned int burn, nburn;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
   burn = 0;
 
-  while ( inbuflen > 0)
-    {
-      int i;
+  while (inbuflen > 0) {
+    int i;
 
-      /* Encrypt the IV. */
-      nburn = enc_fn ( &c->context.c, c->lastiv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
+    /* Encrypt the IV. */
+    nburn = enc_fn(&c->context.c, c->lastiv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
 
-      outbuf[0] = c->lastiv[0] ^ inbuf[0];
+    outbuf[0] = c->lastiv[0] ^ inbuf[0];
 
-      /* Bitshift iv by 8 bit to the left */
-      for (i = 0; i < blocksize-1; i++)
-        c->u_iv.iv[i] = c->u_iv.iv[i+1];
+    /* Bitshift iv by 8 bit to the left */
+    for (i = 0; i < blocksize - 1; i++) c->u_iv.iv[i] = c->u_iv.iv[i + 1];
 
-      /* append cipher text to iv */
-      c->u_iv.iv[blocksize-1] = outbuf[0];
+    /* append cipher text to iv */
+    c->u_iv.iv[blocksize - 1] = outbuf[0];
 
-      outbuf += 1;
-      inbuf += 1;
-      inbuflen -= 1;
-    }
+    outbuf += 1;
+    inbuf += 1;
+    inbuflen -= 1;
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }
 
-
-gpg_error_t
-_gcry_cipher_cfb8_decrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cfb8_decrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                      size_t outbuflen,
+                                      const unsigned char *inbuf,
+                                      size_t inbuflen) {
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   size_t blocksize = c->spec->blocksize;
   unsigned int burn, nburn;
   unsigned char appendee;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
   burn = 0;
 
-  while (inbuflen > 0)
-    {
-      int i;
+  while (inbuflen > 0) {
+    int i;
 
-      /* Encrypt the IV. */
-      nburn = enc_fn ( &c->context.c, c->lastiv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
+    /* Encrypt the IV. */
+    nburn = enc_fn(&c->context.c, c->lastiv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
 
-      /* inbuf might == outbuf, make sure we keep the value
-         so we can append it later */
-      appendee = inbuf[0];
+    /* inbuf might == outbuf, make sure we keep the value
+       so we can append it later */
+    appendee = inbuf[0];
 
-      outbuf[0] = inbuf[0] ^ c->lastiv[0];
+    outbuf[0] = inbuf[0] ^ c->lastiv[0];
 
-      /* Bitshift iv by 8 bit to the left */
-      for (i = 0; i < blocksize-1; i++)
-        c->u_iv.iv[i] = c->u_iv.iv[i+1];
+    /* Bitshift iv by 8 bit to the left */
+    for (i = 0; i < blocksize - 1; i++) c->u_iv.iv[i] = c->u_iv.iv[i + 1];
 
-      c->u_iv.iv[blocksize-1] = appendee;
+    c->u_iv.iv[blocksize - 1] = appendee;
 
-      outbuf += 1;
-      inbuf += 1;
-      inbuflen -= 1;
-    }
+    outbuf += 1;
+    inbuf += 1;
+    inbuflen -= 1;
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }

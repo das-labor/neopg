@@ -20,39 +20,39 @@
 #ifndef GCRY_EC_CONTEXT_H
 #define GCRY_EC_CONTEXT_H
 
+#include "mpi.h"
+
 /* This context is used with all our EC functions. */
-struct mpi_ec_ctx_s
-{
+struct mpi_ec_ctx_s {
   enum gcry_mpi_ec_models model; /* The model describing this curve.  */
 
-  enum ecc_dialects dialect;     /* The ECC dialect used with the curve.  */
+  enum ecc_dialects dialect; /* The ECC dialect used with the curve.  */
 
-  int flags;                     /* Public key flags (not always used).  */
+  int flags; /* Public key flags (not always used).  */
 
-  unsigned int nbits;            /* Number of bits.  */
+  unsigned int nbits; /* Number of bits.  */
 
   /* Domain parameters.  Note that they may not all be set and if set
      the MPIs may be flaged as constant. */
-  gcry_mpi_t p;         /* Prime specifying the field GF(p).  */
-  gcry_mpi_t a;         /* First coefficient of the Weierstrass equation.  */
-  gcry_mpi_t b;         /* Second coefficient of the Weierstrass equation.  */
-  gcry_mpi_point_t G;   /* Base point (generator).  */
-  gcry_mpi_t n;         /* Order of G.  */
-  gcry_mpi_t h;         /* Cofactor.  */
+  gcry_mpi_t p;       /* Prime specifying the field GF(p).  */
+  gcry_mpi_t a;       /* First coefficient of the Weierstrass equation.  */
+  gcry_mpi_t b;       /* Second coefficient of the Weierstrass equation.  */
+  gcry_mpi_point_t G; /* Base point (generator).  */
+  gcry_mpi_t n;       /* Order of G.  */
+  gcry_mpi_t h;       /* Cofactor.  */
 
   /* The actual key.  May not be set.  */
-  gcry_mpi_point_t Q;   /* Public key.   */
-  gcry_mpi_t d;         /* Private key.  */
-
+  gcry_mpi_point_t Q; /* Public key.   */
+  gcry_mpi_t d;       /* Private key.  */
 
   /* This structure is private to mpi/ec.c! */
   struct {
     struct {
-      unsigned int a_is_pminus3:1;
-      unsigned int two_inv_p:1;
+      unsigned int a_is_pminus3 : 1;
+      unsigned int two_inv_p : 1;
     } valid; /* Flags to help setting the helper vars below.  */
 
-    int a_is_pminus3;  /* True if A = P - 3. */
+    int a_is_pminus3; /* True if A = P - 3. */
 
     gcry_mpi_t two_inv_p;
 
@@ -68,30 +68,26 @@ struct mpi_ec_ctx_s
   } t;
 };
 
-
 /*-- mpi/ec.c --*/
-void _gcry_mpi_ec_get_reset (mpi_ec_t ec);
-
+void _gcry_mpi_ec_get_reset(mpi_ec_t ec);
 
 /*-- cipher/ecc-curves.c --*/
-gcry_mpi_t       _gcry_ecc_get_mpi (const char *name, mpi_ec_t ec, int copy);
-gcry_mpi_point_t _gcry_ecc_get_point (const char *name, mpi_ec_t ec);
-gpg_error_t   _gcry_ecc_set_mpi (const char *name,
-                                    gcry_mpi_t newvalue, mpi_ec_t ec);
-gpg_error_t   _gcry_ecc_set_point (const char *name,
-                                      gcry_mpi_point_t newvalue, mpi_ec_t ec);
+gcry_mpi_t _gcry_ecc_get_mpi(const char *name, mpi_ec_t ec, int copy);
+gcry_mpi_point_t _gcry_ecc_get_point(const char *name, mpi_ec_t ec);
+gpg_error_t _gcry_ecc_set_mpi(const char *name, gcry_mpi_t newvalue,
+                              mpi_ec_t ec);
+gpg_error_t _gcry_ecc_set_point(const char *name, gcry_mpi_point_t newvalue,
+                                mpi_ec_t ec);
 
 /*-- cipher/ecc-misc.c --*/
-gpg_error_t _gcry_ecc_os2ec (mpi_point_t result, gcry_mpi_t value);
-gpg_error_t _gcry_ecc_mont_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
-                                           mpi_point_t result);
+gpg_error_t _gcry_ecc_os2ec(mpi_point_t result, gcry_mpi_t value);
+gpg_error_t _gcry_ecc_mont_decodepoint(gcry_mpi_t pk, mpi_ec_t ctx,
+                                       mpi_point_t result);
 
 /*-- cipher/ecc-eddsa.c --*/
-gpg_error_t _gcry_ecc_eddsa_decodepoint (gcry_mpi_t pk, mpi_ec_t ctx,
-                                            mpi_point_t result,
-                                            unsigned char **r_encpk,
-                                            unsigned int *r_encpklen);
-
-
+gpg_error_t _gcry_ecc_eddsa_decodepoint(gcry_mpi_t pk, mpi_ec_t ctx,
+                                        mpi_point_t result,
+                                        unsigned char **r_encpk,
+                                        unsigned int *r_encpklen);
 
 #endif /*GCRY_EC_CONTEXT_H*/

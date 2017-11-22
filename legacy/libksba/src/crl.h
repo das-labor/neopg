@@ -34,10 +34,9 @@
 #include "ksba.h"
 
 #ifndef HAVE_TYPEDEFD_ASNNODE
-typedef struct asn_node_struct *AsnNode;  /* FIXME: should not go here */
+typedef struct asn_node_struct *AsnNode; /* FIXME: should not go here */
 #define HAVE_TYPEDEFD_ASNNODE
 #endif
-
 
 struct crl_extn_s {
   struct crl_extn_s *next;
@@ -71,7 +70,7 @@ struct ksba_crl_s {
     size_t parmlen;
   } algo;
   struct {
-    AsnNode root;  /* root of the tree with the values */
+    AsnNode root; /* root of the tree with the values */
     unsigned char *image;
     size_t imagelen;
   } issuer;
@@ -91,11 +90,8 @@ struct ksba_crl_s {
     int used;
     char buffer[8192];
   } hashbuf;
-
 };
 
-
 /*-- crl.c --*/
-
 
 #endif /*CRL_H*/

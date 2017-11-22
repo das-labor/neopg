@@ -20,6 +20,6 @@
 #ifndef HTTP_COMMON_H
 #define HTTP_COMMON_H
 
-const char *get_default_keyserver (int name_only);
+const char *get_default_keyserver(int name_only);
 
 #endif /* HTTP_COMMON_H */

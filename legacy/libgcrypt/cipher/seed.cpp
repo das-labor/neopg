@@ -21,45 +21,41 @@
  * This implementation was provided for libgcrypt in public domain
  * by Hye-Shik Chang <perky@FreeBSD.org>, July 2006.
  */
-
+
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "types.h"  /* for byte and u32 typedefs */
-#include "g10lib.h"
-#include "cipher.h"
 #include "bufhelp.h"
+#include "cipher.h"
+#include "g10lib.h"
+#include "types.h" /* for byte and u32 typedefs */
 
-#define NUMKC	16
+#define NUMKC 16
 
 #define GETU32(pt) buf_get_be32(pt)
 #define PUTU32(ct, st) buf_put_be32(ct, st)
 
-union wordbuf
-{
+union wordbuf {
   u32 w;
   byte b[4];
 };
 
 #ifdef WORDS_BIGENDIAN
-#define b0  b[3]
-#define b1  b[2]
-#define b2  b[1]
-#define b3  b[0]
+#define b0 b[3]
+#define b1 b[2]
+#define b2 b[1]
+#define b3 b[0]
 #else
-#define b0  b[0]
-#define b1  b[1]
-#define b2  b[2]
-#define b3  b[3]
+#define b0 b[0]
+#define b1 b[1]
+#define b2 b[2]
+#define b3 b[3]
 #endif
 
 static const char *selftest(void);
 
-typedef struct
-{
-  u32 keyschedule[32];
-} SEED_context;
+typedef struct { u32 keyschedule[32]; } SEED_context;
 
 static const u32 SS0[256] = {
     0x2989a1a8, 0x05858184, 0x16c6d2d4, 0x13c3d3d0, 0x14445054, 0x1d0d111c,
@@ -246,231 +242,198 @@ static const u32 SS3[256] = {
 };
 
 static const u32 KC[NUMKC] = {
-    0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc,
-    0xe3779b99, 0xc6ef3733, 0x8dde6e67, 0x1bbcdccf,
-    0x3779b99e, 0x6ef3733c, 0xdde6e678, 0xbbcdccf1,
+    0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc, 0xe3779b99, 0xc6ef3733,
+    0x8dde6e67, 0x1bbcdccf, 0x3779b99e, 0x6ef3733c, 0xdde6e678, 0xbbcdccf1,
     0x779b99e3, 0xef3733c6, 0xde6e678d, 0xbcdccf1b,
 };
-
-
 
 /* Perform the key setup.
  */
-static gpg_error_t
-do_setkey (SEED_context *ctx, const byte *key, const unsigned keylen)
-{
+static gpg_error_t do_setkey(SEED_context *ctx, const byte *key,
+                             const unsigned keylen) {
   static int initialized = 0;
-  static const char *selftest_failed=0;
+  static const char *selftest_failed = 0;
   u32 x1, x2, x3, x4;
   union wordbuf t0, t1;
   u32 *keyout = ctx->keyschedule;
   int i;
 
-  if (!initialized)
-    {
-      initialized = 1;
-      selftest_failed = selftest ();
-      if( selftest_failed )
-        log_error ("%s\n", selftest_failed );
+  if (!initialized) {
+    initialized = 1;
+    selftest_failed = selftest();
+    if (selftest_failed) log_error("%s\n", selftest_failed);
+  }
+  if (selftest_failed) return GPG_ERR_SELFTEST_FAILED;
+
+  if (keylen != 16) return GPG_ERR_INV_KEYLEN;
+
+  x1 = GETU32(key);
+  x2 = GETU32(key + 4);
+  x3 = GETU32(key + 8);
+  x4 = GETU32(key + 12);
+
+  for (i = 0; i < NUMKC; i++) {
+    t0.w = x1 + x3 - KC[i];
+    t1.w = x2 + KC[i] - x4;
+    *(keyout++) = SS0[t0.b0] ^ SS1[t0.b1] ^ SS2[t0.b2] ^ SS3[t0.b3];
+    *(keyout++) = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3];
+
+    if (i % 2 == 0) {
+      t0.w = x1;
+      x1 = (x1 >> 8) ^ (x2 << 24);
+      x2 = (x2 >> 8) ^ (t0.w << 24);
+    } else {
+      t0.w = x3;
+      x3 = (x3 << 8) ^ (x4 >> 24);
+      x4 = (x4 << 8) ^ (t0.w >> 24);
     }
-  if (selftest_failed)
-    return GPG_ERR_SELFTEST_FAILED;
-
-  if (keylen != 16)
-    return GPG_ERR_INV_KEYLEN;
-
-  x1 = GETU32 (key);
-  x2 = GETU32 (key+4);
-  x3 = GETU32 (key+8);
-  x4 = GETU32 (key+12);
-
-  for (i = 0; i < NUMKC; i++)
-    {
-      t0.w = x1 + x3 - KC[i];
-      t1.w = x2 + KC[i] - x4;
-      *(keyout++) = SS0[t0.b0] ^ SS1[t0.b1] ^ SS2[t0.b2] ^ SS3[t0.b3];
-      *(keyout++) = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3];
-
-      if (i % 2 == 0)
-	{
-	  t0.w = x1;
-	  x1 = (x1>>8) ^ (x2<<24);
-	  x2 = (x2>>8) ^ (t0.w<<24);
-	}
-      else
-	{
-	  t0.w = x3;
-	  x3 = (x3<<8) ^ (x4>>24);
-	  x4 = (x4<<8) ^ (t0.w>>24);
-	}
-    }
+  }
 
   return 0;
 }
 
-static gpg_error_t
-seed_setkey (void *context, const byte *key, const unsigned keylen)
-{
-  SEED_context *ctx = (SEED_context*) context;
+static gpg_error_t seed_setkey(void *context, const byte *key,
+                               const unsigned keylen) {
+  SEED_context *ctx = (SEED_context *)context;
 
-  int rc = do_setkey (ctx, key, keylen);
-  _gcry_burn_stack (4*6 + sizeof(void*)*2 + sizeof(int)*2);
+  int rc = do_setkey(ctx, key, keylen);
+  _gcry_burn_stack(4 * 6 + sizeof(void *) * 2 + sizeof(int) * 2);
   return rc;
 }
 
-
-
-#define OP(X1, X2, X3, X4, rbase)				\
-    t0.w = X3 ^ ctx->keyschedule[rbase];			\
-    t1.w = X4 ^ ctx->keyschedule[rbase+1];			\
-    t1.w ^= t0.w;						\
-    t1.w = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3];	\
-    t0.w += t1.w;						\
-    t0.w = SS0[t0.b0] ^ SS1[t0.b1] ^ SS2[t0.b2] ^ SS3[t0.b3];	\
-    t1.w += t0.w;						\
-    t1.w = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3];	\
-    t0.w += t1.w;						\
-    X1 ^= t0.w;							\
-    X2 ^= t1.w;
+#define OP(X1, X2, X3, X4, rbase)                           \
+  t0.w = X3 ^ ctx->keyschedule[rbase];                      \
+  t1.w = X4 ^ ctx->keyschedule[rbase + 1];                  \
+  t1.w ^= t0.w;                                             \
+  t1.w = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3]; \
+  t0.w += t1.w;                                             \
+  t0.w = SS0[t0.b0] ^ SS1[t0.b1] ^ SS2[t0.b2] ^ SS3[t0.b3]; \
+  t1.w += t0.w;                                             \
+  t1.w = SS0[t1.b0] ^ SS1[t1.b1] ^ SS2[t1.b2] ^ SS3[t1.b3]; \
+  t0.w += t1.w;                                             \
+  X1 ^= t0.w;                                               \
+  X2 ^= t1.w;
 
 /* Encrypt one block.  inbuf and outbuf may be the same. */
-static void
-do_encrypt (const SEED_context *ctx, byte *outbuf, const byte *inbuf)
-{
+static void do_encrypt(const SEED_context *ctx, byte *outbuf,
+                       const byte *inbuf) {
   u32 x1, x2, x3, x4;
   union wordbuf t0, t1;
 
-  x1 = GETU32 (inbuf);
-  x2 = GETU32 (inbuf+4);
-  x3 = GETU32 (inbuf+8);
-  x4 = GETU32 (inbuf+12);
+  x1 = GETU32(inbuf);
+  x2 = GETU32(inbuf + 4);
+  x3 = GETU32(inbuf + 8);
+  x4 = GETU32(inbuf + 12);
 
-  OP (x1, x2, x3, x4, 0);
-  OP (x3, x4, x1, x2, 2);
-  OP (x1, x2, x3, x4, 4);
-  OP (x3, x4, x1, x2, 6);
-  OP (x1, x2, x3, x4, 8);
-  OP (x3, x4, x1, x2, 10);
-  OP (x1, x2, x3, x4, 12);
-  OP (x3, x4, x1, x2, 14);
-  OP (x1, x2, x3, x4, 16);
-  OP (x3, x4, x1, x2, 18);
-  OP (x1, x2, x3, x4, 20);
-  OP (x3, x4, x1, x2, 22);
-  OP (x1, x2, x3, x4, 24);
-  OP (x3, x4, x1, x2, 26);
-  OP (x1, x2, x3, x4, 28);
-  OP (x3, x4, x1, x2, 30);
+  OP(x1, x2, x3, x4, 0);
+  OP(x3, x4, x1, x2, 2);
+  OP(x1, x2, x3, x4, 4);
+  OP(x3, x4, x1, x2, 6);
+  OP(x1, x2, x3, x4, 8);
+  OP(x3, x4, x1, x2, 10);
+  OP(x1, x2, x3, x4, 12);
+  OP(x3, x4, x1, x2, 14);
+  OP(x1, x2, x3, x4, 16);
+  OP(x3, x4, x1, x2, 18);
+  OP(x1, x2, x3, x4, 20);
+  OP(x3, x4, x1, x2, 22);
+  OP(x1, x2, x3, x4, 24);
+  OP(x3, x4, x1, x2, 26);
+  OP(x1, x2, x3, x4, 28);
+  OP(x3, x4, x1, x2, 30);
 
-  PUTU32 (outbuf, x3);
-  PUTU32 (outbuf+4, x4);
-  PUTU32 (outbuf+8, x1);
-  PUTU32 (outbuf+12, x2);
+  PUTU32(outbuf, x3);
+  PUTU32(outbuf + 4, x4);
+  PUTU32(outbuf + 8, x1);
+  PUTU32(outbuf + 12, x2);
 }
 
-static unsigned int
-seed_encrypt (void *context, byte *outbuf, const byte *inbuf)
-{
-  SEED_context *ctx = (SEED_context*) context;
+static unsigned int seed_encrypt(void *context, byte *outbuf,
+                                 const byte *inbuf) {
+  SEED_context *ctx = (SEED_context *)context;
 
-  do_encrypt (ctx, outbuf, inbuf);
-  return /*burn_stack*/ (4*6);
+  do_encrypt(ctx, outbuf, inbuf);
+  return /*burn_stack*/ (4 * 6);
 }
 
-
-
 /* Decrypt one block.  inbuf and outbuf may be the same. */
-static void
-do_decrypt (SEED_context *ctx, byte *outbuf, const byte *inbuf)
-{
+static void do_decrypt(SEED_context *ctx, byte *outbuf, const byte *inbuf) {
   u32 x1, x2, x3, x4;
   union wordbuf t0, t1;
 
-  x1 = GETU32 (inbuf);
-  x2 = GETU32 (inbuf+4);
-  x3 = GETU32 (inbuf+8);
-  x4 = GETU32 (inbuf+12);
+  x1 = GETU32(inbuf);
+  x2 = GETU32(inbuf + 4);
+  x3 = GETU32(inbuf + 8);
+  x4 = GETU32(inbuf + 12);
 
-  OP (x1, x2, x3, x4, 30);
-  OP (x3, x4, x1, x2, 28);
-  OP (x1, x2, x3, x4, 26);
-  OP (x3, x4, x1, x2, 24);
-  OP (x1, x2, x3, x4, 22);
-  OP (x3, x4, x1, x2, 20);
-  OP (x1, x2, x3, x4, 18);
-  OP (x3, x4, x1, x2, 16);
-  OP (x1, x2, x3, x4, 14);
-  OP (x3, x4, x1, x2, 12);
-  OP (x1, x2, x3, x4, 10);
-  OP (x3, x4, x1, x2, 8);
-  OP (x1, x2, x3, x4, 6);
-  OP (x3, x4, x1, x2, 4);
-  OP (x1, x2, x3, x4, 2);
-  OP (x3, x4, x1, x2, 0);
+  OP(x1, x2, x3, x4, 30);
+  OP(x3, x4, x1, x2, 28);
+  OP(x1, x2, x3, x4, 26);
+  OP(x3, x4, x1, x2, 24);
+  OP(x1, x2, x3, x4, 22);
+  OP(x3, x4, x1, x2, 20);
+  OP(x1, x2, x3, x4, 18);
+  OP(x3, x4, x1, x2, 16);
+  OP(x1, x2, x3, x4, 14);
+  OP(x3, x4, x1, x2, 12);
+  OP(x1, x2, x3, x4, 10);
+  OP(x3, x4, x1, x2, 8);
+  OP(x1, x2, x3, x4, 6);
+  OP(x3, x4, x1, x2, 4);
+  OP(x1, x2, x3, x4, 2);
+  OP(x3, x4, x1, x2, 0);
 
-  PUTU32 (outbuf, x3);
-  PUTU32 (outbuf+4, x4);
-  PUTU32 (outbuf+8, x1);
-  PUTU32 (outbuf+12, x2);
+  PUTU32(outbuf, x3);
+  PUTU32(outbuf + 4, x4);
+  PUTU32(outbuf + 8, x1);
+  PUTU32(outbuf + 12, x2);
 }
 
-static unsigned int
-seed_decrypt (void *context, byte *outbuf, const byte *inbuf)
-{
-  SEED_context *ctx = (SEED_context*) context;
+static unsigned int seed_decrypt(void *context, byte *outbuf,
+                                 const byte *inbuf) {
+  SEED_context *ctx = (SEED_context *)context;
 
-  do_decrypt (ctx, outbuf, inbuf);
-  return /*burn_stack*/ (4*6);
+  do_decrypt(ctx, outbuf, inbuf);
+  return /*burn_stack*/ (4 * 6);
 }
 
-
 /* Test a single encryption and decryption with each key size. */
-static const char*
-selftest (void)
-{
+static const char *selftest(void) {
   SEED_context ctx;
   byte scratch[16];
 
   /* The test vector is taken from the appendix section B.3 of RFC4269.
    */
-  static const byte plaintext[16] = {
-    0x83, 0xA2, 0xF8, 0xA2, 0x88, 0x64, 0x1F, 0xB9,
-    0xA4, 0xE9, 0xA5, 0xCC, 0x2F, 0x13, 0x1C, 0x7D
-  };
-  static const byte key[16] = {
-    0x47, 0x06, 0x48, 0x08, 0x51, 0xE6, 0x1B, 0xE8,
-    0x5D, 0x74, 0xBF, 0xB3, 0xFD, 0x95, 0x61, 0x85
-  };
+  static const byte plaintext[16] = {0x83, 0xA2, 0xF8, 0xA2, 0x88, 0x64,
+                                     0x1F, 0xB9, 0xA4, 0xE9, 0xA5, 0xCC,
+                                     0x2F, 0x13, 0x1C, 0x7D};
+  static const byte key[16] = {0x47, 0x06, 0x48, 0x08, 0x51, 0xE6, 0x1B, 0xE8,
+                               0x5D, 0x74, 0xBF, 0xB3, 0xFD, 0x95, 0x61, 0x85};
   static const byte ciphertext[16] = {
-    0xEE, 0x54, 0xD1, 0x3E, 0xBC, 0xAE, 0x70, 0x6D,
-    0x22, 0x6B, 0xC3, 0x14, 0x2C, 0xD4, 0x0D, 0x4A,
+      0xEE, 0x54, 0xD1, 0x3E, 0xBC, 0xAE, 0x70, 0x6D,
+      0x22, 0x6B, 0xC3, 0x14, 0x2C, 0xD4, 0x0D, 0x4A,
   };
 
-  seed_setkey (&ctx, key, sizeof(key));
-  seed_encrypt (&ctx, scratch, plaintext);
-  if (memcmp (scratch, ciphertext, sizeof (ciphertext)))
+  seed_setkey(&ctx, key, sizeof(key));
+  seed_encrypt(&ctx, scratch, plaintext);
+  if (memcmp(scratch, ciphertext, sizeof(ciphertext)))
     return "SEED test encryption failed.";
-  seed_decrypt (&ctx, scratch, scratch);
-  if (memcmp (scratch, plaintext, sizeof (plaintext)))
+  seed_decrypt(&ctx, scratch, scratch);
+  if (memcmp(scratch, plaintext, sizeof(plaintext)))
     return "SEED test decryption failed.";
 
   return NULL;
 }
 
-
+static gcry_cipher_oid_spec_t seed_oids[] = {
+    {"1.2.410.200004.1.3", GCRY_CIPHER_MODE_ECB},
+    {"1.2.410.200004.1.4", GCRY_CIPHER_MODE_CBC},
+    {"1.2.410.200004.1.5", GCRY_CIPHER_MODE_CFB},
+    {"1.2.410.200004.1.6", GCRY_CIPHER_MODE_OFB},
+    {NULL}};
 
-static gcry_cipher_oid_spec_t seed_oids[] =
-  {
-    { "1.2.410.200004.1.3", GCRY_CIPHER_MODE_ECB },
-    { "1.2.410.200004.1.4", GCRY_CIPHER_MODE_CBC },
-    { "1.2.410.200004.1.5", GCRY_CIPHER_MODE_CFB },
-    { "1.2.410.200004.1.6", GCRY_CIPHER_MODE_OFB },
-    { NULL }
-  };
-
-gcry_cipher_spec_t _gcry_cipher_spec_seed =
-  {
-    GCRY_CIPHER_SEED, {0, 0},
-    "SEED", NULL, seed_oids, 16, 128, sizeof (SEED_context),
-    seed_setkey, seed_encrypt, seed_decrypt,
-  };
+gcry_cipher_spec_t _gcry_cipher_spec_seed = {
+    GCRY_CIPHER_SEED, {0, 0},       "SEED",       NULL,
+    seed_oids,        16,           128,          sizeof(SEED_context),
+    seed_setkey,      seed_encrypt, seed_decrypt,
+};

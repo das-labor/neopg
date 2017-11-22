@@ -22,10 +22,10 @@
 #ifndef OCSP_H
 #define OCSP_H
 
-gpg_error_t ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
-                          int force_default_responder);
+gpg_error_t ocsp_isvalid(ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
+                         int force_default_responder);
 
 /* Release the list of OCSP certificates hold in the CTRL object. */
-void release_ctrl_ocsp_certs (ctrl_t ctrl);
+void release_ctrl_ocsp_certs(ctrl_t ctrl);
 
 #endif /*OCSP_H*/

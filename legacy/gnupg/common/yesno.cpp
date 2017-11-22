@@ -28,19 +28,16 @@
  */
 
 #include <config.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "i18n.h"
 #include "util.h"
 
-
 /* Check the string S for a YES or NO answer and take care of
    localization.  If no valid string is given the value of DEF_ANSWER
    is returned.  Returns 1 for yes and 0 for no.  */
-int
-answer_is_yes_no_default (const char *s, int def_answer)
-{
+int answer_is_yes_no_default(const char *s, int def_answer) {
   /* TRANSLATORS: See doc/TRANSLATE about this string. */
   const char *long_yes = _("yes");
   const char *short_yes = _("yY");
@@ -49,35 +46,23 @@ answer_is_yes_no_default (const char *s, int def_answer)
   const char *short_no = _("nN");
 
   /* Note: we have to use the local dependent compare here. */
-  if ( match_multistr(long_yes,s) )
-    return 1;
-  if ( *s && strchr( short_yes, *s ) && !s[1] )
-    return 1;
+  if (match_multistr(long_yes, s)) return 1;
+  if (*s && strchr(short_yes, *s) && !s[1]) return 1;
   /* Test for "no" strings to catch ambiguities for the next test. */
-  if ( match_multistr(long_no,s) )
-    return 0;
-  if ( *s && strchr( short_no, *s ) && !s[1] )
-    return 0;
+  if (match_multistr(long_no, s)) return 0;
+  if (*s && strchr(short_no, *s) && !s[1]) return 0;
   /* Test for the english version (for those who are used to type yes). */
-  if ( !ascii_strcasecmp(s, "yes" ) )
-    return 1;
-  if ( *s && strchr( "yY", *s ) && !s[1] )
-    return 1;
+  if (!ascii_strcasecmp(s, "yes")) return 1;
+  if (*s && strchr("yY", *s) && !s[1]) return 1;
   return def_answer;
 }
 
-int
-answer_is_yes ( const char *s )
-{
-  return answer_is_yes_no_default(s,0);
-}
+int answer_is_yes(const char *s) { return answer_is_yes_no_default(s, 0); }
 
 /****************
  * Return 1 for yes, -1 for quit, or 0 for no
  */
-int
-answer_is_yes_no_quit ( const char *s )
-{
+int answer_is_yes_no_quit(const char *s) {
   /* TRANSLATORS: See doc/TRANSLATE about this string. */
   const char *long_yes = _("yes");
   /* TRANSLATORS: See doc/TRANSLATE about this string. */
@@ -89,36 +74,24 @@ answer_is_yes_no_quit ( const char *s )
   const char *short_quit = _("qQ");
 
   /* Note: we have to use a local dependent compare here. */
-  if ( match_multistr(long_no,s) )
-    return 0;
-  if ( match_multistr(long_yes,s) )
-    return 1;
-  if ( match_multistr(long_quit,s) )
-    return -1;
-  if ( *s && strchr( short_no, *s ) && !s[1] )
-    return 0;
-  if ( *s && strchr( short_yes, *s ) && !s[1] )
-      return 1;
-  if ( *s && strchr( short_quit, *s ) && !s[1] )
-    return -1;
+  if (match_multistr(long_no, s)) return 0;
+  if (match_multistr(long_yes, s)) return 1;
+  if (match_multistr(long_quit, s)) return -1;
+  if (*s && strchr(short_no, *s) && !s[1]) return 0;
+  if (*s && strchr(short_yes, *s) && !s[1]) return 1;
+  if (*s && strchr(short_quit, *s) && !s[1]) return -1;
   /* but not here. */
-  if ( !ascii_strcasecmp(s, "yes" ) )
-    return 1;
-  if ( !ascii_strcasecmp(s, "quit" ) )
-      return -1;
-  if ( *s && strchr( "yY", *s ) && !s[1] )
-    return 1;
-  if ( *s && strchr( "qQ", *s ) && !s[1] )
-    return -1;
+  if (!ascii_strcasecmp(s, "yes")) return 1;
+  if (!ascii_strcasecmp(s, "quit")) return -1;
+  if (*s && strchr("yY", *s) && !s[1]) return 1;
+  if (*s && strchr("qQ", *s) && !s[1]) return -1;
   return 0;
 }
 
 /*
    Return 1 for okay, 0 for cancel or DEF_ANSWER for default.
  */
-int
-answer_is_okay_cancel (const char *s, int def_answer)
-{
+int answer_is_okay_cancel(const char *s, int def_answer) {
   /* TRANSLATORS: See doc/TRANSLATE about this string. */
   const char *long_okay = _("okay|okay");
   /* TRANSLATORS: See doc/TRANSLATE about this string. */
@@ -127,24 +100,15 @@ answer_is_okay_cancel (const char *s, int def_answer)
   const char *short_cancel = _("cC");
 
   /* Note: We have to use the locale dependent compare. */
-  if ( match_multistr(long_okay,s) )
-    return 1;
-  if ( match_multistr(long_cancel,s) )
-    return 0;
-  if ( *s && strchr( short_okay, *s ) && !s[1] )
-    return 1;
-  if ( *s && strchr( short_cancel, *s ) && !s[1] )
-    return 0;
+  if (match_multistr(long_okay, s)) return 1;
+  if (match_multistr(long_cancel, s)) return 0;
+  if (*s && strchr(short_okay, *s) && !s[1]) return 1;
+  if (*s && strchr(short_cancel, *s) && !s[1]) return 0;
   /* Always test for the English values (not locale here). */
-  if ( !ascii_strcasecmp(s, "okay" ) )
-    return 1;
-  if ( !ascii_strcasecmp(s, "ok" ) )
-    return 1;
-  if ( !ascii_strcasecmp(s, "cancel" ) )
-    return 0;
-  if ( *s && strchr( "oO", *s ) && !s[1] )
-    return 1;
-  if ( *s && strchr( "cC", *s ) && !s[1] )
-    return 0;
+  if (!ascii_strcasecmp(s, "okay")) return 1;
+  if (!ascii_strcasecmp(s, "ok")) return 1;
+  if (!ascii_strcasecmp(s, "cancel")) return 0;
+  if (*s && strchr("oO", *s) && !s[1]) return 1;
+  if (*s && strchr("cC", *s) && !s[1]) return 0;
   return def_answer;
 }

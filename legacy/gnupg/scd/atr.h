@@ -20,8 +20,6 @@
 #ifndef ATR_H
 #define ATR_H
 
-char *atr_dump (const void *buffer, size_t buflen);
-
-
+char *atr_dump(const void *buffer, size_t buflen);
 
 #endif /*ATR_H*/

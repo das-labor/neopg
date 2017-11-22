@@ -31,25 +31,25 @@
 #ifndef BER_DECODER_H
 #define BER_DECODER_H 1
 
+#include "ksba.h"
+
 #include "asn1-func.h"
 
 struct ber_decoder_s;
 typedef struct ber_decoder_s *BerDecoder;
 
-BerDecoder _ksba_ber_decoder_new (void);
-void       _ksba_ber_decoder_release (BerDecoder d);
+BerDecoder _ksba_ber_decoder_new(void);
+void _ksba_ber_decoder_release(BerDecoder d);
 
-gpg_error_t _ksba_ber_decoder_set_module (BerDecoder d, ksba_asn_tree_t module);
-gpg_error_t _ksba_ber_decoder_set_reader (BerDecoder d, ksba_reader_t r);
+gpg_error_t _ksba_ber_decoder_set_module(BerDecoder d, ksba_asn_tree_t module);
+gpg_error_t _ksba_ber_decoder_set_reader(BerDecoder d, ksba_reader_t r);
 
-gpg_error_t _ksba_ber_decoder_dump (BerDecoder d, FILE *fp);
-gpg_error_t _ksba_ber_decoder_decode (BerDecoder d, const char *start_name,
-                                      unsigned int flags,
-                                      AsnNode *r_root,
-                                      unsigned char **r_image,
-                                      size_t *r_imagelen);
+gpg_error_t _ksba_ber_decoder_dump(BerDecoder d, FILE *fp);
+gpg_error_t _ksba_ber_decoder_decode(BerDecoder d, const char *start_name,
+                                     unsigned int flags, AsnNode *r_root,
+                                     unsigned char **r_image,
+                                     size_t *r_imagelen);
 
 #define BER_DECODER_FLAG_FAST_STOP 1
-
 
 #endif /*BER_DECODER_H*/

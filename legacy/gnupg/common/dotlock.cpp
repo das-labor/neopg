@@ -257,111 +257,103 @@
 */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 /* Some quick replacements for stuff we usually expect to be defined
    in config.h.  Define HAVE_POSIX_SYSTEM for better readability. */
-#if !defined (HAVE_DOSISH_SYSTEM) && defined(_WIN32)
-# define HAVE_DOSISH_SYSTEM 1
+#if !defined(HAVE_DOSISH_SYSTEM) && defined(_WIN32)
+#define HAVE_DOSISH_SYSTEM 1
 #endif
-#if !defined (HAVE_DOSISH_SYSTEM) && !defined (HAVE_POSIX_SYSTEM)
-# define HAVE_POSIX_SYSTEM 1
+#if !defined(HAVE_DOSISH_SYSTEM) && !defined(HAVE_POSIX_SYSTEM)
+#define HAVE_POSIX_SYSTEM 1
 #endif
 
 /* With no config.h assume that we have sitgnal.h.  */
-#if !defined (HAVE_CONFIG_H) && defined (HAVE_POSIX_SYSTEM)
-# define HAVE_SIGNAL_H 1
+#if !defined(HAVE_CONFIG_H) && defined(HAVE_POSIX_SYSTEM)
+#define HAVE_SIGNAL_H 1
 #endif
 
 /* Standard headers.  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#ifdef  HAVE_DOSISH_SYSTEM
-# define WIN32_LEAN_AND_MEAN  /* We only need the OS core stuff.  */
-# include <windows.h>
+#ifdef HAVE_DOSISH_SYSTEM
+#define WIN32_LEAN_AND_MEAN /* We only need the OS core stuff.  */
+#include <windows.h>
 #else
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <sys/utsname.h>
-#endif
-#include <sys/types.h>
-#include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
+#endif
 #include <fcntl.h>
-# include <signal.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #ifdef DOTLOCK_USE_PTHREAD
-# include <pthread.h>
+#include <pthread.h>
 #endif
 
 #ifdef DOTLOCK_GLIB_LOGGING
-# include <glib.h>
+#include <glib.h>
 #endif
 
-# include "util.h"
-# include "common-defs.h"
-# include "stringhelp.h"  /* For stpcpy and w32_strerror. */
+#include "common-defs.h"
+#include "stringhelp.h" /* For stpcpy and w32_strerror. */
+#include "util.h"
 
 #include "dotlock.h"
 
-
 /* Define constants for file name construction.  */
 #if !defined(DIRSEP_C) && !defined(EXTSEP_S)
-# ifdef HAVE_DOSISH_SYSTEM
-#  define DIRSEP_C '\\'
-#  define EXTSEP_S "."
+#ifdef HAVE_DOSISH_SYSTEM
+#define DIRSEP_C '\\'
+#define EXTSEP_S "."
 #else
-#  define DIRSEP_C '/'
-#  define EXTSEP_S "."
-# endif
+#define DIRSEP_C '/'
+#define EXTSEP_S "."
+#endif
 #endif
 
-#define my_set_errno(e)  gpg_err_set_errno ((e))
+#define my_set_errno(e) gpg_err_set_errno((e))
 
 /* Gettext macro replacement.  */
 #ifndef _
-# define _(a) (a)
+#define _(a) (a)
 #endif
 
-# define my_info_0(a)       log_info ((a))
-# define my_info_1(a,b)     log_info ((a), (b))
-# define my_info_2(a,b,c)   log_info ((a), (b), (c))
-# define my_info_3(a,b,c,d) log_info ((a), (b), (c), (d))
-# define my_error_0(a)      log_error ((a))
-# define my_error_1(a,b)    log_error ((a), (b))
-# define my_error_2(a,b,c)  log_error ((a), (b), (c))
-# define my_debug_1(a,b)    log_debug ((a), (b))
-# define my_fatal_0(a)      log_fatal ((a))
+#define my_info_0(a) log_info((a))
+#define my_info_1(a, b) log_info((a), (b))
+#define my_info_2(a, b, c) log_info((a), (b), (c))
+#define my_info_3(a, b, c, d) log_info((a), (b), (c), (d))
+#define my_error_0(a) log_error((a))
+#define my_error_1(a, b) log_error((a), (b))
+#define my_error_2(a, b, c) log_error((a), (b), (c))
+#define my_debug_1(a, b) log_debug((a), (b))
+#define my_fatal_0(a) log_fatal((a))
 
-
-
-
-
 /* The object describing a lock.  */
-struct dotlock_handle
-{
+struct dotlock_handle {
   struct dotlock_handle *next;
-  char *lockname;            /* Name of the actual lockfile.          */
-  unsigned int locked:1;     /* Lock status.                          */
-  unsigned int disable:1;    /* If true, locking is disabled.         */
-  unsigned int use_o_excl:1; /* Use open (O_EXCL) for locking.        */
+  char *lockname;              /* Name of the actual lockfile.          */
+  unsigned int locked : 1;     /* Lock status.                          */
+  unsigned int disable : 1;    /* If true, locking is disabled.         */
+  unsigned int use_o_excl : 1; /* Use open (O_EXCL) for locking.        */
 
-  int extra_fd;              /* A place for the caller to store an FD.  */
+  int extra_fd; /* A place for the caller to store an FD.  */
 
 #ifdef HAVE_DOSISH_SYSTEM
-  HANDLE lockhd;       /* The W32 handle of the lock file.      */
-#else /*!HAVE_DOSISH_SYSTEM */
+  HANDLE lockhd; /* The W32 handle of the lock file.      */
+#else            /*!HAVE_DOSISH_SYSTEM */
   char *tname;         /* Name of the lockfile template.        */
   size_t nodename_off; /* Offset in TNAME of the nodename part. */
   size_t nodename_len; /* Length of the nodename part.          */
-#endif /*!HAVE_DOSISH_SYSTEM */
+#endif           /*!HAVE_DOSISH_SYSTEM */
 };
-
 
 /* A list of all lock handles.  The volatile attribute might help
    if used in an atexit handler.  Note that [UN]LOCK_all_lockfiles
@@ -369,31 +361,31 @@ struct dotlock_handle
 static volatile dotlock_t all_lockfiles;
 #ifdef DOTLOCK_USE_PTHREAD
 static pthread_mutex_t all_lockfiles_mutex = PTHREAD_MUTEX_INITIALIZER;
-# define LOCK_all_lockfiles() do {                               \
-        if (pthread_mutex_lock (&all_lockfiles_mutex))           \
-          my_fatal_0 ("locking all_lockfiles_mutex failed\n");   \
-      } while (0)
-# define UNLOCK_all_lockfiles() do {                             \
-        if (pthread_mutex_unlock (&all_lockfiles_mutex))         \
-          my_fatal_0 ("unlocking all_lockfiles_mutex failed\n"); \
-      } while (0)
-#else  /*!DOTLOCK_USE_PTHREAD*/
-# define LOCK_all_lockfiles()   do { } while (0)
-# define UNLOCK_all_lockfiles() do { } while (0)
+#define LOCK_all_lockfiles()                              \
+  do {                                                    \
+    if (pthread_mutex_lock(&all_lockfiles_mutex))         \
+      my_fatal_0("locking all_lockfiles_mutex failed\n"); \
+  } while (0)
+#define UNLOCK_all_lockfiles()                              \
+  do {                                                      \
+    if (pthread_mutex_unlock(&all_lockfiles_mutex))         \
+      my_fatal_0("unlocking all_lockfiles_mutex failed\n"); \
+  } while (0)
+#else /*!DOTLOCK_USE_PTHREAD*/
+#define LOCK_all_lockfiles() \
+  do {                       \
+  } while (0)
+#define UNLOCK_all_lockfiles() \
+  do {                         \
+  } while (0)
 #endif /*!DOTLOCK_USE_PTHREAD*/
 
 /* If this has the value true all locking is disabled.  */
 static int never_lock;
 
-
-
-
 #ifdef HAVE_DOSISH_SYSTEM
-static int
-map_w32_to_errno (DWORD w32_err)
-{
-  switch (w32_err)
-    {
+static int map_w32_to_errno(DWORD w32_err) {
+  switch (w32_err) {
     case 0:
       return 0;
 
@@ -419,52 +411,39 @@ map_w32_to_errno (DWORD w32_err)
 
     default:
       return EIO;
-    }
+  }
 }
 #endif /*HAVE_DOSISH_SYSTEM*/
 
-
 /* Entirely disable all locking.  This function should be called
    before any locking is done.  It may be called right at startup of
    the process as it only sets a global value.  */
-void
-dotlock_disable (void)
-{
-  never_lock = 1;
-}
-
+void dotlock_disable(void) { never_lock = 1; }
 
 #ifdef HAVE_POSIX_SYSTEM
-static int
-maybe_deadlock (dotlock_t h)
-{
+static int maybe_deadlock(dotlock_t h) {
   dotlock_t r;
   int res = 0;
 
-  LOCK_all_lockfiles ();
-  for (r=all_lockfiles; r; r = r->next)
-    {
-      if ( r != h && r->locked )
-        {
-          res = 1;
-          break;
-        }
+  LOCK_all_lockfiles();
+  for (r = all_lockfiles; r; r = r->next) {
+    if (r != h && r->locked) {
+      res = 1;
+      break;
     }
-  UNLOCK_all_lockfiles ();
+  }
+  UNLOCK_all_lockfiles();
   return res;
 }
 #endif /*HAVE_POSIX_SYSTEM*/
-
 
 /* Read the lock file and return the pid, returns -1 on error.  True
    will be stored in the integer at address SAME_NODE if the lock file
    has been created on the same node. */
 #ifdef HAVE_POSIX_SYSTEM
-static int
-read_lockfile (dotlock_t h, int *same_node )
-{
-  char buffer_space[10+1+70+1]; /* 70 is just an estimated value; node
-                                   names are usually shorter. */
+static int read_lockfile(dotlock_t h, int *same_node) {
+  char buffer_space[10 + 1 + 70 + 1]; /* 70 is just an estimated value; node
+                                         names are usually shorter. */
   int fd;
   int pid = -1;
   char *buffer, *p;
@@ -473,80 +452,63 @@ read_lockfile (dotlock_t h, int *same_node )
 
   *same_node = 0;
   expected_len = 10 + 1 + h->nodename_len + 1;
-  if ( expected_len >= sizeof buffer_space)
-    {
-      buffer = (char*) xtrymalloc (expected_len);
-      if (!buffer)
-        return -1;
-    }
-  else
+  if (expected_len >= sizeof buffer_space) {
+    buffer = (char *)xtrymalloc(expected_len);
+    if (!buffer) return -1;
+  } else
     buffer = buffer_space;
 
-  if ( (fd = open (h->lockname, O_RDONLY)) == -1 )
-    {
-      int e = errno;
-      my_info_2 ("error opening lockfile '%s': %s\n",
-                 h->lockname, strerror(errno) );
-      if (buffer != buffer_space)
-        xfree (buffer);
-      my_set_errno (e); /* Need to return ERRNO here. */
-      return -1;
-    }
+  if ((fd = open(h->lockname, O_RDONLY)) == -1) {
+    int e = errno;
+    my_info_2("error opening lockfile '%s': %s\n", h->lockname,
+              strerror(errno));
+    if (buffer != buffer_space) xfree(buffer);
+    my_set_errno(e); /* Need to return ERRNO here. */
+    return -1;
+  }
 
   p = buffer;
   nread = 0;
-  do
-    {
-      res = read (fd, p, expected_len - nread);
-      if (res == -1 && errno == EINTR)
-        continue;
-      if (res < 0)
-        {
-          int e = errno;
-          my_info_1 ("error reading lockfile '%s'\n", h->lockname );
-          close (fd);
-          if (buffer != buffer_space)
-            xfree (buffer);
-          my_set_errno (e);
-          return -1;
-        }
-      p += res;
-      nread += res;
+  do {
+    res = read(fd, p, expected_len - nread);
+    if (res == -1 && errno == EINTR) continue;
+    if (res < 0) {
+      int e = errno;
+      my_info_1("error reading lockfile '%s'\n", h->lockname);
+      close(fd);
+      if (buffer != buffer_space) xfree(buffer);
+      my_set_errno(e);
+      return -1;
     }
-  while (res && nread != expected_len);
+    p += res;
+    nread += res;
+  } while (res && nread != expected_len);
   close(fd);
 
-  if (nread < 11)
-    {
-      my_info_1 ("invalid size of lockfile '%s'\n", h->lockname);
-      if (buffer != buffer_space)
-        xfree (buffer);
-      my_set_errno (EINVAL);
-      return -1;
-    }
+  if (nread < 11) {
+    my_info_1("invalid size of lockfile '%s'\n", h->lockname);
+    if (buffer != buffer_space) xfree(buffer);
+    my_set_errno(EINVAL);
+    return -1;
+  }
 
-  if (buffer[10] != '\n'
-      || (buffer[10] = 0, pid = atoi (buffer)) == -1
-      || !pid )
-    {
-      my_error_2 ("invalid pid %d in lockfile '%s'\n", pid, h->lockname);
-      if (buffer != buffer_space)
-        xfree (buffer);
-      my_set_errno (EINVAL);
-      return -1;
-    }
+  if (buffer[10] != '\n' || (buffer[10] = 0, pid = atoi(buffer)) == -1 ||
+      !pid) {
+    my_error_2("invalid pid %d in lockfile '%s'\n", pid, h->lockname);
+    if (buffer != buffer_space) xfree(buffer);
+    my_set_errno(EINVAL);
+    return -1;
+  }
 
-  if (nread == expected_len
-      && !memcmp (h->tname+h->nodename_off, buffer+11, h->nodename_len)
-      && buffer[11+h->nodename_len] == '\n')
+  if (nread == expected_len &&
+      !memcmp(h->tname + h->nodename_off, buffer + 11, h->nodename_len) &&
+      buffer[11 + h->nodename_len] == '\n')
     *same_node = 1;
 
-  if (buffer != buffer_space)
-    xfree (buffer);
+  if (buffer != buffer_space) xfree(buffer);
   return pid;
 }
 #endif /*HAVE_POSIX_SYSTEM */
-
 
 /* Check whether the file system which stores TNAME supports
    hardlinks.  Instead of using the non-portable statsfs call which
@@ -554,50 +516,42 @@ read_lockfile (dotlock_t h, int *same_node )
    Returns: 0 supports hardlinks; 1 no hardlink support, -1 unknown
    (test error).  */
 #ifdef HAVE_POSIX_SYSTEM
-static int
-use_hardlinks_p (const char *tname)
-{
+static int use_hardlinks_p(const char *tname) {
   char *lname;
   struct stat sb;
   unsigned int nlink;
   int res;
 
-  if (stat (tname, &sb))
-    return -1;
+  if (stat(tname, &sb)) return -1;
   nlink = (unsigned int)sb.st_nlink;
 
-  lname = (char*) xtrymalloc (strlen (tname) + 1 + 1);
-  if (!lname)
-    return -1;
-  strcpy (lname, tname);
-  strcat (lname, "x");
+  lname = (char *)xtrymalloc(strlen(tname) + 1 + 1);
+  if (!lname) return -1;
+  strcpy(lname, tname);
+  strcat(lname, "x");
 
   /* We ignore the return value of link() because it is unreliable.  */
-  res = link (tname, lname);
+  res = link(tname, lname);
   if (!res)
     res = 1;
-  else if (stat (tname, &sb))
-    res = -1;  /* Ooops.  */
+  else if (stat(tname, &sb))
+    res = -1; /* Ooops.  */
   else if (sb.st_nlink == nlink + 1)
-    res = 0;   /* Yeah, hardlinks are supported.  */
+    res = 0; /* Yeah, hardlinks are supported.  */
   else
-    res = 1;   /* No hardlink support.  */
+    res = 1; /* No hardlink support.  */
 
-  unlink (lname);
-  xfree (lname);
+  unlink(lname);
+  xfree(lname);
   return res;
 }
 #endif /*HAVE_POSIX_SYSTEM */
 
-
-
-#ifdef  HAVE_POSIX_SYSTEM
+#ifdef HAVE_POSIX_SYSTEM
 /* Locking core for Unix.  It used a temporary file and the link
    system call to make locking an atomic operation. */
-static dotlock_t
-dotlock_create_unix (dotlock_t h, const char *file_to_lock)
-{
-  int  fd = -1;
+static dotlock_t dotlock_create_unix(dotlock_t h, const char *file_to_lock) {
+  int fd = -1;
   char pidstr[16];
   const char *nodename;
   const char *dirpart;
@@ -605,134 +559,117 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
   struct utsname utsbuf;
   size_t tnamelen;
 
-  snprintf (pidstr, sizeof pidstr, "%10d\n", (int)getpid() );
+  snprintf(pidstr, sizeof pidstr, "%10d\n", (int)getpid());
 
   /* Create a temporary file. */
-  if ( uname ( &utsbuf ) )
+  if (uname(&utsbuf))
     nodename = "unknown";
   else
     nodename = utsbuf.nodename;
 
-  if ( !(dirpart = strrchr (file_to_lock, DIRSEP_C)) )
-    {
-      dirpart = EXTSEP_S;
-      dirpartlen = 1;
-    }
-  else
-    {
-      dirpartlen = dirpart - file_to_lock;
-      dirpart = file_to_lock;
-    }
+  if (!(dirpart = strrchr(file_to_lock, DIRSEP_C))) {
+    dirpart = EXTSEP_S;
+    dirpartlen = 1;
+  } else {
+    dirpartlen = dirpart - file_to_lock;
+    dirpart = file_to_lock;
+  }
 
-  LOCK_all_lockfiles ();
+  LOCK_all_lockfiles();
   h->next = all_lockfiles;
   all_lockfiles = h;
 
   tnamelen = dirpartlen + 6 + 30 + strlen(nodename) + 10 + 1;
-  h->tname = (char*) xtrymalloc (tnamelen + 1);
-  if (!h->tname)
-    {
-      all_lockfiles = h->next;
-      UNLOCK_all_lockfiles ();
-      xfree (h);
-      return NULL;
-    }
-  h->nodename_len = strlen (nodename);
+  h->tname = (char *)xtrymalloc(tnamelen + 1);
+  if (!h->tname) {
+    all_lockfiles = h->next;
+    UNLOCK_all_lockfiles();
+    xfree(h);
+    return NULL;
+  }
+  h->nodename_len = strlen(nodename);
 
-  snprintf (h->tname, tnamelen, "%.*s/.#lk%p.", dirpartlen, dirpart, h );
-  h->nodename_off = strlen (h->tname);
-  snprintf (h->tname+h->nodename_off, tnamelen - h->nodename_off,
-           "%s.%d", nodename, (int)getpid ());
+  snprintf(h->tname, tnamelen, "%.*s/.#lk%p.", dirpartlen, dirpart, h);
+  h->nodename_off = strlen(h->tname);
+  snprintf(h->tname + h->nodename_off, tnamelen - h->nodename_off, "%s.%d",
+           nodename, (int)getpid());
 
-  do
-    {
-      my_set_errno (0);
-      fd = open (h->tname, O_WRONLY|O_CREAT|O_EXCL,
-                 S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR );
-    }
-  while (fd == -1 && errno == EINTR);
+  do {
+    my_set_errno(0);
+    fd = open(h->tname, O_WRONLY | O_CREAT | O_EXCL,
+              S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR);
+  } while (fd == -1 && errno == EINTR);
 
-  if ( fd == -1 )
-    {
-      int saveerrno = errno;
-      all_lockfiles = h->next;
-      UNLOCK_all_lockfiles ();
-      my_error_2 (_("failed to create temporary file '%s': %s\n"),
-                  h->tname, strerror (errno));
-      xfree (h->tname);
-      xfree (h);
-      my_set_errno (saveerrno);
-      return NULL;
-    }
-  if ( write (fd, pidstr, 11 ) != 11 )
+  if (fd == -1) {
+    int saveerrno = errno;
+    all_lockfiles = h->next;
+    UNLOCK_all_lockfiles();
+    my_error_2(_("failed to create temporary file '%s': %s\n"), h->tname,
+               strerror(errno));
+    xfree(h->tname);
+    xfree(h);
+    my_set_errno(saveerrno);
+    return NULL;
+  }
+  if (write(fd, pidstr, 11) != 11) goto write_failed;
+  if (write(fd, nodename, strlen(nodename)) != strlen(nodename))
     goto write_failed;
-  if ( write (fd, nodename, strlen (nodename) ) != strlen (nodename) )
+  if (write(fd, "\n", 1) != 1) goto write_failed;
+  if (close(fd)) {
+    if (errno == EINTR) fd = -1;
     goto write_failed;
-  if ( write (fd, "\n", 1 ) != 1 )
-    goto write_failed;
-  if ( close (fd) )
-    {
-      if ( errno == EINTR )
-        fd = -1;
-      goto write_failed;
-    }
+  }
   fd = -1;
 
   /* Check whether we support hard links.  */
-  switch (use_hardlinks_p (h->tname))
-    {
+  switch (use_hardlinks_p(h->tname)) {
     case 0: /* Yes.  */
       break;
     case 1: /* No.  */
-      unlink (h->tname);
+      unlink(h->tname);
       h->use_o_excl = 1;
       break;
-    default:
-      {
-        int saveerrno = errno;
-        my_error_2 ("can't check whether hardlinks are supported for '%s': %s\n"
-                    , h->tname, strerror (saveerrno));
-        my_set_errno (saveerrno);
-      }
-      goto write_failed;
-    }
-
-  h->lockname = (char*) xtrymalloc (strlen (file_to_lock) + 6 );
-  if (!h->lockname)
-    {
+    default: {
       int saveerrno = errno;
-      all_lockfiles = h->next;
-      UNLOCK_all_lockfiles ();
-      unlink (h->tname);
-      xfree (h->tname);
-      xfree (h);
-      my_set_errno (saveerrno);
-      return NULL;
+      my_error_2("can't check whether hardlinks are supported for '%s': %s\n",
+                 h->tname, strerror(saveerrno));
+      my_set_errno(saveerrno);
     }
-  strcpy (stpcpy (h->lockname, file_to_lock), EXTSEP_S "lock");
-  UNLOCK_all_lockfiles ();
+      goto write_failed;
+  }
+
+  h->lockname = (char *)xtrymalloc(strlen(file_to_lock) + 6);
+  if (!h->lockname) {
+    int saveerrno = errno;
+    all_lockfiles = h->next;
+    UNLOCK_all_lockfiles();
+    unlink(h->tname);
+    xfree(h->tname);
+    xfree(h);
+    my_set_errno(saveerrno);
+    return NULL;
+  }
+  strcpy(stpcpy(h->lockname, file_to_lock), EXTSEP_S "lock");
+  UNLOCK_all_lockfiles();
   if (h->use_o_excl)
-    my_debug_1 ("locking for '%s' done via O_EXCL\n", h->lockname);
+    my_debug_1("locking for '%s' done via O_EXCL\n", h->lockname);
 
   return h;
 
- write_failed:
-  {
-    int saveerrno = errno;
-    all_lockfiles = h->next;
-    UNLOCK_all_lockfiles ();
-    my_error_2 (_("error writing to '%s': %s\n"), h->tname, strerror (errno));
-    if ( fd != -1 )
-      close (fd);
-    unlink (h->tname);
-    xfree (h->tname);
-    xfree (h);
-    my_set_errno (saveerrno);
-  }
+write_failed : {
+  int saveerrno = errno;
+  all_lockfiles = h->next;
+  UNLOCK_all_lockfiles();
+  my_error_2(_("error writing to '%s': %s\n"), h->tname, strerror(errno));
+  if (fd != -1) close(fd);
+  unlink(h->tname);
+  xfree(h->tname);
+  xfree(h);
+  my_set_errno(saveerrno);
+}
   return NULL;
 }
 #endif /*HAVE_POSIX_SYSTEM*/
-
 
 #ifdef HAVE_DOSISH_SYSTEM
 /* Locking core for Windows.  This version does not need a temporary
@@ -740,22 +677,19 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
    create this file here so that we later only need to do the file
    locking.  For error reporting it is useful to keep the name of the
    file in the handle.  */
-static dotlock_t
-dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
-{
-  LOCK_all_lockfiles ();
+static dotlock_t dotlock_create_w32(dotlock_t h, const char *file_to_lock) {
+  LOCK_all_lockfiles();
   h->next = all_lockfiles;
   all_lockfiles = h;
 
-  h->lockname = xtrymalloc ( strlen (file_to_lock) + 6 );
-  if (!h->lockname)
-    {
-      all_lockfiles = h->next;
-      UNLOCK_all_lockfiles ();
-      xfree (h);
-      return NULL;
-    }
-  strcpy (stpcpy(h->lockname, file_to_lock), EXTSEP_S "lock");
+  h->lockname = xtrymalloc(strlen(file_to_lock) + 6);
+  if (!h->lockname) {
+    all_lockfiles = h->next;
+    UNLOCK_all_lockfiles();
+    xfree(h);
+    return NULL;
+  }
+  strcpy(stpcpy(h->lockname, file_to_lock), EXTSEP_S "lock");
 
   /* If would be nice if we would use the FILE_FLAG_DELETE_ON_CLOSE
      along with FILE_SHARE_DELETE but that does not work due to a race
@@ -766,26 +700,23 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
      would not stop as expected but spin until Windows crashes.  Our
      solution is to keep the lock file open; that does not harm. */
   {
-    h->lockhd = CreateFile (h->lockname,
-                            GENERIC_READ|GENERIC_WRITE,
-                            FILE_SHARE_READ|FILE_SHARE_WRITE,
-                            NULL, OPEN_ALWAYS, 0, NULL);
+    h->lockhd = CreateFile(h->lockname, GENERIC_READ | GENERIC_WRITE,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+                           OPEN_ALWAYS, 0, NULL);
   }
-  if (h->lockhd == INVALID_HANDLE_VALUE)
-    {
-      int saveerrno = map_w32_to_errno (GetLastError ());
-      all_lockfiles = h->next;
-      UNLOCK_all_lockfiles ();
-      my_error_2 (_("can't create '%s': %s\n"), h->lockname, w32_strerror (-1));
-      xfree (h->lockname);
-      xfree (h);
-      my_set_errno (saveerrno);
-      return NULL;
-    }
+  if (h->lockhd == INVALID_HANDLE_VALUE) {
+    int saveerrno = map_w32_to_errno(GetLastError());
+    all_lockfiles = h->next;
+    UNLOCK_all_lockfiles();
+    my_error_2(_("can't create '%s': %s\n"), h->lockname, w32_strerror(-1));
+    xfree(h->lockname);
+    xfree(h);
+    my_set_errno(saveerrno);
+    return NULL;
+  }
   return h;
 }
 #endif /*HAVE_DOSISH_SYSTEM*/
-
 
 /* Create a lockfile for a file name FILE_TO_LOCK and returns an
    object of type dotlock_t which may be used later to actually acquire
@@ -808,514 +739,418 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
    process.  On error NULL is returned.
  */
 
-dotlock_t
-dotlock_create (const char *file_to_lock, unsigned int flags)
-{
+dotlock_t dotlock_create(const char *file_to_lock, unsigned int flags) {
   static int initialized;
   dotlock_t h;
 
-  if ( !initialized )
-    {
-      atexit (dotlock_remove_lockfiles);
-      initialized = 1;
-    }
+  if (!initialized) {
+    atexit(dotlock_remove_lockfiles);
+    initialized = 1;
+  }
 
-  if ( !file_to_lock )
-    return NULL;  /* Only initialization was requested.  */
+  if (!file_to_lock) return NULL; /* Only initialization was requested.  */
 
-  if (flags)
-    {
-      my_set_errno (EINVAL);
-      return NULL;
-    }
-
-  h = (dotlock_t) xtrycalloc (1, sizeof *h);
-  if (!h)
+  if (flags) {
+    my_set_errno(EINVAL);
     return NULL;
+  }
+
+  h = (dotlock_t)xtrycalloc(1, sizeof *h);
+  if (!h) return NULL;
   h->extra_fd = -1;
 
-  if (never_lock)
-    {
-      h->disable = 1;
-      LOCK_all_lockfiles ();
-      h->next = all_lockfiles;
-      all_lockfiles = h;
-      UNLOCK_all_lockfiles ();
-      return h;
-    }
+  if (never_lock) {
+    h->disable = 1;
+    LOCK_all_lockfiles();
+    h->next = all_lockfiles;
+    all_lockfiles = h;
+    UNLOCK_all_lockfiles();
+    return h;
+  }
 
 #ifdef HAVE_DOSISH_SYSTEM
-  return dotlock_create_w32 (h, file_to_lock);
-#else /*!HAVE_DOSISH_SYSTEM */
-  return dotlock_create_unix (h, file_to_lock);
+  return dotlock_create_w32(h, file_to_lock);
+#else  /*!HAVE_DOSISH_SYSTEM */
+  return dotlock_create_unix(h, file_to_lock);
 #endif /*!HAVE_DOSISH_SYSTEM*/
 }
 
-
-
 /* Convenience function to store a file descriptor (or any other
    integer value) in the context of handle H.  */
-void
-dotlock_set_fd (dotlock_t h, int fd)
-{
-  h->extra_fd = fd;
-}
+void dotlock_set_fd(dotlock_t h, int fd) { h->extra_fd = fd; }
 
 /* Convenience function to retrieve a file descriptor (or any other
    integer value) stored in the context of handle H.  */
-int
-dotlock_get_fd (dotlock_t h)
-{
-  return h->extra_fd;
-}
+int dotlock_get_fd(dotlock_t h) { return h->extra_fd; }
 
-
-
 #ifdef HAVE_POSIX_SYSTEM
 /* Unix specific code of destroy_dotlock.  */
-static void
-dotlock_destroy_unix (dotlock_t h)
-{
-  if (h->locked && h->lockname)
-    unlink (h->lockname);
-  if (h->tname && !h->use_o_excl)
-    unlink (h->tname);
-  xfree (h->tname);
+static void dotlock_destroy_unix(dotlock_t h) {
+  if (h->locked && h->lockname) unlink(h->lockname);
+  if (h->tname && !h->use_o_excl) unlink(h->tname);
+  xfree(h->tname);
 }
 #endif /*HAVE_POSIX_SYSTEM*/
 
-
 #ifdef HAVE_DOSISH_SYSTEM
 /* Windows specific code of destroy_dotlock.  */
-static void
-dotlock_destroy_w32 (dotlock_t h)
-{
-  if (h->locked)
-    {
-      OVERLAPPED ovl;
+static void dotlock_destroy_w32(dotlock_t h) {
+  if (h->locked) {
+    OVERLAPPED ovl;
 
-      memset (&ovl, 0, sizeof ovl);
-      UnlockFileEx (h->lockhd, 0, 1, 0, &ovl);
-    }
-  CloseHandle (h->lockhd);
+    memset(&ovl, 0, sizeof ovl);
+    UnlockFileEx(h->lockhd, 0, 1, 0, &ovl);
+  }
+  CloseHandle(h->lockhd);
 }
 #endif /*HAVE_DOSISH_SYSTEM*/
 
-
 /* Destroy the lock handle H and release the lock.  */
-void
-dotlock_destroy (dotlock_t h)
-{
+void dotlock_destroy(dotlock_t h) {
   dotlock_t hprev, htmp;
 
-  if ( !h )
-    return;
+  if (!h) return;
 
   /* First remove the handle from our global list of all locks. */
-  LOCK_all_lockfiles ();
-  for (hprev=NULL, htmp=all_lockfiles; htmp; hprev=htmp, htmp=htmp->next)
-    if (htmp == h)
-      {
-        if (hprev)
-          hprev->next = htmp->next;
-        else
-          all_lockfiles = htmp->next;
-        h->next = NULL;
-        break;
-      }
-  UNLOCK_all_lockfiles ();
+  LOCK_all_lockfiles();
+  for (hprev = NULL, htmp = all_lockfiles; htmp;
+       hprev = htmp, htmp = htmp->next)
+    if (htmp == h) {
+      if (hprev)
+        hprev->next = htmp->next;
+      else
+        all_lockfiles = htmp->next;
+      h->next = NULL;
+      break;
+    }
+  UNLOCK_all_lockfiles();
 
   /* Then destroy the lock. */
-  if (!h->disable)
-    {
+  if (!h->disable) {
 #ifdef HAVE_DOSISH_SYSTEM
-      dotlock_destroy_w32 (h);
-#else /* !HAVE_DOSISH_SYSTEM */
-      dotlock_destroy_unix (h);
+    dotlock_destroy_w32(h);
+#else  /* !HAVE_DOSISH_SYSTEM */
+    dotlock_destroy_unix(h);
 #endif /* HAVE_DOSISH_SYSTEM */
-      xfree (h->lockname);
-    }
+    xfree(h->lockname);
+  }
   xfree(h);
 }
 
-
-
 #ifdef HAVE_POSIX_SYSTEM
 /* Unix specific code of make_dotlock.  Returns 0 on success and -1 on
    error.  */
-static int
-dotlock_take_unix (dotlock_t h, long timeout)
-{
+static int dotlock_take_unix(dotlock_t h, long timeout) {
   int wtime = 0;
   int sumtime = 0;
   int pid;
   int lastpid = -1;
   int ownerchanged;
-  const char *maybe_dead="";
+  const char *maybe_dead = "";
   int same_node;
   int saveerrno;
 
- again:
-  if (h->use_o_excl)
-    {
-      /* No hardlink support - use open(O_EXCL).  */
-      int fd;
+again:
+  if (h->use_o_excl) {
+    /* No hardlink support - use open(O_EXCL).  */
+    int fd;
 
-      do
-        {
-          my_set_errno (0);
-          fd = open (h->lockname, O_WRONLY|O_CREAT|O_EXCL,
-                     S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR );
-        }
-      while (fd == -1 && errno == EINTR);
+    do {
+      my_set_errno(0);
+      fd = open(h->lockname, O_WRONLY | O_CREAT | O_EXCL,
+                S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR);
+    } while (fd == -1 && errno == EINTR);
 
-      if (fd == -1 && errno == EEXIST)
-        ; /* Lock held by another process.  */
-      else if (fd == -1)
-        {
-          saveerrno = errno;
-          my_error_2 ("lock not made: open(O_EXCL) of '%s' failed: %s\n",
-                      h->lockname, strerror (saveerrno));
-          my_set_errno (saveerrno);
-          return -1;
-        }
-      else
-        {
-          char pidstr[16];
+    if (fd == -1 && errno == EEXIST)
+      ; /* Lock held by another process.  */
+    else if (fd == -1) {
+      saveerrno = errno;
+      my_error_2("lock not made: open(O_EXCL) of '%s' failed: %s\n",
+                 h->lockname, strerror(saveerrno));
+      my_set_errno(saveerrno);
+      return -1;
+    } else {
+      char pidstr[16];
 
-          snprintf (pidstr, sizeof pidstr, "%10d\n", (int)getpid());
-          if (write (fd, pidstr, 11 ) == 11
-              && write (fd, h->tname + h->nodename_off,h->nodename_len)
-              == h->nodename_len
-              && write (fd, "\n", 1) == 1
-              && !close (fd))
-            {
-              h->locked = 1;
-              return 0;
-            }
-          /* Write error.  */
-          saveerrno = errno;
-          my_error_2 ("lock not made: writing to '%s' failed: %s\n",
-                      h->lockname, strerror (errno));
-          close (fd);
-          unlink (h->lockname);
-          my_set_errno (saveerrno);
-          return -1;
-        }
+      snprintf(pidstr, sizeof pidstr, "%10d\n", (int)getpid());
+      if (write(fd, pidstr, 11) == 11 &&
+          write(fd, h->tname + h->nodename_off, h->nodename_len) ==
+              h->nodename_len &&
+          write(fd, "\n", 1) == 1 && !close(fd)) {
+        h->locked = 1;
+        return 0;
+      }
+      /* Write error.  */
+      saveerrno = errno;
+      my_error_2("lock not made: writing to '%s' failed: %s\n", h->lockname,
+                 strerror(errno));
+      close(fd);
+      unlink(h->lockname);
+      my_set_errno(saveerrno);
+      return -1;
     }
-  else /* Standard method:  Use hardlinks.  */
-    {
-      struct stat sb;
-      int res;
-      
-      /* We ignore the return value of link() because it is unreliable.  */
-      res = link (h->tname, h->lockname);
-      if (!res)
-	res = stat (h->tname, &sb);
-      if (res)
-        {
-          saveerrno = errno;
-          my_error_1 ("lock not made: Oops: link or stat of tmp file failed: %s\n",
-                      strerror (errno));
-          /* In theory this might be a severe error: It is possible
-             that link succeeded but stat failed due to changed
-             permissions.  We can't do anything about it, though.  */
-          my_set_errno (saveerrno);
-          return -1;
-        }
+  } else /* Standard method:  Use hardlinks.  */
+  {
+    struct stat sb;
+    int res;
 
-      if (sb.st_nlink == 2)
-        {
-          h->locked = 1;
-          return 0; /* Okay.  */
-        }
+    /* We ignore the return value of link() because it is unreliable.  */
+    res = link(h->tname, h->lockname);
+    if (!res) res = stat(h->tname, &sb);
+    if (res) {
+      saveerrno = errno;
+      my_error_1("lock not made: Oops: link or stat of tmp file failed: %s\n",
+                 strerror(errno));
+      /* In theory this might be a severe error: It is possible
+         that link succeeded but stat failed due to changed
+         permissions.  We can't do anything about it, though.  */
+      my_set_errno(saveerrno);
+      return -1;
     }
+
+    if (sb.st_nlink == 2) {
+      h->locked = 1;
+      return 0; /* Okay.  */
+    }
+  }
 
   /* Check for stale lock files.  */
-  if ( (pid = read_lockfile (h, &same_node)) == -1 )
-    {
-      if ( errno != ENOENT )
-        {
-          saveerrno = errno;
-          my_info_0 ("cannot read lockfile\n");
-          my_set_errno (saveerrno);
-          return -1;
-        }
-      my_info_0 ("lockfile disappeared\n");
-      goto again;
+  if ((pid = read_lockfile(h, &same_node)) == -1) {
+    if (errno != ENOENT) {
+      saveerrno = errno;
+      my_info_0("cannot read lockfile\n");
+      my_set_errno(saveerrno);
+      return -1;
     }
-  else if ( pid == getpid() && same_node )
-    {
-      my_info_0 ("Oops: lock already held by us\n");
-      h->locked = 1;
-      return 0; /* okay */
-    }
-  else if ( same_node && kill (pid, 0) && errno == ESRCH )
-    {
-      /* Note: It is unlikley that we get a race here unless a pid is
-         reused too fast or a new process with the same pid as the one
-         of the stale file tries to lock right at the same time as we.  */
-      my_info_1 (_("removing stale lockfile (created by %d)\n"), pid);
-      unlink (h->lockname);
-      goto again;
-    }
+    my_info_0("lockfile disappeared\n");
+    goto again;
+  } else if (pid == getpid() && same_node) {
+    my_info_0("Oops: lock already held by us\n");
+    h->locked = 1;
+    return 0; /* okay */
+  } else if (same_node && kill(pid, 0) && errno == ESRCH) {
+    /* Note: It is unlikley that we get a race here unless a pid is
+       reused too fast or a new process with the same pid as the one
+       of the stale file tries to lock right at the same time as we.  */
+    my_info_1(_("removing stale lockfile (created by %d)\n"), pid);
+    unlink(h->lockname);
+    goto again;
+  }
 
-  if (lastpid == -1)
-    lastpid = pid;
+  if (lastpid == -1) lastpid = pid;
   ownerchanged = (pid != lastpid);
 
-  if (timeout)
-    {
-      struct timeval tv;
+  if (timeout) {
+    struct timeval tv;
 
-      /* Wait until lock has been released.  We use increasing retry
-         intervals of 50ms, 100ms, 200ms, 400ms, 800ms, 2s, 4s and 8s
-         but reset it if the lock owner meanwhile changed.  */
-      if (!wtime || ownerchanged)
-        wtime = 50;
-      else if (wtime < 800)
-        wtime *= 2;
-      else if (wtime == 800)
-        wtime = 2000;
-      else if (wtime < 8000)
-        wtime *= 2;
+    /* Wait until lock has been released.  We use increasing retry
+       intervals of 50ms, 100ms, 200ms, 400ms, 800ms, 2s, 4s and 8s
+       but reset it if the lock owner meanwhile changed.  */
+    if (!wtime || ownerchanged)
+      wtime = 50;
+    else if (wtime < 800)
+      wtime *= 2;
+    else if (wtime == 800)
+      wtime = 2000;
+    else if (wtime < 8000)
+      wtime *= 2;
 
-      if (timeout > 0)
-        {
-          if (wtime > timeout)
-            wtime = timeout;
-          timeout -= wtime;
-        }
-
-      sumtime += wtime;
-      if (sumtime >= 1500)
-        {
-          sumtime = 0;
-          my_info_3 (_("waiting for lock (held by %d%s) %s...\n"),
-                     pid, maybe_dead, maybe_deadlock(h)? _("(deadlock?) "):"");
-        }
-
-
-      tv.tv_sec = wtime / 1000;
-      tv.tv_usec = (wtime % 1000) * 1000;
-      select (0, NULL, NULL, NULL, &tv);
-      goto again;
+    if (timeout > 0) {
+      if (wtime > timeout) wtime = timeout;
+      timeout -= wtime;
     }
 
-  my_set_errno (EACCES);
+    sumtime += wtime;
+    if (sumtime >= 1500) {
+      sumtime = 0;
+      my_info_3(_("waiting for lock (held by %d%s) %s...\n"), pid, maybe_dead,
+                maybe_deadlock(h) ? _("(deadlock?) ") : "");
+    }
+
+    tv.tv_sec = wtime / 1000;
+    tv.tv_usec = (wtime % 1000) * 1000;
+    select(0, NULL, NULL, NULL, &tv);
+    goto again;
+  }
+
+  my_set_errno(EACCES);
   return -1;
 }
 #endif /*HAVE_POSIX_SYSTEM*/
 
-
 #ifdef HAVE_DOSISH_SYSTEM
 /* Windows specific code of make_dotlock.  Returns 0 on success and -1 on
    error.  */
-static int
-dotlock_take_w32 (dotlock_t h, long timeout)
-{
+static int dotlock_take_w32(dotlock_t h, long timeout) {
   int wtime = 0;
   int w32err;
   OVERLAPPED ovl;
 
- again:
+again:
   /* Lock one byte at offset 0.  The offset is given by OVL.  */
-  memset (&ovl, 0, sizeof ovl);
-  if (LockFileEx (h->lockhd, (LOCKFILE_EXCLUSIVE_LOCK
-                              | LOCKFILE_FAIL_IMMEDIATELY), 0, 1, 0, &ovl))
-    {
-      h->locked = 1;
-      return 0; /* okay */
+  memset(&ovl, 0, sizeof ovl);
+  if (LockFileEx(h->lockhd,
+                 (LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY), 0, 1, 0,
+                 &ovl)) {
+    h->locked = 1;
+    return 0; /* okay */
+  }
+
+  w32err = GetLastError();
+  if (w32err != ERROR_LOCK_VIOLATION) {
+    my_error_2(_("lock '%s' not made: %s\n"), h->lockname,
+               w32_strerror(w32err));
+    my_set_errno(map_w32_to_errno(w32err));
+    return -1;
+  }
+
+  if (timeout) {
+    /* Wait until lock has been released.  We use retry intervals of
+       50ms, 100ms, 200ms, 400ms, 800ms, 2s, 4s and 8s.  */
+    if (!wtime)
+      wtime = 50;
+    else if (wtime < 800)
+      wtime *= 2;
+    else if (wtime == 800)
+      wtime = 2000;
+    else if (wtime < 8000)
+      wtime *= 2;
+
+    if (timeout > 0) {
+      if (wtime > timeout) wtime = timeout;
+      timeout -= wtime;
     }
 
-  w32err = GetLastError ();
-  if (w32err != ERROR_LOCK_VIOLATION)
-    {
-      my_error_2 (_("lock '%s' not made: %s\n"),
-                  h->lockname, w32_strerror (w32err));
-      my_set_errno (map_w32_to_errno (w32err));
-      return -1;
-    }
+    if (wtime >= 800) my_info_1(_("waiting for lock %s...\n"), h->lockname);
 
-  if (timeout)
-    {
-      /* Wait until lock has been released.  We use retry intervals of
-         50ms, 100ms, 200ms, 400ms, 800ms, 2s, 4s and 8s.  */
-      if (!wtime)
-        wtime = 50;
-      else if (wtime < 800)
-        wtime *= 2;
-      else if (wtime == 800)
-        wtime = 2000;
-      else if (wtime < 8000)
-        wtime *= 2;
+    Sleep(wtime);
+    goto again;
+  }
 
-      if (timeout > 0)
-        {
-          if (wtime > timeout)
-            wtime = timeout;
-          timeout -= wtime;
-        }
-
-      if (wtime >= 800)
-        my_info_1 (_("waiting for lock %s...\n"), h->lockname);
-
-      Sleep (wtime);
-      goto again;
-    }
-
-  my_set_errno (EACCES);
+  my_set_errno(EACCES);
   return -1;
 }
 #endif /*HAVE_DOSISH_SYSTEM*/
 
-
 /* Take a lock on H.  A value of 0 for TIMEOUT returns immediately if
    the lock can't be taked, -1 waits forever (hopefully not), other
    values wait for TIMEOUT milliseconds.  Returns: 0 on success  */
-int
-dotlock_take (dotlock_t h, long timeout)
-{
+int dotlock_take(dotlock_t h, long timeout) {
   int ret;
 
-  if ( h->disable )
+  if (h->disable)
     return 0; /* Locks are completely disabled.  Return success. */
 
-  if ( h->locked )
-    {
-      my_debug_1 ("Oops, '%s' is already locked\n", h->lockname);
-      return 0;
-    }
+  if (h->locked) {
+    my_debug_1("Oops, '%s' is already locked\n", h->lockname);
+    return 0;
+  }
 
 #ifdef HAVE_DOSISH_SYSTEM
-  ret = dotlock_take_w32 (h, timeout);
-#else /*!HAVE_DOSISH_SYSTEM*/
-  ret = dotlock_take_unix (h, timeout);
+  ret = dotlock_take_w32(h, timeout);
+#else  /*!HAVE_DOSISH_SYSTEM*/
+  ret = dotlock_take_unix(h, timeout);
 #endif /*!HAVE_DOSISH_SYSTEM*/
 
   return ret;
 }
 
-
-
 #ifdef HAVE_POSIX_SYSTEM
 /* Unix specific code of release_dotlock.  */
-static int
-dotlock_release_unix (dotlock_t h)
-{
+static int dotlock_release_unix(dotlock_t h) {
   int pid, same_node;
   int saveerrno;
 
-  pid = read_lockfile (h, &same_node);
-  if ( pid == -1 )
-    {
-      saveerrno = errno;
-      my_error_0 ("release_dotlock: lockfile error\n");
-      my_set_errno (saveerrno);
-      return -1;
-    }
-  if ( pid != getpid() || !same_node )
-    {
-      my_error_1 ("release_dotlock: not our lock (pid=%d)\n", pid);
-      my_set_errno (EACCES);
-      return -1;
-    }
+  pid = read_lockfile(h, &same_node);
+  if (pid == -1) {
+    saveerrno = errno;
+    my_error_0("release_dotlock: lockfile error\n");
+    my_set_errno(saveerrno);
+    return -1;
+  }
+  if (pid != getpid() || !same_node) {
+    my_error_1("release_dotlock: not our lock (pid=%d)\n", pid);
+    my_set_errno(EACCES);
+    return -1;
+  }
 
-  if ( unlink( h->lockname ) )
-    {
-      saveerrno = errno;
-      my_error_1 ("release_dotlock: error removing lockfile '%s'\n",
-                  h->lockname);
-      my_set_errno (saveerrno);
-      return -1;
-    }
+  if (unlink(h->lockname)) {
+    saveerrno = errno;
+    my_error_1("release_dotlock: error removing lockfile '%s'\n", h->lockname);
+    my_set_errno(saveerrno);
+    return -1;
+  }
   /* Fixme: As an extra check we could check whether the link count is
      now really at 1. */
   return 0;
 }
 #endif /*HAVE_POSIX_SYSTEM */
 
-
 #ifdef HAVE_DOSISH_SYSTEM
 /* Windows specific code of release_dotlock.  */
-static int
-dotlock_release_w32 (dotlock_t h)
-{
+static int dotlock_release_w32(dotlock_t h) {
   OVERLAPPED ovl;
 
-  memset (&ovl, 0, sizeof ovl);
-  if (!UnlockFileEx (h->lockhd, 0, 1, 0, &ovl))
-    {
-      int saveerrno = map_w32_to_errno (GetLastError ());
-      my_error_2 ("release_dotlock: error removing lockfile '%s': %s\n",
-                  h->lockname, w32_strerror (-1));
-      my_set_errno (saveerrno);
-      return -1;
-    }
+  memset(&ovl, 0, sizeof ovl);
+  if (!UnlockFileEx(h->lockhd, 0, 1, 0, &ovl)) {
+    int saveerrno = map_w32_to_errno(GetLastError());
+    my_error_2("release_dotlock: error removing lockfile '%s': %s\n",
+               h->lockname, w32_strerror(-1));
+    my_set_errno(saveerrno);
+    return -1;
+  }
 
   return 0;
 }
 #endif /*HAVE_DOSISH_SYSTEM */
 
-
 /* Release a lock.  Returns 0 on success.  */
-int
-dotlock_release (dotlock_t h)
-{
+int dotlock_release(dotlock_t h) {
   int ret;
 
   /* To avoid atexit race conditions we first check whether there are
      any locks left.  It might happen that another atexit handler
      tries to release the lock while the atexit handler of this module
      already ran and thus H is undefined.  */
-  LOCK_all_lockfiles ();
+  LOCK_all_lockfiles();
   ret = !all_lockfiles;
-  UNLOCK_all_lockfiles ();
-  if (ret)
-    return 0;
+  UNLOCK_all_lockfiles();
+  if (ret) return 0;
 
-  if ( h->disable )
-    return 0;
+  if (h->disable) return 0;
 
-  if ( !h->locked )
-    {
-      my_debug_1 ("Oops, '%s' is not locked\n", h->lockname);
-      return 0;
-    }
+  if (!h->locked) {
+    my_debug_1("Oops, '%s' is not locked\n", h->lockname);
+    return 0;
+  }
 
 #ifdef HAVE_DOSISH_SYSTEM
-  ret = dotlock_release_w32 (h);
+  ret = dotlock_release_w32(h);
 #else
-  ret = dotlock_release_unix (h);
+  ret = dotlock_release_unix(h);
 #endif
 
-  if (!ret)
-    h->locked = 0;
+  if (!ret) h->locked = 0;
   return ret;
 }
 
-
-
 /* Remove all lockfiles.  This is called by the atexit handler
    installed by this module but may also be called by other
    termination handlers.  */
-void
-dotlock_remove_lockfiles (void)
-{
+void dotlock_remove_lockfiles(void) {
   dotlock_t h, h2;
 
   /* First set the lockfiles list to NULL so that for example
      dotlock_release is aware that this function is currently
      running.  */
-  LOCK_all_lockfiles ();
+  LOCK_all_lockfiles();
   h = all_lockfiles;
   all_lockfiles = NULL;
-  UNLOCK_all_lockfiles ();
+  UNLOCK_all_lockfiles();
 
-  while ( h )
-    {
-      h2 = h->next;
-      dotlock_destroy (h);
-      h = h2;
-    }
+  while (h) {
+    h2 = h->next;
+    dotlock_destroy(h);
+    h = h2;
+  }
 }

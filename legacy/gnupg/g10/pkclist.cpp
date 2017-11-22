@@ -19,151 +19,139 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <errno.h>
 
+#include "../common/i18n.h"
+#include "../common/status.h"
+#include "../common/ttyio.h"
+#include "../common/util.h"
 #include "gpg.h"
+#include "keydb.h"
+#include "main.h"
 #include "options.h"
 #include "packet.h"
-#include "../common/status.h"
-#include "keydb.h"
-#include "../common/util.h"
-#include "main.h"
 #include "trustdb.h"
-#include "../common/ttyio.h"
-#include "../common/status.h"
-#include "../common/i18n.h"
 
 #define CONTROL_D ('D' - 'A' + 1)
 
-static void
-send_status_inv_recp (int reason, const char *name)
-{
+static void send_status_inv_recp(int reason, const char *name) {
   char buf[40];
 
-  snprintf (buf, sizeof buf, "%d ", reason);
-  write_status_text_and_buffer (STATUS_INV_RECP, buf,
-                                name, strlen (name),
-                                -1);
+  snprintf(buf, sizeof buf, "%d ", reason);
+  write_status_text_and_buffer(STATUS_INV_RECP, buf, name, strlen(name), -1);
 }
-
 
 /****************
  * Show the revocation reason as it is stored with the given signature
  */
-static void
-do_show_revocation_reason( PKT_signature *sig )
-{
-    size_t n, nn;
-    const byte *p, *pp;
-    int seq = 0;
-    const char *text;
+static void do_show_revocation_reason(PKT_signature *sig) {
+  size_t n, nn;
+  const byte *p, *pp;
+  int seq = 0;
+  const char *text;
 
-    while( (p = enum_sig_subpkt (sig->hashed, SIGSUBPKT_REVOC_REASON,
-				 &n, &seq, NULL )) ) {
-	if( !n )
-	    continue; /* invalid - just skip it */
+  while ((p = enum_sig_subpkt(sig->hashed, SIGSUBPKT_REVOC_REASON, &n, &seq,
+                              NULL))) {
+    if (!n) continue; /* invalid - just skip it */
 
-	if( *p == 0 )
-	    text = _("No reason specified");
-	else if( *p == 0x01 )
-	    text = _("Key is superseded");
-	else if( *p == 0x02 )
-	    text = _("Key has been compromised");
-	else if( *p == 0x03 )
-	    text = _("Key is no longer used");
-	else if( *p == 0x20 )
-	    text = _("User ID is no longer valid");
-	else
-	    text = NULL;
+    if (*p == 0)
+      text = _("No reason specified");
+    else if (*p == 0x01)
+      text = _("Key is superseded");
+    else if (*p == 0x02)
+      text = _("Key has been compromised");
+    else if (*p == 0x03)
+      text = _("Key is no longer used");
+    else if (*p == 0x20)
+      text = _("User ID is no longer valid");
+    else
+      text = NULL;
 
-	log_info ( _("reason for revocation: "));
-	if (text)
-          log_printf ("%s\n", text);
-	else
-          log_printf ("code=%02x\n", *p );
-	n--; p++;
-	pp = NULL;
-	do {
-	    /* We don't want any empty lines, so skip them */
-	    while( n && *p == '\n' ) {
-		p++;
-		n--;
-	    }
-	    if( n ) {
-		pp = (const byte*) memchr( p, '\n', n );
-		nn = pp? pp - p : n;
-		log_info ( _("revocation comment: ") );
-		es_write_sanitized (log_get_stream(), p, nn, NULL, NULL);
-		log_printf ("\n");
-		p += nn; n -= nn;
-	    }
-	} while( pp );
-    }
+    log_info(_("reason for revocation: "));
+    if (text)
+      log_printf("%s\n", text);
+    else
+      log_printf("code=%02x\n", *p);
+    n--;
+    p++;
+    pp = NULL;
+    do {
+      /* We don't want any empty lines, so skip them */
+      while (n && *p == '\n') {
+        p++;
+        n--;
+      }
+      if (n) {
+        pp = (const byte *)memchr(p, '\n', n);
+        nn = pp ? pp - p : n;
+        log_info(_("revocation comment: "));
+        es_write_sanitized(log_get_stream(), p, nn, NULL, NULL);
+        log_printf("\n");
+        p += nn;
+        n -= nn;
+      }
+    } while (pp);
+  }
 }
 
 /* Mode 0: try and find the revocation based on the pk (i.e. check
    subkeys, etc.)  Mode 1: use only the revocation on the main pk */
 
-void
-show_revocation_reason (ctrl_t ctrl, PKT_public_key *pk, int mode)
-{
-    /* Hmmm, this is not so easy because we have to duplicate the code
-     * used in the trustbd to calculate the keyflags.  We need to find
-     * a clean way to check revocation certificates on keys and
-     * signatures.  And there should be no duplicate code.  Because we
-     * enter this function only when the trustdb told us that we have
-     * a revoked key, we could simply look for a revocation cert and
-     * display this one, when there is only one. Let's try to do this
-     * until we have a better solution.  */
-    KBNODE node, keyblock = NULL;
-    byte fingerprint[MAX_FINGERPRINT_LEN];
-    size_t fingerlen;
-    int rc;
+void show_revocation_reason(ctrl_t ctrl, PKT_public_key *pk, int mode) {
+  /* Hmmm, this is not so easy because we have to duplicate the code
+   * used in the trustbd to calculate the keyflags.  We need to find
+   * a clean way to check revocation certificates on keys and
+   * signatures.  And there should be no duplicate code.  Because we
+   * enter this function only when the trustdb told us that we have
+   * a revoked key, we could simply look for a revocation cert and
+   * display this one, when there is only one. Let's try to do this
+   * until we have a better solution.  */
+  KBNODE node, keyblock = NULL;
+  byte fingerprint[MAX_FINGERPRINT_LEN];
+  size_t fingerlen;
+  int rc;
 
-    /* get the keyblock */
-    fingerprint_from_pk( pk, fingerprint, &fingerlen );
-    rc = get_pubkey_byfprint (ctrl, NULL, &keyblock, fingerprint, fingerlen);
-    if( rc ) { /* that should never happen */
-	log_debug( "failed to get the keyblock\n");
-	return;
-    }
+  /* get the keyblock */
+  fingerprint_from_pk(pk, fingerprint, &fingerlen);
+  rc = get_pubkey_byfprint(ctrl, NULL, &keyblock, fingerprint, fingerlen);
+  if (rc) { /* that should never happen */
+    log_debug("failed to get the keyblock\n");
+    return;
+  }
 
-    for( node=keyblock; node; node = node->next ) {
-        if( (mode && node->pkt->pkttype == PKT_PUBLIC_KEY) ||
-	  ( ( node->pkt->pkttype == PKT_PUBLIC_KEY
-	      || node->pkt->pkttype == PKT_PUBLIC_SUBKEY )
-	    && !cmp_public_keys( node->pkt->pkt.public_key, pk ) ) )
-	    break;
+  for (node = keyblock; node; node = node->next) {
+    if ((mode && node->pkt->pkttype == PKT_PUBLIC_KEY) ||
+        ((node->pkt->pkttype == PKT_PUBLIC_KEY ||
+          node->pkt->pkttype == PKT_PUBLIC_SUBKEY) &&
+         !cmp_public_keys(node->pkt->pkt.public_key, pk)))
+      break;
+  }
+  if (!node) {
+    log_debug("Oops, PK not in keyblock\n");
+    release_kbnode(keyblock);
+    return;
+  }
+  /* now find the revocation certificate */
+  for (node = node->next; node; node = node->next) {
+    if (node->pkt->pkttype == PKT_PUBLIC_SUBKEY) break;
+    if (node->pkt->pkttype == PKT_SIGNATURE &&
+        (node->pkt->pkt.signature->sig_class == 0x20 ||
+         node->pkt->pkt.signature->sig_class == 0x28)) {
+      /* FIXME: we should check the signature here */
+      do_show_revocation_reason(node->pkt->pkt.signature);
+      break;
     }
-    if( !node ) {
-	log_debug("Oops, PK not in keyblock\n");
-	release_kbnode( keyblock );
-	return;
-    }
-    /* now find the revocation certificate */
-    for( node = node->next; node ; node = node->next ) {
-	if( node->pkt->pkttype == PKT_PUBLIC_SUBKEY )
-	    break;
-	if( node->pkt->pkttype == PKT_SIGNATURE
-	    && (node->pkt->pkt.signature->sig_class == 0x20
-		|| node->pkt->pkt.signature->sig_class == 0x28 ) ) {
-		/* FIXME: we should check the signature here */
-		do_show_revocation_reason ( node->pkt->pkt.signature );
-		break;
-	}
-    }
+  }
 
-    /* We didn't find it, so check if the whole key is revoked */
-    if(!node && !mode)
-      show_revocation_reason (ctrl, pk, 1);
+  /* We didn't find it, so check if the whole key is revoked */
+  if (!node && !mode) show_revocation_reason(ctrl, pk, 1);
 
-    release_kbnode( keyblock );
+  release_kbnode(keyblock);
 }
-
 
 /****************
  * mode: 0 = standard
@@ -176,30 +164,35 @@ show_revocation_reason (ctrl_t ctrl, PKT_public_key *pk, int mode)
  *       1 = new ownertrust now in new_trust
  */
 #ifndef NO_TRUST_MODELS
-static int
-do_edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode,
-                    unsigned *new_trust, int defer_help )
-{
+static int do_edit_ownertrust(ctrl_t ctrl, PKT_public_key *pk, int mode,
+                              unsigned *new_trust, int defer_help) {
   char *p;
   u32 keyid[2];
-  int changed=0;
-  int quit=0;
-  int show=0;
+  int changed = 0;
+  int quit = 0;
+  int show = 0;
   int min_num;
-  int did_help=defer_help;
-  unsigned int minimum = tdb_get_min_ownertrust (ctrl, pk, 0);
+  int did_help = defer_help;
+  unsigned int minimum = tdb_get_min_ownertrust(ctrl, pk, 0);
 
-  switch(minimum)
-    {
+  switch (minimum) {
     default:
-    case TRUST_UNDEFINED: min_num=1; break;
-    case TRUST_NEVER:     min_num=2; break;
-    case TRUST_MARGINAL:  min_num=3; break;
-    case TRUST_FULLY:     min_num=4; break;
-    }
+    case TRUST_UNDEFINED:
+      min_num = 1;
+      break;
+    case TRUST_NEVER:
+      min_num = 2;
+      break;
+    case TRUST_MARGINAL:
+      min_num = 3;
+      break;
+    case TRUST_FULLY:
+      min_num = 4;
+      break;
+  }
 
-  keyid_from_pk (pk, keyid);
-  for(;;) {
+  keyid_from_pk(pk, keyid);
+  for (;;) {
     /* A string with valid answers.
 
        TRANSLATORS: These are the allowed answers in lower and
@@ -210,126 +203,119 @@ do_edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode,
          i = please show me more information
          m = back to the main menu
          s = skip this key
-	 q = quit
+         q = quit
     */
     const char *ans = _("iImMqQsS");
 
-    if( !did_help )
-      {
-        if( !mode )
-          {
-            KBNODE keyblock, un;
+    if (!did_help) {
+      if (!mode) {
+        KBNODE keyblock, un;
 
-            tty_printf (_("No trust value assigned to:\n"));
-            print_key_line (ctrl, NULL, pk, 0);
+        tty_printf(_("No trust value assigned to:\n"));
+        print_key_line(ctrl, NULL, pk, 0);
 
-	    p = get_user_id_native (ctrl, keyid);
-	    tty_printf (_("      \"%s\"\n"),p);
-	    xfree (p);
+        p = get_user_id_native(ctrl, keyid);
+        tty_printf(_("      \"%s\"\n"), p);
+        xfree(p);
 
-            keyblock = get_pubkeyblock (ctrl, keyid);
-            if (!keyblock)
-                BUG ();
-            for (un=keyblock; un; un = un->next)
-	      {
-                if (un->pkt->pkttype != PKT_USER_ID )
-		  continue;
-                if (un->pkt->pkt.user_id->flags.revoked)
-		  continue;
-                if (un->pkt->pkt.user_id->flags.expired)
-		  continue;
-		/* Only skip textual primaries */
-                if (un->pkt->pkt.user_id->flags.primary
-		    && !un->pkt->pkt.user_id->attrib_data )
-		  continue;
+        keyblock = get_pubkeyblock(ctrl, keyid);
+        if (!keyblock) BUG();
+        for (un = keyblock; un; un = un->next) {
+          if (un->pkt->pkttype != PKT_USER_ID) continue;
+          if (un->pkt->pkt.user_id->flags.revoked) continue;
+          if (un->pkt->pkt.user_id->flags.expired) continue;
+          /* Only skip textual primaries */
+          if (un->pkt->pkt.user_id->flags.primary &&
+              !un->pkt->pkt.user_id->attrib_data)
+            continue;
 
-		p=utf8_to_native(un->pkt->pkt.user_id->name,
-				 un->pkt->pkt.user_id->len,0);
+          p = utf8_to_native(un->pkt->pkt.user_id->name,
+                             un->pkt->pkt.user_id->len, 0);
 
-		tty_printf(_("  aka \"%s\"\n"),p);
-	      }
+          tty_printf(_("  aka \"%s\"\n"), p);
+        }
 
-            print_fingerprint (ctrl, NULL, pk, 2);
-            tty_printf("\n");
-	    release_kbnode (keyblock);
-          }
+        print_fingerprint(ctrl, NULL, pk, 2);
+        tty_printf("\n");
+        release_kbnode(keyblock);
+      }
 
-	if(opt.trust_model==TM_DIRECT)
-	  {
-	    tty_printf(_("How much do you trust that this key actually "
-			 "belongs to the named user?\n"));
-	    tty_printf("\n");
-	  }
-	else
-	  {
-	    /* This string also used in keyedit.c:trustsig_prompt */
-	    tty_printf(_("Please decide how far you trust this user to"
-			 " correctly verify other users' keys\n"
-			 "(by looking at passports, checking fingerprints from"
-			 " different sources, etc.)\n"));
-	    tty_printf("\n");
-	  }
+      if (opt.trust_model == TM_DIRECT) {
+        tty_printf(
+            _("How much do you trust that this key actually "
+              "belongs to the named user?\n"));
+        tty_printf("\n");
+      } else {
+        /* This string also used in keyedit.c:trustsig_prompt */
+        tty_printf(
+            _("Please decide how far you trust this user to"
+              " correctly verify other users' keys\n"
+              "(by looking at passports, checking fingerprints from"
+              " different sources, etc.)\n"));
+        tty_printf("\n");
+      }
 
-	if(min_num<=1)
-	  tty_printf (_("  %d = I don't know or won't say\n"), 1);
-	if(min_num<=2)
-	  tty_printf (_("  %d = I do NOT trust\n"), 2);
-	if(min_num<=3)
-	  tty_printf (_("  %d = I trust marginally\n"), 3);
-	if(min_num<=4)
-	  tty_printf (_("  %d = I trust fully\n"), 4);
-        if (mode)
-          tty_printf (_("  %d = I trust ultimately\n"), 5);
+      if (min_num <= 1) tty_printf(_("  %d = I don't know or won't say\n"), 1);
+      if (min_num <= 2) tty_printf(_("  %d = I do NOT trust\n"), 2);
+      if (min_num <= 3) tty_printf(_("  %d = I trust marginally\n"), 3);
+      if (min_num <= 4) tty_printf(_("  %d = I trust fully\n"), 4);
+      if (mode) tty_printf(_("  %d = I trust ultimately\n"), 5);
 #if 0
 	/* not yet implemented */
         tty_printf ("  i = please show me more information\n");
 #endif
-        if( mode )
-          tty_printf(_("  m = back to the main menu\n"));
-        else
-	  {
-	    tty_printf(_("  s = skip this key\n"));
-	    tty_printf(_("  q = quit\n"));
-	  }
-        tty_printf("\n");
-	if(minimum)
-	  tty_printf(_("The minimum trust level for this key is: %s\n\n"),
-		     trust_value_to_string(minimum));
-        did_help = 1;
+      if (mode)
+        tty_printf(_("  m = back to the main menu\n"));
+      else {
+        tty_printf(_("  s = skip this key\n"));
+        tty_printf(_("  q = quit\n"));
       }
-    if( strlen(ans) != 8 )
-      BUG();
-    p = cpr_get("edit_ownertrust.value",_("Your decision? "));
+      tty_printf("\n");
+      if (minimum)
+        tty_printf(_("The minimum trust level for this key is: %s\n\n"),
+                   trust_value_to_string(minimum));
+      did_help = 1;
+    }
+    if (strlen(ans) != 8) BUG();
+    p = cpr_get("edit_ownertrust.value", _("Your decision? "));
     trim_spaces(p);
     cpr_kill_prompt();
-    if( !*p )
+    if (!*p)
       did_help = 0;
-    else if( *p && p[1] )
+    else if (*p && p[1])
       ;
-    else if( !p[1] && ((*p >= '0'+min_num) && *p <= (mode?'5':'4')) )
-      {
-        unsigned int trust;
-        switch( *p )
-          {
-          case '1': trust = TRUST_UNDEFINED; break;
-          case '2': trust = TRUST_NEVER    ; break;
-          case '3': trust = TRUST_MARGINAL ; break;
-          case '4': trust = TRUST_FULLY    ; break;
-          case '5': trust = TRUST_ULTIMATE ; break;
-          default: BUG();
-          }
-        if (trust == TRUST_ULTIMATE
-            && !cpr_get_answer_is_yes ("edit_ownertrust.set_ultimate.okay",
-                                       _("Do you really want to set this key"
-                                         " to ultimate trust? (y/N) ")))
-          ; /* no */
-        else
-          {
-            *new_trust = trust;
-            changed = 1;
-            break;
-          }
+    else if (!p[1] && ((*p >= '0' + min_num) && *p <= (mode ? '5' : '4'))) {
+      unsigned int trust;
+      switch (*p) {
+        case '1':
+          trust = TRUST_UNDEFINED;
+          break;
+        case '2':
+          trust = TRUST_NEVER;
+          break;
+        case '3':
+          trust = TRUST_MARGINAL;
+          break;
+        case '4':
+          trust = TRUST_FULLY;
+          break;
+        case '5':
+          trust = TRUST_ULTIMATE;
+          break;
+        default:
+          BUG();
       }
+      if (trust == TRUST_ULTIMATE &&
+          !cpr_get_answer_is_yes("edit_ownertrust.set_ultimate.okay",
+                                 _("Do you really want to set this key"
+                                   " to ultimate trust? (y/N) ")))
+        ; /* no */
+      else {
+        *new_trust = trust;
+        changed = 1;
+        break;
+      }
+    }
 #if 0
     /* not yet implemented */
     else if( *p == ans[0] || *p == ans[1] )
@@ -339,26 +325,21 @@ do_edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode,
         break;
       }
 #endif
-    else if( mode && (*p == ans[2] || *p == ans[3] || *p == CONTROL_D ) )
-      {
-        break ; /* back to the menu */
-      }
-    else if( !mode && (*p == ans[6] || *p == ans[7] ) )
-      {
-	break; /* skip */
-      }
-    else if( !mode && (*p == ans[4] || *p == ans[5] ) )
-      {
-        quit = 1;
-        break ; /* back to the menu */
-      }
-    xfree(p); p = NULL;
+    else if (mode && (*p == ans[2] || *p == ans[3] || *p == CONTROL_D)) {
+      break; /* back to the menu */
+    } else if (!mode && (*p == ans[6] || *p == ans[7])) {
+      break; /* skip */
+    } else if (!mode && (*p == ans[4] || *p == ans[5])) {
+      quit = 1;
+      break; /* back to the menu */
+    }
+    xfree(p);
+    p = NULL;
   }
   xfree(p);
-  return show? -2: quit? -1 : changed;
+  return show ? -2 : quit ? -1 : changed;
 }
 #endif /*!NO_TRUST_MODELS*/
-
 
 /*
  * Display a menu to change the ownertrust of the key PK (which should
@@ -366,430 +347,379 @@ do_edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode,
  * For mode values see do_edit_ownertrust ()
  */
 #ifndef NO_TRUST_MODELS
-int
-edit_ownertrust (ctrl_t ctrl, PKT_public_key *pk, int mode )
-{
+int edit_ownertrust(ctrl_t ctrl, PKT_public_key *pk, int mode) {
   unsigned int trust = 0;
   int no_help = 0;
 
-  for(;;)
-    {
-      switch ( do_edit_ownertrust (ctrl, pk, mode, &trust, no_help ) )
-        {
-        case -1: /* quit */
-          return -1;
-        case -2: /* show info */
-          no_help = 1;
-          break;
-        case 1: /* trust value set */
-          trust &= ~TRUST_FLAG_DISABLED;
-          trust |= get_ownertrust (ctrl, pk) & TRUST_FLAG_DISABLED;
-          update_ownertrust (ctrl, pk, trust );
-          return 1;
-        default:
-          return 0;
-        }
+  for (;;) {
+    switch (do_edit_ownertrust(ctrl, pk, mode, &trust, no_help)) {
+      case -1: /* quit */
+        return -1;
+      case -2: /* show info */
+        no_help = 1;
+        break;
+      case 1: /* trust value set */
+        trust &= ~TRUST_FLAG_DISABLED;
+        trust |= get_ownertrust(ctrl, pk) & TRUST_FLAG_DISABLED;
+        update_ownertrust(ctrl, pk, trust);
+        return 1;
+      default:
+        return 0;
     }
+  }
 }
 #endif /*!NO_TRUST_MODELS*/
-
 
 /****************
  * Check whether we can trust this pk which has a trustlevel of TRUSTLEVEL
  * Returns: true if we trust.
  */
-static int
-do_we_trust( PKT_public_key *pk, unsigned int trustlevel )
-{
+static int do_we_trust(PKT_public_key *pk, unsigned int trustlevel) {
   /* We should not be able to get here with a revoked or expired
      key */
-  if(trustlevel & TRUST_FLAG_REVOKED
-     || trustlevel & TRUST_FLAG_SUB_REVOKED
-     || (trustlevel & TRUST_MASK) == TRUST_EXPIRED)
+  if (trustlevel & TRUST_FLAG_REVOKED || trustlevel & TRUST_FLAG_SUB_REVOKED ||
+      (trustlevel & TRUST_MASK) == TRUST_EXPIRED)
     BUG();
 
-  if( opt.trust_model==TM_ALWAYS )
-    {
-      if( opt.verbose )
-	log_info("No trust check due to '--trust-model always' option\n");
-      return 1;
-    }
+  if (opt.trust_model == TM_ALWAYS) {
+    if (opt.verbose)
+      log_info("No trust check due to '--trust-model always' option\n");
+    return 1;
+  }
 
-  switch(trustlevel & TRUST_MASK)
-    {
+  switch (trustlevel & TRUST_MASK) {
     default:
-      log_error ("invalid trustlevel %u returned from validation layer\n",
-		 trustlevel);
-      /* fall through */
+      log_error("invalid trustlevel %u returned from validation layer\n",
+                trustlevel);
+    /* fall through */
     case TRUST_UNKNOWN:
     case TRUST_UNDEFINED:
       log_info(_("%s: There is no assurance this key belongs"
-		 " to the named user\n"),keystr_from_pk(pk));
+                 " to the named user\n"),
+               keystr_from_pk(pk));
       return 0; /* no */
 
     case TRUST_MARGINAL:
       log_info(_("%s: There is limited assurance this key belongs"
-		 " to the named user\n"),keystr_from_pk(pk));
+                 " to the named user\n"),
+               keystr_from_pk(pk));
       return 1; /* yes */
 
     case TRUST_FULLY:
-      if( opt.verbose )
-	log_info(_("This key probably belongs to the named user\n"));
+      if (opt.verbose)
+        log_info(_("This key probably belongs to the named user\n"));
       return 1; /* yes */
 
     case TRUST_ULTIMATE:
-      if( opt.verbose )
-	log_info(_("This key belongs to us\n"));
+      if (opt.verbose) log_info(_("This key belongs to us\n"));
       return 1; /* yes */
 
     case TRUST_NEVER:
       log_info(_("%s: This key is bad!  It has been marked as untrusted!\n"),
                keystr_from_pk(pk));
       return 0; /* no */
-    }
+  }
 
   return 1; /*NOTREACHED*/
 }
-
 
 /****************
  * wrapper around do_we_trust, so we can ask whether to use the
  * key anyway.
  */
-static int
-do_we_trust_pre (ctrl_t ctrl, PKT_public_key *pk, unsigned int trustlevel )
-{
+static int do_we_trust_pre(ctrl_t ctrl, PKT_public_key *pk,
+                           unsigned int trustlevel) {
   int rc;
 
-  rc = do_we_trust( pk, trustlevel );
+  rc = do_we_trust(pk, trustlevel);
 
-  if( !opt.batch && !rc )
-    {
-      print_pubkey_info (ctrl, NULL,pk);
-      print_fingerprint (ctrl, NULL, pk, 2);
-      tty_printf("\n");
+  if (!opt.batch && !rc) {
+    print_pubkey_info(ctrl, NULL, pk);
+    print_fingerprint(ctrl, NULL, pk, 2);
+    tty_printf("\n");
 
-      if ((trustlevel & TRUST_MASK) == TRUST_NEVER)
-        tty_printf(
+    if ((trustlevel & TRUST_MASK) == TRUST_NEVER)
+      tty_printf(
           _("This key is bad!  It has been marked as untrusted!  If you\n"
             "*really* know what you are doing, you may answer the next\n"
             "question with yes.\n"));
-      else
-        tty_printf(
+    else
+      tty_printf(
           _("It is NOT certain that the key belongs to the person named\n"
             "in the user ID.  If you *really* know what you are doing,\n"
             "you may answer the next question with yes.\n"));
 
-      tty_printf("\n");
+    tty_printf("\n");
 
+    if (is_status_enabled()) {
+      u32 kid[2];
+      char *hint_str;
 
-      if (is_status_enabled ())
-        {
-          u32 kid[2];
-          char *hint_str;
-
-          keyid_from_pk (pk, kid);
-          hint_str = get_long_user_id_string (ctrl, kid);
-          write_status_text ( STATUS_USERID_HINT, hint_str );
-          xfree (hint_str);
-        }
-
-      if( cpr_get_answer_is_yes("untrusted_key.override",
-				_("Use this key anyway? (y/N) "))  )
-	rc = 1;
-
-      /* Hmmm: Should we set a flag to tell the user about
-       *	 his decision the next time he encrypts for this recipient?
-       */
+      keyid_from_pk(pk, kid);
+      hint_str = get_long_user_id_string(ctrl, kid);
+      write_status_text(STATUS_USERID_HINT, hint_str);
+      xfree(hint_str);
     }
+
+    if (cpr_get_answer_is_yes("untrusted_key.override",
+                              _("Use this key anyway? (y/N) ")))
+      rc = 1;
+
+    /* Hmmm: Should we set a flag to tell the user about
+     *	 his decision the next time he encrypts for this recipient?
+     */
+  }
 
   return rc;
 }
 
-
 /* Write a TRUST_foo status line inclduing the validation model.  */
-static void
-write_trust_status (int statuscode, int trustlevel)
-{
+static void write_trust_status(int statuscode, int trustlevel) {
 #ifdef NO_TRUST_MODELS
-  write_status (statuscode);
-#else /* NO_TRUST_MODELS */
+  write_status(statuscode);
+#else  /* NO_TRUST_MODELS */
   int tm;
 
   tm = opt.trust_model;
-  write_status_strings (statuscode, "0 ", trust_model_string (tm), NULL);
+  write_status_strings(statuscode, "0 ", trust_model_string(tm), NULL);
 #endif /* NO_TRUST_MODELS */
 }
-
 
 /****************
  * Check whether we can trust this signature.
  * Returns an error code if we should not trust this signature.
  */
-int
-check_signatures_trust (ctrl_t ctrl, PKT_signature *sig)
-{
-  PKT_public_key *pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
+int check_signatures_trust(ctrl_t ctrl, PKT_signature *sig) {
+  PKT_public_key *pk = (PKT_public_key *)xmalloc_clear(sizeof *pk);
   unsigned int trustlevel = TRUST_UNKNOWN;
-  int rc=0;
+  int rc = 0;
 
-  rc = get_pubkey (ctrl, pk, sig->keyid );
-  if (rc)
-    { /* this should not happen */
-      log_error("Ooops; the key vanished  - can't check the trust\n");
-      rc = GPG_ERR_NO_PUBKEY;
-      goto leave;
-    }
+  rc = get_pubkey(ctrl, pk, sig->keyid);
+  if (rc) { /* this should not happen */
+    log_error("Ooops; the key vanished  - can't check the trust\n");
+    rc = GPG_ERR_NO_PUBKEY;
+    goto leave;
+  }
 
-  if ( opt.trust_model==TM_ALWAYS )
-    {
-      if( !opt.quiet )
-        log_info(_("WARNING: Using untrusted key!\n"));
-      if (opt.with_fingerprint)
-        print_fingerprint (ctrl, NULL, pk, 1);
-      goto leave;
-    }
+  if (opt.trust_model == TM_ALWAYS) {
+    if (!opt.quiet) log_info(_("WARNING: Using untrusted key!\n"));
+    if (opt.with_fingerprint) print_fingerprint(ctrl, NULL, pk, 1);
+    goto leave;
+  }
 
-  if(pk->flags.maybe_revoked && !pk->flags.revoked)
-    log_info(_("WARNING: this key might be revoked (revocation key"
-	       " not present)\n"));
+  if (pk->flags.maybe_revoked && !pk->flags.revoked)
+    log_info(
+        _("WARNING: this key might be revoked (revocation key"
+          " not present)\n"));
 
-  trustlevel = get_validity (ctrl, NULL, pk, NULL, sig, 1);
+  trustlevel = get_validity(ctrl, NULL, pk, NULL, sig, 1);
 
-  if ( (trustlevel & TRUST_FLAG_REVOKED) )
-    {
-      write_status( STATUS_KEYREVOKED );
-      if(pk->flags.revoked == 2)
-	log_info(_("WARNING: This key has been revoked by its"
-		   " designated revoker!\n"));
-      else
-	log_info(_("WARNING: This key has been revoked by its owner!\n"));
-      log_info(_("         This could mean that the signature is forged.\n"));
-      show_revocation_reason (ctrl, pk, 0);
-    }
-  else if ((trustlevel & TRUST_FLAG_SUB_REVOKED) )
-    {
-      write_status( STATUS_KEYREVOKED );
-      log_info(_("WARNING: This subkey has been revoked by its owner!\n"));
-      show_revocation_reason (ctrl, pk, 0);
-    }
+  if ((trustlevel & TRUST_FLAG_REVOKED)) {
+    write_status(STATUS_KEYREVOKED);
+    if (pk->flags.revoked == 2)
+      log_info(
+          _("WARNING: This key has been revoked by its"
+            " designated revoker!\n"));
+    else
+      log_info(_("WARNING: This key has been revoked by its owner!\n"));
+    log_info(_("         This could mean that the signature is forged.\n"));
+    show_revocation_reason(ctrl, pk, 0);
+  } else if ((trustlevel & TRUST_FLAG_SUB_REVOKED)) {
+    write_status(STATUS_KEYREVOKED);
+    log_info(_("WARNING: This subkey has been revoked by its owner!\n"));
+    show_revocation_reason(ctrl, pk, 0);
+  }
 
   if ((trustlevel & TRUST_FLAG_DISABLED))
-    log_info (_("Note: This key has been disabled.\n"));
+    log_info(_("Note: This key has been disabled.\n"));
 
   /* If we have PKA information adjust the trustlevel. */
-  if (sig->pka_info && sig->pka_info->valid)
-    {
-      unsigned char fpr[MAX_FINGERPRINT_LEN];
-      PKT_public_key *primary_pk;
-      size_t fprlen;
-      int okay;
+  if (sig->pka_info && sig->pka_info->valid) {
+    unsigned char fpr[MAX_FINGERPRINT_LEN];
+    PKT_public_key *primary_pk;
+    size_t fprlen;
+    int okay;
 
+    primary_pk = (PKT_public_key *)xmalloc_clear(sizeof *primary_pk);
+    get_pubkey(ctrl, primary_pk, pk->main_keyid);
+    fingerprint_from_pk(primary_pk, fpr, &fprlen);
+    free_public_key(primary_pk);
 
-      primary_pk = (PKT_public_key*) xmalloc_clear (sizeof *primary_pk);
-      get_pubkey (ctrl, primary_pk, pk->main_keyid);
-      fingerprint_from_pk (primary_pk, fpr, &fprlen);
-      free_public_key (primary_pk);
-
-      if ( fprlen == 20 && !memcmp (sig->pka_info->fpr, fpr, 20) )
-        {
-          okay = 1;
-          write_status_text (STATUS_PKA_TRUST_GOOD, sig->pka_info->email);
-          log_info (_("Note: Verified signer's address is '%s'\n"),
-                    sig->pka_info->email);
-        }
-      else
-        {
-          okay = 0;
-          write_status_text (STATUS_PKA_TRUST_BAD, sig->pka_info->email);
-          log_info (_("Note: Signer's address '%s' "
-                      "does not match DNS entry\n"), sig->pka_info->email);
-        }
-
-      switch ( (trustlevel & TRUST_MASK) )
-        {
-        case TRUST_UNKNOWN:
-        case TRUST_UNDEFINED:
-        case TRUST_MARGINAL:
-          if (okay && opt.verify_options&VERIFY_PKA_TRUST_INCREASE)
-            {
-              trustlevel = ((trustlevel & ~TRUST_MASK) | TRUST_FULLY);
-              log_info (_("trustlevel adjusted to FULL"
-                          " due to valid PKA info\n"));
-            }
-          /* fall through */
-        case TRUST_FULLY:
-          if (!okay)
-            {
-              trustlevel = ((trustlevel & ~TRUST_MASK) | TRUST_NEVER);
-              log_info (_("trustlevel adjusted to NEVER"
-                          " due to bad PKA info\n"));
-            }
-          break;
-        }
+    if (fprlen == 20 && !memcmp(sig->pka_info->fpr, fpr, 20)) {
+      okay = 1;
+      write_status_text(STATUS_PKA_TRUST_GOOD, sig->pka_info->email);
+      log_info(_("Note: Verified signer's address is '%s'\n"),
+               sig->pka_info->email);
+    } else {
+      okay = 0;
+      write_status_text(STATUS_PKA_TRUST_BAD, sig->pka_info->email);
+      log_info(_("Note: Signer's address '%s' "
+                 "does not match DNS entry\n"),
+               sig->pka_info->email);
     }
 
+    switch ((trustlevel & TRUST_MASK)) {
+      case TRUST_UNKNOWN:
+      case TRUST_UNDEFINED:
+      case TRUST_MARGINAL:
+        if (okay && opt.verify_options & VERIFY_PKA_TRUST_INCREASE) {
+          trustlevel = ((trustlevel & ~TRUST_MASK) | TRUST_FULLY);
+          log_info(
+              _("trustlevel adjusted to FULL"
+                " due to valid PKA info\n"));
+        }
+      /* fall through */
+      case TRUST_FULLY:
+        if (!okay) {
+          trustlevel = ((trustlevel & ~TRUST_MASK) | TRUST_NEVER);
+          log_info(
+              _("trustlevel adjusted to NEVER"
+                " due to bad PKA info\n"));
+        }
+        break;
+    }
+  }
+
   /* Now let the user know what up with the trustlevel. */
-  switch ( (trustlevel & TRUST_MASK) )
-    {
+  switch ((trustlevel & TRUST_MASK)) {
     case TRUST_EXPIRED:
       log_info(_("Note: This key has expired!\n"));
-      print_fingerprint (ctrl, NULL, pk, 1);
+      print_fingerprint(ctrl, NULL, pk, 1);
       break;
 
     default:
-      log_error ("invalid trustlevel %u returned from validation layer\n",
-                 trustlevel);
-      /* fall through */
+      log_error("invalid trustlevel %u returned from validation layer\n",
+                trustlevel);
+    /* fall through */
     case TRUST_UNKNOWN:
     case TRUST_UNDEFINED:
-      write_trust_status (STATUS_TRUST_UNDEFINED, trustlevel);
-      log_info(_("WARNING: This key is not certified with"
-                 " a trusted signature!\n"));
-      log_info(_("         There is no indication that the "
-                 "signature belongs to the owner.\n" ));
-      print_fingerprint (ctrl, NULL, pk, 1);
+      write_trust_status(STATUS_TRUST_UNDEFINED, trustlevel);
+      log_info(
+          _("WARNING: This key is not certified with"
+            " a trusted signature!\n"));
+      log_info(
+          _("         There is no indication that the "
+            "signature belongs to the owner.\n"));
+      print_fingerprint(ctrl, NULL, pk, 1);
       break;
 
     case TRUST_NEVER:
-      write_trust_status (STATUS_TRUST_NEVER, trustlevel);
+      write_trust_status(STATUS_TRUST_NEVER, trustlevel);
       log_info(_("WARNING: We do NOT trust this key!\n"));
       log_info(_("         The signature is probably a FORGERY.\n"));
-      if (opt.with_fingerprint)
-        print_fingerprint (ctrl, NULL, pk, 1);
+      if (opt.with_fingerprint) print_fingerprint(ctrl, NULL, pk, 1);
       rc = GPG_ERR_BAD_SIGNATURE;
       break;
 
     case TRUST_MARGINAL:
-      write_trust_status (STATUS_TRUST_MARGINAL, trustlevel);
-      log_info(_("WARNING: This key is not certified with"
-                 " sufficiently trusted signatures!\n"));
-      log_info(_("         It is not certain that the"
-                 " signature belongs to the owner.\n" ));
-      print_fingerprint (ctrl, NULL, pk, 1);
+      write_trust_status(STATUS_TRUST_MARGINAL, trustlevel);
+      log_info(
+          _("WARNING: This key is not certified with"
+            " sufficiently trusted signatures!\n"));
+      log_info(
+          _("         It is not certain that the"
+            " signature belongs to the owner.\n"));
+      print_fingerprint(ctrl, NULL, pk, 1);
       break;
 
     case TRUST_FULLY:
-      write_trust_status (STATUS_TRUST_FULLY, trustlevel);
-      if (opt.with_fingerprint)
-        print_fingerprint (ctrl, NULL, pk, 1);
+      write_trust_status(STATUS_TRUST_FULLY, trustlevel);
+      if (opt.with_fingerprint) print_fingerprint(ctrl, NULL, pk, 1);
       break;
 
     case TRUST_ULTIMATE:
-      write_trust_status (STATUS_TRUST_ULTIMATE, trustlevel);
-      if (opt.with_fingerprint)
-        print_fingerprint (ctrl, NULL, pk, 1);
+      write_trust_status(STATUS_TRUST_ULTIMATE, trustlevel);
+      if (opt.with_fingerprint) print_fingerprint(ctrl, NULL, pk, 1);
       break;
-    }
+  }
 
- leave:
-  free_public_key( pk );
+leave:
+  free_public_key(pk);
   return rc;
 }
 
-
-void
-release_pk_list (pk_list_t pk_list)
-{
+void release_pk_list(pk_list_t pk_list) {
   PK_LIST pk_rover;
 
-  for ( ; pk_list; pk_list = pk_rover)
-    {
-      pk_rover = pk_list->next;
-      free_public_key ( pk_list->pk );
-      xfree ( pk_list );
-    }
+  for (; pk_list; pk_list = pk_rover) {
+    pk_rover = pk_list->next;
+    free_public_key(pk_list->pk);
+    xfree(pk_list);
+  }
 }
 
+static int key_present_in_pk_list(PK_LIST pk_list, PKT_public_key *pk) {
+  for (; pk_list; pk_list = pk_list->next)
+    if (cmp_public_keys(pk_list->pk, pk) == 0) return 0;
 
-static int
-key_present_in_pk_list(PK_LIST pk_list, PKT_public_key *pk)
-{
-    for( ; pk_list; pk_list = pk_list->next)
-	if (cmp_public_keys(pk_list->pk, pk) == 0)
-	    return 0;
-
-    return -1;
+  return -1;
 }
-
 
 /****************
  * Return a malloced string with a default recipient if there is any
  */
-static char *
-default_recipient(ctrl_t ctrl)
-{
-    PKT_public_key *pk;
-    byte fpr[MAX_FINGERPRINT_LEN+1];
-    size_t n;
-    char *p;
-    int i;
+static char *default_recipient(ctrl_t ctrl) {
+  PKT_public_key *pk;
+  byte fpr[MAX_FINGERPRINT_LEN + 1];
+  size_t n;
+  char *p;
+  int i;
 
-    if( opt.def_recipient )
-      return xstrdup( opt.def_recipient->c_str() );
-    if( !opt.def_recipient_self )
-	return NULL;
-    pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
-    i = get_seckey_default (ctrl, pk);
-    if( i ) {
-	free_public_key( pk );
-	return NULL;
-    }
-    n = MAX_FINGERPRINT_LEN;
-    fingerprint_from_pk( pk, fpr, &n );
-    free_public_key( pk );
-    p = (char*) xmalloc( 2*n+3 );
-    *p++ = '0';
-    *p++ = 'x';
-    for(i=0; i < n; i++ )
-	sprintf( p+2*i, "%02X", fpr[i] );
-    p -= 2;
-    return p;
+  if (opt.def_recipient) return xstrdup(opt.def_recipient->c_str());
+  if (!opt.def_recipient_self) return NULL;
+  pk = (PKT_public_key *)xmalloc_clear(sizeof *pk);
+  i = get_seckey_default(ctrl, pk);
+  if (i) {
+    free_public_key(pk);
+    return NULL;
+  }
+  n = MAX_FINGERPRINT_LEN;
+  fingerprint_from_pk(pk, fpr, &n);
+  free_public_key(pk);
+  p = (char *)xmalloc(2 * n + 3);
+  *p++ = '0';
+  *p++ = 'x';
+  for (i = 0; i < n; i++) sprintf(p + 2 * i, "%02X", fpr[i]);
+  p -= 2;
+  return p;
 }
 
-static int
-expand_id(const char *id,
-	  std::vector<std::pair<std::string, unsigned int>>& into, unsigned int flags)
-{
+static int expand_id(const char *id,
+                     std::vector<std::pair<std::string, unsigned int>> &into,
+                     unsigned int flags) {
   int count = 0;
 
-  for(auto& group : opt.grouplist)
-    {
-      /* need strcasecmp() here, as this should be localized */
-      if(strcasecmp(group.name.c_str(), id)==0)
-	{
-	  /* this maintains the current utf8-ness */
-	  for(auto& each : group.values)
-	    {
-	      into.emplace_back(each.c_str(), flags);
-	      count++;
-	    }
+  for (auto &group : opt.grouplist) {
+    /* need strcasecmp() here, as this should be localized */
+    if (strcasecmp(group.name.c_str(), id) == 0) {
+      /* this maintains the current utf8-ness */
+      for (auto &each : group.values) {
+        into.emplace_back(each.c_str(), flags);
+        count++;
+      }
 
-	  break;
-	}
+      break;
     }
+  }
 
   return count;
 }
 
 /* For simplicity, and to avoid potential loops, we only expand once -
  * you can't make an alias that points to an alias.  */
-static std::vector<std::pair<std::string, unsigned int>>
-expand_group (const std::vector<std::pair<std::string, unsigned int>>& input)
-{
+static std::vector<std::pair<std::string, unsigned int>> expand_group(
+    const std::vector<std::pair<std::string, unsigned int>> &input) {
   std::vector<std::pair<std::string, unsigned int>> output;
 
-  for (auto& rover : input)
-    if (!(rover.second & PK_LIST_FROM_FILE)
-        && !expand_id(rover.first.c_str(), output, rover.second))
-      {
-	/* Didn't find any groups, so use the existing string */
-	output.emplace_back(rover.first.c_str(), rover.second);
-      }
+  for (auto &rover : input)
+    if (!(rover.second & PK_LIST_FROM_FILE) &&
+        !expand_id(rover.first.c_str(), output, rover.second)) {
+      /* Didn't find any groups, so use the existing string */
+      output.emplace_back(rover.first.c_str(), rover.second);
+    }
 
   return output;
 }
-
 
 /* Helper for build_pk_list to find and check one key.  This helper is
  * also used directly in server mode by the RECIPIENTS command.  On
@@ -798,106 +728,97 @@ expand_group (const std::vector<std::pair<std::string, unsigned int>>& input)
  * mark the key in the updated list as a hidden recipient.  If
  * FROM_FILE is true, NAME is not a user ID but the name of a file
  * holding a key. */
-gpg_error_t
-find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
-                    int mark_hidden, int from_file, pk_list_t *pk_list_addr)
-{
+gpg_error_t find_and_check_key(ctrl_t ctrl, const char *name, unsigned int use,
+                               int mark_hidden, int from_file,
+                               pk_list_t *pk_list_addr) {
   int rc;
   PKT_public_key *pk;
 
-  if (!name || !*name)
-    return GPG_ERR_INV_USER_ID;
+  if (!name || !*name) return GPG_ERR_INV_USER_ID;
 
-  pk = (PKT_public_key*) xtrycalloc (1, sizeof *pk);
-  if (!pk)
-    return gpg_error_from_syserror ();
+  pk = (PKT_public_key *)xtrycalloc(1, sizeof *pk);
+  if (!pk) return gpg_error_from_syserror();
   pk->req_usage = use;
 
   if (from_file)
-    rc = get_pubkey_fromfile (ctrl, pk, name);
+    rc = get_pubkey_fromfile(ctrl, pk, name);
   else
-    rc = get_best_pubkey_byname (ctrl, NULL, pk, name, NULL, 0, 0);
-  if (rc)
-    {
-      int code;
+    rc = get_best_pubkey_byname(ctrl, NULL, pk, name, NULL, 0, 0);
+  if (rc) {
+    int code;
 
-      /* Key not found or other error. */
-      log_error (_("%s: skipped: %s\n"), name, gpg_strerror (rc) );
-      switch (rc)
-        {
-        case GPG_ERR_NO_SECKEY:
-        case GPG_ERR_NO_PUBKEY:   code =  1; break;
-        case GPG_ERR_INV_USER_ID: code = 14; break;
-        default: code = 0; break;
-        }
-      send_status_inv_recp (code, name);
-      free_public_key (pk);
-      return rc;
+    /* Key not found or other error. */
+    log_error(_("%s: skipped: %s\n"), name, gpg_strerror(rc));
+    switch (rc) {
+      case GPG_ERR_NO_SECKEY:
+      case GPG_ERR_NO_PUBKEY:
+        code = 1;
+        break;
+      case GPG_ERR_INV_USER_ID:
+        code = 14;
+        break;
+      default:
+        code = 0;
+        break;
     }
+    send_status_inv_recp(code, name);
+    free_public_key(pk);
+    return rc;
+  }
 
-  rc = openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo), use);
-  if (rc)
-    {
-      /* Key found but not usable for us (e.g. sign-only key). */
-      send_status_inv_recp (3, name); /* Wrong key usage */
-      log_error (_("%s: skipped: %s\n"), name, gpg_strerror (rc) );
-      free_public_key (pk);
-      return rc;
-    }
+  rc = openpgp_pk_test_algo2((pubkey_algo_t)(pk->pubkey_algo), use);
+  if (rc) {
+    /* Key found but not usable for us (e.g. sign-only key). */
+    send_status_inv_recp(3, name); /* Wrong key usage */
+    log_error(_("%s: skipped: %s\n"), name, gpg_strerror(rc));
+    free_public_key(pk);
+    return rc;
+  }
 
   /* Key found and usable.  Check validity. */
-  if (!from_file)
-    {
-      int trustlevel;
+  if (!from_file) {
+    int trustlevel;
 
-      trustlevel = get_validity (ctrl, NULL, pk, pk->user_id, NULL, 1);
-      if ( (trustlevel & TRUST_FLAG_DISABLED) )
-        {
-          /* Key has been disabled. */
-          send_status_inv_recp (13, name);
-          log_info (_("%s: skipped: public key is disabled\n"), name);
-          free_public_key (pk);
-          return GPG_ERR_UNUSABLE_PUBKEY;
-        }
-
-      if ( !do_we_trust_pre (ctrl, pk, trustlevel) )
-        {
-          /* We don't trust this key.  */
-          send_status_inv_recp (10, name);
-          free_public_key (pk);
-          return GPG_ERR_UNUSABLE_PUBKEY;
-        }
+    trustlevel = get_validity(ctrl, NULL, pk, pk->user_id, NULL, 1);
+    if ((trustlevel & TRUST_FLAG_DISABLED)) {
+      /* Key has been disabled. */
+      send_status_inv_recp(13, name);
+      log_info(_("%s: skipped: public key is disabled\n"), name);
+      free_public_key(pk);
+      return GPG_ERR_UNUSABLE_PUBKEY;
     }
+
+    if (!do_we_trust_pre(ctrl, pk, trustlevel)) {
+      /* We don't trust this key.  */
+      send_status_inv_recp(10, name);
+      free_public_key(pk);
+      return GPG_ERR_UNUSABLE_PUBKEY;
+    }
+  }
 
   /* Skip the actual key if the key is already present in the
      list.  */
-  if (!key_present_in_pk_list (*pk_list_addr, pk))
-    {
-      if (!opt.quiet)
-        log_info (_("%s: skipped: public key already present\n"), name);
-      free_public_key (pk);
-    }
-  else
-    {
-      pk_list_t r;
+  if (!key_present_in_pk_list(*pk_list_addr, pk)) {
+    if (!opt.quiet)
+      log_info(_("%s: skipped: public key already present\n"), name);
+    free_public_key(pk);
+  } else {
+    pk_list_t r;
 
-      r = (pk_list_t) xtrymalloc (sizeof *r);
-      if (!r)
-        {
-          rc = gpg_error_from_syserror ();
-          free_public_key (pk);
-          return rc;
-        }
-      r->pk = pk;
-      r->next = *pk_list_addr;
-      r->flags = mark_hidden? 1:0;
-      *pk_list_addr = r;
+    r = (pk_list_t)xtrymalloc(sizeof *r);
+    if (!r) {
+      rc = gpg_error_from_syserror();
+      free_public_key(pk);
+      return rc;
     }
+    r->pk = pk;
+    r->next = *pk_list_addr;
+    r->flags = mark_hidden ? 1 : 0;
+    *pk_list_addr = r;
+  }
 
   return 0;
 }
-
-
 
 /* This is the central function to collect the keys for recipients.
  * It is thus used to prepare a public key encryption. encrypt-to
@@ -919,21 +840,20 @@ find_and_check_key (ctrl_t ctrl, const char *name, unsigned int use,
  * caller must free this list.  On error the value at this address is
  * not changed.
  */
-int
-build_pk_list (ctrl_t ctrl,
-	       const std::vector<std::pair<std::string, unsigned int>>& rcpts, PK_LIST *ret_pk_list)
-{
+int build_pk_list(
+    ctrl_t ctrl, const std::vector<std::pair<std::string, unsigned int>> &rcpts,
+    PK_LIST *ret_pk_list) {
   PK_LIST pk_list = NULL;
-  PKT_public_key *pk=NULL;
-  int rc=0;
-  int any_recipients=0;
+  PKT_public_key *pk = NULL;
+  int rc = 0;
+  int any_recipients = 0;
   char *def_rec = NULL;
   char pkstrbuf[PUBKEY_STRING_SIZE];
   std::vector<std::pair<std::string, unsigned int>> remusr;
-  
+
   /* Try to expand groups if any have been defined. */
   if (!opt.grouplist.empty())
-    remusr = expand_group (rcpts);
+    remusr = expand_group(rcpts);
   else
     remusr = rcpts;
 
@@ -944,366 +864,312 @@ build_pk_list (ctrl_t ctrl,
      select the best key.  If a key specification is ambiguous and we
      are in batch mode, die.  */
 
-  if (opt.encrypt_to_default_key)
-    {
-      static int warned;
+  if (opt.encrypt_to_default_key) {
+    static int warned;
 
-      const char *default_key = parse_def_secret_key (ctrl);
-      if (default_key)
-        {
-          PK_LIST r = (PK_LIST) xmalloc_clear (sizeof *r);
+    const char *default_key = parse_def_secret_key(ctrl);
+    if (default_key) {
+      PK_LIST r = (PK_LIST)xmalloc_clear(sizeof *r);
 
-          r->pk = (PKT_public_key*) xmalloc_clear (sizeof *r->pk);
-          r->pk->req_usage = PUBKEY_USAGE_ENC;
+      r->pk = (PKT_public_key *)xmalloc_clear(sizeof *r->pk);
+      r->pk->req_usage = PUBKEY_USAGE_ENC;
 
-          rc = get_pubkey_byname (ctrl, NULL, r->pk, default_key,
-                                   NULL, NULL, 0, 1);
-          if (rc)
-            {
-              xfree (r->pk);
-              xfree (r);
+      rc = get_pubkey_byname(ctrl, NULL, r->pk, default_key, NULL, NULL, 0, 1);
+      if (rc) {
+        xfree(r->pk);
+        xfree(r);
 
-              log_error (_("can't encrypt to '%s'\n"), default_key);
-              if (!opt.quiet)
-                log_info (_("(check argument of option '%s')\n"),
-                          "--default-key");
-            }
-          else
-            {
-              r->next = pk_list;
-              r->flags = 0;
-              pk_list = r;
-            }
-        }
-      else if (!opt.def_secret_key.empty())
-        {
-          if (! warned)
-            log_info (_("option '%s' given, but no valid default keys given\n"),
-                      "--encrypt-to-default-key");
-          warned = 1;
-        }
-      else
-        {
-          if (! warned)
-            log_info (_("option '%s' given, but option '%s' not given\n"),
-                      "--encrypt-to-default-key", "--default-key");
-          warned = 1;
-        }
+        log_error(_("can't encrypt to '%s'\n"), default_key);
+        if (!opt.quiet)
+          log_info(_("(check argument of option '%s')\n"), "--default-key");
+      } else {
+        r->next = pk_list;
+        r->flags = 0;
+        pk_list = r;
+      }
+    } else if (!opt.def_secret_key.empty()) {
+      if (!warned)
+        log_info(_("option '%s' given, but no valid default keys given\n"),
+                 "--encrypt-to-default-key");
+      warned = 1;
+    } else {
+      if (!warned)
+        log_info(_("option '%s' given, but option '%s' not given\n"),
+                 "--encrypt-to-default-key", "--default-key");
+      warned = 1;
     }
+  }
 
   /* Check whether there are any recipients in the list and build the
    * list of the encrypt-to ones (we always trust them). */
-  for (auto& rov : remusr)
-    {
-      if ( !(rov.second & PK_LIST_ENCRYPT_TO) )
-        {
-          /* This is a regular recipient; i.e. not an encrypt-to
-             one. */
-          any_recipients = 1;
+  for (auto &rov : remusr) {
+    if (!(rov.second & PK_LIST_ENCRYPT_TO)) {
+      /* This is a regular recipient; i.e. not an encrypt-to
+         one. */
+      any_recipients = 1;
 
-          /* Hidden recipients are not allowed while in PGP mode,
-             issue a warning and switch into GnuPG mode. */
-          if ((rov.second & PK_LIST_HIDDEN) && (PGP6 || PGP7 || PGP8))
-            {
-              log_info(_("you may not use %s while in %s mode\n"),
-                       "--hidden-recipient",
-                       gnupg_compliance_option_string (opt.compliance));
+      /* Hidden recipients are not allowed while in PGP mode,
+         issue a warning and switch into GnuPG mode. */
+      if ((rov.second & PK_LIST_HIDDEN) && (PGP6 || PGP7 || PGP8)) {
+        log_info(_("you may not use %s while in %s mode\n"),
+                 "--hidden-recipient",
+                 gnupg_compliance_option_string(opt.compliance));
 
-              compliance_failure();
-            }
+        compliance_failure();
+      }
+    } else if (!opt.no_encrypt_to) {
+      /* --encrypt-to has not been disabled.  Check this
+         encrypt-to key. */
+      pk = (PKT_public_key *)xmalloc_clear(sizeof *pk);
+      pk->req_usage = PUBKEY_USAGE_ENC;
+
+      /* We explicitly allow encrypt-to to an disabled key; thus
+         we pass 1 for the second last argument and 1 as the last
+         argument to disable AKL. */
+      if ((rc = get_pubkey_byname(ctrl, NULL, pk, rov.first.c_str(), NULL, NULL,
+                                  1, 1))) {
+        free_public_key(pk);
+        pk = NULL;
+        log_error(_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror(rc));
+        send_status_inv_recp(0, rov.first.c_str());
+        goto fail;
+      } else if (!(rc = openpgp_pk_test_algo2((pubkey_algo_t)(pk->pubkey_algo),
+                                              PUBKEY_USAGE_ENC))) {
+        /* Skip the actual key if the key is already present
+         * in the list.  Add it to our list if not. */
+        if (key_present_in_pk_list(pk_list, pk) == 0) {
+          free_public_key(pk);
+          pk = NULL;
+          if (!opt.quiet)
+            log_info(_("%s: skipped: public key already present\n"),
+                     rov.first.c_str());
+        } else {
+          PK_LIST r;
+          r = (PK_LIST)xmalloc(sizeof *r);
+          r->pk = pk;
+          pk = NULL;
+          r->next = pk_list;
+          r->flags = (rov.second & PK_LIST_HIDDEN) ? 1 : 0;
+          pk_list = r;
+
+          /* Hidden encrypt-to recipients are not allowed while
+             in PGP mode, issue a warning and switch into
+             GnuPG mode. */
+          if ((r->flags & PK_LIST_ENCRYPT_TO) && (PGP6 || PGP7 || PGP8)) {
+            log_info(_("you may not use %s while in %s mode\n"),
+                     "--hidden-encrypt-to",
+                     gnupg_compliance_option_string(opt.compliance));
+
+            compliance_failure();
+          }
         }
-      else if (!opt.no_encrypt_to)
-        {
-          /* --encrypt-to has not been disabled.  Check this
-             encrypt-to key. */
-          pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
-          pk->req_usage = PUBKEY_USAGE_ENC;
-
-          /* We explicitly allow encrypt-to to an disabled key; thus
-             we pass 1 for the second last argument and 1 as the last
-             argument to disable AKL. */
-          if ( (rc = get_pubkey_byname (ctrl,
-                                        NULL, pk, rov.first.c_str(), NULL, NULL, 1, 1)) )
-            {
-              free_public_key ( pk ); pk = NULL;
-              log_error (_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror (rc) );
-              send_status_inv_recp (0, rov.first.c_str());
-              goto fail;
-            }
-          else if ( !(rc=openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo),
-                                                PUBKEY_USAGE_ENC)) )
-            {
-              /* Skip the actual key if the key is already present
-               * in the list.  Add it to our list if not. */
-              if (key_present_in_pk_list(pk_list, pk) == 0)
-                {
-                  free_public_key (pk); pk = NULL;
-                  if (!opt.quiet)
-                    log_info (_("%s: skipped: public key already present\n"),
-                              rov.first.c_str());
-                }
-              else
-                {
-                  PK_LIST r;
-                  r = (PK_LIST) xmalloc( sizeof *r );
-                  r->pk = pk; pk = NULL;
-                  r->next = pk_list;
-                  r->flags = (rov.second & PK_LIST_HIDDEN)?1:0;
-                  pk_list = r;
-
-                  /* Hidden encrypt-to recipients are not allowed while
-                     in PGP mode, issue a warning and switch into
-                     GnuPG mode. */
-                  if ((r->flags&PK_LIST_ENCRYPT_TO) && (PGP6 || PGP7 || PGP8))
-                    {
-                      log_info(_("you may not use %s while in %s mode\n"),
-                               "--hidden-encrypt-to",
-                               gnupg_compliance_option_string (opt.compliance));
-
-                      compliance_failure();
-                    }
-                }
-            }
-          else
-            {
-              /* The public key is not usable for encryption. */
-              free_public_key( pk ); pk = NULL;
-              log_error(_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror (rc) );
-              send_status_inv_recp (3, rov.first.c_str()); /* Wrong key usage */
-              goto fail;
-            }
-        }
+      } else {
+        /* The public key is not usable for encryption. */
+        free_public_key(pk);
+        pk = NULL;
+        log_error(_("%s: skipped: %s\n"), rov.first.c_str(), gpg_strerror(rc));
+        send_status_inv_recp(3, rov.first.c_str()); /* Wrong key usage */
+        goto fail;
+      }
     }
+  }
 
   /* If we don't have any recipients yet and we are not in batch mode
      drop into interactive selection mode. */
-  if ( !any_recipients && !opt.batch )
-    {
-      int have_def_rec;
-      char *answer = NULL;
-      std::vector<std::pair<std::string, unsigned int>> backlog;
+  if (!any_recipients && !opt.batch) {
+    int have_def_rec;
+    char *answer = NULL;
+    std::vector<std::pair<std::string, unsigned int>> backlog;
 
-      if (pk_list)
-        any_recipients = 1;
-      def_rec = default_recipient(ctrl);
-      have_def_rec = !!def_rec;
-      if ( !have_def_rec )
-        tty_printf(_("You did not specify a user ID. (you may use \"-r\")\n"));
+    if (pk_list) any_recipients = 1;
+    def_rec = default_recipient(ctrl);
+    have_def_rec = !!def_rec;
+    if (!have_def_rec)
+      tty_printf(_("You did not specify a user ID. (you may use \"-r\")\n"));
 
-      for (;;)
-        {
-          rc = 0;
-          xfree(answer);
-          if ( have_def_rec )
-            {
-              /* A default recipient is taken as the first entry. */
-              answer = def_rec;
-              def_rec = NULL;
-            }
-          else if (!backlog.empty())
-            {
-              /* This is part of our trick to expand and display groups. */
-              answer = strdup(backlog.back().first.c_str());
-	      backlog.pop_back();
-            }
-          else
-            {
-              /* Show the list of already collected recipients and ask
-                 for more. */
-              PK_LIST iter;
+    for (;;) {
+      rc = 0;
+      xfree(answer);
+      if (have_def_rec) {
+        /* A default recipient is taken as the first entry. */
+        answer = def_rec;
+        def_rec = NULL;
+      } else if (!backlog.empty()) {
+        /* This is part of our trick to expand and display groups. */
+        answer = strdup(backlog.back().first.c_str());
+        backlog.pop_back();
+      } else {
+        /* Show the list of already collected recipients and ask
+           for more. */
+        PK_LIST iter;
 
-              tty_printf("\n");
-              tty_printf(_("Current recipients:\n"));
-              for (iter=pk_list;iter;iter=iter->next)
-                {
-                  u32 keyid[2];
+        tty_printf("\n");
+        tty_printf(_("Current recipients:\n"));
+        for (iter = pk_list; iter; iter = iter->next) {
+          u32 keyid[2];
 
-                  keyid_from_pk(iter->pk,keyid);
-                  tty_printf ("%s/%s %s \"",
-                              pubkey_string (iter->pk,
-                                             pkstrbuf, sizeof pkstrbuf),
-                              keystr(keyid),
-                              datestr_from_pk (iter->pk));
+          keyid_from_pk(iter->pk, keyid);
+          tty_printf("%s/%s %s \"",
+                     pubkey_string(iter->pk, pkstrbuf, sizeof pkstrbuf),
+                     keystr(keyid), datestr_from_pk(iter->pk));
 
-                  if (iter->pk->user_id)
-                    tty_print_utf8_string((const unsigned char*) (iter->pk->user_id->name),
-                                          iter->pk->user_id->len);
-                  else
-                    {
-                      size_t n;
-                      char *p = get_user_id (ctrl, keyid, &n );
-                      tty_print_utf8_string ( (const unsigned char*) (p), n );
-                      xfree(p);
-                    }
-                  tty_printf("\"\n");
-                }
-
-              answer = cpr_get_utf8("pklist.user_id.enter",
-                                    _("\nEnter the user ID.  "
-                                      "End with an empty line: "));
-              trim_spaces(answer);
-              cpr_kill_prompt();
-            }
-
-          if ( !answer || !*answer )
-            {
-              xfree(answer);
-              break;  /* No more recipients entered - get out of loop. */
-            }
-
-          /* Do group expand here too.  The trick here is to continue
-             the loop if any expansion occurred.  The code above will
-             then list all expanded keys. */
-          if (expand_id(answer, backlog, 0))
-            continue;
-
-          /* Get and check key for the current name. */
-          free_public_key (pk);
-          pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
-          pk->req_usage = PUBKEY_USAGE_ENC;
-          rc = get_pubkey_byname (ctrl, NULL, pk, answer, NULL, NULL, 0, 0 );
-          if (rc)
-            tty_printf(_("No such user ID.\n"));
-          else if ( !(rc=openpgp_pk_test_algo2 ((pubkey_algo_t) (pk->pubkey_algo),
-                                                PUBKEY_USAGE_ENC)) )
-            {
-              if ( have_def_rec )
-                {
-                  /* No validation for a default recipient. */
-                  if (!key_present_in_pk_list(pk_list, pk))
-                    {
-                      free_public_key (pk);
-                      pk = NULL;
-                      log_info (_("skipped: public key "
-                                  "already set as default recipient\n") );
-                    }
-                  else
-                    {
-                      PK_LIST r = (PK_LIST) xmalloc (sizeof *r);
-                      r->pk = pk; pk = NULL;
-                      r->next = pk_list;
-                      r->flags = 0; /* No throwing default ids. */
-                      pk_list = r;
-                    }
-                  any_recipients = 1;
-                  continue;
-                }
-              else
-                { /* Check validity of this key. */
-                  int trustlevel;
-
-                  trustlevel =
-                    get_validity (ctrl, NULL, pk, pk->user_id, NULL, 1);
-                  if ( (trustlevel & TRUST_FLAG_DISABLED) )
-                    {
-                      tty_printf (_("Public key is disabled.\n") );
-                    }
-                  else if ( do_we_trust_pre (ctrl, pk, trustlevel) )
-                    {
-                      /* Skip the actual key if the key is already
-                       * present in the list */
-                      if (!key_present_in_pk_list(pk_list, pk))
-                        {
-                          free_public_key (pk);
-                          pk = NULL;
-                          log_info(_("skipped: public key already set\n") );
-                        }
-                      else
-                        {
-                          PK_LIST r;
-                          r = (PK_LIST) xmalloc( sizeof *r );
-                          r->pk = pk; pk = NULL;
-                          r->next = pk_list;
-                          r->flags = 0; /* No throwing interactive ids. */
-                          pk_list = r;
-                        }
-                      any_recipients = 1;
-                      continue;
-                    }
-                }
-            }
-          xfree(def_rec); def_rec = NULL;
-          have_def_rec = 0;
+          if (iter->pk->user_id)
+            tty_print_utf8_string(
+                (const unsigned char *)(iter->pk->user_id->name),
+                iter->pk->user_id->len);
+          else {
+            size_t n;
+            char *p = get_user_id(ctrl, keyid, &n);
+            tty_print_utf8_string((const unsigned char *)(p), n);
+            xfree(p);
+          }
+          tty_printf("\"\n");
         }
-      if ( pk )
-        {
-          free_public_key( pk );
-          pk = NULL;
-        }
-    }
-  else if ( !any_recipients && (def_rec = default_recipient(ctrl)) )
-    {
-      /* We are in batch mode and have only a default recipient. */
-      pk = (PKT_public_key*) xmalloc_clear( sizeof *pk );
+
+        answer =
+            cpr_get_utf8("pklist.user_id.enter", _("\nEnter the user ID.  "
+                                                   "End with an empty line: "));
+        trim_spaces(answer);
+        cpr_kill_prompt();
+      }
+
+      if (!answer || !*answer) {
+        xfree(answer);
+        break; /* No more recipients entered - get out of loop. */
+      }
+
+      /* Do group expand here too.  The trick here is to continue
+         the loop if any expansion occurred.  The code above will
+         then list all expanded keys. */
+      if (expand_id(answer, backlog, 0)) continue;
+
+      /* Get and check key for the current name. */
+      free_public_key(pk);
+      pk = (PKT_public_key *)xmalloc_clear(sizeof *pk);
       pk->req_usage = PUBKEY_USAGE_ENC;
-
-      /* The default recipient is allowed to be disabled; thus pass 1
-         as second last argument.  We also don't want an AKL. */
-      rc = get_pubkey_byname (ctrl, NULL, pk, def_rec, NULL, NULL, 1, 1);
+      rc = get_pubkey_byname(ctrl, NULL, pk, answer, NULL, NULL, 0, 0);
       if (rc)
-        log_error(_("unknown default recipient \"%s\"\n"), def_rec );
-      else if ( !(rc=openpgp_pk_test_algo2((pubkey_algo_t) (pk->pubkey_algo),
-                                           PUBKEY_USAGE_ENC)) )
-        {
-          /* Mark any_recipients here since the default recipient
-             would have been used if it wasn't already there.  It
-             doesn't really matter if we got this key from the default
-             recipient or an encrypt-to. */
+        tty_printf(_("No such user ID.\n"));
+      else if (!(rc = openpgp_pk_test_algo2((pubkey_algo_t)(pk->pubkey_algo),
+                                            PUBKEY_USAGE_ENC))) {
+        if (have_def_rec) {
+          /* No validation for a default recipient. */
+          if (!key_present_in_pk_list(pk_list, pk)) {
+            free_public_key(pk);
+            pk = NULL;
+            log_info(
+                _("skipped: public key "
+                  "already set as default recipient\n"));
+          } else {
+            PK_LIST r = (PK_LIST)xmalloc(sizeof *r);
+            r->pk = pk;
+            pk = NULL;
+            r->next = pk_list;
+            r->flags = 0; /* No throwing default ids. */
+            pk_list = r;
+          }
           any_recipients = 1;
-          if (!key_present_in_pk_list(pk_list, pk))
-            log_info (_("skipped: public key already set "
-                        "as default recipient\n"));
-          else
-            {
-              PK_LIST r = (PK_LIST) xmalloc( sizeof *r );
-              r->pk = pk; pk = NULL;
+          continue;
+        } else { /* Check validity of this key. */
+          int trustlevel;
+
+          trustlevel = get_validity(ctrl, NULL, pk, pk->user_id, NULL, 1);
+          if ((trustlevel & TRUST_FLAG_DISABLED)) {
+            tty_printf(_("Public key is disabled.\n"));
+          } else if (do_we_trust_pre(ctrl, pk, trustlevel)) {
+            /* Skip the actual key if the key is already
+             * present in the list */
+            if (!key_present_in_pk_list(pk_list, pk)) {
+              free_public_key(pk);
+              pk = NULL;
+              log_info(_("skipped: public key already set\n"));
+            } else {
+              PK_LIST r;
+              r = (PK_LIST)xmalloc(sizeof *r);
+              r->pk = pk;
+              pk = NULL;
               r->next = pk_list;
-              r->flags = 0; /* No throwing default ids. */
+              r->flags = 0; /* No throwing interactive ids. */
               pk_list = r;
             }
+            any_recipients = 1;
+            continue;
+          }
         }
-      if ( pk )
-        {
-          free_public_key( pk );
-          pk = NULL;
-        }
-      xfree(def_rec); def_rec = NULL;
+      }
+      xfree(def_rec);
+      def_rec = NULL;
+      have_def_rec = 0;
     }
-  else
-    {
-      /* General case: Check all keys. */
-      any_recipients = 0;
-      for (auto& remusr_ : remusr)
-        {
-          if ( (remusr_.second & PK_LIST_ENCRYPT_TO) )
-            continue; /* encrypt-to keys are already handled. */
-
-          rc = find_and_check_key (ctrl, remusr_.first.c_str(), PUBKEY_USAGE_ENC,
-                                   !!(remusr_.second & PK_LIST_HIDDEN),
-                                   !!(remusr_.second & PK_LIST_FROM_FILE),
-                                   &pk_list);
-          if (rc)
-            goto fail;
-          any_recipients = 1;
-        }
+    if (pk) {
+      free_public_key(pk);
+      pk = NULL;
     }
+  } else if (!any_recipients && (def_rec = default_recipient(ctrl))) {
+    /* We are in batch mode and have only a default recipient. */
+    pk = (PKT_public_key *)xmalloc_clear(sizeof *pk);
+    pk->req_usage = PUBKEY_USAGE_ENC;
 
-  if ( !rc && !any_recipients )
-    {
-      log_error(_("no valid addressees\n"));
-      write_status_text (STATUS_NO_RECP, "0");
-      rc = GPG_ERR_NO_USER_ID;
+    /* The default recipient is allowed to be disabled; thus pass 1
+       as second last argument.  We also don't want an AKL. */
+    rc = get_pubkey_byname(ctrl, NULL, pk, def_rec, NULL, NULL, 1, 1);
+    if (rc)
+      log_error(_("unknown default recipient \"%s\"\n"), def_rec);
+    else if (!(rc = openpgp_pk_test_algo2((pubkey_algo_t)(pk->pubkey_algo),
+                                          PUBKEY_USAGE_ENC))) {
+      /* Mark any_recipients here since the default recipient
+         would have been used if it wasn't already there.  It
+         doesn't really matter if we got this key from the default
+         recipient or an encrypt-to. */
+      any_recipients = 1;
+      if (!key_present_in_pk_list(pk_list, pk))
+        log_info(
+            _("skipped: public key already set "
+              "as default recipient\n"));
+      else {
+        PK_LIST r = (PK_LIST)xmalloc(sizeof *r);
+        r->pk = pk;
+        pk = NULL;
+        r->next = pk_list;
+        r->flags = 0; /* No throwing default ids. */
+        pk_list = r;
+      }
     }
+    if (pk) {
+      free_public_key(pk);
+      pk = NULL;
+    }
+    xfree(def_rec);
+    def_rec = NULL;
+  } else {
+    /* General case: Check all keys. */
+    any_recipients = 0;
+    for (auto &remusr_ : remusr) {
+      if ((remusr_.second & PK_LIST_ENCRYPT_TO))
+        continue; /* encrypt-to keys are already handled. */
 
- fail:
+      rc = find_and_check_key(ctrl, remusr_.first.c_str(), PUBKEY_USAGE_ENC,
+                              !!(remusr_.second & PK_LIST_HIDDEN),
+                              !!(remusr_.second & PK_LIST_FROM_FILE), &pk_list);
+      if (rc) goto fail;
+      any_recipients = 1;
+    }
+  }
 
-  if ( rc )
-    release_pk_list( pk_list );
+  if (!rc && !any_recipients) {
+    log_error(_("no valid addressees\n"));
+    write_status_text(STATUS_NO_RECP, "0");
+    rc = GPG_ERR_NO_USER_ID;
+  }
+
+fail:
+
+  if (rc)
+    release_pk_list(pk_list);
   else
     *ret_pk_list = pk_list;
   return rc;
 }
-
 
 /* In pgp6 mode, disallow all ciphers except IDEA (1), 3DES (2), and
    CAST5 (3), all hashes except MD5 (1), SHA1 (2), and RIPEMD160 (3),
@@ -1322,256 +1188,216 @@ build_pk_list (ctrl_t ctrl,
    intersection"), and PGP has no mechanism to fix such a broken
    preference list, so I'm including it. -dms */
 
-int
-algo_available( preftype_t preftype, int algo, const union pref_hint *hint)
-{
-  if( preftype == PREFTYPE_SYM )
-    {
-      if(PGP6 && (algo != CIPHER_ALGO_IDEA
-		  && algo != CIPHER_ALGO_3DES
-		  && algo != CIPHER_ALGO_CAST5))
-	return 0;
+int algo_available(preftype_t preftype, int algo, const union pref_hint *hint) {
+  if (preftype == PREFTYPE_SYM) {
+    if (PGP6 && (algo != CIPHER_ALGO_IDEA && algo != CIPHER_ALGO_3DES &&
+                 algo != CIPHER_ALGO_CAST5))
+      return 0;
 
-      if(PGP7 && (algo != CIPHER_ALGO_IDEA
-		  && algo != CIPHER_ALGO_3DES
-		  && algo != CIPHER_ALGO_CAST5
-		  && algo != CIPHER_ALGO_AES
-		  && algo != CIPHER_ALGO_AES192
-		  && algo != CIPHER_ALGO_AES256
-		  && algo != CIPHER_ALGO_TWOFISH))
-	return 0;
+    if (PGP7 && (algo != CIPHER_ALGO_IDEA && algo != CIPHER_ALGO_3DES &&
+                 algo != CIPHER_ALGO_CAST5 && algo != CIPHER_ALGO_AES &&
+                 algo != CIPHER_ALGO_AES192 && algo != CIPHER_ALGO_AES256 &&
+                 algo != CIPHER_ALGO_TWOFISH))
+      return 0;
 
-      /* PGP8 supports all the ciphers we do.. */
+    /* PGP8 supports all the ciphers we do.. */
 
-      return algo && !openpgp_cipher_test_algo ( (cipher_algo_t) (algo ));
+    return algo && !openpgp_cipher_test_algo((cipher_algo_t)(algo));
+  } else if (preftype == PREFTYPE_HASH) {
+    if (hint && hint->digest_length) {
+      if (hint->digest_length != 20 || opt.flags.dsa2) {
+        /* If --enable-dsa2 is set or the hash isn't 160 bits
+           (which implies DSA2), then we'll accept a hash that
+           is larger than we need.  Otherwise we won't accept
+           any hash that isn't exactly the right size. */
+        if (hint->digest_length > gcry_md_get_algo_dlen(algo)) return 0;
+      } else if (hint->digest_length != gcry_md_get_algo_dlen(algo))
+        return 0;
     }
-  else if( preftype == PREFTYPE_HASH )
-    {
-      if (hint && hint->digest_length)
-	{
-	  if (hint->digest_length!=20 || opt.flags.dsa2)
-	    {
-	      /* If --enable-dsa2 is set or the hash isn't 160 bits
-		 (which implies DSA2), then we'll accept a hash that
-		 is larger than we need.  Otherwise we won't accept
-		 any hash that isn't exactly the right size. */
-	      if (hint->digest_length > gcry_md_get_algo_dlen (algo))
-		return 0;
-	    }
-	  else if (hint->digest_length != gcry_md_get_algo_dlen (algo))
-	    return 0;
-	}
 
-      if((PGP6 || PGP7) && (algo != DIGEST_ALGO_MD5
-			    && algo != DIGEST_ALGO_SHA1
-			    && algo != DIGEST_ALGO_RMD160))
-	return 0;
+    if ((PGP6 || PGP7) &&
+        (algo != DIGEST_ALGO_MD5 && algo != DIGEST_ALGO_SHA1 &&
+         algo != DIGEST_ALGO_RMD160))
+      return 0;
 
+    if (PGP8 && (algo != DIGEST_ALGO_MD5 && algo != DIGEST_ALGO_SHA1 &&
+                 algo != DIGEST_ALGO_RMD160 && algo != DIGEST_ALGO_SHA256))
+      return 0;
 
-      if(PGP8 && (algo != DIGEST_ALGO_MD5
-		  && algo != DIGEST_ALGO_SHA1
-		  && algo != DIGEST_ALGO_RMD160
-		  && algo != DIGEST_ALGO_SHA256))
-	return 0;
+    return algo && !openpgp_md_test_algo((digest_algo_t)(algo));
+  } else if (preftype == PREFTYPE_ZIP) {
+    if ((PGP6 || PGP7) &&
+        (algo != COMPRESS_ALGO_NONE && algo != COMPRESS_ALGO_ZIP))
+      return 0;
 
-      return algo && !openpgp_md_test_algo ((digest_algo_t) (algo));
-    }
-  else if( preftype == PREFTYPE_ZIP )
-    {
-      if((PGP6 || PGP7) && (algo != COMPRESS_ALGO_NONE
-			    && algo != COMPRESS_ALGO_ZIP))
-	return 0;
+    /* PGP8 supports all the compression algos we do */
 
-      /* PGP8 supports all the compression algos we do */
-
-      return !check_compress_algo( algo );
-    }
-  else
+    return !check_compress_algo(algo);
+  } else
     return 0;
 }
 
 /****************
  * Return -1 if we could not find an algorithm.
  */
-int
-select_algo_from_prefs(PK_LIST pk_list, int preftype,
-		       int request, const union pref_hint *hint)
-{
+int select_algo_from_prefs(PK_LIST pk_list, int preftype, int request,
+                           const union pref_hint *hint) {
   PK_LIST pkr;
   u32 bits[8];
   const prefitem_t *prefs;
-  int result=-1,i;
+  int result = -1, i;
   u16 scores[256];
 
-  if( !pk_list )
-    return -1;
+  if (!pk_list) return -1;
 
-  memset(bits,0xFF,sizeof(bits));
-  memset(scores,0,sizeof(scores));
+  memset(bits, 0xFF, sizeof(bits));
+  memset(scores, 0, sizeof(scores));
 
-  for( pkr = pk_list; pkr; pkr = pkr->next )
-    {
-      u32 mask[8];
-      int rank=1,implicit=-1;
+  for (pkr = pk_list; pkr; pkr = pkr->next) {
+    u32 mask[8];
+    int rank = 1, implicit = -1;
 
-      memset(mask,0,sizeof(mask));
+    memset(mask, 0, sizeof(mask));
 
-      switch(preftype)
-	{
-	case PREFTYPE_SYM:
-	  /* IDEA is implicitly there for v3 keys with v3 selfsigs if
-	     --pgp2 mode is on.  This was a 2440 thing that was
-	     dropped from 4880 but is still relevant to GPG's 1991
-	     support.  All this doesn't mean IDEA is actually
-	     available, of course. */
-          implicit=CIPHER_ALGO_3DES;
+    switch (preftype) {
+      case PREFTYPE_SYM:
+        /* IDEA is implicitly there for v3 keys with v3 selfsigs if
+           --pgp2 mode is on.  This was a 2440 thing that was
+           dropped from 4880 but is still relevant to GPG's 1991
+           support.  All this doesn't mean IDEA is actually
+           available, of course. */
+        implicit = CIPHER_ALGO_3DES;
 
-	  break;
+        break;
 
-	case PREFTYPE_HASH:
-	  /* While I am including this code for completeness, note
-	     that currently --pgp2 mode locks the hash at MD5, so this
-	     code will never even be called.  Even if the hash wasn't
-	     locked at MD5, we don't support sign+encrypt in --pgp2
-	     mode, and that's the only time PREFTYPE_HASH is used
-	     anyway. -dms */
+      case PREFTYPE_HASH:
+        /* While I am including this code for completeness, note
+           that currently --pgp2 mode locks the hash at MD5, so this
+           code will never even be called.  Even if the hash wasn't
+           locked at MD5, we don't support sign+encrypt in --pgp2
+           mode, and that's the only time PREFTYPE_HASH is used
+           anyway. -dms */
 
-          implicit=DIGEST_ALGO_SHA1;
+        implicit = DIGEST_ALGO_SHA1;
 
-	  break;
+        break;
 
-	case PREFTYPE_ZIP:
-	  /* Uncompressed is always an option. */
-	  implicit=COMPRESS_ALGO_NONE;
-	}
-
-      if (pkr->pk->user_id) /* selected by user ID */
-	prefs = pkr->pk->user_id->prefs;
-      else
-	prefs = pkr->pk->prefs;
-
-      if( prefs )
-	{
-	  for (i=0; prefs[i].type; i++ )
-	    {
-	      if( prefs[i].type == preftype )
-		{
-		  /* Make sure all scores don't add up past 0xFFFF
-		     (and roll around) */
-		  if(rank+scores[prefs[i].value]<=0xFFFF)
-		    scores[prefs[i].value]+=rank;
-		  else
-		    scores[prefs[i].value]=0xFFFF;
-
-		  mask[prefs[i].value/32] |= 1<<(prefs[i].value%32);
-
-		  rank++;
-
-		  /* We saw the implicit algorithm, so we don't need
-		     tack it on the end ourselves. */
-		  if(implicit==prefs[i].value)
-		    implicit=-1;
-		}
-	    }
-	}
-
-      if(rank==1 && preftype==PREFTYPE_ZIP)
-	{
-	  /* If the compression preferences are not present, they are
-	     assumed to be ZIP, Uncompressed (RFC4880:13.3.1) */
-	  scores[1]=1; /* ZIP is first choice */
-	  scores[0]=2; /* Uncompressed is second choice */
-	  mask[0]|=3;
-	}
-
-      /* If the key didn't have the implicit algorithm listed
-	 explicitly, add it here at the tail of the list. */
-      if(implicit>-1)
-	{
-	  scores[implicit]+=rank;
-	  mask[implicit/32] |= 1<<(implicit%32);
-	}
-
-      for(i=0;i<8;i++)
-	bits[i]&=mask[i];
+      case PREFTYPE_ZIP:
+        /* Uncompressed is always an option. */
+        implicit = COMPRESS_ALGO_NONE;
     }
+
+    if (pkr->pk->user_id) /* selected by user ID */
+      prefs = pkr->pk->user_id->prefs;
+    else
+      prefs = pkr->pk->prefs;
+
+    if (prefs) {
+      for (i = 0; prefs[i].type; i++) {
+        if (prefs[i].type == preftype) {
+          /* Make sure all scores don't add up past 0xFFFF
+             (and roll around) */
+          if (rank + scores[prefs[i].value] <= 0xFFFF)
+            scores[prefs[i].value] += rank;
+          else
+            scores[prefs[i].value] = 0xFFFF;
+
+          mask[prefs[i].value / 32] |= 1 << (prefs[i].value % 32);
+
+          rank++;
+
+          /* We saw the implicit algorithm, so we don't need
+             tack it on the end ourselves. */
+          if (implicit == prefs[i].value) implicit = -1;
+        }
+      }
+    }
+
+    if (rank == 1 && preftype == PREFTYPE_ZIP) {
+      /* If the compression preferences are not present, they are
+         assumed to be ZIP, Uncompressed (RFC4880:13.3.1) */
+      scores[1] = 1; /* ZIP is first choice */
+      scores[0] = 2; /* Uncompressed is second choice */
+      mask[0] |= 3;
+    }
+
+    /* If the key didn't have the implicit algorithm listed
+       explicitly, add it here at the tail of the list. */
+    if (implicit > -1) {
+      scores[implicit] += rank;
+      mask[implicit / 32] |= 1 << (implicit % 32);
+    }
+
+    for (i = 0; i < 8; i++) bits[i] &= mask[i];
+  }
 
   /* We've now scored all of the algorithms, and the usable ones have
      bits set.  Let's pick the winner. */
 
   /* The caller passed us a request.  Can we use it? */
-  if(request>-1 && (bits[request/32] & (1<<(request%32))) &&
-     algo_available((preftype_t) (preftype),request,hint))
-    result=request;
+  if (request > -1 && (bits[request / 32] & (1 << (request % 32))) &&
+      algo_available((preftype_t)(preftype), request, hint))
+    result = request;
 
-  if(result==-1)
-    {
-      /* If we have personal prefs set, use them. */
-      prefs=NULL;
-      if(preftype==PREFTYPE_SYM && opt.personal_cipher_prefs)
-	prefs=opt.personal_cipher_prefs;
-      else if(preftype==PREFTYPE_HASH && opt.personal_digest_prefs)
-	prefs=opt.personal_digest_prefs;
-      else if(preftype==PREFTYPE_ZIP && opt.personal_compress_prefs)
-	prefs=opt.personal_compress_prefs;
+  if (result == -1) {
+    /* If we have personal prefs set, use them. */
+    prefs = NULL;
+    if (preftype == PREFTYPE_SYM && opt.personal_cipher_prefs)
+      prefs = opt.personal_cipher_prefs;
+    else if (preftype == PREFTYPE_HASH && opt.personal_digest_prefs)
+      prefs = opt.personal_digest_prefs;
+    else if (preftype == PREFTYPE_ZIP && opt.personal_compress_prefs)
+      prefs = opt.personal_compress_prefs;
 
-      if( prefs )
-	for(i=0; prefs[i].type; i++ )
-	  {
-	    if(bits[prefs[i].value/32] & (1<<(prefs[i].value%32))
-	       && algo_available( (preftype_t) (preftype), prefs[i].value, hint))
-	      {
-		result = prefs[i].value;
-		break;
-	      }
-	  }
+    if (prefs)
+      for (i = 0; prefs[i].type; i++) {
+        if (bits[prefs[i].value / 32] & (1 << (prefs[i].value % 32)) &&
+            algo_available((preftype_t)(preftype), prefs[i].value, hint)) {
+          result = prefs[i].value;
+          break;
+        }
+      }
+  }
+
+  if (result == -1) {
+    unsigned int best = -1;
+
+    /* At this point, we have not selected an algorithm due to a
+       special request or via personal prefs.  Pick the highest
+       ranked algorithm (i.e. the one with the lowest score). */
+
+    if (preftype == PREFTYPE_HASH && scores[DIGEST_ALGO_MD5]) {
+      /* "If you are building an authentication system, the recipient
+         may specify a preferred signing algorithm. However, the
+         signer would be foolish to use a weak algorithm simply
+         because the recipient requests it." (RFC4880:14).  If any
+         other hash algorithm is available, pretend that MD5 isn't.
+         Note that if the user intentionally chose MD5 by putting it
+         in their personal prefs, then we do what the user said (as we
+         never reach this code). */
+
+      for (i = DIGEST_ALGO_MD5 + 1; i < 256; i++)
+        if (scores[i]) {
+          scores[DIGEST_ALGO_MD5] = 0;
+          break;
+        }
     }
 
-  if(result==-1)
-    {
-      unsigned int best=-1;
-
-      /* At this point, we have not selected an algorithm due to a
-	 special request or via personal prefs.  Pick the highest
-	 ranked algorithm (i.e. the one with the lowest score). */
-
-      if(preftype==PREFTYPE_HASH && scores[DIGEST_ALGO_MD5])
-	{
-	  /* "If you are building an authentication system, the recipient
-	     may specify a preferred signing algorithm. However, the
-	     signer would be foolish to use a weak algorithm simply
-	     because the recipient requests it." (RFC4880:14).  If any
-	     other hash algorithm is available, pretend that MD5 isn't.
-	     Note that if the user intentionally chose MD5 by putting it
-	     in their personal prefs, then we do what the user said (as we
-	     never reach this code). */
-
-	  for(i=DIGEST_ALGO_MD5+1;i<256;i++)
-	    if(scores[i])
-	      {
-		scores[DIGEST_ALGO_MD5]=0;
-		break;
-	      }
-	}
-
-      for(i=0;i<256;i++)
-	{
-	  /* Note the '<' here.  This means in case of a tie, we will
-	     favor the lower algorithm number.  We have a choice
-	     between the lower number (probably an older algorithm
-	     with more time in use), or the higher number (probably a
-	     newer algorithm with less time in use).  Older is
-	     probably safer here, even though the newer algorithms
-	     tend to be "stronger". */
-	  if(scores[i] && scores[i]<best
-	     && (bits[i/32] & (1<<(i%32)))
-	     && algo_available((preftype_t) (preftype),i,hint))
-	    {
-	      best=scores[i];
-	      result=i;
-	    }
-	}
+    for (i = 0; i < 256; i++) {
+      /* Note the '<' here.  This means in case of a tie, we will
+         favor the lower algorithm number.  We have a choice
+         between the lower number (probably an older algorithm
+         with more time in use), or the higher number (probably a
+         newer algorithm with less time in use).  Older is
+         probably safer here, even though the newer algorithms
+         tend to be "stronger". */
+      if (scores[i] && scores[i] < best && (bits[i / 32] & (1 << (i % 32))) &&
+          algo_available((preftype_t)(preftype), i, hint)) {
+        best = scores[i];
+        result = i;
+      }
     }
+  }
 
   return result;
 }
@@ -1580,70 +1406,56 @@ select_algo_from_prefs(PK_LIST pk_list, int preftype,
  * Select the MDC flag from the pk_list.  We can only use MDC if all
  * recipients support this feature.
  */
-int
-select_mdc_from_pklist (PK_LIST pk_list)
-{
+int select_mdc_from_pklist(PK_LIST pk_list) {
   PK_LIST pkr;
 
-  if ( !pk_list )
-    return 0;
+  if (!pk_list) return 0;
 
-  for (pkr = pk_list; pkr; pkr = pkr->next)
-    {
-      int mdc;
+  for (pkr = pk_list; pkr; pkr = pkr->next) {
+    int mdc;
 
-      if (pkr->pk->user_id) /* selected by user ID */
-        mdc = pkr->pk->user_id->flags.mdc;
-      else
-        mdc = pkr->pk->flags.mdc;
-      if (!mdc)
-        return 0;  /* At least one recipient does not support it. */
-    }
+    if (pkr->pk->user_id) /* selected by user ID */
+      mdc = pkr->pk->user_id->flags.mdc;
+    else
+      mdc = pkr->pk->flags.mdc;
+    if (!mdc) return 0; /* At least one recipient does not support it. */
+  }
   return 1; /* Can be used. */
 }
 
-
 /* Print a warning for all keys in PK_LIST missing the MDC feature. */
-void
-warn_missing_mdc_from_pklist (PK_LIST pk_list)
-{
+void warn_missing_mdc_from_pklist(PK_LIST pk_list) {
   PK_LIST pkr;
 
-  for (pkr = pk_list; pkr; pkr = pkr->next)
-    {
-      int mdc;
+  for (pkr = pk_list; pkr; pkr = pkr->next) {
+    int mdc;
 
-      if (pkr->pk->user_id) /* selected by user ID */
-        mdc = pkr->pk->user_id->flags.mdc;
-      else
-        mdc = pkr->pk->flags.mdc;
-      if (!mdc)
-        log_info (_("Note: key %s has no %s feature\n"),
-                  keystr_from_pk (pkr->pk), "MDC");
-    }
+    if (pkr->pk->user_id) /* selected by user ID */
+      mdc = pkr->pk->user_id->flags.mdc;
+    else
+      mdc = pkr->pk->flags.mdc;
+    if (!mdc)
+      log_info(_("Note: key %s has no %s feature\n"), keystr_from_pk(pkr->pk),
+               "MDC");
+  }
 }
 
-void
-warn_missing_aes_from_pklist (PK_LIST pk_list)
-{
+void warn_missing_aes_from_pklist(PK_LIST pk_list) {
   PK_LIST pkr;
 
-  for (pkr = pk_list; pkr; pkr = pkr->next)
-    {
-      const prefitem_t *prefs;
-      int i;
-      int gotit = 0;
+  for (pkr = pk_list; pkr; pkr = pkr->next) {
+    const prefitem_t *prefs;
+    int i;
+    int gotit = 0;
 
-      prefs = pkr->pk->user_id? pkr->pk->user_id->prefs : pkr->pk->prefs;
-      if (prefs)
-        {
-          for (i=0; !gotit && prefs[i].type; i++ )
-            if (prefs[i].type == PREFTYPE_SYM
-                && prefs[i].value == CIPHER_ALGO_AES)
-              gotit++;
-	}
-      if (!gotit)
-        log_info (_("Note: key %s has no preference for %s\n"),
-                  keystr_from_pk (pkr->pk), "AES");
+    prefs = pkr->pk->user_id ? pkr->pk->user_id->prefs : pkr->pk->prefs;
+    if (prefs) {
+      for (i = 0; !gotit && prefs[i].type; i++)
+        if (prefs[i].type == PREFTYPE_SYM && prefs[i].value == CIPHER_ALGO_AES)
+          gotit++;
     }
+    if (!gotit)
+      log_info(_("Note: key %s has no preference for %s\n"),
+               keystr_from_pk(pkr->pk), "AES");
+  }
 }

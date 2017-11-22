@@ -17,159 +17,128 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <time.h>
-#include <errno.h>
 
 #include "../src/ksba.h"
 #include "t-common.h"
 
-
-static void
-test_0 (void)
-{
+static void test_0(void) {
   static const char *good_strings[] = {
-    "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko",
-    "C= de,   O=g10 Code  ,  OU=qa ,CN=Pépé le Moko",
-    "CN=www.gnupg.org",
-    "   CN=www.gnupg.org  ",
-    "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org",
-    NULL
-  };
+      "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko",
+      "C= de,   O=g10 Code  ,  OU=qa ,CN=Pépé le Moko",
+      "CN=www.gnupg.org",
+      "   CN=www.gnupg.org  ",
+      "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org",
+      NULL};
   gpg_error_t err;
   int i;
   unsigned char *buf;
   size_t off, len;
 
-  for (i=0; good_strings[i]; i++)
-    {
-      err = ksba_dn_str2der (good_strings[i], &buf, &len);
-      if (err)
-        {
-          fprintf (stderr, "%s:%d: ksba_dn_str2der failed for `%s': %s\n",
-                   __FILE__,__LINE__, good_strings[i], gpg_strerror (err));
-          exit (1);
-        }
-      err = ksba_dn_teststr (good_strings[i], 0, &off, &len);
-      if (err)
-        {
-          fprintf (stderr, "%s:%d: ksba_dn_teststr failed for `%s': %s\n",
-                   __FILE__,__LINE__, good_strings[i], gpg_strerror (err));
-          exit (1);
-        }
-      xfree (buf);
+  for (i = 0; good_strings[i]; i++) {
+    err = ksba_dn_str2der(good_strings[i], &buf, &len);
+    if (err) {
+      fprintf(stderr, "%s:%d: ksba_dn_str2der failed for `%s': %s\n", __FILE__,
+              __LINE__, good_strings[i], gpg_strerror(err));
+      exit(1);
     }
+    err = ksba_dn_teststr(good_strings[i], 0, &off, &len);
+    if (err) {
+      fprintf(stderr, "%s:%d: ksba_dn_teststr failed for `%s': %s\n", __FILE__,
+              __LINE__, good_strings[i], gpg_strerror(err));
+      exit(1);
+    }
+    xfree(buf);
+  }
 }
 
-
-static void
-test_1 (void)
-{
-  static const char *empty_elements[] = {
-    "C=de,O=foo,OU=,CN=joe",
-    "C=de,O=foo,OU= ,CN=joe",
-    "C=de,O=foo,OU=\"\" ,CN=joe",
-    "C=de,O=foo,OU=",
-    "C=de,O=foo,OU= ",
-    "C=,O=foo,OU=bar ",
-    "C = ,O=foo,OU=bar ",
-    "C=",
-    NULL
-  };
+static void test_1(void) {
+  static const char *empty_elements[] = {"C=de,O=foo,OU=,CN=joe",
+                                         "C=de,O=foo,OU= ,CN=joe",
+                                         "C=de,O=foo,OU=\"\" ,CN=joe",
+                                         "C=de,O=foo,OU=",
+                                         "C=de,O=foo,OU= ",
+                                         "C=,O=foo,OU=bar ",
+                                         "C = ,O=foo,OU=bar ",
+                                         "C=",
+                                         NULL};
   gpg_error_t err;
   int i;
   unsigned char *buf;
   size_t off, len;
 
-  for (i=0; empty_elements[i]; i++)
-    {
-      err = ksba_dn_str2der (empty_elements[i], &buf, &len);
-      if (err != GPG_ERR_SYNTAX)
-        fail ("empty element not detected");
-      err = ksba_dn_teststr (empty_elements[i], 0, &off, &len);
-      if (!err)
-        fail ("ksba_dn_teststr returned no error");
-      printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
-              empty_elements[i], (unsigned long)off, (unsigned long)len,
-              (int)len, empty_elements[i]+off);
-      xfree (buf);
-    }
+  for (i = 0; empty_elements[i]; i++) {
+    err = ksba_dn_str2der(empty_elements[i], &buf, &len);
+    if (err != GPG_ERR_SYNTAX) fail("empty element not detected");
+    err = ksba_dn_teststr(empty_elements[i], 0, &off, &len);
+    if (!err) fail("ksba_dn_teststr returned no error");
+    printf("string ->%s<-  error at %lu.%lu (%.*s)\n", empty_elements[i],
+           (unsigned long)off, (unsigned long)len, (int)len,
+           empty_elements[i] + off);
+    xfree(buf);
+  }
 }
 
-static void
-test_2 (void)
-{
-  static const char *invalid_labels[] = {
-    "C=de,FOO=something,O=bar",
-    "Y=foo, C=baz",
-    NULL
-  };
+static void test_2(void) {
+  static const char *invalid_labels[] = {"C=de,FOO=something,O=bar",
+                                         "Y=foo, C=baz", NULL};
   gpg_error_t err;
   int i;
   unsigned char *buf;
   size_t off, len;
 
-  for (i=0; invalid_labels[i]; i++)
-    {
-      err = ksba_dn_str2der (invalid_labels[i], &buf, &len);
-      if (err != GPG_ERR_UNKNOWN_NAME)
-        fail ("invalid label not detected");
-      err = ksba_dn_teststr (invalid_labels[i], 0, &off, &len);
-      if (!err)
-        fail ("ksba_dn_test_str returned no error");
-      printf ("string ->%s<-  error at %lu.%lu (%.*s)\n",
-              invalid_labels[i], (unsigned long)off, (unsigned long)len,
-              (int)len, invalid_labels[i]+off);
-      xfree (buf);
-    }
+  for (i = 0; invalid_labels[i]; i++) {
+    err = ksba_dn_str2der(invalid_labels[i], &buf, &len);
+    if (err != GPG_ERR_UNKNOWN_NAME) fail("invalid label not detected");
+    err = ksba_dn_teststr(invalid_labels[i], 0, &off, &len);
+    if (!err) fail("ksba_dn_test_str returned no error");
+    printf("string ->%s<-  error at %lu.%lu (%.*s)\n", invalid_labels[i],
+           (unsigned long)off, (unsigned long)len, (int)len,
+           invalid_labels[i] + off);
+    xfree(buf);
+  }
 }
 
-
-
-int
-dnparser_main (int argc, char **argv)
-{
+int dnparser_main(int argc, char **argv) {
   char inputbuf[4096];
   unsigned char *buf;
   size_t len;
   gpg_error_t err;
   size_t amt;
-  
-  if (argc == 2 && !strcmp (argv[1], "--to-str") )
-    { /* Read the DER encoded DN from stdin write the string to stdout */
-      amt = fread (inputbuf, 1, sizeof inputbuf, stdin);
-      assert (amt == sizeof(inputbuf));
-      if (!feof (stdin))
-        fail ("read error or input too large");
 
-      fail ("not yet implemented");
+  if (argc == 2 && !strcmp(argv[1], "--to-str")) { /* Read the DER encoded DN
+                                                      from stdin write the
+                                                      string to stdout */
+    amt = fread(inputbuf, 1, sizeof inputbuf, stdin);
+    assert(amt == sizeof(inputbuf));
+    if (!feof(stdin)) fail("read error or input too large");
 
-    }
-  else if (argc == 2 && !strcmp (argv[1], "--to-der") )
-    { /* Read the String from stdin write the DER encoding to stdout */
-      amt = fread (inputbuf, 1, sizeof inputbuf, stdin);
-      assert (amt == sizeof(inputbuf));
-      if (!feof (stdin))
-        fail ("read error or input too large");
+    fail("not yet implemented");
 
-      err = ksba_dn_str2der (inputbuf, &buf, &len);
-      fail_if_err (err);
-      fwrite (buf, len, 1, stdout);
-    }
-  else if (argc <= 1)
-    {
-      test_0 ();
-      test_1 ();
-      test_2 ();
-    }
-  else
-    {
-      fprintf (stderr, "usage: t-dnparser [--to-str|--to-der]\n");
-      return 1;
-    }
+  } else if (argc == 2 &&
+             !strcmp(argv[1],
+                     "--to-der")) { /* Read the String from stdin write the DER
+                                       encoding to stdout */
+    amt = fread(inputbuf, 1, sizeof inputbuf, stdin);
+    assert(amt == sizeof(inputbuf));
+    if (!feof(stdin)) fail("read error or input too large");
+
+    err = ksba_dn_str2der(inputbuf, &buf, &len);
+    fail_if_err(err);
+    fwrite(buf, len, 1, stdout);
+  } else if (argc <= 1) {
+    test_0();
+    test_1();
+    test_2();
+  } else {
+    fprintf(stderr, "usage: t-dnparser [--to-str|--to-der]\n");
+    return 1;
+  }
 
   return 0;
 }

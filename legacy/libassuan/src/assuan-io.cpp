@@ -19,33 +19,28 @@
 
 #include <config.h>
 
-#include <time.h>
+#include <errno.h>
+#include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
-#include <errno.h>
 #ifdef HAVE_W32_SYSTEM
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif 
-# include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#include <windows.h>
 #else
-# include <sys/wait.h>
+#include <sys/wait.h>
 #endif
 
 #include "assuan-defs.h"
 
-
-ssize_t
-_assuan_simple_read (assuan_context_t ctx, void *buffer, size_t size)
-{
-  return _assuan_read (ctx, ctx->inbound.fd, buffer, size);
+ssize_t _assuan_simple_read(assuan_context_t ctx, void *buffer, size_t size) {
+  return _assuan_read(ctx, ctx->inbound.fd, buffer, size);
 }
 
-
-ssize_t
-_assuan_simple_write (assuan_context_t ctx, const void *buffer, size_t size)
-{
-  return _assuan_write (ctx, ctx->outbound.fd, buffer, size);
+ssize_t _assuan_simple_write(assuan_context_t ctx, const void *buffer,
+                             size_t size) {
+  return _assuan_write(ctx, ctx->outbound.fd, buffer, size);
 }

@@ -21,45 +21,39 @@
 
 #include "keydb.h"
 
-static void
-do_test (int argc, char *argv[])
-{
+static void do_test(int argc, char *argv[]) {
   char *fname;
   int rc;
   KEYDB_HANDLE hd1;
   KEYDB_SEARCH_DESC desc1;
   KBNODE kb1;
 
-  (void) argc;
-  (void) argv;
+  (void)argc;
+  (void)argv;
 
   /* t-keydb-get-keyblock.gpg contains two keys: a modern key followed
      by a legacy key.  If we get the keyblock for the modern key, we
      shouldn't get
 
      - */
-  fname = prepend_srcdir ("t-keydb-get-keyblock.gpg");
-  rc = keydb_add_resource (fname, 0);
-  test_free (fname);
-  if (rc)
-    ABORT ("Failed to open keyring.");
+  fname = prepend_srcdir("t-keydb-get-keyblock.gpg");
+  rc = keydb_add_resource(fname, 0);
+  test_free(fname);
+  if (rc) ABORT("Failed to open keyring.");
 
-  hd1 = keydb_new ();
-  if (!hd1)
-    ABORT ("");
+  hd1 = keydb_new();
+  if (!hd1) ABORT("");
 
-  rc = classify_user_id ("8061 5870 F5BA D690 3336  86D0 F2AD 85AC 1E42 B367",
-			 &desc1, 0);
-  if (rc)
-    ABORT ("Failed to convert fingerprint for 1E42B367");
+  rc = classify_user_id("8061 5870 F5BA D690 3336  86D0 F2AD 85AC 1E42 B367",
+                        &desc1, 0);
+  if (rc) ABORT("Failed to convert fingerprint for 1E42B367");
 
-  rc = keydb_search (hd1, &desc1, 1, NULL);
-  if (rc)
-    ABORT ("Failed to lookup key associated with 1E42B367");
+  rc = keydb_search(hd1, &desc1, 1, NULL);
+  if (rc) ABORT("Failed to lookup key associated with 1E42B367");
 
-  rc = keydb_get_keyblock (hd1, &kb1);
-  TEST_P ("", ! rc);
+  rc = keydb_get_keyblock(hd1, &kb1);
+  TEST_P("", !rc);
 
-  keydb_release (hd1);
-  release_kbnode (kb1);
+  keydb_release(hd1);
+  release_kbnode(kb1);
 }

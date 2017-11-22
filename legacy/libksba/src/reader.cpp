@@ -28,12 +28,12 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <errno.h>
 #include "util.h"
 
 #include "ksba.h"
@@ -47,15 +47,11 @@
  *
  * Return value: ksba_reader_t object or an error code.
  **/
-gpg_error_t
-ksba_reader_new (ksba_reader_t *r_r)
-{
-  *r_r = (ksba_reader_t) xtrycalloc (1, sizeof **r_r);
-  if (!*r_r)
-    return gpg_error_from_errno (errno);
+gpg_error_t ksba_reader_new(ksba_reader_t *r_r) {
+  *r_r = (ksba_reader_t)xtrycalloc(1, sizeof **r_r);
+  if (!*r_r) return gpg_error_from_errno(errno);
   return 0;
 }
-
 
 /**
  * ksba_reader_release:
@@ -63,42 +59,33 @@ ksba_reader_new (ksba_reader_t *r_r)
  *
  * Release this object
  **/
-void
-ksba_reader_release (ksba_reader_t r)
-{
-  if (!r)
-    return;
-  if (r->notify_cb)
-    {
-      void (*notify_fnc)(void*,ksba_reader_t) = r->notify_cb;
+void ksba_reader_release(ksba_reader_t r) {
+  if (!r) return;
+  if (r->notify_cb) {
+    void (*notify_fnc)(void *, ksba_reader_t) = r->notify_cb;
 
-      r->notify_cb = NULL;
-      notify_fnc (r->notify_cb_value, r);
-    }
-  if (r->type == READER_TYPE_MEM)
-    xfree (r->u.mem.buffer);
-  xfree (r->unread.buf);
-  xfree (r);
+    r->notify_cb = NULL;
+    notify_fnc(r->notify_cb_value, r);
+  }
+  if (r->type == READER_TYPE_MEM) xfree(r->u.mem.buffer);
+  xfree(r->unread.buf);
+  xfree(r);
 }
-
 
 /* Set NOTIFY as function to be called by ksba_reader_release before
    resources are actually deallocated.  NOTIFY_VALUE is passed to the
    called function as its first argument.  Note that only the last
    registered function will be called; passing NULL for NOTIFY removes
    the notification.  */
-gpg_error_t
-ksba_reader_set_release_notify (ksba_reader_t r,
-                                void (*notify)(void*,ksba_reader_t),
-                                void *notify_value)
-{
-  if (!r)
-    return GPG_ERR_INV_VALUE;
+gpg_error_t ksba_reader_set_release_notify(ksba_reader_t r,
+                                           void (*notify)(void *,
+                                                          ksba_reader_t),
+                                           void *notify_value) {
+  if (!r) return GPG_ERR_INV_VALUE;
   r->notify_cb = notify;
   r->notify_cb_value = notify_value;
   return 0;
 }
-
 
 /* Clear the error and eof indicators for READER, so that it can be
    continued to use.  Also dicards any unread bytes. This is usually
@@ -107,13 +94,11 @@ ksba_reader_set_release_notify (ksba_reader_t r,
    not NULL, possible unread data is copied to a newly allocated
    buffer and this buffer is assigned to BUFFER, BUFLEN will be set to
    the length of the unread bytes. */
-gpg_error_t
-ksba_reader_clear (ksba_reader_t r, unsigned char **buffer, size_t *buflen)
-{
+gpg_error_t ksba_reader_clear(ksba_reader_t r, unsigned char **buffer,
+                              size_t *buflen) {
   size_t n;
 
-  if (!r)
-    return GPG_ERR_INV_VALUE;
+  if (!r) return GPG_ERR_INV_VALUE;
 
   r->eof = 0;
   r->error = 0;
@@ -121,36 +106,25 @@ ksba_reader_clear (ksba_reader_t r, unsigned char **buffer, size_t *buflen)
   n = r->unread.length;
   r->unread.length = 0;
 
-  if (buffer && buflen)
-    {
-      *buffer = NULL;
-      *buflen = 0;
-      if (n)
-        {
-          *buffer = (unsigned char*) xtrymalloc (n);
-          if (!*buffer)
-            return gpg_error_from_errno (errno);
-          memcpy (*buffer, r->unread.buf, n);
-          *buflen = n;
-        }
+  if (buffer && buflen) {
+    *buffer = NULL;
+    *buflen = 0;
+    if (n) {
+      *buffer = (unsigned char *)xtrymalloc(n);
+      if (!*buffer) return gpg_error_from_errno(errno);
+      memcpy(*buffer, r->unread.buf, n);
+      *buflen = n;
     }
+  }
 
   return 0;
 }
 
-
-gpg_error_t
-ksba_reader_error (ksba_reader_t r)
-{
-  return r? gpg_error_from_errno (r->error) : GPG_ERR_INV_VALUE;
+gpg_error_t ksba_reader_error(ksba_reader_t r) {
+  return r ? gpg_error_from_errno(r->error) : GPG_ERR_INV_VALUE;
 }
 
-unsigned long
-ksba_reader_tell (ksba_reader_t r)
-{
-  return r? r->nread : 0;
-}
-
+unsigned long ksba_reader_tell(ksba_reader_t r) { return r ? r->nread : 0; }
 
 /**
  * ksba_reader_set_mem:
@@ -165,23 +139,18 @@ ksba_reader_tell (ksba_reader_t r)
  *
  * Return value: 0 on success or an error code.
  **/
-gpg_error_t
-ksba_reader_set_mem (ksba_reader_t r, const void *buffer, size_t length)
-{
-  if (!r || !buffer)
-    return GPG_ERR_INV_VALUE;
-  if (r->type == READER_TYPE_MEM)
-    { /* Reuse this reader */
-      xfree (r->u.mem.buffer);
-      r->type = (reader_type) 0;
-    }
-  if (r->type)
-    return GPG_ERR_CONFLICT;
+gpg_error_t ksba_reader_set_mem(ksba_reader_t r, const void *buffer,
+                                size_t length) {
+  if (!r || !buffer) return GPG_ERR_INV_VALUE;
+  if (r->type == READER_TYPE_MEM) { /* Reuse this reader */
+    xfree(r->u.mem.buffer);
+    r->type = (reader_type)0;
+  }
+  if (r->type) return GPG_ERR_CONFLICT;
 
-  r->u.mem.buffer = (unsigned char*) xtrymalloc (length);
-  if (!r->u.mem.buffer)
-    return GPG_ERR_ENOMEM;
-  memcpy (r->u.mem.buffer, buffer, length);
+  r->u.mem.buffer = (unsigned char *)xtrymalloc(length);
+  if (!r->u.mem.buffer) return GPG_ERR_ENOMEM;
+  memcpy(r->u.mem.buffer, buffer, length);
   r->u.mem.size = length;
   r->u.mem.readpos = 0;
   r->type = READER_TYPE_MEM;
@@ -189,7 +158,6 @@ ksba_reader_set_mem (ksba_reader_t r, const void *buffer, size_t length)
 
   return 0;
 }
-
 
 /**
  * ksba_reader_set_fd:
@@ -201,13 +169,9 @@ ksba_reader_set_mem (ksba_reader_t r, const void *buffer, size_t length)
  *
  * Return value:
  **/
-gpg_error_t
-ksba_reader_set_fd (ksba_reader_t r, int fd)
-{
-  if (!r || fd == -1)
-    return GPG_ERR_INV_VALUE;
-  if (r->type)
-    return GPG_ERR_CONFLICT;
+gpg_error_t ksba_reader_set_fd(ksba_reader_t r, int fd) {
+  if (!r || fd == -1) return GPG_ERR_INV_VALUE;
+  if (r->type) return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_FD;
@@ -226,21 +190,15 @@ ksba_reader_set_fd (ksba_reader_t r, int fd)
  *
  * Return value:
  **/
-gpg_error_t
-ksba_reader_set_file (ksba_reader_t r, FILE *fp)
-{
-  if (!r || !fp)
-    return GPG_ERR_INV_VALUE;
-  if (r->type)
-    return GPG_ERR_CONFLICT;
+gpg_error_t ksba_reader_set_file(ksba_reader_t r, FILE *fp) {
+  if (!r || !fp) return GPG_ERR_INV_VALUE;
+  if (r->type) return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_FILE;
   r->u.file = fp;
   return 0;
 }
-
-
 
 /**
  * ksba_reader_set_cb:
@@ -266,14 +224,11 @@ ksba_reader_set_file (ksba_reader_t r, FILE *fp)
  *
  * Return value: 0 on success or an error code
  **/
-gpg_error_t
-ksba_reader_set_cb (ksba_reader_t r,
-                    int (*cb)(void*,char *,size_t,size_t*), void *cb_value )
-{
-  if (!r || !cb)
-    return GPG_ERR_INV_VALUE;
-  if (r->type)
-    return GPG_ERR_CONFLICT;
+gpg_error_t ksba_reader_set_cb(ksba_reader_t r,
+                               int (*cb)(void *, char *, size_t, size_t *),
+                               void *cb_value) {
+  if (!r || !cb) return GPG_ERR_INV_VALUE;
+  if (r->type) return GPG_ERR_CONFLICT;
 
   r->eof = 0;
   r->type = READER_TYPE_CB;
@@ -282,7 +237,6 @@ ksba_reader_set_cb (ksba_reader_t r,
 
   return 0;
 }
-
 
 /**
  * ksba_reader_read:
@@ -304,146 +258,108 @@ ksba_reader_set_cb (ksba_reader_t r,
  *
  * Return value: 0 on success, GPG_ERR_EOF or another error code
  **/
-gpg_error_t
-ksba_reader_read (ksba_reader_t r, char *buffer, size_t length, size_t *nread)
-{
+gpg_error_t ksba_reader_read(ksba_reader_t r, char *buffer, size_t length,
+                             size_t *nread) {
   size_t nbytes;
 
-  if (!r || !nread)
-    return GPG_ERR_INV_VALUE;
+  if (!r || !nread) return GPG_ERR_INV_VALUE;
 
-
-  if (!buffer)
-    {
-      if (r->type != READER_TYPE_MEM)
-        return GPG_ERR_NOT_IMPLEMENTED;
-      *nread = r->u.mem.size - r->u.mem.readpos;
-      if (r->unread.buf)
-        *nread += r->unread.length - r->unread.readpos;
-      return *nread? 0 : GPG_ERR_EOF;
-    }
+  if (!buffer) {
+    if (r->type != READER_TYPE_MEM) return GPG_ERR_NOT_IMPLEMENTED;
+    *nread = r->u.mem.size - r->u.mem.readpos;
+    if (r->unread.buf) *nread += r->unread.length - r->unread.readpos;
+    return *nread ? 0 : GPG_ERR_EOF;
+  }
 
   *nread = 0;
 
-  if (r->unread.buf && r->unread.length)
-    {
-      nbytes = r->unread.length - r->unread.readpos;
-      if (!nbytes)
-        return GPG_ERR_BUG;
+  if (r->unread.buf && r->unread.length) {
+    nbytes = r->unread.length - r->unread.readpos;
+    if (!nbytes) return GPG_ERR_BUG;
 
-      if (nbytes > length)
-        nbytes = length;
-      memcpy (buffer, r->unread.buf + r->unread.readpos, nbytes);
-      r->unread.readpos += nbytes;
-      if (r->unread.readpos == r->unread.length)
-        r->unread.readpos = r->unread.length = 0;
-      *nread = nbytes;
-      r->nread += nbytes;
-      return 0;
-    }
+    if (nbytes > length) nbytes = length;
+    memcpy(buffer, r->unread.buf + r->unread.readpos, nbytes);
+    r->unread.readpos += nbytes;
+    if (r->unread.readpos == r->unread.length)
+      r->unread.readpos = r->unread.length = 0;
+    *nread = nbytes;
+    r->nread += nbytes;
+    return 0;
+  }
 
-
-  if (!r->type)
-    {
+  if (!r->type) {
+    r->eof = 1;
+    return GPG_ERR_EOF;
+  } else if (r->type == READER_TYPE_MEM) {
+    nbytes = r->u.mem.size - r->u.mem.readpos;
+    if (!nbytes) {
       r->eof = 1;
       return GPG_ERR_EOF;
     }
-  else if (r->type == READER_TYPE_MEM)
-    {
-      nbytes = r->u.mem.size - r->u.mem.readpos;
-      if (!nbytes)
-        {
-          r->eof = 1;
-          return GPG_ERR_EOF;
-        }
 
-      if (nbytes > length)
-        nbytes = length;
-      memcpy (buffer, r->u.mem.buffer + r->u.mem.readpos, nbytes);
-      *nread = nbytes;
-      r->nread += nbytes;
-      r->u.mem.readpos += nbytes;
+    if (nbytes > length) nbytes = length;
+    memcpy(buffer, r->u.mem.buffer + r->u.mem.readpos, nbytes);
+    *nread = nbytes;
+    r->nread += nbytes;
+    r->u.mem.readpos += nbytes;
+  } else if (r->type == READER_TYPE_FILE) {
+    size_t n;
+
+    if (r->eof) return GPG_ERR_EOF;
+
+    if (!length) {
+      *nread = 0;
+      return 0;
     }
-  else if (r->type == READER_TYPE_FILE)
-    {
-      size_t n;
 
-      if (r->eof)
-        return GPG_ERR_EOF;
-
-      if (!length)
-        {
-          *nread = 0;
-          return 0;
-        }
-
-      n = fread (buffer, 1, length, r->u.file);
-      if (n)
-        {
-          r->nread += n;
-          *nread = n;
-        }
-      else
-        *nread = 0;
-      if (n < length)
-        {
-          if (ferror(r->u.file))
-            r->error = errno;
-          r->eof = 1;
-          if (!n)
-            return GPG_ERR_EOF;
-        }
+    n = fread(buffer, 1, length, r->u.file);
+    if (n) {
+      r->nread += n;
+      *nread = n;
+    } else
+      *nread = 0;
+    if (n < length) {
+      if (ferror(r->u.file)) r->error = errno;
+      r->eof = 1;
+      if (!n) return GPG_ERR_EOF;
     }
-  else if (r->type == READER_TYPE_CB)
-    {
-      if (r->eof)
-        return GPG_ERR_EOF;
+  } else if (r->type == READER_TYPE_CB) {
+    if (r->eof) return GPG_ERR_EOF;
 
-      if (r->u.cb.fnc (r->u.cb.value, buffer, length, nread))
-        {
-          *nread = 0;
-          r->eof = 1;
-          return GPG_ERR_EOF;
-        }
-      r->nread += *nread;
+    if (r->u.cb.fnc(r->u.cb.value, buffer, length, nread)) {
+      *nread = 0;
+      r->eof = 1;
+      return GPG_ERR_EOF;
     }
-  else
+    r->nread += *nread;
+  } else
     return GPG_ERR_BUG;
 
   return 0;
 }
 
-gpg_error_t
-ksba_reader_unread (ksba_reader_t r, const void *buffer, size_t count)
-{
-  if (!r || !buffer)
-    return GPG_ERR_INV_VALUE;
-  if (!count)
-    return 0;
+gpg_error_t ksba_reader_unread(ksba_reader_t r, const void *buffer,
+                               size_t count) {
+  if (!r || !buffer) return GPG_ERR_INV_VALUE;
+  if (!count) return 0;
 
   /* Make sure that we do not push more bytes back than we have read.
      Otherwise r->nread won't have a clear semantic. */
-  if (r->nread < count)
-    return GPG_ERR_CONFLICT;
+  if (r->nread < count) return GPG_ERR_CONFLICT;
 
-  if (!r->unread.buf)
-    {
-      r->unread.size = count + 100;
-      r->unread.buf = (unsigned char*) xtrymalloc (r->unread.size);
-      if (!r->unread.buf)
-        return GPG_ERR_ENOMEM;
-      r->unread.length = count;
-      r->unread.readpos = 0;
-      memcpy (r->unread.buf, buffer, count);
-      r->nread -= count;
-    }
-  else if (r->unread.length + count < r->unread.size)
-    {
-      memcpy (r->unread.buf+r->unread.length, buffer, count);
-      r->unread.length += count;
-      r->nread -= count;
-    }
-  else
+  if (!r->unread.buf) {
+    r->unread.size = count + 100;
+    r->unread.buf = (unsigned char *)xtrymalloc(r->unread.size);
+    if (!r->unread.buf) return GPG_ERR_ENOMEM;
+    r->unread.length = count;
+    r->unread.readpos = 0;
+    memcpy(r->unread.buf, buffer, count);
+    r->nread -= count;
+  } else if (r->unread.length + count < r->unread.size) {
+    memcpy(r->unread.buf + r->unread.length, buffer, count);
+    r->unread.length += count;
+    r->nread -= count;
+  } else
     return GPG_ERR_NOT_IMPLEMENTED; /* fixme: easy to do */
 
   return 0;

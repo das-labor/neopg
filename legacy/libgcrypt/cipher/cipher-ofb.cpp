@@ -19,22 +19,20 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "cipher.h"
-#include "bufhelp.h"
 #include "./cipher-internal.h"
+#include "bufhelp.h"
+#include "cipher.h"
+#include "g10lib.h"
 
-
-gpg_error_t
-_gcry_cipher_ofb_encrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_ofb_encrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                     size_t outbuflen,
+                                     const unsigned char *inbuf,
+                                     size_t inbuflen) {
   unsigned char *ivp;
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   size_t blocksize = c->spec->blocksize;
@@ -45,56 +43,50 @@ _gcry_cipher_ofb_encrypt (gcry_cipher_hd_t c,
   if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
     return GPG_ERR_INV_LENGTH;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
-  if ( inbuflen <= c->unused )
-    {
-      /* Short enough to be encoded by the remaining XOR mask. */
-      /* XOR the input with the IV */
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor(outbuf, ivp, inbuf, inbuflen);
-      c->unused -= inbuflen;
-      return 0;
-    }
+  if (inbuflen <= c->unused) {
+    /* Short enough to be encoded by the remaining XOR mask. */
+    /* XOR the input with the IV */
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor(outbuf, ivp, inbuf, inbuflen);
+    c->unused -= inbuflen;
+    return 0;
+  }
 
   burn = 0;
 
-  if( c->unused )
-    {
-      inbuflen -= c->unused;
-      ivp = c->u_iv.iv + blocksize - c->unused;
-      buf_xor(outbuf, ivp, inbuf, c->unused);
-      outbuf += c->unused;
-      inbuf += c->unused;
-      c->unused = 0;
-    }
+  if (c->unused) {
+    inbuflen -= c->unused;
+    ivp = c->u_iv.iv + blocksize - c->unused;
+    buf_xor(outbuf, ivp, inbuf, c->unused);
+    outbuf += c->unused;
+    inbuf += c->unused;
+    c->unused = 0;
+  }
 
   /* Now we can process complete blocks. */
-  while ( inbuflen >= blocksize )
-    {
-      /* Encrypt the IV (and save the current one). */
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
-      buf_xor(outbuf, c->u_iv.iv, inbuf, blocksize);
-      outbuf += blocksize;
-      inbuf += blocksize;
-      inbuflen -= blocksize;
-    }
-  if ( inbuflen )
-    { /* process the remaining bytes */
-      nburn = enc_fn ( &c->context.c, c->u_iv.iv, c->u_iv.iv );
-      burn = nburn > burn ? nburn : burn;
-      c->unused = blocksize;
-      c->unused -= inbuflen;
-      buf_xor(outbuf, c->u_iv.iv, inbuf, inbuflen);
-      outbuf += inbuflen;
-      inbuf += inbuflen;
-      inbuflen = 0;
-    }
+  while (inbuflen >= blocksize) {
+    /* Encrypt the IV (and save the current one). */
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    buf_xor(outbuf, c->u_iv.iv, inbuf, blocksize);
+    outbuf += blocksize;
+    inbuf += blocksize;
+    inbuflen -= blocksize;
+  }
+  if (inbuflen) { /* process the remaining bytes */
+    nburn = enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    c->unused = blocksize;
+    c->unused -= inbuflen;
+    buf_xor(outbuf, c->u_iv.iv, inbuf, inbuflen);
+    outbuf += inbuflen;
+    inbuf += inbuflen;
+    inbuflen = 0;
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }

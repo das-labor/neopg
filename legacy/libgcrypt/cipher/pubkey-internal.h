@@ -21,84 +21,72 @@
 #define GCRY_PUBKEY_INTERNAL_H
 
 /*-- pubkey-util.c --*/
-gpg_error_t _gcry_pk_util_parse_flaglist (gcry_sexp_t list,
-                                             int *r_flags,
-                                             enum pk_encoding *r_encoding);
-gpg_error_t _gcry_pk_util_get_nbits (gcry_sexp_t list,
-                                        unsigned int *r_nbits);
-gpg_error_t _gcry_pk_util_get_rsa_use_e (gcry_sexp_t list,
-                                            unsigned long *r_e);
-gpg_error_t _gcry_pk_util_preparse_sigval (gcry_sexp_t s_sig,
-                                              const char **algo_names,
-                                              gcry_sexp_t *r_parms,
-                                              int *r_eccflags);
-gpg_error_t _gcry_pk_util_preparse_encval (gcry_sexp_t sexp,
-                                              const char **algo_names,
-                                              gcry_sexp_t *r_parms,
-                                              struct pk_encoding_ctx *ctx);
-void _gcry_pk_util_init_encoding_ctx (struct pk_encoding_ctx *ctx,
-                                      enum pk_operation op,
-                                      unsigned int nbits);
-void _gcry_pk_util_free_encoding_ctx (struct pk_encoding_ctx *ctx);
-gpg_error_t _gcry_pk_util_data_to_mpi (gcry_sexp_t input,
-                                           gcry_mpi_t *ret_mpi,
-                                           struct pk_encoding_ctx *ctx);
-
-
+gpg_error_t _gcry_pk_util_parse_flaglist(gcry_sexp_t list, int *r_flags,
+                                         enum pk_encoding *r_encoding);
+gpg_error_t _gcry_pk_util_get_nbits(gcry_sexp_t list, unsigned int *r_nbits);
+gpg_error_t _gcry_pk_util_get_rsa_use_e(gcry_sexp_t list, unsigned long *r_e);
+gpg_error_t _gcry_pk_util_preparse_sigval(gcry_sexp_t s_sig,
+                                          const char **algo_names,
+                                          gcry_sexp_t *r_parms,
+                                          int *r_eccflags);
+gpg_error_t _gcry_pk_util_preparse_encval(gcry_sexp_t sexp,
+                                          const char **algo_names,
+                                          gcry_sexp_t *r_parms,
+                                          struct pk_encoding_ctx *ctx);
+void _gcry_pk_util_init_encoding_ctx(struct pk_encoding_ctx *ctx,
+                                     enum pk_operation op, unsigned int nbits);
+void _gcry_pk_util_free_encoding_ctx(struct pk_encoding_ctx *ctx);
+gpg_error_t _gcry_pk_util_data_to_mpi(gcry_sexp_t input, gcry_mpi_t *ret_mpi,
+                                      struct pk_encoding_ctx *ctx);
 
 /*-- rsa-common.c --*/
-gpg_error_t
-_gcry_rsa_pkcs1_encode_for_enc (gcry_mpi_t *r_result, unsigned int nbits,
-                                const unsigned char *value, size_t valuelen,
-                                const unsigned char *random_override,
-                                size_t random_override_len);
-gpg_error_t
-_gcry_rsa_pkcs1_decode_for_enc (unsigned char **r_result, size_t *r_resultlen,
-                                unsigned int nbits, gcry_mpi_t value);
-gpg_error_t
-_gcry_rsa_pkcs1_encode_raw_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
-                                const unsigned char *value, size_t valuelen);
+gpg_error_t _gcry_rsa_pkcs1_encode_for_enc(gcry_mpi_t *r_result,
+                                           unsigned int nbits,
+                                           const unsigned char *value,
+                                           size_t valuelen,
+                                           const unsigned char *random_override,
+                                           size_t random_override_len);
+gpg_error_t _gcry_rsa_pkcs1_decode_for_enc(unsigned char **r_result,
+                                           size_t *r_resultlen,
+                                           unsigned int nbits,
+                                           gcry_mpi_t value);
+gpg_error_t _gcry_rsa_pkcs1_encode_raw_for_sig(gcry_mpi_t *r_result,
+                                               unsigned int nbits,
+                                               const unsigned char *value,
+                                               size_t valuelen);
 
-gpg_error_t
-_gcry_rsa_pkcs1_encode_for_sig (gcry_mpi_t *r_result, unsigned int nbits,
-                                const unsigned char *value, size_t valuelen,
-                                int algo);
-gpg_error_t
-_gcry_rsa_oaep_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
-                       const unsigned char *value, size_t valuelen,
-                       const unsigned char *label, size_t labellen,
-                       const void *random_override, size_t random_override_len);
-gpg_error_t
-_gcry_rsa_oaep_decode (unsigned char **r_result, size_t *r_resultlen,
-                       unsigned int nbits, int algo,
-                       gcry_mpi_t value,
-                       const unsigned char *label, size_t labellen);
-gpg_error_t
-_gcry_rsa_pss_encode (gcry_mpi_t *r_result, unsigned int nbits, int algo,
-                      const unsigned char *value, size_t valuelen, int saltlen,
-                      const void *random_override, size_t random_override_len);
-gpg_error_t
-_gcry_rsa_pss_verify (gcry_mpi_t value, gcry_mpi_t encoded,
-                      unsigned int nbits, int algo, size_t saltlen);
-
-
+gpg_error_t _gcry_rsa_pkcs1_encode_for_sig(gcry_mpi_t *r_result,
+                                           unsigned int nbits,
+                                           const unsigned char *value,
+                                           size_t valuelen, int algo);
+gpg_error_t _gcry_rsa_oaep_encode(gcry_mpi_t *r_result, unsigned int nbits,
+                                  int algo, const unsigned char *value,
+                                  size_t valuelen, const unsigned char *label,
+                                  size_t labellen, const void *random_override,
+                                  size_t random_override_len);
+gpg_error_t _gcry_rsa_oaep_decode(unsigned char **r_result, size_t *r_resultlen,
+                                  unsigned int nbits, int algo,
+                                  gcry_mpi_t value, const unsigned char *label,
+                                  size_t labellen);
+gpg_error_t _gcry_rsa_pss_encode(gcry_mpi_t *r_result, unsigned int nbits,
+                                 int algo, const unsigned char *value,
+                                 size_t valuelen, int saltlen,
+                                 const void *random_override,
+                                 size_t random_override_len);
+gpg_error_t _gcry_rsa_pss_verify(gcry_mpi_t value, gcry_mpi_t encoded,
+                                 unsigned int nbits, int algo, size_t saltlen);
 
 /*-- dsa-common.c --*/
-gcry_mpi_t _gcry_dsa_gen_k (gcry_mpi_t q, int security_level);
-gpg_error_t _gcry_dsa_gen_rfc6979_k (gcry_mpi_t *r_k,
-                                        gcry_mpi_t dsa_q, gcry_mpi_t dsa_x,
-                                        const unsigned char *h1,
-                                        unsigned int h1len,
-                                        int halgo,
-                                        unsigned int extraloops);
+gcry_mpi_t _gcry_dsa_gen_k(gcry_mpi_t q, int security_level);
+gpg_error_t _gcry_dsa_gen_rfc6979_k(gcry_mpi_t *r_k, gcry_mpi_t dsa_q,
+                                    gcry_mpi_t dsa_x, const unsigned char *h1,
+                                    unsigned int h1len, int halgo,
+                                    unsigned int extraloops);
 
-gpg_error_t _gcry_dsa_normalize_hash (gcry_mpi_t input,
-                                         gcry_mpi_t *out,
-                                         unsigned int qbits);
+gpg_error_t _gcry_dsa_normalize_hash(gcry_mpi_t input, gcry_mpi_t *out,
+                                     unsigned int qbits);
 
 /*-- ecc.c --*/
-gpg_error_t _gcry_pk_ecc_get_sexp (gcry_sexp_t *r_sexp, int mode,
-                                      mpi_ec_t ec);
-
+gpg_error_t _gcry_pk_ecc_get_sexp(gcry_sexp_t *r_sexp, int mode, mpi_ec_t ec);
 
 #endif /*GCRY_PUBKEY_INTERNAL_H*/

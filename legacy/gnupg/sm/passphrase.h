@@ -17,11 +17,11 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef	GPGSM_PASSPHRASE_H
-#define	GPGSM_PASSPHRASE_H
+#ifndef GPGSM_PASSPHRASE_H
+#define GPGSM_PASSPHRASE_H
 
-int sm_have_static_passphrase (void);
-const char *sm_get_static_passphrase (void);
-void sm_read_passphrase_from_fd (int fd);
+int sm_have_static_passphrase(void);
+const char *sm_get_static_passphrase(void);
+void sm_read_passphrase_from_fd(int fd);
 
-#endif	/* GPGSM_PASSPHRASE_H */
+#endif /* GPGSM_PASSPHRASE_H */

@@ -19,11 +19,11 @@
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
 #include <gpg-error.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -36,25 +36,16 @@
 static void (*pre_syscall_func)(void);
 static void (*post_syscall_func)(void);
 
-
 /* Helper to set the clamp functions.  This is called as a helper from
  * _gpgrt_set_syscall_clamp to keep the function pointers local. */
-void
-_gpgrt_thread_set_syscall_clamp (void (*pre)(void), void (*post)(void))
-{
+void _gpgrt_thread_set_syscall_clamp(void (*pre)(void), void (*post)(void)) {
   pre_syscall_func = pre;
   post_syscall_func = post;
 }
 
-
-
-gpg_err_code_t
-_gpgrt_yield (void)
-{
-  if (pre_syscall_func)
-    pre_syscall_func ();
-  Sleep (0);
-  if (post_syscall_func)
-    post_syscall_func ();
+gpg_err_code_t _gpgrt_yield(void) {
+  if (pre_syscall_func) pre_syscall_func();
+  Sleep(0);
+  if (post_syscall_func) post_syscall_func();
   return 0;
 }

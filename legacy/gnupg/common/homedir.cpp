@@ -29,13 +29,13 @@
  */
 
 #include <config.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #ifdef HAVE_W32_SYSTEM
-#include <winsock2.h>   /* Due to the stupid mingw64 requirement to
+#include <winsock2.h> /* Due to the stupid mingw64 requirement to
                            include this header before windows.h which
                            is often implicitly included.  */
 #include <shlobj.h>
@@ -57,10 +57,8 @@
 #include <sys/stat.h> /* for stat() */
 #endif
 
-
-
-#include "util.h"
 #include "sysutils.h"
+#include "util.h"
 #include "zb32.h"
 
 /* The GnuPG homedir.  This is only accessed by the functions
@@ -70,314 +68,248 @@ static char *the_gnupg_homedir;
 /* Flag indicating that home directory is not the default one.  */
 static byte non_default_homedir;
 
-
 #ifdef HAVE_W32_SYSTEM
 /* This flag is true if this process' binary has been installed under
    bin and not in the root directory as often used before GnuPG 2.1. */
 static byte w32_bin_is_bin;
 #endif /*HAVE_W32_SYSTEM*/
 
-
 #ifdef HAVE_W32_SYSTEM
-static const char *w32_rootdir (void);
+static const char *w32_rootdir(void);
 #endif
 
-
-
 #ifdef HAVE_W32_SYSTEM
-static void
-w32_try_mkdir (const char *dir)
-{
-  CreateDirectory (dir, NULL);
-}
+static void w32_try_mkdir(const char *dir) { CreateDirectory(dir, NULL); }
 #endif
-
 
 /* This is a helper function to load a Windows function from either of
    one DLLs. */
 #ifdef HAVE_W32_SYSTEM
-static HRESULT
-w32_shgetfolderpath (HWND a, int b, HANDLE c, DWORD d, LPSTR e)
-{
+static HRESULT w32_shgetfolderpath(HWND a, int b, HANDLE c, DWORD d, LPSTR e) {
   static int initialized;
-  static HRESULT (WINAPI * func)(HWND,int,HANDLE,DWORD,LPSTR);
+  static HRESULT(WINAPI * func)(HWND, int, HANDLE, DWORD, LPSTR);
 
-  if (!initialized)
-    {
-      static char *dllnames[] = { "shell32.dll", "shfolder.dll", NULL };
-      void *handle;
-      int i;
+  if (!initialized) {
+    static char *dllnames[] = {"shell32.dll", "shfolder.dll", NULL};
+    void *handle;
+    int i;
 
-      initialized = 1;
+    initialized = 1;
 
-      for (i=0, handle = NULL; !handle && dllnames[i]; i++)
-        {
-          handle = dlopen (dllnames[i], RTLD_LAZY);
-          if (handle)
-            {
-              func = dlsym (handle, "SHGetFolderPathA");
-              if (!func)
-                {
-                  dlclose (handle);
-                  handle = NULL;
-                }
-            }
+    for (i = 0, handle = NULL; !handle && dllnames[i]; i++) {
+      handle = dlopen(dllnames[i], RTLD_LAZY);
+      if (handle) {
+        func = dlsym(handle, "SHGetFolderPathA");
+        if (!func) {
+          dlclose(handle);
+          handle = NULL;
         }
+      }
     }
+  }
 
   if (func)
-    return func (a,b,c,d,e);
+    return func(a, b, c, d, e);
   else
     return -1;
 }
 #endif /*HAVE_W32_SYSTEM*/
 
-
 /* Check whether DIR is the default homedir.  */
-static int
-is_gnupg_default_homedir (const char *dir)
-{
+static int is_gnupg_default_homedir(const char *dir) {
   int result;
-  char *a = make_absfilename (dir, NULL);
-  char *b = make_absfilename (GNUPG_DEFAULT_HOMEDIR, NULL);
-  result = !compare_filenames (a, b);
-  xfree (b);
-  xfree (a);
+  char *a = make_absfilename(dir, NULL);
+  char *b = make_absfilename(GNUPG_DEFAULT_HOMEDIR, NULL);
+  result = !compare_filenames(a, b);
+  xfree(b);
+  xfree(a);
   return result;
 }
-
 
 /* Get the standard home directory.  In general this function should
    not be used as it does not consider a registry value (under W32) or
    the GNUPGHOME environment variable.  It is better to use
    default_homedir(). */
-const char *
-standard_homedir (void)
-{
+const char *standard_homedir(void) {
 #ifdef HAVE_W32_SYSTEM
   static const char *dir;
 
-  if (!dir)
-    {
-      const char *rdir;
+  if (!dir) {
+    const char *rdir;
 
-      rdir = w32_rootdir ();
-      if (w32_portable_app)
-        {
-          dir = xstrconcat (rdir, DIRSEP_S "home", NULL);
-        }
-      else
-        {
-          char path[MAX_PATH];
+    rdir = w32_rootdir();
+    if (w32_portable_app) {
+      dir = xstrconcat(rdir, DIRSEP_S "home", NULL);
+    } else {
+      char path[MAX_PATH];
 
-          /* It might be better to use LOCAL_APPDATA because this is
-             defined as "non roaming" and thus more likely to be kept
-             locally.  For private keys this is desired.  However,
-             given that many users copy private keys anyway forth and
-             back, using a system roaming services might be better
-             than to let them do it manually.  A security conscious
-             user will anyway use the registry entry to have better
-             control.  */
-          if (w32_shgetfolderpath (NULL, CSIDL_APPDATA|CSIDL_FLAG_CREATE,
-                                   NULL, 0, path) >= 0)
-            {
-              char *tmp = xmalloc (strlen (path) + 6 +1);
-              strcpy (stpcpy (tmp, path), "\\gnupg");
-              dir = tmp;
+      /* It might be better to use LOCAL_APPDATA because this is
+         defined as "non roaming" and thus more likely to be kept
+         locally.  For private keys this is desired.  However,
+         given that many users copy private keys anyway forth and
+         back, using a system roaming services might be better
+         than to let them do it manually.  A security conscious
+         user will anyway use the registry entry to have better
+         control.  */
+      if (w32_shgetfolderpath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0,
+                              path) >= 0) {
+        char *tmp = xmalloc(strlen(path) + 6 + 1);
+        strcpy(stpcpy(tmp, path), "\\gnupg");
+        dir = tmp;
 
-              /* Try to create the directory if it does not yet exists.  */
-              if (access (dir, F_OK))
-                w32_try_mkdir (dir);
-            }
-          else
-            dir = GNUPG_DEFAULT_HOMEDIR;
-        }
+        /* Try to create the directory if it does not yet exists.  */
+        if (access(dir, F_OK)) w32_try_mkdir(dir);
+      } else
+        dir = GNUPG_DEFAULT_HOMEDIR;
     }
+  }
   return dir;
-#else/*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_DEFAULT_HOMEDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
 /* Set up the default home directory.  The usual --homedir option
    should be parsed later. */
-const char *
-default_homedir (void)
-{
+const char *default_homedir(void) {
   const char *dir;
 
 #ifdef HAVE_W32_SYSTEM
   /* For a portable application we only use the standard homedir.  */
-  w32_rootdir ();
-  if (w32_portable_app)
-    return standard_homedir ();
+  w32_rootdir();
+  if (w32_portable_app) return standard_homedir();
 #endif /*HAVE_W32_SYSTEM*/
 
-  dir = getenv ("GNUPGHOME");
+  dir = getenv("GNUPGHOME");
 #ifdef HAVE_W32_SYSTEM
-  if (!dir || !*dir)
-    {
-      static const char *saved_dir;
+  if (!dir || !*dir) {
+    static const char *saved_dir;
 
-      if (!saved_dir)
-        {
-          if (!dir || !*dir)
-            {
-              char *tmp;
+    if (!saved_dir) {
+      if (!dir || !*dir) {
+        char *tmp;
 
-              tmp = read_w32_registry_string (NULL,
-                                              GNUPG_REGISTRY_DIR,
-                                              "HomeDir");
-              if (tmp && !*tmp)
-                {
-                  xfree (tmp);
-                  tmp = NULL;
-                }
-              if (tmp)
-                saved_dir = tmp;
-            }
-
-          if (!saved_dir)
-            saved_dir = standard_homedir ();
+        tmp = read_w32_registry_string(NULL, GNUPG_REGISTRY_DIR, "HomeDir");
+        if (tmp && !*tmp) {
+          xfree(tmp);
+          tmp = NULL;
         }
-      dir = saved_dir;
+        if (tmp) saved_dir = tmp;
+      }
+
+      if (!saved_dir) saved_dir = standard_homedir();
     }
+    dir = saved_dir;
+  }
 #endif /*HAVE_W32_SYSTEM*/
   if (!dir || !*dir)
     dir = GNUPG_DEFAULT_HOMEDIR;
-  else if (!is_gnupg_default_homedir (dir))
+  else if (!is_gnupg_default_homedir(dir))
     non_default_homedir = 1;
 
   return dir;
 }
 
-
 #ifdef HAVE_W32_SYSTEM
 /* Determine the root directory of the gnupg installation on Windows.  */
-static const char *
-w32_rootdir (void)
-{
+static const char *w32_rootdir(void) {
   static int got_dir;
-  static char dir[MAX_PATH+5];
+  static char dir[MAX_PATH + 5];
 
-  if (!got_dir)
-    {
-      char *p;
-      int rc;
-      wchar_t wdir [MAX_PATH+5];
+  if (!got_dir) {
+    char *p;
+    int rc;
+    wchar_t wdir[MAX_PATH + 5];
 
-      rc = GetModuleFileNameW (NULL, wdir, MAX_PATH);
-      if (rc && WideCharToMultiByte (CP_UTF8, 0, wdir, -1, dir, MAX_PATH-4,
-                                     NULL, NULL) < 0)
-        rc = 0;
-      if (!rc)
-        {
-          log_debug ("GetModuleFileName failed: %s\n", w32_strerror (-1));
-          *dir = 0;
-        }
-      got_dir = 1;
-      p = strrchr (dir, DIRSEP_C);
-      if (p)
-        {
-          *p = 0;
-
-          /* If we are installed below "bin" we strip that and use
-             the top directory instead.  */
-          p = strrchr (dir, DIRSEP_C);
-          if (p && !strcmp (p+1, "bin"))
-            {
-              *p = 0;
-              w32_bin_is_bin = 1;
-            }
-        }
-      if (!p)
-        {
-          log_debug ("bad filename '%s' returned for this process\n", dir);
-          *dir = 0;
-        }
+    rc = GetModuleFileNameW(NULL, wdir, MAX_PATH);
+    if (rc &&
+        WideCharToMultiByte(CP_UTF8, 0, wdir, -1, dir, MAX_PATH - 4, NULL,
+                            NULL) < 0)
+      rc = 0;
+    if (!rc) {
+      log_debug("GetModuleFileName failed: %s\n", w32_strerror(-1));
+      *dir = 0;
     }
+    got_dir = 1;
+    p = strrchr(dir, DIRSEP_C);
+    if (p) {
+      *p = 0;
 
-  if (*dir)
-    return dir;
+      /* If we are installed below "bin" we strip that and use
+         the top directory instead.  */
+      p = strrchr(dir, DIRSEP_C);
+      if (p && !strcmp(p + 1, "bin")) {
+        *p = 0;
+        w32_bin_is_bin = 1;
+      }
+    }
+    if (!p) {
+      log_debug("bad filename '%s' returned for this process\n", dir);
+      *dir = 0;
+    }
+  }
+
+  if (*dir) return dir;
   /* Fallback to the hardwired value. */
   return GNUPG_LIBEXECDIR;
 }
 
-static const char *
-w32_commondir (void)
-{
+static const char *w32_commondir(void) {
   static char *dir;
 
-  if (!dir)
-    {
-      const char *rdir;
-      char path[MAX_PATH];
+  if (!dir) {
+    const char *rdir;
+    char path[MAX_PATH];
 
-      /* Make sure that w32_rootdir has been called so that we are
-         able to check the portable application flag.  The common dir
-         is the identical to the rootdir.  In that case there is also
-         no need to strdup its value.  */
-      rdir = w32_rootdir ();
-      if (w32_portable_app)
-        return rdir;
+    /* Make sure that w32_rootdir has been called so that we are
+       able to check the portable application flag.  The common dir
+       is the identical to the rootdir.  In that case there is also
+       no need to strdup its value.  */
+    rdir = w32_rootdir();
+    if (w32_portable_app) return rdir;
 
-      if (w32_shgetfolderpath (NULL, CSIDL_COMMON_APPDATA,
-                               NULL, 0, path) >= 0)
-        {
-          char *tmp = xmalloc (strlen (path) + 4 +1);
-          strcpy (stpcpy (tmp, path), "\\GNU");
-          dir = tmp;
-          /* No auto create of the directory.  Either the installer or
-             the admin has to create these directories.  */
-        }
-      else
-        {
-          /* Ooops: Not defined - probably an old Windows version.
-             Use the installation directory instead.  */
-          dir = xstrdup (rdir);
-        }
+    if (w32_shgetfolderpath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path) >= 0) {
+      char *tmp = xmalloc(strlen(path) + 4 + 1);
+      strcpy(stpcpy(tmp, path), "\\GNU");
+      dir = tmp;
+      /* No auto create of the directory.  Either the installer or
+         the admin has to create these directories.  */
+    } else {
+      /* Ooops: Not defined - probably an old Windows version.
+         Use the installation directory instead.  */
+      dir = xstrdup(rdir);
     }
+  }
 
   return dir;
 }
 #endif /*HAVE_W32_SYSTEM*/
 
-
 /* Change the homedir.  Some care must be taken to set this early
  * enough because previous calls to gnupg_homedir may else return a
  * different string.  */
-void
-gnupg_set_homedir (const char *newdir)
-{
+void gnupg_set_homedir(const char *newdir) {
   if (!newdir || !*newdir)
-    newdir = default_homedir ();
-  else if (!is_gnupg_default_homedir (newdir))
+    newdir = default_homedir();
+  else if (!is_gnupg_default_homedir(newdir))
     non_default_homedir = 1;
-  xfree (the_gnupg_homedir);
-  the_gnupg_homedir = make_absfilename (newdir, NULL);;
+  xfree(the_gnupg_homedir);
+  the_gnupg_homedir = make_absfilename(newdir, NULL);
+  ;
 }
-
 
 /* Return the homedir.  The returned string is valid until another
  * gnupg-set-homedir call.  This is always an absolute directory name.
  * The function replaces the former global var opt.homedir.  */
-const char *
-gnupg_homedir (void)
-{
+const char *gnupg_homedir(void) {
   /* If a homedir has not been set, set it to the default.  */
   if (!the_gnupg_homedir)
-    the_gnupg_homedir = make_absfilename (default_homedir (), NULL);
+    the_gnupg_homedir = make_absfilename(default_homedir(), NULL);
   return the_gnupg_homedir;
 }
 
-
 /* Return whether the home dir is the default one.  */
-int
-gnupg_default_homedir_p (void)
-{
-  return !non_default_homedir;
-}
-
+int gnupg_default_homedir_p(void) { return !non_default_homedir; }
 
 /* Helper for gnupg-socketdir.  If
  * SKIP_CHECKS is set permission checks etc. are not done.  The
@@ -394,20 +326,18 @@ gnupg_default_homedir_p (void)
  *  64 := Subdir does not exist.
  * 128 := Using homedir as fallback.
  */
-char *
-_gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
-{
+char *_gnupg_socketdir_internal(int skip_checks, unsigned *r_info) {
 #if defined(HAVE_W32_SYSTEM) || !defined(HAVE_STAT)
 
   char *name;
 
   (void)skip_checks;
   *r_info = 0;
-  name = xstrdup (gnupg_homedir ());
+  name = xstrdup(gnupg_homedir());
 
 #else /* Unix and stat(2) available. */
 
-  static const char * const bases[] = { "/run", "/var/run", NULL};
+  static const char *const bases[] = {"/run", "/var/run", NULL};
   int i;
   struct stat sb;
   char prefix[13 + 1 + 20 + 6 + 1];
@@ -417,7 +347,7 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
   *r_info = 0;
 
   /* First make sure that non_default_homedir can be set.  */
-  gnupg_homedir ();
+  gnupg_homedir();
 
   /* It has been suggested to first check XDG_RUNTIME_DIR envvar.
    * However, the specs state that the lifetime of the directory MUST
@@ -426,356 +356,283 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
    * we better don't do that.  */
 
   /* Check whether we have a /run/user dir.  */
-  for (i=0; bases[i]; i++)
-    {
-      snprintf (prefix, sizeof prefix, "%s/user/%u",
-                bases[i], (unsigned int)getuid ());
-      if (!stat (prefix, &sb) && S_ISDIR(sb.st_mode))
-        break;
-    }
-  if (!bases[i])
-    {
-      *r_info |= 2; /* No /run/user directory.  */
-      goto leave;
-    }
+  for (i = 0; bases[i]; i++) {
+    snprintf(prefix, sizeof prefix, "%s/user/%u", bases[i],
+             (unsigned int)getuid());
+    if (!stat(prefix, &sb) && S_ISDIR(sb.st_mode)) break;
+  }
+  if (!bases[i]) {
+    *r_info |= 2; /* No /run/user directory.  */
+    goto leave;
+  }
 
-  if (sb.st_uid != getuid ())
-    {
-      *r_info |= 4; /* Not owned by the user.  */
-      if (!skip_checks)
-        goto leave;
-    }
+  if (sb.st_uid != getuid()) {
+    *r_info |= 4; /* Not owned by the user.  */
+    if (!skip_checks) goto leave;
+  }
 
-  if (strlen (prefix) + 7 >= sizeof prefix)
-    {
-      *r_info |= 1; /* Ooops: Buffer too short to append "/gnupg".  */
-      goto leave;
-    }
-  strcat (prefix, "/gnupg");
+  if (strlen(prefix) + 7 >= sizeof prefix) {
+    *r_info |= 1; /* Ooops: Buffer too short to append "/gnupg".  */
+    goto leave;
+  }
+  strcat(prefix, "/gnupg");
 
   /* Check whether the gnupg sub directory has proper permissions.  */
-  if (stat (prefix, &sb))
-    {
-      if (errno != ENOENT)
-        {
-          *r_info |= 1; /* stat failed.  */
-          goto leave;
-        }
-
-      /* Try to create the directory and check again.  */
-      if (gnupg_mkdir (prefix, "-rwx"))
-        {
-          *r_info |= 16; /* mkdir failed.  */
-          goto leave;
-        }
-      if (stat (prefix, &sb))
-        {
-          *r_info |= 1; /* stat failed.  */
-          goto leave;
-        }
+  if (stat(prefix, &sb)) {
+    if (errno != ENOENT) {
+      *r_info |= 1; /* stat failed.  */
+      goto leave;
     }
+
+    /* Try to create the directory and check again.  */
+    if (gnupg_mkdir(prefix, "-rwx")) {
+      *r_info |= 16; /* mkdir failed.  */
+      goto leave;
+    }
+    if (stat(prefix, &sb)) {
+      *r_info |= 1; /* stat failed.  */
+      goto leave;
+    }
+  }
   /* Check that it is a directory, owned by the user, and only the
    * user has permissions to use it.  */
-  if (!S_ISDIR(sb.st_mode)
-      || sb.st_uid != getuid ()
-      || (sb.st_mode & (S_IRWXG|S_IRWXO)))
-    {
-      *r_info |= 4; /* Bad permissions or not a directory. */
-      if (!skip_checks)
-        goto leave;
-    }
+  if (!S_ISDIR(sb.st_mode) || sb.st_uid != getuid() ||
+      (sb.st_mode & (S_IRWXG | S_IRWXO))) {
+    *r_info |= 4; /* Bad permissions or not a directory. */
+    if (!skip_checks) goto leave;
+  }
 
   /* If a non default homedir is used, we check whether an
    * corresponding sub directory below the socket dir is available
    * and use that.  We hash the non default homedir to keep the new
    * subdir short enough.  */
-  if (non_default_homedir)
-    {
-      char sha1buf[20];
-      char *suffix;
+  if (non_default_homedir) {
+    char sha1buf[20];
+    char *suffix;
 
-      *r_info |= 32; /* Testing subdir.  */
-      s = gnupg_homedir ();
-      gcry_md_hash_buffer (GCRY_MD_SHA1, sha1buf, s, strlen (s));
-      suffix = zb32_encode (sha1buf, 8*15);
-      if (!suffix)
-        {
-          *r_info |= 1; /* Out of core etc. */
-          goto leave;
-        }
-      name = strconcat (prefix, "/d.", suffix, NULL);
-      xfree (suffix);
-      if (!name)
-        {
-          *r_info |= 1; /* Out of core etc. */
-          goto leave;
-        }
+    *r_info |= 32; /* Testing subdir.  */
+    s = gnupg_homedir();
+    gcry_md_hash_buffer(GCRY_MD_SHA1, sha1buf, s, strlen(s));
+    suffix = zb32_encode(sha1buf, 8 * 15);
+    if (!suffix) {
+      *r_info |= 1; /* Out of core etc. */
+      goto leave;
+    }
+    name = strconcat(prefix, "/d.", suffix, NULL);
+    xfree(suffix);
+    if (!name) {
+      *r_info |= 1; /* Out of core etc. */
+      goto leave;
+    }
 
-      /* Stat that directory and check constraints.  */
-      if (stat (name, &sb))
-        {
+    /* Stat that directory and check constraints.  */
+    if (stat(name, &sb)) {
+      if (errno != ENOENT)
+        *r_info |= 1; /* stat failed. */
+      else if (!skip_checks) {
+        /* Try to create the directory and check again.  */
+        if (gnupg_mkdir(name, "-rwx"))
+          *r_info |= 16; /* mkdir failed.  */
+        else if (stat(prefix, &sb)) {
           if (errno != ENOENT)
             *r_info |= 1; /* stat failed. */
-          else if (!skip_checks)
-            {
-              /* Try to create the directory and check again.  */
-              if (gnupg_mkdir (name, "-rwx"))
-                *r_info |= 16; /* mkdir failed.  */
-              else if (stat (prefix, &sb))
-                {
-                  if (errno != ENOENT)
-                    *r_info |= 1; /* stat failed. */
-                  else
-                    *r_info |= 64; /* Subdir does not exist.  */
-                }
-              else
-                goto leave; /* Success!  */
-            }
           else
             *r_info |= 64; /* Subdir does not exist.  */
-          if (!skip_checks)
-            {
-              xfree (name);
-              name = NULL;
-              goto leave;
-            }
-        }
-      else if (!S_ISDIR(sb.st_mode)
-               || sb.st_uid != getuid ()
-               || (sb.st_mode & (S_IRWXG|S_IRWXO)))
-        {
-          *r_info |= 8; /* Bad permissions or subdir is not a directory.  */
-          if (!skip_checks)
-            {
-              xfree (name);
-              name = NULL;
-              goto leave;
-            }
-        }
+        } else
+          goto leave; /* Success!  */
+      } else
+        *r_info |= 64; /* Subdir does not exist.  */
+      if (!skip_checks) {
+        xfree(name);
+        name = NULL;
+        goto leave;
+      }
+    } else if (!S_ISDIR(sb.st_mode) || sb.st_uid != getuid() ||
+               (sb.st_mode & (S_IRWXG | S_IRWXO))) {
+      *r_info |= 8; /* Bad permissions or subdir is not a directory.  */
+      if (!skip_checks) {
+        xfree(name);
+        name = NULL;
+        goto leave;
+      }
     }
-  else
-    name = xstrdup (prefix);
+  } else
+    name = xstrdup(prefix);
 
- leave:
+leave:
   /* If nothing works fall back to the homedir.  */
-  if (!name)
-    {
-      *r_info |= 128; /* Fallback.  */
-      name = xstrdup (gnupg_homedir ());
-    }
+  if (!name) {
+    *r_info |= 128; /* Fallback.  */
+    name = xstrdup(gnupg_homedir());
+  }
 
 #endif /* Unix */
 
   return name;
 }
 
-
 /*
  * Return the name of the socket dir.  That is the directory used for
  * the IPC local sockets.  This is an absolute directory name.
  */
-const char *
-gnupg_socketdir (void)
-{
+const char *gnupg_socketdir(void) {
   static char *name;
 
-  if (!name)
-    {
-      unsigned int dummy;
-      name = _gnupg_socketdir_internal (0, &dummy);
-    }
+  if (!name) {
+    unsigned int dummy;
+    name = _gnupg_socketdir_internal(0, &dummy);
+  }
 
   return name;
 }
-
 
 /* Return the name of the sysconfdir.  This is a static string.  This
    function is required because under Windows we can't simply compile
    it in.  */
-const char *
-gnupg_sysconfdir (void)
-{
+const char *gnupg_sysconfdir(void) {
 #ifdef HAVE_W32_SYSTEM
   static char *name;
 
-  if (!name)
-    {
-      const char *s1, *s2;
-      s1 = w32_commondir ();
-      s2 = DIRSEP_S "etc" DIRSEP_S "gnupg";
-      name = xmalloc (strlen (s1) + strlen (s2) + 1);
-      strcpy (stpcpy (name, s1), s2);
-    }
+  if (!name) {
+    const char *s1, *s2;
+    s1 = w32_commondir();
+    s2 = DIRSEP_S "etc" DIRSEP_S "gnupg";
+    name = xmalloc(strlen(s1) + strlen(s2) + 1);
+    strcpy(stpcpy(name, s1), s2);
+  }
   return name;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_SYSCONFDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-
-const char *
-gnupg_bindir (void)
-{
+const char *gnupg_bindir(void) {
 #if defined(HAVE_W32_SYSTEM)
   const char *rdir;
 
-  rdir = w32_rootdir ();
-  if (w32_bin_is_bin)
-    {
-      static char *name;
+  rdir = w32_rootdir();
+  if (w32_bin_is_bin) {
+    static char *name;
 
-      if (!name)
-        name = xstrconcat (rdir, DIRSEP_S "bin", NULL);
-      return name;
-    }
-  else
+    if (!name) name = xstrconcat(rdir, DIRSEP_S "bin", NULL);
+    return name;
+  } else
     return rdir;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_BINDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-
 /* Return the name of the libexec directory.  The name is allocated in
    a static area on the first use.  This function won't fail. */
-const char *
-gnupg_libexecdir (void)
-{
+const char *gnupg_libexecdir(void) {
 #ifdef HAVE_W32_SYSTEM
-  return gnupg_bindir ();
-#else /*!HAVE_W32_SYSTEM*/
+  return gnupg_bindir();
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_LIBEXECDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-const char *
-gnupg_libdir (void)
-{
+const char *gnupg_libdir(void) {
 #ifdef HAVE_W32_SYSTEM
   static char *name;
 
   if (!name)
-    name = xstrconcat (w32_rootdir (), DIRSEP_S "lib" DIRSEP_S "gnupg", NULL);
+    name = xstrconcat(w32_rootdir(), DIRSEP_S "lib" DIRSEP_S "gnupg", NULL);
   return name;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_LIBDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-const char *
-gnupg_datadir (void)
-{
+const char *gnupg_datadir(void) {
 #ifdef HAVE_W32_SYSTEM
   static char *name;
 
   if (!name)
-    name = xstrconcat (w32_rootdir (), DIRSEP_S "share" DIRSEP_S "gnupg", NULL);
+    name = xstrconcat(w32_rootdir(), DIRSEP_S "share" DIRSEP_S "gnupg", NULL);
   return name;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_DATADIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-
-const char *
-gnupg_localedir (void)
-{
+const char *gnupg_localedir(void) {
 #ifdef HAVE_W32_SYSTEM
   static char *name;
 
   if (!name)
-    name = xstrconcat (w32_rootdir (), DIRSEP_S "share" DIRSEP_S "locale",
-                       NULL);
+    name = xstrconcat(w32_rootdir(), DIRSEP_S "share" DIRSEP_S "locale", NULL);
   return name;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return LOCALEDIR;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-
 /* Return the name of the cache directory.  The name is allocated in a
    static area on the first use.  Windows only: If the directory does
    not exist it is created.  */
-const char *
-gnupg_cachedir (void)
-{
+const char *gnupg_cachedir(void) {
 #ifdef HAVE_W32_SYSTEM
   static const char *dir;
 
-  if (!dir)
-    {
-      const char *rdir;
+  if (!dir) {
+    const char *rdir;
 
-      rdir = w32_rootdir ();
-      if (w32_portable_app)
-        {
-          dir = xstrconcat (rdir,
-                            DIRSEP_S, "var",
-                            DIRSEP_S, "cache",
-                            DIRSEP_S, "gnupg", NULL);
+    rdir = w32_rootdir();
+    if (w32_portable_app) {
+      dir = xstrconcat(rdir, DIRSEP_S, "var", DIRSEP_S, "cache", DIRSEP_S,
+                       "gnupg", NULL);
+    } else {
+      char path[MAX_PATH];
+      const char *s1[] = {"GNU", "cache", "gnupg", NULL};
+      int s1_len;
+      const char **comp;
+
+      s1_len = 0;
+      for (comp = s1; *comp; comp++) s1_len += 1 + strlen(*comp);
+
+      if (w32_shgetfolderpath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE,
+                              NULL, 0, path) >= 0) {
+        char *tmp = xmalloc(strlen(path) + s1_len + 1);
+        char *p;
+
+        p = stpcpy(tmp, path);
+        for (comp = s1; *comp; comp++) {
+          p = stpcpy(p, "\\");
+          p = stpcpy(p, *comp);
+
+          if (access(tmp, F_OK)) w32_try_mkdir(tmp);
         }
-      else
-        {
-          char path[MAX_PATH];
-          const char *s1[] = { "GNU", "cache", "gnupg", NULL };
-          int s1_len;
-          const char **comp;
 
-          s1_len = 0;
-          for (comp = s1; *comp; comp++)
-            s1_len += 1 + strlen (*comp);
-
-          if (w32_shgetfolderpath (NULL, CSIDL_LOCAL_APPDATA|CSIDL_FLAG_CREATE,
-                                   NULL, 0, path) >= 0)
-            {
-              char *tmp = xmalloc (strlen (path) + s1_len + 1);
-              char *p;
-
-              p = stpcpy (tmp, path);
-              for (comp = s1; *comp; comp++)
-                {
-                  p = stpcpy (p, "\\");
-                  p = stpcpy (p, *comp);
-
-                  if (access (tmp, F_OK))
-                    w32_try_mkdir (tmp);
-                }
-
-              dir = tmp;
-            }
-          else
-            {
-              dir = "c:\\temp\\cache\\gnupg";
-            }
-        }
+        dir = tmp;
+      } else {
+        dir = "c:\\temp\\cache\\gnupg";
+      }
     }
+  }
   return dir;
-#else /*!HAVE_W32_SYSTEM*/
+#else  /*!HAVE_W32_SYSTEM*/
   return GNUPG_LOCALSTATEDIR "/cache/" PACKAGE_NAME;
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
-
 /* For sanity checks.  */
 static int gnupg_module_name_called;
 
-
 /* Return the file name of a helper tool.  WHICH is one of the
    GNUPG_MODULE_NAME_foo constants.  */
-const char *
-gnupg_module_name (int which)
-{
+const char *gnupg_module_name(int which) {
   gnupg_module_name_called = 1;
 
-#define X(a,b,c) do {                                                   \
-    static char *name;                                                  \
-    if (!name)                                                          \
-      name = xstrconcat (gnupg_ ## a (), DIRSEP_S c EXEEXT_S, NULL);    \
-    return name;                                                        \
+#define X(a, b, c)                                                        \
+  do {                                                                    \
+    static char *name;                                                    \
+    if (!name) name = xstrconcat(gnupg_##a(), DIRSEP_S c EXEEXT_S, NULL); \
+    return name;                                                          \
   } while (0)
 
-  switch (which)
-    {
+  switch (which) {
     case GNUPG_MODULE_NAME_AGENT:
 #ifdef GNUPG_DEFAULT_AGENT
       return GNUPG_DEFAULT_AGENT;
@@ -827,7 +684,7 @@ gnupg_module_name (int which)
       X(bindir, "tools", "gpg-connect-agent");
 
     default:
-      BUG ();
-    }
+      BUG();
+  }
 #undef X
 }

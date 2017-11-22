@@ -23,11 +23,10 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "mpi-internal.h"
 #include "longlong.h"
+#include "mpi-internal.h"
 
-
-#if 0  /* not yet ported to MPI */
+#if 0 /* not yet ported to MPI */
 
 mpi_limb_t
 mpihelp_udiv_w_sdiv( mpi_limp_t *rp,
@@ -130,4 +129,3 @@ mpihelp_udiv_w_sdiv( mpi_limp_t *rp,
 }
 
 #endif
-

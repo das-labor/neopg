@@ -19,9 +19,7 @@
 #ifndef G10_DEK_H
 #define G10_DEK_H
 
-
-typedef struct
-{
+typedef struct {
   /* The algorithm (e.g., CIPHER_ALGO_AES).  */
   int algo;
   /* The length of the key (in bytes).  */
@@ -33,8 +31,7 @@ typedef struct
   /* This key was read from a SK-ESK packet (see proc_symkey_enc).  */
   int symmetric;
   byte key[32]; /* This is the largest used keylen (256 bit). */
-  char s2k_cacheid[1+16+1];
+  char s2k_cacheid[1 + 16 + 1];
 } DEK;
-
 
 #endif /*G10_DEK_H*/

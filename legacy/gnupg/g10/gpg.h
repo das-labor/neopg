@@ -19,9 +19,8 @@
 #ifndef GNUPG_G10_GPG_H
 #define GNUPG_G10_GPG_H
 
-#include <gpg-error.h>
 #include <gcrypt.h>
-
+#include <gpg-error.h>
 
 /* Number of bits we accept when reading or writing MPIs. */
 #define MAX_EXTERN_MPI_BITS 16384
@@ -36,7 +35,6 @@
    format_hexfingerprint().  */
 #define MAX_FORMATTED_FINGERPRINT_LEN 50
 
-
 /*
    Forward declarations.
  */
@@ -49,23 +47,22 @@ struct dirmngr_local_s;
 typedef struct dirmngr_local_s *dirmngr_local_t;
 
 /* Object used to describe a keyblock node.  */
-typedef struct kbnode_struct *KBNODE;   /* Deprecated use kbnode_t. */
+typedef struct kbnode_struct *KBNODE; /* Deprecated use kbnode_t. */
 typedef struct kbnode_struct *kbnode_t;
 
 /* The handle for keydb operations.  */
 typedef struct keydb_handle *KEYDB_HANDLE;
 
 #if SIZEOF_UNSIGNED_LONG == 8
-# define SERVER_CONTROL_MAGIC 0x53616c696e676572
+#define SERVER_CONTROL_MAGIC 0x53616c696e676572
 #else
-# define SERVER_CONTROL_MAGIC 0x53616c69
+#define SERVER_CONTROL_MAGIC 0x53616c69
 #endif
 
 /* Session control object.  This object is passed to most functions to
    convey the status of a session.  Note that the defaults are set by
    gpg_init_default_ctrl(). */
-struct server_control_s
-{
+struct server_control_s {
   /* Always has the value SERVER_CONTROL_MAGIC.  */
   unsigned long magic;
 
@@ -78,7 +75,5 @@ struct server_control_s
   /* This is used to cache a key data base handle.  */
   KEYDB_HANDLE cached_getkey_kdb;
 };
-
-
 
 #endif /*GNUPG_G10_GPG_H*/

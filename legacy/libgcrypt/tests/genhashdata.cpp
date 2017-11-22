@@ -58,103 +58,91 @@ de40eedef66cb1afd94c61e285fa9327e01336e804903740a9145ab1f065c2d5  -
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #define PGM "genhashdata"
 #include "t-common.h"
 
-int
-main (int argc, char **argv)
-{
+int main(int argc, char **argv) {
   int last_argc = -1;
   int gigs = 0;
   int bytes = 0;
   char pattern[1024];
   int i, g;
 
-  if (argc)
-    { argc--; argv++; }
+  if (argc) {
+    argc--;
+    argv++;
+  }
 
-  while (argc && last_argc != argc )
-    {
-      last_argc = argc;
-      if (!strcmp (*argv, "--"))
-        {
-          argc--; argv++;
-          break;
-        }
-      else if (!strcmp (*argv, "--help"))
-        {
-          fputs ("usage: " PGM " [options]\n"
-                 "Options:\n"
-                 "  --gigs  N     Emit N GiB of test bytes\n"
-                 "  --bytes DIFF  Stop DIFF bytes earlier or later\n",
-                 stdout);
-          exit (0);
-        }
-      else if (!strcmp (*argv, "--gigs"))
-        {
-          argc--; argv++;
-          if (argc)
-            {
-              gigs = atoi (*argv);
-              argc--; argv++;
-            }
-        }
-      else if (!strcmp (*argv, "--bytes"))
-        {
-          argc--; argv++;
-          if (argc)
-            {
-              bytes = atoi (*argv);
-              argc--; argv++;
-            }
-        }
-      else if (!strncmp (*argv, "--", 2))
-        die ("unknown option '%s'", *argv);
-    }
+  while (argc && last_argc != argc) {
+    last_argc = argc;
+    if (!strcmp(*argv, "--")) {
+      argc--;
+      argv++;
+      break;
+    } else if (!strcmp(*argv, "--help")) {
+      fputs("usage: " PGM
+            " [options]\n"
+            "Options:\n"
+            "  --gigs  N     Emit N GiB of test bytes\n"
+            "  --bytes DIFF  Stop DIFF bytes earlier or later\n",
+            stdout);
+      exit(0);
+    } else if (!strcmp(*argv, "--gigs")) {
+      argc--;
+      argv++;
+      if (argc) {
+        gigs = atoi(*argv);
+        argc--;
+        argv++;
+      }
+    } else if (!strcmp(*argv, "--bytes")) {
+      argc--;
+      argv++;
+      if (argc) {
+        bytes = atoi(*argv);
+        argc--;
+        argv++;
+      }
+    } else if (!strncmp(*argv, "--", 2))
+      die("unknown option '%s'", *argv);
+  }
 
-  if (gigs < 0 || gigs > 1024*1024)
-    die ("value for --gigs must be in the range 0 to %d", 1024*1024);
+  if (gigs < 0 || gigs > 1024 * 1024)
+    die("value for --gigs must be in the range 0 to %d", 1024 * 1024);
   if (bytes < -1024 || bytes > 1024)
-      die ("value for --bytes must be in the range -1024 to 1024");
-  if (sizeof pattern != 1024)
-    die ("internal error");
+    die("value for --bytes must be in the range -1024 to 1024");
+  if (sizeof pattern != 1024) die("internal error");
 
-  if (argc > 1)
-    die ("arguments are not expected");
+  if (argc > 1) die("arguments are not expected");
 
-  memset (pattern, 'a', sizeof pattern);
+  memset(pattern, 'a', sizeof pattern);
 
-  for (g=0; g < gigs; g++)
-    {
-      if (g + 1 == gigs && bytes < 0)
-        {
-          for (i = 0; i < 1024*1023; i++)
-            if (fwrite (pattern, sizeof pattern, 1, stdout) != 1)
-              die ("writing to stdout failed: %s", strerror (errno));
-          for (i = 0; i < 1023; i++)
-            if (fwrite (pattern, sizeof pattern, 1, stdout) != 1)
-              die ("writing to stdout failed: %s", strerror (errno));
-          if (fwrite (pattern, sizeof pattern + bytes, 1, stdout) != 1)
-            die ("writing to stdout failed: %s", strerror (errno));
-        }
-      else
-        {
-          for (i = 0; i < 1024*1024; i++)
-            if (fwrite (pattern, sizeof pattern, 1, stdout) != 1)
-              die ("writing to stdout failed: %s", strerror (errno));
-        }
+  for (g = 0; g < gigs; g++) {
+    if (g + 1 == gigs && bytes < 0) {
+      for (i = 0; i < 1024 * 1023; i++)
+        if (fwrite(pattern, sizeof pattern, 1, stdout) != 1)
+          die("writing to stdout failed: %s", strerror(errno));
+      for (i = 0; i < 1023; i++)
+        if (fwrite(pattern, sizeof pattern, 1, stdout) != 1)
+          die("writing to stdout failed: %s", strerror(errno));
+      if (fwrite(pattern, sizeof pattern + bytes, 1, stdout) != 1)
+        die("writing to stdout failed: %s", strerror(errno));
+    } else {
+      for (i = 0; i < 1024 * 1024; i++)
+        if (fwrite(pattern, sizeof pattern, 1, stdout) != 1)
+          die("writing to stdout failed: %s", strerror(errno));
     }
+  }
   if (bytes > 0)
-    if (fwrite (pattern, bytes, 1, stdout) != 1)
-      die ("writing to stdout failed: %s", strerror (errno));
-  if (fflush (stdout))
-    die ("writing to stdout failed: %s", strerror (errno));
+    if (fwrite(pattern, bytes, 1, stdout) != 1)
+      die("writing to stdout failed: %s", strerror(errno));
+  if (fflush(stdout)) die("writing to stdout failed: %s", strerror(errno));
 
   return 0;
 }

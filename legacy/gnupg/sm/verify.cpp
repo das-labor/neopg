@@ -18,78 +18,63 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <unistd.h>
 #include <time.h>
-#include <assert.h>
+#include <unistd.h>
 
-#include "gpgsm.h"
 #include <gcrypt.h>
 #include <ksba.h>
+#include "gpgsm.h"
 
-#include "keydb.h"
-#include "../common/i18n.h"
 #include "../common/compliance.h"
+#include "../common/i18n.h"
+#include "keydb.h"
 
-static char *
-strtimestamp_r (ksba_isotime_t atime)
-{
-  char *buffer = (char*) xmalloc (15);
+static char *strtimestamp_r(ksba_isotime_t atime) {
+  char *buffer = (char *)xmalloc(15);
 
   if (!atime || !*atime)
-    strcpy (buffer, "none");
+    strcpy(buffer, "none");
   else
-    sprintf (buffer, "%.4s-%.2s-%.2s", atime, atime+4, atime+6);
+    sprintf(buffer, "%.4s-%.2s-%.2s", atime, atime + 4, atime + 6);
   return buffer;
 }
 
-
-
 /* Hash the data for a detached signature.  Returns 0 on success.  */
-static gpg_error_t
-hash_data (int fd, gcry_md_hd_t md)
-{
+static gpg_error_t hash_data(int fd, gcry_md_hd_t md) {
   gpg_error_t err = 0;
   estream_t fp;
   char buffer[4096];
   int nread;
 
-  fp = es_fdopen_nc (fd, "rb");
-  if (!fp)
-    {
-      err = gpg_error_from_syserror ();
-      log_error ("fdopen(%d) failed: %s\n", fd, gpg_strerror (err));
-      return err;
-    }
+  fp = es_fdopen_nc(fd, "rb");
+  if (!fp) {
+    err = gpg_error_from_syserror();
+    log_error("fdopen(%d) failed: %s\n", fd, gpg_strerror(err));
+    return err;
+  }
 
-  do
-    {
-      nread = es_fread (buffer, 1, DIM(buffer), fp);
-      gcry_md_write (md, buffer, nread);
-    }
-  while (nread);
-  if (es_ferror (fp))
-    {
-      err = gpg_error_from_syserror ();
-      log_error ("read error on fd %d: %s\n", fd, gpg_strerror (err));
-    }
-  es_fclose (fp);
+  do {
+    nread = es_fread(buffer, 1, DIM(buffer), fp);
+    gcry_md_write(md, buffer, nread);
+  } while (nread);
+  if (es_ferror(fp)) {
+    err = gpg_error_from_syserror();
+    log_error("read error on fd %d: %s\n", fd, gpg_strerror(err));
+  }
+  es_fclose(fp);
   return err;
 }
 
-
-
-
 /* Perform a verify operation.  To verify detached signatures, DATA_FD
    must be different than -1.  With OUT_FP given and a non-detached
    signature, the signed material is written to that stream.  */
-int
-gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
-{
+int gpgsm_verify(ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp) {
   int i, rc;
   gnupg_ksba_io_t b64reader = NULL;
   gnupg_ksba_io_t b64writer = NULL;
@@ -107,516 +92,429 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   estream_t in_fp = NULL;
   char *p;
 
-  kh = sm_keydb_new ();
-  if (!kh)
-    {
-      log_error (_("failed to allocate keyDB handle\n"));
-      rc = GPG_ERR_GENERAL;
-      goto leave;
-    }
-
-
-  in_fp = es_fdopen_nc (in_fd, "rb");
-  if (!in_fp)
-    {
-      rc = gpg_error_from_syserror ();
-      log_error ("fdopen() failed: %s\n", strerror (errno));
-      goto leave;
-    }
-
-  rc = gnupg_ksba_create_reader
-    (&b64reader, ((ctrl->is_pem? GNUPG_KSBA_IO_PEM : 0)
-                  | (ctrl->is_base64? GNUPG_KSBA_IO_BASE64 : 0)
-                  | (ctrl->autodetect_encoding? GNUPG_KSBA_IO_AUTODETECT : 0)),
-     in_fp, &reader);
-  if (rc)
-    {
-      log_error ("can't create reader: %s\n", gpg_strerror (rc));
-      goto leave;
-    }
-
-  if (out_fp)
-    {
-      rc = gnupg_ksba_create_writer
-        (&b64writer, ((ctrl->create_pem? GNUPG_KSBA_IO_PEM : 0)
-                      | (ctrl->create_base64? GNUPG_KSBA_IO_BASE64 : 0)),
-         ctrl->pem_name, out_fp, &writer);
-      if (rc)
-        {
-          log_error ("can't create writer: %s\n", gpg_strerror (rc));
-          goto leave;
-        }
-    }
-
-  rc = ksba_cms_new (&cms);
-  if (rc)
+  kh = sm_keydb_new();
+  if (!kh) {
+    log_error(_("failed to allocate keyDB handle\n"));
+    rc = GPG_ERR_GENERAL;
     goto leave;
+  }
 
-  rc = ksba_cms_set_reader_writer (cms, reader, writer);
-  if (rc)
-    {
-      log_error ("ksba_cms_set_reader_writer failed: %s\n",
-                 gpg_strerror (rc));
+  in_fp = es_fdopen_nc(in_fd, "rb");
+  if (!in_fp) {
+    rc = gpg_error_from_syserror();
+    log_error("fdopen() failed: %s\n", strerror(errno));
+    goto leave;
+  }
+
+  rc = gnupg_ksba_create_reader(
+      &b64reader, ((ctrl->is_pem ? GNUPG_KSBA_IO_PEM : 0) |
+                   (ctrl->is_base64 ? GNUPG_KSBA_IO_BASE64 : 0) |
+                   (ctrl->autodetect_encoding ? GNUPG_KSBA_IO_AUTODETECT : 0)),
+      in_fp, &reader);
+  if (rc) {
+    log_error("can't create reader: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  if (out_fp) {
+    rc = gnupg_ksba_create_writer(
+        &b64writer, ((ctrl->create_pem ? GNUPG_KSBA_IO_PEM : 0) |
+                     (ctrl->create_base64 ? GNUPG_KSBA_IO_BASE64 : 0)),
+        ctrl->pem_name, out_fp, &writer);
+    if (rc) {
+      log_error("can't create writer: %s\n", gpg_strerror(rc));
       goto leave;
     }
+  }
 
-  rc = gcry_md_open (&data_md, 0, 0);
-  if (rc)
-    {
-      log_error ("md_open failed: %s\n", gpg_strerror (rc));
-      goto leave;
-    }
-  if (DBG_HASHING)
-    gcry_md_debug (data_md, "vrfy.data");
+  rc = ksba_cms_new(&cms);
+  if (rc) goto leave;
+
+  rc = ksba_cms_set_reader_writer(cms, reader, writer);
+  if (rc) {
+    log_error("ksba_cms_set_reader_writer failed: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  rc = gcry_md_open(&data_md, 0, 0);
+  if (rc) {
+    log_error("md_open failed: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+  if (DBG_HASHING) gcry_md_debug(data_md, "vrfy.data");
 
   is_detached = 0;
-  do
-    {
-      rc = ksba_cms_parse (cms, &stopreason);
-      if (rc)
-        {
-          log_error ("ksba_cms_parse failed: %s\n", gpg_strerror (rc));
-          goto leave;
-        }
-
-      if (stopreason == KSBA_SR_NEED_HASH)
-        {
-          is_detached = 1;
-          if (opt.verbose)
-            log_info ("detached signature\n");
-        }
-
-      if (stopreason == KSBA_SR_NEED_HASH
-          || stopreason == KSBA_SR_BEGIN_DATA)
-        {
-          /* We are now able to enable the hash algorithms */
-          for (i=0; (algoid=ksba_cms_get_digest_algo_list (cms, i)); i++)
-            {
-              algo = gcry_md_map_name (algoid);
-              if (!algo)
-                {
-                  log_error ("unknown hash algorithm '%s'\n",
-                             algoid? algoid:"?");
-                  if (algoid
-                      && (  !strcmp (algoid, "1.2.840.113549.1.1.2")
-                          ||!strcmp (algoid, "1.2.840.113549.2.2")))
-                    log_info (_("(this is the MD2 algorithm)\n"));
-                }
-              else
-                {
-                  if (DBG_X509)
-                    log_debug ("enabling hash algorithm %d (%s)\n",
-                               algo, algoid? algoid:"");
-                  gcry_md_enable (data_md, algo);
-                }
-            }
-          if (opt.extra_digest_algo)
-            {
-              if (DBG_X509)
-                log_debug ("enabling extra hash algorithm %d\n",
-                           opt.extra_digest_algo);
-              gcry_md_enable (data_md, opt.extra_digest_algo);
-            }
-          if (is_detached)
-            {
-              if (data_fd == -1)
-                {
-                  log_info ("detached signature w/o data "
-                            "- assuming certs-only\n");
-                }
-            }
-          else
-            {
-              ksba_cms_set_hash_function (cms, HASH_FNC, data_md);
-            }
-        }
-    }
-  while (stopreason != KSBA_SR_READY);
-
-  if (b64writer)
-    {
-      rc = gnupg_ksba_finish_writer (b64writer);
-      if (rc)
-        {
-          log_error ("write failed: %s\n", gpg_strerror (rc));
-          goto leave;
-        }
-    }
-
-  if (data_fd != -1 && !is_detached)
-    {
-      log_error ("data given for a non-detached signature\n");
-      rc = GPG_ERR_CONFLICT;
+  do {
+    rc = ksba_cms_parse(cms, &stopreason);
+    if (rc) {
+      log_error("ksba_cms_parse failed: %s\n", gpg_strerror(rc));
       goto leave;
     }
 
-  for (i=0; (cert=ksba_cms_get_cert (cms, i)); i++)
-    {
-      /* Fixme: it might be better to check the validity of the
-         certificate first before entering it into the DB.  This way
-         we would avoid cluttering the DB with invalid
-         certificates. */
-      ksba_cert_release (cert);
+    if (stopreason == KSBA_SR_NEED_HASH) {
+      is_detached = 1;
+      if (opt.verbose) log_info("detached signature\n");
     }
+
+    if (stopreason == KSBA_SR_NEED_HASH || stopreason == KSBA_SR_BEGIN_DATA) {
+      /* We are now able to enable the hash algorithms */
+      for (i = 0; (algoid = ksba_cms_get_digest_algo_list(cms, i)); i++) {
+        algo = gcry_md_map_name(algoid);
+        if (!algo) {
+          log_error("unknown hash algorithm '%s'\n", algoid ? algoid : "?");
+          if (algoid && (!strcmp(algoid, "1.2.840.113549.1.1.2") ||
+                         !strcmp(algoid, "1.2.840.113549.2.2")))
+            log_info(_("(this is the MD2 algorithm)\n"));
+        } else {
+          if (DBG_X509)
+            log_debug("enabling hash algorithm %d (%s)\n", algo,
+                      algoid ? algoid : "");
+          gcry_md_enable(data_md, algo);
+        }
+      }
+      if (opt.extra_digest_algo) {
+        if (DBG_X509)
+          log_debug("enabling extra hash algorithm %d\n",
+                    opt.extra_digest_algo);
+        gcry_md_enable(data_md, opt.extra_digest_algo);
+      }
+      if (is_detached) {
+        if (data_fd == -1) {
+          log_info(
+              "detached signature w/o data "
+              "- assuming certs-only\n");
+        }
+      } else {
+        ksba_cms_set_hash_function(cms, HASH_FNC, data_md);
+      }
+    }
+  } while (stopreason != KSBA_SR_READY);
+
+  if (b64writer) {
+    rc = gnupg_ksba_finish_writer(b64writer);
+    if (rc) {
+      log_error("write failed: %s\n", gpg_strerror(rc));
+      goto leave;
+    }
+  }
+
+  if (data_fd != -1 && !is_detached) {
+    log_error("data given for a non-detached signature\n");
+    rc = GPG_ERR_CONFLICT;
+    goto leave;
+  }
+
+  for (i = 0; (cert = ksba_cms_get_cert(cms, i)); i++) {
+    /* Fixme: it might be better to check the validity of the
+       certificate first before entering it into the DB.  This way
+       we would avoid cluttering the DB with invalid
+       certificates. */
+    ksba_cert_release(cert);
+  }
 
   cert = NULL;
-  for (signer=0; ; signer++)
-    {
-      char *issuer = NULL;
-      ksba_sexp_t sigval = NULL;
-      ksba_isotime_t sigtime, keyexptime;
-      ksba_sexp_t serial;
-      char *msgdigest = NULL;
-      size_t msgdigestlen;
-      char *ctattr;
-      int sigval_hash_algo;
-      int info_pkalgo;
-      unsigned int verifyflags;
+  for (signer = 0;; signer++) {
+    char *issuer = NULL;
+    ksba_sexp_t sigval = NULL;
+    ksba_isotime_t sigtime, keyexptime;
+    ksba_sexp_t serial;
+    char *msgdigest = NULL;
+    size_t msgdigestlen;
+    char *ctattr;
+    int sigval_hash_algo;
+    int info_pkalgo;
+    unsigned int verifyflags;
 
-      rc = ksba_cms_get_issuer_serial (cms, signer, &issuer, &serial);
-      if (!signer && rc == GPG_ERR_NO_DATA
-          && data_fd == -1 && is_detached)
-        {
-          log_info ("certs-only message accepted\n");
-          rc = 0;
-          break;
-        }
-      if (rc)
-        {
-          if (signer && rc == -1)
-            rc = 0;
-          break;
-        }
-
-      gpgsm_status (ctrl, STATUS_NEWSIG, NULL);
-
-      if (DBG_X509)
-        {
-          log_debug ("signer %d - issuer: '%s'\n",
-                     signer, issuer? issuer:"[NONE]");
-          log_debug ("signer %d - serial: ", signer);
-          gpgsm_dump_serial (serial);
-          log_printf ("\n");
-        }
-
-      rc = ksba_cms_get_signing_time (cms, signer, sigtime);
-      if (rc == GPG_ERR_NO_DATA)
-        *sigtime = 0;
-      else if (rc)
-        {
-          log_error ("error getting signing time: %s\n", gpg_strerror (rc));
-          *sigtime = 0; /* (we can't encode an error in the time string.) */
-        }
-
-      rc = ksba_cms_get_message_digest (cms, signer,
-                                        &msgdigest, &msgdigestlen);
-      if (!rc)
-        {
-          algoid = ksba_cms_get_digest_algo (cms, signer);
-          algo = gcry_md_map_name (algoid);
-          if (DBG_X509)
-            log_debug ("signer %d - digest algo: %d\n", signer, algo);
-          if (! gcry_md_is_enabled (data_md, algo))
-            {
-              log_error ("digest algo %d (%s) has not been enabled\n",
-                         algo, algoid?algoid:"");
-              goto next_signer;
-            }
-        }
-      else if (rc == GPG_ERR_NO_DATA)
-        {
-          assert (!msgdigest);
-          rc = 0;
-          algoid = NULL;
-          algo = 0;
-        }
-      else /* real error */
-        {
-          break;
-        }
-
-      rc = ksba_cms_get_sigattr_oids (cms, signer,
-                                      "1.2.840.113549.1.9.3", &ctattr);
-      if (!rc)
-        {
-          const char *s;
-
-          if (DBG_X509)
-            log_debug ("signer %d - content-type attribute: %s",
-                       signer, ctattr);
-
-          s = ksba_cms_get_content_oid (cms, 1);
-          if (!s || strcmp (ctattr, s))
-            {
-              log_error ("content-type attribute does not match "
-                         "actual content-type\n");
-              ksba_free (ctattr);
-              ctattr = NULL;
-              goto next_signer;
-            }
-          ksba_free (ctattr);
-          ctattr = NULL;
-        }
-      else if (rc != -1)
-        {
-          log_error ("error getting content-type attribute: %s\n",
-                     gpg_strerror (rc));
-          goto next_signer;
-        }
+    rc = ksba_cms_get_issuer_serial(cms, signer, &issuer, &serial);
+    if (!signer && rc == GPG_ERR_NO_DATA && data_fd == -1 && is_detached) {
+      log_info("certs-only message accepted\n");
       rc = 0;
-
-
-      sigval = ksba_cms_get_sig_val (cms, signer);
-      if (!sigval)
-        {
-          log_error ("no signature value available\n");
-          goto next_signer;
-        }
-      sigval_hash_algo = hash_algo_from_sigval (sigval);
-      if (DBG_X509)
-        {
-          log_debug ("signer %d - signature available (sigval hash=%d)",
-                     signer, sigval_hash_algo);
-/*           log_printhex ("sigval    ", sigval, */
-/*                         gcry_sexp_canon_len (sigval, 0, NULL, NULL)); */
-        }
-      if (!sigval_hash_algo)
-        sigval_hash_algo = algo; /* Fallback used e.g. with old libksba. */
-
-      /* Find the certificate of the signer */
-      sm_keydb_search_reset (kh);
-      rc = sm_keydb_search_issuer_sn (ctrl, kh, issuer, serial);
-      if (rc)
-        {
-          if (rc == -1)
-            {
-              log_error ("certificate not found\n");
-              rc = GPG_ERR_NO_PUBKEY;
-            }
-          else
-            log_error ("failed to find the certificate: %s\n",
-                       gpg_strerror(rc));
-          {
-            char numbuf[50];
-            sprintf (numbuf, "%d", rc);
-
-            gpgsm_status2 (ctrl, STATUS_ERROR, "verify.findkey",
-                           numbuf, NULL);
-          }
-          goto next_signer;
-        }
-
-      rc = sm_keydb_get_cert (kh, &cert);
-      if (rc)
-        {
-          log_error ("failed to get cert: %s\n", gpg_strerror (rc));
-          goto next_signer;
-        }
-
-      /* Check compliance.  */
-      {
-        unsigned int nbits;
-        int pk_algo = gpgsm_get_key_algo_info (cert, &nbits);
-
-        if (! gnupg_pk_is_allowed (opt.compliance, PK_USE_VERIFICATION,
-                                   pk_algo, NULL, nbits, NULL))
-          {
-            log_error ("certificate ID 0x%08lX not suitable for "
-                       "verification while in %s mode\n",
-                       gpgsm_get_short_fingerprint (cert, NULL),
-                       gnupg_compliance_option_string (opt.compliance));
-            goto next_signer;
-          }
-
-        if (! gnupg_digest_is_allowed (opt.compliance, 0, (digest_algo_t) (sigval_hash_algo)))
-          {
-            log_error (_("you may not use digest algorithm '%s'"
-                         " while in %s mode\n"),
-                       gcry_md_algo_name (sigval_hash_algo),
-                       gnupg_compliance_option_string (opt.compliance));
-            goto next_signer;
-          }
-
-        /* Check compliance with CO_DE_VS.  */
-        if (gnupg_pk_is_compliant (CO_DE_VS, pk_algo, NULL, nbits, NULL)
-            && gnupg_digest_is_compliant (CO_DE_VS, (digest_algo_t) (sigval_hash_algo)))
-          gpgsm_status (ctrl, STATUS_VERIFICATION_COMPLIANCE_MODE,
-                        gnupg_status_compliance_flag (CO_DE_VS));
-      }
-
-      log_info (_("Signature made "));
-      if (*sigtime)
-        dump_isotime (sigtime);
-      else
-        log_printf (_("[date not given]"));
-      log_printf (_(" using certificate ID 0x%08lX\n"),
-                  gpgsm_get_short_fingerprint (cert, NULL));
-
-      if (msgdigest)
-        { /* Signed attributes are available. */
-          gcry_md_hd_t md;
-          unsigned char *s;
-
-          /* Check that the message digest in the signed attributes
-             matches the one we calculated on the data.  */
-          s = gcry_md_read (data_md, algo);
-          if ( !s || !msgdigestlen
-               || gcry_md_get_algo_dlen (algo) != msgdigestlen
-               || memcmp (s, msgdigest, msgdigestlen) )
-            {
-              char *fpr;
-
-              log_error (_("invalid signature: message digest attribute "
-                           "does not match computed one\n"));
-              if (DBG_X509)
-                {
-                  if (msgdigest)
-                    log_printhex ("message:  ", msgdigest, msgdigestlen);
-                  if (s)
-                    log_printhex ("computed: ",
-                                  s, gcry_md_get_algo_dlen (algo));
-                }
-              fpr = gpgsm_fpr_and_name_for_status (cert);
-              gpgsm_status (ctrl, STATUS_BADSIG, fpr);
-              xfree (fpr);
-              goto next_signer;
-            }
-
-          rc = gcry_md_open (&md, sigval_hash_algo, 0);
-          if (rc)
-            {
-              log_error ("md_open failed: %s\n", gpg_strerror (rc));
-              goto next_signer;
-            }
-          if (DBG_HASHING)
-            gcry_md_debug (md, "vrfy.attr");
-
-          ksba_cms_set_hash_function (cms, HASH_FNC, md);
-          rc = ksba_cms_hash_signed_attrs (cms, signer);
-          if (rc)
-            {
-              log_error ("hashing signed attrs failed: %s\n",
-                         gpg_strerror (rc));
-              gcry_md_close (md);
-              goto next_signer;
-            }
-          rc = gpgsm_check_cms_signature (cert, sigval, md,
-                                          sigval_hash_algo, &info_pkalgo);
-          gcry_md_close (md);
-        }
-      else
-        {
-          rc = gpgsm_check_cms_signature (cert, sigval, data_md,
-                                          algo, &info_pkalgo);
-        }
-
-      if (rc)
-        {
-          char *fpr;
-
-          log_error ("invalid signature: %s\n", gpg_strerror (rc));
-          fpr = gpgsm_fpr_and_name_for_status (cert);
-          gpgsm_status (ctrl, STATUS_BADSIG, fpr);
-          xfree (fpr);
-          goto next_signer;
-        }
-      rc = gpgsm_cert_use_verify_p (cert); /*(this displays an info message)*/
-      if (rc)
-        {
-          gpgsm_status_with_err_code (ctrl, STATUS_ERROR, "verify.keyusage",
-                                      rc);
-          rc = 0;
-        }
-
-      if (DBG_X509)
-        log_debug ("signature okay - checking certs\n");
-      rc = gpgsm_validate_chain (ctrl, cert,
-                                 *sigtime? sigtime : "19700101T000000",
-                                 keyexptime, 0,
-                                 NULL, 0, &verifyflags);
-      {
-        char *fpr, *buf, *tstr;
-
-        fpr = gpgsm_fpr_and_name_for_status (cert);
-        if (rc == GPG_ERR_CERT_EXPIRED)
-          {
-            gpgsm_status (ctrl, STATUS_EXPKEYSIG, fpr);
-            rc = 0;
-          }
-        else
-          gpgsm_status (ctrl, STATUS_GOODSIG, fpr);
-
-        xfree (fpr);
-
-        fpr = gpgsm_get_fingerprint_hexstring (cert, GCRY_MD_SHA1);
-        tstr = strtimestamp_r (sigtime);
-        buf = xasprintf ("%s %s %s %s 0 0 %d %d 00", fpr, tstr,
-                         *sigtime? sigtime : "0",
-                         *keyexptime? keyexptime : "0",
-                         info_pkalgo, algo);
-        xfree (tstr);
-        xfree (fpr);
-        gpgsm_status (ctrl, STATUS_VALIDSIG, buf);
-        xfree (buf);
-      }
-
-      if (rc) /* of validate_chain */
-        {
-          log_error ("invalid certification chain: %s\n", gpg_strerror (rc));
-          if (rc == GPG_ERR_BAD_CERT_CHAIN
-              || rc == GPG_ERR_BAD_CERT
-              || rc == GPG_ERR_BAD_CA_CERT
-              || rc == GPG_ERR_CERT_REVOKED)
-            gpgsm_status_with_err_code (ctrl, STATUS_TRUST_NEVER, NULL,
-                                        rc);
-          else
-            gpgsm_status_with_err_code (ctrl, STATUS_TRUST_UNDEFINED, NULL,
-                                        rc);
-          goto next_signer;
-        }
-
-      for (i=0; (p = ksba_cert_get_subject (cert, i)); i++)
-        {
-          log_info (!i? _("Good signature from")
-                      : _("                aka"));
-          log_printf (" \"");
-          gpgsm_es_print_name (log_get_stream (), p);
-          log_printf ("\"\n");
-          ksba_free (p);
-        }
-
-      gpgsm_status (ctrl, STATUS_TRUST_FULLY,
-                    (verifyflags & VALIDATE_FLAG_STEED)?
-                    "0 steed":
-                    (verifyflags & VALIDATE_FLAG_CHAIN_MODEL)?
-                    "0 chain": "0 shell");
-
-    next_signer:
-      rc = 0;
-      xfree (issuer);
-      xfree (serial);
-      xfree (sigval);
-      xfree (msgdigest);
-      ksba_cert_release (cert);
-      cert = NULL;
+      break;
     }
+    if (rc) {
+      if (signer && rc == -1) rc = 0;
+      break;
+    }
+
+    gpgsm_status(ctrl, STATUS_NEWSIG, NULL);
+
+    if (DBG_X509) {
+      log_debug("signer %d - issuer: '%s'\n", signer,
+                issuer ? issuer : "[NONE]");
+      log_debug("signer %d - serial: ", signer);
+      gpgsm_dump_serial(serial);
+      log_printf("\n");
+    }
+
+    rc = ksba_cms_get_signing_time(cms, signer, sigtime);
+    if (rc == GPG_ERR_NO_DATA)
+      *sigtime = 0;
+    else if (rc) {
+      log_error("error getting signing time: %s\n", gpg_strerror(rc));
+      *sigtime = 0; /* (we can't encode an error in the time string.) */
+    }
+
+    rc = ksba_cms_get_message_digest(cms, signer, &msgdigest, &msgdigestlen);
+    if (!rc) {
+      algoid = ksba_cms_get_digest_algo(cms, signer);
+      algo = gcry_md_map_name(algoid);
+      if (DBG_X509) log_debug("signer %d - digest algo: %d\n", signer, algo);
+      if (!gcry_md_is_enabled(data_md, algo)) {
+        log_error("digest algo %d (%s) has not been enabled\n", algo,
+                  algoid ? algoid : "");
+        goto next_signer;
+      }
+    } else if (rc == GPG_ERR_NO_DATA) {
+      assert(!msgdigest);
+      rc = 0;
+      algoid = NULL;
+      algo = 0;
+    } else /* real error */
+    {
+      break;
+    }
+
+    rc =
+        ksba_cms_get_sigattr_oids(cms, signer, "1.2.840.113549.1.9.3", &ctattr);
+    if (!rc) {
+      const char *s;
+
+      if (DBG_X509)
+        log_debug("signer %d - content-type attribute: %s", signer, ctattr);
+
+      s = ksba_cms_get_content_oid(cms, 1);
+      if (!s || strcmp(ctattr, s)) {
+        log_error(
+            "content-type attribute does not match "
+            "actual content-type\n");
+        ksba_free(ctattr);
+        ctattr = NULL;
+        goto next_signer;
+      }
+      ksba_free(ctattr);
+      ctattr = NULL;
+    } else if (rc != -1) {
+      log_error("error getting content-type attribute: %s\n", gpg_strerror(rc));
+      goto next_signer;
+    }
+    rc = 0;
+
+    sigval = ksba_cms_get_sig_val(cms, signer);
+    if (!sigval) {
+      log_error("no signature value available\n");
+      goto next_signer;
+    }
+    sigval_hash_algo = hash_algo_from_sigval(sigval);
+    if (DBG_X509) {
+      log_debug("signer %d - signature available (sigval hash=%d)", signer,
+                sigval_hash_algo);
+      /*           log_printhex ("sigval    ", sigval, */
+      /*                         gcry_sexp_canon_len (sigval, 0, NULL, NULL));
+       */
+    }
+    if (!sigval_hash_algo)
+      sigval_hash_algo = algo; /* Fallback used e.g. with old libksba. */
+
+    /* Find the certificate of the signer */
+    sm_keydb_search_reset(kh);
+    rc = sm_keydb_search_issuer_sn(ctrl, kh, issuer, serial);
+    if (rc) {
+      if (rc == -1) {
+        log_error("certificate not found\n");
+        rc = GPG_ERR_NO_PUBKEY;
+      } else
+        log_error("failed to find the certificate: %s\n", gpg_strerror(rc));
+      {
+        char numbuf[50];
+        sprintf(numbuf, "%d", rc);
+
+        gpgsm_status2(ctrl, STATUS_ERROR, "verify.findkey", numbuf, NULL);
+      }
+      goto next_signer;
+    }
+
+    rc = sm_keydb_get_cert(kh, &cert);
+    if (rc) {
+      log_error("failed to get cert: %s\n", gpg_strerror(rc));
+      goto next_signer;
+    }
+
+    /* Check compliance.  */
+    {
+      unsigned int nbits;
+      int pk_algo = gpgsm_get_key_algo_info(cert, &nbits);
+
+      if (!gnupg_pk_is_allowed(opt.compliance, PK_USE_VERIFICATION, pk_algo,
+                               NULL, nbits, NULL)) {
+        log_error(
+            "certificate ID 0x%08lX not suitable for "
+            "verification while in %s mode\n",
+            gpgsm_get_short_fingerprint(cert, NULL),
+            gnupg_compliance_option_string(opt.compliance));
+        goto next_signer;
+      }
+
+      if (!gnupg_digest_is_allowed(opt.compliance, 0,
+                                   (digest_algo_t)(sigval_hash_algo))) {
+        log_error(_("you may not use digest algorithm '%s'"
+                    " while in %s mode\n"),
+                  gcry_md_algo_name(sigval_hash_algo),
+                  gnupg_compliance_option_string(opt.compliance));
+        goto next_signer;
+      }
+
+      /* Check compliance with CO_DE_VS.  */
+      if (gnupg_pk_is_compliant(CO_DE_VS, pk_algo, NULL, nbits, NULL) &&
+          gnupg_digest_is_compliant(CO_DE_VS,
+                                    (digest_algo_t)(sigval_hash_algo)))
+        gpgsm_status(ctrl, STATUS_VERIFICATION_COMPLIANCE_MODE,
+                     gnupg_status_compliance_flag(CO_DE_VS));
+    }
+
+    log_info(_("Signature made "));
+    if (*sigtime)
+      dump_isotime(sigtime);
+    else
+      log_printf(_("[date not given]"));
+    log_printf(_(" using certificate ID 0x%08lX\n"),
+               gpgsm_get_short_fingerprint(cert, NULL));
+
+    if (msgdigest) { /* Signed attributes are available. */
+      gcry_md_hd_t md;
+      unsigned char *s;
+
+      /* Check that the message digest in the signed attributes
+         matches the one we calculated on the data.  */
+      s = gcry_md_read(data_md, algo);
+      if (!s || !msgdigestlen || gcry_md_get_algo_dlen(algo) != msgdigestlen ||
+          memcmp(s, msgdigest, msgdigestlen)) {
+        char *fpr;
+
+        log_error(
+            _("invalid signature: message digest attribute "
+              "does not match computed one\n"));
+        if (DBG_X509) {
+          if (msgdigest) log_printhex("message:  ", msgdigest, msgdigestlen);
+          if (s) log_printhex("computed: ", s, gcry_md_get_algo_dlen(algo));
+        }
+        fpr = gpgsm_fpr_and_name_for_status(cert);
+        gpgsm_status(ctrl, STATUS_BADSIG, fpr);
+        xfree(fpr);
+        goto next_signer;
+      }
+
+      rc = gcry_md_open(&md, sigval_hash_algo, 0);
+      if (rc) {
+        log_error("md_open failed: %s\n", gpg_strerror(rc));
+        goto next_signer;
+      }
+      if (DBG_HASHING) gcry_md_debug(md, "vrfy.attr");
+
+      ksba_cms_set_hash_function(cms, HASH_FNC, md);
+      rc = ksba_cms_hash_signed_attrs(cms, signer);
+      if (rc) {
+        log_error("hashing signed attrs failed: %s\n", gpg_strerror(rc));
+        gcry_md_close(md);
+        goto next_signer;
+      }
+      rc = gpgsm_check_cms_signature(cert, sigval, md, sigval_hash_algo,
+                                     &info_pkalgo);
+      gcry_md_close(md);
+    } else {
+      rc = gpgsm_check_cms_signature(cert, sigval, data_md, algo, &info_pkalgo);
+    }
+
+    if (rc) {
+      char *fpr;
+
+      log_error("invalid signature: %s\n", gpg_strerror(rc));
+      fpr = gpgsm_fpr_and_name_for_status(cert);
+      gpgsm_status(ctrl, STATUS_BADSIG, fpr);
+      xfree(fpr);
+      goto next_signer;
+    }
+    rc = gpgsm_cert_use_verify_p(cert); /*(this displays an info message)*/
+    if (rc) {
+      gpgsm_status_with_err_code(ctrl, STATUS_ERROR, "verify.keyusage", rc);
+      rc = 0;
+    }
+
+    if (DBG_X509) log_debug("signature okay - checking certs\n");
+    rc =
+        gpgsm_validate_chain(ctrl, cert, *sigtime ? sigtime : "19700101T000000",
+                             keyexptime, 0, NULL, 0, &verifyflags);
+    {
+      char *fpr, *buf, *tstr;
+
+      fpr = gpgsm_fpr_and_name_for_status(cert);
+      if (rc == GPG_ERR_CERT_EXPIRED) {
+        gpgsm_status(ctrl, STATUS_EXPKEYSIG, fpr);
+        rc = 0;
+      } else
+        gpgsm_status(ctrl, STATUS_GOODSIG, fpr);
+
+      xfree(fpr);
+
+      fpr = gpgsm_get_fingerprint_hexstring(cert, GCRY_MD_SHA1);
+      tstr = strtimestamp_r(sigtime);
+      buf = xasprintf("%s %s %s %s 0 0 %d %d 00", fpr, tstr,
+                      *sigtime ? sigtime : "0", *keyexptime ? keyexptime : "0",
+                      info_pkalgo, algo);
+      xfree(tstr);
+      xfree(fpr);
+      gpgsm_status(ctrl, STATUS_VALIDSIG, buf);
+      xfree(buf);
+    }
+
+    if (rc) /* of validate_chain */
+    {
+      log_error("invalid certification chain: %s\n", gpg_strerror(rc));
+      if (rc == GPG_ERR_BAD_CERT_CHAIN || rc == GPG_ERR_BAD_CERT ||
+          rc == GPG_ERR_BAD_CA_CERT || rc == GPG_ERR_CERT_REVOKED)
+        gpgsm_status_with_err_code(ctrl, STATUS_TRUST_NEVER, NULL, rc);
+      else
+        gpgsm_status_with_err_code(ctrl, STATUS_TRUST_UNDEFINED, NULL, rc);
+      goto next_signer;
+    }
+
+    for (i = 0; (p = ksba_cert_get_subject(cert, i)); i++) {
+      log_info(!i ? _("Good signature from") : _("                aka"));
+      log_printf(" \"");
+      gpgsm_es_print_name(log_get_stream(), p);
+      log_printf("\"\n");
+      ksba_free(p);
+    }
+
+    gpgsm_status(ctrl, STATUS_TRUST_FULLY,
+                 (verifyflags & VALIDATE_FLAG_STEED)
+                     ? "0 steed"
+                     : (verifyflags & VALIDATE_FLAG_CHAIN_MODEL) ? "0 chain"
+                                                                 : "0 shell");
+
+  next_signer:
+    rc = 0;
+    xfree(issuer);
+    xfree(serial);
+    xfree(sigval);
+    xfree(msgdigest);
+    ksba_cert_release(cert);
+    cert = NULL;
+  }
   rc = 0;
 
- leave:
-  ksba_cms_release (cms);
-  gnupg_ksba_destroy_reader (b64reader);
-  gnupg_ksba_destroy_writer (b64writer);
-  sm_keydb_release (kh);
-  gcry_md_close (data_md);
-  es_fclose (in_fp);
+leave:
+  ksba_cms_release(cms);
+  gnupg_ksba_destroy_reader(b64reader);
+  gnupg_ksba_destroy_writer(b64writer);
+  sm_keydb_release(kh);
+  gcry_md_close(data_md);
+  es_fclose(in_fp);
 
-  if (rc)
-    {
-      char numbuf[50];
-      sprintf (numbuf, "%d", rc );
-      gpgsm_status2 (ctrl, STATUS_ERROR, "verify.leave",
-                     numbuf, NULL);
-    }
+  if (rc) {
+    char numbuf[50];
+    sprintf(numbuf, "%d", rc);
+    gpgsm_status2(ctrl, STATUS_ERROR, "verify.leave", numbuf, NULL);
+  }
 
   return rc;
 }

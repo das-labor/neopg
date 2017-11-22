@@ -41,10 +41,9 @@ enum reader_type {
   READER_TYPE_CB
 };
 
-
 struct ksba_reader_s {
   int eof;
-  int error;   /* If an error occured, takes the value of errno. */
+  int error; /* If an error occured, takes the value of errno. */
   unsigned long nread;
   struct {
     unsigned char *buf;
@@ -58,19 +57,16 @@ struct ksba_reader_s {
       unsigned char *buffer;
       size_t size;
       size_t readpos;
-    } mem;   /* for READER_TYPE_MEM */
-    int fd;  /* for READER_TYPE_FD */
+    } mem;      /* for READER_TYPE_MEM */
+    int fd;     /* for READER_TYPE_FD */
     FILE *file; /* for READER_TYPE_FILE */
     struct {
-      int (*fnc)(void*,char *,size_t,size_t*);
+      int (*fnc)(void *, char *, size_t, size_t *);
       void *value;
-    } cb;   /* for READER_TYPE_CB */
+    } cb; /* for READER_TYPE_CB */
   } u;
-  void (*notify_cb)(void*,ksba_reader_t);
+  void (*notify_cb)(void *, ksba_reader_t);
   void *notify_cb_value;
 };
-
-
-
 
 #endif /*READER_H*/

@@ -18,52 +18,45 @@
  */
 
 #include <config.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <unistd.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
 
-#include "gpgsm.h"
 #include "../common/i18n.h"
+#include "../common/sexp-parse.h"
 #include "../common/sysutils.h"
 #include "../common/tlv.h"
-#include "../common/sexp-parse.h"
-
+#include "gpgsm.h"
 
 /* Setup the environment so that the pinentry is able to get all
    required information.  This is used prior to an exec of the
    protect-tool. */
-void
-setup_pinentry_env (void)
-{
+void setup_pinentry_env(void) {
 #ifndef HAVE_W32_SYSTEM
   const char *lc;
   const char *name, *value;
   int iterator;
 
-  if (opt.lc_ctype)
-    gnupg_setenv ("LC_CTYPE", opt.lc_ctype, 1);
+  if (opt.lc_ctype) gnupg_setenv("LC_CTYPE", opt.lc_ctype, 1);
 #if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
-  else if ( (lc = setlocale (LC_CTYPE, "")) )
-    gnupg_setenv ("LC_CTYPE", lc, 1);
+  else if ((lc = setlocale(LC_CTYPE, "")))
+    gnupg_setenv("LC_CTYPE", lc, 1);
 #endif
 
-  if (opt.lc_messages)
-    gnupg_setenv ("LC_MESSAGES", opt.lc_messages, 1);
+  if (opt.lc_messages) gnupg_setenv("LC_MESSAGES", opt.lc_messages, 1);
 #if defined(HAVE_SETLOCALE) && defined(LC_MESSAGES)
-  else if ( (lc = setlocale (LC_MESSAGES, "")) )
-    gnupg_setenv ("LC_MESSAGES", lc, 1);
+  else if ((lc = setlocale(LC_MESSAGES, "")))
+    gnupg_setenv("LC_MESSAGES", lc, 1);
 #endif
 
 #endif /*!HAVE_W32_SYSTEM*/
 }
-
-
 
 /* Transform a sig-val style s-expression as returned by Libgcrypt to
    one which includes an algorithm identifier encoding the public key
@@ -75,10 +68,9 @@ setup_pinentry_env (void)
    create an siginfo value as expected by ksba_certreq_set_siginfo.
    To create a siginfo s-expression a public-key s-expression may be
    used instead of a sig-val.  We only support RSA for now.  */
-gpg_error_t
-transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
-                  unsigned char **r_newsigval, size_t *r_newsigvallen)
-{
+gpg_error_t transform_sigval(const unsigned char *sigval, size_t sigvallen,
+                             int mdalgo, unsigned char **r_newsigval,
+                             size_t *r_newsigvallen) {
   gpg_error_t err;
   const unsigned char *buf, *tok;
   size_t buflen, toklen;
@@ -90,75 +82,65 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
   gcry_sexp_t sexp;
 
   *r_newsigval = NULL;
-  if (r_newsigvallen)
-    *r_newsigvallen = 0;
+  if (r_newsigvallen) *r_newsigvallen = 0;
 
   buf = sigval;
   buflen = sigvallen;
   depth = 0;
-  if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-    return err;
-  if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-    return err;
-  if (tok && toklen == 7 && !memcmp ("sig-val", tok, toklen))
+  if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+  if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+  if (tok && toklen == 7 && !memcmp("sig-val", tok, toklen))
     ;
-  else if (tok && toklen == 10 && !memcmp ("public-key", tok, toklen))
+  else if (tok && toklen == 10 && !memcmp("public-key", tok, toklen))
     is_pubkey = 1;
   else
     return GPG_ERR_UNKNOWN_SEXP;
-  if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-    return err;
-  if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-    return err;
-  if (!tok || toklen != 3 || memcmp ("rsa", tok, toklen))
+  if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+  if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+  if (!tok || toklen != 3 || memcmp("rsa", tok, toklen))
     return GPG_ERR_WRONG_PUBKEY_ALGO;
 
   last_depth1 = depth;
-  while (!(err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen))
-         && depth && depth >= last_depth1)
-    {
-      if (tok)
-        return GPG_ERR_UNKNOWN_SEXP;
-      if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-        return err;
-      if (tok && toklen == 1)
-        {
-          const unsigned char **mpi;
-          size_t *mpi_len;
+  while (!(err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen)) && depth &&
+         depth >= last_depth1) {
+    if (tok) return GPG_ERR_UNKNOWN_SEXP;
+    if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+    if (tok && toklen == 1) {
+      const unsigned char **mpi;
+      size_t *mpi_len;
 
-          switch (*tok)
-            {
-            case 's': mpi = &rsa_s; mpi_len = &rsa_s_len; break;
-            default:  mpi = NULL;   mpi_len = NULL; break;
-            }
-          if (mpi && *mpi)
-            return GPG_ERR_DUP_VALUE;
+      switch (*tok) {
+        case 's':
+          mpi = &rsa_s;
+          mpi_len = &rsa_s_len;
+          break;
+        default:
+          mpi = NULL;
+          mpi_len = NULL;
+          break;
+      }
+      if (mpi && *mpi) return GPG_ERR_DUP_VALUE;
 
-          if ((err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen)))
-            return err;
-          if (tok && mpi)
-            {
-              *mpi = tok;
-              *mpi_len = toklen;
-            }
-        }
-
-      /* Skip to the end of the list. */
-      last_depth2 = depth;
-      while (!(err = parse_sexp (&buf, &buflen, &depth, &tok, &toklen))
-             && depth && depth >= last_depth2)
-        ;
-      if (err)
-        return err;
+      if ((err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen))) return err;
+      if (tok && mpi) {
+        *mpi = tok;
+        *mpi_len = toklen;
+      }
     }
-  if (err)
-    return err;
+
+    /* Skip to the end of the list. */
+    last_depth2 = depth;
+    while (!(err = parse_sexp(&buf, &buflen, &depth, &tok, &toklen)) && depth &&
+           depth >= last_depth2)
+      ;
+    if (err) return err;
+  }
+  if (err) return err;
 
   /* Map the hash algorithm to an OID.  */
-  switch (mdalgo)
-    {
+  switch (mdalgo) {
     case GCRY_MD_SHA1:
-      oid = "1.2.840.113549.1.1.5";  /* sha1WithRSAEncryption */
+      oid = "1.2.840.113549.1.1.5"; /* sha1WithRSAEncryption */
       break;
 
     case GCRY_MD_SHA256:
@@ -175,17 +157,16 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
 
     default:
       return GPG_ERR_DIGEST_ALGO;
-    }
+  }
 
   if (rsa_s && !is_pubkey)
-    err = gcry_sexp_build (&sexp, NULL, "(sig-val(%s(s%b)))",
-                           oid, (int)rsa_s_len, rsa_s);
+    err = gcry_sexp_build(&sexp, NULL, "(sig-val(%s(s%b)))", oid,
+                          (int)rsa_s_len, rsa_s);
   else
-    err = gcry_sexp_build (&sexp, NULL, "(sig-val(%s))", oid);
-  if (err)
-    return err;
-  err = make_canon_sexp (sexp, r_newsigval, r_newsigvallen);
-  gcry_sexp_release (sexp);
+    err = gcry_sexp_build(&sexp, NULL, "(sig-val(%s))", oid);
+  if (err) return err;
+  err = make_canon_sexp(sexp, r_newsigval, r_newsigvallen);
+  gcry_sexp_release(sexp);
 
   return err;
 }

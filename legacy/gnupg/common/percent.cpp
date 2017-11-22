@@ -27,14 +27,13 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <ctype.h>
 #include <assert.h>
+#include <config.h>
+#include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
 
 #include "util.h"
-
 
 /* Create a newly alloced string from STRING with all spaces and
    control characters converted to plus signs or %xx sequences.  The
@@ -47,168 +46,132 @@
    (i.e. gpg-protect-tool), but the pre-main code does not notice the
    double quote as an escaped quote.  We do this also on POSIX systems
    for consistency.  */
-char *
-percent_plus_escape (const char *string)
-{
+char *percent_plus_escape(const char *string) {
   char *buffer, *p;
   const char *s;
   size_t length;
 
-  for (length=1, s=string; *s; s++)
-    {
-      if (*s == '+' || *s == '\"' || *s == '%'
-          || *(const unsigned char *)s < 0x20)
-        length += 3;
-      else
-        length++;
-    }
+  for (length = 1, s = string; *s; s++) {
+    if (*s == '+' || *s == '\"' || *s == '%' ||
+        *(const unsigned char *)s < 0x20)
+      length += 3;
+    else
+      length++;
+  }
 
-  buffer = p = (char*) xtrymalloc (length);
-  if (!buffer)
-    return NULL;
+  buffer = p = (char *)xtrymalloc(length);
+  if (!buffer) return NULL;
 
-  for (s=string; *s; s++)
-    {
-      if (*s == '+' || *s == '\"' || *s == '%'
-          || *(const unsigned char *)s < 0x20)
-        {
-          snprintf (p, 4, "%%%02X", *(unsigned char *)s);
-          p += 3;
-        }
-      else if (*s == ' ')
-        *p++ = '+';
-      else
-        *p++ = *s;
-    }
+  for (s = string; *s; s++) {
+    if (*s == '+' || *s == '\"' || *s == '%' ||
+        *(const unsigned char *)s < 0x20) {
+      snprintf(p, 4, "%%%02X", *(unsigned char *)s);
+      p += 3;
+    } else if (*s == ' ')
+      *p++ = '+';
+    else
+      *p++ = *s;
+  }
   *p = 0;
 
   return buffer;
-
 }
-
 
 /* Do the percent and plus/space unescaping from STRING to BUFFER and
    return the length of the valid buffer.  Plus unescaping is only
    done if WITHPLUS is true.  An escaped Nul character will be
    replaced by NULREPL.  */
-static size_t
-do_unescape (unsigned char *buffer, const unsigned char *string,
-             int withplus, int nulrepl)
-{
+static size_t do_unescape(unsigned char *buffer, const unsigned char *string,
+                          int withplus, int nulrepl) {
   unsigned char *p = buffer;
 
-  while (*string)
-    {
-      if (*string == '%' && string[1] && string[2])
-        {
-          string++;
-          *p = xtoi_2 (string);
-          if (!*p)
-            *p = nulrepl;
-          string++;
-        }
-      else if (*string == '+' && withplus)
-        *p = ' ';
-      else
-        *p = *string;
-      p++;
+  while (*string) {
+    if (*string == '%' && string[1] && string[2]) {
       string++;
-    }
+      *p = xtoi_2(string);
+      if (!*p) *p = nulrepl;
+      string++;
+    } else if (*string == '+' && withplus)
+      *p = ' ';
+    else
+      *p = *string;
+    p++;
+    string++;
+  }
 
   return (p - buffer);
 }
 
-
 /* Count space required after unescaping STRING.  Note that this will
    never be larger than strlen (STRING).  */
-static size_t
-count_unescape (const unsigned char *string)
-{
+static size_t count_unescape(const unsigned char *string) {
   size_t n = 0;
 
-  while (*string)
-    {
-      if (*string == '%' && string[1] && string[2])
-        {
-          string++;
-          string++;
-        }
+  while (*string) {
+    if (*string == '%' && string[1] && string[2]) {
       string++;
-      n++;
+      string++;
     }
+    string++;
+    n++;
+  }
 
   return n;
 }
 
-
 /* Helper.  */
-static char *
-do_plus_or_plain_unescape (const char *string, int withplus, int nulrepl)
-{
+static char *do_plus_or_plain_unescape(const char *string, int withplus,
+                                       int nulrepl) {
   size_t nbytes, n;
   char *newstring;
 
-  nbytes = count_unescape ((const unsigned char*) (string));
-  newstring = (char*) xtrymalloc (nbytes+1);
-  if (newstring)
-    {
-      n = do_unescape ((unsigned char*) (newstring), (const unsigned char*) (string), withplus, nulrepl);
-      assert (n == nbytes);
-      newstring[n] = 0;
-    }
+  nbytes = count_unescape((const unsigned char *)(string));
+  newstring = (char *)xtrymalloc(nbytes + 1);
+  if (newstring) {
+    n = do_unescape((unsigned char *)(newstring),
+                    (const unsigned char *)(string), withplus, nulrepl);
+    assert(n == nbytes);
+    newstring[n] = 0;
+  }
   return newstring;
 }
-
 
 /* Create a new allocated string from STRING with all "%xx" sequences
    decoded and all plus signs replaced by a space.  Embedded Nul
    characters are replaced by the value of NULREPL.  The function
    returns the new string or NULL in case of a malloc failure.  */
-char *
-percent_plus_unescape (const char *string, int nulrepl)
-{
-  return do_plus_or_plain_unescape (string, 1, nulrepl);
+char *percent_plus_unescape(const char *string, int nulrepl) {
+  return do_plus_or_plain_unescape(string, 1, nulrepl);
 }
-
 
 /* Create a new allocated string from STRING with all "%xx" sequences
    decoded.  Embedded Nul characters are replaced by the value of
    NULREPL.  The function returns the new string or NULL in case of a
    malloc failure.  */
-char *
-percent_unescape (const char *string, int nulrepl)
-{
-  return do_plus_or_plain_unescape (string, 0, nulrepl);
+char *percent_unescape(const char *string, int nulrepl) {
+  return do_plus_or_plain_unescape(string, 0, nulrepl);
 }
 
-
-static size_t
-do_unescape_inplace (char *string, int withplus, int nulrepl)
-{
+static size_t do_unescape_inplace(char *string, int withplus, int nulrepl) {
   unsigned char *p, *p0;
 
-  p = p0 = (unsigned char*) string;
-  while (*string)
-    {
-      if (*string == '%' && string[1] && string[2])
-        {
-          string++;
-          *p = xtoi_2 (string);
-          if (!*p)
-            *p = nulrepl;
-          string++;
-        }
-      else if (*string == '+' && withplus)
-        *p = ' ';
-      else
-        *p = *string;
-      p++;
+  p = p0 = (unsigned char *)string;
+  while (*string) {
+    if (*string == '%' && string[1] && string[2]) {
       string++;
-    }
+      *p = xtoi_2(string);
+      if (!*p) *p = nulrepl;
+      string++;
+    } else if (*string == '+' && withplus)
+      *p = ' ';
+    else
+      *p = *string;
+    p++;
+    string++;
+  }
 
   return (p - p0);
 }
-
 
 /* Perform percent and plus unescaping in STRING and return the new
    valid length of the string.  Embedded Nul characters are replaced
@@ -217,12 +180,9 @@ do_unescape_inplace (char *string, int withplus, int nulrepl)
 
       foo[percent_plus_unescape_inplace (foo, 0)] = 0;
  */
-size_t
-percent_plus_unescape_inplace (char *string, int nulrepl)
-{
-  return do_unescape_inplace (string, 1, nulrepl);
+size_t percent_plus_unescape_inplace(char *string, int nulrepl) {
+  return do_unescape_inplace(string, 1, nulrepl);
 }
-
 
 /* Perform percent unescaping in STRING and return the new valid
    length of the string.  Embedded Nul characters are replaced by the
@@ -231,8 +191,6 @@ percent_plus_unescape_inplace (char *string, int nulrepl)
 
       foo[percent_unescape_inplace (foo, 0)] = 0;
  */
-size_t
-percent_unescape_inplace (char *string, int nulrepl)
-{
-  return do_unescape_inplace (string, 0, nulrepl);
+size_t percent_unescape_inplace(char *string, int nulrepl) {
+  return do_unescape_inplace(string, 0, nulrepl);
 }

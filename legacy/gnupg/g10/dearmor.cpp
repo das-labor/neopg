@@ -18,114 +18,101 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "gpg.h"
-#include "../common/status.h"
+#include "../common/i18n.h"
 #include "../common/iobuf.h"
+#include "../common/status.h"
 #include "../common/util.h"
 #include "filter.h"
-#include "packet.h"
-#include "options.h"
+#include "gpg.h"
 #include "main.h"
-#include "../common/i18n.h"
+#include "options.h"
+#include "packet.h"
 
 /****************
  * Take an armor file and write it out without armor
  */
-int
-dearmor_file( const char *fname )
-{
-    armor_filter_context_t *afx;
-    IOBUF inp = NULL, out = NULL;
-    int rc = 0;
-    int c;
+int dearmor_file(const char *fname) {
+  armor_filter_context_t *afx;
+  IOBUF inp = NULL, out = NULL;
+  int rc = 0;
+  int c;
 
-    afx = new_armor_context ();
+  afx = new_armor_context();
 
-    /* prepare iobufs */
-    inp = iobuf_open(fname);
-    if (inp && is_secured_file (iobuf_get_fd (inp)))
-      {
-        iobuf_close (inp);
-        inp = NULL;
-        gpg_err_set_errno (EPERM);
-      }
-    if (!inp) {
-        rc = gpg_error_from_syserror ();
-	log_error(_("can't open '%s': %s\n"), fname? fname: "[stdin]",
-					strerror(errno) );
-	goto leave;
-    }
-
-    push_armor_filter ( afx, inp );
-
-    if( (rc = open_outfile (-1, fname, 0, 0, &out)) )
-	goto leave;
-
-    while( (c = iobuf_get(inp)) != -1 )
-	iobuf_put( out, c );
-
-  leave:
-    if( rc )
-	iobuf_cancel(out);
-    else
-	iobuf_close(out);
+  /* prepare iobufs */
+  inp = iobuf_open(fname);
+  if (inp && is_secured_file(iobuf_get_fd(inp))) {
     iobuf_close(inp);
-    release_armor_context (afx);
-    return rc;
-}
+    inp = NULL;
+    gpg_err_set_errno(EPERM);
+  }
+  if (!inp) {
+    rc = gpg_error_from_syserror();
+    log_error(_("can't open '%s': %s\n"), fname ? fname : "[stdin]",
+              strerror(errno));
+    goto leave;
+  }
 
+  push_armor_filter(afx, inp);
+
+  if ((rc = open_outfile(-1, fname, 0, 0, &out))) goto leave;
+
+  while ((c = iobuf_get(inp)) != -1) iobuf_put(out, c);
+
+leave:
+  if (rc)
+    iobuf_cancel(out);
+  else
+    iobuf_close(out);
+  iobuf_close(inp);
+  release_armor_context(afx);
+  return rc;
+}
 
 /****************
  * Take file and write it out with armor
  */
-int
-enarmor_file( const char *fname )
-{
-    armor_filter_context_t *afx;
-    IOBUF inp = NULL, out = NULL;
-    int rc = 0;
-    int c;
+int enarmor_file(const char *fname) {
+  armor_filter_context_t *afx;
+  IOBUF inp = NULL, out = NULL;
+  int rc = 0;
+  int c;
 
-    afx = new_armor_context ();
+  afx = new_armor_context();
 
-    /* prepare iobufs */
-    inp = iobuf_open(fname);
-    if (inp && is_secured_file (iobuf_get_fd (inp)))
-      {
-        iobuf_close (inp);
-        inp = NULL;
-        gpg_err_set_errno (EPERM);
-      }
-    if (!inp) {
-        rc = gpg_error_from_syserror ();
-	log_error(_("can't open '%s': %s\n"), fname? fname: "[stdin]",
-                  strerror(errno) );
-	goto leave;
-    }
-
-
-    if( (rc = open_outfile (-1, fname, 1, 0, &out )) )
-	goto leave;
-
-    afx->what = 4;
-    afx->hdrlines = "Comment: Use \"gpg --dearmor\" for unpacking\n";
-    push_armor_filter ( afx, out );
-
-    while( (c = iobuf_get(inp)) != -1 )
-	iobuf_put( out, c );
-
-
-  leave:
-    if( rc )
-	iobuf_cancel(out);
-    else
-	iobuf_close(out);
+  /* prepare iobufs */
+  inp = iobuf_open(fname);
+  if (inp && is_secured_file(iobuf_get_fd(inp))) {
     iobuf_close(inp);
-    release_armor_context (afx);
-    return rc;
+    inp = NULL;
+    gpg_err_set_errno(EPERM);
+  }
+  if (!inp) {
+    rc = gpg_error_from_syserror();
+    log_error(_("can't open '%s': %s\n"), fname ? fname : "[stdin]",
+              strerror(errno));
+    goto leave;
+  }
+
+  if ((rc = open_outfile(-1, fname, 1, 0, &out))) goto leave;
+
+  afx->what = 4;
+  afx->hdrlines = "Comment: Use \"gpg --dearmor\" for unpacking\n";
+  push_armor_filter(afx, out);
+
+  while ((c = iobuf_get(inp)) != -1) iobuf_put(out, c);
+
+leave:
+  if (rc)
+    iobuf_cancel(out);
+  else
+    iobuf_close(out);
+  iobuf_close(inp);
+  release_armor_context(afx);
+  return rc;
 }

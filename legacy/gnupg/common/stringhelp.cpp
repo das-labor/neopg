@@ -32,55 +32,49 @@
  */
 
 #include <config.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef HAVE_PWD_H
-# include <pwd.h>
+#include <pwd.h>
 #endif
-#include <unistd.h>
 #include <sys/types.h>
+#include <unistd.h>
 #ifdef HAVE_W32_SYSTEM
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif
-# include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#include <windows.h>
 #endif
 #include <assert.h>
 #include <limits.h>
 
-#include "util.h"
 #include "common-defs.h"
-#include "utf8conv.h"
-#include "sysutils.h"
 #include "stringhelp.h"
+#include "sysutils.h"
+#include "utf8conv.h"
+#include "util.h"
 
-#define tohex_lower(n) ((n) < 10 ? ((n) + '0') : (((n) - 10) + 'a'))
-
+#define tohex_lower(n) ((n) < 10 ? ((n) + '0') : (((n)-10) + 'a'))
 
 /* Sometimes we want to avoid mixing slashes and backslashes on W32
    and prefer backslashes.  There is usual no problem with mixing
    them, however a very few W32 API calls can't grok plain slashes.
    Printing filenames with mixed slashes also looks a bit strange.
    This function has no effext on POSIX. */
-static inline char *
-change_slashes (char *name)
-{
+static inline char *change_slashes(char *name) {
 #ifdef HAVE_DOSISH_SYSTEM
   char *p;
 
-  if (strchr (name, '\\'))
-    {
-      for (p=name; *p; p++)
-        if (*p == '/')
-          *p = '\\';
-    }
+  if (strchr(name, '\\')) {
+    for (p = name; *p; p++)
+      if (*p == '/') *p = '\\';
+  }
 #endif /*HAVE_DOSISH_SYSTEM*/
   return name;
 }
-
 
 /*
  * Check whether STRING starts with KEYWORD.  The keyword is
@@ -88,75 +82,60 @@ change_slashes (char *name)
  * found or a pointer into STRING to the next non-space character
  * after the KEYWORD (which may be end of string).
  */
-char *
-has_leading_keyword (const char *string, const char *keyword)
-{
-  size_t n = strlen (keyword);
+char *has_leading_keyword(const char *string, const char *keyword) {
+  size_t n = strlen(keyword);
 
-  if (!strncmp (string, keyword, n)
-      && (!string[n] || string[n] == ' ' || string[n] == '\t'))
-    {
-      string += n;
-      while (*string == ' ' || *string == '\t')
-        string++;
-      return (char*)string;
-    }
+  if (!strncmp(string, keyword, n) &&
+      (!string[n] || string[n] == ' ' || string[n] == '\t')) {
+    string += n;
+    while (*string == ' ' || *string == '\t') string++;
+    return (char *)string;
+  }
   return NULL;
 }
-
 
 /*
  * Look for the substring SUB in buffer and return a pointer to that
  * substring in BUFFER or NULL if not found.
  * Comparison is case-insensitive.
  */
-const char *
-memistr (const void *buffer, size_t buflen, const char *sub)
-{
-  const unsigned char *buf = (const unsigned char*) buffer;
+const char *memistr(const void *buffer, size_t buflen, const char *sub) {
+  const unsigned char *buf = (const unsigned char *)buffer;
   const unsigned char *t = (const unsigned char *)buffer;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
 
-  for ( ; n ; t++, n-- )
-    {
-      if ( toupper (*t) == toupper (*s) )
-        {
-          for ( buf=t++, buflen = n--, s++;
-                n && toupper (*t) == toupper (*s); t++, s++, n-- )
-            ;
-          if (!*s)
-            return (const char*)buf;
-          t = buf;
-          s = (const unsigned char *)sub ;
-          n = buflen;
-	}
+  for (; n; t++, n--) {
+    if (toupper(*t) == toupper(*s)) {
+      for (buf = t++, buflen = n--, s++; n && toupper(*t) == toupper(*s);
+           t++, s++, n--)
+        ;
+      if (!*s) return (const char *)buf;
+      t = buf;
+      s = (const unsigned char *)sub;
+      n = buflen;
     }
+  }
   return NULL;
 }
 
-const char *
-ascii_memistr ( const void *buffer, size_t buflen, const char *sub )
-{
-  const unsigned char *buf = (const unsigned char*) buffer;
+const char *ascii_memistr(const void *buffer, size_t buflen, const char *sub) {
+  const unsigned char *buf = (const unsigned char *)buffer;
   const unsigned char *t = (const unsigned char *)buf;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
 
-  for ( ; n ; t++, n-- )
-    {
-      if (ascii_toupper (*t) == ascii_toupper (*s) )
-        {
-          for ( buf=t++, buflen = n--, s++;
-                n && ascii_toupper (*t) == ascii_toupper (*s); t++, s++, n-- )
-            ;
-          if (!*s)
-            return (const char*)buf;
-          t = (const unsigned char *)buf;
-          s = (const unsigned char *)sub ;
-          n = buflen;
-	}
+  for (; n; t++, n--) {
+    if (ascii_toupper(*t) == ascii_toupper(*s)) {
+      for (buf = t++, buflen = n--, s++;
+           n && ascii_toupper(*t) == ascii_toupper(*s); t++, s++, n--)
+        ;
+      if (!*s) return (const char *)buf;
+      t = (const unsigned char *)buf;
+      s = (const unsigned char *)sub;
+      n = buflen;
     }
+  }
   return NULL;
 }
 
@@ -167,227 +146,180 @@ ascii_memistr ( const void *buffer, size_t buflen, const char *sub )
    the function terminates).  Returns DES or a pointer to the
    allocated memory.
  */
-char *
-mem2str( char *dest , const void *src , size_t n )
-{
-    char *d;
-    const char *s;
+char *mem2str(char *dest, const void *src, size_t n) {
+  char *d;
+  const char *s;
 
-    if( n ) {
-	if( !dest )
-	    dest = (char*) xmalloc( n ) ;
-	d = dest;
-	s = (const char*) src ;
-	for(n--; n && *s; n-- )
-	    *d++ = *s++;
-	*d = '\0' ;
-    }
+  if (n) {
+    if (!dest) dest = (char *)xmalloc(n);
+    d = dest;
+    s = (const char *)src;
+    for (n--; n && *s; n--) *d++ = *s++;
+    *d = '\0';
+  }
 
-    return dest ;
+  return dest;
 }
-
 
 /****************
  * remove leading and trailing white spaces
  */
-char *
-trim_spaces( char *str )
-{
-    char *string, *p, *mark;
+char *trim_spaces(char *str) {
+  char *string, *p, *mark;
 
-    string = str;
-    /* find first non space character */
-    for( p=string; *p && isspace( *(byte*)p ) ; p++ )
-	;
-    /* move characters */
-    for( (mark = NULL); (*string = *p); string++, p++ )
-	if( isspace( *(byte*)p ) ) {
-	    if( !mark )
-		mark = string ;
-	}
-	else
-	    mark = NULL ;
-    if( mark )
-	*mark = '\0' ;  /* remove trailing spaces */
+  string = str;
+  /* find first non space character */
+  for (p = string; *p && isspace(*(byte *)p); p++)
+    ;
+  /* move characters */
+  for ((mark = NULL); (*string = *p); string++, p++)
+    if (isspace(*(byte *)p)) {
+      if (!mark) mark = string;
+    } else
+      mark = NULL;
+  if (mark) *mark = '\0'; /* remove trailing spaces */
 
-    return str ;
+  return str;
 }
 
 /****************
  * remove trailing white spaces
  */
-char *
-trim_trailing_spaces( char *string )
-{
-    char *p, *mark;
+char *trim_trailing_spaces(char *string) {
+  char *p, *mark;
 
-    for( mark = NULL, p = string; *p; p++ ) {
-	if( isspace( *(byte*)p ) ) {
-	    if( !mark )
-		mark = p;
-	}
-	else
-	    mark = NULL;
-    }
-    if( mark )
-	*mark = '\0' ;
+  for (mark = NULL, p = string; *p; p++) {
+    if (isspace(*(byte *)p)) {
+      if (!mark) mark = p;
+    } else
+      mark = NULL;
+  }
+  if (mark) *mark = '\0';
 
-    return string ;
+  return string;
 }
 
+unsigned trim_trailing_chars(byte *line, unsigned len, const char *trimchars) {
+  byte *p, *mark;
+  unsigned n;
 
-unsigned
-trim_trailing_chars( byte *line, unsigned len, const char *trimchars )
-{
-    byte *p, *mark;
-    unsigned n;
+  for (mark = NULL, p = line, n = 0; n < len; n++, p++) {
+    if (strchr(trimchars, *p)) {
+      if (!mark) mark = p;
+    } else
+      mark = NULL;
+  }
 
-    for(mark=NULL, p=line, n=0; n < len; n++, p++ ) {
-	if( strchr(trimchars, *p ) ) {
-	    if( !mark )
-		mark = p;
-	}
-	else
-	    mark = NULL;
-    }
-
-    if( mark ) {
-	*mark = 0;
-	return mark - line;
-    }
-    return len;
+  if (mark) {
+    *mark = 0;
+    return mark - line;
+  }
+  return len;
 }
 
 /****************
  * remove trailing white spaces and return the length of the buffer
  */
-unsigned
-trim_trailing_ws( byte *line, unsigned len )
-{
-    return trim_trailing_chars( line, len, " \t\r\n" );
+unsigned trim_trailing_ws(byte *line, unsigned len) {
+  return trim_trailing_chars(line, len, " \t\r\n");
 }
 
-size_t
-length_sans_trailing_chars (const unsigned char *line, size_t len,
-                            const char *trimchars )
-{
+size_t length_sans_trailing_chars(const unsigned char *line, size_t len,
+                                  const char *trimchars) {
   const unsigned char *p, *mark;
   size_t n;
 
-  for( mark=NULL, p=line, n=0; n < len; n++, p++ )
-    {
-      if (strchr (trimchars, *p ))
-        {
-          if( !mark )
-            mark = p;
-        }
-      else
-        mark = NULL;
-    }
+  for (mark = NULL, p = line, n = 0; n < len; n++, p++) {
+    if (strchr(trimchars, *p)) {
+      if (!mark) mark = p;
+    } else
+      mark = NULL;
+  }
 
-  if (mark)
-    return mark - line;
+  if (mark) return mark - line;
   return len;
 }
 
 /*
  *  Return the length of line ignoring trailing white-space.
  */
-size_t
-length_sans_trailing_ws (const unsigned char *line, size_t len)
-{
-  return length_sans_trailing_chars (line, len, " \t\r\n");
+size_t length_sans_trailing_ws(const unsigned char *line, size_t len) {
+  return length_sans_trailing_chars(line, len, " \t\r\n");
 }
-
-
 
 /*
  * Extract from a given path the filename component.  This function
  * terminates the process on memory shortage.
  */
-char *
-make_basename(const char *filepath)
-{
-    char *p;
+char *make_basename(const char *filepath) {
+  char *p;
 
-    if ( !(p= (char*) strrchr(filepath, '/')) )
+  if (!(p = (char *)strrchr(filepath, '/')))
 #ifdef HAVE_DOSISH_SYSTEM
-	if ( !(p=strrchr(filepath, '\\')) )
+    if (!(p = strrchr(filepath, '\\')))
 #endif
 #ifdef HAVE_DRIVE_LETTERS
-	    if ( !(p=strrchr(filepath, ':')) )
+      if (!(p = strrchr(filepath, ':')))
 #endif
-	      {
-		return xstrdup(filepath);
-	      }
+      {
+        return xstrdup(filepath);
+      }
 
-    return xstrdup(p+1);
+  return xstrdup(p + 1);
 }
-
-
 
 /*
  * Extract from a given filename the path prepended to it.  If there
  * isn't a path prepended to the filename, a dot is returned ('.').
  * This function terminates the process on memory shortage.
  */
-char *
-make_dirname(const char *filepath)
-{
-    char *dirname;
-    int  dirname_length;
-    char *p;
+char *make_dirname(const char *filepath) {
+  char *dirname;
+  int dirname_length;
+  char *p;
 
-    if ( !(p= (char*) strrchr(filepath, '/')) )
+  if (!(p = (char *)strrchr(filepath, '/')))
 #ifdef HAVE_DOSISH_SYSTEM
-	if ( !(p=strrchr(filepath, '\\')) )
+    if (!(p = strrchr(filepath, '\\')))
 #endif
 #ifdef HAVE_DRIVE_LETTERS
-	    if ( !(p=strrchr(filepath, ':')) )
+      if (!(p = strrchr(filepath, ':')))
 #endif
-	      {
-		return xstrdup(".");
-	      }
+      {
+        return xstrdup(".");
+      }
 
-    dirname_length = p-filepath;
-    dirname = (char*) xmalloc(dirname_length+1);
-    strncpy(dirname, filepath, dirname_length);
-    dirname[dirname_length] = 0;
+  dirname_length = p - filepath;
+  dirname = (char *)xmalloc(dirname_length + 1);
+  strncpy(dirname, filepath, dirname_length);
+  dirname[dirname_length] = 0;
 
-    return dirname;
+  return dirname;
 }
 
-
-
-static char *
-get_pwdir (int xmode, const char *name)
-{
+static char *get_pwdir(int xmode, const char *name) {
   char *result = NULL;
 #ifdef HAVE_PWD_H
   struct passwd *pwd = NULL;
 
-  if (name)
-    {
+  if (name) {
 #ifdef HAVE_GETPWNAM
-      /* Fixme: We should use getpwnam_r if available.  */
-      pwd = getpwnam (name);
+    /* Fixme: We should use getpwnam_r if available.  */
+    pwd = getpwnam(name);
 #endif
-    }
-  else
-    {
+  } else {
 #ifdef HAVE_GETPWUID
-      /* Fixme: We should use getpwuid_r if available.  */
-      pwd = getpwuid (getuid());
+    /* Fixme: We should use getpwuid_r if available.  */
+    pwd = getpwuid(getuid());
 #endif
-    }
-  if (pwd)
-    {
-      if (xmode)
-        result = xstrdup (pwd->pw_dir);
-      else
-        result = xtrystrdup (pwd->pw_dir);
-    }
-#else /*!HAVE_PWD_H*/
+  }
+  if (pwd) {
+    if (xmode)
+      result = xstrdup(pwd->pw_dir);
+    else
+      result = xtrystrdup(pwd->pw_dir);
+  }
+#else  /*!HAVE_PWD_H*/
   /* No support at all.  */
   (void)xmode;
   (void)name;
@@ -395,15 +327,13 @@ get_pwdir (int xmode, const char *name)
   return result;
 }
 
-
 /* xmode 0 := Return NULL on error
          1 := Terminate on error
          2 := Make sure that name is absolute; return NULL on error
          3 := Make sure that name is absolute; terminate on error
  */
-static char *
-do_make_filename (int xmode, const char *first_part, va_list arg_ptr)
-{
+static char *do_make_filename(int xmode, const char *first_part,
+                              va_list arg_ptr) {
   const char *argv[32];
   int argc;
   size_t n;
@@ -415,287 +345,242 @@ do_make_filename (int xmode, const char *first_part, va_list arg_ptr)
   want_abs = !!(xmode & 2);
   xmode &= 1;
 
-  n = strlen (first_part) + 1;
+  n = strlen(first_part) + 1;
   argc = 0;
-  while ( (argv[argc] = va_arg (arg_ptr, const char *)) )
-    {
-      n += strlen (argv[argc]) + 1;
-      if (argc >= DIM (argv)-1)
-        {
-          if (xmode)
-            BUG ();
-          gpg_err_set_errno (EINVAL);
-          return NULL;
-        }
-      argc++;
+  while ((argv[argc] = va_arg(arg_ptr, const char *))) {
+    n += strlen(argv[argc]) + 1;
+    if (argc >= DIM(argv) - 1) {
+      if (xmode) BUG();
+      gpg_err_set_errno(EINVAL);
+      return NULL;
     }
+    argc++;
+  }
   n++;
 
   home = NULL;
-  if (*first_part == '~')
-    {
-      if (first_part[1] == '/' || !first_part[1])
-        {
-          /* This is the "~/" or "~" case.  */
-          home = getenv("HOME");
-          if (!home)
-            home = home_buffer = get_pwdir (xmode, NULL);
-          if (home && *home)
-            n += strlen (home);
-        }
+  if (*first_part == '~') {
+    if (first_part[1] == '/' || !first_part[1]) {
+      /* This is the "~/" or "~" case.  */
+      home = getenv("HOME");
+      if (!home) home = home_buffer = get_pwdir(xmode, NULL);
+      if (home && *home) n += strlen(home);
+    } else {
+      /* This is the "~username/" or "~username" case.  */
+      char *user;
+
+      if (xmode)
+        user = xstrdup(first_part + 1);
+      else {
+        user = xtrystrdup(first_part + 1);
+        if (!user) return NULL;
+      }
+      p = strchr(user, '/');
+      if (p) *p = 0;
+      skip = 1 + strlen(user);
+
+      home = home_buffer = get_pwdir(xmode, user);
+      xfree(user);
+      if (home)
+        n += strlen(home);
       else
-        {
-          /* This is the "~username/" or "~username" case.  */
-          char *user;
-
-          if (xmode)
-            user = xstrdup (first_part+1);
-          else
-            {
-              user = xtrystrdup (first_part+1);
-              if (!user)
-                return NULL;
-            }
-          p = strchr (user, '/');
-          if (p)
-            *p = 0;
-          skip = 1 + strlen (user);
-
-          home = home_buffer = get_pwdir (xmode, user);
-          xfree (user);
-          if (home)
-            n += strlen (home);
-          else
-            skip = 1;
-        }
+        skip = 1;
     }
+  }
 
   if (xmode)
-    name = (char*) xmalloc (n);
-  else
-    {
-      name = (char*) xtrymalloc (n);
-      if (!name)
-        {
-          xfree (home_buffer);
-          return NULL;
-        }
+    name = (char *)xmalloc(n);
+  else {
+    name = (char *)xtrymalloc(n);
+    if (!name) {
+      xfree(home_buffer);
+      return NULL;
     }
+  }
 
   if (home)
-    p = stpcpy (stpcpy (name, home), first_part + skip);
+    p = stpcpy(stpcpy(name, home), first_part + skip);
   else
-    p = stpcpy (name, first_part);
+    p = stpcpy(name, first_part);
 
-  xfree (home_buffer);
-  for (argc=0; argv[argc]; argc++)
-    {
-      /* Avoid a leading double slash if the first part was "/".  */
-      if (!argc && name[0] == '/' && !name[1])
-        p = stpcpy (p, argv[argc]);
-      else
-        p = stpcpy (stpcpy (p, "/"), argv[argc]);
-    }
+  xfree(home_buffer);
+  for (argc = 0; argv[argc]; argc++) {
+    /* Avoid a leading double slash if the first part was "/".  */
+    if (!argc && name[0] == '/' && !name[1])
+      p = stpcpy(p, argv[argc]);
+    else
+      p = stpcpy(stpcpy(p, "/"), argv[argc]);
+  }
 
-  if (want_abs)
-    {
+  if (want_abs) {
 #ifdef HAVE_DRIVE_LETTERS
-      p = strchr (name, ':');
-      if (p)
-        p++;
-      else
-        p = name;
-#else
+    p = strchr(name, ':');
+    if (p)
+      p++;
+    else
       p = name;
+#else
+    p = name;
 #endif
-      if (*p != '/'
+    if (*p != '/'
 #ifdef HAVE_DRIVE_LETTERS
-          && *p != '\\'
+        && *p != '\\'
 #endif
-          )
-        {
-          home = gnupg_getcwd ();
-          if (!home)
-            {
-              if (xmode)
-                {
-                  fprintf (stderr, "\nfatal: getcwd failed: %s\n",
-                           strerror (errno));
-                  exit(2);
-                }
-              xfree (name);
-              return NULL;
-            }
-          n = strlen (home) + 1 + strlen (name) + 1;
-          if (xmode)
-            home_buffer = (char*) xmalloc (n);
-          else
-            {
-              home_buffer = (char*) xtrymalloc (n);
-              if (!home_buffer)
-                {
-                  xfree (home);
-                  xfree (name);
-                  return NULL;
-                }
-            }
-          if (p == name)
-            p = home_buffer;
-          else /* Windows case.  */
-            {
-              memcpy (home_buffer, p, p - name + 1);
-              p = home_buffer + (p - name + 1);
-            }
-
-          /* Avoid a leading double slash if the cwd is "/".  */
-          if (home[0] == '/' && !home[1])
-            strcpy (stpcpy (p, "/"), name);
-          else
-            strcpy (stpcpy (stpcpy (p, home), "/"), name);
-
-          xfree (home);
-          xfree (name);
-          name = home_buffer;
-          /* Let's do a simple compression to catch the most common
-             case of using "." for gpg's --homedir option.  */
-          n = strlen (name);
-          if (n > 2 && name[n-2] == '/' && name[n-1] == '.')
-            name[n-2] = 0;
+        ) {
+      home = gnupg_getcwd();
+      if (!home) {
+        if (xmode) {
+          fprintf(stderr, "\nfatal: getcwd failed: %s\n", strerror(errno));
+          exit(2);
         }
+        xfree(name);
+        return NULL;
+      }
+      n = strlen(home) + 1 + strlen(name) + 1;
+      if (xmode)
+        home_buffer = (char *)xmalloc(n);
+      else {
+        home_buffer = (char *)xtrymalloc(n);
+        if (!home_buffer) {
+          xfree(home);
+          xfree(name);
+          return NULL;
+        }
+      }
+      if (p == name)
+        p = home_buffer;
+      else /* Windows case.  */
+      {
+        memcpy(home_buffer, p, p - name + 1);
+        p = home_buffer + (p - name + 1);
+      }
+
+      /* Avoid a leading double slash if the cwd is "/".  */
+      if (home[0] == '/' && !home[1])
+        strcpy(stpcpy(p, "/"), name);
+      else
+        strcpy(stpcpy(stpcpy(p, home), "/"), name);
+
+      xfree(home);
+      xfree(name);
+      name = home_buffer;
+      /* Let's do a simple compression to catch the most common
+         case of using "." for gpg's --homedir option.  */
+      n = strlen(name);
+      if (n > 2 && name[n - 2] == '/' && name[n - 1] == '.') name[n - 2] = 0;
     }
-  return change_slashes (name);
+  }
+  return change_slashes(name);
 }
 
 /* Construct a filename from the NULL terminated list of parts.  Tilde
    expansion is done for the first argument.  This function terminates
    the process on memory shortage. */
-char *
-make_filename (const char *first_part, ... )
-{
+char *make_filename(const char *first_part, ...) {
   va_list arg_ptr;
   char *result;
 
-  va_start (arg_ptr, first_part);
-  result = do_make_filename (1, first_part, arg_ptr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, first_part);
+  result = do_make_filename(1, first_part, arg_ptr);
+  va_end(arg_ptr);
   return result;
 }
 
 /* Construct a filename from the NULL terminated list of parts.  Tilde
    expansion is done for the first argument.  This function may return
    NULL on error. */
-char *
-make_filename_try (const char *first_part, ... )
-{
+char *make_filename_try(const char *first_part, ...) {
   va_list arg_ptr;
   char *result;
 
-  va_start (arg_ptr, first_part);
-  result = do_make_filename (0, first_part, arg_ptr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, first_part);
+  result = do_make_filename(0, first_part, arg_ptr);
+  va_end(arg_ptr);
   return result;
 }
 
 /* Construct an absolute filename from the NULL terminated list of
    parts.  Tilde expansion is done for the first argument.  This
    function terminates the process on memory shortage. */
-char *
-make_absfilename (const char *first_part, ... )
-{
+char *make_absfilename(const char *first_part, ...) {
   va_list arg_ptr;
   char *result;
 
-  va_start (arg_ptr, first_part);
-  result = do_make_filename (3, first_part, arg_ptr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, first_part);
+  result = do_make_filename(3, first_part, arg_ptr);
+  va_end(arg_ptr);
   return result;
 }
 
 /* Construct an absolute filename from the NULL terminated list of
    parts.  Tilde expansion is done for the first argument.  This
    function may return NULL on error. */
-char *
-make_absfilename_try (const char *first_part, ... )
-{
+char *make_absfilename_try(const char *first_part, ...) {
   va_list arg_ptr;
   char *result;
 
-  va_start (arg_ptr, first_part);
-  result = do_make_filename (2, first_part, arg_ptr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, first_part);
+  result = do_make_filename(2, first_part, arg_ptr);
+  va_end(arg_ptr);
   return result;
 }
 
-
-
 /* Compare whether the filenames are identical.  This is a
    special version of strcmp() taking the semantics of filenames in
    account.  Note that this function works only on the supplied names
    without considering any context like the current directory.  See
    also same_file_p(). */
-int
-compare_filenames (const char *a, const char *b)
-{
+int compare_filenames(const char *a, const char *b) {
 #ifdef HAVE_DOSISH_SYSTEM
-  for ( ; *a && *b; a++, b++ )
-    {
-      if (*a != *b
-          && (toupper (*(const unsigned char*)a)
-              != toupper (*(const unsigned char*)b) )
-          && !((*a == '/' && *b == '\\') || (*a == '\\' && *b == '/')))
-        break;
-    }
+  for (; *a && *b; a++, b++) {
+    if (*a != *b && (toupper(*(const unsigned char *)a) !=
+                     toupper(*(const unsigned char *)b)) &&
+        !((*a == '/' && *b == '\\') || (*a == '\\' && *b == '/')))
+      break;
+  }
   if ((*a == '/' && *b == '\\') || (*a == '\\' && *b == '/'))
     return 0;
   else
-    return (toupper (*(const unsigned char*)a)
-            - toupper (*(const unsigned char*)b));
+    return (toupper(*(const unsigned char *)a) -
+            toupper(*(const unsigned char *)b));
 #else
-    return strcmp(a,b);
+  return strcmp(a, b);
 #endif
 }
-
 
 /* Convert a base-10 number in STRING into a 64 bit unsigned int
  * value.  Leading white spaces are skipped but no error checking is
  * done.  Thus it is similar to atoi(). */
-uint64_t
-string_to_u64 (const char *string)
-{
+uint64_t string_to_u64(const char *string) {
   uint64_t val = 0;
 
-  while (spacep (string))
-    string++;
-  for (; digitp (string); string++)
-    {
-      val *= 10;
-      val += *string - '0';
-    }
+  while (spacep(string)) string++;
+  for (; digitp(string); string++) {
+    val *= 10;
+    val += *string - '0';
+  }
   return val;
 }
 
-
 /* Convert 2 hex characters at S to a byte value.  Return this value
    or -1 if there is an error. */
-int
-hextobyte (const char *s)
-{
+int hextobyte(const char *s) {
   int c;
 
-  if ( *s >= '0' && *s <= '9' )
+  if (*s >= '0' && *s <= '9')
     c = 16 * (*s - '0');
-  else if ( *s >= 'A' && *s <= 'F' )
+  else if (*s >= 'A' && *s <= 'F')
     c = 16 * (10 + *s - 'A');
-  else if ( *s >= 'a' && *s <= 'f' )
+  else if (*s >= 'a' && *s <= 'f')
     c = 16 * (10 + *s - 'a');
   else
     return -1;
   s++;
-  if ( *s >= '0' && *s <= '9' )
+  if (*s >= '0' && *s <= '9')
     c += *s - '0';
-  else if ( *s >= 'A' && *s <= 'F' )
+  else if (*s >= 'A' && *s <= 'F')
     c += 10 + *s - 'A';
-  else if ( *s >= 'a' && *s <= 'f' )
+  else if (*s >= 'a' && *s <= 'f')
     c += 10 + *s - 'a';
   else
     return -1;
@@ -708,244 +593,174 @@ hextobyte (const char *s)
    of the string in bytes.  If SIZE is -1, then a NUL character is
    taken to be the end of the string.  Note, that this function does
    not take combined characters into account.  */
-size_t
-utf8_charcount (const char *s, int len)
-{
+size_t utf8_charcount(const char *s, int len) {
   size_t n;
 
-  if (len == 0)
-    return 0;
+  if (len == 0) return 0;
 
-  for (n=0; *s; s++)
-    {
-      if ( (*s&0xc0) != 0x80 ) /* Exclude continuation bytes: 10xxxxxx */
-        n++;
+  for (n = 0; *s; s++) {
+    if ((*s & 0xc0) != 0x80) /* Exclude continuation bytes: 10xxxxxx */
+      n++;
 
-      if (len != -1)
-        {
-          len --;
-          if (len == 0)
-            break;
-        }
+    if (len != -1) {
+      len--;
+      if (len == 0) break;
     }
+  }
 
   return n;
 }
-
 
 /****************************************************
  **********  W32 specific functions  ****************
  ****************************************************/
 
 #ifdef HAVE_W32_SYSTEM
-const char *
-w32_strerror (int ec)
-{
+const char *w32_strerror(int ec) {
   static char strerr[256];
 
-  if (ec == -1)
-    ec = (int)GetLastError ();
-  FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, ec,
-                 MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 strerr, DIM (strerr)-1, NULL);
+  if (ec == -1) ec = (int)GetLastError();
+  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, ec,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), strerr,
+                DIM(strerr) - 1, NULL);
   return strerr;
 }
 #endif /*HAVE_W32_SYSTEM*/
-
 
 /****************************************************
  ******** Locale insensitive ctype functions ********
  ****************************************************/
 /* FIXME: replace them by a table lookup and macros */
-int
-ascii_isupper (int c)
-{
-    return c >= 'A' && c <= 'Z';
+int ascii_isupper(int c) { return c >= 'A' && c <= 'Z'; }
+
+int ascii_islower(int c) { return c >= 'a' && c <= 'z'; }
+
+int ascii_toupper(int c) {
+  if (c >= 'a' && c <= 'z') c &= ~0x20;
+  return c;
 }
 
-int
-ascii_islower (int c)
-{
-    return c >= 'a' && c <= 'z';
-}
-
-int
-ascii_toupper (int c)
-{
-    if (c >= 'a' && c <= 'z')
-        c &= ~0x20;
-    return c;
-}
-
-int
-ascii_tolower (int c)
-{
-    if (c >= 'A' && c <= 'Z')
-        c |= 0x20;
-    return c;
+int ascii_tolower(int c) {
+  if (c >= 'A' && c <= 'Z') c |= 0x20;
+  return c;
 }
 
 /* Lowercase all ASCII characters in S.  */
-char *
-ascii_strlwr (char *s)
-{
+char *ascii_strlwr(char *s) {
   char *p = s;
 
-  for (p=s; *p; p++ )
-    if (isascii (*p) && *p >= 'A' && *p <= 'Z')
-      *p |= 0x20;
+  for (p = s; *p; p++)
+    if (isascii(*p) && *p >= 'A' && *p <= 'Z') *p |= 0x20;
 
   return s;
 }
 
-int
-ascii_strcasecmp( const char *a, const char *b )
-{
-    if (a == b)
-        return 0;
+int ascii_strcasecmp(const char *a, const char *b) {
+  if (a == b) return 0;
 
-    for (; *a && *b; a++, b++) {
-	if (*a != *b && ascii_toupper(*a) != ascii_toupper(*b))
-	    break;
-    }
-    return *a == *b? 0 : (ascii_toupper (*a) - ascii_toupper (*b));
+  for (; *a && *b; a++, b++) {
+    if (*a != *b && ascii_toupper(*a) != ascii_toupper(*b)) break;
+  }
+  return *a == *b ? 0 : (ascii_toupper(*a) - ascii_toupper(*b));
 }
 
-int
-ascii_strncasecmp (const char *a, const char *b, size_t n)
-{
+int ascii_strncasecmp(const char *a, const char *b, size_t n) {
   const unsigned char *p1 = (const unsigned char *)a;
   const unsigned char *p2 = (const unsigned char *)b;
   unsigned char c1, c2;
 
-  if (p1 == p2 || !n )
-    return 0;
+  if (p1 == p2 || !n) return 0;
 
-  do
-    {
-      c1 = ascii_tolower (*p1);
-      c2 = ascii_tolower (*p2);
+  do {
+    c1 = ascii_tolower(*p1);
+    c2 = ascii_tolower(*p2);
 
-      if ( !--n || c1 == '\0')
-	break;
+    if (!--n || c1 == '\0') break;
 
-      ++p1;
-      ++p2;
-    }
-  while (c1 == c2);
+    ++p1;
+    ++p2;
+  } while (c1 == c2);
 
   return c1 - c2;
 }
 
+int ascii_memcasecmp(const void *a_arg, const void *b_arg, size_t n) {
+  const char *a = (const char *)a_arg;
+  const char *b = (const char *)b_arg;
 
-int
-ascii_memcasecmp (const void *a_arg, const void *b_arg, size_t n )
-{
-  const char *a = (const char*) a_arg;
-  const char *b = (const char*) b_arg;
-
-  if (a == b)
-    return 0;
-  for ( ; n; n--, a++, b++ )
-    {
-      if( *a != *b  && ascii_toupper (*a) != ascii_toupper (*b) )
-        return *a == *b? 0 : (ascii_toupper (*a) - ascii_toupper (*b));
-    }
+  if (a == b) return 0;
+  for (; n; n--, a++, b++) {
+    if (*a != *b && ascii_toupper(*a) != ascii_toupper(*b))
+      return *a == *b ? 0 : (ascii_toupper(*a) - ascii_toupper(*b));
+  }
   return 0;
 }
 
-int
-ascii_strcmp( const char *a, const char *b )
-{
-    if (a == b)
-        return 0;
+int ascii_strcmp(const char *a, const char *b) {
+  if (a == b) return 0;
 
-    for (; *a && *b; a++, b++) {
-	if (*a != *b )
-	    break;
-    }
-    return *a == *b? 0 : (*(signed char *)a - *(signed char *)b);
+  for (; *a && *b; a++, b++) {
+    if (*a != *b) break;
+  }
+  return *a == *b ? 0 : (*(signed char *)a - *(signed char *)b);
 }
 
-
-void *
-ascii_memcasemem (const void *haystack, size_t nhaystack,
-                  const void *needle, size_t nneedle)
-{
-
+void *ascii_memcasemem(const void *haystack, size_t nhaystack,
+                       const void *needle, size_t nneedle) {
   if (!nneedle)
-    return (void*)haystack; /* finding an empty needle is really easy */
-  if (nneedle <= nhaystack)
-    {
-      const char *a = (const char*) haystack;
-      const char *b = a + nhaystack - nneedle;
+    return (void *)haystack; /* finding an empty needle is really easy */
+  if (nneedle <= nhaystack) {
+    const char *a = (const char *)haystack;
+    const char *b = a + nhaystack - nneedle;
 
-      for (; a <= b; a++)
-        {
-          if ( !ascii_memcasecmp (a, needle, nneedle) )
-            return (void *)a;
-        }
+    for (; a <= b; a++) {
+      if (!ascii_memcasecmp(a, needle, nneedle)) return (void *)a;
     }
+  }
   return NULL;
 }
 
-
-
 /* Percent-escape the string STR by replacing colons with '%3a'.  If
    EXTRA is not NULL all characters in EXTRA are also escaped.  */
-static char *
-do_percent_escape (const char *str, const char *extra, int die)
-{
+static char *do_percent_escape(const char *str, const char *extra, int die) {
   int i, j;
   char *ptr;
 
-  if (!str)
-    return NULL;
+  if (!str) return NULL;
 
-  for (i=j=0; str[i]; i++)
-    if (str[i] == ':' || str[i] == '%' || str[i] == '\n'
-        || (extra && strchr (extra, str[i])))
+  for (i = j = 0; str[i]; i++)
+    if (str[i] == ':' || str[i] == '%' || str[i] == '\n' ||
+        (extra && strchr(extra, str[i])))
       j++;
   if (die)
-    ptr = (char*) xmalloc (i + 2 * j + 1);
-  else
-    {
-      ptr = (char*) xtrymalloc (i + 2 * j + 1);
-      if (!ptr)
-        return NULL;
-    }
+    ptr = (char *)xmalloc(i + 2 * j + 1);
+  else {
+    ptr = (char *)xtrymalloc(i + 2 * j + 1);
+    if (!ptr) return NULL;
+  }
   i = 0;
-  while (*str)
-    {
-      if (*str == ':')
-	{
-	  ptr[i++] = '%';
-	  ptr[i++] = '3';
-	  ptr[i++] = 'a';
-	}
-      else if (*str == '%')
-	{
-	  ptr[i++] = '%';
-	  ptr[i++] = '2';
-	  ptr[i++] = '5';
-	}
-      else if (*str == '\n')
-	{
-	  /* The newline is problematic in a line-based format.  */
-	  ptr[i++] = '%';
-	  ptr[i++] = '0';
-	  ptr[i++] = 'a';
-	}
-      else if (extra && strchr (extra, *str))
-        {
-	  ptr[i++] = '%';
-          ptr[i++] = tohex_lower ((*str>>4)&15);
-          ptr[i++] = tohex_lower (*str&15);
-        }
-      else
-	ptr[i++] = *str;
-      str++;
-    }
+  while (*str) {
+    if (*str == ':') {
+      ptr[i++] = '%';
+      ptr[i++] = '3';
+      ptr[i++] = 'a';
+    } else if (*str == '%') {
+      ptr[i++] = '%';
+      ptr[i++] = '2';
+      ptr[i++] = '5';
+    } else if (*str == '\n') {
+      /* The newline is problematic in a line-based format.  */
+      ptr[i++] = '%';
+      ptr[i++] = '0';
+      ptr[i++] = 'a';
+    } else if (extra && strchr(extra, *str)) {
+      ptr[i++] = '%';
+      ptr[i++] = tohex_lower((*str >> 4) & 15);
+      ptr[i++] = tohex_lower(*str & 15);
+    } else
+      ptr[i++] = *str;
+    str++;
+  }
   ptr[i] = '\0';
 
   return ptr;
@@ -954,25 +769,17 @@ do_percent_escape (const char *str, const char *extra, int die)
 /* Percent-escape the string STR by replacing colons with '%3a'.  If
    EXTRA is not NULL all characters in EXTRA are also escaped.  This
    function terminates the process on memory shortage.  */
-char *
-percent_escape (const char *str, const char *extra)
-{
-  return do_percent_escape (str, extra, 1);
+char *percent_escape(const char *str, const char *extra) {
+  return do_percent_escape(str, extra, 1);
 }
 
 /* Same as percent_escape but return NULL instead of exiting on memory
    error. */
-char *
-try_percent_escape (const char *str, const char *extra)
-{
-  return do_percent_escape (str, extra, 0);
+char *try_percent_escape(const char *str, const char *extra) {
+  return do_percent_escape(str, extra, 0);
 }
 
-
-
-static char *
-do_strconcat (const char *s1, va_list arg_ptr)
-{
+static char *do_strconcat(const char *s1, va_list arg_ptr) {
   const char *argv[48];
   size_t argc;
   size_t needed;
@@ -980,72 +787,60 @@ do_strconcat (const char *s1, va_list arg_ptr)
 
   argc = 0;
   argv[argc++] = s1;
-  needed = strlen (s1);
-  while (((argv[argc] = va_arg (arg_ptr, const char *))))
-    {
-      needed += strlen (argv[argc]);
-      if (argc >= DIM (argv)-1)
-        {
-          gpg_err_set_errno (EINVAL);
-          return NULL;
-        }
-      argc++;
+  needed = strlen(s1);
+  while (((argv[argc] = va_arg(arg_ptr, const char *)))) {
+    needed += strlen(argv[argc]);
+    if (argc >= DIM(argv) - 1) {
+      gpg_err_set_errno(EINVAL);
+      return NULL;
     }
+    argc++;
+  }
   needed++;
-  buffer = (char*) xtrymalloc (needed);
-  if (buffer)
-    {
-      for (p = buffer, argc=0; argv[argc]; argc++)
-        p = stpcpy (p, argv[argc]);
-    }
+  buffer = (char *)xtrymalloc(needed);
+  if (buffer) {
+    for (p = buffer, argc = 0; argv[argc]; argc++) p = stpcpy(p, argv[argc]);
+  }
   return buffer;
 }
-
 
 /* Concatenate the string S1 with all the following strings up to a
    NULL.  Returns a malloced buffer with the new string or NULL on a
    malloc error or if too many arguments are given.  */
-char *
-strconcat (const char *s1, ...)
-{
+char *strconcat(const char *s1, ...) {
   va_list arg_ptr;
   char *result;
 
   if (!s1)
-    result = xtrystrdup ("");
-  else
-    {
-      va_start (arg_ptr, s1);
-      result = do_strconcat (s1, arg_ptr);
-      va_end (arg_ptr);
-    }
+    result = xtrystrdup("");
+  else {
+    va_start(arg_ptr, s1);
+    result = do_strconcat(s1, arg_ptr);
+    va_end(arg_ptr);
+  }
   return result;
 }
 
 /* Same as strconcat but terminate the process with an error message
    if something goes wrong.  */
-char *
-xstrconcat (const char *s1, ...)
-{
+char *xstrconcat(const char *s1, ...) {
   va_list arg_ptr;
   char *result;
 
   if (!s1)
-    result = xstrdup ("");
-  else
-    {
-      va_start (arg_ptr, s1);
-      result = do_strconcat (s1, arg_ptr);
-      va_end (arg_ptr);
-    }
-  if (!result)
-    {
-      if (errno == EINVAL)
-        fputs ("\nfatal: too many args for xstrconcat\n", stderr);
-      else
-        fputs ("\nfatal: out of memory\n", stderr);
-      exit (2);
-    }
+    result = xstrdup("");
+  else {
+    va_start(arg_ptr, s1);
+    result = do_strconcat(s1, arg_ptr);
+    va_end(arg_ptr);
+  }
+  if (!result) {
+    if (errno == EINVAL)
+      fputs("\nfatal: too many args for xstrconcat\n", stderr);
+    else
+      fputs("\nfatal: out of memory\n", stderr);
+    exit(2);
+  }
   return result;
 }
 
@@ -1056,35 +851,28 @@ xstrconcat (const char *s1, ...)
    value, then you should pass a copy to this function.
 
    If malloc fails, this function returns NULL.  */
-char **
-strsplit (char *string, char delim, char replacement, int *count)
-{
+char **strsplit(char *string, char delim, char replacement, int *count) {
   int fields = 1;
   char *t;
   char **result;
 
   /* First, count the number of fields.  */
-  for (t = strchr (string, delim); t; t = strchr (t + 1, delim))
-    fields ++;
+  for (t = strchr(string, delim); t; t = strchr(t + 1, delim)) fields++;
 
-  result = (char**) xtrycalloc ((fields + 1), sizeof (*result));
-  if (! result)
-    return NULL;
+  result = (char **)xtrycalloc((fields + 1), sizeof(*result));
+  if (!result) return NULL;
 
   result[0] = string;
   fields = 1;
-  for (t = strchr (string, delim); t; t = strchr (t + 1, delim))
-    {
-      result[fields ++] = t + 1;
-      *t = replacement;
-    }
+  for (t = strchr(string, delim); t; t = strchr(t + 1, delim)) {
+    result[fields++] = t + 1;
+    *t = replacement;
+  }
 
-  if (count)
-    *count = fields;
+  if (count) *count = fields;
 
   return result;
 }
-
 
 /* Tokenize STRING using the set of delimiters in DELIM.  Leading
  * spaces and tabs are removed from all tokens.  The caller must xfree
@@ -1093,9 +881,7 @@ strsplit (char *string, char delim, char replacement, int *count)
  * Returns: A malloced and NULL delimited array with the tokens.  On
  *          memory error NULL is returned and ERRNO is set.
  */
-char **
-strtokenize (const char *string, const char *delim)
-{
+char **strtokenize(const char *string, const char *delim) {
   const char *s;
   size_t fields;
   size_t bytes, n;
@@ -1104,53 +890,44 @@ strtokenize (const char *string, const char *delim)
   char **result;
 
   /* Count the number of fields.  */
-  for (fields = 1, s = strpbrk (string, delim); s; s = strpbrk (s + 1, delim))
+  for (fields = 1, s = strpbrk(string, delim); s; s = strpbrk(s + 1, delim))
     fields++;
   fields++; /* Add one for the terminating NULL.  */
 
   /* Allocate an array for all fields, a terminating NULL, and space
      for a copy of the string.  */
   bytes = fields * sizeof *result;
-  if (bytes / sizeof *result != fields)
-    {
-      gpg_err_set_errno (ENOMEM);
-      return NULL;
-    }
-  n = strlen (string) + 1;
-  bytes += n;
-  if (bytes < n)
-    {
-      gpg_err_set_errno (ENOMEM);
-      return NULL;
-    }
-  result = (char**) xtrymalloc (bytes);
-  if (!result)
+  if (bytes / sizeof *result != fields) {
+    gpg_err_set_errno(ENOMEM);
     return NULL;
-  buffer = (char*)(result + fields);
+  }
+  n = strlen(string) + 1;
+  bytes += n;
+  if (bytes < n) {
+    gpg_err_set_errno(ENOMEM);
+    return NULL;
+  }
+  result = (char **)xtrymalloc(bytes);
+  if (!result) return NULL;
+  buffer = (char *)(result + fields);
 
   /* Copy and parse the string.  */
-  strcpy (buffer, string);
-  for (n = 0, p = buffer; (pend = strpbrk (p, delim)); p = pend + 1)
-    {
-      *pend = 0;
-      while (spacep (p))
-        p++;
-      for (px = pend - 1; px >= p && spacep (px); px--)
-        *px = 0;
-      result[n++] = p;
-    }
-  while (spacep (p))
-    p++;
-  for (px = p + strlen (p) - 1; px >= p && spacep (px); px--)
-    *px = 0;
+  strcpy(buffer, string);
+  for (n = 0, p = buffer; (pend = strpbrk(p, delim)); p = pend + 1) {
+    *pend = 0;
+    while (spacep(p)) p++;
+    for (px = pend - 1; px >= p && spacep(px); px--) *px = 0;
+    result[n++] = p;
+  }
+  while (spacep(p)) p++;
+  for (px = p + strlen(p) - 1; px >= p && spacep(px); px--) *px = 0;
   result[n++] = p;
   result[n] = NULL;
 
-  assert ((char*)(result + n + 1) == buffer);
+  assert((char *)(result + n + 1) == buffer);
 
   return result;
 }
-
 
 /* Split a string into space delimited fields and remove leading and
  * trailing spaces from each field.  A pointer to each field is stored
@@ -1164,40 +941,30 @@ strtokenize (const char *string, const char *delim)
  *   foo (fields[0]);
  *   foo (fields[1]);
  */
-int
-split_fields (char *string, char **array, int arraysize)
-{
+int split_fields(char *string, char **array, int arraysize) {
   int n = 0;
   char *p, *pend;
 
   for (p = string; *p == ' '; p++)
     ;
-  do
-    {
-      if (n == arraysize)
-        break;
-      array[n++] = p;
-      pend = strchr (p, ' ');
-      if (!pend)
-        break;
-      *pend++ = 0;
-      for (p = pend; *p == ' '; p++)
-        ;
-    }
-  while (*p);
+  do {
+    if (n == arraysize) break;
+    array[n++] = p;
+    pend = strchr(p, ' ');
+    if (!pend) break;
+    *pend++ = 0;
+    for (p = pend; *p == ' '; p++)
+      ;
+  } while (*p);
 
   return n;
 }
 
-
-
 /* Format a string so that it fits within about TARGET_COLS columns.
  * TEXT_IN is copied to a new buffer, which is returned.  Normally,
  * target_cols will be 72 and max_cols is 80.  On error NULL is
  * returned and ERRNO is set. */
-char *
-format_text (const char *text_in, int target_cols, int max_cols)
-{
+char *format_text(const char *text_in, int target_cols, int max_cols) {
   /* const int do_debug = 0; */
 
   /* The character under consideration.  */
@@ -1210,118 +977,105 @@ format_text (const char *text_in, int target_cols, int max_cols)
   int copied_last_space = 0;
   char *text;
 
-  text = xtrystrdup (text_in);
-  if (!text)
-    return NULL;
+  text = xtrystrdup(text_in);
+  if (!text) return NULL;
 
   p = line = text;
-  while (1)
+  while (1) {
+    /* The number of columns including any trailing space.  */
+    int cols;
+
+    p = p + strcspn(p, "\n ");
+    if (!p) /* P now points to the NUL character.  */
+      p = &text[strlen(text)];
+
+    if (*p == '\n')
+    /* Pass through any newlines.  */
     {
-      /* The number of columns including any trailing space.  */
-      int cols;
-
-      p = p + strcspn (p, "\n ");
-      if (! p)
-        /* P now points to the NUL character.  */
-        p = &text[strlen (text)];
-
-      if (*p == '\n')
-        /* Pass through any newlines.  */
-        {
-          p ++;
-          line = p;
-          last_space = NULL;
-          last_space_cols = 0;
-          copied_last_space = 1;
-          continue;
-        }
-
-      /* Have a space or a NUL.  Note: we don't count the trailing
-         space.  */
-      cols = utf8_charcount (line, (uintptr_t) p - (uintptr_t) line);
-      if (cols < target_cols)
-        {
-          if (! *p)
-            /* Nothing left to break.  */
-            break;
-
-          last_space = p;
-          last_space_cols = cols;
-          p ++;
-          /* Skip any immediately following spaces.  If we break:
-             "... foo bar ..." between "foo" and "bar" then we want:
-             "... foo\nbar ...", which means that the left space has
-             to be the first space after foo, not the last space
-             before bar.  */
-          while (*p == ' ')
-            p ++;
-        }
-      else
-        {
-          int cols_with_left_space;
-          int cols_with_right_space;
-          int left_penalty;
-          int right_penalty;
-
-          cols_with_left_space = last_space_cols;
-          cols_with_right_space = cols;
-
-          /* if (do_debug) */
-          /*   log_debug ("Breaking: '%.*s'\n", */
-          /*              (int) ((uintptr_t) p - (uintptr_t) line), line); */
-
-          /* The number of columns away from TARGET_COLS.  We prefer
-             to underflow than to overflow.  */
-          left_penalty = target_cols - cols_with_left_space;
-          right_penalty = 2 * (cols_with_right_space - target_cols);
-
-          if (cols_with_right_space > max_cols)
-            /* Add a large penalty for each column that exceeds
-               max_cols.  */
-            right_penalty += 4 * (cols_with_right_space - max_cols);
-
-          /* if (do_debug) */
-          /*   log_debug ("Left space => %d cols (penalty: %d); " */
-          /*              "right space => %d cols (penalty: %d)\n", */
-          /*              cols_with_left_space, left_penalty, */
-          /*              cols_with_right_space, right_penalty); */
-          if (last_space_cols && left_penalty <= right_penalty)
-            {
-              /* Prefer the left space.  */
-              /* if (do_debug) */
-              /*   log_debug ("Breaking at left space.\n"); */
-              p = last_space;
-            }
-          else
-            {
-              /* if (do_debug) */
-              /*   log_debug ("Breaking at right space.\n"); */
-            }
-
-          if (! *p)
-            break;
-
-          *p = '\n';
-          p ++;
-          if (*p == ' ')
-            {
-              int spaces;
-              for (spaces = 1; p[spaces] == ' '; spaces ++)
-                ;
-              memmove (p, &p[spaces], strlen (&p[spaces]) + 1);
-            }
-          line = p;
-          last_space = NULL;
-          last_space_cols = 0;
-          copied_last_space = 0;
-        }
+      p++;
+      line = p;
+      last_space = NULL;
+      last_space_cols = 0;
+      copied_last_space = 1;
+      continue;
     }
 
+    /* Have a space or a NUL.  Note: we don't count the trailing
+       space.  */
+    cols = utf8_charcount(line, (uintptr_t)p - (uintptr_t)line);
+    if (cols < target_cols) {
+      if (!*p) /* Nothing left to break.  */
+        break;
+
+      last_space = p;
+      last_space_cols = cols;
+      p++;
+      /* Skip any immediately following spaces.  If we break:
+         "... foo bar ..." between "foo" and "bar" then we want:
+         "... foo\nbar ...", which means that the left space has
+         to be the first space after foo, not the last space
+         before bar.  */
+      while (*p == ' ') p++;
+    } else {
+      int cols_with_left_space;
+      int cols_with_right_space;
+      int left_penalty;
+      int right_penalty;
+
+      cols_with_left_space = last_space_cols;
+      cols_with_right_space = cols;
+
+      /* if (do_debug) */
+      /*   log_debug ("Breaking: '%.*s'\n", */
+      /*              (int) ((uintptr_t) p - (uintptr_t) line), line); */
+
+      /* The number of columns away from TARGET_COLS.  We prefer
+         to underflow than to overflow.  */
+      left_penalty = target_cols - cols_with_left_space;
+      right_penalty = 2 * (cols_with_right_space - target_cols);
+
+      if (cols_with_right_space > max_cols)
+        /* Add a large penalty for each column that exceeds
+           max_cols.  */
+        right_penalty += 4 * (cols_with_right_space - max_cols);
+
+      /* if (do_debug) */
+      /*   log_debug ("Left space => %d cols (penalty: %d); " */
+      /*              "right space => %d cols (penalty: %d)\n", */
+      /*              cols_with_left_space, left_penalty, */
+      /*              cols_with_right_space, right_penalty); */
+      if (last_space_cols && left_penalty <= right_penalty) {
+        /* Prefer the left space.  */
+        /* if (do_debug) */
+        /*   log_debug ("Breaking at left space.\n"); */
+        p = last_space;
+      } else {
+        /* if (do_debug) */
+        /*   log_debug ("Breaking at right space.\n"); */
+      }
+
+      if (!*p) break;
+
+      *p = '\n';
+      p++;
+      if (*p == ' ') {
+        int spaces;
+        for (spaces = 1; p[spaces] == ' '; spaces++)
+          ;
+        memmove(p, &p[spaces], strlen(&p[spaces]) + 1);
+      }
+      line = p;
+      last_space = NULL;
+      last_space_cols = 0;
+      copied_last_space = 0;
+    }
+  }
+
   /* Chop off any trailing space.  */
-  trim_trailing_chars ((byte*) (text), strlen (text), " ");
+  trim_trailing_chars((byte *)(text), strlen(text), " ");
   /* If we inserted the trailing newline, then remove it.  */
-  if (! copied_last_space && *text && text[strlen (text) - 1] == '\n')
-    text[strlen (text) - 1] = '\0';
+  if (!copied_last_space && *text && text[strlen(text) - 1] == '\n')
+    text[strlen(text) - 1] = '\0';
 
   return text;
 }

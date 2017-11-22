@@ -24,54 +24,43 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gpg.h"
+#include "../common/compliance.h"
+#include "../common/i18n.h"
+#include "../common/status.h"
 #include "../common/util.h"
-#include "packet.h"
+#include "gpg.h"
 #include "keydb.h"
 #include "main.h"
-#include "../common/status.h"
-#include "../common/i18n.h"
 #include "options.h"
+#include "packet.h"
 #include "pkglue.h"
-#include "../common/compliance.h"
 
-static int check_signature_end (PKT_public_key *pk, PKT_signature *sig,
-				gcry_md_hd_t digest,
-				int *r_expired, int *r_revoked,
-				PKT_public_key *ret_pk);
+static int check_signature_end(PKT_public_key *pk, PKT_signature *sig,
+                               gcry_md_hd_t digest, int *r_expired,
+                               int *r_revoked, PKT_public_key *ret_pk);
 
-static int check_signature_end_simple (PKT_public_key *pk, PKT_signature *sig,
-                                       gcry_md_hd_t digest);
-
+static int check_signature_end_simple(PKT_public_key *pk, PKT_signature *sig,
+                                      gcry_md_hd_t digest);
 
 /* Statistics for signature verification.  */
-struct
-{
-  unsigned int total;  /* Total number of verifications.  */
-  unsigned int cached; /* Number of seen cache entries.  */
-  unsigned int goodsig;/* Number of good verifications from the cache.  */
-  unsigned int badsig; /* Number of bad verifications from the cache.  */
+struct {
+  unsigned int total;   /* Total number of verifications.  */
+  unsigned int cached;  /* Number of seen cache entries.  */
+  unsigned int goodsig; /* Number of good verifications from the cache.  */
+  unsigned int badsig;  /* Number of bad verifications from the cache.  */
 } cache_stats;
 
-
 /* Dump verification stats.  */
-void
-sig_check_dump_stats (void)
-{
-  log_info ("sig_cache: total=%u cached=%u good=%u bad=%u\n",
-            cache_stats.total, cache_stats.cached,
-            cache_stats.goodsig, cache_stats.badsig);
+void sig_check_dump_stats(void) {
+  log_info("sig_cache: total=%u cached=%u good=%u bad=%u\n", cache_stats.total,
+           cache_stats.cached, cache_stats.goodsig, cache_stats.badsig);
 }
-
 
 /* Check a signature.  This is shorthand for check_signature2 with
    the unnamed arguments passed as NULL.  */
-int
-check_signature (ctrl_t ctrl, PKT_signature *sig, gcry_md_hd_t digest)
-{
-  return check_signature2 (ctrl, sig, digest, NULL, NULL, NULL, NULL);
+int check_signature(ctrl_t ctrl, PKT_signature *sig, gcry_md_hd_t digest) {
+  return check_signature2(ctrl, sig, digest, NULL, NULL, NULL, NULL);
 }
-
 
 /* Check a signature.
  *
@@ -110,182 +99,156 @@ check_signature (ctrl_t ctrl, PKT_signature *sig, gcry_md_hd_t digest)
  * was found; other wise NULL is stored.
  *
  * Returns 0 on success.  An error code otherwise.  */
-gpg_error_t
-check_signature2 (ctrl_t ctrl,
-                  PKT_signature *sig, gcry_md_hd_t digest, u32 *r_expiredate,
-		  int *r_expired, int *r_revoked, PKT_public_key **r_pk)
-{
-    int rc=0;
-    PKT_public_key *pk;
+gpg_error_t check_signature2(ctrl_t ctrl, PKT_signature *sig,
+                             gcry_md_hd_t digest, u32 *r_expiredate,
+                             int *r_expired, int *r_revoked,
+                             PKT_public_key **r_pk) {
+  int rc = 0;
+  PKT_public_key *pk;
 
-    if (r_expiredate)
-      *r_expiredate = 0;
-    if (r_expired)
-      *r_expired = 0;
-    if (r_revoked)
-      *r_revoked = 0;
-    if (r_pk)
-      *r_pk = NULL;
+  if (r_expiredate) *r_expiredate = 0;
+  if (r_expired) *r_expired = 0;
+  if (r_revoked) *r_revoked = 0;
+  if (r_pk) *r_pk = NULL;
 
-    pk = (PKT_public_key*) xtrycalloc (1, sizeof *pk);
-    if (!pk)
-      return gpg_error_from_syserror ();
+  pk = (PKT_public_key *)xtrycalloc(1, sizeof *pk);
+  if (!pk) return gpg_error_from_syserror();
 
-    if ( (rc=openpgp_md_test_algo((digest_algo_t) (sig->digest_algo))) )
-      ; /* We don't have this digest. */
-    else if (! gnupg_digest_is_allowed (opt.compliance, 0, (digest_algo_t) (sig->digest_algo)))
-      {
-	/* Compliance failure.  */
-	log_info (_("you may not use digest algorithm '%s'"
-		    " while in %s mode\n"),
-		  gcry_md_algo_name (sig->digest_algo),
-		  gnupg_compliance_option_string (opt.compliance));
-	rc = GPG_ERR_DIGEST_ALGO;
+  if ((rc = openpgp_md_test_algo((digest_algo_t)(sig->digest_algo))))
+    ; /* We don't have this digest. */
+  else if (!gnupg_digest_is_allowed(opt.compliance, 0,
+                                    (digest_algo_t)(sig->digest_algo))) {
+    /* Compliance failure.  */
+    log_info(_("you may not use digest algorithm '%s'"
+               " while in %s mode\n"),
+             gcry_md_algo_name(sig->digest_algo),
+             gnupg_compliance_option_string(opt.compliance));
+    rc = GPG_ERR_DIGEST_ALGO;
+  } else if ((rc = openpgp_pk_test_algo((pubkey_algo_t)(sig->pubkey_algo))))
+    ; /* We don't have this pubkey algo. */
+  else if (!gcry_md_is_enabled(digest, sig->digest_algo)) {
+    /* Sanity check that the md has a context for the hash that the
+       sig is expecting.  This can happen if a onepass sig header does
+       not match the actual sig, and also if the clearsign "Hash:"
+       header is missing or does not match the actual sig. */
+
+    log_info(_("WARNING: signature digest conflict in message\n"));
+    rc = GPG_ERR_GENERAL;
+  } else if (get_pubkey(ctrl, pk, sig->keyid))
+    rc = GPG_ERR_NO_PUBKEY;
+  else if (!gnupg_pk_is_allowed(opt.compliance, PK_USE_VERIFICATION,
+                                pk->pubkey_algo, pk->pkey, nbits_from_pk(pk),
+                                NULL)) {
+    /* Compliance failure.  */
+    log_info(_("key %s not suitable for signature verification"
+               " while in %s mode\n"),
+             keystr_from_pk(pk),
+             gnupg_compliance_option_string(opt.compliance));
+    rc = GPG_ERR_PUBKEY_ALGO;
+  } else if (!pk->flags.valid) {
+    /* You cannot have a good sig from an invalid key.  */
+    rc = GPG_ERR_BAD_PUBKEY;
+  } else {
+    if (r_expiredate) *r_expiredate = pk->expiredate;
+
+    rc = check_signature_end(pk, sig, digest, r_expired, r_revoked, NULL);
+
+    /* Check the backsig.  This is a 0x19 signature from the
+       subkey on the primary key.  The idea here is that it should
+       not be possible for someone to "steal" subkeys and claim
+       them as their own.  The attacker couldn't actually use the
+       subkey, but they could try and claim ownership of any
+       signatures issued by it. */
+    if (!rc && !pk->flags.primary && pk->flags.backsig < 2) {
+      if (!pk->flags.backsig) {
+        log_info(_("WARNING: signing subkey %s is not"
+                   " cross-certified\n"),
+                 keystr_from_pk(pk));
+        log_info(_("please see %s for more information\n"),
+                 "https://gnupg.org/faq/subkey-cross-certify.html");
+        /* --require-cross-certification makes this warning an
+             error.  TODO: change the default to require this
+             after more keys have backsigs. */
+        if (opt.flags.require_cross_cert) rc = GPG_ERR_GENERAL;
+      } else if (pk->flags.backsig == 1) {
+        log_info(_("WARNING: signing subkey %s has an invalid"
+                   " cross-certification\n"),
+                 keystr_from_pk(pk));
+        rc = GPG_ERR_GENERAL;
       }
-    else if ((rc=openpgp_pk_test_algo((pubkey_algo_t) (sig->pubkey_algo))))
-      ; /* We don't have this pubkey algo. */
-    else if (!gcry_md_is_enabled (digest,sig->digest_algo))
-      {
-	/* Sanity check that the md has a context for the hash that the
-	   sig is expecting.  This can happen if a onepass sig header does
-	   not match the actual sig, and also if the clearsign "Hash:"
-	   header is missing or does not match the actual sig. */
+    }
+  }
 
-        log_info(_("WARNING: signature digest conflict in message\n"));
-	rc = GPG_ERR_GENERAL;
-      }
-    else if( get_pubkey (ctrl, pk, sig->keyid ) )
-      rc = GPG_ERR_NO_PUBKEY;
-    else if (! gnupg_pk_is_allowed (opt.compliance, PK_USE_VERIFICATION,
-				    pk->pubkey_algo, pk->pkey,
-                                    nbits_from_pk (pk),
-				    NULL))
-      {
-	/* Compliance failure.  */
-	log_info (_("key %s not suitable for signature verification"
-                    " while in %s mode\n"),
-		  keystr_from_pk (pk),
-                  gnupg_compliance_option_string (opt.compliance));
-	rc = GPG_ERR_PUBKEY_ALGO;
-      }
-    else if(!pk->flags.valid)
-      {
-        /* You cannot have a good sig from an invalid key.  */
-        rc = GPG_ERR_BAD_PUBKEY;
-      }
-    else
-      {
-        if(r_expiredate)
-	  *r_expiredate = pk->expiredate;
+  if (!rc && sig->sig_class < 2 && is_status_enabled()) {
+    /* This signature id works best with DLP algorithms because
+     * they use a random parameter for every signature.  Instead of
+     * this sig-id we could have also used the hash of the document
+     * and the timestamp, but the drawback of this is, that it is
+     * not possible to sign more than one identical document within
+     * one second.	Some remote batch processing applications might
+     * like this feature here.
+     *
+     * Note that before 2.0.10, we used RIPE-MD160 for the hash
+     * and accidentally didn't include the timestamp and algorithm
+     * information in the hash.  Given that this feature is not
+     * commonly used and that a replay attacks detection should
+     * not solely be based on this feature (because it does not
+     * work with RSA), we take the freedom and switch to SHA-1
+     * with 2.0.10 to take advantage of hardware supported SHA-1
+     * implementations.  We also include the missing information
+     * in the hash.  Note also the SIG_ID as computed by gpg 1.x
+     * and gpg 2.x didn't matched either because 2.x used to print
+     * MPIs not in PGP format.  */
+    u32 a = sig->timestamp;
+    int nsig = pubkey_get_nsig((pubkey_algo_t)(sig->pubkey_algo));
+    unsigned char *p, *buffer;
+    size_t n, nbytes;
+    int i;
+    char hashbuf[20];
 
-	rc = check_signature_end (pk, sig, digest, r_expired, r_revoked, NULL);
-
-	/* Check the backsig.  This is a 0x19 signature from the
-	   subkey on the primary key.  The idea here is that it should
-	   not be possible for someone to "steal" subkeys and claim
-	   them as their own.  The attacker couldn't actually use the
-	   subkey, but they could try and claim ownership of any
-	   signatures issued by it. */
-	if (!rc && !pk->flags.primary && pk->flags.backsig < 2)
-	  {
-	    if (!pk->flags.backsig)
-	      {
-		log_info(_("WARNING: signing subkey %s is not"
-			   " cross-certified\n"),keystr_from_pk(pk));
-		log_info(_("please see %s for more information\n"),
-			 "https://gnupg.org/faq/subkey-cross-certify.html");
-		/* --require-cross-certification makes this warning an
-                     error.  TODO: change the default to require this
-                     after more keys have backsigs. */
-		if(opt.flags.require_cross_cert)
-		  rc = GPG_ERR_GENERAL;
-	      }
-	    else if(pk->flags.backsig == 1)
-	      {
-		log_info(_("WARNING: signing subkey %s has an invalid"
-			   " cross-certification\n"),keystr_from_pk(pk));
-		rc = GPG_ERR_GENERAL;
-	      }
-	  }
-      }
-
-    if( !rc && sig->sig_class < 2 && is_status_enabled() ) {
-	/* This signature id works best with DLP algorithms because
-	 * they use a random parameter for every signature.  Instead of
-	 * this sig-id we could have also used the hash of the document
-	 * and the timestamp, but the drawback of this is, that it is
-	 * not possible to sign more than one identical document within
-	 * one second.	Some remote batch processing applications might
-	 * like this feature here.
-         *
-         * Note that before 2.0.10, we used RIPE-MD160 for the hash
-         * and accidentally didn't include the timestamp and algorithm
-         * information in the hash.  Given that this feature is not
-         * commonly used and that a replay attacks detection should
-         * not solely be based on this feature (because it does not
-         * work with RSA), we take the freedom and switch to SHA-1
-         * with 2.0.10 to take advantage of hardware supported SHA-1
-         * implementations.  We also include the missing information
-         * in the hash.  Note also the SIG_ID as computed by gpg 1.x
-         * and gpg 2.x didn't matched either because 2.x used to print
-         * MPIs not in PGP format.  */
-	u32 a = sig->timestamp;
-	int nsig = pubkey_get_nsig( (pubkey_algo_t) (sig->pubkey_algo ));
-	unsigned char *p, *buffer;
-        size_t n, nbytes;
-        int i;
-        char hashbuf[20];
-
-        nbytes = 6;
-	for (i=0; i < nsig; i++ )
-          {
-	    if (gcry_mpi_print (GCRYMPI_FMT_USG, NULL, 0, &n, sig->data[i]))
-              BUG();
-            nbytes += n;
-          }
-
-        /* Make buffer large enough to be later used as output buffer.  */
-        if (nbytes < 100)
-          nbytes = 100;
-        nbytes += 10;  /* Safety margin.  */
-
-        /* Fill and hash buffer.  */
-        buffer = p = (unsigned char*) xmalloc (nbytes);
-	*p++ = sig->pubkey_algo;
-	*p++ = sig->digest_algo;
-	*p++ = (a >> 24) & 0xff;
-	*p++ = (a >> 16) & 0xff;
-	*p++ = (a >>  8) & 0xff;
-	*p++ =  a & 0xff;
-        nbytes -= 6;
-	for (i=0; i < nsig; i++ )
-          {
-	    if (gcry_mpi_print (GCRYMPI_FMT_PGP, p, nbytes, &n, sig->data[i]))
-              BUG();
-            p += n;
-            nbytes -= n;
-          }
-        gcry_md_hash_buffer (GCRY_MD_SHA1, hashbuf, buffer, p-buffer);
-
-	p = (unsigned char*) make_radix64_string ((const byte*) (hashbuf), 20);
-	sprintf ((char*) (buffer), "%s %s %lu",
-		 p, strtimestamp (sig->timestamp), (unsigned long)sig->timestamp);
-	xfree (p);
-	write_status_text (STATUS_SIG_ID, (const char*) (buffer));
-	xfree (buffer);
+    nbytes = 6;
+    for (i = 0; i < nsig; i++) {
+      if (gcry_mpi_print(GCRYMPI_FMT_USG, NULL, 0, &n, sig->data[i])) BUG();
+      nbytes += n;
     }
 
-    if (r_pk)
-      *r_pk = pk;
-    else
-      {
-	release_public_key_parts (pk);
-        xfree (pk);
-      }
+    /* Make buffer large enough to be later used as output buffer.  */
+    if (nbytes < 100) nbytes = 100;
+    nbytes += 10; /* Safety margin.  */
 
-    return rc;
+    /* Fill and hash buffer.  */
+    buffer = p = (unsigned char *)xmalloc(nbytes);
+    *p++ = sig->pubkey_algo;
+    *p++ = sig->digest_algo;
+    *p++ = (a >> 24) & 0xff;
+    *p++ = (a >> 16) & 0xff;
+    *p++ = (a >> 8) & 0xff;
+    *p++ = a & 0xff;
+    nbytes -= 6;
+    for (i = 0; i < nsig; i++) {
+      if (gcry_mpi_print(GCRYMPI_FMT_PGP, p, nbytes, &n, sig->data[i])) BUG();
+      p += n;
+      nbytes -= n;
+    }
+    gcry_md_hash_buffer(GCRY_MD_SHA1, hashbuf, buffer, p - buffer);
+
+    p = (unsigned char *)make_radix64_string((const byte *)(hashbuf), 20);
+    sprintf((char *)(buffer), "%s %s %lu", p, strtimestamp(sig->timestamp),
+            (unsigned long)sig->timestamp);
+    xfree(p);
+    write_status_text(STATUS_SIG_ID, (const char *)(buffer));
+    xfree(buffer);
+  }
+
+  if (r_pk)
+    *r_pk = pk;
+  else {
+    release_public_key_parts(pk);
+    xfree(pk);
+  }
+
+  return rc;
 }
-
 
 /* The signature SIG was generated with the public key PK.  Check
  * whether the signature is valid in the following sense:
@@ -304,93 +267,78 @@ check_signature2 (ctrl_t ctrl,
  * If either of the first two tests fail, returns an error code.
  * Otherwise returns 0.  (Thus, this function doesn't fail if the
  * public key is expired or revoked.)  */
-static int
-check_signature_metadata_validity (PKT_public_key *pk, PKT_signature *sig,
-				   int *r_expired, int *r_revoked)
-{
-    u32 cur_time;
+static int check_signature_metadata_validity(PKT_public_key *pk,
+                                             PKT_signature *sig, int *r_expired,
+                                             int *r_revoked) {
+  u32 cur_time;
 
-    if(r_expired)
-      *r_expired = 0;
-    if(r_revoked)
-      *r_revoked = 0;
+  if (r_expired) *r_expired = 0;
+  if (r_revoked) *r_revoked = 0;
 
-    if( pk->timestamp > sig->timestamp )
-      {
-	unsigned long d = pk->timestamp - sig->timestamp;
-        if ( d < 86400 )
-          {
-            log_info
-              (ngettext
-               ("public key %s is %lu second newer than the signature\n",
-                "public key %s is %lu seconds newer than the signature\n",
-                d), keystr_from_pk (pk), d);
-          }
-        else
-          {
-            d /= 86400;
-            log_info
-              (ngettext
-               ("public key %s is %lu day newer than the signature\n",
-                "public key %s is %lu days newer than the signature\n",
-                d), keystr_from_pk (pk), d);
-          }
-	if (!opt.ignore_time_conflict)
-	  return GPG_ERR_TIME_CONFLICT; /* pubkey newer than signature.  */
-      }
-
-    cur_time = make_timestamp();
-    if( pk->timestamp > cur_time )
-      {
-	unsigned long d = pk->timestamp - cur_time;
-        if (d < 86400)
-          {
-            log_info (ngettext("key %s was created %lu second"
-                               " in the future (time warp or clock problem)\n",
-                               "key %s was created %lu seconds"
-                               " in the future (time warp or clock problem)\n",
-                               d), keystr_from_pk (pk), d);
-          }
-        else
-          {
-            d /= 86400;
-            log_info (ngettext("key %s was created %lu day"
-                               " in the future (time warp or clock problem)\n",
-                               "key %s was created %lu days"
-                               " in the future (time warp or clock problem)\n",
-                               d), keystr_from_pk (pk), d);
-          }
-	if (!opt.ignore_time_conflict)
-	  return GPG_ERR_TIME_CONFLICT;
-      }
-
-    /* Check whether the key has expired.  We check the has_expired
-       flag which is set after a full evaluation of the key (getkey.c)
-       as well as a simple compare to the current time in case the
-       merge has for whatever reasons not been done.  */
-    if( pk->has_expired || (pk->expiredate && pk->expiredate < cur_time)) {
-        char buf[11];
-        if (opt.verbose)
-	  log_info(_("Note: signature key %s expired %s\n"),
-		   keystr_from_pk(pk), asctimestamp( pk->expiredate ) );
-	sprintf(buf,"%lu",(unsigned long)pk->expiredate);
-	write_status_text(STATUS_KEYEXPIRED,buf);
-	if(r_expired)
-	  *r_expired = 1;
+  if (pk->timestamp > sig->timestamp) {
+    unsigned long d = pk->timestamp - sig->timestamp;
+    if (d < 86400) {
+      log_info(
+          ngettext("public key %s is %lu second newer than the signature\n",
+                   "public key %s is %lu seconds newer than the signature\n",
+                   d),
+          keystr_from_pk(pk), d);
+    } else {
+      d /= 86400;
+      log_info(
+          ngettext("public key %s is %lu day newer than the signature\n",
+                   "public key %s is %lu days newer than the signature\n", d),
+          keystr_from_pk(pk), d);
     }
+    if (!opt.ignore_time_conflict)
+      return GPG_ERR_TIME_CONFLICT; /* pubkey newer than signature.  */
+  }
 
-    if (pk->flags.revoked)
-      {
-        if (opt.verbose)
-	  log_info (_("Note: signature key %s has been revoked\n"),
-                    keystr_from_pk(pk));
-        if (r_revoked)
-          *r_revoked=1;
-      }
+  cur_time = make_timestamp();
+  if (pk->timestamp > cur_time) {
+    unsigned long d = pk->timestamp - cur_time;
+    if (d < 86400) {
+      log_info(ngettext("key %s was created %lu second"
+                        " in the future (time warp or clock problem)\n",
+                        "key %s was created %lu seconds"
+                        " in the future (time warp or clock problem)\n",
+                        d),
+               keystr_from_pk(pk), d);
+    } else {
+      d /= 86400;
+      log_info(ngettext("key %s was created %lu day"
+                        " in the future (time warp or clock problem)\n",
+                        "key %s was created %lu days"
+                        " in the future (time warp or clock problem)\n",
+                        d),
+               keystr_from_pk(pk), d);
+    }
+    if (!opt.ignore_time_conflict) return GPG_ERR_TIME_CONFLICT;
+  }
 
-    return 0;
+  /* Check whether the key has expired.  We check the has_expired
+     flag which is set after a full evaluation of the key (getkey.c)
+     as well as a simple compare to the current time in case the
+     merge has for whatever reasons not been done.  */
+  if (pk->has_expired || (pk->expiredate && pk->expiredate < cur_time)) {
+    char buf[11];
+    if (opt.verbose)
+      log_info(_("Note: signature key %s expired %s\n"), keystr_from_pk(pk),
+               asctimestamp(pk->expiredate));
+    sprintf(buf, "%lu", (unsigned long)pk->expiredate);
+    write_status_text(STATUS_KEYEXPIRED, buf);
+    if (r_expired) *r_expired = 1;
+  }
+
+  if (pk->flags.revoked) {
+    if (opt.verbose)
+      log_info(_("Note: signature key %s has been revoked\n"),
+               keystr_from_pk(pk));
+    if (r_revoked) *r_revoked = 1;
+  }
+
+  return 0;
 }
-
 
 /* Finish generating a signature and check it.  Concretely: make sure
  * that the signature is valid (it was not created prior to the key,
@@ -421,157 +369,137 @@ check_signature_metadata_validity (PKT_public_key *pk, PKT_signature *sig,
  * If RET_PK is not NULL, PK is copied into RET_PK on success.
  *
  * Returns 0 on success.  An error code other.  */
-static int
-check_signature_end (PKT_public_key *pk, PKT_signature *sig,
-		     gcry_md_hd_t digest,
-		     int *r_expired, int *r_revoked, PKT_public_key *ret_pk)
-{
-    int rc = 0;
+static int check_signature_end(PKT_public_key *pk, PKT_signature *sig,
+                               gcry_md_hd_t digest, int *r_expired,
+                               int *r_revoked, PKT_public_key *ret_pk) {
+  int rc = 0;
 
-    if ((rc = check_signature_metadata_validity (pk, sig,
-						 r_expired, r_revoked)))
-        return rc;
-
-    if ((rc = check_signature_end_simple (pk, sig, digest)))
-      return rc;
-
-    if(!rc && ret_pk)
-      copy_public_key(ret_pk,pk);
-
+  if ((rc = check_signature_metadata_validity(pk, sig, r_expired, r_revoked)))
     return rc;
+
+  if ((rc = check_signature_end_simple(pk, sig, digest))) return rc;
+
+  if (!rc && ret_pk) copy_public_key(ret_pk, pk);
+
+  return rc;
 }
 
 /* This function is similar to check_signature_end, but it only checks
    whether the signature was generated by PK.  It does not check
    expiration, revocation, etc.  */
-static int
-check_signature_end_simple (PKT_public_key *pk, PKT_signature *sig,
-                            gcry_md_hd_t digest)
-{
-    gcry_mpi_t result = NULL;
-    int rc = 0;
-    const struct weakhash *weak;
+static int check_signature_end_simple(PKT_public_key *pk, PKT_signature *sig,
+                                      gcry_md_hd_t digest) {
+  gcry_mpi_t result = NULL;
+  int rc = 0;
+  const struct weakhash *weak;
 
-    for (weak = opt.weak_digests; weak; weak = weak->next)
-      if (sig->digest_algo == weak->algo)
-	{
-	  print_digest_rejected_note((gcry_md_algos) (sig->digest_algo));
-	  return GPG_ERR_DIGEST_ALGO;
-	}
-
-    /* Make sure the digest algo is enabled (in case of a detached
-       signature).  */
-    gcry_md_enable (digest, sig->digest_algo);
-
-    /* Complete the digest. */
-    if( sig->version >= 4 )
-	gcry_md_putc( digest, sig->version );
-    gcry_md_putc( digest, sig->sig_class );
-    if( sig->version < 4 ) {
-	u32 a = sig->timestamp;
-	gcry_md_putc( digest, (a >> 24) & 0xff );
-	gcry_md_putc( digest, (a >> 16) & 0xff );
-	gcry_md_putc( digest, (a >>	8) & 0xff );
-	gcry_md_putc( digest,  a	   & 0xff );
+  for (weak = opt.weak_digests; weak; weak = weak->next)
+    if (sig->digest_algo == weak->algo) {
+      print_digest_rejected_note((gcry_md_algos)(sig->digest_algo));
+      return GPG_ERR_DIGEST_ALGO;
     }
-    else {
-	byte buf[6];
-	size_t n;
-	gcry_md_putc( digest, sig->pubkey_algo );
-	gcry_md_putc( digest, sig->digest_algo );
-	if( sig->hashed ) {
-	    n = sig->hashed->len;
-            gcry_md_putc (digest, (n >> 8) );
-            gcry_md_putc (digest,  n       );
-	    gcry_md_write (digest, sig->hashed->data, n);
-	    n += 6;
-	}
-	else {
-	  /* Two octets for the (empty) length of the hashed
-             section. */
-          gcry_md_putc (digest, 0);
-	  gcry_md_putc (digest, 0);
-	  n = 6;
-	}
-	/* add some magic per Section 5.2.4 of RFC 4880.  */
-	buf[0] = sig->version;
-	buf[1] = 0xff;
-	buf[2] = n >> 24;
-	buf[3] = n >> 16;
-	buf[4] = n >>  8;
-	buf[5] = n;
-	gcry_md_write( digest, buf, 6 );
+
+  /* Make sure the digest algo is enabled (in case of a detached
+     signature).  */
+  gcry_md_enable(digest, sig->digest_algo);
+
+  /* Complete the digest. */
+  if (sig->version >= 4) gcry_md_putc(digest, sig->version);
+  gcry_md_putc(digest, sig->sig_class);
+  if (sig->version < 4) {
+    u32 a = sig->timestamp;
+    gcry_md_putc(digest, (a >> 24) & 0xff);
+    gcry_md_putc(digest, (a >> 16) & 0xff);
+    gcry_md_putc(digest, (a >> 8) & 0xff);
+    gcry_md_putc(digest, a & 0xff);
+  } else {
+    byte buf[6];
+    size_t n;
+    gcry_md_putc(digest, sig->pubkey_algo);
+    gcry_md_putc(digest, sig->digest_algo);
+    if (sig->hashed) {
+      n = sig->hashed->len;
+      gcry_md_putc(digest, (n >> 8));
+      gcry_md_putc(digest, n);
+      gcry_md_write(digest, sig->hashed->data, n);
+      n += 6;
+    } else {
+      /* Two octets for the (empty) length of the hashed
+         section. */
+      gcry_md_putc(digest, 0);
+      gcry_md_putc(digest, 0);
+      n = 6;
     }
-    gcry_md_final( digest );
+    /* add some magic per Section 5.2.4 of RFC 4880.  */
+    buf[0] = sig->version;
+    buf[1] = 0xff;
+    buf[2] = n >> 24;
+    buf[3] = n >> 16;
+    buf[4] = n >> 8;
+    buf[5] = n;
+    gcry_md_write(digest, buf, 6);
+  }
+  gcry_md_final(digest);
 
-    /* Convert the digest to an MPI.  */
-    result = encode_md_value (pk, digest, sig->digest_algo );
-    if (!result)
-        return GPG_ERR_GENERAL;
+  /* Convert the digest to an MPI.  */
+  result = encode_md_value(pk, digest, sig->digest_algo);
+  if (!result) return GPG_ERR_GENERAL;
 
-    /* Verify the signature.  */
-    rc = pk_verify( (pubkey_algo_t) (pk->pubkey_algo), result, sig->data, pk->pkey );
-    gcry_mpi_release (result);
+  /* Verify the signature.  */
+  rc = pk_verify((pubkey_algo_t)(pk->pubkey_algo), result, sig->data, pk->pkey);
+  gcry_mpi_release(result);
 
-    if( !rc && sig->flags.unknown_critical )
-      {
-	log_info(_("assuming bad signature from key %s"
-		   " due to an unknown critical bit\n"),keystr_from_pk(pk));
-	rc = GPG_ERR_BAD_SIGNATURE;
-      }
+  if (!rc && sig->flags.unknown_critical) {
+    log_info(_("assuming bad signature from key %s"
+               " due to an unknown critical bit\n"),
+             keystr_from_pk(pk));
+    rc = GPG_ERR_BAD_SIGNATURE;
+  }
 
-    return rc;
+  return rc;
 }
-
 
 /* Add a uid node to a hash context.  See section 5.2.4, paragraph 4
    of RFC 4880.  */
-static void
-hash_uid_packet (PKT_user_id *uid, gcry_md_hd_t md, PKT_signature *sig )
-{
-    if( uid->attrib_data ) {
-	if( sig->version >=4 ) {
-	    byte buf[5];
-	    buf[0] = 0xd1;		     /* packet of type 17 */
-	    buf[1] = uid->attrib_len >> 24;  /* always use 4 length bytes */
-	    buf[2] = uid->attrib_len >> 16;
-	    buf[3] = uid->attrib_len >>  8;
-	    buf[4] = uid->attrib_len;
-	    gcry_md_write( md, buf, 5 );
-	}
-	gcry_md_write( md, uid->attrib_data, uid->attrib_len );
+static void hash_uid_packet(PKT_user_id *uid, gcry_md_hd_t md,
+                            PKT_signature *sig) {
+  if (uid->attrib_data) {
+    if (sig->version >= 4) {
+      byte buf[5];
+      buf[0] = 0xd1;                  /* packet of type 17 */
+      buf[1] = uid->attrib_len >> 24; /* always use 4 length bytes */
+      buf[2] = uid->attrib_len >> 16;
+      buf[3] = uid->attrib_len >> 8;
+      buf[4] = uid->attrib_len;
+      gcry_md_write(md, buf, 5);
     }
-    else {
-	if( sig->version >=4 ) {
-	    byte buf[5];
-	    buf[0] = 0xb4;	      /* indicates a userid packet */
-	    buf[1] = uid->len >> 24;  /* always use 4 length bytes */
-	    buf[2] = uid->len >> 16;
-	    buf[3] = uid->len >>  8;
-	    buf[4] = uid->len;
-	    gcry_md_write( md, buf, 5 );
-	}
-	gcry_md_write( md, uid->name, uid->len );
+    gcry_md_write(md, uid->attrib_data, uid->attrib_len);
+  } else {
+    if (sig->version >= 4) {
+      byte buf[5];
+      buf[0] = 0xb4;           /* indicates a userid packet */
+      buf[1] = uid->len >> 24; /* always use 4 length bytes */
+      buf[2] = uid->len >> 16;
+      buf[3] = uid->len >> 8;
+      buf[4] = uid->len;
+      gcry_md_write(md, buf, 5);
     }
+    gcry_md_write(md, uid->name, uid->len);
+  }
 }
 
-static void
-cache_sig_result ( PKT_signature *sig, int result )
-{
-    if ( !result ) {
-        sig->flags.checked = 1;
-        sig->flags.valid = 1;
-    }
-    else if ( result == GPG_ERR_BAD_SIGNATURE ) {
-        sig->flags.checked = 1;
-        sig->flags.valid = 0;
-    }
-    else {
-        sig->flags.checked = 0;
-        sig->flags.valid = 0;
-    }
+static void cache_sig_result(PKT_signature *sig, int result) {
+  if (!result) {
+    sig->flags.checked = 1;
+    sig->flags.valid = 1;
+  } else if (result == GPG_ERR_BAD_SIGNATURE) {
+    sig->flags.checked = 1;
+    sig->flags.valid = 0;
+  } else {
+    sig->flags.checked = 0;
+    sig->flags.valid = 0;
+  }
 }
-
 
 /* SIG is a key revocation signature.  Check if this signature was
  * generated by any of the public key PK's designated revokers.
@@ -602,15 +530,14 @@ cache_sig_result ( PKT_signature *sig, int result )
  * revoker can still issue revocations: i.e. If A revokes B, but A is
  * revoked, B is still revoked.  I'm not completely convinced this is
  * the proper behavior, but it matches how PGP does it. -dms */
-int
-check_revocation_keys (ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig)
-{
-  static int busy=0;
+int check_revocation_keys(ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig) {
+  static int busy = 0;
   int i;
   int rc = GPG_ERR_GENERAL;
 
-  log_assert (IS_KEY_REV(sig));
-  log_assert ((sig->keyid[0]!=pk->keyid[0]) || (sig->keyid[0]!=pk->keyid[1]));
+  log_assert(IS_KEY_REV(sig));
+  log_assert((sig->keyid[0] != pk->keyid[0]) ||
+             (sig->keyid[0] != pk->keyid[1]));
 
   /* Avoid infinite recursion.  Consider the following:
    *
@@ -636,51 +563,49 @@ check_revocation_keys (ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig)
    * signed by B to revoke A.  Since this is the only place where this
    * type of recursion can occur, we simply cause this function to
    * fail if it is entered recursively.  */
-  if (busy)
-    {
-      /* Return an error (i.e. not revoked), but mark the pk as
-         uncacheable as we don't really know its revocation status
-         until it is checked directly.  */
-      pk->flags.dont_cache = 1;
-      return rc;
-    }
+  if (busy) {
+    /* Return an error (i.e. not revoked), but mark the pk as
+       uncacheable as we don't really know its revocation status
+       until it is checked directly.  */
+    pk->flags.dont_cache = 1;
+    return rc;
+  }
 
-  busy=1;
+  busy = 1;
 
-  /*  es_printf("looking at %08lX with a sig from %08lX\n",(unsigned long)pk->keyid[1],
+  /*  es_printf("looking at %08lX with a sig from %08lX\n",(unsigned
+     long)pk->keyid[1],
       (unsigned long)sig->keyid[1]); */
 
   /* is the issuer of the sig one of our revokers? */
-  if( !pk->revkey && pk->numrevkeys )
-     BUG();
+  if (!pk->revkey && pk->numrevkeys)
+    BUG();
   else
-      for(i=0;i<pk->numrevkeys;i++)
-	{
-	  /* The revoker's keyid.  */
-          u32 keyid[2];
+    for (i = 0; i < pk->numrevkeys; i++) {
+      /* The revoker's keyid.  */
+      u32 keyid[2];
 
-          keyid_from_fingerprint (ctrl, pk->revkey[i].fpr,
-                                  MAX_FINGERPRINT_LEN, keyid);
+      keyid_from_fingerprint(ctrl, pk->revkey[i].fpr, MAX_FINGERPRINT_LEN,
+                             keyid);
 
-          if(keyid[0]==sig->keyid[0] && keyid[1]==sig->keyid[1])
-	    /* The signature was generated by a designated revoker.
-	       Verify the signature.  */
-	    {
-              gcry_md_hd_t md;
+      if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1])
+      /* The signature was generated by a designated revoker.
+         Verify the signature.  */
+      {
+        gcry_md_hd_t md;
 
-              if (gcry_md_open (&md, sig->digest_algo, 0))
-                BUG ();
-              hash_public_key(md,pk);
-	      /* Note: check_signature only checks that the signature
-		 is good.  It does not fail if the key is revoked.  */
-              rc = check_signature (ctrl, sig, md);
-	      cache_sig_result(sig,rc);
-              gcry_md_close (md);
-	      break;
-	    }
-	}
+        if (gcry_md_open(&md, sig->digest_algo, 0)) BUG();
+        hash_public_key(md, pk);
+        /* Note: check_signature only checks that the signature
+           is good.  It does not fail if the key is revoked.  */
+        rc = check_signature(ctrl, sig, md);
+        cache_sig_result(sig, rc);
+        gcry_md_close(md);
+        break;
+      }
+    }
 
-  busy=0;
+  busy = 0;
 
   return rc;
 }
@@ -694,48 +619,41 @@ check_revocation_keys (ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig)
    questionable what such a thing actually means.  Note also that the
    sig cache check here, unlike other sig caches in GnuPG, is not
    persistent. */
-int
-check_backsig (PKT_public_key *main_pk,PKT_public_key *sub_pk,
-	       PKT_signature *backsig)
-{
+int check_backsig(PKT_public_key *main_pk, PKT_public_key *sub_pk,
+                  PKT_signature *backsig) {
   gcry_md_hd_t md;
   int rc;
 
   /* Always check whether the algorithm is available.  Although
      gcry_md_open would throw an error, some libgcrypt versions will
      print a debug message in that case too. */
-  if ((rc=openpgp_md_test_algo ((digest_algo_t) (backsig->digest_algo))))
+  if ((rc = openpgp_md_test_algo((digest_algo_t)(backsig->digest_algo))))
     return rc;
 
-  if(!opt.no_sig_cache && backsig->flags.checked)
-    return backsig->flags.valid? 0 : GPG_ERR_BAD_SIGNATURE;
+  if (!opt.no_sig_cache && backsig->flags.checked)
+    return backsig->flags.valid ? 0 : GPG_ERR_BAD_SIGNATURE;
 
-  rc = gcry_md_open (&md, backsig->digest_algo,0);
-  if (!rc)
-    {
-      hash_public_key(md,main_pk);
-      hash_public_key(md,sub_pk);
-      rc = check_signature_end (sub_pk, backsig, md, NULL, NULL, NULL);
-      cache_sig_result(backsig,rc);
-      gcry_md_close(md);
-    }
+  rc = gcry_md_open(&md, backsig->digest_algo, 0);
+  if (!rc) {
+    hash_public_key(md, main_pk);
+    hash_public_key(md, sub_pk);
+    rc = check_signature_end(sub_pk, backsig, md, NULL, NULL, NULL);
+    cache_sig_result(backsig, rc);
+    gcry_md_close(md);
+  }
 
   return rc;
 }
-
 
 /* Check that a signature over a key is valid.  This is a
  * specialization of check_key_signature2 with the unnamed parameters
  * passed as NULL.  See the documentation for that function for more
  * details.  */
-int
-check_key_signature (ctrl_t ctrl, kbnode_t root, kbnode_t node,
-                     int *is_selfsig)
-{
-  return check_key_signature2 (ctrl, root, node, NULL, NULL,
-                               is_selfsig, NULL, NULL);
+int check_key_signature(ctrl_t ctrl, kbnode_t root, kbnode_t node,
+                        int *is_selfsig) {
+  return check_key_signature2(ctrl, root, node, NULL, NULL, is_selfsig, NULL,
+                              NULL);
 }
-
 
 /* Returns whether SIGNER generated the signature SIG over the packet
    PACKET, which is a key, subkey or uid, and comes from the key block
@@ -770,22 +688,19 @@ check_key_signature (ctrl_t ctrl, kbnode_t root, kbnode_t node,
    If RET_PK is not NULL, returns a copy of the public key that
    generated the signature (i.e., the signer) on success.  This must
    be released by the caller using release_public_key_parts ().  */
-gpg_error_t
-check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
-                                 PKT_signature *sig, KBNODE kb, PACKET *packet,
-                                 int *is_selfsig, PKT_public_key *ret_pk)
-{
+gpg_error_t check_signature_over_key_or_uid(ctrl_t ctrl, PKT_public_key *signer,
+                                            PKT_signature *sig, KBNODE kb,
+                                            PACKET *packet, int *is_selfsig,
+                                            PKT_public_key *ret_pk) {
   int rc;
   PKT_public_key *pripk = kb->pkt->pkt.public_key;
   gcry_md_hd_t md;
   int signer_alloced = 0;
 
-  rc = openpgp_pk_test_algo ((pubkey_algo_t) (sig->pubkey_algo));
-  if (rc)
-    return rc;
-  rc = openpgp_md_test_algo ((digest_algo_t) (sig->digest_algo));
-  if (rc)
-    return rc;
+  rc = openpgp_pk_test_algo((pubkey_algo_t)(sig->pubkey_algo));
+  if (rc) return rc;
+  rc = openpgp_md_test_algo((digest_algo_t)(sig->digest_algo));
+  if (rc) return rc;
 
   /* A signature's class indicates the type of packet that it
      signs.  */
@@ -794,176 +709,138 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
       /* Direct key signature.  */
       || sig->sig_class == 0x1f
       /* Primary key revocation.  */
-      || sig->sig_class == 0x20)
-    {
-      if (packet->pkttype != PKT_PUBLIC_KEY)
-        /* Key revocations can only be over primary keys.  */
-        return GPG_ERR_SIG_CLASS;
-    }
-  else if (/* Subkey binding.  */
-           sig->sig_class == 0x18
-           /* Subkey revocation.  */
-           || sig->sig_class == 0x28)
-    {
-      if (packet->pkttype != PKT_PUBLIC_SUBKEY)
-        return GPG_ERR_SIG_CLASS;
-    }
-  else if (/* Certification.  */
-           sig->sig_class == 0x10
-           || sig->sig_class == 0x11
-           || sig->sig_class == 0x12
-           || sig->sig_class == 0x13
-           /* Certification revocation.  */
-           || sig->sig_class == 0x30)
-    {
-      if (packet->pkttype != PKT_USER_ID)
-        return GPG_ERR_SIG_CLASS;
-    }
-  else
+      || sig->sig_class == 0x20) {
+    if (packet->pkttype != PKT_PUBLIC_KEY)
+      /* Key revocations can only be over primary keys.  */
+      return GPG_ERR_SIG_CLASS;
+  } else if (/* Subkey binding.  */
+             sig->sig_class == 0x18
+             /* Subkey revocation.  */
+             || sig->sig_class == 0x28) {
+    if (packet->pkttype != PKT_PUBLIC_SUBKEY) return GPG_ERR_SIG_CLASS;
+  } else if (/* Certification.  */
+             sig->sig_class == 0x10 || sig->sig_class == 0x11 ||
+             sig->sig_class == 0x12 || sig->sig_class == 0x13
+             /* Certification revocation.  */
+             || sig->sig_class == 0x30) {
+    if (packet->pkttype != PKT_USER_ID) return GPG_ERR_SIG_CLASS;
+  } else
     return GPG_ERR_SIG_CLASS;
 
   /* PACKET is the right type for SIG.  */
 
-  if (signer)
-    {
-      if (is_selfsig)
-        {
-          if (signer->keyid[0] == pripk->keyid[0]
-              && signer->keyid[1] == pripk->keyid[1])
-            *is_selfsig = 1;
-          else
-            *is_selfsig = 0;
-        }
-    }
-  else
-    {
-      /* Get the signer.  If possible, avoid a look up.  */
-      if (sig->keyid[0] == pripk->keyid[0]
-          && sig->keyid[1] == pripk->keyid[1])
-        /* Issued by the primary key.  */
-        {
-          signer = pripk;
-          if (is_selfsig)
-            *is_selfsig = 1;
-        }
+  if (signer) {
+    if (is_selfsig) {
+      if (signer->keyid[0] == pripk->keyid[0] &&
+          signer->keyid[1] == pripk->keyid[1])
+        *is_selfsig = 1;
       else
-        {
-          kbnode_t ctx = NULL;
-          kbnode_t n;
-
-          /* See if one of the subkeys was the signer (although this
-             is extremely unlikely).  */
-          while ((n = walk_kbnode (kb, &ctx, 0)))
-            {
-              PKT_public_key *subk;
-
-              if (n->pkt->pkttype != PKT_PUBLIC_SUBKEY)
-                continue;
-
-              subk = n->pkt->pkt.public_key;
-              if (sig->keyid[0] == subk->keyid[0]
-                  && sig->keyid[1] == subk->keyid[1])
-                /* Issued by a subkey.  */
-                {
-                  signer = subk;
-                  break;
-                }
-            }
-
-          if (! signer)
-            /* Signer by some other key.  */
-            {
-              if (is_selfsig)
-                *is_selfsig = 0;
-              if (ret_pk)
-                {
-                  signer = ret_pk;
-                  memset (signer, 0, sizeof (*signer));
-                  signer_alloced = 1;
-                }
-              else
-                {
-                  signer = (PKT_public_key*) xmalloc_clear (sizeof (*signer));
-                  signer_alloced = 2;
-                }
-
-              rc = get_pubkey (ctrl, signer, sig->keyid);
-              if (rc)
-                {
-                  xfree (signer);
-                  signer = NULL;
-                  signer_alloced = 0;
-                  goto out;
-                }
-            }
-        }
+        *is_selfsig = 0;
     }
+  } else {
+    /* Get the signer.  If possible, avoid a look up.  */
+    if (sig->keyid[0] == pripk->keyid[0] && sig->keyid[1] == pripk->keyid[1])
+    /* Issued by the primary key.  */
+    {
+      signer = pripk;
+      if (is_selfsig) *is_selfsig = 1;
+    } else {
+      kbnode_t ctx = NULL;
+      kbnode_t n;
+
+      /* See if one of the subkeys was the signer (although this
+         is extremely unlikely).  */
+      while ((n = walk_kbnode(kb, &ctx, 0))) {
+        PKT_public_key *subk;
+
+        if (n->pkt->pkttype != PKT_PUBLIC_SUBKEY) continue;
+
+        subk = n->pkt->pkt.public_key;
+        if (sig->keyid[0] == subk->keyid[0] && sig->keyid[1] == subk->keyid[1])
+        /* Issued by a subkey.  */
+        {
+          signer = subk;
+          break;
+        }
+      }
+
+      if (!signer)
+      /* Signer by some other key.  */
+      {
+        if (is_selfsig) *is_selfsig = 0;
+        if (ret_pk) {
+          signer = ret_pk;
+          memset(signer, 0, sizeof(*signer));
+          signer_alloced = 1;
+        } else {
+          signer = (PKT_public_key *)xmalloc_clear(sizeof(*signer));
+          signer_alloced = 2;
+        }
+
+        rc = get_pubkey(ctrl, signer, sig->keyid);
+        if (rc) {
+          xfree(signer);
+          signer = NULL;
+          signer_alloced = 0;
+          goto out;
+        }
+      }
+    }
+  }
 
   /* We checked above that we supported this algo, so an error here is
      a bug.  */
-  if (gcry_md_open (&md, sig->digest_algo, 0))
-    BUG ();
+  if (gcry_md_open(&md, sig->digest_algo, 0)) BUG();
 
   /* Hash the relevant data.  */
 
   if (/* Direct key signature.  */
       sig->sig_class == 0x1f
       /* Primary key revocation.  */
-      || sig->sig_class == 0x20)
-    {
-      log_assert (packet->pkttype == PKT_PUBLIC_KEY);
-      hash_public_key (md, packet->pkt.public_key);
-      rc = check_signature_end_simple (signer, sig, md);
-    }
-  else if (/* Primary key binding (made by a subkey).  */
-      sig->sig_class == 0x19)
-    {
-      log_assert (packet->pkttype == PKT_PUBLIC_KEY);
-      hash_public_key (md, packet->pkt.public_key);
-      hash_public_key (md, signer);
-      rc = check_signature_end_simple (signer, sig, md);
-    }
-  else if (/* Subkey binding.  */
-           sig->sig_class == 0x18
-           /* Subkey revocation.  */
-           || sig->sig_class == 0x28)
-    {
-      log_assert (packet->pkttype == PKT_PUBLIC_SUBKEY);
-      hash_public_key (md, pripk);
-      hash_public_key (md, packet->pkt.public_key);
-      rc = check_signature_end_simple (signer, sig, md);
-    }
-  else if (/* Certification.  */
-           sig->sig_class == 0x10
-           || sig->sig_class == 0x11
-           || sig->sig_class == 0x12
-           || sig->sig_class == 0x13
-           /* Certification revocation.  */
-           || sig->sig_class == 0x30)
-    {
-      log_assert (packet->pkttype == PKT_USER_ID);
-      hash_public_key (md, pripk);
-      hash_uid_packet (packet->pkt.user_id, md, sig);
-      rc = check_signature_end_simple (signer, sig, md);
-    }
-  else
+      || sig->sig_class == 0x20) {
+    log_assert(packet->pkttype == PKT_PUBLIC_KEY);
+    hash_public_key(md, packet->pkt.public_key);
+    rc = check_signature_end_simple(signer, sig, md);
+  } else if (/* Primary key binding (made by a subkey).  */
+             sig->sig_class == 0x19) {
+    log_assert(packet->pkttype == PKT_PUBLIC_KEY);
+    hash_public_key(md, packet->pkt.public_key);
+    hash_public_key(md, signer);
+    rc = check_signature_end_simple(signer, sig, md);
+  } else if (/* Subkey binding.  */
+             sig->sig_class == 0x18
+             /* Subkey revocation.  */
+             || sig->sig_class == 0x28) {
+    log_assert(packet->pkttype == PKT_PUBLIC_SUBKEY);
+    hash_public_key(md, pripk);
+    hash_public_key(md, packet->pkt.public_key);
+    rc = check_signature_end_simple(signer, sig, md);
+  } else if (/* Certification.  */
+             sig->sig_class == 0x10 || sig->sig_class == 0x11 ||
+             sig->sig_class == 0x12 || sig->sig_class == 0x13
+             /* Certification revocation.  */
+             || sig->sig_class == 0x30) {
+    log_assert(packet->pkttype == PKT_USER_ID);
+    hash_public_key(md, pripk);
+    hash_uid_packet(packet->pkt.user_id, md, sig);
+    rc = check_signature_end_simple(signer, sig, md);
+  } else
     /* We should never get here.  (The first if above should have
        already caught this error.)  */
-    BUG ();
+    BUG();
 
-  gcry_md_close (md);
+  gcry_md_close(md);
 
- out:
-  if (! rc && ret_pk && (signer_alloced == -1 || ret_pk != signer))
-    copy_public_key (ret_pk, signer);
+out:
+  if (!rc && ret_pk && (signer_alloced == -1 || ret_pk != signer))
+    copy_public_key(ret_pk, signer);
   if (signer_alloced == 1)
-    /* We looked up SIGNER; it is not a pointer into KB.  */
-    {
-      release_public_key_parts (signer);
-      if (signer_alloced == 2)
-        /* We also allocated the memory.  */
-        xfree (signer);
-    }
+  /* We looked up SIGNER; it is not a pointer into KB.  */
+  {
+    release_public_key_parts(signer);
+    if (signer_alloced == 2) /* We also allocated the memory.  */
+      xfree(signer);
+  }
 
   return rc;
 }
@@ -1002,25 +879,19 @@ check_signature_over_key_or_uid (ctrl_t ctrl, PKT_public_key *signer,
  *
  * TODO: add r_revoked here as well.  It has the same problems as
  * r_expiredate and r_expired and the cache.  */
-int
-check_key_signature2 (ctrl_t ctrl,
-                      kbnode_t root, kbnode_t node, PKT_public_key *check_pk,
-                      PKT_public_key *ret_pk, int *is_selfsig,
-                      u32 *r_expiredate, int *r_expired )
-{
+int check_key_signature2(ctrl_t ctrl, kbnode_t root, kbnode_t node,
+                         PKT_public_key *check_pk, PKT_public_key *ret_pk,
+                         int *is_selfsig, u32 *r_expiredate, int *r_expired) {
   PKT_public_key *pk;
   PKT_signature *sig;
   int algo;
   int rc;
 
-  if (is_selfsig)
-    *is_selfsig = 0;
-  if (r_expiredate)
-    *r_expiredate = 0;
-  if (r_expired)
-    *r_expired = 0;
-  log_assert (node->pkt->pkttype == PKT_SIGNATURE);
-  log_assert (root->pkt->pkttype == PKT_PUBLIC_KEY);
+  if (is_selfsig) *is_selfsig = 0;
+  if (r_expiredate) *r_expiredate = 0;
+  if (r_expired) *r_expired = 0;
+  log_assert(node->pkt->pkttype == PKT_SIGNATURE);
+  log_assert(root->pkt->pkttype == PKT_PUBLIC_KEY);
 
   pk = root->pkt->pkt.public_key;
   sig = node->pkt->pkt.signature;
@@ -1030,137 +901,111 @@ check_key_signature2 (ctrl_t ctrl,
      check.  Note that we may no longer have the pubkey or hash
      needed to verify a sig, but can still use the cached value.  A
      cache refresh detects and clears these cases. */
-  if ( !opt.no_sig_cache )
+  if (!opt.no_sig_cache) {
+    cache_stats.total++;
+    if (sig->flags.checked) /* Cached status available.  */
     {
-      cache_stats.total++;
-      if (sig->flags.checked) /* Cached status available.  */
-        {
-          cache_stats.cached++;
-          if (is_selfsig)
-            {
-              u32 keyid[2];
+      cache_stats.cached++;
+      if (is_selfsig) {
+        u32 keyid[2];
 
-              keyid_from_pk (pk, keyid);
-              if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1])
-                *is_selfsig = 1;
-	    }
-          /* BUG: This is wrong for non-self-sigs... needs to be the
-             actual pk.  */
-          rc = check_signature_metadata_validity (pk, sig, r_expired, NULL);
-          if (rc)
-            return rc;
-          if (sig->flags.valid)
-            {
-              cache_stats.goodsig++;
-              return 0;
-            }
-          cache_stats.badsig++;
-          return GPG_ERR_BAD_SIGNATURE;
-        }
+        keyid_from_pk(pk, keyid);
+        if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1])
+          *is_selfsig = 1;
+      }
+      /* BUG: This is wrong for non-self-sigs... needs to be the
+         actual pk.  */
+      rc = check_signature_metadata_validity(pk, sig, r_expired, NULL);
+      if (rc) return rc;
+      if (sig->flags.valid) {
+        cache_stats.goodsig++;
+        return 0;
+      }
+      cache_stats.badsig++;
+      return GPG_ERR_BAD_SIGNATURE;
     }
+  }
 
-  rc = openpgp_pk_test_algo((pubkey_algo_t) (sig->pubkey_algo));
-  if (rc)
-    return rc;
-  rc = openpgp_md_test_algo((digest_algo_t) (algo));
-  if (rc)
-    return rc;
+  rc = openpgp_pk_test_algo((pubkey_algo_t)(sig->pubkey_algo));
+  if (rc) return rc;
+  rc = openpgp_md_test_algo((digest_algo_t)(algo));
+  if (rc) return rc;
 
   if (sig->sig_class == 0x20) /* key revocation */
-    {
-      u32 keyid[2];
-      keyid_from_pk( pk, keyid );
+  {
+    u32 keyid[2];
+    keyid_from_pk(pk, keyid);
 
-      /* Is it a designated revoker? */
-      if (keyid[0] != sig->keyid[0] || keyid[1] != sig->keyid[1])
-        rc = check_revocation_keys (ctrl, pk, sig);
-      else
-        {
-          rc = check_signature_metadata_validity (pk, sig,
-                                                  r_expired, NULL);
-          if (! rc)
-            rc = check_signature_over_key_or_uid (ctrl, pk, sig,
-                                                  root, root->pkt,
-                                                  is_selfsig, ret_pk);
-        }
+    /* Is it a designated revoker? */
+    if (keyid[0] != sig->keyid[0] || keyid[1] != sig->keyid[1])
+      rc = check_revocation_keys(ctrl, pk, sig);
+    else {
+      rc = check_signature_metadata_validity(pk, sig, r_expired, NULL);
+      if (!rc)
+        rc = check_signature_over_key_or_uid(ctrl, pk, sig, root, root->pkt,
+                                             is_selfsig, ret_pk);
     }
-  else if (sig->sig_class == 0x28  /* subkey revocation */
-           || sig->sig_class == 0x18) /* key binding */
-    {
-      kbnode_t snode = find_prev_kbnode (root, node, PKT_PUBLIC_SUBKEY);
+  } else if (sig->sig_class == 0x28     /* subkey revocation */
+             || sig->sig_class == 0x18) /* key binding */
+  {
+    kbnode_t snode = find_prev_kbnode(root, node, PKT_PUBLIC_SUBKEY);
 
-      if (snode)
-        {
-          rc = check_signature_metadata_validity (pk, sig,
-                                                  r_expired, NULL);
-          if (! rc)
-            /* 0x28 must be a self-sig, but 0x18 needn't be.  */
-            rc = check_signature_over_key_or_uid (ctrl,
-                                                  sig->sig_class == 0x18
-                                                  ? NULL : pk,
-                                                  sig, root, snode->pkt,
-                                                  is_selfsig, ret_pk);
-	}
-      else
-        {
-          if (opt.verbose)
-            {
-              if (sig->sig_class == 0x28)
-                log_info (_("key %s: no subkey for subkey"
-                            " revocation signature\n"), keystr_from_pk(pk));
-              else if (sig->sig_class == 0x18)
-                log_info(_("key %s: no subkey for subkey"
-                           " binding signature\n"), keystr_from_pk(pk));
-            }
-          rc = GPG_ERR_SIG_CLASS;
-        }
-    }
-    else if (sig->sig_class == 0x1f) /* direct key signature */
-      {
-        rc = check_signature_metadata_validity (pk, sig,
-                                                r_expired, NULL);
-        if (! rc)
-          rc = check_signature_over_key_or_uid (ctrl, pk, sig, root, root->pkt,
-                                                is_selfsig, ret_pk);
+    if (snode) {
+      rc = check_signature_metadata_validity(pk, sig, r_expired, NULL);
+      if (!rc) /* 0x28 must be a self-sig, but 0x18 needn't be.  */
+        rc = check_signature_over_key_or_uid(
+            ctrl, sig->sig_class == 0x18 ? NULL : pk, sig, root, snode->pkt,
+            is_selfsig, ret_pk);
+    } else {
+      if (opt.verbose) {
+        if (sig->sig_class == 0x28)
+          log_info(_("key %s: no subkey for subkey"
+                     " revocation signature\n"),
+                   keystr_from_pk(pk));
+        else if (sig->sig_class == 0x18)
+          log_info(_("key %s: no subkey for subkey"
+                     " binding signature\n"),
+                   keystr_from_pk(pk));
       }
-    else if (/* Certification.  */
-             sig->sig_class == 0x10
-             || sig->sig_class == 0x11
-             || sig->sig_class == 0x12
-             || sig->sig_class == 0x13
+      rc = GPG_ERR_SIG_CLASS;
+    }
+  } else if (sig->sig_class == 0x1f) /* direct key signature */
+  {
+    rc = check_signature_metadata_validity(pk, sig, r_expired, NULL);
+    if (!rc)
+      rc = check_signature_over_key_or_uid(ctrl, pk, sig, root, root->pkt,
+                                           is_selfsig, ret_pk);
+  } else if (/* Certification.  */
+             sig->sig_class == 0x10 || sig->sig_class == 0x11 ||
+             sig->sig_class == 0x12 || sig->sig_class == 0x13
              /* Certification revocation.  */
-             || sig->sig_class == 0x30)
-      {
-	kbnode_t unode = find_prev_kbnode (root, node, PKT_USER_ID);
+             || sig->sig_class == 0x30) {
+    kbnode_t unode = find_prev_kbnode(root, node, PKT_USER_ID);
 
-	if (unode)
-          {
-            rc = check_signature_metadata_validity (pk, sig, r_expired, NULL);
-            if (! rc)
-              /* If this is a self-sig, ignore check_pk.  */
-              rc = check_signature_over_key_or_uid
-                (ctrl,
-                 keyid_cmp (pk_keyid (pk), sig->keyid) == 0 ? pk : check_pk,
-                 sig, root, unode->pkt, NULL, ret_pk);
-          }
-	else
-	  {
-            if (!opt.quiet)
-	      log_info ("key %s: no user ID for key signature packet"
-			" of class %02x\n",keystr_from_pk(pk),sig->sig_class);
-	    rc = GPG_ERR_SIG_CLASS;
-	  }
-      }
-  else
-    {
-      log_info ("sig issued by %s with class %d (digest: %02x %02x)"
-                " is not valid over a user id or a key id, ignoring.\n",
-                keystr (sig->keyid), sig->sig_class,
-                sig->digest_start[0], sig->digest_start[1]);
-      rc = GPG_ERR_BAD_SIGNATURE;
+    if (unode) {
+      rc = check_signature_metadata_validity(pk, sig, r_expired, NULL);
+      if (!rc) /* If this is a self-sig, ignore check_pk.  */
+        rc = check_signature_over_key_or_uid(
+            ctrl, keyid_cmp(pk_keyid(pk), sig->keyid) == 0 ? pk : check_pk, sig,
+            root, unode->pkt, NULL, ret_pk);
+    } else {
+      if (!opt.quiet)
+        log_info(
+            "key %s: no user ID for key signature packet"
+            " of class %02x\n",
+            keystr_from_pk(pk), sig->sig_class);
+      rc = GPG_ERR_SIG_CLASS;
     }
+  } else {
+    log_info(
+        "sig issued by %s with class %d (digest: %02x %02x)"
+        " is not valid over a user id or a key id, ignoring.\n",
+        keystr(sig->keyid), sig->sig_class, sig->digest_start[0],
+        sig->digest_start[1]);
+    rc = GPG_ERR_BAD_SIGNATURE;
+  }
 
-  cache_sig_result  (sig, rc);
+  cache_sig_result(sig, rc);
 
   return rc;
 }

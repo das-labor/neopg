@@ -18,20 +18,14 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
-#include "mpi-internal.h"
-#include "longlong.h"
-#include "g10lib.h"
 #include "context.h"
 #include "ec-context.h"
+#include "g10lib.h"
+#include "longlong.h"
+#include "mpi-internal.h"
 
-
-void
-_gcry_mpi_ec_ed25519_mod (gcry_mpi_t a)
-{
-  (void)a;
-
-}
+void _gcry_mpi_ec_ed25519_mod(gcry_mpi_t a) { (void)a; }

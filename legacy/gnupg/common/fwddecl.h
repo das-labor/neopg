@@ -30,10 +30,8 @@
 #ifndef GNUPG_COMMON_FWDDECL_H
 #define GNUPG_COMMON_FWDDECL_H
 
-
 /*-- Forward declaration of the commonly used server control structure.  */
 struct server_control_s;
 typedef struct server_control_s *ctrl_t;
-
 
 #endif /*GNUPG_COMMON_FWDDECL_H*/

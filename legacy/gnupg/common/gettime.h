@@ -30,41 +30,40 @@
 #ifndef GNUPG_COMMON_GETTIME_H
 #define GNUPG_COMMON_GETTIME_H
 
-#include <time.h>      /* We need time_t. */
 #include <gpg-error.h> /* We need gpg_error_t. */
-
+#include <time.h>      /* We need time_t. */
+#include "types.h"
 
 /* A type to hold the ISO time.  Note that this is the same as
    the KSBA type ksba_isotime_t. */
 typedef char gnupg_isotime_t[16];
 
-time_t gnupg_get_time (void);
-struct tm *gnupg_gmtime (const time_t *timep, struct tm *result);
-void   gnupg_get_isotime (gnupg_isotime_t timebuf);
-void   gnupg_set_time (time_t newtime, int freeze);
-int    gnupg_faked_time_p (void);
-u32    make_timestamp (void);
-char *elapsed_time_string (time_t since, time_t now);
+time_t gnupg_get_time(void);
+struct tm *gnupg_gmtime(const time_t *timep, struct tm *result);
+void gnupg_get_isotime(gnupg_isotime_t timebuf);
+void gnupg_set_time(time_t newtime, int freeze);
+int gnupg_faked_time_p(void);
+u32 make_timestamp(void);
+char *elapsed_time_string(time_t since, time_t now);
 
-u32    scan_isodatestr (const char *string);
-int    isotime_p (const char *string);
-int    isotime_human_p (const char *string, int date_only);
-size_t string2isotime (gnupg_isotime_t atime, const char *string);
-time_t isotime2epoch (const char *string);
-void   epoch2isotime (gnupg_isotime_t timebuf, time_t atime);
-int    isodate_human_to_tm (const char *string, struct tm *t);
-time_t parse_timestamp (const char *timestamp, char **endp);
-u32    add_days_to_timestamp (u32 stamp, u16 days);
-const char *strtimevalue (u32 stamp);
-const char *strtimestamp (u32 stamp); /* GMT */
-const char *isotimestamp (u32 stamp); /* GMT */
-const char *asctimestamp (u32 stamp); /* localized */
-char *rfctimestamp (u32 stamp);       /* RFC format, malloced. */
-gpg_error_t add_seconds_to_isotime (gnupg_isotime_t atime, int nseconds);
-gpg_error_t add_days_to_isotime (gnupg_isotime_t atime, int ndays);
-gpg_error_t check_isotime (const gnupg_isotime_t atime);
-void dump_isotime (const gnupg_isotime_t atime);
-void gnupg_copy_time (gnupg_isotime_t d, const gnupg_isotime_t s);
-
+u32 scan_isodatestr(const char *string);
+int isotime_p(const char *string);
+int isotime_human_p(const char *string, int date_only);
+size_t string2isotime(gnupg_isotime_t atime, const char *string);
+time_t isotime2epoch(const char *string);
+void epoch2isotime(gnupg_isotime_t timebuf, time_t atime);
+int isodate_human_to_tm(const char *string, struct tm *t);
+time_t parse_timestamp(const char *timestamp, char **endp);
+u32 add_days_to_timestamp(u32 stamp, u16 days);
+const char *strtimevalue(u32 stamp);
+const char *strtimestamp(u32 stamp); /* GMT */
+const char *isotimestamp(u32 stamp); /* GMT */
+const char *asctimestamp(u32 stamp); /* localized */
+char *rfctimestamp(u32 stamp);       /* RFC format, malloced. */
+gpg_error_t add_seconds_to_isotime(gnupg_isotime_t atime, int nseconds);
+gpg_error_t add_days_to_isotime(gnupg_isotime_t atime, int ndays);
+gpg_error_t check_isotime(const gnupg_isotime_t atime);
+void dump_isotime(const gnupg_isotime_t atime);
+void gnupg_copy_time(gnupg_isotime_t d, const gnupg_isotime_t s);
 
 #endif /*GNUPG_COMMON_GETTIME_H*/

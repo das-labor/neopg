@@ -21,54 +21,39 @@
 #include <config.h>
 #include <unistd.h>
 
-#include "passphrase.h"
-#include "gpgsm.h"
 #include "../common/ttyio.h"
+#include "gpgsm.h"
+#include "passphrase.h"
 
 static char *fd_passwd = NULL;
 
-int
-sm_have_static_passphrase ()
-{
-  return !!fd_passwd;
-}
+int sm_have_static_passphrase() { return !!fd_passwd; }
 
 /* Return a static passphrase.  The returned value is only valid as
    long as no other passphrase related function is called.  NULL may
    be returned if no passphrase has been set; better use
    have_static_passphrase first.  */
-const char *
-sm_get_static_passphrase (void)
-{
-  return fd_passwd;
-}
+const char *sm_get_static_passphrase(void) { return fd_passwd; }
 
-void
-sm_read_passphrase_from_fd (int fd)
-{
+void sm_read_passphrase_from_fd(int fd) {
   int i, len;
   char *pw;
 
-  for (pw = NULL, i = len = 100; ; i++)
-    {
-      if (i >= len-1)
-        {
-          char *pw2 = pw;
-          len += 100;
-          pw = (char*) xmalloc_secure (len);
-          if (pw2)
-            {
-              memcpy (pw, pw2, i);
-              xfree (pw2);
-            }
-          else
-            i = 0;
-	}
-      if (read (fd, pw+i, 1) != 1 || pw[i] == '\n')
-        break;
+  for (pw = NULL, i = len = 100;; i++) {
+    if (i >= len - 1) {
+      char *pw2 = pw;
+      len += 100;
+      pw = (char *)xmalloc_secure(len);
+      if (pw2) {
+        memcpy(pw, pw2, i);
+        xfree(pw2);
+      } else
+        i = 0;
     }
+    if (read(fd, pw + i, 1) != 1 || pw[i] == '\n') break;
+  }
   pw[i] = 0;
 
-  xfree (fd_passwd);
+  xfree(fd_passwd);
   fd_passwd = pw;
 }

@@ -35,50 +35,36 @@
 
 #include "t-support.h"
 
-static void
-test_strlist_rev (void)
-{
+static void test_strlist_rev(void) {
   strlist_t s = NULL;
 
   /* Reversing an empty list should yield the empty list.  */
-  if (! (strlist_rev (&s) == NULL))
-    fail (1);
+  if (!(strlist_rev(&s) == NULL)) fail(1);
 
-  add_to_strlist (&s, "1");
-  add_to_strlist (&s, "2");
-  add_to_strlist (&s, "3");
+  add_to_strlist(&s, "1");
+  add_to_strlist(&s, "2");
+  add_to_strlist(&s, "3");
 
-  if (strcmp (s->d, "3") != 0)
-    fail (2);
-  if (strcmp (s->next->d, "2") != 0)
-    fail (2);
-  if (strcmp (s->next->next->d, "1") != 0)
-    fail (2);
-  if (s->next->next->next)
-    fail (2);
+  if (strcmp(s->d, "3") != 0) fail(2);
+  if (strcmp(s->next->d, "2") != 0) fail(2);
+  if (strcmp(s->next->next->d, "1") != 0) fail(2);
+  if (s->next->next->next) fail(2);
 
-  strlist_rev (&s);
+  strlist_rev(&s);
 
-  if (strcmp (s->d, "1") != 0)
-    fail (2);
-  if (strcmp (s->next->d, "2") != 0)
-    fail (2);
-  if (strcmp (s->next->next->d, "3") != 0)
-    fail (2);
-  if (s->next->next->next)
-    fail (2);
+  if (strcmp(s->d, "1") != 0) fail(2);
+  if (strcmp(s->next->d, "2") != 0) fail(2);
+  if (strcmp(s->next->next->d, "3") != 0) fail(2);
+  if (s->next->next->next) fail(2);
 
-  free_strlist (s);
+  free_strlist(s);
 }
 
-
-int
-main (int argc, char **argv)
-{
+int main(int argc, char **argv) {
   (void)argc;
   (void)argv;
 
-  test_strlist_rev ();
+  test_strlist_rev();
 
   return 0;
 }

@@ -30,48 +30,44 @@
 #ifndef GNUPG_COMMON_EXECHELP_H
 #define GNUPG_COMMON_EXECHELP_H
 
+#include <gpg-error.h>
 
 /* Return the maximum number of currently allowed file descriptors.
    Only useful on POSIX systems.  */
-int get_max_fds (void);
-
+int get_max_fds(void);
 
 /* Close all file descriptors starting with descriptor FIRST.  If
    EXCEPT is not NULL, it is expected to be a list of file descriptors
    which are not to close.  This list shall be sorted in ascending
    order with its end marked by -1.  */
-void close_all_fds (int first, int *except);
-
+void close_all_fds(int first, int *except);
 
 /* Returns an array with all currently open file descriptors.  The end
    of the array is marked by -1.  The caller needs to release this
    array using the *standard free* and not with xfree.  This allow the
    use of this function right at startup even before libgcrypt has
    been initialized.  Returns NULL on error and sets ERRNO accordingly.  */
-int *get_all_open_fds (void);
-
+int *get_all_open_fds(void);
 
 /* Portable function to create a pipe.  Under Windows the write end is
    inheritable.  If R_FP is not NULL, an estream is created for the
    write end and stored at R_FP.  */
-gpg_error_t gnupg_create_inbound_pipe (int filedes[2],
-                                       estream_t *r_fp, int nonblock);
+gpg_error_t gnupg_create_inbound_pipe(int filedes[2], estream_t *r_fp,
+                                      int nonblock);
 
 /* Portable function to create a pipe.  Under Windows the read end is
    inheritable.  If R_FP is not NULL, an estream is created for the
    write end and stored at R_FP.  */
-gpg_error_t gnupg_create_outbound_pipe (int filedes[2],
-                                        estream_t *r_fp, int nonblock);
+gpg_error_t gnupg_create_outbound_pipe(int filedes[2], estream_t *r_fp,
+                                       int nonblock);
 
 /* Portable function to create a pipe.  Under Windows both ends are
    inheritable.  */
-gpg_error_t gnupg_create_pipe (int filedes[2]);
+gpg_error_t gnupg_create_pipe(int filedes[2]);
 
-
-#define GNUPG_SPAWN_NONBLOCK   16
-#define GNUPG_SPAWN_RUN_ASFW   64
-#define GNUPG_SPAWN_DETACHED  128
-
+#define GNUPG_SPAWN_NONBLOCK 16
+#define GNUPG_SPAWN_RUN_ASFW 64
+#define GNUPG_SPAWN_DETACHED 128
 
 /* Fork and exec the program PGMNAME.
 
@@ -118,14 +114,11 @@ gpg_error_t gnupg_create_pipe (int filedes[2]);
           allows SetForegroundWindow for all children of this process.
 
  */
-gpg_error_t
-gnupg_spawn_process (const char *pgmname, const char *argv[],
-                     int *execpt, void (*preexec)(void), unsigned int flags,
-                     estream_t *r_infp,
-                     estream_t *r_outfp,
-                     estream_t *r_errfp,
-                     pid_t *pid);
-
+gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
+                                int *execpt, void (*preexec)(void),
+                                unsigned int flags, estream_t *r_infp,
+                                estream_t *r_outfp, estream_t *r_errfp,
+                                pid_t *pid);
 
 /* Simplified version of gnupg_spawn_process.  This function forks and
    then execs PGMNAME, while connecting INFD to stdin, OUTFD to stdout
@@ -135,11 +128,8 @@ gnupg_spawn_process (const char *pgmname, const char *argv[],
    included there.  Calling gnupg_wait_process and
    gnupg_release_process is required.  Returns 0 on success or an
    error code. */
-gpg_error_t gnupg_spawn_process_fd (const char *pgmname,
-                                    const char *argv[],
-                                    int infd, int outfd, int errfd,
-                                    pid_t *pid);
-
+gpg_error_t gnupg_spawn_process_fd(const char *pgmname, const char *argv[],
+                                   int infd, int outfd, int errfd, pid_t *pid);
 
 /* If HANG is true, waits for the process identified by PID to exit;
    if HANG is false, checks whether the process has terminated.
@@ -165,24 +155,22 @@ gpg_error_t gnupg_spawn_process_fd (const char *pgmname,
    if the exit code is not required (in that case an error message will
    be printed).  Note that under Windows PID is not the process id but
    the handle of the process.  */
-gpg_error_t gnupg_wait_process (const char *pgmname, pid_t pid, int hang,
-                                int *r_exitcode);
+gpg_error_t gnupg_wait_process(const char *pgmname, pid_t pid, int hang,
+                               int *r_exitcode);
 
 /* Like gnupg_wait_process, but for COUNT processes.  */
-gpg_error_t gnupg_wait_processes (const char **pgmnames, pid_t *pids,
-				  size_t count, int hang, int *r_exitcodes);
-
+gpg_error_t gnupg_wait_processes(const char **pgmnames, pid_t *pids,
+                                 size_t count, int hang, int *r_exitcodes);
 
 /* Kill a process; that is send an appropriate signal to the process.
    gnupg_wait_process must be called to actually remove the process
    from the system.  An invalid PID is ignored.  */
-void gnupg_kill_process (pid_t pid);
+void gnupg_kill_process(pid_t pid);
 
 /* Release the process identified by PID.  This function is actually
    only required for Windows but it does not harm to always call it.
    It is a nop if PID is invalid.  */
-void gnupg_release_process (pid_t pid);
-
+void gnupg_release_process(pid_t pid);
 
 /* Spawn a new process and immediately detach from it.  The name of
    the program to exec is PGMNAME and its arguments are in ARGV (the
@@ -190,10 +178,8 @@ void gnupg_release_process (pid_t pid);
    Environment strings in ENVP are set.  An error is returned if
    pgmname is not executable; to make this work it is necessary to
    provide an absolute file name.  */
-gpg_error_t gnupg_spawn_process_detached (const char *pgmname,
-                                          const char *argv[],
-                                          const char *envp[] );
-
-
+gpg_error_t gnupg_spawn_process_detached(const char *pgmname,
+                                         const char *argv[],
+                                         const char *envp[]);
 
 #endif /*GNUPG_COMMON_EXECHELP_H*/

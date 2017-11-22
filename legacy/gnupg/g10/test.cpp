@@ -46,146 +46,112 @@ static int tests_failed;
    "verbose" exists and is not the empty string.  */
 static int verbose;
 
-#define TEST_GROUP(description)	     \
-  do {				     \
-    test_group = (description);	     \
-    test_groups ++;		     \
-    current_test_group_failed = 0;   \
+#define TEST_GROUP(description)    \
+  do {                             \
+    test_group = (description);    \
+    test_groups++;                 \
+    current_test_group_failed = 0; \
   } while (0)
 
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x) STRINGIFY2(x)
 
 /* Execute a test.  */
-#define TEST(description, test, expected)	\
-  do {						\
-    int test_result;				\
-    int expected_result;			\
-						\
-    tests ++;					\
-    if (verbose)                                \
-      {                                         \
-         printf ("%d. Checking %s...",		\
-	        tests, (description) ?: "");	\
-         fflush (stdout);			\
-      }                                         \
-    test_result = (test);			\
-    expected_result = (expected);		\
-						\
-    if (test_result == expected_result)		\
-      {						\
-        if (verbose) printf (" ok.\n");         \
-      }						\
-    else					\
-      {						\
-        if (!verbose)                           \
-          printf ("%d. Checking %s...",         \
-                  tests, (description) ?: "");  \
-	printf (" failed.\n");			\
-	printf ("  %s == %s failed.\n",		\
-		STRINGIFY(test),		\
-		STRINGIFY(expected));		\
-	tests_failed ++;			\
-	if (! current_test_group_failed)	\
-	  {					\
-	    current_test_group_failed = 1;	\
-	    test_groups_failed ++;		\
-	  }					\
-      }						\
+#define TEST(description, test, expected)                                     \
+  do {                                                                        \
+    int test_result;                                                          \
+    int expected_result;                                                      \
+                                                                              \
+    tests++;                                                                  \
+    if (verbose) {                                                            \
+      printf("%d. Checking %s...", tests, (description) ?: "");               \
+      fflush(stdout);                                                         \
+    }                                                                         \
+    test_result = (test);                                                     \
+    expected_result = (expected);                                             \
+                                                                              \
+    if (test_result == expected_result) {                                     \
+      if (verbose) printf(" ok.\n");                                          \
+    } else {                                                                  \
+      if (!verbose) printf("%d. Checking %s...", tests, (description) ?: ""); \
+      printf(" failed.\n");                                                   \
+      printf("  %s == %s failed.\n", STRINGIFY(test), STRINGIFY(expected));   \
+      tests_failed++;                                                         \
+      if (!current_test_group_failed) {                                       \
+        current_test_group_failed = 1;                                        \
+        test_groups_failed++;                                                 \
+      }                                                                       \
+    }                                                                         \
   } while (0)
 
 /* Test that a condition evaluates to true.  */
-#define TEST_P(description, test)		\
-  TEST(description, !!(test), 1)
+#define TEST_P(description, test) TEST(description, !!(test), 1)
 
 /* Like CHECK, but if the test fails, abort the program.  */
-#define ASSERT(description, test, expected)		\
-  do {							\
-    int tests_failed_pre = tests_failed;		\
-    CHECK(description, test, expected);			\
-    if (tests_failed_pre != tests_failed)		\
-      exit_tests (1);					\
+#define ASSERT(description, test, expected)              \
+  do {                                                   \
+    int tests_failed_pre = tests_failed;                 \
+    CHECK(description, test, expected);                  \
+    if (tests_failed_pre != tests_failed) exit_tests(1); \
   } while (0)
 
 /* Call this if something went wrong.  */
-#define ABORT(message)				\
-  do {						\
-    printf ("aborting...");			\
-    if (message)				\
-      printf (" %s\n", (message));		\
-						\
-    exit_tests (1);				\
+#define ABORT(message)                       \
+  do {                                       \
+    printf("aborting...");                   \
+    if (message) printf(" %s\n", (message)); \
+                                             \
+    exit_tests(1);                           \
   } while (0)
 
 /* You need to fill this function in.  */
-static void do_test (int argc, char *argv[]);
-
+static void do_test(int argc, char *argv[]);
 
 /* Print stats and call the real exit.  If FORCE is set use
    EXIT_FAILURE even if no test has failed.  */
-static void
-exit_tests (int force)
-{
-  if (tests_failed == 0)
-    {
-      if (verbose)
-        printf ("All %d tests passed.\n", tests);
-      exit (!!force);
-    }
-  else
-    {
-      printf ("%d of %d tests failed",
-	      tests_failed, tests);
-      if (test_groups > 1)
-	printf (" (%d of %d groups)",
-		test_groups_failed, test_groups);
-      printf ("\n");
-      exit (1);
-    }
+static void exit_tests(int force) {
+  if (tests_failed == 0) {
+    if (verbose) printf("All %d tests passed.\n", tests);
+    exit(!!force);
+  } else {
+    printf("%d of %d tests failed", tests_failed, tests);
+    if (test_groups > 1)
+      printf(" (%d of %d groups)", test_groups_failed, test_groups);
+    printf("\n");
+    exit(1);
+  }
 }
-
 
 /* Prepend FNAME with the srcdir environment variable's value and
    return a malloced filename.  Caller must release the returned
    string using test_free.  */
-char *
-prepend_srcdir (const char *fname)
-{
+char *prepend_srcdir(const char *fname) {
   static const char *srcdir;
   char *result;
 
-  if (!srcdir && !(srcdir = getenv ("abs_top_srcdir")))
-    srcdir = ".";
+  if (!srcdir && !(srcdir = getenv("abs_top_srcdir"))) srcdir = ".";
 
-  result = malloc (strlen (srcdir) + strlen ("/g10/") + strlen (fname) + 1);
-  strcpy (result, srcdir);
-  strcat (result, "/g10/");
-  strcat (result, fname);
+  result = malloc(strlen(srcdir) + strlen("/g10/") + strlen(fname) + 1);
+  strcpy(result, srcdir);
+  strcat(result, "/g10/");
+  strcat(result, fname);
   return result;
 }
 
-
-void
-test_free (void *a)
-{
-  if (a)
-    free (a);
+void test_free(void *a) {
+  if (a) free(a);
 }
 
-
-int
-main (int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   const char *s;
 
-  (void) test_group;
+  (void)test_group;
 
-  s = getenv ("verbose");
-  if (s && *s)
-    verbose = 1;
+  s = getenv("verbose");
+  if (s && *s) verbose = 1;
 
-  do_test (argc, argv);
-  exit_tests (0);
+  do_test(argc, argv);
+  exit_tests(0);
 
   return !!tests_failed;
 }

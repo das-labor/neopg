@@ -20,11 +20,11 @@
 #include <config.h>
 #include <stdio.h>
 
-#include "gpg.h"
 #include "../common/iobuf.h"
-#include "filter.h"
 #include "../common/status.h"
 #include "../common/util.h"
+#include "filter.h"
+#include "gpg.h"
 #include "options.h"
 
 /* Create a new context for use with the progress filter.  We need to
@@ -39,18 +39,14 @@
    function return NULL if progress information has not been
    requested.
 */
-progress_filter_context_t *
-new_progress_context (void)
-{
+progress_filter_context_t *new_progress_context(void) {
   progress_filter_context_t *pfx;
 
-  if (!opt.enable_progress_filter)
-    return NULL;
+  if (!opt.enable_progress_filter) return NULL;
 
-  if (!is_status_enabled ())
-    return NULL;
+  if (!is_status_enabled()) return NULL;
 
-  pfx = (progress_filter_context_t*) xcalloc (1, sizeof *pfx);
+  pfx = (progress_filter_context_t *)xcalloc(1, sizeof *pfx);
   pfx->refcount = 1;
 
   return pfx;
@@ -58,23 +54,16 @@ new_progress_context (void)
 
 /* Release a progress filter context.  Passing NULL is explicitly
    allowed and a no-op.  */
-void
-release_progress_context (progress_filter_context_t *pfx)
-{
-  if (!pfx)
-    return;
-  log_assert (pfx->refcount);
-  if ( --pfx->refcount )
-    return;
-  xfree (pfx->what);
-  xfree (pfx);
+void release_progress_context(progress_filter_context_t *pfx) {
+  if (!pfx) return;
+  log_assert(pfx->refcount);
+  if (--pfx->refcount) return;
+  xfree(pfx->what);
+  xfree(pfx);
 }
 
-
-static void
-write_status_progress (const char *what,
-                       unsigned long current, unsigned long total_arg)
-{
+static void write_status_progress(const char *what, unsigned long current,
+                                  unsigned long total_arg) {
   char buffer[60];
   char units[] = "BKMGTPEZY?";
   int unitidx = 0;
@@ -93,105 +82,81 @@ write_status_progress (const char *what,
    * should not have a noticeable effect except for rounding
    * imprecision. */
 
-  if (total)
-    {
-      if (current > total)
-        current = total;
+  if (total) {
+    if (current > total) current = total;
 
-      while (total > 1024*1024)
-        {
-          total /= 1024;
-          current /= 1024;
-          unitidx++;
-        }
+    while (total > 1024 * 1024) {
+      total /= 1024;
+      current /= 1024;
+      unitidx++;
     }
-  else
-    {
-      while (current > 1024*1024)
-        {
-          current /= 1024;
-          unitidx++;
-        }
+  } else {
+    while (current > 1024 * 1024) {
+      current /= 1024;
+      unitidx++;
     }
+  }
 
-  if (unitidx > 9)
-    unitidx = 9;
+  if (unitidx > 9) unitidx = 9;
 
-  snprintf (buffer, sizeof buffer, "%.20s ? %lu %lu %c%s",
-            what? what : "?", current, (unsigned long)total,
-            units[unitidx],
-            unitidx? "iB" : "");
-  write_status_text (STATUS_PROGRESS, buffer);
+  snprintf(buffer, sizeof buffer, "%.20s ? %lu %lu %c%s", what ? what : "?",
+           current, (unsigned long)total, units[unitidx], unitidx ? "iB" : "");
+  write_status_text(STATUS_PROGRESS, buffer);
 }
-
 
 /****************
  * The filter is used to report progress to the user.
  */
-static int
-progress_filter (void *opaque, int control,
-		 IOBUF a, byte *buf, size_t *ret_len)
-{
+static int progress_filter(void *opaque, int control, IOBUF a, byte *buf,
+                           size_t *ret_len) {
   int rc = 0;
-  progress_filter_context_t *pfx = (progress_filter_context_t*) opaque;
+  progress_filter_context_t *pfx = (progress_filter_context_t *)opaque;
 
-  if (control == IOBUFCTRL_INIT)
-    {
-      pfx->last = 0;
-      pfx->offset = 0;
-      pfx->last_time = make_timestamp ();
+  if (control == IOBUFCTRL_INIT) {
+    pfx->last = 0;
+    pfx->offset = 0;
+    pfx->last_time = make_timestamp();
 
-      write_status_progress (pfx->what, pfx->offset, pfx->total);
-    }
-  else if (control == IOBUFCTRL_UNDERFLOW)
-    {
-      u32 timestamp = make_timestamp ();
-      int len = iobuf_read (a, buf, *ret_len);
+    write_status_progress(pfx->what, pfx->offset, pfx->total);
+  } else if (control == IOBUFCTRL_UNDERFLOW) {
+    u32 timestamp = make_timestamp();
+    int len = iobuf_read(a, buf, *ret_len);
 
-      if (len >= 0)
-	{
-	  pfx->offset += len;
-	  *ret_len = len;
-	}
-      else
-	{
-	  *ret_len = 0;
-	  rc = -1;
-	}
-      if ((len == -1 && pfx->offset != pfx->last)
-	  || timestamp - pfx->last_time > 0)
-	{
-          write_status_progress (pfx->what, pfx->offset, pfx->total);
-	  pfx->last = pfx->offset;
-	  pfx->last_time = timestamp;
-	}
+    if (len >= 0) {
+      pfx->offset += len;
+      *ret_len = len;
+    } else {
+      *ret_len = 0;
+      rc = -1;
     }
-  else if (control == IOBUFCTRL_FREE)
-    {
-      release_progress_context (pfx);
+    if ((len == -1 && pfx->offset != pfx->last) ||
+        timestamp - pfx->last_time > 0) {
+      write_status_progress(pfx->what, pfx->offset, pfx->total);
+      pfx->last = pfx->offset;
+      pfx->last_time = timestamp;
     }
-  else if (control == IOBUFCTRL_DESC)
-    mem2str ((char*) (buf), "progress_filter", *ret_len);
+  } else if (control == IOBUFCTRL_FREE) {
+    release_progress_context(pfx);
+  } else if (control == IOBUFCTRL_DESC)
+    mem2str((char *)(buf), "progress_filter", *ret_len);
   return rc;
 }
 
-void
-handle_progress (progress_filter_context_t *pfx, IOBUF inp, const char *name)
-{
+void handle_progress(progress_filter_context_t *pfx, IOBUF inp,
+                     const char *name) {
   off_t filesize = 0;
 
-  if (!pfx)
-    return;
+  if (!pfx) return;
 
-  log_assert (opt.enable_progress_filter);
-  log_assert (is_status_enabled ());
+  log_assert(opt.enable_progress_filter);
+  log_assert(is_status_enabled());
 
-  if ( !iobuf_is_pipe_filename (name) && *name )
-    filesize = iobuf_get_filelength (inp, NULL);
+  if (!iobuf_is_pipe_filename(name) && *name)
+    filesize = iobuf_get_filelength(inp, NULL);
 
   /* register the progress filter */
-  pfx->what = xstrdup (name ? name : "stdin");
+  pfx->what = xstrdup(name ? name : "stdin");
   pfx->total = filesize;
   pfx->refcount++;
-  iobuf_push_filter (inp, progress_filter, pfx);
+  iobuf_push_filter(inp, progress_filter, pfx);
 }

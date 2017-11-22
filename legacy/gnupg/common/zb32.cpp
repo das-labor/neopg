@@ -27,12 +27,12 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <assert.h>
 
 #include "util.h"
 #include "zb32.h"
@@ -42,76 +42,68 @@
    Caller must xfree the returned string.  Returns NULL and sets ERRNO
    on error.  To avoid integer overflow DATALEN is limited to 2^16
    bytes.  Note, that DATABITS is measured in bits!.  */
-char *
-zb32_encode (const void *data, unsigned int databits)
-{
-  static char const zb32asc[32] = {'y','b','n','d','r','f','g','8',
-                                   'e','j','k','m','c','p','q','x',
-                                   'o','t','1','u','w','i','s','z',
-                                   'a','3','4','5','h','7','6','9' };
+char *zb32_encode(const void *data, unsigned int databits) {
+  static char const zb32asc[32] = {'y', 'b', 'n', 'd', 'r', 'f', 'g', '8',
+                                   'e', 'j', 'k', 'm', 'c', 'p', 'q', 'x',
+                                   'o', 't', '1', 'u', 'w', 'i', 's', 'z',
+                                   'a', '3', '4', '5', 'h', '7', '6', '9'};
   const unsigned char *s;
   char *output, *d;
   size_t datalen;
 
   datalen = (databits + 7) / 8;
-  if (datalen > (1 << 16))
-    {
-      errno = EINVAL;
-      return NULL;
-    }
-
-  d = output = (char*) xtrymalloc (8 * (datalen / 5)
-                           + 2 * (datalen % 5)
-                           - ((datalen%5)>2)
-                           + 1);
-  if (!output)
+  if (datalen > (1 << 16)) {
+    errno = EINVAL;
     return NULL;
+  }
+
+  d = output = (char *)xtrymalloc(8 * (datalen / 5) + 2 * (datalen % 5) -
+                                  ((datalen % 5) > 2) + 1);
+  if (!output) return NULL;
 
   /* I use straightforward code.  The compiler should be able to do a
      better job on optimization than me and it is easier to read.  */
-  for (s = (const unsigned char*) data; datalen >= 5; s += 5, datalen -= 5)
-    {
-      *d++ = zb32asc[((s[0]      ) >> 3)               ];
-      *d++ = zb32asc[((s[0] &   7) << 2) | (s[1] >> 6) ];
-      *d++ = zb32asc[((s[1] &  63) >> 1)               ];
-      *d++ = zb32asc[((s[1] &   1) << 4) | (s[2] >> 4) ];
-      *d++ = zb32asc[((s[2] &  15) << 1) | (s[3] >> 7) ];
-      *d++ = zb32asc[((s[3] & 127) >> 2)               ];
-      *d++ = zb32asc[((s[3] &   3) << 3) | (s[4] >> 5) ];
-      *d++ = zb32asc[((s[4] &  31)     )               ];
-    }
+  for (s = (const unsigned char *)data; datalen >= 5; s += 5, datalen -= 5) {
+    *d++ = zb32asc[((s[0]) >> 3)];
+    *d++ = zb32asc[((s[0] & 7) << 2) | (s[1] >> 6)];
+    *d++ = zb32asc[((s[1] & 63) >> 1)];
+    *d++ = zb32asc[((s[1] & 1) << 4) | (s[2] >> 4)];
+    *d++ = zb32asc[((s[2] & 15) << 1) | (s[3] >> 7)];
+    *d++ = zb32asc[((s[3] & 127) >> 2)];
+    *d++ = zb32asc[((s[3] & 3) << 3) | (s[4] >> 5)];
+    *d++ = zb32asc[((s[4] & 31))];
+  }
 
-  switch (datalen)
-    {
+  switch (datalen) {
     case 4:
-      *d++ = zb32asc[((s[0]      ) >> 3)               ];
-      *d++ = zb32asc[((s[0] &   7) << 2) | (s[1] >> 6) ];
-      *d++ = zb32asc[((s[1] &  63) >> 1)               ];
-      *d++ = zb32asc[((s[1] &   1) << 4) | (s[2] >> 4) ];
-      *d++ = zb32asc[((s[2] &  15) << 1) | (s[3] >> 7) ];
-      *d++ = zb32asc[((s[3] & 127) >> 2)               ];
-      *d++ = zb32asc[((s[3] &   3) << 3)               ];
+      *d++ = zb32asc[((s[0]) >> 3)];
+      *d++ = zb32asc[((s[0] & 7) << 2) | (s[1] >> 6)];
+      *d++ = zb32asc[((s[1] & 63) >> 1)];
+      *d++ = zb32asc[((s[1] & 1) << 4) | (s[2] >> 4)];
+      *d++ = zb32asc[((s[2] & 15) << 1) | (s[3] >> 7)];
+      *d++ = zb32asc[((s[3] & 127) >> 2)];
+      *d++ = zb32asc[((s[3] & 3) << 3)];
       break;
     case 3:
-      *d++ = zb32asc[((s[0]      ) >> 3)               ];
-      *d++ = zb32asc[((s[0] &   7) << 2) | (s[1] >> 6) ];
-      *d++ = zb32asc[((s[1] &  63) >> 1)               ];
-      *d++ = zb32asc[((s[1] &   1) << 4) | (s[2] >> 4) ];
-      *d++ = zb32asc[((s[2] &  15) << 1)               ];
+      *d++ = zb32asc[((s[0]) >> 3)];
+      *d++ = zb32asc[((s[0] & 7) << 2) | (s[1] >> 6)];
+      *d++ = zb32asc[((s[1] & 63) >> 1)];
+      *d++ = zb32asc[((s[1] & 1) << 4) | (s[2] >> 4)];
+      *d++ = zb32asc[((s[2] & 15) << 1)];
       break;
     case 2:
-      *d++ = zb32asc[((s[0]      ) >> 3)               ];
-      *d++ = zb32asc[((s[0] &   7) << 2) | (s[1] >> 6) ];
-      *d++ = zb32asc[((s[1] &  63) >> 1)               ];
-      *d++ = zb32asc[((s[1] &   1) << 4)               ];
+      *d++ = zb32asc[((s[0]) >> 3)];
+      *d++ = zb32asc[((s[0] & 7) << 2) | (s[1] >> 6)];
+      *d++ = zb32asc[((s[1] & 63) >> 1)];
+      *d++ = zb32asc[((s[1] & 1) << 4)];
       break;
     case 1:
-      *d++ = zb32asc[((s[0]      ) >> 3)               ];
-      *d++ = zb32asc[((s[0] &   7) << 2)               ];
+      *d++ = zb32asc[((s[0]) >> 3)];
+      *d++ = zb32asc[((s[0] & 7) << 2)];
       break;
     default:
       break;
-    }
+  }
   *d = 0;
 
   /* Need to strip some bytes if not a multiple of 40.  */

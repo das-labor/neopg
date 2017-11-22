@@ -21,51 +21,45 @@
 
 #include "g10lib.h"
 
-
 /* The data object used to hold a handle to an encryption object.  */
 struct gcry_mac_handle;
 
 /* The data object used to hold poly1305-mac context.  */
 struct poly1305mac_context_s;
 
-
 /*
  *
  * Message authentication code related definitions.
  *
  */
 
-
 /* Magic values for the context structure.  */
 #define CTX_MAGIC_NORMAL 0x59d9b8af
 #define CTX_MAGIC_SECURE 0x12c27cd0
-
 
 /* MAC module functions. */
 typedef gpg_error_t (*gcry_mac_open_func_t)(gcry_mac_hd_t h);
 typedef void (*gcry_mac_close_func_t)(gcry_mac_hd_t h);
 typedef gpg_error_t (*gcry_mac_setkey_func_t)(gcry_mac_hd_t h,
-						  const unsigned char *key,
-						  size_t keylen);
+                                              const unsigned char *key,
+                                              size_t keylen);
 typedef gpg_error_t (*gcry_mac_setiv_func_t)(gcry_mac_hd_t h,
-						 const unsigned char *iv,
-						 size_t ivlen);
+                                             const unsigned char *iv,
+                                             size_t ivlen);
 typedef gpg_error_t (*gcry_mac_reset_func_t)(gcry_mac_hd_t h);
 typedef gpg_error_t (*gcry_mac_write_func_t)(gcry_mac_hd_t h,
-						 const unsigned char *inbuf,
-						 size_t inlen);
+                                             const unsigned char *inbuf,
+                                             size_t inlen);
 typedef gpg_error_t (*gcry_mac_read_func_t)(gcry_mac_hd_t h,
-						unsigned char *outbuf,
-						size_t *outlen);
+                                            unsigned char *outbuf,
+                                            size_t *outlen);
 typedef gpg_error_t (*gcry_mac_verify_func_t)(gcry_mac_hd_t h,
-						  const unsigned char *inbuf,
-						  size_t inlen);
+                                              const unsigned char *inbuf,
+                                              size_t inlen);
 typedef unsigned int (*gcry_mac_get_maclen_func_t)(int algo);
 typedef unsigned int (*gcry_mac_get_keylen_func_t)(int algo);
 
-
-typedef struct gcry_mac_spec_ops
-{
+typedef struct gcry_mac_spec_ops {
   gcry_mac_open_func_t open;
   gcry_mac_close_func_t close;
   gcry_mac_setkey_func_t setkey;
@@ -78,23 +72,19 @@ typedef struct gcry_mac_spec_ops
   gcry_mac_get_keylen_func_t get_keylen;
 } gcry_mac_spec_ops_t;
 
-
 /* Module specification structure for message authentication codes.  */
-typedef struct gcry_mac_spec
-{
+typedef struct gcry_mac_spec {
   int algo;
   struct {
-    unsigned int disabled:1;
-    unsigned int fips:1;
+    unsigned int disabled : 1;
+    unsigned int fips : 1;
   } flags;
   const char *name;
   const gcry_mac_spec_ops_t *ops;
 } gcry_mac_spec_t;
 
-
 /* The handle structure.  */
-struct gcry_mac_handle
-{
+struct gcry_mac_handle {
   int magic;
   int algo;
   const gcry_mac_spec_t *spec;
@@ -118,7 +108,6 @@ struct gcry_mac_handle
     } poly1305mac;
   } u;
 };
-
 
 /*
  * The HMAC algorithm specifications (mac-hmac.c).

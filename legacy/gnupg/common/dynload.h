@@ -32,54 +32,41 @@
 #define GNUPG_COMMON_DYNLOAD_H
 
 #ifndef __MINGW32__
-# include <dlfcn.h>
+#include <dlfcn.h>
 #else
-# include <windows.h>
-# include "utf8conv.h"
-# include "mischelp.h"
-# define RTLD_LAZY 0
+#include <windows.h>
+#include "mischelp.h"
+#include "utf8conv.h"
+#define RTLD_LAZY 0
 
-static inline void *
-dlopen (const char *name, int flag)
-{
+static inline void *dlopen(const char *name, int flag) {
   void *hd;
-  hd = LoadLibrary (name);
+  hd = LoadLibrary(name);
   (void)flag;
   return hd;
 }
 
-static inline void *
-dlsym (void *hd, const char *sym)
-{
-  if (hd && sym)
-    {
-      void *fnc = GetProcAddress (hd, sym);
-      if (!fnc)
-        return NULL;
-      return fnc;
-    }
+static inline void *dlsym(void *hd, const char *sym) {
+  if (hd && sym) {
+    void *fnc = GetProcAddress(hd, sym);
+    if (!fnc) return NULL;
+    return fnc;
+  }
   return NULL;
 }
 
-
-static inline const char *
-dlerror (void)
-{
+static inline const char *dlerror(void) {
   static char buf[32];
-  snprintf (buf, sizeof buf, "ec=%lu", GetLastError ());
+  snprintf(buf, sizeof buf, "ec=%lu", GetLastError());
   return buf;
 }
 
-
-static inline int
-dlclose (void * hd)
-{
-  if (hd)
-    {
-      CloseHandle (hd);
-      return 0;
-    }
+static inline int dlclose(void *hd) {
+  if (hd) {
+    CloseHandle(hd);
+    return 0;
+  }
   return -1;
 }
-# endif /*__MINGW32__*/
+#endif /*__MINGW32__*/
 #endif /*GNUPG_COMMON_DYNLOAD_H*/

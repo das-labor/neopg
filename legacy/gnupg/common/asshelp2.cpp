@@ -27,47 +27,39 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assuan.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <assuan.h>
 
-#include "util.h"
 #include "asshelp.h"
+#include "util.h"
 
 /* Helper function to print an assuan status line using a printf
    format string.  */
-gpg_error_t
-vprint_assuan_status (assuan_context_t ctx,
-                      const char *keyword,
-                      const char *format, va_list arg_ptr)
-{
+gpg_error_t vprint_assuan_status(assuan_context_t ctx, const char *keyword,
+                                 const char *format, va_list arg_ptr) {
   int rc;
   char *buf;
 
-  rc = gpgrt_vasprintf (&buf, format, arg_ptr);
-  if (rc < 0)
-    return gpg_error_from_syserror ();
-  rc = assuan_write_status (ctx, keyword, buf);
-  xfree (buf);
+  rc = gpgrt_vasprintf(&buf, format, arg_ptr);
+  if (rc < 0) return gpg_error_from_syserror();
+  rc = assuan_write_status(ctx, keyword, buf);
+  xfree(buf);
   return rc;
 }
 
-
 /* Helper function to print an assuan status line using a printf
    format string.  */
-gpg_error_t
-print_assuan_status (assuan_context_t ctx,
-                     const char *keyword,
-                     const char *format, ...)
-{
+gpg_error_t print_assuan_status(assuan_context_t ctx, const char *keyword,
+                                const char *format, ...) {
   va_list arg_ptr;
   gpg_error_t err;
 
-  va_start (arg_ptr, format);
-  err = vprint_assuan_status (ctx, keyword, format, arg_ptr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, format);
+  err = vprint_assuan_status(ctx, keyword, format, arg_ptr);
+  va_end(arg_ptr);
   return err;
 }

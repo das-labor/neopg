@@ -22,69 +22,54 @@
 #include "../src/gpg-error.h"
 
 #ifndef PGM
-# error Macro PGM not defined.
+#error Macro PGM not defined.
 #endif
 #ifndef DIM
-# define DIM(array) (sizeof (array) / sizeof (*array))
+#define DIM(array) (sizeof(array) / sizeof(*array))
 #endif
-
 
 static int verbose;
 static int debug;
 static int errorcount;
 
-
-static void
-die (const char *format, ...)
-{
-  va_list arg_ptr ;
-
-  fflush (stdout);
-  flockfile (stderr);
-  fprintf (stderr, "%s: ", PGM);
-  va_start (arg_ptr, format) ;
-  vfprintf (stderr, format, arg_ptr);
-  va_end (arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
-  funlockfile (stderr);
-  exit (1);
-}
-
-
-static void
-fail (const char *format, ...)
-{
+static void die(const char *format, ...) {
   va_list arg_ptr;
 
-  fflush (stdout);
-  flockfile (stderr);
-  fprintf (stderr, "%s: ", PGM);
-  va_start (arg_ptr, format);
-  vfprintf (stderr, format, arg_ptr);
-  va_end (arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
-  funlockfile (stderr);
+  fflush(stdout);
+  flockfile(stderr);
+  fprintf(stderr, "%s: ", PGM);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  va_end(arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
+  funlockfile(stderr);
+  exit(1);
+}
+
+static void fail(const char *format, ...) {
+  va_list arg_ptr;
+
+  fflush(stdout);
+  flockfile(stderr);
+  fprintf(stderr, "%s: ", PGM);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  va_end(arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
+  funlockfile(stderr);
   errorcount++;
-  if (errorcount >= 50)
-    die ("stopped after 50 errors.");
+  if (errorcount >= 50) die("stopped after 50 errors.");
 }
 
-
-static void
-show (const char *format, ...)
-{
+static void show(const char *format, ...) {
   va_list arg_ptr;
 
-  if (!verbose)
-    return;
-  flockfile (stderr);
-  fprintf (stderr, "%s: ", PGM);
-  va_start (arg_ptr, format);
-  vfprintf (stderr, format, arg_ptr);
-  if (*format && format[strlen(format)-1] != '\n')
-    putc ('\n', stderr);
-  va_end (arg_ptr);
-  funlockfile (stderr);
+  if (!verbose) return;
+  flockfile(stderr);
+  fprintf(stderr, "%s: ", PGM);
+  va_start(arg_ptr, format);
+  vfprintf(stderr, format, arg_ptr);
+  if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
+  va_end(arg_ptr);
+  funlockfile(stderr);
 }

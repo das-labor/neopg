@@ -34,20 +34,17 @@
 #include "asn1-func.h"
 
 /* An object to keep parsed information about an extension. */
-struct cert_extn_info
-{
+struct cert_extn_info {
   char *oid;
   int crit;
   int off, len;
 };
 
-
 /* An object to store user supplied data to be associated with a
    certificates.  This is implemented as a linked list with the
    constrained that a given key may only occur once. */
-struct cert_user_data
-{
-  struct cert_user_data *next;  /* Link to next item. */
+struct cert_user_data {
+  struct cert_user_data *next; /* Link to next item. */
 
   /* The length of the data store at DATA. */
   size_t datalen;
@@ -57,19 +54,17 @@ struct cert_user_data
      the key. */
   void *data;
 
- /* Often we need to store only a few bytes as data.  By providing a
-    fixed buffer we are able to avoid an extra malloc in this case. */
-  char databuf[sizeof (int)];
+  /* Often we need to store only a few bytes as data.  By providing a
+     fixed buffer we are able to avoid an extra malloc in this case. */
+  char databuf[sizeof(int)];
 
   /* The key used to store the data object.  Dynamically allocated at
      object creation time.  */
   char key[1];
 };
 
-
 /* The internal certificate object. */
-struct ksba_cert_s
-{
+struct ksba_cert_s {
   /* Certificate objects often play a central role and applications
      might want to associate other data with the certificate to avoid
      wrapping the certificate object into an own object.  This UDATA
@@ -89,7 +84,7 @@ struct ksba_cert_s
   int ref_count;
 
   ksba_asn_tree_t asn_tree;
-  AsnNode root;              /* Root of the tree with the values */
+  AsnNode root; /* Root of the tree with the values */
 
   unsigned char *image;
   size_t imagelen;
@@ -97,26 +92,24 @@ struct ksba_cert_s
   gpg_error_t last_error;
   struct {
     char *digest_algo;
-    int  extns_valid;
-    int  n_extns;
+    int extns_valid;
+    int n_extns;
     struct cert_extn_info *extns;
   } cache;
 };
 
-
 /*** Internal functions ***/
 
-int _ksba_cert_cmp (ksba_cert_t a, ksba_cert_t b);
+int _ksba_cert_cmp(ksba_cert_t a, ksba_cert_t b);
 
-gpg_error_t _ksba_cert_get_serial_ptr (ksba_cert_t cert,
-                                       unsigned char const **ptr,
-                                       size_t *length);
-gpg_error_t _ksba_cert_get_subject_dn_ptr (ksba_cert_t cert,
+gpg_error_t _ksba_cert_get_serial_ptr(ksba_cert_t cert,
+                                      unsigned char const **ptr,
+                                      size_t *length);
+gpg_error_t _ksba_cert_get_subject_dn_ptr(ksba_cert_t cert,
                                           unsigned char const **ptr,
                                           size_t *length);
-gpg_error_t _ksba_cert_get_public_key_ptr (ksba_cert_t cert,
-                                           unsigned char const **ptr,
-                                           size_t *length);
-
+gpg_error_t _ksba_cert_get_public_key_ptr(ksba_cert_t cert,
+                                          unsigned char const **ptr,
+                                          size_t *length);
 
 #endif /*CERT_H*/

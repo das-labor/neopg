@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #ifndef HEADER_CAMELLIA_H
@@ -31,36 +31,35 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 /* USE_ARM_ASM indicates whether to use ARM assembly code. */
-# undef USE_ARM_ASM
-# if defined(__ARMEL__)
-#  ifdef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
-#   define USE_ARM_ASM 1
-#  endif
-# endif
-# if defined(__AARCH64EL__)
-#  ifdef HAVE_COMPATIBLE_GCC_AARCH64_PLATFORM_AS
-#   define USE_ARM_ASM 1
-#  endif
-# endif
+#undef USE_ARM_ASM
+#if defined(__ARMEL__)
+#ifdef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
+#define USE_ARM_ASM 1
+#endif
+#endif
+#if defined(__AARCH64EL__)
+#ifdef HAVE_COMPATIBLE_GCC_AARCH64_PLATFORM_AS
+#define USE_ARM_ASM 1
+#endif
+#endif
 #endif
 #ifdef CAMELLIA_EXT_SYM_PREFIX
-#define CAMELLIA_PREFIX1(x,y) x ## y
-#define CAMELLIA_PREFIX2(x,y) CAMELLIA_PREFIX1(x,y)
-#define CAMELLIA_PREFIX(x)    CAMELLIA_PREFIX2(CAMELLIA_EXT_SYM_PREFIX,x)
-#define Camellia_Ekeygen      CAMELLIA_PREFIX(Camellia_Ekeygen)
+#define CAMELLIA_PREFIX1(x, y) x##y
+#define CAMELLIA_PREFIX2(x, y) CAMELLIA_PREFIX1(x, y)
+#define CAMELLIA_PREFIX(x) CAMELLIA_PREFIX2(CAMELLIA_EXT_SYM_PREFIX, x)
+#define Camellia_Ekeygen CAMELLIA_PREFIX(Camellia_Ekeygen)
 #define Camellia_EncryptBlock CAMELLIA_PREFIX(Camellia_EncryptBlock)
 #define Camellia_DecryptBlock CAMELLIA_PREFIX(Camellia_DecryptBlock)
-#define camellia_decrypt128   CAMELLIA_PREFIX(camellia_decrypt128)
-#define camellia_decrypt256   CAMELLIA_PREFIX(camellia_decrypt256)
-#define camellia_encrypt128   CAMELLIA_PREFIX(camellia_encrypt128)
-#define camellia_encrypt256   CAMELLIA_PREFIX(camellia_encrypt256)
-#define camellia_setup128     CAMELLIA_PREFIX(camellia_setup128)
-#define camellia_setup192     CAMELLIA_PREFIX(camellia_setup192)
-#define camellia_setup256     CAMELLIA_PREFIX(camellia_setup256)
+#define camellia_decrypt128 CAMELLIA_PREFIX(camellia_decrypt128)
+#define camellia_decrypt256 CAMELLIA_PREFIX(camellia_decrypt256)
+#define camellia_encrypt128 CAMELLIA_PREFIX(camellia_encrypt128)
+#define camellia_encrypt256 CAMELLIA_PREFIX(camellia_encrypt256)
+#define camellia_setup128 CAMELLIA_PREFIX(camellia_setup128)
+#define camellia_setup192 CAMELLIA_PREFIX(camellia_setup192)
+#define camellia_setup256 CAMELLIA_PREFIX(camellia_setup256)
 #endif /*CAMELLIA_EXT_SYM_PREFIX*/
 
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -70,25 +69,22 @@ extern "C" {
 
 typedef unsigned int KEY_TABLE_TYPE[CAMELLIA_TABLE_WORD_LEN];
 
-
-void Camellia_Ekeygen(const int keyBitLength,
-		      const unsigned char *rawKey,
-		      KEY_TABLE_TYPE keyTable);
+void Camellia_Ekeygen(const int keyBitLength, const unsigned char *rawKey,
+                      KEY_TABLE_TYPE keyTable);
 
 #ifndef USE_ARM_ASM
 void Camellia_EncryptBlock(const int keyBitLength,
-			   const unsigned char *plaintext,
-			   const KEY_TABLE_TYPE keyTable,
-			   unsigned char *cipherText);
+                           const unsigned char *plaintext,
+                           const KEY_TABLE_TYPE keyTable,
+                           unsigned char *cipherText);
 
 void Camellia_DecryptBlock(const int keyBitLength,
-			   const unsigned char *cipherText,
-			   const KEY_TABLE_TYPE keyTable,
-			   unsigned char *plaintext);
+                           const unsigned char *cipherText,
+                           const KEY_TABLE_TYPE keyTable,
+                           unsigned char *plaintext);
 #endif /*!USE_ARM_ASM*/
 
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

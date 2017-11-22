@@ -31,39 +31,40 @@
 #ifndef GNUPG_COMMON_STRLIST_H
 #define GNUPG_COMMON_STRLIST_H
 
-struct string_list
-{
+struct string_list {
   struct string_list *next;
   unsigned int flags;
   char d[1];
 };
 typedef struct string_list *strlist_t;
 
-void    free_strlist (strlist_t sl);
-void	free_strlist_wipe (strlist_t sl);
+void free_strlist(strlist_t sl);
+void free_strlist_wipe(strlist_t sl);
 
-strlist_t add_to_strlist (strlist_t *list, const char *string);
-strlist_t add_to_strlist_try (strlist_t *list, const char *string);
+strlist_t add_to_strlist(strlist_t *list, const char *string);
+strlist_t add_to_strlist_try(strlist_t *list, const char *string);
 
-strlist_t add_to_strlist2( strlist_t *list, const char *string, int is_utf8);
+strlist_t add_to_strlist2(strlist_t *list, const char *string, int is_utf8);
 
-strlist_t append_to_strlist (strlist_t *list, const char *string);
-strlist_t append_to_strlist_try (strlist_t *list, const char *string);
-strlist_t append_to_strlist2 (strlist_t *list, const char *string,
-                              int is_utf8);
+strlist_t append_to_strlist(strlist_t *list, const char *string);
+strlist_t append_to_strlist_try(strlist_t *list, const char *string);
+strlist_t append_to_strlist2(strlist_t *list, const char *string, int is_utf8);
 
-strlist_t strlist_copy (strlist_t list);
+strlist_t strlist_copy(strlist_t list);
 
-strlist_t strlist_prev (strlist_t head, strlist_t node);
-strlist_t strlist_last (strlist_t node);
-char * strlist_pop (strlist_t *list);
+strlist_t strlist_prev(strlist_t head, strlist_t node);
+strlist_t strlist_last(strlist_t node);
+char *strlist_pop(strlist_t *list);
 
-strlist_t strlist_find (strlist_t haystack, const char *needle);
-int strlist_length (strlist_t list);
+strlist_t strlist_find(strlist_t haystack, const char *needle);
+int strlist_length(strlist_t list);
 
-strlist_t strlist_rev (strlist_t *haystack);
+strlist_t strlist_rev(strlist_t *haystack);
 
-#define FREE_STRLIST(a) do { free_strlist((a)); (a) = NULL ; } while(0)
-
+#define FREE_STRLIST(a) \
+  do {                  \
+    free_strlist((a));  \
+    (a) = NULL;         \
+  } while (0)
 
 #endif /*GNUPG_COMMON_STRLIST_H*/

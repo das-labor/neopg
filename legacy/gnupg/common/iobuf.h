@@ -92,59 +92,53 @@
 /* For estream_t.  */
 #include <gpg-error.h>
 
-#include "../common/types.h"
 #include "../common/sysutils.h"
+#include "../common/types.h"
 
-#define DBG_IOBUF   iobuf_debug_mode
+#define DBG_IOBUF iobuf_debug_mode
 
 /* Filter control modes.  */
-enum
-  {
-    IOBUFCTRL_INIT	= 1,
-    IOBUFCTRL_FREE	= 2,
-    IOBUFCTRL_UNDERFLOW = 3,
-    IOBUFCTRL_FLUSH     = 4,
-    IOBUFCTRL_DESC	= 5,
-    IOBUFCTRL_CANCEL    = 6,
-    IOBUFCTRL_USER	= 16
-  };
-
+enum {
+  IOBUFCTRL_INIT = 1,
+  IOBUFCTRL_FREE = 2,
+  IOBUFCTRL_UNDERFLOW = 3,
+  IOBUFCTRL_FLUSH = 4,
+  IOBUFCTRL_DESC = 5,
+  IOBUFCTRL_CANCEL = 6,
+  IOBUFCTRL_USER = 16
+};
 
 /* Command codes for iobuf_ioctl.  */
-typedef enum
-  {
-    IOBUF_IOCTL_KEEP_OPEN        = 1, /* Uses intval.  */
-    IOBUF_IOCTL_INVALIDATE_CACHE = 2, /* Uses ptrval.  */
-    IOBUF_IOCTL_NO_CACHE         = 3, /* Uses intval.  */
-    IOBUF_IOCTL_FSYNC            = 4  /* Uses ptrval.  */
-  } iobuf_ioctl_t;
+typedef enum {
+  IOBUF_IOCTL_KEEP_OPEN = 1,        /* Uses intval.  */
+  IOBUF_IOCTL_INVALIDATE_CACHE = 2, /* Uses ptrval.  */
+  IOBUF_IOCTL_NO_CACHE = 3,         /* Uses intval.  */
+  IOBUF_IOCTL_FSYNC = 4             /* Uses ptrval.  */
+} iobuf_ioctl_t;
 
-enum iobuf_use
-  {
-    /* Pipeline is in input mode.  The data flows from the end to the
-       beginning.  That is, when reading from the pipeline, the first
-       filter gets its input from the second filter, etc.  */
-    IOBUF_INPUT,
-    /* Pipeline is in input mode.  The last filter in the pipeline is
-       a temporary buffer from which the data is "read".  */
-    IOBUF_INPUT_TEMP,
-    /* Pipeline is in output mode.  The data flows from the beginning
-       to the end.  That is, when writing to the pipeline, the user
-       writes to the first filter, which transforms the data and sends
-       it to the second filter, etc.  */
-    IOBUF_OUTPUT,
-    /* Pipeline is in output mode.  The last filter in the pipeline is
-       a temporary buffer that grows as necessary.  */
-    IOBUF_OUTPUT_TEMP
-  };
-
+enum iobuf_use {
+  /* Pipeline is in input mode.  The data flows from the end to the
+     beginning.  That is, when reading from the pipeline, the first
+     filter gets its input from the second filter, etc.  */
+  IOBUF_INPUT,
+  /* Pipeline is in input mode.  The last filter in the pipeline is
+     a temporary buffer from which the data is "read".  */
+  IOBUF_INPUT_TEMP,
+  /* Pipeline is in output mode.  The data flows from the beginning
+     to the end.  That is, when writing to the pipeline, the user
+     writes to the first filter, which transforms the data and sends
+     it to the second filter, etc.  */
+  IOBUF_OUTPUT,
+  /* Pipeline is in output mode.  The last filter in the pipeline is
+     a temporary buffer that grows as necessary.  */
+  IOBUF_OUTPUT_TEMP
+};
 
 typedef struct iobuf_struct *iobuf_t;
-typedef struct iobuf_struct *IOBUF;  /* Compatibility with gpg 1.4. */
+typedef struct iobuf_struct *IOBUF; /* Compatibility with gpg 1.4. */
 
 /* fixme: we should hide most of this stuff */
-struct iobuf_struct
-{
+struct iobuf_struct {
   /* The type of filter.  Either IOBUF_INPUT, IOBUF_OUTPUT or
      IOBUF_OUTPUT_TEMP.  */
   enum iobuf_use use;
@@ -186,8 +180,7 @@ struct iobuf_struct
      single byte (iobuf_get) and the buffer is empty, then FILTER is
      called to fill the buffer.  In this case, a single byte is not
      requested, but the whole buffer is filled (if possible).  */
-  struct
-  {
+  struct {
     /* Size of the buffer.  */
     size_t size;
     /* Number of bytes at the beginning of the buffer that have
@@ -216,8 +209,8 @@ struct iobuf_struct
 
   /* The callback function to read data from the filter, etc.  See
      iobuf_filter_push for details.  */
-  int (*filter) (void *opaque, int control,
-		 iobuf_t chain, byte * buf, size_t * len);
+  int (*filter)(void *opaque, int control, iobuf_t chain, byte *buf,
+                size_t *len);
   /* An opaque pointer that can be used for local filter state.  This
      is passed as the first parameter to FILTER.  */
   void *filter_ov;
@@ -255,7 +248,7 @@ extern int iobuf_debug_mode;
    particular, this function checks if FNAME is "-" and, if special
    filenames are enabled (see check_special_filename), whether
    FNAME is a special filename.  */
-int  iobuf_is_pipe_filename (const char *fname);
+int iobuf_is_pipe_filename(const char *fname);
 
 /* Allocate a new filter.  This filter doesn't have a function
    assigned to it.  Thus you need to manually set IOBUF->FILTER and
@@ -268,59 +261,59 @@ int  iobuf_is_pipe_filename (const char *fname);
 
    BUFSIZE is the desired internal buffer size (that is, the size of
    the typical read / write request).  */
-iobuf_t iobuf_alloc (int use, size_t bufsize);
+iobuf_t iobuf_alloc(int use, size_t bufsize);
 
 /* Create an output filter that simply buffers data written to it.
    This is useful for collecting data for later processing.  The
    buffer can be written to in the usual way (iobuf_write, etc.).  The
    data can later be extracted using iobuf_write_temp() or
    iobuf_temp_to_buffer().  */
-iobuf_t iobuf_temp (void);
+iobuf_t iobuf_temp(void);
 
 /* Create an input filter that contains some data for reading.  */
-iobuf_t iobuf_temp_with_content (const char *buffer, size_t length);
+iobuf_t iobuf_temp_with_content(const char *buffer, size_t length);
 
 /* Create an input file filter that reads from a file.  If FNAME is
    '-', reads from stdin.  */
-iobuf_t iobuf_open (const char *fname);
+iobuf_t iobuf_open(const char *fname);
 
 /* Create an output file filter that writes to a file.  If FNAME is
    NULL or '-', writes to stdout.  If FNAME is not NULL, '-' or a
    special filename, the file is opened for writing.  If the file
    exists, it is truncated.  If MODE700 is TRUE, the file is created
    with mode 600.  Otherwise, mode 666 is used.  */
-iobuf_t iobuf_create (const char *fname, int mode700);
+iobuf_t iobuf_create(const char *fname, int mode700);
 
 /* Create an output file filter that writes to a specified file.
    Neither '-' nor special file names are recognized.  */
-iobuf_t iobuf_openrw (const char *fname);
+iobuf_t iobuf_openrw(const char *fname);
 
 /* Create a file filter using an existing file descriptor.  If MODE
    contains the letter 'w', creates an output filter.  Otherwise,
    creates an input filter.  Note: MODE must reflect the file
    descriptors actual mode!  When the filter is destroyed, the file
    descriptor is closed.  */
-iobuf_t iobuf_fdopen (int fd, const char *mode);
+iobuf_t iobuf_fdopen(int fd, const char *mode);
 
 /* Like iobuf_fdopen, but doesn't close the file descriptor when the
    filter is destroyed.  */
-iobuf_t iobuf_fdopen_nc (int fd, const char *mode);
+iobuf_t iobuf_fdopen_nc(int fd, const char *mode);
 
 /* Create a filter using an existing estream.  If MODE contains the
    letter 'w', creates an output filter.  Otherwise, creates an input
    filter.  If KEEP_OPEN is TRUE, then the stream is not closed when
    the filter is destroyed.  Otherwise, the stream is closed when the
    filter is destroyed.  */
-iobuf_t iobuf_esopen (estream_t estream, const char *mode, int keep_open);
+iobuf_t iobuf_esopen(estream_t estream, const char *mode, int keep_open);
 
 /* Create a filter using an existing socket.  On Windows creates a
    special socket filter.  On non-Windows systems simply, this simply
    calls iobuf_fdopen.  */
-iobuf_t iobuf_sockopen (int fd, const char *mode);
+iobuf_t iobuf_sockopen(int fd, const char *mode);
 
 /* Set various options / perform different actions on a PIPELINE.  See
    the IOBUF_IOCTL_* macros above.  */
-int iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval);
+int iobuf_ioctl(iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval);
 
 /* Close a pipeline.  The filters in the pipeline are first flushed
    using iobuf_flush, if they are output filters, and then
@@ -330,13 +323,13 @@ int iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval);
    IOBUFCTRL_FREE, that first such non-zero value is returned.  Note:
    processing is not aborted in this case.  If all filters are freed
    successfully, 0 is returned.  */
-int iobuf_close (iobuf_t iobuf);
+int iobuf_close(iobuf_t iobuf);
 
 /* Calls IOBUFCTRL_CANCEL on each filter in the pipeline.  Then calls
    io_close() on the pipeline.  Finally, if the pipeline is an output
    pipeline, deletes the file.  Returns the result of calling
    iobuf_close on the pipeline.  */
-int iobuf_cancel (iobuf_t iobuf);
+int iobuf_cancel(iobuf_t iobuf);
 
 /* Add a new filter to the front of a pipeline.  A is the head of the
    pipeline.  F is the filter implementation.  OV is an opaque pointer
@@ -390,35 +383,38 @@ int iobuf_cancel (iobuf_t iobuf);
        The description is filled into BUF, NUL-terminated.  Always
        returns 0.
   */
-int iobuf_push_filter (iobuf_t a, int (*f) (void *opaque, int control,
-					    iobuf_t chain, byte * buf,
-					    size_t * len), void *ov);
+int iobuf_push_filter(iobuf_t a,
+                      int (*f)(void *opaque, int control, iobuf_t chain,
+                               byte *buf, size_t *len),
+                      void *ov);
 /* This variant of iobuf_push_filter allows the called to indicate
    that OV should be freed when this filter is freed.  That is, if
    REL_OV is TRUE, then when the filter is popped or freed OV will be
    freed after the filter function is called with control set to
    IOBUFCTRL_FREE.  */
-int iobuf_push_filter2 (iobuf_t a,
-			int (*f) (void *opaque, int control, iobuf_t chain,
-				  byte * buf, size_t * len), void *ov,
-			int rel_ov);
+int iobuf_push_filter2(iobuf_t a,
+                       int (*f)(void *opaque, int control, iobuf_t chain,
+                                byte *buf, size_t *len),
+                       void *ov, int rel_ov);
 
 /* Pop the top filter.  The top filter must have the filter function F
    and the cookie OV.  The cookie check is ignored if OV is NULL.  */
-int iobuf_pop_filter (iobuf_t a,
-                      int (*f) (void *opaque, int control,
-                                iobuf_t chain, byte * buf, size_t * len),
-                      void *ov);
+int iobuf_pop_filter(iobuf_t a, int (*f)(void *opaque, int control,
+                                         iobuf_t chain, byte *buf, size_t *len),
+                     void *ov);
 
 /* Used for debugging.  Prints out the chain using log_debug if
    IOBUF_DEBUG_MODE is not 0.  */
-int iobuf_print_chain (iobuf_t a);
+int iobuf_print_chain(iobuf_t a);
 
 /* Indicate that some error occurred on the specified filter.  */
-#define iobuf_set_error(a)    do { (a)->error = 1; } while(0)
+#define iobuf_set_error(a) \
+  do {                     \
+    (a)->error = 1;        \
+  } while (0)
 
 /* Return any pending error on filter A.  */
-#define iobuf_error(a)	      ((a)->error)
+#define iobuf_error(a) ((a)->error)
 
 /* Limit the amount of additional data that may be read from the
    filter.  That is, if you've already read 100 bytes from A and you
@@ -427,12 +423,12 @@ int iobuf_print_chain (iobuf_t a);
    Setting NLIMIT to 0 removes any active limit.
 
    Note: using iobuf_seek removes any currently enforced limit!  */
-void iobuf_set_limit (iobuf_t a, off_t nlimit);
+void iobuf_set_limit(iobuf_t a, off_t nlimit);
 
 /* Returns the number of bytes that have been read from the pipeline.
    Note: the result is undefined for IOBUF_OUTPUT and IOBUF_OUTPUT_TEMP
    pipelines!  */
-off_t iobuf_tell (iobuf_t a);
+off_t iobuf_tell(iobuf_t a);
 
 /* There are two cases:
 
@@ -451,27 +447,28 @@ off_t iobuf_tell (iobuf_t a);
    (the file filter or the temp filter) is cleared.
 
    Returns 0 on success and -1 if an error occurs.  */
-int iobuf_seek (iobuf_t a, off_t newpos);
+int iobuf_seek(iobuf_t a, off_t newpos);
 
 /* Read a single byte.  If a filter has no more data, returns -1 to
    indicate the EOF.  Generally, you don't want to use this function,
    but instead prefer the iobuf_get macro, which is faster if there is
    data in the internal buffer.  */
-int iobuf_readbyte (iobuf_t a);
+int iobuf_readbyte(iobuf_t a);
 
 /* Get a byte from the iobuf; must check for eof prior to this
    function.  This function returns values in the range 0 .. 255 or -1
    to indicate EOF.  iobuf_get_noeof() does not return -1 to indicate
    EOF, but masks the returned value to be in the range 0 .. 255.  */
-#define iobuf_get(a)  \
-     (	((a)->nofast || (a)->d.start >= (a)->d.len )?  \
-	iobuf_readbyte((a)) : ( (a)->nbytes++, (a)->d.buf[(a)->d.start++] ) )
-#define iobuf_get_noeof(a)    (iobuf_get((a))&0xff)
+#define iobuf_get(a)                           \
+  (((a)->nofast || (a)->d.start >= (a)->d.len) \
+       ? iobuf_readbyte((a))                   \
+       : ((a)->nbytes++, (a)->d.buf[(a)->d.start++]))
+#define iobuf_get_noeof(a) (iobuf_get((a)) & 0xff)
 
 /* Fill BUF with up to BUFLEN bytes.  If a filter has no more data,
    returns -1 to indicate the EOF.  Otherwise returns the number of
    bytes read.  */
-int iobuf_read (iobuf_t a, void *buf, unsigned buflen);
+int iobuf_read(iobuf_t a, void *buf, unsigned buflen);
 
 /* Read a line of input (including the '\n') from the pipeline.
 
@@ -493,8 +490,8 @@ int iobuf_read (iobuf_t a, void *buf, unsigned buflen);
    EOF is indicated by a line of length zero.
 
    The last LF may be missing due to an EOF.  */
-unsigned iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
-			  unsigned *length_of_buffer, unsigned *max_length);
+unsigned iobuf_read_line(iobuf_t a, byte **addr_of_buffer,
+                         unsigned *length_of_buffer, unsigned *max_length);
 
 /* Read up to BUFLEN bytes from pipeline A.  Note: this function can't
    return more than the pipeline's internal buffer size.  The return
@@ -505,40 +502,40 @@ unsigned iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
    pipeline consists of two filters and the first one returns EOF
    during the peek, then the subsequent iobuf_read* will still return
    EOF before returning the data from the second filter.  */
-int iobuf_peek (iobuf_t a, byte * buf, unsigned buflen);
+int iobuf_peek(iobuf_t a, byte *buf, unsigned buflen);
 
 /* Write a byte to the pipeline.  Returns 0 on success and an error
    code otherwise.  */
-int iobuf_writebyte (iobuf_t a, unsigned c);
+int iobuf_writebyte(iobuf_t a, unsigned c);
 
 /* Alias for iobuf_writebyte.  */
-#define iobuf_put(a,c)	iobuf_writebyte(a,c)
+#define iobuf_put(a, c) iobuf_writebyte(a, c)
 
 /* Write a sequence of bytes to the pipeline.  Returns 0 on success
    and an error code otherwise.  */
-int iobuf_write (iobuf_t a, const void *buf, unsigned buflen);
+int iobuf_write(iobuf_t a, const void *buf, unsigned buflen);
 
 /* Write a string (not including the NUL terminator) to the pipeline.
    Returns 0 on success and an error code otherwise.  */
-int iobuf_writestr (iobuf_t a, const char *buf);
+int iobuf_writestr(iobuf_t a, const char *buf);
 
 /* Flushes the pipeline removing all filters but the sink (the last
    filter) in the process.  */
-void iobuf_flush_temp (iobuf_t temp);
+void iobuf_flush_temp(iobuf_t temp);
 
 /* Flushes the pipeline SOURCE removing all filters but the sink (the
    last filter) in the process (i.e., it calls
    iobuf_flush_temp(source)) and then writes the data to the pipeline
    DEST.  Note: this doesn't free (iobuf_close()) SOURCE.  Both SOURCE
    and DEST must be output pipelines.  */
-int iobuf_write_temp (iobuf_t dest, iobuf_t source);
+int iobuf_write_temp(iobuf_t dest, iobuf_t source);
 
 /* Flushes each filter in the pipeline (i.e., sends any buffered data
    to the filter by calling IOBUFCTRL_FLUSH).  Then, copies up to the
    first BUFLEN bytes from the last filter's internal buffer (which
    will only be non-empty if it is a temp filter) to the buffer
    BUFFER.  Returns the number of bytes actually copied.  */
-size_t iobuf_temp_to_buffer (iobuf_t a, byte * buffer, size_t buflen);
+size_t iobuf_temp_to_buffer(iobuf_t a, byte *buffer, size_t buflen);
 
 /* Copies the data from the input iobuf SOURCE to the output iobuf
    DEST until either an error is encountered or EOF is reached.
@@ -546,7 +543,7 @@ size_t iobuf_temp_to_buffer (iobuf_t a, byte * buffer, size_t buflen);
    occurred, then any buffered bytes are not returned to SOURCE and are
    effectively lost.  To check if an error occurred, use
    iobuf_error.  */
-size_t iobuf_copy (iobuf_t dest, iobuf_t source);
+size_t iobuf_copy(iobuf_t dest, iobuf_t source);
 
 /* Return the size of any underlying file.  This only works with
    file_filter based pipelines.
@@ -554,34 +551,34 @@ size_t iobuf_copy (iobuf_t dest, iobuf_t source);
    On Win32, it is sometimes not possible to determine the size of
    files larger than 4GB.  In this case, *OVERFLOW (if not NULL) is
    set to 1.  Otherwise, *OVERFLOW is set to 0.  */
-off_t iobuf_get_filelength (iobuf_t a, int *overflow);
+off_t iobuf_get_filelength(iobuf_t a, int *overflow);
 #define IOBUF_FILELENGTH_LIMIT 0xffffffff
 
 /* Return the file descriptor designating the underlying file.  This
    only works with file_filter based pipelines.  */
-int  iobuf_get_fd (iobuf_t a);
+int iobuf_get_fd(iobuf_t a);
 
 /* Return the real filename, if available.  This only supports
    pipelines that end in file filters.  Returns NULL if not
    available.  */
-const char *iobuf_get_real_fname (iobuf_t a);
+const char *iobuf_get_real_fname(iobuf_t a);
 
 /* Return the filename or a description thereof.  For instance, for
    iobuf_open("-"), this will return "[stdin]".  This only supports
    pipelines that end in file filters.  Returns NULL if not
    available.  */
-const char *iobuf_get_fname (iobuf_t a);
+const char *iobuf_get_fname(iobuf_t a);
 
 /* Like iobuf_getfname, but instead of returning NULL if no
    description is available, return "[?]".  */
-const char *iobuf_get_fname_nonnull (iobuf_t a);
+const char *iobuf_get_fname_nonnull(iobuf_t a);
 
 /* Pushes a filter on the pipeline that interprets the datastream as
    an OpenPGP data block whose length is encoded using partial body
    length headers (see Section 4.2.2.4 of RFC 4880).  Concretely, it
    just returns / writes the data and finishes the packet with an
    EOF.  */
-void iobuf_set_partial_body_length_mode (iobuf_t a, size_t len);
+void iobuf_set_partial_body_length_mode(iobuf_t a, size_t len);
 
 /* If PARTIAL is set, then read from the pipeline until the first EOF
    is returned.
@@ -592,19 +589,19 @@ void iobuf_set_partial_body_length_mode (iobuf_t a, size_t len);
    Recall: a filter can return EOF.  In this case, it and all
    preceding filters are popped from the pipeline and the next read is
    from the following filter (which may or may not return EOF).  */
-void iobuf_skip_rest (iobuf_t a, unsigned long n, int partial);
+void iobuf_skip_rest(iobuf_t a, unsigned long n, int partial);
 
-#define iobuf_where(a)	"[don't know]"
+#define iobuf_where(a) "[don't know]"
 
 /* Each time a filter is allocated (via iobuf_alloc()), a
    monotonically increasing counter is incremented and this field is
    set to the new value.  This macro returns that number.  */
-#define iobuf_id(a)	((a)->no)
+#define iobuf_id(a) ((a)->no)
 
-#define iobuf_get_temp_buffer(a) ( (a)->d.buf )
-#define iobuf_get_temp_length(a) ( (a)->d.len )
+#define iobuf_get_temp_buffer(a) ((a)->d.buf)
+#define iobuf_get_temp_length(a) ((a)->d.len)
 
 /* Whether the filter uses an in-memory buffer.  */
-#define iobuf_is_temp(a)	 ( (a)->use == IOBUF_OUTPUT_TEMP )
+#define iobuf_is_temp(a) ((a)->use == IOBUF_OUTPUT_TEMP)
 
 #endif /*GNUPG_COMMON_IOBUF_H*/

@@ -18,54 +18,45 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "cipher.h"
-#include "bufhelp.h"
 #include "./cipher-internal.h"
+#include "bufhelp.h"
+#include "cipher.h"
+#include "g10lib.h"
 
-
-static inline void xts_gfmul_byA (unsigned char *out, const unsigned char *in)
-{
-  u64 hi = buf_get_le64 (in + 8);
-  u64 lo = buf_get_le64 (in + 0);
+static inline void xts_gfmul_byA(unsigned char *out, const unsigned char *in) {
+  u64 hi = buf_get_le64(in + 8);
+  u64 lo = buf_get_le64(in + 0);
   u64 carry = -(hi >> 63) & 0x87;
 
   hi = (hi << 1) + (lo >> 63);
   lo = (lo << 1) ^ carry;
 
-  buf_put_le64 (out + 8, hi);
-  buf_put_le64 (out + 0, lo);
+  buf_put_le64(out + 8, hi);
+  buf_put_le64(out + 0, lo);
 }
 
-
-static inline void xts_inc128 (unsigned char *seqno)
-{
-  u64 lo = buf_get_le64 (seqno + 0);
-  u64 hi = buf_get_le64 (seqno + 8);
+static inline void xts_inc128(unsigned char *seqno) {
+  u64 lo = buf_get_le64(seqno + 0);
+  u64 hi = buf_get_le64(seqno + 8);
 
   hi += !(++lo);
 
-  buf_put_le64 (seqno + 0, lo);
-  buf_put_le64 (seqno + 8, hi);
+  buf_put_le64(seqno + 0, lo);
+  buf_put_le64(seqno + 8, hi);
 }
 
-
-gpg_error_t
-_gcry_cipher_xts_crypt (gcry_cipher_hd_t c,
-			unsigned char *outbuf, size_t outbuflen,
-			const unsigned char *inbuf, size_t inbuflen,
-			int encrypt)
-{
+gpg_error_t _gcry_cipher_xts_crypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                   size_t outbuflen, const unsigned char *inbuf,
+                                   size_t inbuflen, int encrypt) {
   gcry_cipher_encrypt_t tweak_fn = c->spec->encrypt;
   gcry_cipher_encrypt_t crypt_fn =
-    encrypt ? c->spec->encrypt : c->spec->decrypt;
-  union
-  {
+      encrypt ? c->spec->encrypt : c->spec->decrypt;
+  union {
     cipher_context_alignment_t xcx;
     byte x1[GCRY_XTS_BLOCK_LEN];
     u64 x64[GCRY_XTS_BLOCK_LEN / sizeof(u64)];
@@ -73,98 +64,89 @@ _gcry_cipher_xts_crypt (gcry_cipher_hd_t c,
   unsigned int burn, nburn;
   size_t nblocks;
 
-  if (c->spec->blocksize != GCRY_XTS_BLOCK_LEN)
-    return GPG_ERR_CIPHER_ALGO;
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
-  if (inbuflen < GCRY_XTS_BLOCK_LEN)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (c->spec->blocksize != GCRY_XTS_BLOCK_LEN) return GPG_ERR_CIPHER_ALGO;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
+  if (inbuflen < GCRY_XTS_BLOCK_LEN) return GPG_ERR_BUFFER_TOO_SHORT;
 
   /* Data-unit max length: 2^20 blocks. */
-  if (inbuflen > GCRY_XTS_BLOCK_LEN << 20)
-    return GPG_ERR_INV_LENGTH;
+  if (inbuflen > GCRY_XTS_BLOCK_LEN << 20) return GPG_ERR_INV_LENGTH;
 
   nblocks = inbuflen / GCRY_XTS_BLOCK_LEN;
   nblocks -= !encrypt && (inbuflen % GCRY_XTS_BLOCK_LEN) != 0;
 
   /* Generate first tweak value.  */
-  burn = tweak_fn (c->u_mode.xts.tweak_context, c->u_ctr.ctr, c->u_iv.iv);
+  burn = tweak_fn(c->u_mode.xts.tweak_context, c->u_ctr.ctr, c->u_iv.iv);
 
   /* Use a bulk method if available.  */
-  if (nblocks && c->bulk.xts_crypt)
-    {
-      c->bulk.xts_crypt (c, c->u_ctr.ctr, outbuf, inbuf, nblocks, encrypt);
-      inbuf  += nblocks * GCRY_XTS_BLOCK_LEN;
-      outbuf += nblocks * GCRY_XTS_BLOCK_LEN;
-      inbuflen -= nblocks * GCRY_XTS_BLOCK_LEN;
-      nblocks = 0;
-    }
+  if (nblocks && c->bulk.xts_crypt) {
+    c->bulk.xts_crypt(c, c->u_ctr.ctr, outbuf, inbuf, nblocks, encrypt);
+    inbuf += nblocks * GCRY_XTS_BLOCK_LEN;
+    outbuf += nblocks * GCRY_XTS_BLOCK_LEN;
+    inbuflen -= nblocks * GCRY_XTS_BLOCK_LEN;
+    nblocks = 0;
+  }
 
   /* If we don't have a bulk method use the standard method.  We also
     use this method for the a remaining partial block.  */
 
-  while (nblocks)
-    {
-      /* Xor-Encrypt/Decrypt-Xor block. */
-      buf_xor (tmp.x64, inbuf, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
-      nburn = crypt_fn (&c->context.c, tmp.x1, tmp.x1);
-      burn = nburn > burn ? nburn : burn;
-      buf_xor (outbuf, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
+  while (nblocks) {
+    /* Xor-Encrypt/Decrypt-Xor block. */
+    buf_xor(tmp.x64, inbuf, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
+    nburn = crypt_fn(&c->context.c, tmp.x1, tmp.x1);
+    burn = nburn > burn ? nburn : burn;
+    buf_xor(outbuf, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
 
-      outbuf += GCRY_XTS_BLOCK_LEN;
-      inbuf += GCRY_XTS_BLOCK_LEN;
-      inbuflen -= GCRY_XTS_BLOCK_LEN;
-      nblocks--;
+    outbuf += GCRY_XTS_BLOCK_LEN;
+    inbuf += GCRY_XTS_BLOCK_LEN;
+    inbuflen -= GCRY_XTS_BLOCK_LEN;
+    nblocks--;
 
-      /* Generate next tweak. */
-      xts_gfmul_byA (c->u_ctr.ctr, c->u_ctr.ctr);
-    }
+    /* Generate next tweak. */
+    xts_gfmul_byA(c->u_ctr.ctr, c->u_ctr.ctr);
+  }
 
   /* Handle remaining data with ciphertext stealing. */
-  if (inbuflen)
-    {
-      if (!encrypt)
-	{
-	  gcry_assert (inbuflen > GCRY_XTS_BLOCK_LEN);
-	  gcry_assert (inbuflen < GCRY_XTS_BLOCK_LEN * 2);
+  if (inbuflen) {
+    if (!encrypt) {
+      gcry_assert(inbuflen > GCRY_XTS_BLOCK_LEN);
+      gcry_assert(inbuflen < GCRY_XTS_BLOCK_LEN * 2);
 
-	  /* Generate last tweak. */
-	  xts_gfmul_byA (tmp.x1, c->u_ctr.ctr);
+      /* Generate last tweak. */
+      xts_gfmul_byA(tmp.x1, c->u_ctr.ctr);
 
-	  /* Decrypt last block first. */
-	  buf_xor (outbuf, inbuf, tmp.x64, GCRY_XTS_BLOCK_LEN);
-	  nburn = crypt_fn (&c->context.c, outbuf, outbuf);
-	  burn = nburn > burn ? nburn : burn;
-	  buf_xor (outbuf, outbuf, tmp.x64, GCRY_XTS_BLOCK_LEN);
-
-	  inbuflen -= GCRY_XTS_BLOCK_LEN;
-	  inbuf += GCRY_XTS_BLOCK_LEN;
-	  outbuf += GCRY_XTS_BLOCK_LEN;
-	}
-
-      gcry_assert (inbuflen < GCRY_XTS_BLOCK_LEN);
-      outbuf -= GCRY_XTS_BLOCK_LEN;
-
-      /* Steal ciphertext from previous block. */
-      buf_cpy (tmp.x64, outbuf, GCRY_XTS_BLOCK_LEN);
-      buf_cpy (tmp.x64, inbuf, inbuflen);
-      buf_cpy (outbuf + GCRY_XTS_BLOCK_LEN, outbuf, inbuflen);
-
-      /* Decrypt/Encrypt last block. */
-      buf_xor (tmp.x64, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
-      nburn = crypt_fn (&c->context.c, tmp.x1, tmp.x1);
+      /* Decrypt last block first. */
+      buf_xor(outbuf, inbuf, tmp.x64, GCRY_XTS_BLOCK_LEN);
+      nburn = crypt_fn(&c->context.c, outbuf, outbuf);
       burn = nburn > burn ? nburn : burn;
-      buf_xor (outbuf, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
+      buf_xor(outbuf, outbuf, tmp.x64, GCRY_XTS_BLOCK_LEN);
+
+      inbuflen -= GCRY_XTS_BLOCK_LEN;
+      inbuf += GCRY_XTS_BLOCK_LEN;
+      outbuf += GCRY_XTS_BLOCK_LEN;
     }
 
+    gcry_assert(inbuflen < GCRY_XTS_BLOCK_LEN);
+    outbuf -= GCRY_XTS_BLOCK_LEN;
+
+    /* Steal ciphertext from previous block. */
+    buf_cpy(tmp.x64, outbuf, GCRY_XTS_BLOCK_LEN);
+    buf_cpy(tmp.x64, inbuf, inbuflen);
+    buf_cpy(outbuf + GCRY_XTS_BLOCK_LEN, outbuf, inbuflen);
+
+    /* Decrypt/Encrypt last block. */
+    buf_xor(tmp.x64, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
+    nburn = crypt_fn(&c->context.c, tmp.x1, tmp.x1);
+    burn = nburn > burn ? nburn : burn;
+    buf_xor(outbuf, tmp.x64, c->u_ctr.ctr, GCRY_XTS_BLOCK_LEN);
+  }
+
   /* Auto-increment data-unit sequence number */
-  xts_inc128 (c->u_iv.iv);
+  xts_inc128(c->u_iv.iv);
 
-  wipememory (&tmp, sizeof(tmp));
-  wipememory (c->u_ctr.ctr, sizeof(c->u_ctr.ctr));
+  wipememory(&tmp, sizeof(tmp));
+  wipememory(c->u_ctr.ctr, sizeof(c->u_ctr.ctr));
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }

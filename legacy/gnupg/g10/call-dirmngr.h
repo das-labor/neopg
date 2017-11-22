@@ -19,29 +19,28 @@
 #ifndef GNUPG_G10_CALL_DIRMNGR_H
 #define GNUPG_G10_CALL_DIRMNGR_H
 
-void gpg_dirmngr_deinit_session_data (ctrl_t ctrl);
+#include "options.h"
 
-gpg_error_t gpg_dirmngr_ks_list (ctrl_t ctrl, char **r_keyserver);
-gpg_error_t gpg_dirmngr_ks_search (ctrl_t ctrl, const char *searchstr,
-                                   gpg_error_t (*cb)(void*, int, char *),
-                                   void *cb_value);
-gpg_error_t gpg_dirmngr_ks_get (ctrl_t ctrl, char *pattern[],
-                                keyserver_spec_t override_keyserver, int quick,
-                                estream_t *r_fp, char **r_source);
-gpg_error_t gpg_dirmngr_ks_fetch (ctrl_t ctrl,
-                                  const char *url, estream_t *r_fp);
-gpg_error_t gpg_dirmngr_ks_put (ctrl_t ctrl, void *data, size_t datalen,
-                                kbnode_t keyblock);
-gpg_error_t gpg_dirmngr_dns_cert (ctrl_t ctrl,
-                                  const char *name, const char *certtype,
-                                  estream_t *r_key,
-                                  unsigned char **r_fpr, size_t *r_fprlen,
-                                  char **r_url);
-gpg_error_t gpg_dirmngr_get_pka (ctrl_t ctrl, const char *userid,
+void gpg_dirmngr_deinit_session_data(ctrl_t ctrl);
+
+gpg_error_t gpg_dirmngr_ks_list(ctrl_t ctrl, char **r_keyserver);
+gpg_error_t gpg_dirmngr_ks_search(ctrl_t ctrl, const char *searchstr,
+                                  gpg_error_t (*cb)(void *, int, char *),
+                                  void *cb_value);
+gpg_error_t gpg_dirmngr_ks_get(ctrl_t ctrl, char *pattern[],
+                               keyserver_spec_t override_keyserver, int quick,
+                               estream_t *r_fp, char **r_source);
+gpg_error_t gpg_dirmngr_ks_fetch(ctrl_t ctrl, const char *url, estream_t *r_fp);
+gpg_error_t gpg_dirmngr_ks_put(ctrl_t ctrl, void *data, size_t datalen,
+                               kbnode_t keyblock);
+gpg_error_t gpg_dirmngr_dns_cert(ctrl_t ctrl, const char *name,
+                                 const char *certtype, estream_t *r_key,
                                  unsigned char **r_fpr, size_t *r_fprlen,
                                  char **r_url);
-gpg_error_t gpg_dirmngr_wkd_get (ctrl_t ctrl, const char *name, int quick,
-                                 estream_t *r_key);
-
+gpg_error_t gpg_dirmngr_get_pka(ctrl_t ctrl, const char *userid,
+                                unsigned char **r_fpr, size_t *r_fprlen,
+                                char **r_url);
+gpg_error_t gpg_dirmngr_wkd_get(ctrl_t ctrl, const char *name, int quick,
+                                estream_t *r_key);
 
 #endif /*GNUPG_G10_CALL_DIRMNGR_H*/

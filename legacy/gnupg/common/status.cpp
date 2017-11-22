@@ -30,47 +30,66 @@
 #include <config.h>
 #include <stdlib.h>
 
-#include "util.h"
-#include "status.h"
 #include "status-codes.h"
-
+#include "status.h"
+#include "util.h"
 
 /* Return the status string for code NO. */
-const char *
-get_status_string ( int no )
-{
-  int idx = statusstr_msgidxof (no);
+const char *get_status_string(int no) {
+  int idx = statusstr_msgidxof(no);
   if (idx == -1)
     return "?";
   else
     return statusstr_msgstr + statusstr_msgidx[idx];
 }
 
-
-const char *
-get_inv_recpsgnr_code (gpg_error_t err)
-{
+const char *get_inv_recpsgnr_code(gpg_error_t err) {
   const char *errstr;
 
-  switch (err)
-    {
-    case GPG_ERR_NO_PUBKEY:       errstr = "1"; break;
-    case GPG_ERR_AMBIGUOUS_NAME:  errstr = "2"; break;
-    case GPG_ERR_WRONG_KEY_USAGE: errstr = "3"; break;
-    case GPG_ERR_CERT_REVOKED:    errstr = "4"; break;
-    case GPG_ERR_CERT_EXPIRED:    errstr = "5"; break;
-    case GPG_ERR_NO_CRL_KNOWN:    errstr = "6"; break;
-    case GPG_ERR_CRL_TOO_OLD:     errstr = "7"; break;
-    case GPG_ERR_NO_POLICY_MATCH: errstr = "8"; break;
+  switch (err) {
+    case GPG_ERR_NO_PUBKEY:
+      errstr = "1";
+      break;
+    case GPG_ERR_AMBIGUOUS_NAME:
+      errstr = "2";
+      break;
+    case GPG_ERR_WRONG_KEY_USAGE:
+      errstr = "3";
+      break;
+    case GPG_ERR_CERT_REVOKED:
+      errstr = "4";
+      break;
+    case GPG_ERR_CERT_EXPIRED:
+      errstr = "5";
+      break;
+    case GPG_ERR_NO_CRL_KNOWN:
+      errstr = "6";
+      break;
+    case GPG_ERR_CRL_TOO_OLD:
+      errstr = "7";
+      break;
+    case GPG_ERR_NO_POLICY_MATCH:
+      errstr = "8";
+      break;
 
     case GPG_ERR_UNUSABLE_SECKEY:
-    case GPG_ERR_NO_SECKEY:       errstr = "9"; break;
+    case GPG_ERR_NO_SECKEY:
+      errstr = "9";
+      break;
 
-    case GPG_ERR_NOT_TRUSTED:     errstr = "10"; break;
-    case GPG_ERR_MISSING_CERT:    errstr = "11"; break;
-    case GPG_ERR_MISSING_ISSUER_CERT: errstr = "12"; break;
-    default:                      errstr = "0"; break;
-    }
+    case GPG_ERR_NOT_TRUSTED:
+      errstr = "10";
+      break;
+    case GPG_ERR_MISSING_CERT:
+      errstr = "11";
+      break;
+    case GPG_ERR_MISSING_ISSUER_CERT:
+      errstr = "12";
+      break;
+    default:
+      errstr = "0";
+      break;
+  }
 
   return errstr;
 }

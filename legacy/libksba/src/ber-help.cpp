@@ -28,11 +28,11 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "util.h"
 
 #include "asn1-func.h" /* need some constants */
@@ -42,55 +42,41 @@
    have the constructed bit set (which is not allowed).  This saves us
    some work when using these parsers */
 
-static int
-read_byte (ksba_reader_t reader)
-{
+static int read_byte(ksba_reader_t reader) {
   unsigned char buf;
   size_t nread;
   int rc;
 
   do
-    rc = ksba_reader_read (reader, (char*) &buf, 1, &nread);
+    rc = ksba_reader_read(reader, (char *)&buf, 1, &nread);
   while (!rc && !nread);
-  return rc? -1: buf;
+  return rc ? -1 : buf;
 }
 
-
-static int
-premature_eof (struct tag_info *ti)
-{
+static int premature_eof(struct tag_info *ti) {
   /* Note: We do an strcmp on this string at othyer places. */
   ti->err_string = "premature EOF";
   return GPG_ERR_BAD_BER;
 }
 
-
-
-static gpg_error_t
-eof_or_error (ksba_reader_t reader, struct tag_info *ti, int premature)
-{
+static gpg_error_t eof_or_error(ksba_reader_t reader, struct tag_info *ti,
+                                int premature) {
   gpg_error_t err;
 
-  err = ksba_reader_error (reader);
-  if (err)
-    {
-      ti->err_string = "read error";
-      return err;
-    }
-  if (premature)
-    return premature_eof (ti);
+  err = ksba_reader_error(reader);
+  if (err) {
+    ti->err_string = "read error";
+    return err;
+  }
+  if (premature) return premature_eof(ti);
 
   return GPG_ERR_EOF;
 }
 
-
-
 /*
    Read the tag and the length part from the TLV triplet.
  */
-gpg_error_t
-_ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
-{
+gpg_error_t _ksba_ber_read_tl(ksba_reader_t reader, struct tag_info *ti) {
   int c;
   unsigned long tag;
 
@@ -101,89 +87,71 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
   ti->non_der = 0;
 
   /* Get the tag */
-  c = read_byte (reader);
-  if (c==-1)
-    return eof_or_error (reader, ti, 0);
+  c = read_byte(reader);
+  if (c == -1) return eof_or_error(reader, ti, 0);
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (tag_class) ((c & 0xc0) >> 6);
+  ti->klasse = (tag_class)((c & 0xc0) >> 6);
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
-  if (tag == 0x1f)
-    {
-      tag = 0;
-      do
-        {
-          /* We silently ignore an overflow in the tag value.  It is
-             not worth checking for it. */
-          tag <<= 7;
-          c = read_byte (reader);
-          if (c == -1)
-            return eof_or_error (reader, ti, 1);
-          if (ti->nhdr >= DIM (ti->buf))
-            {
-              ti->err_string = "tag+length header too large";
-              return GPG_ERR_BAD_BER;
-            }
-          ti->buf[ti->nhdr++] = c;
-          tag |= c & 0x7f;
-        }
-      while (c & 0x80);
-    }
+  if (tag == 0x1f) {
+    tag = 0;
+    do {
+      /* We silently ignore an overflow in the tag value.  It is
+         not worth checking for it. */
+      tag <<= 7;
+      c = read_byte(reader);
+      if (c == -1) return eof_or_error(reader, ti, 1);
+      if (ti->nhdr >= DIM(ti->buf)) {
+        ti->err_string = "tag+length header too large";
+        return GPG_ERR_BAD_BER;
+      }
+      ti->buf[ti->nhdr++] = c;
+      tag |= c & 0x7f;
+    } while (c & 0x80);
+  }
   ti->tag = tag;
 
   /* Get the length */
-  c = read_byte (reader);
-  if (c == -1)
-    return eof_or_error (reader, ti, 1);
-  if (ti->nhdr >= DIM (ti->buf))
-    {
-      ti->err_string = "tag+length header too large";
-      return GPG_ERR_BAD_BER;
-    }
+  c = read_byte(reader);
+  if (c == -1) return eof_or_error(reader, ti, 1);
+  if (ti->nhdr >= DIM(ti->buf)) {
+    ti->err_string = "tag+length header too large";
+    return GPG_ERR_BAD_BER;
+  }
   ti->buf[ti->nhdr++] = c;
 
-  if ( !(c & 0x80) )
+  if (!(c & 0x80))
     ti->length = c;
-  else if (c == 0x80)
-    {
-      ti->ndef = 1;
-      ti->non_der = 1;
-    }
-  else if (c == 0xff)
-    {
-      ti->err_string = "forbidden length value";
-      return GPG_ERR_BAD_BER;
-    }
-  else
-    {
-      unsigned long len = 0;
-      int count = c & 0x7f;
+  else if (c == 0x80) {
+    ti->ndef = 1;
+    ti->non_der = 1;
+  } else if (c == 0xff) {
+    ti->err_string = "forbidden length value";
+    return GPG_ERR_BAD_BER;
+  } else {
+    unsigned long len = 0;
+    int count = c & 0x7f;
 
-      if (count > sizeof (len) || count > sizeof (size_t))
+    if (count > sizeof(len) || count > sizeof(size_t)) return GPG_ERR_BAD_BER;
+
+    for (; count; count--) {
+      len <<= 8;
+      c = read_byte(reader);
+      if (c == -1) return eof_or_error(reader, ti, 1);
+      if (ti->nhdr >= DIM(ti->buf)) {
+        ti->err_string = "tag+length header too large";
         return GPG_ERR_BAD_BER;
-
-      for (; count; count--)
-        {
-          len <<= 8;
-          c = read_byte (reader);
-          if (c == -1)
-            return eof_or_error (reader, ti, 1);
-          if (ti->nhdr >= DIM (ti->buf))
-            {
-              ti->err_string = "tag+length header too large";
-              return GPG_ERR_BAD_BER;
-            }
-          ti->buf[ti->nhdr++] = c;
-          len |= c & 0xff;
-        }
-      ti->length = len;
+      }
+      ti->buf[ti->nhdr++] = c;
+      len |= c & 0xff;
     }
+    ti->length = len;
+  }
 
   /* Without this kludge some example certs can't be parsed */
-  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag)
-    ti->length = 0;
+  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag) ti->length = 0;
 
   return 0;
 }
@@ -192,10 +160,8 @@ _ksba_ber_read_tl (ksba_reader_t reader, struct tag_info *ti)
    Parse the buffer at the address BUFFER which of SIZE and return
    the tag and the length part from the TLV triplet.  Update BUFFER
    and SIZE on success. */
-gpg_error_t
-_ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
-                    struct tag_info *ti)
-{
+gpg_error_t _ksba_ber_parse_tl(unsigned char const **buffer, size_t *size,
+                               struct tag_info *ti) {
   int c;
   unsigned long tag;
   const unsigned char *buf = *buffer;
@@ -208,127 +174,102 @@ _ksba_ber_parse_tl (unsigned char const **buffer, size_t *size,
   ti->non_der = 0;
 
   /* Get the tag */
-  if (!length)
-    return premature_eof (ti);
-  c = *buf++; length--;
+  if (!length) return premature_eof(ti);
+  c = *buf++;
+  length--;
 
   ti->buf[ti->nhdr++] = c;
-  ti->klasse = (tag_class) ((c & 0xc0) >> 6);
+  ti->klasse = (tag_class)((c & 0xc0) >> 6);
   ti->is_constructed = !!(c & 0x20);
   tag = c & 0x1f;
 
-  if (tag == 0x1f)
-    {
-      tag = 0;
-      do
-        {
-          /* We silently ignore an overflow in the tag value.  It is
-             not worth checking for it. */
-          tag <<= 7;
-          if (!length)
-            return premature_eof (ti);
-          c = *buf++; length--;
-          if (ti->nhdr >= DIM (ti->buf))
-            {
-              ti->err_string = "tag+length header too large";
-              return GPG_ERR_BAD_BER;
-            }
-          ti->buf[ti->nhdr++] = c;
-          tag |= c & 0x7f;
-        }
-      while (c & 0x80);
-    }
+  if (tag == 0x1f) {
+    tag = 0;
+    do {
+      /* We silently ignore an overflow in the tag value.  It is
+         not worth checking for it. */
+      tag <<= 7;
+      if (!length) return premature_eof(ti);
+      c = *buf++;
+      length--;
+      if (ti->nhdr >= DIM(ti->buf)) {
+        ti->err_string = "tag+length header too large";
+        return GPG_ERR_BAD_BER;
+      }
+      ti->buf[ti->nhdr++] = c;
+      tag |= c & 0x7f;
+    } while (c & 0x80);
+  }
   ti->tag = tag;
 
   /* Get the length */
-  if (!length)
-    return premature_eof (ti);
-  c = *buf++; length--;
-  if (ti->nhdr >= DIM (ti->buf))
-    {
-      ti->err_string = "tag+length header too large";
-      return GPG_ERR_BAD_BER;
-    }
+  if (!length) return premature_eof(ti);
+  c = *buf++;
+  length--;
+  if (ti->nhdr >= DIM(ti->buf)) {
+    ti->err_string = "tag+length header too large";
+    return GPG_ERR_BAD_BER;
+  }
   ti->buf[ti->nhdr++] = c;
 
-  if ( !(c & 0x80) )
+  if (!(c & 0x80))
     ti->length = c;
-  else if (c == 0x80)
-    {
-      ti->ndef = 1;
-      ti->non_der = 1;
-    }
-  else if (c == 0xff)
-    {
-      ti->err_string = "forbidden length value";
-      return GPG_ERR_BAD_BER;
-    }
-  else
-    {
-      unsigned long len = 0;
-      int count = c & 0x7f;
+  else if (c == 0x80) {
+    ti->ndef = 1;
+    ti->non_der = 1;
+  } else if (c == 0xff) {
+    ti->err_string = "forbidden length value";
+    return GPG_ERR_BAD_BER;
+  } else {
+    unsigned long len = 0;
+    int count = c & 0x7f;
 
-      if (count > sizeof (len) || count > sizeof (size_t))
+    if (count > sizeof(len) || count > sizeof(size_t)) return GPG_ERR_BAD_BER;
+
+    for (; count; count--) {
+      len <<= 8;
+      if (!length) return premature_eof(ti);
+      c = *buf++;
+      length--;
+      if (ti->nhdr >= DIM(ti->buf)) {
+        ti->err_string = "tag+length header too large";
         return GPG_ERR_BAD_BER;
-
-      for (; count; count--)
-        {
-          len <<= 8;
-          if (!length)
-            return premature_eof (ti);
-          c = *buf++; length--;
-          if (ti->nhdr >= DIM (ti->buf))
-            {
-              ti->err_string = "tag+length header too large";
-              return GPG_ERR_BAD_BER;
-            }
-          ti->buf[ti->nhdr++] = c;
-          len |= c & 0xff;
-        }
-      /* Sanity check for the length: This is done so that we can take
-       * the value for malloc plus some additional bytes without
-       * risking an overflow.  */
-      if (len > (1 << 30))
-        return GPG_ERR_BAD_BER;
-      ti->length = len;
+      }
+      ti->buf[ti->nhdr++] = c;
+      len |= c & 0xff;
     }
-
+    /* Sanity check for the length: This is done so that we can take
+     * the value for malloc plus some additional bytes without
+     * risking an overflow.  */
+    if (len > (1 << 30)) return GPG_ERR_BAD_BER;
+    ti->length = len;
+  }
 
   /* Without this kludge some example certs can't be parsed */
-  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag)
-    ti->length = 0;
+  if (ti->klasse == CLASS_UNIVERSAL && !ti->tag) ti->length = 0;
 
   *buffer = buf;
   *size = length;
   return 0;
 }
 
-
 /* Write TAG of CLASS to WRITER.  constructed is a flag telling
    whether the value is a constructed one.  length gives the length of
    the value, if it is 0 undefinite length is assumed.  length is
    ignored for the NULL tag. */
-gpg_error_t
-_ksba_ber_write_tl (ksba_writer_t writer,
-                    unsigned long tag,
-                    enum tag_class klasse,
-                    int constructed,
-                    unsigned long length)
-{
+gpg_error_t _ksba_ber_write_tl(ksba_writer_t writer, unsigned long tag,
+                               enum tag_class klasse, int constructed,
+                               unsigned long length) {
   unsigned char buf[50];
   int buflen = 0;
 
-  if (tag < 0x1f)
-    {
-      *buf = (klasse << 6) | tag;
-      if (constructed)
-        *buf |= 0x20;
-      buflen++;
-    }
-  else
-    {
-      return GPG_ERR_NOT_IMPLEMENTED;
-    }
+  if (tag < 0x1f) {
+    *buf = (klasse << 6) | tag;
+    if (constructed) *buf |= 0x20;
+    buflen++;
+  } else {
+    return GPG_ERR_NOT_IMPLEMENTED;
+  }
 
   if (!tag && !klasse)
     buf[buflen++] = 0; /* end tag */
@@ -338,27 +279,22 @@ _ksba_ber_write_tl (ksba_writer_t writer,
     buf[buflen++] = 0x80; /* indefinite length */
   else if (length < 128)
     buf[buflen++] = length;
-  else
-    {
-      int i;
+  else {
+    int i;
 
-      /* fixme: if we know the sizeof an ulong we could support larger
-         objects - however this is pretty ridiculous */
-      i = (length <= 0xff ? 1:
-           length <= 0xffff ? 2:
-           length <= 0xffffff ? 3: 4);
+    /* fixme: if we know the sizeof an ulong we could support larger
+       objects - however this is pretty ridiculous */
+    i = (length <= 0xff ? 1
+                        : length <= 0xffff ? 2 : length <= 0xffffff ? 3 : 4);
 
-      buf[buflen++] = (0x80 | i);
-      if (i > 3)
-        buf[buflen++] = length >> 24;
-      if (i > 2)
-        buf[buflen++] = length >> 16;
-      if (i > 1)
-        buf[buflen++] = length >> 8;
-      buf[buflen++] = length;
-    }
+    buf[buflen++] = (0x80 | i);
+    if (i > 3) buf[buflen++] = length >> 24;
+    if (i > 2) buf[buflen++] = length >> 16;
+    if (i > 1) buf[buflen++] = length >> 8;
+    buf[buflen++] = length;
+  }
 
-  return ksba_writer_write (writer, buf, buflen);
+  return ksba_writer_write(writer, buf, buflen);
 }
 
 /* Encode TAG of CLASS in BUFFER.  CONSTRUCTED is a flag telling
@@ -368,26 +304,18 @@ _ksba_ber_write_tl (ksba_writer_t writer,
    large enough for storing the result - this is usually achieved by
    using _ksba_ber_count_tl() in advance.  Returns 0 in case of an
    error or the length of the encoding.*/
-size_t
-_ksba_ber_encode_tl (unsigned char *buffer,
-                     unsigned long tag,
-                     enum tag_class klasse,
-                     int constructed,
-                     unsigned long length)
-{
+size_t _ksba_ber_encode_tl(unsigned char *buffer, unsigned long tag,
+                           enum tag_class klasse, int constructed,
+                           unsigned long length) {
   unsigned char *buf = buffer;
 
-  if (tag < 0x1f)
-    {
-      *buf = (klasse << 6) | tag;
-      if (constructed)
-        *buf |= 0x20;
-      buf++;
-    }
-  else
-    {
-      return 0; /*Not implemented*/
-    }
+  if (tag < 0x1f) {
+    *buf = (klasse << 6) | tag;
+    if (constructed) *buf |= 0x20;
+    buf++;
+  } else {
+    return 0; /*Not implemented*/
+  }
 
   if (!tag && !klasse)
     *buf++ = 0; /* end tag */
@@ -397,53 +325,40 @@ _ksba_ber_encode_tl (unsigned char *buffer,
     *buf++ = 0x80; /* indefinite length */
   else if (length < 128)
     *buf++ = length;
-  else
-    {
-      int i;
+  else {
+    int i;
 
-      /* fixme: if we know the sizeof an ulong we could support larger
-         objetcs - however this is pretty ridiculous */
-      i = (length <= 0xff ? 1:
-           length <= 0xffff ? 2:
-           length <= 0xffffff ? 3: 4);
+    /* fixme: if we know the sizeof an ulong we could support larger
+       objetcs - however this is pretty ridiculous */
+    i = (length <= 0xff ? 1
+                        : length <= 0xffff ? 2 : length <= 0xffffff ? 3 : 4);
 
-      *buf++ = (0x80 | i);
-      if (i > 3)
-        *buf++ = length >> 24;
-      if (i > 2)
-        *buf++ = length >> 16;
-      if (i > 1)
-        *buf++ = length >> 8;
-      *buf++ = length;
-    }
+    *buf++ = (0x80 | i);
+    if (i > 3) *buf++ = length >> 24;
+    if (i > 2) *buf++ = length >> 16;
+    if (i > 1) *buf++ = length >> 8;
+    *buf++ = length;
+  }
 
   return buf - buffer;
 }
-
 
 /* Calculate the length of the TL needed to encode a TAG of CLASS.
    CONSTRUCTED is a flag telling whether the value is a constructed
    one.  LENGTH gives the length of the value; if it is 0 an
    indefinite length is assumed.  LENGTH is ignored for the NULL
    tag. */
-size_t
-_ksba_ber_count_tl (unsigned long tag,
-                    enum tag_class klasse,
-                    int constructed,
-                    unsigned long length)
-{
+size_t _ksba_ber_count_tl(unsigned long tag, enum tag_class klasse,
+                          int constructed, unsigned long length) {
   int buflen = 0;
 
-  (void)constructed;  /* Not used, but passed for uniformity of such calls.  */
+  (void)constructed; /* Not used, but passed for uniformity of such calls.  */
 
-  if (tag < 0x1f)
-    {
-      buflen++;
-    }
-  else
-    {
-      buflen++; /* assume one and let the actual write function bail out */
-    }
+  if (tag < 0x1f) {
+    buflen++;
+  } else {
+    buflen++; /* assume one and let the actual write function bail out */
+  }
 
   if (!tag && !klasse)
     buflen++; /* end tag */
@@ -453,25 +368,20 @@ _ksba_ber_count_tl (unsigned long tag,
     buflen++; /* indefinite length */
   else if (length < 128)
     buflen++;
-  else
-    {
-      int i;
+  else {
+    int i;
 
-      /* fixme: if we know the sizeof an ulong we could support larger
-         objetcs - however this is pretty ridiculous */
-      i = (length <= 0xff ? 1:
-           length <= 0xffff ? 2:
-           length <= 0xffffff ? 3: 4);
+    /* fixme: if we know the sizeof an ulong we could support larger
+       objetcs - however this is pretty ridiculous */
+    i = (length <= 0xff ? 1
+                        : length <= 0xffff ? 2 : length <= 0xffffff ? 3 : 4);
 
-      buflen++;
-      if (i > 3)
-        buflen++;
-      if (i > 2)
-        buflen++;
-      if (i > 1)
-        buflen++;
-      buflen++;
-    }
+    buflen++;
+    if (i > 3) buflen++;
+    if (i > 2) buflen++;
+    if (i > 1) buflen++;
+    buflen++;
+  }
 
   return buflen;
 }

@@ -37,15 +37,15 @@
    characters.  The special option "--" indicates an explicit end of
    options; all what follows will not be considered an option.  The
    first no-option string also indicates the end of option parsing. */
-char *skip_options (const char *line);
+char *skip_options(const char *line);
 
 /* Check whether the option NAME appears in LINE.  */
-int has_option (const char *line, const char *name);
+int has_option(const char *line, const char *name);
 
 /* Same as has_option but only considers options at the begin of the
    line.  This is useful for commands which allow arbitrary strings on
    the line.  */
-int has_leading_option (const char *line, const char *name);
+int has_leading_option(const char *line, const char *name);
 
 /* Same as has_option but does only test for the name of the option
    and ignores an argument, i.e. with NAME being "--hash" it would
@@ -53,10 +53,10 @@ int has_leading_option (const char *line, const char *name);
    there is no such option NULL is returned.  The pointer returned
    points right behind the option name, this may be an equal sign, Nul
    or a space.  */
-const char *has_option_name (const char *line, const char *name);
+const char *has_option_name(const char *line, const char *name);
 
 /* Return a pointer to the argument of the option with NAME.  If such
    an option is not given, NULL is returned. */
-char *option_value (const char *line, const char *name);
+char *option_value(const char *line, const char *name);
 
-#endif	/* GNUPG_COMMON_SERVER_HELP_H */
+#endif /* GNUPG_COMMON_SERVER_HELP_H */

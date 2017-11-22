@@ -19,21 +19,20 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
+#include "../common/i18n.h"
+#include "../common/iobuf.h"
+#include "../common/status.h"
+#include "../common/util.h"
 #include "gpg.h"
+#include "keydb.h"
+#include "main.h"
 #include "options.h"
 #include "packet.h"
-#include "../common/status.h"
-#include "../common/iobuf.h"
-#include "keydb.h"
-#include "../common/util.h"
-#include "main.h"
-#include "../common/status.h"
-#include "../common/i18n.h"
 
 /* Assume that the input is an encrypted message and decrypt
  * (and if signed, verify the signature on) it.
@@ -41,66 +40,55 @@
  * writes to the filename which is included in the file and it
  * rejects files which don't begin with an encrypted message.
  */
-int
-decrypt_message (ctrl_t ctrl, const char *filename)
-{
+int decrypt_message(ctrl_t ctrl, const char *filename) {
   IOBUF fp;
   armor_filter_context_t *afx = NULL;
   progress_filter_context_t *pfx;
   int rc;
   int no_out = 0;
 
-  pfx = new_progress_context ();
+  pfx = new_progress_context();
 
   /* Open the message file.  */
-  fp = iobuf_open (filename);
-  if (fp && is_secured_file (iobuf_get_fd (fp)))
-    {
-      iobuf_close (fp);
-      fp = NULL;
-      gpg_err_set_errno (EPERM);
-    }
-  if ( !fp )
-    {
-      rc = gpg_error_from_syserror ();
-      log_error (_("can't open '%s': %s\n"), print_fname_stdin(filename),
-                 gpg_strerror (rc));
-      release_progress_context (pfx);
-      return rc;
-    }
+  fp = iobuf_open(filename);
+  if (fp && is_secured_file(iobuf_get_fd(fp))) {
+    iobuf_close(fp);
+    fp = NULL;
+    gpg_err_set_errno(EPERM);
+  }
+  if (!fp) {
+    rc = gpg_error_from_syserror();
+    log_error(_("can't open '%s': %s\n"), print_fname_stdin(filename),
+              gpg_strerror(rc));
+    release_progress_context(pfx);
+    return rc;
+  }
 
-  handle_progress (pfx, fp, filename);
+  handle_progress(pfx, fp, filename);
 
-  if ( !opt.no_armor )
-    {
-      if ( use_armor_filter( fp ) )
-        {
-          afx = new_armor_context ();
-          push_armor_filter ( afx, fp );
-	}
+  if (!opt.no_armor) {
+    if (use_armor_filter(fp)) {
+      afx = new_armor_context();
+      push_armor_filter(afx, fp);
     }
+  }
 
-  if (!opt.outfile)
-    {
-      no_out = 1;
-      *opt.outfile = "-";
-    }
-  rc = proc_encryption_packets (ctrl, NULL, fp );
-  if (no_out)
-    opt.outfile = boost::none;
+  if (!opt.outfile) {
+    no_out = 1;
+    *opt.outfile = "-";
+  }
+  rc = proc_encryption_packets(ctrl, NULL, fp);
+  if (no_out) opt.outfile = boost::none;
 
-  iobuf_close (fp);
-  release_armor_context (afx);
-  release_progress_context (pfx);
+  iobuf_close(fp);
+  release_armor_context(afx);
+  release_progress_context(pfx);
   return rc;
 }
 
-
 /* Same as decrypt_message but takes a file descriptor for input and
    output.  */
-gpg_error_t
-decrypt_message_fd (ctrl_t ctrl, int input_fd, int output_fd)
-{
+gpg_error_t decrypt_message_fd(ctrl_t ctrl, int input_fd, int output_fd) {
 #ifdef HAVE_W32_SYSTEM
   /* No server mode yet.  */
   (void)ctrl;
@@ -113,164 +101,138 @@ decrypt_message_fd (ctrl_t ctrl, int input_fd, int output_fd)
   armor_filter_context_t *afx = NULL;
   progress_filter_context_t *pfx;
 
-  if (opt.outfp)
-    return GPG_ERR_BUG;
+  if (opt.outfp) return GPG_ERR_BUG;
 
-  pfx = new_progress_context ();
+  pfx = new_progress_context();
 
   /* Open the message file.  */
-  fp = iobuf_fdopen_nc (FD2INT(input_fd), "rb");
-  if (fp && is_secured_file (iobuf_get_fd (fp)))
-    {
-      iobuf_close (fp);
-      fp = NULL;
-      gpg_err_set_errno (EPERM);
+  fp = iobuf_fdopen_nc(FD2INT(input_fd), "rb");
+  if (fp && is_secured_file(iobuf_get_fd(fp))) {
+    iobuf_close(fp);
+    fp = NULL;
+    gpg_err_set_errno(EPERM);
+  }
+  if (!fp) {
+    char xname[64];
+
+    err = gpg_error_from_syserror();
+    snprintf(xname, sizeof xname, "[fd %d]", input_fd);
+    log_error(_("can't open '%s': %s\n"), xname, gpg_strerror(err));
+    release_progress_context(pfx);
+    return err;
+  }
+
+  opt.outfp = es_fdopen_nc(output_fd, "wb");
+  if (!opt.outfp) {
+    char xname[64];
+
+    err = gpg_error_from_syserror();
+    snprintf(xname, sizeof xname, "[fd %d]", output_fd);
+    log_error(_("can't open '%s': %s\n"), xname, gpg_strerror(err));
+    iobuf_close(fp);
+    release_progress_context(pfx);
+    return err;
+  }
+
+  if (!opt.no_armor) {
+    if (use_armor_filter(fp)) {
+      afx = new_armor_context();
+      push_armor_filter(afx, fp);
     }
-  if (!fp)
-    {
-      char xname[64];
+  }
 
-      err = gpg_error_from_syserror ();
-      snprintf (xname, sizeof xname, "[fd %d]", input_fd);
-      log_error (_("can't open '%s': %s\n"), xname, gpg_strerror (err));
-      release_progress_context (pfx);
-      return err;
-    }
+  err = proc_encryption_packets(ctrl, NULL, fp);
 
-  opt.outfp = es_fdopen_nc (output_fd, "wb");
-  if (!opt.outfp)
-    {
-      char xname[64];
-
-      err = gpg_error_from_syserror ();
-      snprintf (xname, sizeof xname, "[fd %d]", output_fd);
-      log_error (_("can't open '%s': %s\n"), xname, gpg_strerror (err));
-      iobuf_close (fp);
-      release_progress_context (pfx);
-      return err;
-    }
-
-  if (!opt.no_armor)
-    {
-      if (use_armor_filter (fp))
-        {
-          afx = new_armor_context ();
-          push_armor_filter ( afx, fp );
-	}
-    }
-
-  err = proc_encryption_packets (ctrl, NULL, fp );
-
-  iobuf_close (fp);
-  es_fclose (opt.outfp);
+  iobuf_close(fp);
+  es_fclose(opt.outfp);
   opt.outfp = NULL;
-  release_armor_context (afx);
-  release_progress_context (pfx);
+  release_armor_context(afx);
+  release_progress_context(pfx);
   return err;
 #endif
 }
 
-
-void
-decrypt_messages (ctrl_t ctrl, int nfiles, char *files[])
-{
+void decrypt_messages(ctrl_t ctrl, int nfiles, char *files[]) {
   IOBUF fp;
   progress_filter_context_t *pfx;
   char *p, *output = NULL;
-  int rc=0,use_stdin=0;
-  unsigned int lno=0;
+  int rc = 0, use_stdin = 0;
+  unsigned int lno = 0;
 
-  if (opt.outfile)
-    {
-      log_error(_("--output doesn't work for this command\n"));
-      return;
+  if (opt.outfile) {
+    log_error(_("--output doesn't work for this command\n"));
+    return;
+  }
+
+  pfx = new_progress_context();
+
+  if (!nfiles) use_stdin = 1;
+
+  for (;;) {
+    char line[2048];
+    char *filename = NULL;
+
+    if (use_stdin) {
+      if (fgets(line, DIM(line), stdin)) {
+        lno++;
+        if (!*line || line[strlen(line) - 1] != '\n')
+          log_error("input line %u too long or missing LF\n", lno);
+        else {
+          line[strlen(line) - 1] = '\0';
+          filename = line;
+        }
+      }
+    } else {
+      if (nfiles) {
+        filename = *files;
+        nfiles--;
+        files++;
+      }
     }
 
-  pfx = new_progress_context ();
+    if (filename == NULL) break;
 
-  if(!nfiles)
-    use_stdin=1;
-
-  for(;;)
-    {
-      char line[2048];
-      char *filename=NULL;
-
-      if(use_stdin)
-	{
-	  if(fgets(line, DIM(line), stdin))
-	    {
-	      lno++;
-	      if (!*line || line[strlen(line)-1] != '\n')
-		log_error("input line %u too long or missing LF\n", lno);
-	      else
-		{
-		  line[strlen(line)-1] = '\0';
-		  filename=line;
-		}
-	    }
-	}
-      else
-	{
-	  if(nfiles)
-	    {
-	      filename=*files;
-	      nfiles--;
-	      files++;
-	    }
-	}
-
-      if(filename==NULL)
-	break;
-
-      print_file_status(STATUS_FILE_START, filename, 3);
-      output = make_outfile_name(filename);
-      if (!output)
-        goto next_file;
-      fp = iobuf_open(filename);
-      if (fp)
-        iobuf_ioctl (fp, IOBUF_IOCTL_NO_CACHE, 1, NULL);
-      if (fp && is_secured_file (iobuf_get_fd (fp)))
-        {
-          iobuf_close (fp);
-          fp = NULL;
-          gpg_err_set_errno (EPERM);
-        }
-      if (!fp)
-        {
-          log_error(_("can't open '%s'\n"), print_fname_stdin(filename));
-          goto next_file;
-        }
-
-      handle_progress (pfx, fp, filename);
-
-      if (!opt.no_armor)
-        {
-          if (use_armor_filter(fp))
-            {
-              armor_filter_context_t *afx = new_armor_context ();
-              rc = push_armor_filter (afx, fp);
-              if (rc)
-                log_error("failed to push armor filter");
-              release_armor_context (afx);
-            }
-        }
-      rc = proc_packets (ctrl,NULL, fp);
+    print_file_status(STATUS_FILE_START, filename, 3);
+    output = make_outfile_name(filename);
+    if (!output) goto next_file;
+    fp = iobuf_open(filename);
+    if (fp) iobuf_ioctl(fp, IOBUF_IOCTL_NO_CACHE, 1, NULL);
+    if (fp && is_secured_file(iobuf_get_fd(fp))) {
       iobuf_close(fp);
-      if (rc)
-        log_error("%s: decryption failed: %s\n", print_fname_stdin(filename),
-                  gpg_strerror (rc));
-      p = get_last_passphrase();
-      set_next_passphrase(p);
-      xfree (p);
-
-    next_file:
-      /* Note that we emit file_done even after an error. */
-      write_status( STATUS_FILE_DONE );
-      xfree(output);
-      reset_literals_seen();
+      fp = NULL;
+      gpg_err_set_errno(EPERM);
     }
+    if (!fp) {
+      log_error(_("can't open '%s'\n"), print_fname_stdin(filename));
+      goto next_file;
+    }
+
+    handle_progress(pfx, fp, filename);
+
+    if (!opt.no_armor) {
+      if (use_armor_filter(fp)) {
+        armor_filter_context_t *afx = new_armor_context();
+        rc = push_armor_filter(afx, fp);
+        if (rc) log_error("failed to push armor filter");
+        release_armor_context(afx);
+      }
+    }
+    rc = proc_packets(ctrl, NULL, fp);
+    iobuf_close(fp);
+    if (rc)
+      log_error("%s: decryption failed: %s\n", print_fname_stdin(filename),
+                gpg_strerror(rc));
+    p = get_last_passphrase();
+    set_next_passphrase(p);
+    xfree(p);
+
+  next_file:
+    /* Note that we emit file_done even after an error. */
+    write_status(STATUS_FILE_DONE);
+    xfree(output);
+    reset_literals_seen();
+  }
 
   set_next_passphrase(NULL);
-  release_progress_context (pfx);
+  release_progress_context(pfx);
 }

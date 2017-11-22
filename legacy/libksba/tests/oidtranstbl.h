@@ -1,3 +1,3 @@
-static struct { char *oid, *desc, *comment; } oidtranstbl[] = {
-  { NULL, NULL, NULL }
-};
+static struct {
+  char *oid, *desc, *comment;
+} oidtranstbl[] = {{NULL, NULL, NULL}};

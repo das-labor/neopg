@@ -1,4 +1,4 @@
-/* assuan-pipe-server.c - Assuan server working over a pipe 
+/* assuan-pipe-server.c - Assuan server working over a pipe
    Copyright (C) 2001, 2002, 2009 Free Software Foundation, Inc.
 
    This file is part of Assuan.
@@ -21,18 +21,18 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #ifdef HAVE_W32_SYSTEM
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif 
-# include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#include <windows.h>
 #ifdef HAVE_FCNTL_H
-# include <fcntl.h>
+#include <fcntl.h>
 #endif
 #endif
 
@@ -41,66 +41,54 @@
 
 /* Returns true if atoi(S) denotes a valid socket. */
 #ifndef HAVE_W32_SYSTEM
-static int
-is_valid_socket (const char *s)
-{
+static int is_valid_socket(const char *s) {
   struct stat buf;
 
-  if ( fstat (atoi (s), &buf ) )
-    return 0;
-  return S_ISSOCK (buf.st_mode);
+  if (fstat(atoi(s), &buf)) return 0;
+  return S_ISSOCK(buf.st_mode);
 }
 #endif /*!HAVE_W32_SYSTEM*/
 
-
 /* This actually is a int file descriptor (and not assuan_fd_t) as
    _get_osfhandle is called on W32 systems.  */
-gpg_error_t
-assuan_init_pipe_server (assuan_context_t ctx, assuan_fd_t filedes[2])
-{
+gpg_error_t assuan_init_pipe_server(assuan_context_t ctx,
+                                    assuan_fd_t filedes[2]) {
   const char *s;
   unsigned long ul;
   gpg_error_t rc;
   assuan_fd_t infd = ASSUAN_INVALID_FD;
   assuan_fd_t outfd = ASSUAN_INVALID_FD;
   int is_usd = 0;
-  TRACE_BEG (ctx, ASSUAN_LOG_CTX, "assuan_init_pipe_server", ctx);
-  if (filedes)
-    {
-      TRACE_LOG2 ("fd[0]=0x%x, fd[1]=0x%x", filedes[0], filedes[1]);
-    }
-  
-  rc = _assuan_register_std_commands (ctx);
-  if (rc)
-    return TRACE_ERR (rc);
+  TRACE_BEG(ctx, ASSUAN_LOG_CTX, "assuan_init_pipe_server", ctx);
+  if (filedes) {
+    TRACE_LOG2("fd[0]=0x%x, fd[1]=0x%x", filedes[0], filedes[1]);
+  }
+
+  rc = _assuan_register_std_commands(ctx);
+  if (rc) return TRACE_ERR(rc);
 
 #ifdef HAVE_W32_SYSTEM
-  infd  = filedes[0];
+  infd = filedes[0];
   outfd = filedes[1];
 #else
-  s = getenv ("_assuan_connection_fd");
-  if (s && *s && is_valid_socket (s))
-    {
-      /* Well, we are called with an bi-directional file descriptor.
-	 Prepare for using sendmsg/recvmsg.  In this case we ignore
-	 the passed file descriptors. */
-      infd = atoi (s);
-      outfd = atoi (s);
-      is_usd = 1;
+  s = getenv("_assuan_connection_fd");
+  if (s && *s && is_valid_socket(s)) {
+    /* Well, we are called with an bi-directional file descriptor.
+       Prepare for using sendmsg/recvmsg.  In this case we ignore
+       the passed file descriptors. */
+    infd = atoi(s);
+    outfd = atoi(s);
+    is_usd = 1;
 
-    }
-  else if (filedes && filedes[0] != ASSUAN_INVALID_FD 
-	   && filedes[1] != ASSUAN_INVALID_FD )
-    {
-      /* Standard pipe server. */
-      infd = filedes[0];
-      outfd = filedes[1];
-    }
-  else
-    {
-      rc = GPG_ERR_ASS_SERVER_START;
-      return TRACE_ERR (rc);
-    }
+  } else if (filedes && filedes[0] != ASSUAN_INVALID_FD &&
+             filedes[1] != ASSUAN_INVALID_FD) {
+    /* Standard pipe server. */
+    infd = filedes[0];
+    outfd = filedes[1];
+  } else {
+    rc = GPG_ERR_ASS_SERVER_START;
+    return TRACE_ERR(rc);
+  }
 #endif
 
   ctx->is_server = 1;
@@ -111,8 +99,8 @@ assuan_init_pipe_server (assuan_context_t ctx, assuan_fd_t filedes[2])
   ctx->engine.receivefd = NULL;
   ctx->max_accepts = 1;
 
-  s = getenv ("_assuan_pipe_connect_pid");
-  if (s && (ul=strtoul (s, NULL, 10)) && ul)
+  s = getenv("_assuan_pipe_connect_pid");
+  if (s && (ul = strtoul(s, NULL, 10)) && ul)
     ctx->pid = (pid_t)ul;
   else
     ctx->pid = (pid_t)-1;
@@ -121,8 +109,7 @@ assuan_init_pipe_server (assuan_context_t ctx, assuan_fd_t filedes[2])
   ctx->inbound.fd = infd;
   ctx->outbound.fd = outfd;
 
-  if (is_usd)
-    _assuan_init_uds_io (ctx);
+  if (is_usd) _assuan_init_uds_io(ctx);
 
   return TRACE_SUC();
 }

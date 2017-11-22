@@ -24,71 +24,68 @@
 /* The AC_CHECK_SIZEOF() in configure fails for some machines.
  * we provide some fallback values here */
 #if !SIZEOF_UNSIGNED_SHORT
-# undef SIZEOF_UNSIGNED_SHORT
-# define SIZEOF_UNSIGNED_SHORT 2
+#undef SIZEOF_UNSIGNED_SHORT
+#define SIZEOF_UNSIGNED_SHORT 2
 #endif
 #if !SIZEOF_UNSIGNED_INT
-# undef SIZEOF_UNSIGNED_INT
-# define SIZEOF_UNSIGNED_INT 4
+#undef SIZEOF_UNSIGNED_INT
+#define SIZEOF_UNSIGNED_INT 4
 #endif
 #if !SIZEOF_UNSIGNED_LONG
-# undef SIZEOF_UNSIGNED_LONG
-# define SIZEOF_UNSIGNED_LONG 4
+#undef SIZEOF_UNSIGNED_LONG
+#define SIZEOF_UNSIGNED_LONG 4
 #endif
-
 
 #include <sys/types.h>
 
 /* Provide uintptr_t */
-#include <stdint.h> /* uintptr_t */
 #include <inttypes.h>
-
-
+#include <stdint.h> /* uintptr_t */
 
 #ifndef HAVE_BYTE_TYPEDEF
-# undef byte	/* In case there is a macro with that name.  */
-# if !(defined(_WIN32) && defined(cbNDRContext))
-   /* Windows typedefs byte in the rpc headers.  Avoid warning about
-      double definition.  */
-   typedef unsigned char byte;
-# endif
-# define HAVE_BYTE_TYPEDEF
+#undef byte /* In case there is a macro with that name.  */
+#if !(defined(_WIN32) && defined(cbNDRContext))
+/* Windows typedefs byte in the rpc headers.  Avoid warning about
+   double definition.  */
+typedef unsigned char byte;
+#endif
+#define HAVE_BYTE_TYPEDEF
 #endif
 
 #ifndef HAVE_USHORT_TYPEDEF
-# undef ushort  /* In case there is a macro with that name.  */
-  typedef unsigned short ushort;
-# define HAVE_USHORT_TYPEDEF
+#undef ushort /* In case there is a macro with that name.  */
+typedef unsigned short ushort;
+#define HAVE_USHORT_TYPEDEF
 #endif
 
 #ifndef HAVE_ULONG_TYPEDEF
-# undef ulong   /* In case there is a macro with that name.  */
-  typedef unsigned long ulong;
-# define HAVE_ULONG_TYPEDEF
+#undef ulong /* In case there is a macro with that name.  */
+typedef unsigned long ulong;
+#define HAVE_ULONG_TYPEDEF
 #endif
 
 #ifndef HAVE_U16_TYPEDEF
-# undef u16	/* In case there is a macro with that name.  */
-# if SIZEOF_UNSIGNED_INT == 2
-   typedef unsigned int   u16;
-# elif SIZEOF_UNSIGNED_SHORT == 2
-   typedef unsigned short u16;
-# else
-#  error no typedef for u16
-# endif
-# define HAVE_U16_TYPEDEF
+#undef u16 /* In case there is a macro with that name.  */
+#if SIZEOF_UNSIGNED_INT == 2
+typedef unsigned int u16;
+#elif SIZEOF_UNSIGNED_SHORT == 2
+typedef unsigned short u16;
+#else
+#error no typedef for u16
+#endif
+#define HAVE_U16_TYPEDEF
 #endif
 
 #ifndef HAVE_U32_TYPEDEF
-# undef u32	/* In case there is a macro with that name.  */
-# if SIZEOF_UNSIGNED_INT == 4
-   typedef unsigned int  u32;
-# elif SIZEOF_UNSIGNED_LONG == 4
-   typedef unsigned long u32;
-# else
-#  error no typedef for u32
-# endif
-# define HAVE_U32_TYPEDEF
+#undef u32 /* In case there is a macro with that name.  */
+#if SIZEOF_UNSIGNED_INT == 4
+typedef unsigned int u32;
+#elif SIZEOF_UNSIGNED_LONG == 4
+typedef unsigned long u32;
+#else
+#error no typedef for u32
+#endif
+#define HAVE_U32_TYPEDEF
 #endif
 
 /*
@@ -100,8 +97,7 @@ typedef uint64_t u64;
 #define U64_C(c) (UINT64_C(c))
 #define HAVE_U64_TYPEDEF
 
-typedef union
-{
+typedef union {
   int a;
   short b;
   char c[1];

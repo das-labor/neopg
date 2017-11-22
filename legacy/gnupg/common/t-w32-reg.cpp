@@ -29,10 +29,10 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <time.h>
 
 #include "mischelp.h"
@@ -40,32 +40,23 @@
 #include "t-support.h"
 #include "w32help.h"
 
-
-static void
-test_read_registry (void)
-{
+static void test_read_registry(void) {
   char *string;
 
-  string = read_w32_registry_string
-    ("HKEY_CURRENT_USER",
-     "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
-     "User Agent");
-  if (!string)
-    fail (0);
-  fprintf (stderr, "User agent: %s\n", string);
-  xfree (string);
+  string = read_w32_registry_string(
+      "HKEY_CURRENT_USER",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings",
+      "User Agent");
+  if (!string) fail(0);
+  fprintf(stderr, "User agent: %s\n", string);
+  xfree(string);
 }
 
-
-
-
-int
-main (int argc, char **argv)
-{
+int main(int argc, char **argv) {
   (void)argc;
   (void)argv;
 
-  test_read_registry ();
+  test_read_registry();
 
   return 0;
 }

@@ -27,25 +27,23 @@
 #define GCRY_GCRYPT_TESTAPI_H
 
 /* For use with gcry_control:  */
-#define PRIV_CTL_INIT_EXTRNG_TEST   58
-#define PRIV_CTL_RUN_EXTRNG_TEST    59
+#define PRIV_CTL_INIT_EXTRNG_TEST 58
+#define PRIV_CTL_RUN_EXTRNG_TEST 59
 #define PRIV_CTL_DEINIT_EXTRNG_TEST 60
 #define PRIV_CTL_EXTERNAL_LOCK_TEST 61
-#define PRIV_CTL_DUMP_SECMEM_STATS  62
+#define PRIV_CTL_DUMP_SECMEM_STATS 62
 
-#define EXTERNAL_LOCK_TEST_INIT       30111
-#define EXTERNAL_LOCK_TEST_LOCK       30112
-#define EXTERNAL_LOCK_TEST_UNLOCK     30113
-#define EXTERNAL_LOCK_TEST_DESTROY    30114
+#define EXTERNAL_LOCK_TEST_INIT 30111
+#define EXTERNAL_LOCK_TEST_LOCK 30112
+#define EXTERNAL_LOCK_TEST_UNLOCK 30113
+#define EXTERNAL_LOCK_TEST_DESTROY 30114
 
 /* For use with gcry_cipher_ctl:  */
-#define PRIV_CIPHERCTL_DISABLE_WEAK_KEY   61
-#define PRIV_CIPHERCTL_GET_INPUT_VECTOR   62
-
+#define PRIV_CIPHERCTL_DISABLE_WEAK_KEY 61
+#define PRIV_CIPHERCTL_GET_INPUT_VECTOR 62
 
 /* Private interfaces for testing of random-drbg.c. */
-struct gcry_drbg_test_vector
-{
+struct gcry_drbg_test_vector {
   const char *flagstr;
   unsigned char *entropy;
   size_t entropylen;
@@ -64,6 +62,5 @@ struct gcry_drbg_test_vector
   unsigned char *addtl_reseed;
   size_t addtl_reseed_len;
 };
-
 
 #endif /*GCRY_GCRYPT_TESTAPI_H*/

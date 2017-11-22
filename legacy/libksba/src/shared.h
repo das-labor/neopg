@@ -38,17 +38,15 @@
 #endif
 
 enum gcry_md_algos {
-    GCRY_MD_NONE    = 0,
-    GCRY_MD_MD5     = 1,
-    GCRY_MD_SHA1    = 2,
-    GCRY_MD_RMD160  = 3,
-    GCRY_MD_TIGER   = 6,
-    GCRY_MD_SHA256  = 8,
-    GCRY_MD_SHA384  = 9,
-    GCRY_MD_SHA512  = 10,
-    GCRY_MD_SHA224  = 11
+  GCRY_MD_NONE = 0,
+  GCRY_MD_MD5 = 1,
+  GCRY_MD_SHA1 = 2,
+  GCRY_MD_RMD160 = 3,
+  GCRY_MD_TIGER = 6,
+  GCRY_MD_SHA256 = 8,
+  GCRY_MD_SHA384 = 9,
+  GCRY_MD_SHA512 = 10,
+  GCRY_MD_SHA224 = 11
 };
-
-
 
 #endif /*SHARED_H*/

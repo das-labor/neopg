@@ -30,15 +30,15 @@
 #include <config.h>
 
 #ifdef HAVE_W32_SYSTEM
-# ifdef HAVE_WINSOCK2_H
-#  include <winsock2.h>
-# endif
-# include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#include <windows.h>
 #endif
 
 #include <gcrypt.h>
-#include "util.h"
 #include "i18n.h"
+#include "util.h"
 
 /* This object is used to register memory cleanup functions.
    Technically they are not needed but they can avoid frequent
@@ -47,72 +47,52 @@
 struct mem_cleanup_item_s;
 typedef struct mem_cleanup_item_s *mem_cleanup_item_t;
 
-struct mem_cleanup_item_s
-{
+struct mem_cleanup_item_s {
   mem_cleanup_item_t next;
-  void (*func) (void);
+  void (*func)(void);
 };
 
 static mem_cleanup_item_t mem_cleanup_list;
 
-
-static void
-run_mem_cleanup (void)
-{
+static void run_mem_cleanup(void) {
   mem_cleanup_item_t next;
 
-  while (mem_cleanup_list)
-    {
-      next = mem_cleanup_list->next;
-      mem_cleanup_list->func ();
-      free (mem_cleanup_list);
-      mem_cleanup_list = next;
-    }
+  while (mem_cleanup_list) {
+    next = mem_cleanup_list->next;
+    mem_cleanup_list->func();
+    free(mem_cleanup_list);
+    mem_cleanup_list = next;
+  }
 }
 
-
-void
-register_mem_cleanup_func (void (*func)(void))
-{
+void register_mem_cleanup_func(void (*func)(void)) {
   mem_cleanup_item_t item;
 
   for (item = mem_cleanup_list; item; item = item->next)
-    if (item->func == func)
-      return; /* Function has already been registered.  */
+    if (item->func == func) return; /* Function has already been registered.  */
 
-  item = (mem_cleanup_item_t) malloc (sizeof *item);
-  if (item)
-    {
-      item->func = func;
-      item->next = mem_cleanup_list;
-      mem_cleanup_list = item;
-    }
+  item = (mem_cleanup_item_t)malloc(sizeof *item);
+  if (item) {
+    item->func = func;
+    item->next = mem_cleanup_list;
+    mem_cleanup_list = item;
+  }
 }
-
 
 /* If STRING is not NULL write string to es_stdout or es_stderr.  MODE
    must be 1 or 2.  If STRING is NULL flush the respective stream.  */
-static int
-writestring_via_estream (int mode, const char *string)
-{
-  if (mode == 1 || mode == 2)
-    {
-      if (string)
-        return es_fputs (string, mode == 1? es_stdout : es_stderr);
-      else
-        return es_fflush (mode == 1? es_stdout : es_stderr);
-    }
-  else
+static int writestring_via_estream(int mode, const char *string) {
+  if (mode == 1 || mode == 2) {
+    if (string)
+      return es_fputs(string, mode == 1 ? es_stdout : es_stderr);
+    else
+      return es_fflush(mode == 1 ? es_stdout : es_stderr);
+  } else
     return -1;
 }
 
-
 /* This function should be the first called after main.  */
-void
-early_system_init (void)
-{
-}
-
+void early_system_init(void) {}
 
 /* This function is to be used early at program startup to make sure
    that some subsystems are initialized.  This is in particular
@@ -126,13 +106,11 @@ early_system_init (void)
    init_common_subsystems.
 
    CAUTION: This might be called while running suid(root).  */
-void
-init_common_subsystems (int *argcp, char ***argvp)
-{
-  atexit (run_mem_cleanup);
+void init_common_subsystems(int *argcp, char ***argvp) {
+  atexit(run_mem_cleanup);
 
   /* Try to auto set the character set.  */
-  set_native_charset (NULL);
+  set_native_charset(NULL);
 
 #ifdef HAVE_W32_SYSTEM
   /* For W32 we need to initialize the socket layer.  This is because
@@ -141,13 +119,13 @@ init_common_subsystems (int *argcp, char ***argvp)
   {
     WSADATA wsadat;
 
-    WSAStartup (0x202, &wsadat);
+    WSAStartup(0x202, &wsadat);
   }
 #endif
 
   /* Initialize the Estream library. */
-  gpgrt_init ();
-  gpgrt_set_alloc_func (gcry_realloc);
+  gpgrt_init();
+  gpgrt_set_alloc_func(gcry_realloc);
 
   /* Access the standard estreams as early as possible.  If we don't
      do this the original stdio streams may have been closed when
@@ -155,13 +133,12 @@ init_common_subsystems (int *argcp, char ***argvp)
      the bit bucket.  */
   {
     int i;
-    for (i=0; i < 3; i++)
-      (void)_gpgrt_get_std_stream (i);
+    for (i = 0; i < 3; i++) (void)_gpgrt_get_std_stream(i);
   }
 
   /* --version et al shall use estream as well.  */
-  argparse_register_outfnc (writestring_via_estream);
+  argparse_register_outfnc(writestring_via_estream);
 
   /* Logging shall use the standard socket directory as fallback.  */
-  log_set_socket_dir_cb (gnupg_socketdir);
+  log_set_socket_dir_cb(gnupg_socketdir);
 }

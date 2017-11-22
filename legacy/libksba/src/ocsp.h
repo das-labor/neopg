@@ -33,8 +33,6 @@
 
 #include "ksba.h"
 
-
-
 /* A structure to store certificates read from a response. */
 struct ocsp_certlist_s {
   struct ocsp_certlist_s *next;
@@ -42,16 +40,14 @@ struct ocsp_certlist_s {
 };
 
 /* A structre to save a way extensions. */
-struct ocsp_extension_s
-{
+struct ocsp_extension_s {
   struct ocsp_extension_s *next;
-  size_t off;    /* Offset into DATA to the content of the octet string.  */
-  size_t len;    /* Length of the octet string. */
-  int crit;      /* IsCritical flag. */
-  char data[1];  /* This is made up of the OID string followed by the
-                    actual DER data of the extension. */
+  size_t off;   /* Offset into DATA to the content of the octet string.  */
+  size_t len;   /* Length of the octet string. */
+  int crit;     /* IsCritical flag. */
+  char data[1]; /* This is made up of the OID string followed by the
+                   actual DER data of the extension. */
 };
-
 
 /* A structure to keep a information about a single status request. */
 struct ocsp_reqitem_s {
@@ -67,48 +63,47 @@ struct ocsp_reqitem_s {
   size_t serialnolen;      /* and its length. */
 
   /* The actual status as parsed from the response. */
-  ksba_isotime_t this_update;  /* The thisUpdate value from the response. */
-  ksba_isotime_t next_update;  /* The nextUpdate value from the response. */
-  ksba_status_t  status;               /* Set to the status of the target. */
-  ksba_isotime_t revocation_time;      /* The indicated revocation time. */
+  ksba_isotime_t this_update;     /* The thisUpdate value from the response. */
+  ksba_isotime_t next_update;     /* The nextUpdate value from the response. */
+  ksba_status_t status;           /* Set to the status of the target. */
+  ksba_isotime_t revocation_time; /* The indicated revocation time. */
   ksba_crl_reason_t revocation_reason; /* The reason given for revocation. */
   struct ocsp_extension_s *single_extensions; /* List of extensions. */
 };
 
 /* A structure used as context for the ocsp subsystem. */
 struct ksba_ocsp_s {
-  char *digest_oid;        /* The OID of the digest algorithm to be
-                              used for a request. */
+  char *digest_oid; /* The OID of the digest algorithm to be
+                       used for a request. */
 
-  struct ocsp_reqitem_s *requestlist;  /* The list of request items. */
+  struct ocsp_reqitem_s *requestlist; /* The list of request items. */
 
-  size_t noncelen;          /* 0 if no nonce was sent. */
-  unsigned char nonce[16];  /* The random nonce we sent; actual length
-                               is NONCELEN.  Warning: If its length is
-                               increased, check that the created
-                               request will still be valid as we use a
-                               hacked implementation. */
+  size_t noncelen;         /* 0 if no nonce was sent. */
+  unsigned char nonce[16]; /* The random nonce we sent; actual length
+                              is NONCELEN.  Warning: If its length is
+                              increased, check that the created
+                              request will still be valid as we use a
+                              hacked implementation. */
 
   unsigned char *request_buffer; /* Internal buffer to build the request. */
   size_t request_buflen;
 
-  size_t hash_offset;      /* What area of the response is to be */
-  size_t hash_length;      /* hashed. */
+  size_t hash_offset; /* What area of the response is to be */
+  size_t hash_length; /* hashed. */
 
   ksba_ocsp_response_status_t response_status; /* Status of the response. */
-  ksba_sexp_t sigval;          /* The signature value. */
-  ksba_isotime_t produced_at;  /* The time the response was signed. */
-  struct ocsp_certlist_s *received_certs; /* Certificates received in
-                                             the response. */
+  ksba_sexp_t sigval;                          /* The signature value. */
+  ksba_isotime_t produced_at; /* The time the response was signed. */
+  struct ocsp_certlist_s *received_certs;       /* Certificates received in
+                                                   the response. */
   struct ocsp_extension_s *response_extensions; /* List of extensions. */
-  int bad_nonce;            /* The nonce does not match the request. */
-  int good_nonce;           /* The nonce does match the request. */
+  int bad_nonce;  /* The nonce does not match the request. */
+  int good_nonce; /* The nonce does match the request. */
   struct {
-    char *name;             /* Allocated DN. */
-    char *keyid;            /* Allocated key ID. */
-    size_t keyidlen;        /* length of the KeyID. */
-  } responder_id;           /* The reponder ID from the response. */
+    char *name;      /* Allocated DN. */
+    char *keyid;     /* Allocated key ID. */
+    size_t keyidlen; /* length of the KeyID. */
+  } responder_id;    /* The reponder ID from the response. */
 };
-
 
 #endif /*OCSP_H*/

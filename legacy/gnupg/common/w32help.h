@@ -33,8 +33,8 @@
 #ifdef HAVE_W32_SYSTEM
 
 /*-- w32-reg.c --*/
-char *read_w32_registry_string (const char *root,
-				const char *dir, const char *name );
+char *read_w32_registry_string(const char *root, const char *dir,
+                               const char *name);
 
 #endif /*HAVE_W32_SYSTEM*/
 #endif /*GNUPG_COMMON_MISCHELP_H*/

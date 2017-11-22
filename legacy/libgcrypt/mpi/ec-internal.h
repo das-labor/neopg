@@ -20,6 +20,6 @@
 #ifndef GCRY_EC_INTERNAL_H
 #define GCRY_EC_INTERNAL_H
 
-void _gcry_mpi_ec_ed25519_mod (gcry_mpi_t a);
+void _gcry_mpi_ec_ed25519_mod(gcry_mpi_t a);
 
 #endif /*GCRY_EC_INTERNAL_H*/

@@ -21,64 +21,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "util.h"
 #include "sysutils.h"
+#include "util.h"
 
-#define pass()  do { ; } while(0)
-#define fail(a)  do { fprintf (stderr, "%s:%d: test %d failed\n",\
-                               __FILE__,__LINE__, (a));          \
-                     errcount++;                                 \
-                   } while(0)
+#define pass() \
+  do {         \
+    ;          \
+  } while (0)
+#define fail(a)                                                          \
+  do {                                                                   \
+    fprintf(stderr, "%s:%d: test %d failed\n", __FILE__, __LINE__, (a)); \
+    errcount++;                                                          \
+  } while (0)
 
 static int verbose;
 static int errcount;
 
-
-static void
-test_gnupg_tmpfile (void)
-{
+static void test_gnupg_tmpfile(void) {
   FILE *fparr[10];
   int fparridx;
   int idx;
   FILE *fp;
   char buffer[100];
 
-#define ASTRING "fooooooooooooooo\n"  /* Needs to be shorter than BUFFER.  */
+#define ASTRING "fooooooooooooooo\n" /* Needs to be shorter than BUFFER.  */
 
-  for (fparridx=0; fparridx < DIM (fparr); fparridx++)
-    {
-      fp = gnupg_tmpfile ();
-      fparr[fparridx] = fp;
-      if (!fp)
-        fail (fparridx);
-      else
-        {
-          fputs ( ASTRING, fp);
-          rewind (fp);
-          if (!fgets (buffer, sizeof (buffer), fp))
-            fail (fparridx);
-          if (strcmp (buffer, ASTRING))
-            fail (fparridx);
-          if (fgets (buffer, sizeof (buffer), fp))
-            fail (fparridx);
-        }
+  for (fparridx = 0; fparridx < DIM(fparr); fparridx++) {
+    fp = gnupg_tmpfile();
+    fparr[fparridx] = fp;
+    if (!fp)
+      fail(fparridx);
+    else {
+      fputs(ASTRING, fp);
+      rewind(fp);
+      if (!fgets(buffer, sizeof(buffer), fp)) fail(fparridx);
+      if (strcmp(buffer, ASTRING)) fail(fparridx);
+      if (fgets(buffer, sizeof(buffer), fp)) fail(fparridx);
     }
-  for (idx=0; idx < fparridx; idx++)
-    {
-      if (fparr[idx])
-        fclose (fparr[idx]);
-    }
+  }
+  for (idx = 0; idx < fparridx; idx++) {
+    if (fparr[idx]) fclose(fparr[idx]);
+  }
 }
 
+int main(int argc, char **argv) {
+  if (argc > 1 && !strcmp(argv[1], "--verbose")) verbose = 1;
 
-
-int
-main (int argc, char **argv)
-{
-  if (argc > 1 && !strcmp (argv[1], "--verbose"))
-    verbose = 1;
-
-  test_gnupg_tmpfile ();
+  test_gnupg_tmpfile();
   /* Fixme: Add tests for setenv and unsetenv.  */
 
   return !!errcount;

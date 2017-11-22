@@ -19,23 +19,20 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "cipher.h"
 #include "./cipher-internal.h"
 #include "bufhelp.h"
+#include "cipher.h"
+#include "g10lib.h"
 
-
-
-gpg_error_t
-_gcry_cipher_cbc_encrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cbc_encrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                     size_t outbuflen,
+                                     const unsigned char *inbuf,
+                                     size_t inbuflen) {
   size_t n;
   unsigned char *ivp;
   int i;
@@ -49,88 +46,72 @@ _gcry_cipher_cbc_encrypt (gcry_cipher_hd_t c,
   if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
     return GPG_ERR_INV_LENGTH;
 
-  if (outbuflen < ((c->flags & GCRY_CIPHER_CBC_MAC)? blocksize : inbuflen))
+  if (outbuflen < ((c->flags & GCRY_CIPHER_CBC_MAC) ? blocksize : inbuflen))
     return GPG_ERR_BUFFER_TOO_SHORT;
 
-  if ((inbuflen % blocksize)
-      && !(inbuflen > blocksize
-           && (c->flags & GCRY_CIPHER_CBC_CTS)))
+  if ((inbuflen % blocksize) &&
+      !(inbuflen > blocksize && (c->flags & GCRY_CIPHER_CBC_CTS)))
     return GPG_ERR_INV_LENGTH;
 
   burn = 0;
 
-  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize)
-    {
-      if ((inbuflen % blocksize) == 0)
-	nblocks--;
-    }
+  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize) {
+    if ((inbuflen % blocksize) == 0) nblocks--;
+  }
 
-  if (c->bulk.cbc_enc)
-    {
-      c->bulk.cbc_enc (&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks,
-                       (c->flags & GCRY_CIPHER_CBC_MAC));
-      inbuf  += nblocks * blocksize;
-      if (!(c->flags & GCRY_CIPHER_CBC_MAC))
-        outbuf += nblocks * blocksize;
-    }
-  else
-    {
-      ivp = c->u_iv.iv;
+  if (c->bulk.cbc_enc) {
+    c->bulk.cbc_enc(&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks,
+                    (c->flags & GCRY_CIPHER_CBC_MAC));
+    inbuf += nblocks * blocksize;
+    if (!(c->flags & GCRY_CIPHER_CBC_MAC)) outbuf += nblocks * blocksize;
+  } else {
+    ivp = c->u_iv.iv;
 
-      for (n=0; n < nblocks; n++ )
-        {
-          buf_xor (outbuf, inbuf, ivp, blocksize);
-          nburn = enc_fn ( &c->context.c, outbuf, outbuf );
-          burn = nburn > burn ? nburn : burn;
-          ivp = outbuf;
-          inbuf  += blocksize;
-          if (!(c->flags & GCRY_CIPHER_CBC_MAC))
-            outbuf += blocksize;
-        }
-
-      if (ivp != c->u_iv.iv)
-        buf_cpy (c->u_iv.iv, ivp, blocksize );
-    }
-
-  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize)
-    {
-      /* We have to be careful here, since outbuf might be equal to
-         inbuf.  */
-      size_t restbytes;
-      unsigned char b;
-
-      if ((inbuflen % blocksize) == 0)
-        restbytes = blocksize;
-      else
-        restbytes = inbuflen % blocksize;
-
-      outbuf -= blocksize;
-      for (ivp = c->u_iv.iv, i = 0; i < restbytes; i++)
-        {
-          b = inbuf[i];
-          outbuf[blocksize + i] = outbuf[i];
-          outbuf[i] = b ^ *ivp++;
-        }
-      for (; i < blocksize; i++)
-        outbuf[i] = 0 ^ *ivp++;
-
-      nburn = enc_fn (&c->context.c, outbuf, outbuf);
+    for (n = 0; n < nblocks; n++) {
+      buf_xor(outbuf, inbuf, ivp, blocksize);
+      nburn = enc_fn(&c->context.c, outbuf, outbuf);
       burn = nburn > burn ? nburn : burn;
-      buf_cpy (c->u_iv.iv, outbuf, blocksize);
+      ivp = outbuf;
+      inbuf += blocksize;
+      if (!(c->flags & GCRY_CIPHER_CBC_MAC)) outbuf += blocksize;
     }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+    if (ivp != c->u_iv.iv) buf_cpy(c->u_iv.iv, ivp, blocksize);
+  }
+
+  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize) {
+    /* We have to be careful here, since outbuf might be equal to
+       inbuf.  */
+    size_t restbytes;
+    unsigned char b;
+
+    if ((inbuflen % blocksize) == 0)
+      restbytes = blocksize;
+    else
+      restbytes = inbuflen % blocksize;
+
+    outbuf -= blocksize;
+    for (ivp = c->u_iv.iv, i = 0; i < restbytes; i++) {
+      b = inbuf[i];
+      outbuf[blocksize + i] = outbuf[i];
+      outbuf[i] = b ^ *ivp++;
+    }
+    for (; i < blocksize; i++) outbuf[i] = 0 ^ *ivp++;
+
+    nburn = enc_fn(&c->context.c, outbuf, outbuf);
+    burn = nburn > burn ? nburn : burn;
+    buf_cpy(c->u_iv.iv, outbuf, blocksize);
+  }
+
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }
 
-
-gpg_error_t
-_gcry_cipher_cbc_decrypt (gcry_cipher_hd_t c,
-                          unsigned char *outbuf, size_t outbuflen,
-                          const unsigned char *inbuf, size_t inbuflen)
-{
+gpg_error_t _gcry_cipher_cbc_decrypt(gcry_cipher_hd_t c, unsigned char *outbuf,
+                                     size_t outbuflen,
+                                     const unsigned char *inbuf,
+                                     size_t inbuflen) {
   size_t n;
   int i;
   size_t blocksize = c->spec->blocksize;
@@ -143,72 +124,61 @@ _gcry_cipher_cbc_decrypt (gcry_cipher_hd_t c,
   if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
     return GPG_ERR_INV_LENGTH;
 
-  if (outbuflen < inbuflen)
-    return GPG_ERR_BUFFER_TOO_SHORT;
+  if (outbuflen < inbuflen) return GPG_ERR_BUFFER_TOO_SHORT;
 
-  if ((inbuflen % blocksize)
-      && !(inbuflen > blocksize
-           && (c->flags & GCRY_CIPHER_CBC_CTS)))
+  if ((inbuflen % blocksize) &&
+      !(inbuflen > blocksize && (c->flags & GCRY_CIPHER_CBC_CTS)))
     return GPG_ERR_INV_LENGTH;
 
   burn = 0;
 
-  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize)
-    {
-      nblocks--;
-      if ((inbuflen % blocksize) == 0)
-	nblocks--;
-      buf_cpy (c->lastiv, c->u_iv.iv, blocksize);
-    }
+  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize) {
+    nblocks--;
+    if ((inbuflen % blocksize) == 0) nblocks--;
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);
+  }
 
-  if (c->bulk.cbc_dec)
-    {
-      c->bulk.cbc_dec (&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
-      inbuf  += nblocks * blocksize;
-      outbuf += nblocks * blocksize;
-    }
-  else
-    {
-      for (n=0; n < nblocks; n++ )
-        {
-          /* Because outbuf and inbuf might be the same, we must not overwrite
-             the original ciphertext block.  We use LASTIV as intermediate
-             storage here because it is not used otherwise.  */
-          nburn = dec_fn ( &c->context.c, c->lastiv, inbuf );
-          burn = nburn > burn ? nburn : burn;
-          buf_xor_n_copy_2(outbuf, c->lastiv, c->u_iv.iv, inbuf, blocksize);
-          inbuf  += blocksize;
-          outbuf += blocksize;
-        }
-    }
-
-  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize)
-    {
-      size_t restbytes;
-
-      if ((inbuflen % blocksize) == 0)
-        restbytes = blocksize;
-      else
-        restbytes = inbuflen % blocksize;
-
-      buf_cpy (c->lastiv, c->u_iv.iv, blocksize );         /* Save Cn-2. */
-      buf_cpy (c->u_iv.iv, inbuf + blocksize, restbytes ); /* Save Cn. */
-
-      nburn = dec_fn ( &c->context.c, outbuf, inbuf );
+  if (c->bulk.cbc_dec) {
+    c->bulk.cbc_dec(&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks);
+    inbuf += nblocks * blocksize;
+    outbuf += nblocks * blocksize;
+  } else {
+    for (n = 0; n < nblocks; n++) {
+      /* Because outbuf and inbuf might be the same, we must not overwrite
+         the original ciphertext block.  We use LASTIV as intermediate
+         storage here because it is not used otherwise.  */
+      nburn = dec_fn(&c->context.c, c->lastiv, inbuf);
       burn = nburn > burn ? nburn : burn;
-      buf_xor(outbuf, outbuf, c->u_iv.iv, restbytes);
-
-      buf_cpy (outbuf + blocksize, outbuf, restbytes);
-      for(i=restbytes; i < blocksize; i++)
-        c->u_iv.iv[i] = outbuf[i];
-      nburn = dec_fn (&c->context.c, outbuf, c->u_iv.iv);
-      burn = nburn > burn ? nburn : burn;
-      buf_xor(outbuf, outbuf, c->lastiv, blocksize);
-      /* c->lastiv is now really lastlastiv, does this matter? */
+      buf_xor_n_copy_2(outbuf, c->lastiv, c->u_iv.iv, inbuf, blocksize);
+      inbuf += blocksize;
+      outbuf += blocksize;
     }
+  }
 
-  if (burn > 0)
-    _gcry_burn_stack (burn + 4 * sizeof(void *));
+  if ((c->flags & GCRY_CIPHER_CBC_CTS) && inbuflen > blocksize) {
+    size_t restbytes;
+
+    if ((inbuflen % blocksize) == 0)
+      restbytes = blocksize;
+    else
+      restbytes = inbuflen % blocksize;
+
+    buf_cpy(c->lastiv, c->u_iv.iv, blocksize);         /* Save Cn-2. */
+    buf_cpy(c->u_iv.iv, inbuf + blocksize, restbytes); /* Save Cn. */
+
+    nburn = dec_fn(&c->context.c, outbuf, inbuf);
+    burn = nburn > burn ? nburn : burn;
+    buf_xor(outbuf, outbuf, c->u_iv.iv, restbytes);
+
+    buf_cpy(outbuf + blocksize, outbuf, restbytes);
+    for (i = restbytes; i < blocksize; i++) c->u_iv.iv[i] = outbuf[i];
+    nburn = dec_fn(&c->context.c, outbuf, c->u_iv.iv);
+    burn = nburn > burn ? nburn : burn;
+    buf_xor(outbuf, outbuf, c->lastiv, blocksize);
+    /* c->lastiv is now really lastlastiv, does this matter? */
+  }
+
+  if (burn > 0) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   return 0;
 }

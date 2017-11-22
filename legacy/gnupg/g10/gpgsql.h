@@ -22,40 +22,35 @@
 
 #include <sqlite3.h>
 
-enum gpgsql_arg_type
-  {
-    GPGSQL_ARG_END = 0xdead001,
-    GPGSQL_ARG_INT,
-    GPGSQL_ARG_LONG_LONG,
-    GPGSQL_ARG_STRING,
-    /* This takes two arguments: the blob as a void * and the length
-       of the blob as a long long.  */
-    GPGSQL_ARG_BLOB
-  };
+enum gpgsql_arg_type {
+  GPGSQL_ARG_END = 0xdead001,
+  GPGSQL_ARG_INT,
+  GPGSQL_ARG_LONG_LONG,
+  GPGSQL_ARG_STRING,
+  /* This takes two arguments: the blob as a void * and the length
+     of the blob as a long long.  */
+  GPGSQL_ARG_BLOB
+};
 
-int gpgsql_exec_printf (sqlite3 *db,
-                        int (*callback)(void*,int,char**,char**), void *cookie,
-                        char **errmsg,
-                        const char *sql, ...);
+int gpgsql_exec_printf(sqlite3 *db,
+                       int (*callback)(void *, int, char **, char **),
+                       void *cookie, char **errmsg, const char *sql, ...);
 
-typedef int (*gpgsql_stepx_callback) (void *cookie,
-                                      /* number of columns.  */
-                                      int cols,
-                                      /* columns as text.  */
-                                      char **values,
-                                      /* column names.  */
-                                      char **names,
-                                      /* The prepared statement so
-                                       * that it is possible to use
-                                       * something like
-                                       * sqlite3_column_blob().  */
-                                      sqlite3_stmt *statement);
+typedef int (*gpgsql_stepx_callback)(void *cookie,
+                                     /* number of columns.  */
+                                     int cols,
+                                     /* columns as text.  */
+                                     char **values,
+                                     /* column names.  */
+                                     char **names,
+                                     /* The prepared statement so
+                                      * that it is possible to use
+                                      * something like
+                                      * sqlite3_column_blob().  */
+                                     sqlite3_stmt *statement);
 
-int gpgsql_stepx (sqlite3 *db,
-                  sqlite3_stmt **stmtp,
-                  gpgsql_stepx_callback callback,
-                  void *cookie,
-                  char **errmsg,
-                  const char *sql, ...);
+int gpgsql_stepx(sqlite3 *db, sqlite3_stmt **stmtp,
+                 gpgsql_stepx_callback callback, void *cookie, char **errmsg,
+                 const char *sql, ...);
 
 #endif /*GNUPG_GPGSQL_H*/

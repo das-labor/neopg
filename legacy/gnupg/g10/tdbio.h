@@ -1,5 +1,6 @@
 /* tdbio.h - Trust database I/O functions
- * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2012 Free Software Foundation, Inc.
+ * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2012 Free Software Foundation,
+ * Inc.
  *
  * This file is part of GnuPG.
  *
@@ -23,94 +24,92 @@
 #include "../common/host2net.h"
 
 #define TRUST_RECORD_LEN 40
-#define SIGS_PER_RECORD 	((TRUST_RECORD_LEN-10)/5)
-#define ITEMS_PER_HTBL_RECORD	((TRUST_RECORD_LEN-2)/4)
-#define ITEMS_PER_HLST_RECORD	((TRUST_RECORD_LEN-6)/5)
-#define ITEMS_PER_PREF_RECORD	(TRUST_RECORD_LEN-10)
+#define SIGS_PER_RECORD ((TRUST_RECORD_LEN - 10) / 5)
+#define ITEMS_PER_HTBL_RECORD ((TRUST_RECORD_LEN - 2) / 4)
+#define ITEMS_PER_HLST_RECORD ((TRUST_RECORD_LEN - 6) / 5)
+#define ITEMS_PER_PREF_RECORD (TRUST_RECORD_LEN - 10)
 #if ITEMS_PER_PREF_RECORD % 2
 #error ITEMS_PER_PREF_RECORD must be even
 #endif
-#define MAX_LIST_SIGS_DEPTH  20
+#define MAX_LIST_SIGS_DEPTH 20
 
-
-#define RECTYPE_VER  1
+#define RECTYPE_VER 1
 #define RECTYPE_HTBL 10
 #define RECTYPE_HLST 11
 #define RECTYPE_TRUST 12
 #define RECTYPE_VALID 13
 #define RECTYPE_FREE 254
 
-
 struct trust_record {
-    int  rectype;
-    int  mark;
-    int  dirty; 		/* for now only used internal by functions */
-    struct trust_record *next;	/* help pointer to build lists in memory */
-    unsigned long recnum;
-    union {
-	struct {	     /* version record: */
-	    byte  version;   /* should be 3 */
-	    byte  marginals;
-	    byte  completes;
-	    byte  cert_depth;
-	    byte  trust_model;
-	    byte  min_cert_level;
-	    unsigned long created;   /* timestamp of trustdb creation  */
-	    unsigned long nextcheck; /* timestamp of next scheduled check */
-	    unsigned long reserved;
-	    unsigned long reserved2;
-	    unsigned long firstfree;
-	    unsigned long reserved3;
-            unsigned long trusthashtbl;
-	} ver;
-	struct {	    /* free record */
-	    unsigned long next;
-	} free;
-	struct {
-	    unsigned long item[ITEMS_PER_HTBL_RECORD];
-	} htbl;
-	struct {
-	    unsigned long next;
-	    unsigned long rnum[ITEMS_PER_HLST_RECORD]; /* of another record */
-	} hlst;
-      struct {
-        byte fingerprint[20];
-        byte ownertrust;
-        byte depth;
-        unsigned long validlist;
-	byte min_ownertrust;
-      } trust;
-      struct {
-        byte namehash[20];
-        unsigned long next;
-        byte validity;
-	byte full_count;
-	byte marginal_count;
-      } valid;
-    } r;
+  int rectype;
+  int mark;
+  int dirty;                 /* for now only used internal by functions */
+  struct trust_record *next; /* help pointer to build lists in memory */
+  unsigned long recnum;
+  union {
+    struct {        /* version record: */
+      byte version; /* should be 3 */
+      byte marginals;
+      byte completes;
+      byte cert_depth;
+      byte trust_model;
+      byte min_cert_level;
+      unsigned long created;   /* timestamp of trustdb creation  */
+      unsigned long nextcheck; /* timestamp of next scheduled check */
+      unsigned long reserved;
+      unsigned long reserved2;
+      unsigned long firstfree;
+      unsigned long reserved3;
+      unsigned long trusthashtbl;
+    } ver;
+    struct { /* free record */
+      unsigned long next;
+    } free;
+    struct {
+      unsigned long item[ITEMS_PER_HTBL_RECORD];
+    } htbl;
+    struct {
+      unsigned long next;
+      unsigned long rnum[ITEMS_PER_HLST_RECORD]; /* of another record */
+    } hlst;
+    struct {
+      byte fingerprint[20];
+      byte ownertrust;
+      byte depth;
+      unsigned long validlist;
+      byte min_ownertrust;
+    } trust;
+    struct {
+      byte namehash[20];
+      unsigned long next;
+      byte validity;
+      byte full_count;
+      byte marginal_count;
+    } valid;
+  } r;
 };
 typedef struct trust_record TRUSTREC;
 
 /*-- tdbio.c --*/
-int tdbio_update_version_record (ctrl_t ctrl);
-int tdbio_set_dbname (ctrl_t ctrl, const char *new_dbname,
-                      int create, int *r_nofile);
+int tdbio_update_version_record(ctrl_t ctrl);
+int tdbio_set_dbname(ctrl_t ctrl, const char *new_dbname, int create,
+                     int *r_nofile);
 const char *tdbio_get_dbname(void);
-void tdbio_dump_record( TRUSTREC *rec, estream_t fp );
-int tdbio_read_record( unsigned long recnum, TRUSTREC *rec, int expected );
-int tdbio_write_record (ctrl_t ctrl, TRUSTREC *rec);
+void tdbio_dump_record(TRUSTREC *rec, estream_t fp);
+int tdbio_read_record(unsigned long recnum, TRUSTREC *rec, int expected);
+int tdbio_write_record(ctrl_t ctrl, TRUSTREC *rec);
 int tdbio_db_matches_options(void);
 byte tdbio_read_model(void);
-unsigned long tdbio_read_nextcheck (void);
-int tdbio_write_nextcheck (ctrl_t ctrl, unsigned long stamp);
+unsigned long tdbio_read_nextcheck(void);
+int tdbio_write_nextcheck(ctrl_t ctrl, unsigned long stamp);
 int tdbio_is_dirty(void);
 int tdbio_sync(void);
-int tdbio_delete_record (ctrl_t ctrl, unsigned long recnum);
-unsigned long tdbio_new_recnum (ctrl_t ctrl);
-gpg_error_t tdbio_search_trust_byfpr (const byte *fingerprint, TRUSTREC *rec);
-gpg_error_t tdbio_search_trust_bypk (PKT_public_key *pk, TRUSTREC *rec);
+int tdbio_delete_record(ctrl_t ctrl, unsigned long recnum);
+unsigned long tdbio_new_recnum(ctrl_t ctrl);
+gpg_error_t tdbio_search_trust_byfpr(const byte *fingerprint, TRUSTREC *rec);
+gpg_error_t tdbio_search_trust_bypk(PKT_public_key *pk, TRUSTREC *rec);
 
-void tdbio_how_to_fix (void);
+void tdbio_how_to_fix(void);
 void tdbio_invalid(void);
 
 #endif /*G10_TDBIO_H*/

@@ -34,44 +34,33 @@
    libcommon. */
 
 #include <config.h>
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #ifdef HAVE_LIBREADLINE
 #define GNUPG_LIBREADLINE_H_INCLUDED
-#include <stdio.h>
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
+#include <stdio.h>
 #endif
 
-#include "util.h"
 #include "common-defs.h"
-
+#include "util.h"
 
 #ifdef HAVE_LIBREADLINE
-static void
-set_completer (rl_completion_func_t *completer)
-{
+static void set_completer(rl_completion_func_t *completer) {
   rl_attempted_completion_function = completer;
   rl_inhibit_completion = 0;
 }
 
-static void
-inhibit_completion (int value)
-{
-  rl_inhibit_completion = value;
+static void inhibit_completion(int value) { rl_inhibit_completion = value; }
+
+static void cleanup_after_signal(void) {
+  rl_free_line_state();
+  rl_cleanup_after_signal();
 }
 
-static void
-cleanup_after_signal (void)
-{
-  rl_free_line_state ();
-  rl_cleanup_after_signal ();
-}
-
-static void
-init_stream (FILE *fp)
-{
+static void init_stream(FILE *fp) {
   rl_catch_signals = 0;
   rl_instream = rl_outstream = fp;
   rl_inhibit_completion = 1;
@@ -79,19 +68,12 @@ init_stream (FILE *fp)
 
 #endif /*HAVE_LIBREADLINE*/
 
-
 /* Initialize our readline code.  This should be called as early as
    possible as it is actually a constructur.  */
-void
-gnupg_rl_initialize (void)
-{
+void gnupg_rl_initialize(void) {
 #ifdef HAVE_LIBREADLINE
-  tty_private_set_rl_hooks (init_stream,
-                            set_completer,
-                            inhibit_completion,
-                            cleanup_after_signal,
-                            readline,
-                            add_history);
+  tty_private_set_rl_hooks(init_stream, set_completer, inhibit_completion,
+                           cleanup_after_signal, readline, add_history);
   rl_readline_name = GNUPG_NAME;
 #endif
 }

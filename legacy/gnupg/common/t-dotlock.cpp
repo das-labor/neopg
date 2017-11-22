@@ -22,98 +22,78 @@
    GnuPG build system.  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 /* Some quick replacements for stuff we usually expect to be defined
    in config.h.  Define HAVE_POSIX_SYSTEM for better readability. */
-#if !defined (HAVE_DOSISH_SYSTEM) && defined(_WIN32)
-# define HAVE_DOSISH_SYSTEM 1
+#if !defined(HAVE_DOSISH_SYSTEM) && defined(_WIN32)
+#define HAVE_DOSISH_SYSTEM 1
 #endif
-#if !defined (HAVE_DOSISH_SYSTEM) && !defined (HAVE_POSIX_SYSTEM)
-# define HAVE_POSIX_SYSTEM 1
+#if !defined(HAVE_DOSISH_SYSTEM) && !defined(HAVE_POSIX_SYSTEM)
+#define HAVE_POSIX_SYSTEM 1
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "dotlock.h"
 
 #define PGM "t-dotlock"
 
-
 static volatile int ctrl_c_pending;
 
-static void
-control_c_handler (int signo)
-{
+static void control_c_handler(int signo) {
   (void)signo;
   ctrl_c_pending = 1;
 }
 
-
-
-static void
-die (const char *format, ...)
-{
+static void die(const char *format, ...) {
   va_list arg_ptr;
 
-  va_start (arg_ptr, format);
-  fprintf (stderr, PGM "[%lu]: ", (unsigned long)getpid ());
-  vfprintf (stderr, format, arg_ptr);
-  putc ('\n', stderr);
-  va_end (arg_ptr);
-  exit (1);
+  va_start(arg_ptr, format);
+  fprintf(stderr, PGM "[%lu]: ", (unsigned long)getpid());
+  vfprintf(stderr, format, arg_ptr);
+  putc('\n', stderr);
+  va_end(arg_ptr);
+  exit(1);
 }
 
-
-static void
-inf (const char *format, ...)
-{
+static void inf(const char *format, ...) {
   va_list arg_ptr;
 
-  va_start (arg_ptr, format);
-  fprintf (stderr, PGM "[%lu]: ", (unsigned long)getpid ());
-  vfprintf (stderr, format, arg_ptr);
-  putc ('\n', stderr);
-  va_end (arg_ptr);
+  va_start(arg_ptr, format);
+  fprintf(stderr, PGM "[%lu]: ", (unsigned long)getpid());
+  vfprintf(stderr, format, arg_ptr);
+  putc('\n', stderr);
+  va_end(arg_ptr);
 }
 
-
-static void
-lock_and_unlock (const char *fname)
-{
+static void lock_and_unlock(const char *fname) {
   dotlock_t h;
 
-  h = dotlock_create (fname, 0);
-  if (!h)
-    die ("error creating lock file for '%s': %s", fname, strerror (errno));
-  inf ("lock created");
+  h = dotlock_create(fname, 0);
+  if (!h) die("error creating lock file for '%s': %s", fname, strerror(errno));
+  inf("lock created");
 
-  while (!ctrl_c_pending)
-    {
-      if (dotlock_take (h, -1))
-        die ("error taking lock");
-      inf ("lock taken");
-      sleep (1);
-      if (dotlock_release (h))
-        die ("error releasing lock");
-      inf ("lock released");
-      sleep (1);
-    }
-  dotlock_destroy (h);
-  inf ("lock destroyed");
+  while (!ctrl_c_pending) {
+    if (dotlock_take(h, -1)) die("error taking lock");
+    inf("lock taken");
+    sleep(1);
+    if (dotlock_release(h)) die("error releasing lock");
+    inf("lock released");
+    sleep(1);
+  }
+  dotlock_destroy(h);
+  inf("lock destroyed");
 }
 
-
-int
-main (int argc, char **argv)
-{
+int main(int argc, char **argv) {
   const char *fname;
 
   if (argc > 1)
@@ -126,20 +106,19 @@ main (int argc, char **argv)
 
     nact.sa_handler = control_c_handler;
     nact.sa_flags = 0;
-    sigaction (SIGINT, &nact, NULL);
+    sigaction(SIGINT, &nact, NULL);
   }
 
-  dotlock_create (NULL, 0);  /* Initialize (optional).  */
+  dotlock_create(NULL, 0); /* Initialize (optional).  */
 
-  lock_and_unlock (fname);
-
+  lock_and_unlock(fname);
 
   return 0;
 }
 
-
 /*
 Local Variables:
-compile-command: "cc -Wall -O2 -D_FILE_OFFSET_BITS=64 -o t-dotlock t-dotlock.c dotlock.c"
+compile-command: "cc -Wall -O2 -D_FILE_OFFSET_BITS=64 -o t-dotlock t-dotlock.c
+dotlock.c"
 End:
 */

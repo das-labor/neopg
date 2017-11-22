@@ -22,12 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-# include <stdint.h>
+#include <stdint.h>
 #endif
 
 #include "g10lib.h"
 #include "hash-common.h"
-
 
 /* Run a selftest for hash algorithm ALGO.  If the resulting digest
    matches EXPECT/EXPECTLEN and everything else is fine as well,
@@ -40,11 +39,10 @@
      1 - Hash one million times a 'a'.  DATA and DATALEN are ignored.
 
 */
-const char *
-_gcry_hash_selftest_check_one (int algo,
-                               int datamode, const void *data, size_t datalen,
-                               const void *expect, size_t expectlen)
-{
+const char *_gcry_hash_selftest_check_one(int algo, int datamode,
+                                          const void *data, size_t datalen,
+                                          const void *expect,
+                                          size_t expectlen) {
   const char *result = NULL;
   gpg_error_t err = 0;
   gcry_md_hd_t hd;
@@ -52,62 +50,52 @@ _gcry_hash_selftest_check_one (int algo,
   char aaa[1000];
   int xof = 0;
 
-  if (_gcry_md_get_algo_dlen (algo) == 0)
+  if (_gcry_md_get_algo_dlen(algo) == 0)
     xof = 1;
-  else if (_gcry_md_get_algo_dlen (algo) != expectlen)
+  else if (_gcry_md_get_algo_dlen(algo) != expectlen)
     return "digest size does not match expected size";
 
-  err = _gcry_md_open (&hd, algo, 0);
-  if (err)
-    return "gcry_md_open failed";
+  err = _gcry_md_open(&hd, algo, 0);
+  if (err) return "gcry_md_open failed";
 
-  switch (datamode)
-    {
+  switch (datamode) {
     case 0:
-      _gcry_md_write (hd, data, datalen);
+      _gcry_md_write(hd, data, datalen);
       break;
 
     case 1: /* Hash one million times an "a". */
-      {
-        int i;
+    {
+      int i;
 
-        /* Write in odd size chunks so that we test the buffering.  */
-        memset (aaa, 'a', 1000);
-        for (i = 0; i < 1000; i++)
-          _gcry_md_write (hd, aaa, 1000);
-      }
-      break;
+      /* Write in odd size chunks so that we test the buffering.  */
+      memset(aaa, 'a', 1000);
+      for (i = 0; i < 1000; i++) _gcry_md_write(hd, aaa, 1000);
+    } break;
 
     default:
       result = "invalid DATAMODE";
+  }
+
+  if (!result) {
+    if (!xof) {
+      digest = _gcry_md_read(hd, algo);
+
+      if (memcmp(digest, expect, expectlen)) result = "digest mismatch";
+    } else {
+      gcry_assert(expectlen <= sizeof(aaa));
+
+      err = _gcry_md_extract(hd, algo, aaa, expectlen);
+      if (err)
+        result = "error extracting output from XOF";
+      else if (memcmp(aaa, expect, expectlen))
+        result = "digest mismatch";
     }
+  }
 
-  if (!result)
-    {
-      if (!xof)
-	{
-	  digest = _gcry_md_read (hd, algo);
-
-	  if ( memcmp (digest, expect, expectlen) )
-	    result = "digest mismatch";
-	}
-      else
-	{
-	  gcry_assert(expectlen <= sizeof(aaa));
-
-	  err = _gcry_md_extract (hd, algo, aaa, expectlen);
-	  if (err)
-	    result = "error extracting output from XOF";
-	  else if ( memcmp (aaa, expect, expectlen) )
-	    result = "digest mismatch";
-	}
-    }
-
-  _gcry_md_close (hd);
+  _gcry_md_close(hd);
 
   return result;
 }
-
 
 /* Common function to write a chunk of data to the transform function
    of a hash algorithm.  Note that the use of the term "block" does
@@ -115,53 +103,44 @@ _gcry_hash_selftest_check_one (int algo,
    this function after the context has been finalized; the result does
    not have any meaning but writing after finalize is sometimes
    helpful to mitigate timing attacks. */
-void
-_gcry_md_block_write (void *context, const void *inbuf_arg, size_t inlen)
-{
-  const unsigned char *inbuf = (const unsigned char*) inbuf_arg;
-  gcry_md_block_ctx_t *hd = (gcry_md_block_ctx_t*) context;
+void _gcry_md_block_write(void *context, const void *inbuf_arg, size_t inlen) {
+  const unsigned char *inbuf = (const unsigned char *)inbuf_arg;
+  gcry_md_block_ctx_t *hd = (gcry_md_block_ctx_t *)context;
   unsigned int stack_burn = 0;
   const unsigned int blocksize = hd->blocksize;
   size_t inblocks;
 
-  if (sizeof(hd->buf) < blocksize)
-    BUG();
+  if (sizeof(hd->buf) < blocksize) BUG();
 
-  if (!hd->bwrite)
-    return;
+  if (!hd->bwrite) return;
 
-  if (hd->count == blocksize)  /* Flush the buffer. */
-    {
-      stack_burn = hd->bwrite (hd, hd->buf, 1);
-      _gcry_burn_stack (stack_burn);
-      stack_burn = 0;
-      hd->count = 0;
-      if (!++hd->nblocks)
-        hd->nblocks_high++;
-    }
-  if (!inbuf)
-    return;
+  if (hd->count == blocksize) /* Flush the buffer. */
+  {
+    stack_burn = hd->bwrite(hd, hd->buf, 1);
+    _gcry_burn_stack(stack_burn);
+    stack_burn = 0;
+    hd->count = 0;
+    if (!++hd->nblocks) hd->nblocks_high++;
+  }
+  if (!inbuf) return;
 
-  if (hd->count)
-    {
-      for (; inlen && hd->count < blocksize; inlen--)
-        hd->buf[hd->count++] = *inbuf++;
-      _gcry_md_block_write (hd, NULL, 0);
-      if (!inlen)
-        return;
-    }
+  if (hd->count) {
+    for (; inlen && hd->count < blocksize; inlen--)
+      hd->buf[hd->count++] = *inbuf++;
+    _gcry_md_block_write(hd, NULL, 0);
+    if (!inlen) return;
+  }
 
-  if (inlen >= blocksize)
-    {
-      inblocks = inlen / blocksize;
-      stack_burn = hd->bwrite (hd, inbuf, inblocks);
-      hd->count = 0;
-      hd->nblocks_high += (hd->nblocks + inblocks < inblocks);
-      hd->nblocks += inblocks;
-      inlen -= inblocks * blocksize;
-      inbuf += inblocks * blocksize;
-    }
-  _gcry_burn_stack (stack_burn);
+  if (inlen >= blocksize) {
+    inblocks = inlen / blocksize;
+    stack_burn = hd->bwrite(hd, inbuf, inblocks);
+    hd->count = 0;
+    hd->nblocks_high += (hd->nblocks + inblocks < inblocks);
+    hd->nblocks += inblocks;
+    inlen -= inblocks * blocksize;
+    inbuf += inblocks * blocksize;
+  }
+  _gcry_burn_stack(stack_burn);
   for (; inlen && hd->count < blocksize; inlen--)
     hd->buf[hd->count++] = *inbuf++;
 }

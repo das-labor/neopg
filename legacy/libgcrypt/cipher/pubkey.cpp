@@ -20,23 +20,21 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <errno.h>
 
-#include "g10lib.h"
-#include "mpi.h"
 #include "cipher.h"
 #include "context.h"
+#include "g10lib.h"
+#include "mpi.h"
 #include "pubkey-internal.h"
-
 
 /* This is the list of the public-key algorithms included in
    Libgcrypt.  */
-static gcry_pk_spec_t *pubkey_list[] =
-  {
+static gcry_pk_spec_t *pubkey_list[] = {
 #if USE_ECC
     &_gcry_pubkey_spec_ecc,
 #endif
@@ -49,64 +47,53 @@ static gcry_pk_spec_t *pubkey_list[] =
 #if USE_ELGAMAL
     &_gcry_pubkey_spec_elg,
 #endif
-    NULL
-  };
+    NULL};
 
-
-static int
-map_algo (int algo)
-{
- switch (algo)
-   {
-   case GCRY_PK_RSA_E: return GCRY_PK_RSA;
-   case GCRY_PK_RSA_S: return GCRY_PK_RSA;
-   case GCRY_PK_ELG_E: return GCRY_PK_ELG;
-   case GCRY_PK_ECDSA: return GCRY_PK_ECC;
-   case GCRY_PK_ECDH:  return GCRY_PK_ECC;
-   default:            return algo;
-   }
+static int map_algo(int algo) {
+  switch (algo) {
+    case GCRY_PK_RSA_E:
+      return GCRY_PK_RSA;
+    case GCRY_PK_RSA_S:
+      return GCRY_PK_RSA;
+    case GCRY_PK_ELG_E:
+      return GCRY_PK_ELG;
+    case GCRY_PK_ECDSA:
+      return GCRY_PK_ECC;
+    case GCRY_PK_ECDH:
+      return GCRY_PK_ECC;
+    default:
+      return algo;
+  }
 }
-
 
 /* Return the spec structure for the public key algorithm ALGO.  For
    an unknown algorithm NULL is returned.  */
-static gcry_pk_spec_t *
-spec_from_algo (int algo)
-{
+static gcry_pk_spec_t *spec_from_algo(int algo) {
   int idx;
   gcry_pk_spec_t *spec;
 
-  algo = map_algo (algo);
+  algo = map_algo(algo);
 
   for (idx = 0; (spec = pubkey_list[idx]); idx++)
-    if (algo == spec->algo)
-      return spec;
+    if (algo == spec->algo) return spec;
   return NULL;
 }
 
-
 /* Return the spec structure for the public key algorithm with NAME.
    For an unknown name NULL is returned.  */
-static gcry_pk_spec_t *
-spec_from_name (const char *name)
-{
+static gcry_pk_spec_t *spec_from_name(const char *name) {
   gcry_pk_spec_t *spec;
   int idx;
   const char **aliases;
 
-  for (idx=0; (spec = pubkey_list[idx]); idx++)
-    {
-      if (!strcasecmp (name, spec->name))
-        return spec;
-      for (aliases = spec->aliases; *aliases; aliases++)
-        if (!strcasecmp (name, *aliases))
-          return spec;
-    }
+  for (idx = 0; (spec = pubkey_list[idx]); idx++) {
+    if (!strcasecmp(name, spec->name)) return spec;
+    for (aliases = spec->aliases; *aliases; aliases++)
+      if (!strcasecmp(name, *aliases)) return spec;
+  }
 
   return NULL;
 }
-
-
 
 /* Given the s-expression SEXP with the first element be either
  * "private-key" or "public-key" return the spec structure for it.  We
@@ -119,174 +106,132 @@ spec_from_name (const char *name)
  * "private-key" or "public-key" is stored there and the caller must
  * call gcry_sexp_release on it.
  */
-static gpg_error_t
-spec_from_sexp (gcry_sexp_t sexp, int want_private,
-                gcry_pk_spec_t **r_spec, gcry_sexp_t *r_parms)
-{
+static gpg_error_t spec_from_sexp(gcry_sexp_t sexp, int want_private,
+                                  gcry_pk_spec_t **r_spec,
+                                  gcry_sexp_t *r_parms) {
   gcry_sexp_t list, l2;
   char *name;
   gcry_pk_spec_t *spec;
 
   *r_spec = NULL;
-  if (r_parms)
-    *r_parms = NULL;
+  if (r_parms) *r_parms = NULL;
 
   /* Check that the first element is valid.  If we are looking for a
      public key but a private key was supplied, we allow the use of
      the private key anyway.  The rationale for this is that the
      private key is a superset of the public key.  */
-  list = sexp_find_token (sexp, want_private? "private-key":"public-key", 0);
-  if (!list && !want_private)
-    list = sexp_find_token (sexp, "private-key", 0);
-  if (!list)
-    return GPG_ERR_INV_OBJ; /* Does not contain a key object.  */
+  list = sexp_find_token(sexp, want_private ? "private-key" : "public-key", 0);
+  if (!list && !want_private) list = sexp_find_token(sexp, "private-key", 0);
+  if (!list) return GPG_ERR_INV_OBJ; /* Does not contain a key object.  */
 
-  l2 = sexp_cadr (list);
-  sexp_release (list);
+  l2 = sexp_cadr(list);
+  sexp_release(list);
   list = l2;
-  name = sexp_nth_string (list, 0);
-  if (!name)
-    {
-      sexp_release ( list );
-      return GPG_ERR_INV_OBJ;      /* Invalid structure of object. */
-    }
-  spec = spec_from_name (name);
-  xfree (name);
-  if (!spec)
-    {
-      sexp_release (list);
-      return GPG_ERR_PUBKEY_ALGO; /* Unknown algorithm. */
-    }
+  name = sexp_nth_string(list, 0);
+  if (!name) {
+    sexp_release(list);
+    return GPG_ERR_INV_OBJ; /* Invalid structure of object. */
+  }
+  spec = spec_from_name(name);
+  xfree(name);
+  if (!spec) {
+    sexp_release(list);
+    return GPG_ERR_PUBKEY_ALGO; /* Unknown algorithm. */
+  }
   *r_spec = spec;
   if (r_parms)
     *r_parms = list;
   else
-    sexp_release (list);
+    sexp_release(list);
   return 0;
 }
 
-
-
 /* Disable the use of the algorithm ALGO.  This is not thread safe and
    should thus be called early.  */
-static void
-disable_pubkey_algo (int algo)
-{
-  gcry_pk_spec_t *spec = spec_from_algo (algo);
+static void disable_pubkey_algo(int algo) {
+  gcry_pk_spec_t *spec = spec_from_algo(algo);
 
-  if (spec)
-    spec->flags.disabled = 1;
+  if (spec) spec->flags.disabled = 1;
 }
 
-
-
 /*
  * Map a string to the pubkey algo
  */
-int
-_gcry_pk_map_name (const char *string)
-{
+int _gcry_pk_map_name(const char *string) {
   gcry_pk_spec_t *spec;
 
-  if (!string)
-    return 0;
-  spec = spec_from_name (string);
-  if (!spec)
-    return 0;
-  if (spec->flags.disabled)
-    return 0;
+  if (!string) return 0;
+  spec = spec_from_name(string);
+  if (!spec) return 0;
+  if (spec->flags.disabled) return 0;
   return spec->algo;
 }
-
 
 /* Map the public key algorithm whose ID is contained in ALGORITHM to
    a string representation of the algorithm name.  For unknown
    algorithm IDs this functions returns "?". */
-const char *
-_gcry_pk_algo_name (int algo)
-{
+const char *_gcry_pk_algo_name(int algo) {
   gcry_pk_spec_t *spec;
 
-  spec = spec_from_algo (algo);
-  if (spec)
-    return spec->name;
+  spec = spec_from_algo(algo);
+  if (spec) return spec->name;
   return "?";
 }
-
 
 /****************
  * A USE of 0 means: don't care.
  */
-static gpg_error_t
-check_pubkey_algo (int algo, unsigned use)
-{
+static gpg_error_t check_pubkey_algo(int algo, unsigned use) {
   gpg_error_t err = 0;
   gcry_pk_spec_t *spec;
 
-  spec = spec_from_algo (algo);
-  if (spec)
-    {
-      if (((use & GCRY_PK_USAGE_SIGN)
-	   && (! (spec->use & GCRY_PK_USAGE_SIGN)))
-	  || ((use & GCRY_PK_USAGE_ENCR)
-	      && (! (spec->use & GCRY_PK_USAGE_ENCR))))
-	err = GPG_ERR_WRONG_PUBKEY_ALGO;
-    }
-  else
+  spec = spec_from_algo(algo);
+  if (spec) {
+    if (((use & GCRY_PK_USAGE_SIGN) && (!(spec->use & GCRY_PK_USAGE_SIGN))) ||
+        ((use & GCRY_PK_USAGE_ENCR) && (!(spec->use & GCRY_PK_USAGE_ENCR))))
+      err = GPG_ERR_WRONG_PUBKEY_ALGO;
+  } else
     err = GPG_ERR_PUBKEY_ALGO;
 
   return err;
 }
 
-
 /****************
  * Return the number of public key material numbers
  */
-static int
-pubkey_get_npkey (int algo)
-{
-  gcry_pk_spec_t *spec = spec_from_algo (algo);
+static int pubkey_get_npkey(int algo) {
+  gcry_pk_spec_t *spec = spec_from_algo(algo);
 
-  return spec? strlen (spec->elements_pkey) : 0;
+  return spec ? strlen(spec->elements_pkey) : 0;
 }
-
 
 /****************
  * Return the number of secret key material numbers
  */
-static int
-pubkey_get_nskey (int algo)
-{
-  gcry_pk_spec_t *spec = spec_from_algo (algo);
+static int pubkey_get_nskey(int algo) {
+  gcry_pk_spec_t *spec = spec_from_algo(algo);
 
-  return spec? strlen (spec->elements_skey) : 0;
+  return spec ? strlen(spec->elements_skey) : 0;
 }
-
 
 /****************
  * Return the number of signature material numbers
  */
-static int
-pubkey_get_nsig (int algo)
-{
-  gcry_pk_spec_t *spec = spec_from_algo (algo);
+static int pubkey_get_nsig(int algo) {
+  gcry_pk_spec_t *spec = spec_from_algo(algo);
 
-  return spec? strlen (spec->elements_sig) : 0;
+  return spec ? strlen(spec->elements_sig) : 0;
 }
 
 /****************
  * Return the number of encryption material numbers
  */
-static int
-pubkey_get_nenc (int algo)
-{
-  gcry_pk_spec_t *spec = spec_from_algo (algo);
+static int pubkey_get_nenc(int algo) {
+  gcry_pk_spec_t *spec = spec_from_algo(algo);
 
-  return spec? strlen (spec->elements_enc) : 0;
+  return spec ? strlen(spec->elements_enc) : 0;
 }
 
-
-
 /*
    Do a PK encrypt operation
 
@@ -309,29 +254,26 @@ pubkey_get_nenc (int algo)
                ))
 
 */
-gpg_error_t
-_gcry_pk_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t s_pkey)
-{
+gpg_error_t _gcry_pk_encrypt(gcry_sexp_t *r_ciph, gcry_sexp_t s_data,
+                             gcry_sexp_t s_pkey) {
   gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
   *r_ciph = NULL;
 
-  rc = spec_from_sexp (s_pkey, 0, &spec, &keyparms);
-  if (rc)
-    goto leave;
+  rc = spec_from_sexp(s_pkey, 0, &spec, &keyparms);
+  if (rc) goto leave;
 
   if (spec->encrypt)
-    rc = spec->encrypt (r_ciph, s_data, keyparms);
+    rc = spec->encrypt(r_ciph, s_data, keyparms);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (keyparms);
+leave:
+  sexp_release(keyparms);
   return rc;
 }
-
 
 /*
    Do a PK decrypt operation
@@ -361,30 +303,26 @@ _gcry_pk_encrypt (gcry_sexp_t *r_ciph, gcry_sexp_t s_data, gcry_sexp_t s_pkey)
             With pkcs1 or oaep decoding enabled the returned value is a
             verbatim octet string.
  */
-gpg_error_t
-_gcry_pk_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t s_skey)
-{
+gpg_error_t _gcry_pk_decrypt(gcry_sexp_t *r_plain, gcry_sexp_t s_data,
+                             gcry_sexp_t s_skey) {
   gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
   *r_plain = NULL;
 
-  rc = spec_from_sexp (s_skey, 1, &spec, &keyparms);
-  if (rc)
-    goto leave;
+  rc = spec_from_sexp(s_skey, 1, &spec, &keyparms);
+  if (rc) goto leave;
 
   if (spec->decrypt)
-    rc = spec->decrypt (r_plain, s_data, keyparms);
+    rc = spec->decrypt(r_plain, s_data, keyparms);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (keyparms);
+leave:
+  sexp_release(keyparms);
   return rc;
 }
-
-
 
 /*
    Create a signature.
@@ -414,29 +352,26 @@ _gcry_pk_decrypt (gcry_sexp_t *r_plain, gcry_sexp_t s_data, gcry_sexp_t s_skey)
 
   Note that (hash algo) in R_SIG is not used.
 */
-gpg_error_t
-_gcry_pk_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_hash, gcry_sexp_t s_skey)
-{
+gpg_error_t _gcry_pk_sign(gcry_sexp_t *r_sig, gcry_sexp_t s_hash,
+                          gcry_sexp_t s_skey) {
   gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
   *r_sig = NULL;
 
-  rc = spec_from_sexp (s_skey, 1, &spec, &keyparms);
-  if (rc)
-    goto leave;
+  rc = spec_from_sexp(s_skey, 1, &spec, &keyparms);
+  if (rc) goto leave;
 
   if (spec->sign)
-    rc = spec->sign (r_sig, s_hash, keyparms);
+    rc = spec->sign(r_sig, s_hash, keyparms);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (keyparms);
+leave:
+  sexp_release(keyparms);
   return rc;
 }
-
 
 /*
    Verify a signature.
@@ -445,27 +380,24 @@ _gcry_pk_sign (gcry_sexp_t *r_sig, gcry_sexp_t s_hash, gcry_sexp_t s_skey)
    hashvalue data.  Public key has to be a standard public key given
    as an S-Exp, sig is a S-Exp as returned from gcry_pk_sign and data
    must be an S-Exp like the one in sign too.  */
-gpg_error_t
-_gcry_pk_verify (gcry_sexp_t s_sig, gcry_sexp_t s_hash, gcry_sexp_t s_pkey)
-{
+gpg_error_t _gcry_pk_verify(gcry_sexp_t s_sig, gcry_sexp_t s_hash,
+                            gcry_sexp_t s_pkey) {
   gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
-  rc = spec_from_sexp (s_pkey, 0, &spec, &keyparms);
-  if (rc)
-    goto leave;
+  rc = spec_from_sexp(s_pkey, 0, &spec, &keyparms);
+  if (rc) goto leave;
 
   if (spec->verify)
-    rc = spec->verify (s_sig, s_hash, keyparms);
+    rc = spec->verify(s_sig, s_hash, keyparms);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (keyparms);
+leave:
+  sexp_release(keyparms);
   return rc;
 }
-
 
 /*
    Test a key.
@@ -476,27 +408,23 @@ _gcry_pk_verify (gcry_sexp_t s_sig, gcry_sexp_t s_hash, gcry_sexp_t s_pkey)
    Returns: 0 or an errorcode.
 
    NOTE: We currently support only secret key checking. */
-gpg_error_t
-_gcry_pk_testkey (gcry_sexp_t s_key)
-{
+gpg_error_t _gcry_pk_testkey(gcry_sexp_t s_key) {
   gpg_error_t rc;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms;
 
-  rc = spec_from_sexp (s_key, 1, &spec, &keyparms);
-  if (rc)
-    goto leave;
+  rc = spec_from_sexp(s_key, 1, &spec, &keyparms);
+  if (rc) goto leave;
 
   if (spec->check_secret_key)
-    rc = spec->check_secret_key (keyparms);
+    rc = spec->check_secret_key(keyparms);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (keyparms);
+leave:
+  sexp_release(keyparms);
   return rc;
 }
-
 
 /*
   Create a public key pair and return it in r_key.
@@ -514,26 +442,24 @@ _gcry_pk_testkey (gcry_sexp_t s_key)
   (key-data
    (public-key
      (elg
- 	(p <mpi>)
- 	(g <mpi>)
- 	(y <mpi>)
+        (p <mpi>)
+        (g <mpi>)
+        (y <mpi>)
      )
    )
    (private-key
      (elg
- 	(p <mpi>)
- 	(g <mpi>)
- 	(y <mpi>)
- 	(x <mpi>)
+        (p <mpi>)
+        (g <mpi>)
+        (y <mpi>)
+        (x <mpi>)
      )
    )
    (misc-key-info
       (pm1-factors n1 n2 ... nn)
    ))
  */
-gpg_error_t
-_gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms)
-{
+gpg_error_t _gcry_pk_genkey(gcry_sexp_t *r_key, gcry_sexp_t s_parms) {
   gcry_pk_spec_t *spec = NULL;
   gcry_sexp_t list = NULL;
   gcry_sexp_t l2 = NULL;
@@ -542,61 +468,54 @@ _gcry_pk_genkey (gcry_sexp_t *r_key, gcry_sexp_t s_parms)
 
   *r_key = NULL;
 
-  list = sexp_find_token (s_parms, "genkey", 0);
-  if (!list)
-    {
-      rc = GPG_ERR_INV_OBJ; /* Does not contain genkey data. */
-      goto leave;
-    }
+  list = sexp_find_token(s_parms, "genkey", 0);
+  if (!list) {
+    rc = GPG_ERR_INV_OBJ; /* Does not contain genkey data. */
+    goto leave;
+  }
 
-  l2 = sexp_cadr (list);
-  sexp_release (list);
+  l2 = sexp_cadr(list);
+  sexp_release(list);
   list = l2;
   l2 = NULL;
-  if (! list)
-    {
-      rc = GPG_ERR_NO_OBJ; /* No cdr for the genkey. */
-      goto leave;
-    }
+  if (!list) {
+    rc = GPG_ERR_NO_OBJ; /* No cdr for the genkey. */
+    goto leave;
+  }
 
-  name = _gcry_sexp_nth_string (list, 0);
-  if (!name)
-    {
-      rc = GPG_ERR_INV_OBJ; /* Algo string missing.  */
-      goto leave;
-    }
+  name = _gcry_sexp_nth_string(list, 0);
+  if (!name) {
+    rc = GPG_ERR_INV_OBJ; /* Algo string missing.  */
+    goto leave;
+  }
 
-  spec = spec_from_name (name);
-  xfree (name);
+  spec = spec_from_name(name);
+  xfree(name);
   name = NULL;
-  if (!spec)
-    {
-      rc = GPG_ERR_PUBKEY_ALGO; /* Unknown algorithm.  */
-      goto leave;
-    }
+  if (!spec) {
+    rc = GPG_ERR_PUBKEY_ALGO; /* Unknown algorithm.  */
+    goto leave;
+  }
 
   if (spec->generate)
-    rc = spec->generate (list, r_key);
+    rc = spec->generate(list, r_key);
   else
     rc = GPG_ERR_NOT_IMPLEMENTED;
 
- leave:
-  sexp_release (list);
-  xfree (name);
-  sexp_release (l2);
+leave:
+  sexp_release(list);
+  xfree(name);
+  sexp_release(l2);
 
   return rc;
 }
-
 
 /*
    Get the number of nbits from the public key.
 
    Hmmm: Should we have really this function or is it better to have a
    more general function to retrieve different properties of the key?  */
-unsigned int
-_gcry_pk_get_nbits (gcry_sexp_t key)
-{
+unsigned int _gcry_pk_get_nbits(gcry_sexp_t key) {
   gcry_pk_spec_t *spec;
   gcry_sexp_t parms;
   unsigned int nbits;
@@ -607,14 +526,13 @@ _gcry_pk_get_nbits (gcry_sexp_t key)
      a curve name might be specified.  Thus we need to tear the sexp
      apart. */
 
-  if (spec_from_sexp (key, 0, &spec, &parms))
+  if (spec_from_sexp(key, 0, &spec, &parms))
     return 0; /* Error - 0 is a suitable indication for that.  */
 
-  nbits = spec->get_nbits (parms);
-  sexp_release (parms);
+  nbits = spec->get_nbits(parms);
+  sexp_release(parms);
   return nbits;
 }
-
 
 /* Return the so called KEYGRIP which is the SHA-1 hash of the public
    key parameters expressed in a way depending on the algorithm.
@@ -623,9 +541,7 @@ _gcry_pk_get_nbits (gcry_sexp_t key)
    newly allocated array of that size is returned, otherwise ARRAY or
    NULL is returned to indicate an error which is most likely an
    unknown algorithm.  The function accepts public or secret keys. */
-unsigned char *
-_gcry_pk_get_keygrip (gcry_sexp_t key, unsigned char *array)
-{
+unsigned char *_gcry_pk_get_keygrip(gcry_sexp_t key, unsigned char *array) {
   gcry_sexp_t list = NULL;
   gcry_sexp_t l2 = NULL;
   gcry_pk_spec_t *spec = NULL;
@@ -637,165 +553,125 @@ _gcry_pk_get_keygrip (gcry_sexp_t key, unsigned char *array)
   int okay = 0;
 
   /* Check that the first element is valid. */
-  list = sexp_find_token (key, "public-key", 0);
-  if (! list)
-    list = sexp_find_token (key, "private-key", 0);
-  if (! list)
-    list = sexp_find_token (key, "protected-private-key", 0);
-  if (! list)
-    list = sexp_find_token (key, "shadowed-private-key", 0);
-  if (! list)
-    return NULL; /* No public- or private-key object. */
+  list = sexp_find_token(key, "public-key", 0);
+  if (!list) list = sexp_find_token(key, "private-key", 0);
+  if (!list) list = sexp_find_token(key, "protected-private-key", 0);
+  if (!list) list = sexp_find_token(key, "shadowed-private-key", 0);
+  if (!list) return NULL; /* No public- or private-key object. */
 
-  l2 = sexp_cadr (list);
-  sexp_release (list);
+  l2 = sexp_cadr(list);
+  sexp_release(list);
   list = l2;
   l2 = NULL;
 
-  name = _gcry_sexp_nth_string (list, 0);
-  if (!name)
-    goto fail; /* Invalid structure of object. */
+  name = _gcry_sexp_nth_string(list, 0);
+  if (!name) goto fail; /* Invalid structure of object. */
 
-  spec = spec_from_name (name);
-  if (!spec)
-    goto fail; /* Unknown algorithm.  */
+  spec = spec_from_name(name);
+  if (!spec) goto fail; /* Unknown algorithm.  */
 
   elems = spec->elements_grip;
-  if (!elems)
-    goto fail; /* No grip parameter.  */
+  if (!elems) goto fail; /* No grip parameter.  */
 
-  if (_gcry_md_open (&md, GCRY_MD_SHA1, 0))
-    goto fail;
+  if (_gcry_md_open(&md, GCRY_MD_SHA1, 0)) goto fail;
 
-  if (spec->comp_keygrip)
-    {
-      /* Module specific method to compute a keygrip.  */
-      if (spec->comp_keygrip (md, list))
-        goto fail;
+  if (spec->comp_keygrip) {
+    /* Module specific method to compute a keygrip.  */
+    if (spec->comp_keygrip(md, list)) goto fail;
+  } else {
+    /* Generic method to compute a keygrip.  */
+    for (idx = 0, s = elems; *s; s++, idx++) {
+      const char *data;
+      size_t datalen;
+      char buf[30];
+
+      l2 = sexp_find_token(list, s, 1);
+      if (!l2) goto fail;
+      data = sexp_nth_data(l2, 1, &datalen);
+      if (!data) goto fail;
+
+      snprintf(buf, sizeof buf, "(1:%c%u:", *s, (unsigned int)datalen);
+      _gcry_md_write(md, buf, strlen(buf));
+      _gcry_md_write(md, data, datalen);
+      sexp_release(l2);
+      l2 = NULL;
+      _gcry_md_write(md, ")", 1);
     }
-  else
-    {
-      /* Generic method to compute a keygrip.  */
-      for (idx = 0, s = elems; *s; s++, idx++)
-        {
-          const char *data;
-          size_t datalen;
-          char buf[30];
+  }
 
-          l2 = sexp_find_token (list, s, 1);
-          if (! l2)
-            goto fail;
-          data = sexp_nth_data (l2, 1, &datalen);
-          if (! data)
-            goto fail;
+  if (!array) {
+    array = (unsigned char *)xtrymalloc(20);
+    if (!array) goto fail;
+  }
 
-          snprintf (buf, sizeof buf, "(1:%c%u:", *s, (unsigned int)datalen);
-          _gcry_md_write (md, buf, strlen (buf));
-          _gcry_md_write (md, data, datalen);
-          sexp_release (l2);
-          l2 = NULL;
-          _gcry_md_write (md, ")", 1);
-        }
-    }
-
-  if (!array)
-    {
-      array = (unsigned char*) xtrymalloc (20);
-      if (! array)
-        goto fail;
-    }
-
-  memcpy (array, _gcry_md_read (md, GCRY_MD_SHA1), 20);
+  memcpy(array, _gcry_md_read(md, GCRY_MD_SHA1), 20);
   okay = 1;
 
- fail:
-  xfree (name);
-  sexp_release (l2);
-  _gcry_md_close (md);
-  sexp_release (list);
-  return okay? array : NULL;
+fail:
+  xfree(name);
+  sexp_release(l2);
+  _gcry_md_close(md);
+  sexp_release(list);
+  return okay ? array : NULL;
 }
 
-
-
-const char *
-_gcry_pk_get_curve (gcry_sexp_t key, int iterator, unsigned int *r_nbits)
-{
+const char *_gcry_pk_get_curve(gcry_sexp_t key, int iterator,
+                               unsigned int *r_nbits) {
   const char *result = NULL;
   gcry_pk_spec_t *spec;
   gcry_sexp_t keyparms = NULL;
 
-  if (r_nbits)
-    *r_nbits = 0;
+  if (r_nbits) *r_nbits = 0;
 
-  if (key)
-    {
-      iterator = 0;
+  if (key) {
+    iterator = 0;
 
-      if (spec_from_sexp (key, 0, &spec, &keyparms))
-        return NULL;
-    }
-  else
-    {
-      spec = spec_from_name ("ecc");
-      if (!spec)
-        return NULL;
-    }
+    if (spec_from_sexp(key, 0, &spec, &keyparms)) return NULL;
+  } else {
+    spec = spec_from_name("ecc");
+    if (!spec) return NULL;
+  }
 
-  if (spec->get_curve)
-    result = spec->get_curve (keyparms, iterator, r_nbits);
+  if (spec->get_curve) result = spec->get_curve(keyparms, iterator, r_nbits);
 
-  sexp_release (keyparms);
+  sexp_release(keyparms);
   return result;
 }
 
-
-
-gcry_sexp_t
-_gcry_pk_get_param (int algo, const char *name)
-{
+gcry_sexp_t _gcry_pk_get_param(int algo, const char *name) {
   gcry_sexp_t result = NULL;
   gcry_pk_spec_t *spec = NULL;
 
-  algo = map_algo (algo);
+  algo = map_algo(algo);
 
-  if (algo != GCRY_PK_ECC)
-    return NULL;
+  if (algo != GCRY_PK_ECC) return NULL;
 
-  spec = spec_from_name ("ecc");
-  if (spec)
-    {
-      if (spec && spec->get_curve_param)
-        result = spec->get_curve_param (name);
-    }
+  spec = spec_from_name("ecc");
+  if (spec) {
+    if (spec && spec->get_curve_param) result = spec->get_curve_param(name);
+  }
   return result;
 }
 
-
-
-gpg_error_t
-_gcry_pk_ctl (int cmd, void *buffer, size_t buflen)
-{
+gpg_error_t _gcry_pk_ctl(int cmd, void *buffer, size_t buflen) {
   gpg_error_t rc = 0;
 
-  switch (cmd)
-    {
+  switch (cmd) {
     case GCRYCTL_DISABLE_ALGO:
       /* This one expects a buffer pointing to an integer with the
          algo number.  */
-      if ((! buffer) || (buflen != sizeof (int)))
-	rc = GPG_ERR_INV_ARG;
+      if ((!buffer) || (buflen != sizeof(int)))
+        rc = GPG_ERR_INV_ARG;
       else
-	disable_pubkey_algo (*((int *) buffer));
+        disable_pubkey_algo(*((int *)buffer));
       break;
 
     default:
       rc = GPG_ERR_INV_OP;
-    }
+  }
 
   return rc;
 }
-
 
 /* Return information about the given algorithm
 
@@ -818,68 +694,59 @@ _gcry_pk_ctl (int cmd, void *buffer, size_t buflen)
    the return value.  The caller will in all cases consult the value
    and thereby detecting whether a error occurred or not (i.e. while
    checking the block size) */
-gpg_error_t
-_gcry_pk_algo_info (int algorithm, int what, void *buffer, size_t *nbytes)
-{
+gpg_error_t _gcry_pk_algo_info(int algorithm, int what, void *buffer,
+                               size_t *nbytes) {
   gpg_error_t rc = 0;
 
-  switch (what)
-    {
-    case GCRYCTL_TEST_ALGO:
-      {
-	int use = nbytes ? *nbytes : 0;
-	if (buffer)
-	  rc = GPG_ERR_INV_ARG;
-	else if (check_pubkey_algo (algorithm, use))
-	  rc = GPG_ERR_PUBKEY_ALGO;
-	break;
-      }
+  switch (what) {
+    case GCRYCTL_TEST_ALGO: {
+      int use = nbytes ? *nbytes : 0;
+      if (buffer)
+        rc = GPG_ERR_INV_ARG;
+      else if (check_pubkey_algo(algorithm, use))
+        rc = GPG_ERR_PUBKEY_ALGO;
+      break;
+    }
 
-    case GCRYCTL_GET_ALGO_USAGE:
-      {
-	gcry_pk_spec_t *spec;
+    case GCRYCTL_GET_ALGO_USAGE: {
+      gcry_pk_spec_t *spec;
 
-	spec = spec_from_algo (algorithm);
-        *nbytes = spec? spec->use : 0;
-	break;
-      }
+      spec = spec_from_algo(algorithm);
+      *nbytes = spec ? spec->use : 0;
+      break;
+    }
 
-    case GCRYCTL_GET_ALGO_NPKEY:
-      {
-	/* FIXME?  */
-	int npkey = pubkey_get_npkey (algorithm);
-	*nbytes = npkey;
-	break;
-      }
-    case GCRYCTL_GET_ALGO_NSKEY:
-      {
-	/* FIXME?  */
-	int nskey = pubkey_get_nskey (algorithm);
-	*nbytes = nskey;
-	break;
-      }
-    case GCRYCTL_GET_ALGO_NSIGN:
-      {
-	/* FIXME?  */
-	int nsign = pubkey_get_nsig (algorithm);
-	*nbytes = nsign;
-	break;
-      }
-    case GCRYCTL_GET_ALGO_NENCR:
-      {
-	/* FIXME?  */
-	int nencr = pubkey_get_nenc (algorithm);
-	*nbytes = nencr;
-	break;
-      }
+    case GCRYCTL_GET_ALGO_NPKEY: {
+      /* FIXME?  */
+      int npkey = pubkey_get_npkey(algorithm);
+      *nbytes = npkey;
+      break;
+    }
+    case GCRYCTL_GET_ALGO_NSKEY: {
+      /* FIXME?  */
+      int nskey = pubkey_get_nskey(algorithm);
+      *nbytes = nskey;
+      break;
+    }
+    case GCRYCTL_GET_ALGO_NSIGN: {
+      /* FIXME?  */
+      int nsign = pubkey_get_nsig(algorithm);
+      *nbytes = nsign;
+      break;
+    }
+    case GCRYCTL_GET_ALGO_NENCR: {
+      /* FIXME?  */
+      int nencr = pubkey_get_nenc(algorithm);
+      *nbytes = nencr;
+      break;
+    }
 
     default:
       rc = GPG_ERR_INV_OP;
-    }
+  }
 
   return rc;
 }
-
 
 /* Return an S-expression representing the context CTX.  Depending on
    the state of that context, the S-expression may either be a public
@@ -894,78 +761,63 @@ _gcry_pk_algo_info (int algorithm, int what, void *buffer, size_t *nbytes)
    of the function is gcry_pubkey_xxx and not gcry_pk_xxx.  The idea
    is that we will eventually provide variants of the existing
    gcry_pk_xxx functions which will take a context parameter.   */
-gpg_error_t
-_gcry_pubkey_get_sexp (gcry_sexp_t *r_sexp, int mode, gcry_ctx_t ctx)
-{
+gpg_error_t _gcry_pubkey_get_sexp(gcry_sexp_t *r_sexp, int mode,
+                                  gcry_ctx_t ctx) {
   mpi_ec_t ec;
 
-  if (!r_sexp)
-    return GPG_ERR_INV_VALUE;
+  if (!r_sexp) return GPG_ERR_INV_VALUE;
   *r_sexp = NULL;
-  switch (mode)
-    {
+  switch (mode) {
     case 0:
     case GCRY_PK_GET_PUBKEY:
     case GCRY_PK_GET_SECKEY:
       break;
     default:
       return GPG_ERR_INV_VALUE;
-    }
-  if (!ctx)
-    return GPG_ERR_NO_CRYPT_CTX;
+  }
+  if (!ctx) return GPG_ERR_NO_CRYPT_CTX;
 
-  ec = (mpi_ec_t) _gcry_ctx_find_pointer (ctx, CONTEXT_TYPE_EC);
-  if (ec)
-    return _gcry_pk_ecc_get_sexp (r_sexp, mode, ec);
+  ec = (mpi_ec_t)_gcry_ctx_find_pointer(ctx, CONTEXT_TYPE_EC);
+  if (ec) return _gcry_pk_ecc_get_sexp(r_sexp, mode, ec);
 
   return GPG_ERR_WRONG_CRYPT_CTX;
 }
 
-
-
 /* Explicitly initialize this module.  */
-gpg_error_t
-_gcry_pk_init (void)
-{
-  if (fips_mode())
-    {
-      /* disable algorithms that are disallowed in fips */
-      int idx;
-      gcry_pk_spec_t *spec;
+gpg_error_t _gcry_pk_init(void) {
+  if (fips_mode()) {
+    /* disable algorithms that are disallowed in fips */
+    int idx;
+    gcry_pk_spec_t *spec;
 
-      for (idx = 0; (spec = pubkey_list[idx]); idx++)
-        if (!spec->flags.fips)
-          spec->flags.disabled = 1;
-    }
+    for (idx = 0; (spec = pubkey_list[idx]); idx++)
+      if (!spec->flags.fips) spec->flags.disabled = 1;
+  }
 
   return 0;
 }
 
-
 /* Run the selftests for pubkey algorithm ALGO with optional reporting
    function REPORT.  */
-gpg_error_t
-_gcry_pk_selftest (int algo, int extended, selftest_report_func_t report)
-{
+gpg_error_t _gcry_pk_selftest(int algo, int extended,
+                              selftest_report_func_t report) {
   gpg_error_t ec;
   gcry_pk_spec_t *spec;
 
-  algo = map_algo (algo);
-  spec = spec_from_algo (algo);
+  algo = map_algo(algo);
+  spec = spec_from_algo(algo);
   if (spec && !spec->flags.disabled && spec->selftest)
-    ec = spec->selftest (algo, extended, report);
-  else
-    {
-      ec = GPG_ERR_PUBKEY_ALGO;
-      /* Fixme: We need to change the report function to allow passing
-         of an encryption mode (e.g. pkcs1, ecdsa, or ecdh).  */
-      if (report)
-        report ("pubkey", algo, "module",
-                spec && !spec->flags.disabled?
-                "no selftest available" :
-                spec? "algorithm disabled" :
-                "algorithm not found");
-    }
+    ec = spec->selftest(algo, extended, report);
+  else {
+    ec = GPG_ERR_PUBKEY_ALGO;
+    /* Fixme: We need to change the report function to allow passing
+       of an encryption mode (e.g. pkcs1, ecdsa, or ecdh).  */
+    if (report)
+      report("pubkey", algo, "module",
+             spec && !spec->flags.disabled
+                 ? "no selftest available"
+                 : spec ? "algorithm disabled" : "algorithm not found");
+  }
 
   return ec;
 }

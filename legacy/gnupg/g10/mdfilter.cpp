@@ -18,56 +18,44 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include "gpg.h"
-#include "../common/status.h"
 #include "../common/iobuf.h"
+#include "../common/status.h"
 #include "../common/util.h"
 #include "filter.h"
-
-
+#include "gpg.h"
 
 /****************
  * This filter is used to collect a message digest
  */
-int
-md_filter( void *opaque, int control,
-	       IOBUF a, byte *buf, size_t *ret_len)
-{
-    size_t size = *ret_len;
-    md_filter_context_t *mfx = (md_filter_context_t*) opaque;
-    int i, rc=0;
+int md_filter(void *opaque, int control, IOBUF a, byte *buf, size_t *ret_len) {
+  size_t size = *ret_len;
+  md_filter_context_t *mfx = (md_filter_context_t *)opaque;
+  int i, rc = 0;
 
-    if( control == IOBUFCTRL_UNDERFLOW ) {
-	if( mfx->maxbuf_size && size > mfx->maxbuf_size )
-	    size = mfx->maxbuf_size;
-	i = iobuf_read( a, buf, size );
-	if( i == -1 ) i = 0;
-	if( i ) {
-	    gcry_md_write(mfx->md, buf, i );
-	    if( mfx->md2 )
-		gcry_md_write(mfx->md2, buf, i );
-	}
-	else
-	    rc = -1; /* eof */
-	*ret_len = i;
-    }
-    else if( control == IOBUFCTRL_DESC )
-        mem2str ((char*) (buf), "md_filter", *ret_len);
-    return rc;
+  if (control == IOBUFCTRL_UNDERFLOW) {
+    if (mfx->maxbuf_size && size > mfx->maxbuf_size) size = mfx->maxbuf_size;
+    i = iobuf_read(a, buf, size);
+    if (i == -1) i = 0;
+    if (i) {
+      gcry_md_write(mfx->md, buf, i);
+      if (mfx->md2) gcry_md_write(mfx->md2, buf, i);
+    } else
+      rc = -1; /* eof */
+    *ret_len = i;
+  } else if (control == IOBUFCTRL_DESC)
+    mem2str((char *)(buf), "md_filter", *ret_len);
+  return rc;
 }
 
-
-void
-free_md_filter_context( md_filter_context_t *mfx )
-{
-    gcry_md_close(mfx->md);
-    gcry_md_close(mfx->md2);
-    mfx->md = NULL;
-    mfx->md2 = NULL;
-    mfx->maxbuf_size = 0;
+void free_md_filter_context(md_filter_context_t *mfx) {
+  gcry_md_close(mfx->md);
+  gcry_md_close(mfx->md2);
+  mfx->md = NULL;
+  mfx->md2 = NULL;
+  mfx->maxbuf_size = 0;
 }

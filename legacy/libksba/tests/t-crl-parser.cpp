@@ -17,75 +17,58 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <time.h>
-#include <errno.h>
 
 #include "../src/ksba.h"
 
-#include "t-common.h"
 #include "oidtranstbl.h"
+#include "t-common.h"
 
-static void
-my_hasher (void *arg, const void *buffer, size_t length)
-{
-  FILE *fp = (FILE*) arg;
+static void my_hasher(void *arg, const void *buffer, size_t length) {
+  FILE *fp = (FILE *)arg;
 
-  if (fp)
-    {
-      if ( fwrite (buffer, length, 1, fp) != 1 )
-        fail ("error writing to-be-hashed data");
-    }
+  if (fp) {
+    if (fwrite(buffer, length, 1, fp) != 1)
+      fail("error writing to-be-hashed data");
+  }
 }
-
 
 /* Return the description for OID; if no description is available
    NULL is returned. */
-static const char *
-get_oid_desc (const char *oid)
-{
+static const char *get_oid_desc(const char *oid) {
   int i;
 
   if (oid)
-    for (i=0; oidtranstbl[i].oid; i++)
-      if (!strcmp (oidtranstbl[i].oid, oid))
-        return oidtranstbl[i].desc;
+    for (i = 0; oidtranstbl[i].oid; i++)
+      if (!strcmp(oidtranstbl[i].oid, oid)) return oidtranstbl[i].desc;
   return NULL;
 }
 
-
-static void
-print_names (int indent, ksba_name_t name)
-{
+static void print_names(int indent, ksba_name_t name) {
   int idx;
   const char *s;
   int indent_all;
 
-  if ((indent_all = (indent < 0)))
-    indent = - indent;
+  if ((indent_all = (indent < 0))) indent = -indent;
 
-  if (!name)
-    {
-      fputs ("none\n", stdout);
-      return;
-    }
+  if (!name) {
+    fputs("none\n", stdout);
+    return;
+  }
 
-  for (idx=0; (s = ksba_name_enum (name, idx)); idx++)
-    {
-      char *p = ksba_name_get_uri (name, idx);
-      printf ("%*s%s\n", idx||indent_all?indent:0, "", p?p:s);
-      xfree (p);
-    }
+  for (idx = 0; (s = ksba_name_enum(name, idx)); idx++) {
+    char *p = ksba_name_get_uri(name, idx);
+    printf("%*s%s\n", idx || indent_all ? indent : 0, "", p ? p : s);
+    xfree(p);
+  }
 }
 
-
-
-static void
-one_file (const char *fname)
-{
+static void one_file(const char *fname) {
   gpg_error_t err;
   FILE *fp;
   ksba_reader_t r;
@@ -94,229 +77,185 @@ one_file (const char *fname)
   int count = 0;
   FILE *hashlog = NULL;
 
-  printf ("*** checking `%s' ***\n", fname);
-  fp = fopen (fname, "rb");
-  if (!fp)
-    {
-      fprintf (stderr, "%s:%d: can't open `%s': %s\n",
-               __FILE__, __LINE__, fname, strerror (errno));
-      exit (1);
+  printf("*** checking `%s' ***\n", fname);
+  fp = fopen(fname, "rb");
+  if (!fp) {
+    fprintf(stderr, "%s:%d: can't open `%s': %s\n", __FILE__, __LINE__, fname,
+            strerror(errno));
+    exit(1);
+  }
+
+  err = ksba_reader_new(&r);
+  if (err) fail_if_err(err);
+  err = ksba_reader_set_file(r, fp);
+  fail_if_err(err);
+
+  err = ksba_crl_new(&crl);
+  if (err) fail_if_err(err);
+
+  err = ksba_crl_set_reader(crl, r);
+  fail_if_err(err);
+
+  if (hashlog) ksba_crl_set_hash_function(crl, my_hasher, hashlog);
+
+  do {
+    err = ksba_crl_parse(crl, &stopreason);
+    fail_if_err2(fname, err);
+    switch (stopreason) {
+      case KSBA_SR_BEGIN_ITEMS: {
+        const char *algoid;
+        char *issuer;
+        ksba_isotime_t this_x, next;
+
+        algoid = ksba_crl_get_digest_algo(crl);
+        printf("digest algo: %s\n", algoid ? algoid : "[none]");
+
+        err = ksba_crl_get_issuer(crl, &issuer);
+        fail_if_err2(fname, err);
+        printf("issuer: ");
+        print_dn(issuer);
+        xfree(issuer);
+        putchar('\n');
+        err = ksba_crl_get_update_times(crl, this_x, next);
+        if (err != GPG_ERR_INV_TIME) fail_if_err2(fname, err);
+        printf("thisUpdate: ");
+        print_time(this_x);
+        putchar('\n');
+        printf("nextUpdate: ");
+        print_time(next);
+        putchar('\n');
+      } break;
+
+      case KSBA_SR_GOT_ITEM: {
+        ksba_sexp_t serial;
+        ksba_isotime_t rdate;
+        ksba_crl_reason_t reason;
+
+        err = ksba_crl_get_item(crl, &serial, rdate, &reason);
+        fail_if_err2(fname, err);
+        printf("CRL entry %d: s=", ++count);
+        print_sexp_hex(serial);
+        printf(", t=");
+        print_time(rdate);
+        printf(", r=%x\n", reason);
+        xfree(serial);
+      } break;
+
+      case KSBA_SR_END_ITEMS:
+        break;
+
+      case KSBA_SR_READY:
+        break;
+
+      default:
+        fail("unknown stop reason");
     }
 
-  err = ksba_reader_new (&r);
-  if (err)
-    fail_if_err (err);
-  err = ksba_reader_set_file (r, fp);
-  fail_if_err (err);
+  } while (stopreason != KSBA_SR_READY);
 
-  err = ksba_crl_new (&crl);
-  if (err)
-    fail_if_err (err);
-
-  err = ksba_crl_set_reader (crl, r);
-  fail_if_err (err);
-
-  if (hashlog)
-    ksba_crl_set_hash_function (crl, my_hasher, hashlog);
-
-  do
-    {
-      err = ksba_crl_parse (crl, &stopreason);
-      fail_if_err2 (fname, err);
-      switch (stopreason)
-        {
-        case KSBA_SR_BEGIN_ITEMS:
-          {
-            const char *algoid;
-            char *issuer;
-            ksba_isotime_t this_x, next;
-
-            algoid = ksba_crl_get_digest_algo (crl);
-            printf ("digest algo: %s\n", algoid? algoid : "[none]");
-
-            err = ksba_crl_get_issuer (crl, &issuer);
-            fail_if_err2 (fname, err);
-            printf ("issuer: ");
-            print_dn (issuer);
-            xfree (issuer);
-            putchar ('\n');
-            err = ksba_crl_get_update_times (crl, this_x, next);
-            if (err != GPG_ERR_INV_TIME)
-              fail_if_err2 (fname, err);
-            printf ("thisUpdate: ");
-            print_time (this_x);
-            putchar ('\n');
-            printf ("nextUpdate: ");
-            print_time (next);
-            putchar ('\n');
-          }
-          break;
-
-        case KSBA_SR_GOT_ITEM:
-          {
-            ksba_sexp_t serial;
-            ksba_isotime_t rdate;
-            ksba_crl_reason_t reason;
-
-            err = ksba_crl_get_item (crl, &serial, rdate, &reason);
-            fail_if_err2 (fname, err);
-            printf ("CRL entry %d: s=", ++count);
-            print_sexp_hex (serial);
-            printf (", t=");
-            print_time (rdate);
-            printf (", r=%x\n", reason);
-            xfree (serial);
-          }
-          break;
-
-        case KSBA_SR_END_ITEMS:
-          break;
-
-        case KSBA_SR_READY:
-          break;
-
-        default:
-          fail ("unknown stop reason");
-        }
-
-    }
-  while (stopreason != KSBA_SR_READY);
-
-  if ( !ksba_crl_get_digest_algo (crl))
-    fail ("digest algorithm mismatch");
+  if (!ksba_crl_get_digest_algo(crl)) fail("digest algorithm mismatch");
 
   {
     ksba_name_t name1;
     ksba_sexp_t serial;
     ksba_sexp_t keyid;
 
-    err = ksba_crl_get_auth_key_id (crl, &keyid, &name1, &serial);
-    if (!err || err == GPG_ERR_NO_DATA)
-      {
-        fputs ("AuthorityKeyIdentifier: ", stdout);
-        if (err == GPG_ERR_NO_DATA)
-          fputs ("none\n", stdout);
-        else
-          {
-            if (name1)
-              {
-                print_names (24, name1);
-                ksba_name_release (name1);
-                fputs ("                serial: ", stdout);
-                print_sexp_hex (serial);
-                ksba_free (serial);
-              }
-            putchar ('\n');
-            if (keyid)
-              {
-                fputs ("         keyIdentifier: ", stdout);
-                print_sexp (keyid);
-                ksba_free (keyid);
-                putchar ('\n');
-              }
-          }
+    err = ksba_crl_get_auth_key_id(crl, &keyid, &name1, &serial);
+    if (!err || err == GPG_ERR_NO_DATA) {
+      fputs("AuthorityKeyIdentifier: ", stdout);
+      if (err == GPG_ERR_NO_DATA)
+        fputs("none\n", stdout);
+      else {
+        if (name1) {
+          print_names(24, name1);
+          ksba_name_release(name1);
+          fputs("                serial: ", stdout);
+          print_sexp_hex(serial);
+          ksba_free(serial);
+        }
+        putchar('\n');
+        if (keyid) {
+          fputs("         keyIdentifier: ", stdout);
+          print_sexp(keyid);
+          ksba_free(keyid);
+          putchar('\n');
+        }
       }
-    else
-      fail_if_err (err);
+    } else
+      fail_if_err(err);
   }
 
   {
     ksba_sexp_t serial;
 
-    err = ksba_crl_get_crl_number (crl, &serial);
-    if (!err || err == GPG_ERR_NO_DATA)
-      {
-        fputs ("crlNumber: ", stdout);
-        if (err == GPG_ERR_NO_DATA)
-          fputs ("none", stdout);
-        else
-          {
-            print_sexp (serial);
-            ksba_free (serial);
-          }
-        putchar ('\n');
+    err = ksba_crl_get_crl_number(crl, &serial);
+    if (!err || err == GPG_ERR_NO_DATA) {
+      fputs("crlNumber: ", stdout);
+      if (err == GPG_ERR_NO_DATA)
+        fputs("none", stdout);
+      else {
+        print_sexp(serial);
+        ksba_free(serial);
       }
-    else
-      fail_if_err (err);
+      putchar('\n');
+    } else
+      fail_if_err(err);
   }
-
 
   {
     int idx, crit;
     const char *oid;
     size_t derlen;
 
-    for (idx=0; !(err=ksba_crl_get_extension (crl, idx,
-                                              &oid, &crit,
-                                              NULL, &derlen)); idx++)
-      {
-        const char *s = get_oid_desc (oid);
-        printf ("%sExtn: %s%s%s%s   (%lu octets)\n",
-                crit? "Crit":"",
-                s?" (":"", s?s:"", s?")":"",
-                oid, (unsigned long)derlen);
-      }
-    if (err && err != GPG_ERR_EOF
-        && err != GPG_ERR_NO_DATA )
-      fail_if_err (err);
+    for (idx = 0;
+         !(err = ksba_crl_get_extension(crl, idx, &oid, &crit, NULL, &derlen));
+         idx++) {
+      const char *s = get_oid_desc(oid);
+      printf("%sExtn: %s%s%s%s   (%lu octets)\n", crit ? "Crit" : "",
+             s ? " (" : "", s ? s : "", s ? ")" : "", oid,
+             (unsigned long)derlen);
+    }
+    if (err && err != GPG_ERR_EOF && err != GPG_ERR_NO_DATA) fail_if_err(err);
   }
-
 
   {
     ksba_sexp_t sigval;
 
-    sigval = ksba_crl_get_sig_val (crl);
-    if (!sigval)
-      fail ("signature value missing");
-    print_sexp (sigval);
-    putchar ('\n');
-    xfree (sigval);
+    sigval = ksba_crl_get_sig_val(crl);
+    if (!sigval) fail("signature value missing");
+    print_sexp(sigval);
+    putchar('\n');
+    xfree(sigval);
   }
 
-
-  ksba_crl_release (crl);
-  ksba_reader_release (r);
-  fclose (fp);
-  if (hashlog)
-    fclose (hashlog);
+  ksba_crl_release(crl);
+  ksba_reader_release(r);
+  fclose(fp);
+  if (hashlog) fclose(hashlog);
 }
 
+int crl_parser_main(int argc, char **argv) {
+  const char *srcdir = getenv("srcdir");
 
+  if (!srcdir) srcdir = CMAKE_SOURCE_DIR;
 
+  if (argc > 1) {
+    for (argc--, argv++; argc; argc--, argv++) one_file(*argv);
+  } else {
+    const char *files[] = {"crl_testpki_testpca.der", NULL};
+    int idx;
 
-int
-crl_parser_main (int argc, char **argv)
-{
-  const char *srcdir = getenv ("srcdir");
+    for (idx = 0; files[idx]; idx++) {
+      char *fname;
 
-  if (!srcdir)
-    srcdir = CMAKE_SOURCE_DIR;
-
-  if (argc > 1)
-    {
-      for (argc--, argv++; argc; argc--, argv++)
-        one_file (*argv);
+      fname = (char *)xmalloc(strlen(srcdir) + 1 + strlen(files[idx]) + 1);
+      strcpy(fname, srcdir);
+      strcat(fname, "/");
+      strcat(fname, files[idx]);
+      one_file(fname);
+      xfree(fname);
     }
-  else
-    {
-      const char *files[] = {
-        "crl_testpki_testpca.der",
-        NULL
-      };
-      int idx;
-
-      for (idx=0; files[idx]; idx++)
-        {
-          char *fname;
-
-          fname = (char*) xmalloc (strlen (srcdir) + 1 + strlen (files[idx]) + 1);
-          strcpy (fname, srcdir);
-          strcat (fname, "/");
-          strcat (fname, files[idx]);
-          one_file (fname);
-          xfree (fname);
-        }
-    }
+  }
 
   return 0;
 }

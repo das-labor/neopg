@@ -21,8 +21,8 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "mpi-internal.h"
 #include "longlong.h"
+#include "mpi-internal.h"
 
 /****************
  * Scan through an mpi and return byte for byte. a -1 is returned to indicate
@@ -48,7 +48,6 @@
 /*     } */
 /*     return -1; */
 /* } */
-
 
 /****************
  * Put a value at position IDX into A. idx counts from lsb to msb
@@ -105,26 +104,22 @@
 /*     abort(); /\* index out of range *\/ */
 /* } */
 
-
 /****************
  * Count the number of zerobits at the low end of A
  */
-unsigned
-_gcry_mpi_trailing_zeros( gcry_mpi_t a )
-{
-    unsigned n, count = 0;
+unsigned _gcry_mpi_trailing_zeros(gcry_mpi_t a) {
+  unsigned n, count = 0;
 
-    for(n=0; n < a->nlimbs; n++ ) {
-	if( a->d[n] ) {
-	    unsigned nn;
-	    mpi_limb_t alimb = a->d[n];
+  for (n = 0; n < a->nlimbs; n++) {
+    if (a->d[n]) {
+      unsigned nn;
+      mpi_limb_t alimb = a->d[n];
 
-	    count_trailing_zeros( nn, alimb );
-	    count += nn;
-	    break;
-	}
-	count += BITS_PER_MPI_LIMB;
+      count_trailing_zeros(nn, alimb);
+      count += nn;
+      break;
     }
-    return count;
-
+    count += BITS_PER_MPI_LIMB;
+  }
+  return count;
 }

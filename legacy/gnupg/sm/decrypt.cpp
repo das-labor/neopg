@@ -17,133 +17,116 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <unistd.h>
 #include <time.h>
-#include <assert.h>
+#include <unistd.h>
 
-#include "gpgsm.h"
 #include <gcrypt.h>
 #include <ksba.h>
+#include "gpgsm.h"
 
-#include "keydb.h"
-#include "../common/i18n.h"
 #include "../common/compliance.h"
+#include "../common/i18n.h"
+#include "keydb.h"
 
-struct decrypt_filter_parm_s
-{
+struct decrypt_filter_parm_s {
   int algo;
   int mode;
   int blklen;
   gcry_cipher_hd_t hd;
   char iv[16];
   size_t ivlen;
-  int any_data;  /* did we push anything through the filter at all? */
-  unsigned char lastblock[16];  /* to strip the padding we have to
-                                   keep this one */
-  char helpblock[16];  /* needed because there is no block buffering in
-                          libgcrypt (yet) */
-  int  helpblocklen;
+  int any_data; /* did we push anything through the filter at all? */
+  unsigned char lastblock[16]; /* to strip the padding we have to
+                                  keep this one */
+  char helpblock[16];          /* needed because there is no block buffering in
+                                  libgcrypt (yet) */
+  int helpblocklen;
 };
-
-
 
 /* Decrypt the session key and fill in the parm structure.  The
    algo and the IV is expected to be already in PARM. */
-static int
-prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
-                    ksba_const_sexp_t enc_val,
-                    struct decrypt_filter_parm_s *parm)
-{
+static int prepare_decryption(ctrl_t ctrl, const char *hexkeygrip,
+                              const char *desc, ksba_const_sexp_t enc_val,
+                              struct decrypt_filter_parm_s *parm) {
   char *seskey = NULL;
   size_t n, seskeylen;
   int rc;
 
-  rc = gpgsm_agent_pkdecrypt (ctrl, hexkeygrip, desc, enc_val,
-                              &seskey, &seskeylen);
-  if (rc)
-    {
-      log_error ("error decrypting session key: %s\n", gpg_strerror (rc));
+  rc = gpgsm_agent_pkdecrypt(ctrl, hexkeygrip, desc, enc_val, &seskey,
+                             &seskeylen);
+  if (rc) {
+    log_error("error decrypting session key: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  if (DBG_CRYPTO) log_printhex("pkcs1 encoded session key:", seskey, seskeylen);
+
+  n = 0;
+  if (seskeylen == 24 || seskeylen == 16) {
+    /* Smells like a 3-DES or AES-128 key.  This might happen
+     * because a SC has already done the unpacking.  A better
+     * solution would be to test for this only after we triggered
+     * the GPG_ERR_INV_SESSION_KEY. */
+  } else {
+    if (n + 7 > seskeylen) {
+      rc = GPG_ERR_INV_SESSION_KEY;
       goto leave;
     }
 
-  if (DBG_CRYPTO)
-    log_printhex ("pkcs1 encoded session key:", seskey, seskeylen);
+    /* FIXME: Actually the leading zero is required but due to the way
+       we encode the output in libgcrypt as an MPI we are not able to
+       encode that leading zero.  However, when using a Smartcard we are
+       doing it the right way and therefore we have to skip the zero.  This
+       should be fixed in gpg-agent of course. */
+    if (!seskey[n]) n++;
 
-  n=0;
-  if (seskeylen == 24 || seskeylen == 16)
+    if (seskey[n] != 2) /* Wrong block type version. */
     {
-      /* Smells like a 3-DES or AES-128 key.  This might happen
-       * because a SC has already done the unpacking.  A better
-       * solution would be to test for this only after we triggered
-       * the GPG_ERR_INV_SESSION_KEY. */
-    }
-  else
-    {
-      if (n + 7 > seskeylen )
-        {
-          rc = GPG_ERR_INV_SESSION_KEY;
-          goto leave;
-        }
-
-      /* FIXME: Actually the leading zero is required but due to the way
-         we encode the output in libgcrypt as an MPI we are not able to
-         encode that leading zero.  However, when using a Smartcard we are
-         doing it the right way and therefore we have to skip the zero.  This
-         should be fixed in gpg-agent of course. */
-      if (!seskey[n])
-        n++;
-
-      if (seskey[n] != 2 )  /* Wrong block type version. */
-        {
-          rc = GPG_ERR_INV_SESSION_KEY;
-          goto leave;
-        }
-
-      for (n++; n < seskeylen && seskey[n]; n++) /* Skip the random bytes. */
-        ;
-      n++; /* and the zero byte */
-      if (n >= seskeylen )
-        {
-          rc = GPG_ERR_INV_SESSION_KEY;
-          goto leave;
-        }
-    }
-
-  if (DBG_CRYPTO)
-    log_printhex ("session key:", seskey+n, seskeylen-n);
-
-  rc = gcry_cipher_open (&parm->hd, parm->algo, parm->mode, 0);
-  if (rc)
-    {
-      log_error ("error creating decryptor: %s\n", gpg_strerror (rc));
+      rc = GPG_ERR_INV_SESSION_KEY;
       goto leave;
     }
 
-  rc = gcry_cipher_setkey (parm->hd, seskey+n, seskeylen-n);
-  if (rc == GPG_ERR_WEAK_KEY)
-    {
-      log_info (_("WARNING: message was encrypted with "
-                  "a weak key in the symmetric cipher.\n"));
-      rc = 0;
-    }
-  if (rc)
-    {
-      log_error("key setup failed: %s\n", gpg_strerror(rc) );
+    for (n++; n < seskeylen && seskey[n]; n++) /* Skip the random bytes. */
+      ;
+    n++; /* and the zero byte */
+    if (n >= seskeylen) {
+      rc = GPG_ERR_INV_SESSION_KEY;
       goto leave;
     }
+  }
 
-  gcry_cipher_setiv (parm->hd, parm->iv, parm->ivlen);
+  if (DBG_CRYPTO) log_printhex("session key:", seskey + n, seskeylen - n);
 
- leave:
-  xfree (seskey);
+  rc = gcry_cipher_open(&parm->hd, parm->algo, parm->mode, 0);
+  if (rc) {
+    log_error("error creating decryptor: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  rc = gcry_cipher_setkey(parm->hd, seskey + n, seskeylen - n);
+  if (rc == GPG_ERR_WEAK_KEY) {
+    log_info(
+        _("WARNING: message was encrypted with "
+          "a weak key in the symmetric cipher.\n"));
+    rc = 0;
+  }
+  if (rc) {
+    log_error("key setup failed: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  gcry_cipher_setiv(parm->hd, parm->iv, parm->ivlen);
+
+leave:
+  xfree(seskey);
   return rc;
 }
-
 
 /* This function is called by the KSBA writer just before the actual
    write is done.  The function must take INLEN bytes from INBUF,
@@ -152,97 +135,74 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
    Due to different buffer sizes or different length of input and
    output, it may happen that fewer bytes are processed or fewer bytes
    are written. */
-static gpg_error_t
-decrypt_filter (void *arg,
-                const void *inbuf, size_t inlen, size_t *inused,
-                void *outbuf, size_t maxoutlen, size_t *outlen)
-{
-  struct decrypt_filter_parm_s *parm = (decrypt_filter_parm_s*) arg;
+static gpg_error_t decrypt_filter(void *arg, const void *inbuf, size_t inlen,
+                                  size_t *inused, void *outbuf,
+                                  size_t maxoutlen, size_t *outlen) {
+  struct decrypt_filter_parm_s *parm = (decrypt_filter_parm_s *)arg;
   int blklen = parm->blklen;
   size_t orig_inlen = inlen;
 
   /* fixme: Should we issue an error when we have not seen one full block? */
-  if (!inlen)
-    return GPG_ERR_BUG;
+  if (!inlen) return GPG_ERR_BUG;
 
-  if (maxoutlen < 2*parm->blklen)
-    return GPG_ERR_BUG;
+  if (maxoutlen < 2 * parm->blklen) return GPG_ERR_BUG;
   /* Make some space because we will later need an extra block at the end.  */
   maxoutlen -= blklen;
 
-  if (parm->helpblocklen)
-    {
-      int i, j;
+  if (parm->helpblocklen) {
+    int i, j;
 
-      for (i=parm->helpblocklen,j=0; i < blklen && j < inlen; i++, j++)
-        parm->helpblock[i] = ((const char*)inbuf)[j];
-      inlen -= j;
-      if (blklen > maxoutlen)
-        return GPG_ERR_BUG;
-      if (i < blklen)
-        {
-          parm->helpblocklen = i;
-          *outlen = 0;
-        }
-      else
-        {
-          parm->helpblocklen = 0;
-          if (parm->any_data)
-            {
-              memcpy (outbuf, parm->lastblock, blklen);
-              *outlen =blklen;
-            }
-          else
-            *outlen = 0;
-          gcry_cipher_decrypt (parm->hd, parm->lastblock, blklen,
-                               parm->helpblock, blklen);
-          parm->any_data = 1;
-        }
-      *inused = orig_inlen - inlen;
-      return 0;
+    for (i = parm->helpblocklen, j = 0; i < blklen && j < inlen; i++, j++)
+      parm->helpblock[i] = ((const char *)inbuf)[j];
+    inlen -= j;
+    if (blklen > maxoutlen) return GPG_ERR_BUG;
+    if (i < blklen) {
+      parm->helpblocklen = i;
+      *outlen = 0;
+    } else {
+      parm->helpblocklen = 0;
+      if (parm->any_data) {
+        memcpy(outbuf, parm->lastblock, blklen);
+        *outlen = blklen;
+      } else
+        *outlen = 0;
+      gcry_cipher_decrypt(parm->hd, parm->lastblock, blklen, parm->helpblock,
+                          blklen);
+      parm->any_data = 1;
     }
+    *inused = orig_inlen - inlen;
+    return 0;
+  }
 
-
-  if (inlen > maxoutlen)
-    inlen = maxoutlen;
-  if (inlen % blklen)
-    { /* store the remainder away */
-      parm->helpblocklen = inlen%blklen;
-      inlen = inlen/blklen*blklen;
-      memcpy (parm->helpblock, (const char*)inbuf+inlen, parm->helpblocklen);
-    }
+  if (inlen > maxoutlen) inlen = maxoutlen;
+  if (inlen % blklen) { /* store the remainder away */
+    parm->helpblocklen = inlen % blklen;
+    inlen = inlen / blklen * blklen;
+    memcpy(parm->helpblock, (const char *)inbuf + inlen, parm->helpblocklen);
+  }
 
   *inused = inlen + parm->helpblocklen;
-  if (inlen)
-    {
-      assert (inlen >= blklen);
-      if (parm->any_data)
-        {
-          gcry_cipher_decrypt (parm->hd, (char*)outbuf+blklen, inlen,
-                               inbuf, inlen);
-          memcpy (outbuf, parm->lastblock, blklen);
-          memcpy (parm->lastblock,(char*)outbuf+inlen, blklen);
-          *outlen = inlen;
-        }
-      else
-        {
-          gcry_cipher_decrypt (parm->hd, outbuf, inlen, inbuf, inlen);
-          memcpy (parm->lastblock, (char*)outbuf+inlen-blklen, blklen);
-          *outlen = inlen - blklen;
-          parm->any_data = 1;
-        }
+  if (inlen) {
+    assert(inlen >= blklen);
+    if (parm->any_data) {
+      gcry_cipher_decrypt(parm->hd, (char *)outbuf + blklen, inlen, inbuf,
+                          inlen);
+      memcpy(outbuf, parm->lastblock, blklen);
+      memcpy(parm->lastblock, (char *)outbuf + inlen, blklen);
+      *outlen = inlen;
+    } else {
+      gcry_cipher_decrypt(parm->hd, outbuf, inlen, inbuf, inlen);
+      memcpy(parm->lastblock, (char *)outbuf + inlen - blklen, blklen);
+      *outlen = inlen - blklen;
+      parm->any_data = 1;
     }
-  else
+  } else
     *outlen = 0;
   return 0;
 }
 
-
-
 /* Perform a decrypt operation.  */
-int
-gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
-{
+int gpgsm_decrypt(ctrl_t ctrl, int in_fd, estream_t out_fp) {
   int rc;
   gnupg_ksba_io_t b64reader = NULL;
   gnupg_ksba_io_t b64writer = NULL;
@@ -255,337 +215,285 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   estream_t in_fp = NULL;
   struct decrypt_filter_parm_s dfparm;
 
-  memset (&dfparm, 0, sizeof dfparm);
+  memset(&dfparm, 0, sizeof dfparm);
 
-  kh = sm_keydb_new ();
-  if (!kh)
-    {
-      log_error (_("failed to allocate keyDB handle\n"));
-      rc = GPG_ERR_GENERAL;
-      goto leave;
-    }
-
-  in_fp = es_fdopen_nc (in_fd, "rb");
-  if (!in_fp)
-    {
-      rc = gpg_error_from_syserror ();
-      log_error ("fdopen() failed: %s\n", strerror (errno));
-      goto leave;
-    }
-
-  rc = gnupg_ksba_create_reader
-    (&b64reader, ((ctrl->is_pem? GNUPG_KSBA_IO_PEM : 0)
-                  | (ctrl->is_base64? GNUPG_KSBA_IO_BASE64 : 0)
-                  | (ctrl->autodetect_encoding? GNUPG_KSBA_IO_AUTODETECT : 0)),
-     in_fp, &reader);
-  if (rc)
-    {
-      log_error ("can't create reader: %s\n", gpg_strerror (rc));
-      goto leave;
-    }
-
-  rc = gnupg_ksba_create_writer
-    (&b64writer, ((ctrl->create_pem? GNUPG_KSBA_IO_PEM : 0)
-                  | (ctrl->create_base64? GNUPG_KSBA_IO_BASE64 : 0)),
-     ctrl->pem_name, out_fp, &writer);
-  if (rc)
-    {
-      log_error ("can't create writer: %s\n", gpg_strerror (rc));
-      goto leave;
-    }
-
-  rc = ksba_cms_new (&cms);
-  if (rc)
+  kh = sm_keydb_new();
+  if (!kh) {
+    log_error(_("failed to allocate keyDB handle\n"));
+    rc = GPG_ERR_GENERAL;
     goto leave;
+  }
 
-  rc = ksba_cms_set_reader_writer (cms, reader, writer);
-  if (rc)
-    {
-      log_debug ("ksba_cms_set_reader_writer failed: %s\n",
-                 gpg_strerror (rc));
-      goto leave;
-    }
+  in_fp = es_fdopen_nc(in_fd, "rb");
+  if (!in_fp) {
+    rc = gpg_error_from_syserror();
+    log_error("fdopen() failed: %s\n", strerror(errno));
+    goto leave;
+  }
+
+  rc = gnupg_ksba_create_reader(
+      &b64reader, ((ctrl->is_pem ? GNUPG_KSBA_IO_PEM : 0) |
+                   (ctrl->is_base64 ? GNUPG_KSBA_IO_BASE64 : 0) |
+                   (ctrl->autodetect_encoding ? GNUPG_KSBA_IO_AUTODETECT : 0)),
+      in_fp, &reader);
+  if (rc) {
+    log_error("can't create reader: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  rc = gnupg_ksba_create_writer(
+      &b64writer, ((ctrl->create_pem ? GNUPG_KSBA_IO_PEM : 0) |
+                   (ctrl->create_base64 ? GNUPG_KSBA_IO_BASE64 : 0)),
+      ctrl->pem_name, out_fp, &writer);
+  if (rc) {
+    log_error("can't create writer: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+
+  rc = ksba_cms_new(&cms);
+  if (rc) goto leave;
+
+  rc = ksba_cms_set_reader_writer(cms, reader, writer);
+  if (rc) {
+    log_debug("ksba_cms_set_reader_writer failed: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
 
   /* Parser loop. */
-  do
-    {
-      rc = ksba_cms_parse (cms, &stopreason);
-      if (rc)
-        {
-          log_debug ("ksba_cms_parse failed: %s\n", gpg_strerror (rc));
-          goto leave;
-        }
-
-      if (stopreason == KSBA_SR_BEGIN_DATA
-          || stopreason == KSBA_SR_DETACHED_DATA)
-        {
-          int algo, mode;
-          const char *algoid;
-          int any_key = 0;
-          int is_de_vs;	/* Computed compliance with CO_DE_VS.  */
-
-          algoid = ksba_cms_get_content_oid (cms, 2/* encryption algo*/);
-          algo = gcry_cipher_map_name (algoid);
-          mode = gcry_cipher_mode_from_oid (algoid);
-          if (!algo || !mode)
-            {
-              rc = GPG_ERR_UNSUPPORTED_ALGORITHM;
-              log_error ("unsupported algorithm '%s'\n", algoid? algoid:"?");
-              if (algoid && !strcmp (algoid, "1.2.840.113549.3.2"))
-                log_info (_("(this is the RC2 algorithm)\n"));
-              else if (!algoid)
-                log_info (_("(this does not seem to be an encrypted"
-                            " message)\n"));
-              {
-                char numbuf[50];
-                sprintf (numbuf, "%d", rc);
-                gpgsm_status2 (ctrl, STATUS_ERROR, "decrypt.algorithm",
-                               numbuf, algoid?algoid:"?", NULL);
-              }
-
-              /* If it seems that this is not an encrypted message we
-                 return a more sensible error code. */
-              if (!algoid)
-                rc = GPG_ERR_NO_DATA;
-
-              goto leave;
-            }
-
-          /* Check compliance.  */
-          if (! gnupg_cipher_is_allowed (opt.compliance, 0, (cipher_algo_t) (algo), (gcry_cipher_modes) (mode)))
-            {
-              log_error (_("you may not use cipher algorithm '%s'"
-                           " while in %s mode\n"),
-                         gcry_cipher_algo_name (algo),
-                         gnupg_compliance_option_string (opt.compliance));
-              rc = GPG_ERR_CIPHER_ALGO;
-              goto leave;
-            }
-
-          /* For CMS, CO_DE_VS demands CBC mode.  */
-          is_de_vs = gnupg_cipher_is_compliant (CO_DE_VS, (cipher_algo_t) (algo), (gcry_cipher_modes) (mode));
-
-          dfparm.algo = algo;
-          dfparm.mode = mode;
-          dfparm.blklen = gcry_cipher_get_algo_blklen (algo);
-          if (dfparm.blklen > sizeof (dfparm.helpblock))
-            return GPG_ERR_BUG;
-
-          rc = ksba_cms_get_content_enc_iv (cms,
-                                            dfparm.iv,
-                                            sizeof (dfparm.iv),
-                                            &dfparm.ivlen);
-          if (rc)
-            {
-              log_error ("error getting IV: %s\n", gpg_strerror (rc));
-              goto leave;
-            }
-
-          for (recp=0; !any_key; recp++)
-            {
-              char *issuer;
-              ksba_sexp_t serial;
-              ksba_sexp_t enc_val;
-              char *hexkeygrip = NULL;
-              char *desc = NULL;
-              char kidbuf[16+1];
-
-              *kidbuf = 0;
-
-              rc = ksba_cms_get_issuer_serial (cms, recp, &issuer, &serial);
-              if (rc == -1 && recp)
-                break; /* no more recipients */
-              if (rc)
-                log_error ("recp %d - error getting info: %s\n",
-                           recp, gpg_strerror (rc));
-              else
-                {
-                  ksba_cert_t cert = NULL;
-
-                  log_debug ("recp %d - issuer: '%s'\n",
-                             recp, issuer? issuer:"[NONE]");
-                  log_debug ("recp %d - serial: ", recp);
-                  gpgsm_dump_serial (serial);
-                  log_printf ("\n");
-
-                  sm_keydb_search_reset (kh);
-                  rc = sm_keydb_search_issuer_sn (ctrl, kh, issuer, serial);
-                  if (rc)
-                    {
-                      log_error ("failed to find the certificate: %s\n",
-                                 gpg_strerror(rc));
-                      goto oops;
-                    }
-
-                  rc = sm_keydb_get_cert (kh, &cert);
-                  if (rc)
-                    {
-                      log_error ("failed to get cert: %s\n", gpg_strerror (rc));
-                      goto oops;
-                    }
-
-                  /* Print the ENC_TO status line.  Note that we can
-                     do so only if we have the certificate.  This is
-                     in contrast to gpg where the keyID is commonly
-                     included in the encrypted messages. It is too
-                     cumbersome to retrieve the used algorithm, thus
-                     we don't print it for now.  We also record the
-                     keyid for later use.  */
-                  {
-                    unsigned long kid[2];
-
-                    kid[0] = gpgsm_get_short_fingerprint (cert, kid+1);
-                    snprintf (kidbuf, sizeof kidbuf, "%08lX%08lX",
-                              kid[1], kid[0]);
-                    gpgsm_status2 (ctrl, STATUS_ENC_TO,
-                                   kidbuf, "0", "0", NULL);
-                  }
-
-                  /* Just in case there is a problem with the own
-                     certificate we print this message - should never
-                     happen of course */
-                  rc = gpgsm_cert_use_decrypt_p (cert);
-                  if (rc)
-                    {
-                      char numbuf[50];
-                      sprintf (numbuf, "%d", rc);
-                      gpgsm_status2 (ctrl, STATUS_ERROR, "decrypt.keyusage",
-                                     numbuf, NULL);
-                      rc = 0;
-                    }
-
-                  hexkeygrip = gpgsm_get_keygrip_hexstring (cert);
-                  desc = gpgsm_format_keydesc (cert);
-
-                  {
-                    unsigned int nbits;
-                    int pk_algo = gpgsm_get_key_algo_info (cert, &nbits);
-
-                    /* Check compliance.  */
-                    if (! gnupg_pk_is_allowed (opt.compliance,
-                                               PK_USE_DECRYPTION,
-                                               pk_algo, NULL, nbits, NULL))
-                      {
-                        log_error ("certificate ID 0x%08lX not suitable for "
-                                   "decryption while in %s mode\n",
-                                   gpgsm_get_short_fingerprint (cert, NULL),
-                                   gnupg_compliance_option_string (opt.compliance));
-                        rc = GPG_ERR_PUBKEY_ALGO;
-                        goto oops;
-                      }
-
-                    /* Check that all certs are compliant with CO_DE_VS.  */
-                    is_de_vs =
-                      (is_de_vs
-                       && gnupg_pk_is_compliant (CO_DE_VS, pk_algo, NULL,
-                                                 nbits, NULL));
-                  }
-
-                oops:
-                  if (rc)
-                    /* We cannot check compliance of certs that we
-                     * don't have.  */
-                    is_de_vs = 0;
-                  xfree (issuer);
-                  xfree (serial);
-                  ksba_cert_release (cert);
-                }
-
-              if (!hexkeygrip)
-                ;
-              else if (!(enc_val = ksba_cms_get_enc_val (cms, recp)))
-                log_error ("recp %d - error getting encrypted session key\n",
-                           recp);
-              else
-                {
-                  rc = prepare_decryption (ctrl,
-                                           hexkeygrip, desc, enc_val, &dfparm);
-                  xfree (enc_val);
-                  if (rc)
-                    {
-                      log_info ("decrypting session key failed: %s\n",
-                                gpg_strerror (rc));
-                      if (rc == GPG_ERR_NO_SECKEY && *kidbuf)
-                        gpgsm_status2 (ctrl, STATUS_NO_SECKEY, kidbuf, NULL);
-                    }
-                  else
-                    { /* setup the bulk decrypter */
-                      any_key = 1;
-                      ksba_writer_set_filter (writer,
-                                              decrypt_filter,
-                                              &dfparm);
-
-                      if (is_de_vs)
-                        gpgsm_status (ctrl, STATUS_DECRYPTION_COMPLIANCE_MODE,
-                                      gnupg_status_compliance_flag (CO_DE_VS));
-
-                    }
-                }
-              xfree (hexkeygrip);
-              xfree (desc);
-            }
-
-          if (!any_key)
-            {
-              rc = GPG_ERR_NO_SECKEY;
-              goto leave;
-            }
-        }
-      else if (stopreason == KSBA_SR_END_DATA)
-        {
-          ksba_writer_set_filter (writer, NULL, NULL);
-          if (dfparm.any_data)
-            { /* write the last block with padding removed */
-              int i, npadding = dfparm.lastblock[dfparm.blklen-1];
-              if (!npadding || npadding > dfparm.blklen)
-                {
-                  log_error ("invalid padding with value %d\n", npadding);
-                  rc = GPG_ERR_INV_DATA;
-                  goto leave;
-                }
-              rc = ksba_writer_write (writer,
-                                      dfparm.lastblock,
-                                      dfparm.blklen - npadding);
-              if (rc)
-                goto leave;
-
-              for (i=dfparm.blklen - npadding; i < dfparm.blklen; i++)
-                {
-                  if (dfparm.lastblock[i] != npadding)
-                    {
-                      log_error ("inconsistent padding\n");
-                      rc = GPG_ERR_INV_DATA;
-                      goto leave;
-                    }
-                }
-            }
-        }
-
-    }
-  while (stopreason != KSBA_SR_READY);
-
-  rc = gnupg_ksba_finish_writer (b64writer);
-  if (rc)
-    {
-      log_error ("write failed: %s\n", gpg_strerror (rc));
+  do {
+    rc = ksba_cms_parse(cms, &stopreason);
+    if (rc) {
+      log_debug("ksba_cms_parse failed: %s\n", gpg_strerror(rc));
       goto leave;
     }
-  gpgsm_status (ctrl, STATUS_DECRYPTION_OKAY, NULL);
 
+    if (stopreason == KSBA_SR_BEGIN_DATA ||
+        stopreason == KSBA_SR_DETACHED_DATA) {
+      int algo, mode;
+      const char *algoid;
+      int any_key = 0;
+      int is_de_vs; /* Computed compliance with CO_DE_VS.  */
 
- leave:
-  if (rc)
-    {
-      gpgsm_status (ctrl, STATUS_DECRYPTION_FAILED, NULL);
-      log_error ("message decryption failed: %s\n",
-                 gpg_strerror (rc));
+      algoid = ksba_cms_get_content_oid(cms, 2 /* encryption algo*/);
+      algo = gcry_cipher_map_name(algoid);
+      mode = gcry_cipher_mode_from_oid(algoid);
+      if (!algo || !mode) {
+        rc = GPG_ERR_UNSUPPORTED_ALGORITHM;
+        log_error("unsupported algorithm '%s'\n", algoid ? algoid : "?");
+        if (algoid && !strcmp(algoid, "1.2.840.113549.3.2"))
+          log_info(_("(this is the RC2 algorithm)\n"));
+        else if (!algoid)
+          log_info(
+              _("(this does not seem to be an encrypted"
+                " message)\n"));
+        {
+          char numbuf[50];
+          sprintf(numbuf, "%d", rc);
+          gpgsm_status2(ctrl, STATUS_ERROR, "decrypt.algorithm", numbuf,
+                        algoid ? algoid : "?", NULL);
+        }
+
+        /* If it seems that this is not an encrypted message we
+           return a more sensible error code. */
+        if (!algoid) rc = GPG_ERR_NO_DATA;
+
+        goto leave;
+      }
+
+      /* Check compliance.  */
+      if (!gnupg_cipher_is_allowed(opt.compliance, 0, (cipher_algo_t)(algo),
+                                   (gcry_cipher_modes)(mode))) {
+        log_error(_("you may not use cipher algorithm '%s'"
+                    " while in %s mode\n"),
+                  gcry_cipher_algo_name(algo),
+                  gnupg_compliance_option_string(opt.compliance));
+        rc = GPG_ERR_CIPHER_ALGO;
+        goto leave;
+      }
+
+      /* For CMS, CO_DE_VS demands CBC mode.  */
+      is_de_vs = gnupg_cipher_is_compliant(CO_DE_VS, (cipher_algo_t)(algo),
+                                           (gcry_cipher_modes)(mode));
+
+      dfparm.algo = algo;
+      dfparm.mode = mode;
+      dfparm.blklen = gcry_cipher_get_algo_blklen(algo);
+      if (dfparm.blklen > sizeof(dfparm.helpblock)) return GPG_ERR_BUG;
+
+      rc = ksba_cms_get_content_enc_iv(cms, dfparm.iv, sizeof(dfparm.iv),
+                                       &dfparm.ivlen);
+      if (rc) {
+        log_error("error getting IV: %s\n", gpg_strerror(rc));
+        goto leave;
+      }
+
+      for (recp = 0; !any_key; recp++) {
+        char *issuer;
+        ksba_sexp_t serial;
+        ksba_sexp_t enc_val;
+        char *hexkeygrip = NULL;
+        char *desc = NULL;
+        char kidbuf[16 + 1];
+
+        *kidbuf = 0;
+
+        rc = ksba_cms_get_issuer_serial(cms, recp, &issuer, &serial);
+        if (rc == -1 && recp) break; /* no more recipients */
+        if (rc)
+          log_error("recp %d - error getting info: %s\n", recp,
+                    gpg_strerror(rc));
+        else {
+          ksba_cert_t cert = NULL;
+
+          log_debug("recp %d - issuer: '%s'\n", recp,
+                    issuer ? issuer : "[NONE]");
+          log_debug("recp %d - serial: ", recp);
+          gpgsm_dump_serial(serial);
+          log_printf("\n");
+
+          sm_keydb_search_reset(kh);
+          rc = sm_keydb_search_issuer_sn(ctrl, kh, issuer, serial);
+          if (rc) {
+            log_error("failed to find the certificate: %s\n", gpg_strerror(rc));
+            goto oops;
+          }
+
+          rc = sm_keydb_get_cert(kh, &cert);
+          if (rc) {
+            log_error("failed to get cert: %s\n", gpg_strerror(rc));
+            goto oops;
+          }
+
+          /* Print the ENC_TO status line.  Note that we can
+             do so only if we have the certificate.  This is
+             in contrast to gpg where the keyID is commonly
+             included in the encrypted messages. It is too
+             cumbersome to retrieve the used algorithm, thus
+             we don't print it for now.  We also record the
+             keyid for later use.  */
+          {
+            unsigned long kid[2];
+
+            kid[0] = gpgsm_get_short_fingerprint(cert, kid + 1);
+            snprintf(kidbuf, sizeof kidbuf, "%08lX%08lX", kid[1], kid[0]);
+            gpgsm_status2(ctrl, STATUS_ENC_TO, kidbuf, "0", "0", NULL);
+          }
+
+          /* Just in case there is a problem with the own
+             certificate we print this message - should never
+             happen of course */
+          rc = gpgsm_cert_use_decrypt_p(cert);
+          if (rc) {
+            char numbuf[50];
+            sprintf(numbuf, "%d", rc);
+            gpgsm_status2(ctrl, STATUS_ERROR, "decrypt.keyusage", numbuf, NULL);
+            rc = 0;
+          }
+
+          hexkeygrip = gpgsm_get_keygrip_hexstring(cert);
+          desc = gpgsm_format_keydesc(cert);
+
+          {
+            unsigned int nbits;
+            int pk_algo = gpgsm_get_key_algo_info(cert, &nbits);
+
+            /* Check compliance.  */
+            if (!gnupg_pk_is_allowed(opt.compliance, PK_USE_DECRYPTION, pk_algo,
+                                     NULL, nbits, NULL)) {
+              log_error(
+                  "certificate ID 0x%08lX not suitable for "
+                  "decryption while in %s mode\n",
+                  gpgsm_get_short_fingerprint(cert, NULL),
+                  gnupg_compliance_option_string(opt.compliance));
+              rc = GPG_ERR_PUBKEY_ALGO;
+              goto oops;
+            }
+
+            /* Check that all certs are compliant with CO_DE_VS.  */
+            is_de_vs = (is_de_vs && gnupg_pk_is_compliant(CO_DE_VS, pk_algo,
+                                                          NULL, nbits, NULL));
+          }
+
+        oops:
+          if (rc)
+            /* We cannot check compliance of certs that we
+             * don't have.  */
+            is_de_vs = 0;
+          xfree(issuer);
+          xfree(serial);
+          ksba_cert_release(cert);
+        }
+
+        if (!hexkeygrip)
+          ;
+        else if (!(enc_val = ksba_cms_get_enc_val(cms, recp)))
+          log_error("recp %d - error getting encrypted session key\n", recp);
+        else {
+          rc = prepare_decryption(ctrl, hexkeygrip, desc, enc_val, &dfparm);
+          xfree(enc_val);
+          if (rc) {
+            log_info("decrypting session key failed: %s\n", gpg_strerror(rc));
+            if (rc == GPG_ERR_NO_SECKEY && *kidbuf)
+              gpgsm_status2(ctrl, STATUS_NO_SECKEY, kidbuf, NULL);
+          } else { /* setup the bulk decrypter */
+            any_key = 1;
+            ksba_writer_set_filter(writer, decrypt_filter, &dfparm);
+
+            if (is_de_vs)
+              gpgsm_status(ctrl, STATUS_DECRYPTION_COMPLIANCE_MODE,
+                           gnupg_status_compliance_flag(CO_DE_VS));
+          }
+        }
+        xfree(hexkeygrip);
+        xfree(desc);
+      }
+
+      if (!any_key) {
+        rc = GPG_ERR_NO_SECKEY;
+        goto leave;
+      }
+    } else if (stopreason == KSBA_SR_END_DATA) {
+      ksba_writer_set_filter(writer, NULL, NULL);
+      if (dfparm.any_data) { /* write the last block with padding removed */
+        int i, npadding = dfparm.lastblock[dfparm.blklen - 1];
+        if (!npadding || npadding > dfparm.blklen) {
+          log_error("invalid padding with value %d\n", npadding);
+          rc = GPG_ERR_INV_DATA;
+          goto leave;
+        }
+        rc = ksba_writer_write(writer, dfparm.lastblock,
+                               dfparm.blklen - npadding);
+        if (rc) goto leave;
+
+        for (i = dfparm.blklen - npadding; i < dfparm.blklen; i++) {
+          if (dfparm.lastblock[i] != npadding) {
+            log_error("inconsistent padding\n");
+            rc = GPG_ERR_INV_DATA;
+            goto leave;
+          }
+        }
+      }
     }
-  ksba_cms_release (cms);
-  gnupg_ksba_destroy_reader (b64reader);
-  gnupg_ksba_destroy_writer (b64writer);
-  sm_keydb_release (kh);
-  es_fclose (in_fp);
-  if (dfparm.hd)
-    gcry_cipher_close (dfparm.hd);
+
+  } while (stopreason != KSBA_SR_READY);
+
+  rc = gnupg_ksba_finish_writer(b64writer);
+  if (rc) {
+    log_error("write failed: %s\n", gpg_strerror(rc));
+    goto leave;
+  }
+  gpgsm_status(ctrl, STATUS_DECRYPTION_OKAY, NULL);
+
+leave:
+  if (rc) {
+    gpgsm_status(ctrl, STATUS_DECRYPTION_FAILED, NULL);
+    log_error("message decryption failed: %s\n", gpg_strerror(rc));
+  }
+  ksba_cms_release(cms);
+  gnupg_ksba_destroy_reader(b64reader);
+  gnupg_ksba_destroy_writer(b64writer);
+  sm_keydb_release(kh);
+  es_fclose(in_fp);
+  if (dfparm.hd) gcry_cipher_close(dfparm.hd);
   return rc;
 }

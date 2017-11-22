@@ -28,12 +28,11 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #include "util.h"
-
 
 /* Same as fgets() but if the provided buffer is too short a larger
    one will be allocated.  This is similar to getline. A line is
@@ -54,73 +53,61 @@
    Note: The returned buffer is allocated with enough extra space to
    append a CR,LF,Nul
  */
-ssize_t
-read_line (FILE *fp,
-           char **addr_of_buffer, size_t *length_of_buffer,
-           size_t *max_length)
-{
+ssize_t read_line(FILE *fp, char **addr_of_buffer, size_t *length_of_buffer,
+                  size_t *max_length) {
   int c;
-  char  *buffer = *addr_of_buffer;
+  char *buffer = *addr_of_buffer;
   size_t length = *length_of_buffer;
   size_t nbytes = 0;
-  size_t maxlen = max_length? *max_length : 0;
+  size_t maxlen = max_length ? *max_length : 0;
   char *p;
 
-  if (!buffer)
-    { /* No buffer given - allocate a new one. */
-      length = 256;
-      buffer = xtrymalloc (length);
-      *addr_of_buffer = buffer;
-      if (!buffer)
-        {
-          *length_of_buffer = 0;
-          if (max_length)
-            *max_length = 0;
-          return -1;
-        }
-      *length_of_buffer = length;
+  if (!buffer) { /* No buffer given - allocate a new one. */
+    length = 256;
+    buffer = xtrymalloc(length);
+    *addr_of_buffer = buffer;
+    if (!buffer) {
+      *length_of_buffer = 0;
+      if (max_length) *max_length = 0;
+      return -1;
     }
+    *length_of_buffer = length;
+  }
 
   length -= 3; /* Reserve 3 bytes for CR,LF,EOL. */
   p = buffer;
-  while  ((c = getc (fp)) != EOF)
-    {
-      if (nbytes == length)
-        { /* Enlarge the buffer. */
-          if (maxlen && length > maxlen) /* But not beyond our limit. */
-            {
-              /* Skip the rest of the line. */
-              while (c != '\n' && (c=getc (fp)) != EOF)
-                ;
-              *p++ = '\n'; /* Always append a LF (we reserved some space). */
-              nbytes++;
-              if (max_length)
-                *max_length = 0; /* Indicate truncation. */
-              break; /* the while loop. */
-            }
-          length += 3; /* Adjust for the reserved bytes. */
-          length += length < 1024? 256 : 1024;
-          *addr_of_buffer = xtryrealloc (buffer, length);
-          if (!*addr_of_buffer)
-            {
-              int save_errno = errno;
-              xfree (buffer);
-              *length_of_buffer = 0;
-              if (max_length)
-                *max_length = 0;
-              gpg_err_set_errno (save_errno);
-              return -1;
-            }
-          buffer = *addr_of_buffer;
-          *length_of_buffer = length;
-          length -= 3;
-          p = buffer + nbytes;
-	}
-      *p++ = c;
-      nbytes++;
-      if (c == '\n')
-        break;
+  while ((c = getc(fp)) != EOF) {
+    if (nbytes == length) {          /* Enlarge the buffer. */
+      if (maxlen && length > maxlen) /* But not beyond our limit. */
+      {
+        /* Skip the rest of the line. */
+        while (c != '\n' && (c = getc(fp)) != EOF)
+          ;
+        *p++ = '\n'; /* Always append a LF (we reserved some space). */
+        nbytes++;
+        if (max_length) *max_length = 0; /* Indicate truncation. */
+        break;                           /* the while loop. */
+      }
+      length += 3; /* Adjust for the reserved bytes. */
+      length += length < 1024 ? 256 : 1024;
+      *addr_of_buffer = xtryrealloc(buffer, length);
+      if (!*addr_of_buffer) {
+        int save_errno = errno;
+        xfree(buffer);
+        *length_of_buffer = 0;
+        if (max_length) *max_length = 0;
+        gpg_err_set_errno(save_errno);
+        return -1;
+      }
+      buffer = *addr_of_buffer;
+      *length_of_buffer = length;
+      length -= 3;
+      p = buffer + nbytes;
     }
+    *p++ = c;
+    nbytes++;
+    if (c == '\n') break;
+  }
   *p = 0; /* Make sure the line is a string. */
 
   return nbytes;

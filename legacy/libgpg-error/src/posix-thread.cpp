@@ -19,15 +19,15 @@
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <unistd.h>  /* Get posix option macros.  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h> /* Get posix option macros.  */
 
-# ifdef _POSIX_PRIORITY_SCHEDULING
-#  include <sched.h>
-# endif
+#ifdef _POSIX_PRIORITY_SCHEDULING
+#include <sched.h>
+#endif
 
 #include "gpg-error.h"
 
@@ -40,30 +40,21 @@
 static void (*pre_syscall_func)(void);
 static void (*post_syscall_func)(void);
 
-
 /* Helper to set the clamp functions.  This is called as a helper from
  * _gpgrt_set_syscall_clamp to keep the function pointers local. */
-void
-_gpgrt_thread_set_syscall_clamp (void (*pre)(void), void (*post)(void))
-{
+void _gpgrt_thread_set_syscall_clamp(void (*pre)(void), void (*post)(void)) {
   pre_syscall_func = pre;
   post_syscall_func = post;
 }
 
-
-
-gpg_error_t
-_gpgrt_yield (void)
-{
-# ifdef _POSIX_PRIORITY_SCHEDULING
-   if (pre_syscall_func)
-     pre_syscall_func ();
-   sched_yield ();
-   if (post_syscall_func)
-     post_syscall_func ();
-# else
-   return GPG_ERR_NOT_SUPPORTED;
-# endif
+gpg_error_t _gpgrt_yield(void) {
+#ifdef _POSIX_PRIORITY_SCHEDULING
+  if (pre_syscall_func) pre_syscall_func();
+  sched_yield();
+  if (post_syscall_func) post_syscall_func();
+#else
+  return GPG_ERR_NOT_SUPPORTED;
+#endif
 
   return 0;
 }

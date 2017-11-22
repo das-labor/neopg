@@ -30,14 +30,15 @@
 #ifndef GNUPG_COMMON_COMMON_DEFS_H
 #define GNUPG_COMMON_COMMON_DEFS_H
 
+#include <stdio.h>
+#include "util.h"
+
 /*-- ttyio.c --*/
-void tty_private_set_rl_hooks (void (*init_stream) (FILE *),
-                               void (*set_completer) (rl_completion_func_t*),
-                               void (*inhibit_completion) (int),
-                               void (*cleanup_after_signal) (void),
-                               char *(*readline_fun) (const char*),
-                               void (*add_history_fun) (const char*));
-
-
+void tty_private_set_rl_hooks(void (*init_stream)(FILE *),
+                              void (*set_completer)(rl_completion_func_t *),
+                              void (*inhibit_completion)(int),
+                              void (*cleanup_after_signal)(void),
+                              char *(*readline_fun)(const char *),
+                              void (*add_history_fun)(const char *));
 
 #endif /*GNUPG_COMMON_COMMON_DEFS_H*/

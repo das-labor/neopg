@@ -37,55 +37,50 @@
 #include "types.h"
 
 /*-- stringhelp.c --*/
-char *has_leading_keyword (const char *string, const char *keyword);
+char *has_leading_keyword(const char *string, const char *keyword);
 
-const char *memistr (const void *buf, size_t buflen, const char *sub);
-char *mem2str( char *, const void *, size_t);
-char *trim_spaces( char *string );
-char *trim_trailing_spaces( char *string );
-unsigned int trim_trailing_chars( unsigned char *line, unsigned len,
-					      const char *trimchars);
-unsigned int trim_trailing_ws( unsigned char *line, unsigned len );
-size_t length_sans_trailing_chars (const unsigned char *line, size_t len,
-                                   const char *trimchars );
-size_t length_sans_trailing_ws (const unsigned char *line, size_t len);
-
+const char *memistr(const void *buf, size_t buflen, const char *sub);
+char *mem2str(char *, const void *, size_t);
+char *trim_spaces(char *string);
+char *trim_trailing_spaces(char *string);
+unsigned int trim_trailing_chars(unsigned char *line, unsigned len,
+                                 const char *trimchars);
+unsigned int trim_trailing_ws(unsigned char *line, unsigned len);
+size_t length_sans_trailing_chars(const unsigned char *line, size_t len,
+                                  const char *trimchars);
+size_t length_sans_trailing_ws(const unsigned char *line, size_t len);
 
 char *make_basename(const char *filepath);
 char *make_dirname(const char *filepath);
-char *make_filename( const char *first_part, ... ) GPGRT_ATTR_SENTINEL(0);
-char *make_filename_try (const char *first_part, ... ) GPGRT_ATTR_SENTINEL(0);
-char *make_absfilename (const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
-char *make_absfilename_try (const char *first_part,
-                            ...) GPGRT_ATTR_SENTINEL(0);
-int compare_filenames( const char *a, const char *b );
+char *make_filename(const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
+char *make_filename_try(const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
+char *make_absfilename(const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
+char *make_absfilename_try(const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
+int compare_filenames(const char *a, const char *b);
 
-uint64_t string_to_u64 (const char *string);
-int hextobyte (const char *s);
+uint64_t string_to_u64(const char *string);
+int hextobyte(const char *s);
 
-size_t utf8_charcount (const char *s, int len);
-
+size_t utf8_charcount(const char *s, int len);
 
 #ifdef HAVE_W32_SYSTEM
-const char *w32_strerror (int ec);
+const char *w32_strerror(int ec);
 #endif
 
-
-int ascii_isupper (int c);
-int ascii_islower (int c);
-int ascii_toupper (int c);
-int ascii_tolower (int c);
-char *ascii_strlwr (char *s);
-int ascii_strcasecmp( const char *a, const char *b );
-int ascii_strncasecmp (const char *a, const char *b, size_t n);
-int ascii_memcasecmp( const void *a, const void *b, size_t n );
-const char *ascii_memistr ( const void *buf, size_t buflen, const char *sub);
-void *ascii_memcasemem (const void *haystack, size_t nhaystack,
-                        const void *needle, size_t nneedle);
-
+int ascii_isupper(int c);
+int ascii_islower(int c);
+int ascii_toupper(int c);
+int ascii_tolower(int c);
+char *ascii_strlwr(char *s);
+int ascii_strcasecmp(const char *a, const char *b);
+int ascii_strncasecmp(const char *a, const char *b, size_t n);
+int ascii_memcasecmp(const void *a, const void *b, size_t n);
+const char *ascii_memistr(const void *buf, size_t buflen, const char *sub);
+void *ascii_memcasemem(const void *haystack, size_t nhaystack,
+                       const void *needle, size_t nneedle);
 
 #ifndef STR
-#  define STR(v) #v
+#define STR(v) #v
 #endif
 #define STR2(v) STR(v)
 
@@ -93,27 +88,26 @@ void *ascii_memcasemem (const void *haystack, size_t nhaystack,
    EXTRA is not NULL, also replace all characters given in EXTRA.  The
    "try_" variant fails with NULL if not enough memory can be
    allocated.  */
-char *percent_escape (const char *str, const char *extra);
-char *try_percent_escape (const char *str, const char *extra);
-
+char *percent_escape(const char *str, const char *extra);
+char *try_percent_escape(const char *str, const char *extra);
 
 /* Concatenate the string S1 with all the following strings up to a
    NULL.  Returns a malloced buffer with the new string or NULL on a
    malloc error or if too many arguments are given.  */
-char *strconcat (const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
+char *strconcat(const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
 /* Ditto, but die on error.  */
-char *xstrconcat (const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
+char *xstrconcat(const char *s1, ...) GPGRT_ATTR_SENTINEL(0);
 
-char **strsplit (char *string, char delim, char replacement, int *count);
+char **strsplit(char *string, char delim, char replacement, int *count);
 
 /* Tokenize STRING using the set of delimiters in DELIM.  */
-char **strtokenize (const char *string, const char *delim);
+char **strtokenize(const char *string, const char *delim);
 
 /* Split STRING into space delimited fields and store them in the
  * provided ARRAY.  */
-int split_fields (char *string, char **array, int arraysize);
+int split_fields(char *string, char **array, int arraysize);
 
 /* Format a string so that it fits within about TARGET_COLS columns.  */
-char *format_text (const char *text, int target_cols, int max_cols);
+char *format_text(const char *text, int target_cols, int max_cols);
 
 #endif /*GNUPG_COMMON_STRINGHELP_H*/

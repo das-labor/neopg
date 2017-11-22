@@ -22,20 +22,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "g10lib.h"
-#include "cipher.h"
-#include "cipher-internal.h"
 #include "bufhelp.h"
+#include "cipher-internal.h"
+#include "cipher.h"
+#include "g10lib.h"
 
+#define set_burn(burn, nburn)                     \
+  do {                                            \
+    unsigned int __nburn = (nburn);               \
+    (burn) = (burn) > __nburn ? (burn) : __nburn; \
+  } while (0)
 
-#define set_burn(burn, nburn) do { \
-  unsigned int __nburn = (nburn); \
-  (burn) = (burn) > __nburn ? (burn) : __nburn; } while (0)
-
-
-static void
-cmac_write (gcry_cipher_hd_t c, const byte * inbuf, size_t inlen)
-{
+static void cmac_write(gcry_cipher_hd_t c, const byte *inbuf, size_t inlen) {
   gcry_cipher_encrypt_t enc_fn = c->spec->encrypt;
   const unsigned int blocksize = c->spec->blocksize;
   byte outbuf[MAX_BLOCKSIZE];
@@ -44,116 +42,95 @@ cmac_write (gcry_cipher_hd_t c, const byte * inbuf, size_t inlen)
 
   /* Tell compiler that we require a cipher with a 64bit or 128 bit block
    * length, to allow better optimization of this function.  */
-  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
-    return;
+  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1)) return;
 
-  if (!inlen || !inbuf)
-    return;
+  if (!inlen || !inbuf) return;
 
   /* Last block is needed for cmac_final.  */
-  if (c->unused + inlen <= blocksize)
-    {
-      for (; inlen && c->unused < blocksize; inlen--)
-        c->lastiv[c->unused++] = *inbuf++;
-      return;
+  if (c->unused + inlen <= blocksize) {
+    for (; inlen && c->unused < blocksize; inlen--)
+      c->lastiv[c->unused++] = *inbuf++;
+    return;
+  }
+
+  if (c->unused) {
+    for (; inlen && c->unused < blocksize; inlen--)
+      c->lastiv[c->unused++] = *inbuf++;
+
+    buf_xor(c->u_iv.iv, c->u_iv.iv, c->lastiv, blocksize);
+    set_burn(burn, enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv));
+
+    c->unused = 0;
+  }
+
+  if (c->bulk.cbc_enc && inlen > blocksize) {
+    nblocks = inlen / blocksize;
+    nblocks -= (nblocks * blocksize == inlen);
+
+    c->bulk.cbc_enc(&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks, 1);
+    inbuf += nblocks * blocksize;
+    inlen -= nblocks * blocksize;
+
+    wipememory(outbuf, sizeof(outbuf));
+  } else
+    while (inlen > blocksize) {
+      buf_xor(c->u_iv.iv, c->u_iv.iv, inbuf, blocksize);
+      set_burn(burn, enc_fn(&c->context.c, c->u_iv.iv, c->u_iv.iv));
+      inlen -= blocksize;
+      inbuf += blocksize;
     }
-
-  if (c->unused)
-    {
-      for (; inlen && c->unused < blocksize; inlen--)
-        c->lastiv[c->unused++] = *inbuf++;
-
-      buf_xor (c->u_iv.iv, c->u_iv.iv, c->lastiv, blocksize);
-      set_burn (burn, enc_fn (&c->context.c, c->u_iv.iv, c->u_iv.iv));
-
-      c->unused = 0;
-    }
-
-  if (c->bulk.cbc_enc && inlen > blocksize)
-    {
-      nblocks = inlen / blocksize;
-      nblocks -= (nblocks * blocksize == inlen);
-
-      c->bulk.cbc_enc (&c->context.c, c->u_iv.iv, outbuf, inbuf, nblocks, 1);
-      inbuf += nblocks * blocksize;
-      inlen -= nblocks * blocksize;
-
-      wipememory (outbuf, sizeof (outbuf));
-    }
-  else
-    while (inlen > blocksize)
-      {
-        buf_xor (c->u_iv.iv, c->u_iv.iv, inbuf, blocksize);
-        set_burn (burn, enc_fn (&c->context.c, c->u_iv.iv, c->u_iv.iv));
-        inlen -= blocksize;
-        inbuf += blocksize;
-      }
 
   /* Make sure that last block is passed to cmac_final.  */
-  if (inlen == 0)
-    BUG ();
+  if (inlen == 0) BUG();
 
   for (; inlen && c->unused < blocksize; inlen--)
     c->lastiv[c->unused++] = *inbuf++;
 
-  if (burn)
-    _gcry_burn_stack (burn + 4 * sizeof (void *));
+  if (burn) _gcry_burn_stack(burn + 4 * sizeof(void *));
 }
 
-
-static void
-cmac_generate_subkeys (gcry_cipher_hd_t c)
-{
+static void cmac_generate_subkeys(gcry_cipher_hd_t c) {
   const unsigned int blocksize = c->spec->blocksize;
   byte rb, carry, t, bi;
   unsigned int burn;
   int i, j;
-  union
-  {
+  union {
     size_t _aligned;
     byte buf[MAX_BLOCKSIZE];
   } u;
 
   /* Tell compiler that we require a cipher with a 64bit or 128 bit block
    * length, to allow better optimization of this function.  */
-  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
-    return;
+  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1)) return;
 
-  if (MAX_BLOCKSIZE < blocksize)
-    BUG ();
+  if (MAX_BLOCKSIZE < blocksize) BUG();
 
   /* encrypt zero block */
-  memset (u.buf, 0, blocksize);
-  burn = c->spec->encrypt (&c->context.c, u.buf, u.buf);
+  memset(u.buf, 0, blocksize);
+  burn = c->spec->encrypt(&c->context.c, u.buf, u.buf);
 
   /* Currently supported blocksizes are 16 and 8. */
-  rb = blocksize == 16 ? 0x87 : 0x1B /*blocksize == 8 */ ;
+  rb = blocksize == 16 ? 0x87 : 0x1B /*blocksize == 8 */;
 
-  for (j = 0; j < 2; j++)
-    {
-      /* Generate subkeys K1 and K2 */
-      carry = 0;
-      for (i = blocksize - 1; i >= 0; i--)
-        {
-          bi = u.buf[i];
-          t = carry | (bi << 1);
-          carry = bi >> 7;
-          u.buf[i] = t & 0xff;
-          c->u_mode.cmac.subkeys[j][i] = u.buf[i];
-        }
-      u.buf[blocksize - 1] ^= carry ? rb : 0;
-      c->u_mode.cmac.subkeys[j][blocksize - 1] = u.buf[blocksize - 1];
+  for (j = 0; j < 2; j++) {
+    /* Generate subkeys K1 and K2 */
+    carry = 0;
+    for (i = blocksize - 1; i >= 0; i--) {
+      bi = u.buf[i];
+      t = carry | (bi << 1);
+      carry = bi >> 7;
+      u.buf[i] = t & 0xff;
+      c->u_mode.cmac.subkeys[j][i] = u.buf[i];
     }
+    u.buf[blocksize - 1] ^= carry ? rb : 0;
+    c->u_mode.cmac.subkeys[j][blocksize - 1] = u.buf[blocksize - 1];
+  }
 
-  wipememory (&u, sizeof (u));
-  if (burn)
-    _gcry_burn_stack (burn + 4 * sizeof (void *));
+  wipememory(&u, sizeof(u));
+  if (burn) _gcry_burn_stack(burn + 4 * sizeof(void *));
 }
 
-
-static void
-cmac_final (gcry_cipher_hd_t c)
-{
+static void cmac_final(gcry_cipher_hd_t c) {
   const unsigned int blocksize = c->spec->blocksize;
   unsigned int count = c->unused;
   unsigned int burn;
@@ -161,93 +138,72 @@ cmac_final (gcry_cipher_hd_t c)
 
   /* Tell compiler that we require a cipher with a 64bit or 128 bit block
    * length, to allow better optimization of this function.  */
-  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1))
-    return;
+  if (blocksize > 16 || blocksize < 8 || blocksize & (8 - 1)) return;
 
   if (count == blocksize)
-    subkey = c->u_mode.cmac.subkeys[0];        /* K1 */
-  else
-    {
-      subkey = c->u_mode.cmac.subkeys[1];      /* K2 */
-      c->lastiv[count++] = 0x80;
-      while (count < blocksize)
-        c->lastiv[count++] = 0;
-    }
+    subkey = c->u_mode.cmac.subkeys[0]; /* K1 */
+  else {
+    subkey = c->u_mode.cmac.subkeys[1]; /* K2 */
+    c->lastiv[count++] = 0x80;
+    while (count < blocksize) c->lastiv[count++] = 0;
+  }
 
-  buf_xor (c->lastiv, c->lastiv, subkey, blocksize);
+  buf_xor(c->lastiv, c->lastiv, subkey, blocksize);
 
-  buf_xor (c->u_iv.iv, c->u_iv.iv, c->lastiv, blocksize);
-  burn = c->spec->encrypt (&c->context.c, c->u_iv.iv, c->u_iv.iv);
-  if (burn)
-    _gcry_burn_stack (burn + 4 * sizeof (void *));
+  buf_xor(c->u_iv.iv, c->u_iv.iv, c->lastiv, blocksize);
+  burn = c->spec->encrypt(&c->context.c, c->u_iv.iv, c->u_iv.iv);
+  if (burn) _gcry_burn_stack(burn + 4 * sizeof(void *));
 
   c->unused = 0;
 }
 
-
-static gpg_error_t
-cmac_tag (gcry_cipher_hd_t c, unsigned char *tag, size_t taglen, int check)
-{
+static gpg_error_t cmac_tag(gcry_cipher_hd_t c, unsigned char *tag,
+                            size_t taglen, int check) {
   if (!tag || taglen == 0 || taglen > c->spec->blocksize)
     return GPG_ERR_INV_ARG;
 
-  if (!c->u_mode.cmac.tag)
-    {
-      cmac_final (c);
-      c->u_mode.cmac.tag = 1;
-    }
+  if (!c->u_mode.cmac.tag) {
+    cmac_final(c);
+    c->u_mode.cmac.tag = 1;
+  }
 
-  if (!check)
-    {
-      memcpy (tag, c->u_iv.iv, taglen);
-      return GPG_ERR_NO_ERROR;
-    }
-  else
-    {
-      return buf_eq_const (tag, c->u_iv.iv, taglen) ?
-        GPG_ERR_NO_ERROR : GPG_ERR_CHECKSUM;
-    }
+  if (!check) {
+    memcpy(tag, c->u_iv.iv, taglen);
+    return GPG_ERR_NO_ERROR;
+  } else {
+    return buf_eq_const(tag, c->u_iv.iv, taglen) ? GPG_ERR_NO_ERROR
+                                                 : GPG_ERR_CHECKSUM;
+  }
 }
 
-
-gpg_error_t
-_gcry_cipher_cmac_authenticate (gcry_cipher_hd_t c,
-                                const unsigned char *abuf, size_t abuflen)
-{
-  if (abuflen > 0 && !abuf)
-    return GPG_ERR_INV_ARG;
-  if (c->u_mode.cmac.tag)
-    return GPG_ERR_INV_STATE;
+gpg_error_t _gcry_cipher_cmac_authenticate(gcry_cipher_hd_t c,
+                                           const unsigned char *abuf,
+                                           size_t abuflen) {
+  if (abuflen > 0 && !abuf) return GPG_ERR_INV_ARG;
+  if (c->u_mode.cmac.tag) return GPG_ERR_INV_STATE;
   /* To support new blocksize, update cmac_generate_subkeys() then add new
      blocksize here. */
   if (c->spec->blocksize != 16 && c->spec->blocksize != 8)
     return GPG_ERR_INV_CIPHER_MODE;
 
-  cmac_write (c, abuf, abuflen);
+  cmac_write(c, abuf, abuflen);
 
   return GPG_ERR_NO_ERROR;
 }
 
-
-gpg_error_t
-_gcry_cipher_cmac_get_tag (gcry_cipher_hd_t c,
-                           unsigned char *outtag, size_t taglen)
-{
-  return cmac_tag (c, outtag, taglen, 0);
+gpg_error_t _gcry_cipher_cmac_get_tag(gcry_cipher_hd_t c, unsigned char *outtag,
+                                      size_t taglen) {
+  return cmac_tag(c, outtag, taglen, 0);
 }
 
-
-gpg_error_t
-_gcry_cipher_cmac_check_tag (gcry_cipher_hd_t c,
-                             const unsigned char *intag, size_t taglen)
-{
-  return cmac_tag (c, (unsigned char *) intag, taglen, 1);
+gpg_error_t _gcry_cipher_cmac_check_tag(gcry_cipher_hd_t c,
+                                        const unsigned char *intag,
+                                        size_t taglen) {
+  return cmac_tag(c, (unsigned char *)intag, taglen, 1);
 }
 
-gpg_error_t
-_gcry_cipher_cmac_set_subkeys (gcry_cipher_hd_t c)
-{
-  cmac_generate_subkeys (c);
+gpg_error_t _gcry_cipher_cmac_set_subkeys(gcry_cipher_hd_t c) {
+  cmac_generate_subkeys(c);
 
   return GPG_ERR_NO_ERROR;
 }

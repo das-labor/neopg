@@ -22,18 +22,13 @@
 
 #include <gcrypt.h>
 
-gcry_mpi_t *p12_parse (const unsigned char *buffer, size_t length,
-                       const char *pw,
-                       void (*certcb)(void*, const unsigned char*, size_t),
-                       void *certcbarg, int *r_badpass);
+gcry_mpi_t *p12_parse(const unsigned char *buffer, size_t length,
+                      const char *pw,
+                      void (*certcb)(void *, const unsigned char *, size_t),
+                      void *certcbarg, int *r_badpass);
 
-unsigned char *p12_build (gcry_mpi_t *kparms,
-                          const void *cert, size_t certlen,
-                          const char *pw, const char *charset,
-                          size_t *r_length);
-unsigned char *p12_raw_build (gcry_mpi_t *kparms,
-                              int rawmode,
-                              size_t *r_length);
-
+unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
+                         const char *pw, const char *charset, size_t *r_length);
+unsigned char *p12_raw_build(gcry_mpi_t *kparms, int rawmode, size_t *r_length);
 
 #endif /*MINIP12_H*/

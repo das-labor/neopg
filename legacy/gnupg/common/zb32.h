@@ -33,6 +33,6 @@
 /* Encode DATA which has a length of DATABITS (bits!) using the
    zbase32 encoder and return a malloced string.  Returns NULL on
    error and sets ERRNO.  */
-char *zb32_encode (const void *data, unsigned int databits);
+char *zb32_encode(const void *data, unsigned int databits);
 
 #endif /*GNUPG_COMMON_ZB32_H*/

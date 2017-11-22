@@ -28,48 +28,44 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
-#include <errno.h>
 
-#include "util.h"
 #include "recsel.h"
+#include "util.h"
 
 /* Select operators.  */
-typedef enum
-  {
-    SELECT_SAME,
-    SELECT_SUB,
-    SELECT_NONEMPTY,
-    SELECT_ISTRUE,
-    SELECT_EQ, /* Numerically equal.  */
-    SELECT_LE,
-    SELECT_GE,
-    SELECT_LT,
-    SELECT_GT,
-    SELECT_STRLE, /* String is less or equal.  */
-    SELECT_STRGE,
-    SELECT_STRLT,
-    SELECT_STRGT
-  } select_op_t;
-
+typedef enum {
+  SELECT_SAME,
+  SELECT_SUB,
+  SELECT_NONEMPTY,
+  SELECT_ISTRUE,
+  SELECT_EQ, /* Numerically equal.  */
+  SELECT_LE,
+  SELECT_GE,
+  SELECT_LT,
+  SELECT_GT,
+  SELECT_STRLE, /* String is less or equal.  */
+  SELECT_STRGE,
+  SELECT_STRLT,
+  SELECT_STRGT
+} select_op_t;
 
 /* Definition for a select expression.  */
-struct recsel_expr_s
-{
+struct recsel_expr_s {
   recsel_expr_t next;
-  select_op_t op;       /* Operation code.  */
-  unsigned int nonono:1;   /* Negate operators. */
-  unsigned int disjun:1;/* Start of a disjunction.  */
-  unsigned int xcase:1; /* String match is case sensitive.  */
-  const char *value;    /* (Points into NAME.)  */
-  long numvalue;        /* strtol of VALUE.  */
-  char name[1];         /* Name of the property.  */
+  select_op_t op;          /* Operation code.  */
+  unsigned int nonono : 1; /* Negate operators. */
+  unsigned int disjun : 1; /* Start of a disjunction.  */
+  unsigned int xcase : 1;  /* String match is case sensitive.  */
+  const char *value;       /* (Points into NAME.)  */
+  long numvalue;           /* strtol of VALUE.  */
+  char name[1];            /* Name of the property.  */
 };
-
 
 /* This is a case-sensitive version of our memistr.  I wonder why no
  * standard function memstr exists but I better do not use the name
@@ -77,51 +73,39 @@ struct recsel_expr_s
  *
  * FIXME: Move this to a stringhelp.c
  */
-static const char *
-my_memstr (const void *buffer, size_t buflen, const char *sub)
-{
-  const unsigned char *buf = (const unsigned char*) buffer;
+static const char *my_memstr(const void *buffer, size_t buflen,
+                             const char *sub) {
+  const unsigned char *buf = (const unsigned char *)buffer;
   const unsigned char *t = (const unsigned char *)buf;
   const unsigned char *s = (const unsigned char *)sub;
   size_t n = buflen;
 
-  for ( ; n ; t++, n-- )
-    {
-      if (*t == *s)
-        {
-          for (buf = t++, buflen = n--, s++; n && *t ==*s; t++, s++, n--)
-            ;
-          if (!*s)
-            return (const char*)buf;
-          t = (const unsigned char *)buf;
-          s = (const unsigned char *)sub ;
-          n = buflen;
-	}
+  for (; n; t++, n--) {
+    if (*t == *s) {
+      for (buf = t++, buflen = n--, s++; n && *t == *s; t++, s++, n--)
+        ;
+      if (!*s) return (const char *)buf;
+      t = (const unsigned char *)buf;
+      s = (const unsigned char *)sub;
+      n = buflen;
     }
+  }
   return NULL;
 }
 
-
 /* Return a pointer to the next logical connection operator or NULL if
  * none.  */
-static char *
-find_next_lc (char *string)
-{
+static char *find_next_lc(char *string) {
   char *p1, *p2;
 
-  p1 = strchr (string, '&');
-  if (p1 && p1[1] != '&')
-    p1 = NULL;
-  p2 = strchr (string, '|');
-  if (p2 && p2[1] != '|')
-    p2 = NULL;
-  if (p1 && !p2)
-    return p1;
-  if (!p1)
-    return p2;
+  p1 = strchr(string, '&');
+  if (p1 && p1[1] != '&') p1 = NULL;
+  p2 = strchr(string, '|');
+  if (p2 && p2[1] != '|') p2 = NULL;
+  if (p1 && !p2) return p1;
+  if (!p1) return p2;
   return p1 < p2 ? p1 : p2;
 }
-
 
 /* Parse an expression.  The expression syntax is:
  *
@@ -179,9 +163,7 @@ find_next_lc (char *string)
  * the first call.  recset_release needs to be called to free the
  * selector.
  */
-gpg_error_t
-recsel_parse_expr (recsel_expr_t *selector, const char *expression)
-{
+gpg_error_t recsel_parse_expr(recsel_expr_t *selector, const char *expression) {
   recsel_expr_t se_head = NULL;
   recsel_expr_t se, se2;
   char *expr_buffer;
@@ -192,51 +174,45 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
   int disjun = 0;
   char *next_lc = NULL;
 
-  while (*expression == ' ' || *expression == '\t')
-    expression++;
+  while (*expression == ' ' || *expression == '\t') expression++;
 
-  expr_buffer = xtrystrdup (expression);
-  if (!expr_buffer)
-    return gpg_error_from_syserror ();
+  expr_buffer = xtrystrdup(expression);
+  if (!expr_buffer) return gpg_error_from_syserror();
   expr = expr_buffer;
 
-  if (*expr == '|' && expr[1] == '|')
-    {
-      disjun = 1;
-      expr += 2;
-    }
-  else if (*expr == '&' && expr[1] == '&')
+  if (*expr == '|' && expr[1] == '|') {
+    disjun = 1;
+    expr += 2;
+  } else if (*expr == '&' && expr[1] == '&')
     expr += 2;
 
- next_term:
-  while (*expr == ' ' || *expr == '\t')
-    expr++;
+next_term:
+  while (*expr == ' ' || *expr == '\t') expr++;
 
-  while (*expr == '-')
-    {
-      switch (*++expr)
-        {
-        case '-': toend = 1; break;
-        case 'c': xcase = 1; break;
-        default:
-          log_error ("invalid flag '-%c' in expression\n", *expr);
-          recsel_release (se_head);
-          xfree (expr_buffer);
-          return GPG_ERR_INV_FLAG;
-        }
-      expr++;
-      while (*expr == ' ' || *expr == '\t')
-        expr++;
+  while (*expr == '-') {
+    switch (*++expr) {
+      case '-':
+        toend = 1;
+        break;
+      case 'c':
+        xcase = 1;
+        break;
+      default:
+        log_error("invalid flag '-%c' in expression\n", *expr);
+        recsel_release(se_head);
+        xfree(expr_buffer);
+        return GPG_ERR_INV_FLAG;
     }
+    expr++;
+    while (*expr == ' ' || *expr == '\t') expr++;
+  }
 
-  next_lc = toend? NULL : find_next_lc (expr);
-  if (next_lc)
-    *next_lc = 0;  /* Terminate this term.  */
+  next_lc = toend ? NULL : find_next_lc(expr);
+  if (next_lc) *next_lc = 0; /* Terminate this term.  */
 
-  se = (recsel_expr_t) xtrymalloc (sizeof *se + strlen (expr));
-  if (!se)
-    return gpg_error_from_syserror ();
-  strcpy (se->name, expr);
+  se = (recsel_expr_t)xtrymalloc(sizeof *se + strlen(expr));
+  if (!se) return gpg_error_from_syserror();
+  strcpy(se->name, expr);
   se->next = NULL;
   se->nonono = 0;
   se->disjun = disjun;
@@ -244,259 +220,217 @@ recsel_parse_expr (recsel_expr_t *selector, const char *expression)
 
   if (!se_head)
     se_head = se;
-  else
-    {
-      for (se2 = se_head; se2->next; se2 = se2->next)
-        ;
-      se2->next = se;
-    }
+  else {
+    for (se2 = se_head; se2->next; se2 = se2->next)
+      ;
+    se2->next = se;
+  }
 
-
-  s = strpbrk (expr, "=<>!~-");
-  if (!s || s == expr )
-    {
-      log_error ("no field name given in expression\n");
-      recsel_release (se_head);
-      xfree (expr_buffer);
-      return GPG_ERR_NO_NAME;
-    }
+  s = strpbrk(expr, "=<>!~-");
+  if (!s || s == expr) {
+    log_error("no field name given in expression\n");
+    recsel_release(se_head);
+    xfree(expr_buffer);
+    return GPG_ERR_NO_NAME;
+  }
   s0 = s;
 
-  if (!strncmp (s, "=~", 2))
-    {
-      se->op = SELECT_SUB;
-      s += 2;
-    }
-  else if (!strncmp (s, "!~", 2))
-    {
-      se->op = SELECT_SUB;
-      se->nonono = 1;
-      s += 2;
-    }
-  else if (!strncmp (s, "<>", 2))
-    {
-      se->op = SELECT_SAME;
-      se->nonono = 1;
-      s += 2;
-    }
-  else if (!strncmp (s, "==", 2))
-    {
-      se->op = SELECT_EQ;
-      s += 2;
-    }
-  else if (!strncmp (s, "!=", 2))
-    {
-      se->op = SELECT_EQ;
-      se->nonono = 1;
-      s += 2;
-    }
-  else if (!strncmp (s, "<=", 2))
-    {
-      se->op = SELECT_LE;
-      s += 2;
-    }
-  else if (!strncmp (s, ">=", 2))
-    {
-      se->op = SELECT_GE;
-      s += 2;
-    }
-  else if (!strncmp (s, "<", 1))
-    {
-      se->op = SELECT_LT;
-      s += 1;
-    }
-  else if (!strncmp (s, ">", 1))
-    {
-      se->op = SELECT_GT;
-      s += 1;
-    }
-  else if (!strncmp (s, "=", 1))
-    {
-      se->op = SELECT_SAME;
-      s += 1;
-    }
-  else if (!strncmp (s, "-z", 2))
-    {
-      se->op = SELECT_NONEMPTY;
-      se->nonono = 1;
-      s += 2;
-    }
-  else if (!strncmp (s, "-n", 2))
-    {
-      se->op = SELECT_NONEMPTY;
-      s += 2;
-    }
-  else if (!strncmp (s, "-f", 2))
-    {
-      se->op = SELECT_ISTRUE;
-      se->nonono = 1;
-      s += 2;
-    }
-  else if (!strncmp (s, "-t", 2))
-    {
-      se->op = SELECT_ISTRUE;
-      s += 2;
-    }
-  else if (!strncmp (s, "-le", 3))
-    {
-      se->op = SELECT_STRLE;
-      s += 3;
-    }
-  else if (!strncmp (s, "-ge", 3))
-    {
-      se->op = SELECT_STRGE;
-      s += 3;
-    }
-  else if (!strncmp (s, "-lt", 3))
-    {
-      se->op = SELECT_STRLT;
-      s += 3;
-    }
-  else if (!strncmp (s, "-gt", 3))
-    {
-      se->op = SELECT_STRGT;
-      s += 3;
-    }
-  else
-    {
-      log_error ("invalid operator in expression\n");
-      recsel_release (se_head);
-      xfree (expr_buffer);
-      return GPG_ERR_INV_OP;
-    }
+  if (!strncmp(s, "=~", 2)) {
+    se->op = SELECT_SUB;
+    s += 2;
+  } else if (!strncmp(s, "!~", 2)) {
+    se->op = SELECT_SUB;
+    se->nonono = 1;
+    s += 2;
+  } else if (!strncmp(s, "<>", 2)) {
+    se->op = SELECT_SAME;
+    se->nonono = 1;
+    s += 2;
+  } else if (!strncmp(s, "==", 2)) {
+    se->op = SELECT_EQ;
+    s += 2;
+  } else if (!strncmp(s, "!=", 2)) {
+    se->op = SELECT_EQ;
+    se->nonono = 1;
+    s += 2;
+  } else if (!strncmp(s, "<=", 2)) {
+    se->op = SELECT_LE;
+    s += 2;
+  } else if (!strncmp(s, ">=", 2)) {
+    se->op = SELECT_GE;
+    s += 2;
+  } else if (!strncmp(s, "<", 1)) {
+    se->op = SELECT_LT;
+    s += 1;
+  } else if (!strncmp(s, ">", 1)) {
+    se->op = SELECT_GT;
+    s += 1;
+  } else if (!strncmp(s, "=", 1)) {
+    se->op = SELECT_SAME;
+    s += 1;
+  } else if (!strncmp(s, "-z", 2)) {
+    se->op = SELECT_NONEMPTY;
+    se->nonono = 1;
+    s += 2;
+  } else if (!strncmp(s, "-n", 2)) {
+    se->op = SELECT_NONEMPTY;
+    s += 2;
+  } else if (!strncmp(s, "-f", 2)) {
+    se->op = SELECT_ISTRUE;
+    se->nonono = 1;
+    s += 2;
+  } else if (!strncmp(s, "-t", 2)) {
+    se->op = SELECT_ISTRUE;
+    s += 2;
+  } else if (!strncmp(s, "-le", 3)) {
+    se->op = SELECT_STRLE;
+    s += 3;
+  } else if (!strncmp(s, "-ge", 3)) {
+    se->op = SELECT_STRGE;
+    s += 3;
+  } else if (!strncmp(s, "-lt", 3)) {
+    se->op = SELECT_STRLT;
+    s += 3;
+  } else if (!strncmp(s, "-gt", 3)) {
+    se->op = SELECT_STRGT;
+    s += 3;
+  } else {
+    log_error("invalid operator in expression\n");
+    recsel_release(se_head);
+    xfree(expr_buffer);
+    return GPG_ERR_INV_OP;
+  }
 
   /* We require that a space is used if the value starts with any of
      the operator characters.  */
   if (se->op == SELECT_NONEMPTY || se->op == SELECT_ISTRUE)
     ;
-  else if (strchr ("=<>!~", *s))
-    {
-      log_error ("invalid operator in expression\n");
-      recsel_release (se_head);
-      xfree (expr_buffer);
-      return GPG_ERR_INV_OP;
-    }
+  else if (strchr("=<>!~", *s)) {
+    log_error("invalid operator in expression\n");
+    recsel_release(se_head);
+    xfree(expr_buffer);
+    return GPG_ERR_INV_OP;
+  }
 
-  while (*s == ' ' || *s == '\t')
-    s++;
+  while (*s == ' ' || *s == '\t') s++;
 
-  if (se->op == SELECT_NONEMPTY || se->op == SELECT_ISTRUE)
-    {
-      if (*s)
-        {
-          log_error ("value given for -n or -z\n");
-          recsel_release (se_head);
-          xfree (expr_buffer);
-          return GPG_ERR_SYNTAX;
-        }
+  if (se->op == SELECT_NONEMPTY || se->op == SELECT_ISTRUE) {
+    if (*s) {
+      log_error("value given for -n or -z\n");
+      recsel_release(se_head);
+      xfree(expr_buffer);
+      return GPG_ERR_SYNTAX;
     }
-  else
-    {
-      if (!*s)
-        {
-          log_error ("no value given in expression\n");
-          recsel_release (se_head);
-          xfree (expr_buffer);
-          return GPG_ERR_MISSING_VALUE;
-        }
-    }
-
-  se->name[s0 - expr] = 0;
-  trim_spaces (se->name);
-  if (!se->name[0])
-    {
-      log_error ("no field name given in expression\n");
-      recsel_release (se_head);
-      xfree (expr_buffer);
-      return GPG_ERR_NO_NAME;
-    }
-
-  trim_spaces (se->name + (s - expr));
-  se->value = se->name + (s - expr);
-  if (!se->value[0] && !(se->op == SELECT_NONEMPTY || se->op == SELECT_ISTRUE))
-    {
-      log_error ("no value given in expression\n");
-      recsel_release (se_head);
-      xfree (expr_buffer);
+  } else {
+    if (!*s) {
+      log_error("no value given in expression\n");
+      recsel_release(se_head);
+      xfree(expr_buffer);
       return GPG_ERR_MISSING_VALUE;
     }
+  }
 
-  se->numvalue = strtol (se->value, NULL, 0);
+  se->name[s0 - expr] = 0;
+  trim_spaces(se->name);
+  if (!se->name[0]) {
+    log_error("no field name given in expression\n");
+    recsel_release(se_head);
+    xfree(expr_buffer);
+    return GPG_ERR_NO_NAME;
+  }
 
-  if (next_lc)
-    {
-      disjun = next_lc[1] == '|';
-      expr = next_lc + 2;
-      goto next_term;
-    }
+  trim_spaces(se->name + (s - expr));
+  se->value = se->name + (s - expr);
+  if (!se->value[0] &&
+      !(se->op == SELECT_NONEMPTY || se->op == SELECT_ISTRUE)) {
+    log_error("no value given in expression\n");
+    recsel_release(se_head);
+    xfree(expr_buffer);
+    return GPG_ERR_MISSING_VALUE;
+  }
+
+  se->numvalue = strtol(se->value, NULL, 0);
+
+  if (next_lc) {
+    disjun = next_lc[1] == '|';
+    expr = next_lc + 2;
+    goto next_term;
+  }
 
   /* Read:y Append to passes last selector.  */
   if (!*selector)
     *selector = se_head;
-  else
-    {
-      for (se2 = *selector; se2->next; se2 = se2->next)
-        ;
-      se2->next = se_head;
-    }
+  else {
+    for (se2 = *selector; se2->next; se2 = se2->next)
+      ;
+    se2->next = se_head;
+  }
 
-  xfree (expr_buffer);
+  xfree(expr_buffer);
   return 0;
 }
 
-
-void
-recsel_release (recsel_expr_t a)
-{
-  while (a)
-    {
-      recsel_expr_t tmp = a->next;
-      xfree (a);
-      a = tmp;
-    }
+void recsel_release(recsel_expr_t a) {
+  while (a) {
+    recsel_expr_t tmp = a->next;
+    xfree(a);
+    a = tmp;
+  }
 }
 
-
-void
-recsel_dump (recsel_expr_t selector)
-{
+void recsel_dump(recsel_expr_t selector) {
   recsel_expr_t se;
 
-  log_debug ("--- Begin selectors ---\n");
-  for (se = selector; se; se = se->next)
-    {
-      log_debug ("%s %s %s %s '%s'\n",
-                 se==selector? "  ": (se->disjun? "||":"&&"),
-                 se->xcase?  "-c":"  ",
-                 se->name,
-                 se->op == SELECT_SAME?    (se->nonono? "<>":"= "):
-                 se->op == SELECT_SUB?     (se->nonono? "!~":"=~"):
-                 se->op == SELECT_NONEMPTY?(se->nonono? "-z":"-n"):
-                 se->op == SELECT_ISTRUE?  (se->nonono? "-f":"-t"):
-                 se->op == SELECT_EQ?      (se->nonono? "!=":"=="):
-                 se->op == SELECT_LT?      "< ":
-                 se->op == SELECT_LE?      "<=":
-                 se->op == SELECT_GT?      "> ":
-                 se->op == SELECT_GE?      ">=":
-                 se->op == SELECT_STRLT?   "-lt":
-                 se->op == SELECT_STRLE?   "-le":
-                 se->op == SELECT_STRGT?   "-gt":
-                 se->op == SELECT_STRGE?   "-ge":
-                 /**/                      "[oops]",
-                 se->value);
-    }
-  log_debug ("--- End selectors ---\n");
+  log_debug("--- Begin selectors ---\n");
+  for (se = selector; se; se = se->next) {
+    log_debug(
+        "%s %s %s %s '%s'\n",
+        se == selector ? "  " : (se->disjun ? "||" : "&&"),
+        se->xcase ? "-c" : "  ", se->name,
+        se->op == SELECT_SAME
+            ? (se->nonono ? "<>" : "= ")
+            : se->op == SELECT_SUB
+                  ? (se->nonono ? "!~" : "=~")
+                  : se->op == SELECT_NONEMPTY
+                        ? (se->nonono ? "-z" : "-n")
+                        : se->op == SELECT_ISTRUE
+                              ? (se->nonono ? "-f" : "-t")
+                              : se->op == SELECT_EQ
+                                    ? (se->nonono ? "!=" : "==")
+                                    : se->op == SELECT_LT
+                                          ? "< "
+                                          : se->op == SELECT_LE
+                                                ? "<="
+                                                : se->op == SELECT_GT
+                                                      ? "> "
+                                                      : se->op == SELECT_GE
+                                                            ? ">="
+                                                            : se->op ==
+                                                                      SELECT_STRLT
+                                                                  ? "-lt"
+                                                                  : se->op ==
+                                                                            SELECT_STRLE
+                                                                        ? "-le"
+                                                                        : se->op ==
+                                                                                  SELECT_STRGT
+                                                                              ? "-gt"
+                                                                              : se->op ==
+                                                                                        SELECT_STRGE
+                                                                                    ? "-ge"
+                                                                                    :
+                                                                                    /**/
+                                                                                    "[oops]",
+        se->value);
+  }
+  log_debug("--- End selectors ---\n");
 }
-
 
 /* Return true if the record RECORD has been selected.  The GETVAL
  * function is called with COOKIE and the NAME of a property used in
  * the expression.  */
-int
-recsel_select (recsel_expr_t selector,
-               const char *(*getval)(void *cookie, const char *propname),
-               void *cookie)
-{
+int recsel_select(recsel_expr_t selector,
+                  const char *(*getval)(void *cookie, const char *propname),
+                  void *cookie) {
   recsel_expr_t se;
   const char *value;
   size_t selen, valuelen;
@@ -504,107 +438,99 @@ recsel_select (recsel_expr_t selector,
   int result = 1;
 
   se = selector;
-  while (se)
+  while (se) {
+    value = getval ? getval(cookie, se->name) : NULL;
+    if (!value) value = "";
+
+    if (!*value) {
+      /* Field is empty.  */
+      result = 0;
+    } else /* Field has a value.  */
     {
-      value = getval? getval (cookie, se->name) : NULL;
-      if (!value)
-        value = "";
+      valuelen = strlen(value);
+      numvalue = strtol(value, NULL, 0);
+      selen = strlen(se->value);
 
-      if (!*value)
-        {
-          /* Field is empty.  */
-          result = 0;
-        }
-      else /* Field has a value.  */
-        {
-          valuelen = strlen (value);
-          numvalue = strtol (value, NULL, 0);
-          selen = strlen (se->value);
-
-          switch (se->op)
-            {
-            case SELECT_SAME:
-              if (se->xcase)
-                result = (valuelen==selen && !memcmp (value,se->value,selen));
-              else
-                result = (valuelen==selen && !strncasecmp (value,se->value,selen));
-              break;
-            case SELECT_SUB:
-              if (se->xcase)
-                result = !!my_memstr (value, valuelen, se->value);
-              else
-                result = !!memistr (value, valuelen, se->value);
-              break;
-            case SELECT_NONEMPTY:
-              result = !!valuelen;
-              break;
-            case SELECT_ISTRUE:
-              result = !!numvalue;
-              break;
-            case SELECT_EQ:
-              result = (numvalue == se->numvalue);
-              break;
-            case SELECT_GT:
-              result = (numvalue > se->numvalue);
-              break;
-            case SELECT_GE:
-              result = (numvalue >= se->numvalue);
-              break;
-            case SELECT_LT:
-              result = (numvalue < se->numvalue);
-              break;
-            case SELECT_LE:
-              result = (numvalue <= se->numvalue);
-              break;
-            case SELECT_STRGT:
-              if (se->xcase)
-                result = strcmp (value, se->value) > 0;
-              else
-                result = strcasecmp (value, se->value) > 0;
-              break;
-            case SELECT_STRGE:
-              if (se->xcase)
-                result = strcmp (value, se->value) >= 0;
-              else
-                result = strcasecmp (value, se->value) >= 0;
-              break;
-            case SELECT_STRLT:
-              if (se->xcase)
-                result = strcmp (value, se->value) < 0;
-              else
-                result = strcasecmp (value, se->value) < 0;
-              break;
-            case SELECT_STRLE:
-              if (se->xcase)
-                result = strcmp (value, se->value) <= 0;
-              else
-                result = strcasecmp (value, se->value) <= 0;
-              break;
-            }
-        }
-
-      if (se->nonono)
-        result = !result;
-
-      if (result)
-        {
-          /* This expression evaluated to true.  See whether there are
-             remaining expressions in this conjunction.  */
-          if (!se->next || se->next->disjun)
-            break; /* All expressions are true.  Return True.  */
-          se = se->next;  /* Test the next.  */
-        }
-      else
-        {
-          /* This expression evaluated to false and thus the
-           * conjunction evaluates to false.  We skip over the
-           * remaining expressions of this conjunction and continue
-           * with the next disjunction if any.  */
-          do
-            se = se->next;
-          while (se && !se->disjun);
-        }
+      switch (se->op) {
+        case SELECT_SAME:
+          if (se->xcase)
+            result = (valuelen == selen && !memcmp(value, se->value, selen));
+          else
+            result =
+                (valuelen == selen && !strncasecmp(value, se->value, selen));
+          break;
+        case SELECT_SUB:
+          if (se->xcase)
+            result = !!my_memstr(value, valuelen, se->value);
+          else
+            result = !!memistr(value, valuelen, se->value);
+          break;
+        case SELECT_NONEMPTY:
+          result = !!valuelen;
+          break;
+        case SELECT_ISTRUE:
+          result = !!numvalue;
+          break;
+        case SELECT_EQ:
+          result = (numvalue == se->numvalue);
+          break;
+        case SELECT_GT:
+          result = (numvalue > se->numvalue);
+          break;
+        case SELECT_GE:
+          result = (numvalue >= se->numvalue);
+          break;
+        case SELECT_LT:
+          result = (numvalue < se->numvalue);
+          break;
+        case SELECT_LE:
+          result = (numvalue <= se->numvalue);
+          break;
+        case SELECT_STRGT:
+          if (se->xcase)
+            result = strcmp(value, se->value) > 0;
+          else
+            result = strcasecmp(value, se->value) > 0;
+          break;
+        case SELECT_STRGE:
+          if (se->xcase)
+            result = strcmp(value, se->value) >= 0;
+          else
+            result = strcasecmp(value, se->value) >= 0;
+          break;
+        case SELECT_STRLT:
+          if (se->xcase)
+            result = strcmp(value, se->value) < 0;
+          else
+            result = strcasecmp(value, se->value) < 0;
+          break;
+        case SELECT_STRLE:
+          if (se->xcase)
+            result = strcmp(value, se->value) <= 0;
+          else
+            result = strcasecmp(value, se->value) <= 0;
+          break;
+      }
     }
+
+    if (se->nonono) result = !result;
+
+    if (result) {
+      /* This expression evaluated to true.  See whether there are
+         remaining expressions in this conjunction.  */
+      if (!se->next || se->next->disjun)
+        break;       /* All expressions are true.  Return True.  */
+      se = se->next; /* Test the next.  */
+    } else {
+      /* This expression evaluated to false and thus the
+       * conjunction evaluates to false.  We skip over the
+       * remaining expressions of this conjunction and continue
+       * with the next disjunction if any.  */
+      do
+        se = se->next;
+      while (se && !se->disjun);
+    }
+  }
 
   return result;
 }

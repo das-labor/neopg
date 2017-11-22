@@ -19,34 +19,32 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-#include "gpg.h"
-#include "../common/util.h"
-#include "options.h"
-#include "main.h" /*try_make_homedir ()*/
-#include "packet.h"
-#include "../kbx/keybox.h"
-#include "keydb.h"
 #include "../common/i18n.h"
+#include "../common/util.h"
+#include "../kbx/keybox.h"
+#include "gpg.h"
+#include "keydb.h"
+#include "main.h" /*try_make_homedir ()*/
+#include "options.h"
+#include "packet.h"
 
 static int active_handles;
 
-typedef enum
-  {
-    KEYDB_RESOURCE_TYPE_NONE = 0,
-    KEYDB_RESOURCE_TYPE_KEYBOX
-  } KeydbResourceType;
+typedef enum {
+  KEYDB_RESOURCE_TYPE_NONE = 0,
+  KEYDB_RESOURCE_TYPE_KEYBOX
+} KeydbResourceType;
 #define MAX_KEYDB_RESOURCES 40
 
-struct resource_item
-{
+struct resource_item {
   KeydbResourceType type;
   union {
     KEYBOX_HANDLE kb;
@@ -86,9 +84,7 @@ struct keyblock_cache {
   off_t offset;
 };
 
-
-struct keydb_handle
-{
+struct keydb_handle {
   /* When we locked all of the resources in ACTIVE (using keyring_lock
      / keybox_lock, as appropriate).  */
   int locked;
@@ -142,43 +138,38 @@ struct keydb_handle
    whole cache whenever a key is inserted or updated.  */
 
 #define KID_NOT_FOUND_CACHE_BUCKETS 256
-static struct kid_not_found_cache_bucket *
-  kid_not_found_cache[KID_NOT_FOUND_CACHE_BUCKETS];
+static struct kid_not_found_cache_bucket
+    *kid_not_found_cache[KID_NOT_FOUND_CACHE_BUCKETS];
 
-struct kid_not_found_cache_bucket
-{
+struct kid_not_found_cache_bucket {
   struct kid_not_found_cache_bucket *next;
   u32 kid[2];
 };
 
-struct
-{
+struct {
   unsigned int count;   /* The current number of entries in the hash table.  */
   unsigned int peak;    /* The peak of COUNT.  */
   unsigned int flushes; /* The number of flushes.  */
 } kid_not_found_stats;
 
-struct
-{
-  unsigned int handles; /* Number of handles created.  */
-  unsigned int locks;   /* Number of locks taken.  */
-  unsigned int parse_keyblocks; /* Number of parse_keyblock_image calls.  */
-  unsigned int get_keyblocks;   /* Number of keydb_get_keyblock calls.    */
-  unsigned int build_keyblocks; /* Number of build_keyblock_image calls.  */
-  unsigned int update_keyblocks;/* Number of update_keyblock calls.       */
-  unsigned int insert_keyblocks;/* Number of update_keyblock calls.       */
-  unsigned int delete_keyblocks;/* Number of delete_keyblock calls.       */
-  unsigned int search_resets;   /* Number of keydb_search_reset calls.    */
-  unsigned int found;           /* Number of successful keydb_search calls. */
-  unsigned int found_cached;    /* Ditto but from the cache.              */
-  unsigned int notfound;        /* Number of failed keydb_search calls.   */
-  unsigned int notfound_cached; /* Ditto but from the cache.              */
+struct {
+  unsigned int handles;          /* Number of handles created.  */
+  unsigned int locks;            /* Number of locks taken.  */
+  unsigned int parse_keyblocks;  /* Number of parse_keyblock_image calls.  */
+  unsigned int get_keyblocks;    /* Number of keydb_get_keyblock calls.    */
+  unsigned int build_keyblocks;  /* Number of build_keyblock_image calls.  */
+  unsigned int update_keyblocks; /* Number of update_keyblock calls.       */
+  unsigned int insert_keyblocks; /* Number of update_keyblock calls.       */
+  unsigned int delete_keyblocks; /* Number of delete_keyblock calls.       */
+  unsigned int search_resets;    /* Number of keydb_search_reset calls.    */
+  unsigned int found;            /* Number of successful keydb_search calls. */
+  unsigned int found_cached;     /* Ditto but from the cache.              */
+  unsigned int notfound;         /* Number of failed keydb_search calls.   */
+  unsigned int notfound_cached;  /* Ditto but from the cache.              */
 } keydb_stats;
 
-
-static int lock_all (KEYDB_HANDLE hd);
-static void unlock_all (KEYDB_HANDLE hd);
-
+static int lock_all(KEYDB_HANDLE hd);
+static void unlock_all(KEYDB_HANDLE hd);
 
 /* Check whether the keyid KID is in key id is definitely not in the
    database.
@@ -192,41 +183,36 @@ static void unlock_all (KEYDB_HANDLE hd);
      1 - There is definitely no key with this key id in the database.
          We searched for a key with this key id previously, but we
          didn't find it in the database.  */
-static int
-kid_not_found_p (u32 *kid)
-{
+static int kid_not_found_p(u32 *kid) {
   struct kid_not_found_cache_bucket *k;
 
-  for (k = kid_not_found_cache[kid[0] % KID_NOT_FOUND_CACHE_BUCKETS]; k; k = k->next)
-    if (k->kid[0] == kid[0] && k->kid[1] == kid[1])
-      {
-        if (DBG_CACHE)
-          log_debug ("keydb: kid_not_found_p (%08lx%08lx) => not in DB\n",
-                     (unsigned long)kid[0], (unsigned long)kid[1]);
-        return 1;
-      }
+  for (k = kid_not_found_cache[kid[0] % KID_NOT_FOUND_CACHE_BUCKETS]; k;
+       k = k->next)
+    if (k->kid[0] == kid[0] && k->kid[1] == kid[1]) {
+      if (DBG_CACHE)
+        log_debug("keydb: kid_not_found_p (%08lx%08lx) => not in DB\n",
+                  (unsigned long)kid[0], (unsigned long)kid[1]);
+      return 1;
+    }
 
   if (DBG_CACHE)
-    log_debug ("keydb: kid_not_found_p (%08lx%08lx) => indeterminate\n",
-               (unsigned long)kid[0], (unsigned long)kid[1]);
+    log_debug("keydb: kid_not_found_p (%08lx%08lx) => indeterminate\n",
+              (unsigned long)kid[0], (unsigned long)kid[1]);
   return 0;
 }
-
 
 /* Insert the keyid KID into the kid_not_found_cache.  FOUND is whether
    the key is in the key database or not.
 
    Note this function does not check whether the key id is already in
    the cache.  As such, kid_not_found_p() should be called first.  */
-static void
-kid_not_found_insert (u32 *kid)
-{
+static void kid_not_found_insert(u32 *kid) {
   struct kid_not_found_cache_bucket *k;
 
   if (DBG_CACHE)
-    log_debug ("keydb: kid_not_found_insert (%08lx%08lx)\n",
-               (unsigned long)kid[0], (unsigned long)kid[1]);
-  k = (kid_not_found_cache_bucket*) xmalloc (sizeof *k);
+    log_debug("keydb: kid_not_found_insert (%08lx%08lx)\n",
+              (unsigned long)kid[0], (unsigned long)kid[1]);
+  k = (kid_not_found_cache_bucket *)xmalloc(sizeof *k);
   k->kid[0] = kid[0];
   k->kid[1] = kid[1];
   k->next = kid_not_found_cache[kid[0] % KID_NOT_FOUND_CACHE_BUCKETS];
@@ -234,46 +220,35 @@ kid_not_found_insert (u32 *kid)
   kid_not_found_stats.count++;
 }
 
-
 /* Flush the kid not found cache.  */
-static void
-kid_not_found_flush (void)
-{
+static void kid_not_found_flush(void) {
   struct kid_not_found_cache_bucket *k, *knext;
   int i;
 
-  if (DBG_CACHE)
-    log_debug ("keydb: kid_not_found_flush\n");
+  if (DBG_CACHE) log_debug("keydb: kid_not_found_flush\n");
 
-  if (!kid_not_found_stats.count)
-    return;
+  if (!kid_not_found_stats.count) return;
 
-  for (i=0; i < DIM(kid_not_found_cache); i++)
-    {
-      for (k = kid_not_found_cache[i]; k; k = knext)
-        {
-          knext = k->next;
-          xfree (k);
-        }
-      kid_not_found_cache[i] = NULL;
+  for (i = 0; i < DIM(kid_not_found_cache); i++) {
+    for (k = kid_not_found_cache[i]; k; k = knext) {
+      knext = k->next;
+      xfree(k);
     }
+    kid_not_found_cache[i] = NULL;
+  }
   if (kid_not_found_stats.count > kid_not_found_stats.peak)
     kid_not_found_stats.peak = kid_not_found_stats.count;
   kid_not_found_stats.count = 0;
   kid_not_found_stats.flushes++;
 }
 
-
-static void
-keyblock_cache_clear (struct keydb_handle *hd)
-{
+static void keyblock_cache_clear(struct keydb_handle *hd) {
   hd->keyblock_cache.state = KEYBLOCK_CACHE_EMPTY;
-  iobuf_close (hd->keyblock_cache.iobuf);
+  iobuf_close(hd->keyblock_cache.iobuf);
   hd->keyblock_cache.iobuf = NULL;
   hd->keyblock_cache.resource = -1;
   hd->keyblock_cache.offset = -1;
 }
-
 
 /* Handle the creation of a keyring or a keybox if it does not yet
    exist.  Take into account that other processes might have the
@@ -283,9 +258,8 @@ keyblock_cache_clear (struct keydb_handle *hd)
    the keyring or keybox will be created.
 
    Return 0 if it is okay to access the specified file.  */
-static gpg_error_t
-maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
-{
+static gpg_error_t maybe_create_keyring_or_box(char *filename, int is_box,
+                                               int force_create) {
   dotlock_t lockhd = NULL;
   IOBUF iobuf;
   int rc;
@@ -296,79 +270,73 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
   int save_slash;
 
   /* A quick test whether the filename already exists. */
-  if (!access (filename, F_OK))
-    return !access (filename, R_OK)? 0 : GPG_ERR_EACCES;
+  if (!access(filename, F_OK))
+    return !access(filename, R_OK) ? 0 : GPG_ERR_EACCES;
 
   /* If we don't want to create a new file at all, there is no need to
      go any further - bail out right here.  */
-  if (!force_create)
-    return GPG_ERR_ENOENT;
+  if (!force_create) return GPG_ERR_ENOENT;
 
   /* First of all we try to create the home directory.  Note, that we
      don't do any locking here because any sane application of gpg
      would create the home directory by itself and not rely on gpg's
      tricky auto-creation which is anyway only done for certain home
      directory name pattern. */
-  last_slash_in_filename = strrchr (filename, DIRSEP_C);
+  last_slash_in_filename = strrchr(filename, DIRSEP_C);
 #if HAVE_W32_SYSTEM
   {
     /* Windows may either have a slash or a backslash.  Take care of it.  */
-    char *p = strrchr (filename, '/');
+    char *p = strrchr(filename, '/');
     if (!last_slash_in_filename || p > last_slash_in_filename)
       last_slash_in_filename = p;
   }
 #endif /*HAVE_W32_SYSTEM*/
   if (!last_slash_in_filename)
-    return GPG_ERR_ENOENT;  /* No slash at all - should
-                                           not happen though.  */
+    return GPG_ERR_ENOENT; /* No slash at all - should
+                                          not happen though.  */
   save_slash = *last_slash_in_filename;
   *last_slash_in_filename = 0;
-  if (access(filename, F_OK))
-    {
-      static int tried;
+  if (access(filename, F_OK)) {
+    static int tried;
 
-      if (!tried)
-        {
-          tried = 1;
-          try_make_homedir (filename);
-        }
-      if (access (filename, F_OK))
-        {
-          rc = gpg_error_from_syserror ();
-          *last_slash_in_filename = save_slash;
-          goto leave;
-        }
+    if (!tried) {
+      tried = 1;
+      try_make_homedir(filename);
     }
+    if (access(filename, F_OK)) {
+      rc = gpg_error_from_syserror();
+      *last_slash_in_filename = save_slash;
+      goto leave;
+    }
+  }
   *last_slash_in_filename = save_slash;
 
   /* To avoid races with other instances of gpg trying to create or
      update the keyring (it is removed during an update for a short
      time), we do the next stuff in a locked state. */
-  lockhd = dotlock_create (filename, 0);
-  if (!lockhd)
-    {
-      rc = gpg_error_from_syserror ();
-      /* A reason for this to fail is that the directory is not
-         writable. However, this whole locking stuff does not make
-         sense if this is the case. An empty non-writable directory
-         with no keyring is not really useful at all. */
-      if (opt.verbose)
-        log_info ("can't allocate lock for '%s': %s\n",
-                  filename, gpg_strerror (rc));
+  lockhd = dotlock_create(filename, 0);
+  if (!lockhd) {
+    rc = gpg_error_from_syserror();
+    /* A reason for this to fail is that the directory is not
+       writable. However, this whole locking stuff does not make
+       sense if this is the case. An empty non-writable directory
+       with no keyring is not really useful at all. */
+    if (opt.verbose)
+      log_info("can't allocate lock for '%s': %s\n", filename,
+               gpg_strerror(rc));
 
-      if (!force_create)
-        return GPG_ERR_ENOENT;  /* Won't happen.  */
-      else
-        return rc;
-    }
+    if (!force_create)
+      return GPG_ERR_ENOENT; /* Won't happen.  */
+    else
+      return rc;
+  }
 
-  if ( dotlock_take (lockhd, -1) )
-    {
-      rc = gpg_error_from_syserror ();
-      /* This is something bad.  Probably a stale lockfile.  */
-      log_info ("can't lock '%s': %s\n", filename, gpg_strerror (rc));
-      goto leave;
-    }
+  if (dotlock_take(lockhd, -1)) {
+    rc = gpg_error_from_syserror();
+    /* This is something bad.  Probably a stale lockfile.  */
+    log_info("can't lock '%s': %s\n", filename, gpg_strerror(rc));
+    goto leave;
+  }
 
   /* Now the real test while we are locked. */
 
@@ -387,95 +355,82 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
    * given.  Obviously there is a race between our two checks but the
    * worst thing is that we won't create a new file, which is better
    * than to accidentally creating one.  */
-  rc = keybox_tmp_names (filename, is_box, &bak_fname, &tmp_fname);
-  if (rc)
+  rc = keybox_tmp_names(filename, is_box, &bak_fname, &tmp_fname);
+  if (rc) goto leave;
+
+  if (!access(filename, F_OK)) {
+    rc = 0; /* Okay, we may access the file now.  */
     goto leave;
-
-  if (!access (filename, F_OK))
-    {
-      rc = 0;  /* Okay, we may access the file now.  */
-      goto leave;
-    }
-  if (!access (bak_fname, F_OK) && !access (tmp_fname, F_OK))
-    {
-      /* Very likely another process is updating a pubring.gpg and we
-         should not create a pubring.kbx.  */
-      rc = GPG_ERR_ENOENT;
-      goto leave;
-    }
-
+  }
+  if (!access(bak_fname, F_OK) && !access(tmp_fname, F_OK)) {
+    /* Very likely another process is updating a pubring.gpg and we
+       should not create a pubring.kbx.  */
+    rc = GPG_ERR_ENOENT;
+    goto leave;
+  }
 
   /* The file does not yet exist, create it now. */
-  oldmask = umask (077);
-  if (is_secured_filename (filename))
-    {
-      iobuf = NULL;
-      gpg_err_set_errno (EPERM);
-    }
-  else
-    iobuf = iobuf_create (filename, 0);
-  umask (oldmask);
-  if (!iobuf)
-    {
-      rc = gpg_error_from_syserror ();
-      if (is_box)
-        log_error (_("error creating keybox '%s': %s\n"),
-                   filename, gpg_strerror (rc));
-      else
-        log_error (_("error creating keyring '%s': %s\n"),
-                   filename, gpg_strerror (rc));
-      goto leave;
-    }
+  oldmask = umask(077);
+  if (is_secured_filename(filename)) {
+    iobuf = NULL;
+    gpg_err_set_errno(EPERM);
+  } else
+    iobuf = iobuf_create(filename, 0);
+  umask(oldmask);
+  if (!iobuf) {
+    rc = gpg_error_from_syserror();
+    if (is_box)
+      log_error(_("error creating keybox '%s': %s\n"), filename,
+                gpg_strerror(rc));
+    else
+      log_error(_("error creating keyring '%s': %s\n"), filename,
+                gpg_strerror(rc));
+    goto leave;
+  }
 
-  iobuf_close (iobuf);
+  iobuf_close(iobuf);
   /* Must invalidate that ugly cache */
-  iobuf_ioctl (NULL, IOBUF_IOCTL_INVALIDATE_CACHE, 0, filename);
+  iobuf_ioctl(NULL, IOBUF_IOCTL_INVALIDATE_CACHE, 0, filename);
 
   /* Make sure that at least one record is in a new keybox file, so
      that the detection magic will work the next time it is used.  */
-  if (is_box)
-    {
-      FILE *fp = fopen (filename, "wb");
-      if (!fp)
-        rc = gpg_error_from_syserror ();
-      else
-        {
-          rc = _keybox_write_header_blob (fp, 1);
-          fclose (fp);
-        }
-      if (rc)
-        {
-          if (is_box)
-            log_error (_("error creating keybox '%s': %s\n"),
-                       filename, gpg_strerror (rc));
-          else
-            log_error (_("error creating keyring '%s': %s\n"),
-                       filename, gpg_strerror (rc));
-          goto leave;
-        }
+  if (is_box) {
+    FILE *fp = fopen(filename, "wb");
+    if (!fp)
+      rc = gpg_error_from_syserror();
+    else {
+      rc = _keybox_write_header_blob(fp, 1);
+      fclose(fp);
     }
-
-  if (!opt.quiet)
-    {
+    if (rc) {
       if (is_box)
-        log_info (_("keybox '%s' created\n"), filename);
+        log_error(_("error creating keybox '%s': %s\n"), filename,
+                  gpg_strerror(rc));
       else
-        log_info (_("keyring '%s' created\n"), filename);
+        log_error(_("error creating keyring '%s': %s\n"), filename,
+                  gpg_strerror(rc));
+      goto leave;
     }
+  }
+
+  if (!opt.quiet) {
+    if (is_box)
+      log_info(_("keybox '%s' created\n"), filename);
+    else
+      log_info(_("keyring '%s' created\n"), filename);
+  }
 
   rc = 0;
 
- leave:
-  if (lockhd)
-    {
-      dotlock_release (lockhd);
-      dotlock_destroy (lockhd);
-    }
-  xfree (bak_fname);
-  xfree (tmp_fname);
+leave:
+  if (lockhd) {
+    dotlock_release(lockhd);
+    dotlock_destroy(lockhd);
+  }
+  xfree(bak_fname);
+  xfree(tmp_fname);
   return rc;
 }
-
 
 /* Helper for keydb_add_resource.  Opens FILENAME to figure out the
    resource type.
@@ -486,106 +441,92 @@ maybe_create_keyring_or_box (char *filename, int is_box, int force_create)
    KEYDB_RESOURCE_TYPE_KEYBOX, KEYDB_RESOURCE_TYPE_KEYRING or
    KEYDB_RESOURCE_TYPE_KEYNONE.  If the file is a keybox and it has
    the OpenPGP flag set, then R_OPENPGP is also set.  */
-static KeydbResourceType
-rt_from_file (const char *filename, int *r_found, int *r_openpgp)
-{
+static KeydbResourceType rt_from_file(const char *filename, int *r_found,
+                                      int *r_openpgp) {
   u32 magic;
   unsigned char verbuf[4];
   FILE *fp;
   KeydbResourceType rt = KEYDB_RESOURCE_TYPE_NONE;
 
   *r_found = *r_openpgp = 0;
-  fp = fopen (filename, "rb");
-  if (fp)
-    {
-      *r_found = 1;
+  fp = fopen(filename, "rb");
+  if (fp) {
+    *r_found = 1;
 
-      if (fread (&magic, 4, 1, fp) == 1 )
-        {
-          if (magic == 0x13579ace || magic == 0xce9a5713)
-            ; /* GDBM magic - not anymore supported. */
-          else if (fread (&verbuf, 4, 1, fp) == 1
-                   && verbuf[0] == 1
-                   && fread (&magic, 4, 1, fp) == 1
-                   && !memcmp (&magic, "KBXf", 4))
-            {
-              if ((verbuf[3] & 0x02))
-                *r_openpgp = 1;
-              rt = KEYDB_RESOURCE_TYPE_KEYBOX;
-            }
-        }
-
-      fclose (fp);
+    if (fread(&magic, 4, 1, fp) == 1) {
+      if (magic == 0x13579ace || magic == 0xce9a5713)
+        ; /* GDBM magic - not anymore supported. */
+      else if (fread(&verbuf, 4, 1, fp) == 1 && verbuf[0] == 1 &&
+               fread(&magic, 4, 1, fp) == 1 && !memcmp(&magic, "KBXf", 4)) {
+        if ((verbuf[3] & 0x02)) *r_openpgp = 1;
+        rt = KEYDB_RESOURCE_TYPE_KEYBOX;
+      }
     }
+
+    fclose(fp);
+  }
 
   return rt;
 }
-
-char *
-keydb_search_desc_dump (struct keydb_search_desc *desc)
-{
+
+char *keydb_search_desc_dump(struct keydb_search_desc *desc) {
   char b[MAX_FORMATTED_FINGERPRINT_LEN + 1];
   char fpr[2 * MAX_FINGERPRINT_LEN + 1];
 
-  switch (desc->mode)
-    {
+  switch (desc->mode) {
     case KEYDB_SEARCH_MODE_EXACT:
-      return xasprintf ("EXACT: '%s'", desc->u.name);
+      return xasprintf("EXACT: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_SUBSTR:
-      return xasprintf ("SUBSTR: '%s'", desc->u.name);
+      return xasprintf("SUBSTR: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_MAIL:
-      return xasprintf ("MAIL: '%s'", desc->u.name);
+      return xasprintf("MAIL: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_MAILSUB:
-      return xasprintf ("MAILSUB: '%s'", desc->u.name);
+      return xasprintf("MAILSUB: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_MAILEND:
-      return xasprintf ("MAILEND: '%s'", desc->u.name);
+      return xasprintf("MAILEND: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_WORDS:
-      return xasprintf ("WORDS: '%s'", desc->u.name);
+      return xasprintf("WORDS: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_SHORT_KID:
-      return xasprintf ("SHORT_KID: '%s'",
-                        format_keyid (desc->u.kid, KF_SHORT, b, sizeof (b)));
+      return xasprintf("SHORT_KID: '%s'",
+                       format_keyid(desc->u.kid, KF_SHORT, b, sizeof(b)));
     case KEYDB_SEARCH_MODE_LONG_KID:
-      return xasprintf ("LONG_KID: '%s'",
-                        format_keyid (desc->u.kid, KF_LONG, b, sizeof (b)));
+      return xasprintf("LONG_KID: '%s'",
+                       format_keyid(desc->u.kid, KF_LONG, b, sizeof(b)));
     case KEYDB_SEARCH_MODE_FPR16:
-      bin2hex (desc->u.fpr, 16, fpr);
-      return xasprintf ("FPR16: '%s'",
-                        format_hexfingerprint (fpr, b, sizeof (b)));
+      bin2hex(desc->u.fpr, 16, fpr);
+      return xasprintf("FPR16: '%s'", format_hexfingerprint(fpr, b, sizeof(b)));
     case KEYDB_SEARCH_MODE_FPR20:
-      bin2hex (desc->u.fpr, 20, fpr);
-      return xasprintf ("FPR20: '%s'",
-                        format_hexfingerprint (fpr, b, sizeof (b)));
+      bin2hex(desc->u.fpr, 20, fpr);
+      return xasprintf("FPR20: '%s'", format_hexfingerprint(fpr, b, sizeof(b)));
     case KEYDB_SEARCH_MODE_FPR:
-      bin2hex (desc->u.fpr, 20, fpr);
-      return xasprintf ("FPR: '%s'",
-                        format_hexfingerprint (fpr, b, sizeof (b)));
+      bin2hex(desc->u.fpr, 20, fpr);
+      return xasprintf("FPR: '%s'", format_hexfingerprint(fpr, b, sizeof(b)));
     case KEYDB_SEARCH_MODE_ISSUER:
-      return xasprintf ("ISSUER: '%s'", desc->u.name);
+      return xasprintf("ISSUER: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_ISSUER_SN:
-      return xasprintf ("ISSUER_SN: '%*s'",
-                        (int) (desc->snlen == -1
-                               ? strlen ((const char*) (desc->sn)) : desc->snlen),
-                        desc->sn);
+      return xasprintf(
+          "ISSUER_SN: '%*s'",
+          (int)(desc->snlen == -1 ? strlen((const char *)(desc->sn))
+                                  : desc->snlen),
+          desc->sn);
     case KEYDB_SEARCH_MODE_SN:
-      return xasprintf ("SN: '%*s'",
-                        (int) (desc->snlen == -1
-                               ? strlen ((const char*) (desc->sn)) : desc->snlen),
-                        desc->sn);
+      return xasprintf("SN: '%*s'", (int)(desc->snlen == -1
+                                              ? strlen((const char *)(desc->sn))
+                                              : desc->snlen),
+                       desc->sn);
     case KEYDB_SEARCH_MODE_SUBJECT:
-      return xasprintf ("SUBJECT: '%s'", desc->u.name);
+      return xasprintf("SUBJECT: '%s'", desc->u.name);
     case KEYDB_SEARCH_MODE_KEYGRIP:
-      return xasprintf ("KEYGRIP: %s", desc->u.grip);
+      return xasprintf("KEYGRIP: %s", desc->u.grip);
     case KEYDB_SEARCH_MODE_FIRST:
-      return xasprintf ("FIRST");
+      return xasprintf("FIRST");
     case KEYDB_SEARCH_MODE_NEXT:
-      return xasprintf ("NEXT");
+      return xasprintf("NEXT");
     default:
-      return xasprintf ("Bad search mode (%d)", desc->mode);
-    }
+      return xasprintf("Bad search mode (%d)", desc->mode);
+  }
 }
 
-
-
 /* Register a resource (keyring or keybox).  The first keyring or
  * keybox that is added using this function is created if it does not
  * already exist and the KEYDB_RESOURCE_FLAG_READONLY is not set.
@@ -629,17 +570,15 @@ keydb_search_desc_dump (struct keydb_search_desc *desc)
  * keyring (not a keybox), then the keyring is marked as read only and
  * operations just as keyring_insert_keyblock will return
  * GPG_ERR_ACCESS.  */
-gpg_error_t
-keydb_add_resource (const char *url, unsigned int flags)
-{
+gpg_error_t keydb_add_resource(const char *url, unsigned int flags) {
   /* The file named by the URL (i.e., without the prototype).  */
   const char *resname = url;
 
   char *filename = NULL;
   int create;
-  int read_only = !!(flags&KEYDB_RESOURCE_FLAG_READONLY);
-  int is_default = !!(flags&KEYDB_RESOURCE_FLAG_DEFAULT);
-  int is_gpgvdef = !!(flags&KEYDB_RESOURCE_FLAG_GPGVDEF);
+  int read_only = !!(flags & KEYDB_RESOURCE_FLAG_READONLY);
+  int is_default = !!(flags & KEYDB_RESOURCE_FLAG_DEFAULT);
+  int is_gpgvdef = !!(flags & KEYDB_RESOURCE_FLAG_GPGVDEF);
   gpg_error_t err = 0;
   KeydbResourceType rt = KEYDB_RESOURCE_TYPE_NONE;
   void *token;
@@ -647,142 +586,111 @@ keydb_add_resource (const char *url, unsigned int flags)
   /* Create the resource if it is the first registered one.  */
   create = (!read_only && !any_registered);
 
-  if (strlen (resname) > 10 && !strncmp (resname, "gnupg-kbx:", 10) )
-    {
-      rt = KEYDB_RESOURCE_TYPE_KEYBOX;
-      resname += 10;
-    }
+  if (strlen(resname) > 10 && !strncmp(resname, "gnupg-kbx:", 10)) {
+    rt = KEYDB_RESOURCE_TYPE_KEYBOX;
+    resname += 10;
+  }
 #if !defined(HAVE_DRIVE_LETTERS)
-  else if (strchr (resname, ':'))
-    {
-      log_error ("invalid key resource URL '%s'\n", url );
-      err = GPG_ERR_GENERAL;
-      goto leave;
-    }
+  else if (strchr(resname, ':')) {
+    log_error("invalid key resource URL '%s'\n", url);
+    err = GPG_ERR_GENERAL;
+    goto leave;
+  }
 #endif /* !HAVE_DRIVE_LETTERS */
 
   if (*resname != DIRSEP_C
 #ifdef HAVE_W32_SYSTEM
-      && *resname != '/'  /* Fixme: does not handle drive letters.  */
+      && *resname != '/' /* Fixme: does not handle drive letters.  */
+#endif
+      ) {
+    /* Do tilde expansion etc. */
+    if (strchr(resname, DIRSEP_C)
+#ifdef HAVE_W32_SYSTEM
+        || strchr(resname, '/') /* Windows also accepts this.  */
 #endif
         )
-    {
-      /* Do tilde expansion etc. */
-      if (strchr (resname, DIRSEP_C)
-#ifdef HAVE_W32_SYSTEM
-          || strchr (resname, '/')  /* Windows also accepts this.  */
-#endif
-          )
-        filename = make_filename (resname, NULL);
-      else
-        filename = make_filename (gnupg_homedir (), resname, NULL);
-    }
-  else
-    filename = xstrdup (resname);
+      filename = make_filename(resname, NULL);
+    else
+      filename = make_filename(gnupg_homedir(), resname, NULL);
+  } else
+    filename = xstrdup(resname);
 
   /* See whether we can determine the filetype.  */
-  if (rt == KEYDB_RESOURCE_TYPE_NONE)
-    {
-      int found, openpgp_flag;
-      int pass = 0;
-      size_t filenamelen;
+  if (rt == KEYDB_RESOURCE_TYPE_NONE) {
+    int found, openpgp_flag;
+    int pass = 0;
+    size_t filenamelen;
 
-    check_again:
-      filenamelen = strlen (filename);
-      rt = rt_from_file (filename, &found, &openpgp_flag);
-      if (!found)
-        rt = KEYDB_RESOURCE_TYPE_KEYBOX;
-    }
+  check_again:
+    filenamelen = strlen(filename);
+    rt = rt_from_file(filename, &found, &openpgp_flag);
+    if (!found) rt = KEYDB_RESOURCE_TYPE_KEYBOX;
+  }
 
-  switch (rt)
-    {
+  switch (rt) {
     case KEYDB_RESOURCE_TYPE_NONE:
-      log_error ("unknown type of key resource '%s'\n", url );
+      log_error("unknown type of key resource '%s'\n", url);
       err = GPG_ERR_GENERAL;
       goto leave;
 
-    case KEYDB_RESOURCE_TYPE_KEYBOX:
-      {
-        err = maybe_create_keyring_or_box (filename, 1, create);
-        if (err)
-          goto leave;
+    case KEYDB_RESOURCE_TYPE_KEYBOX: {
+      err = maybe_create_keyring_or_box(filename, 1, create);
+      if (err) goto leave;
 
-        err = keybox_register_file (filename, 0, &token);
-        if (!err)
-          {
-            if (used_resources >= MAX_KEYDB_RESOURCES)
-              err = GPG_ERR_RESOURCE_LIMIT;
-            else
-              {
-                if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY))
-                  primary_keydb = token;
-                all_resources[used_resources].type = rt;
-                all_resources[used_resources].u.kb = NULL; /* Not used here */
-                all_resources[used_resources].token = token;
+      err = keybox_register_file(filename, 0, &token);
+      if (!err) {
+        if (used_resources >= MAX_KEYDB_RESOURCES)
+          err = GPG_ERR_RESOURCE_LIMIT;
+        else {
+          if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY)) primary_keydb = token;
+          all_resources[used_resources].type = rt;
+          all_resources[used_resources].u.kb = NULL; /* Not used here */
+          all_resources[used_resources].token = token;
 
-                /* FIXME: Do a compress run if needed and no other
-                   user is currently using the keybox. */
+          /* FIXME: Do a compress run if needed and no other
+             user is currently using the keybox. */
 
-                used_resources++;
-              }
-          }
-        else if (err == GPG_ERR_EEXIST)
-          {
-            /* Already registered.  We will mark it as the primary key
-               if requested.  */
-            if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY))
-              primary_keydb = token;
-          }
+          used_resources++;
+        }
+      } else if (err == GPG_ERR_EEXIST) {
+        /* Already registered.  We will mark it as the primary key
+           if requested.  */
+        if ((flags & KEYDB_RESOURCE_FLAG_PRIMARY)) primary_keydb = token;
       }
-      break;
+    } break;
 
-      default:
-	log_error ("resource type of '%s' not supported\n", url);
-	err = GPG_ERR_GENERAL;
-	goto leave;
-    }
+    default:
+      log_error("resource type of '%s' not supported\n", url);
+      err = GPG_ERR_GENERAL;
+      goto leave;
+  }
 
-  /* fixme: check directory permissions and print a warning */
+/* fixme: check directory permissions and print a warning */
 
- leave:
-  if (err)
-    {
-      log_error (_("keyblock resource '%s': %s\n"),
-                 filename, gpg_strerror (err));
-      write_status_error ("add_keyblock_resource", err);
-    }
-  else
+leave:
+  if (err) {
+    log_error(_("keyblock resource '%s': %s\n"), filename, gpg_strerror(err));
+    write_status_error("add_keyblock_resource", err);
+  } else
     any_registered = 1;
-  xfree (filename);
+  xfree(filename);
   return err;
 }
 
-
-void
-keydb_dump_stats (void)
-{
-  log_info ("keydb: handles=%u locks=%u parse=%u get=%u\n",
-            keydb_stats.handles,
-            keydb_stats.locks,
-            keydb_stats.parse_keyblocks,
-            keydb_stats.get_keyblocks);
-  log_info ("       build=%u update=%u insert=%u delete=%u\n",
-            keydb_stats.build_keyblocks,
-            keydb_stats.update_keyblocks,
-            keydb_stats.insert_keyblocks,
-            keydb_stats.delete_keyblocks);
-  log_info ("       reset=%u found=%u not=%u cache=%u not=%u\n",
-            keydb_stats.search_resets,
-            keydb_stats.found,
-            keydb_stats.notfound,
-            keydb_stats.found_cached,
-            keydb_stats.notfound_cached);
-  log_info ("kid_not_found_cache: count=%u peak=%u flushes=%u\n",
-            kid_not_found_stats.count,
-            kid_not_found_stats.peak,
-            kid_not_found_stats.flushes);
+void keydb_dump_stats(void) {
+  log_info("keydb: handles=%u locks=%u parse=%u get=%u\n", keydb_stats.handles,
+           keydb_stats.locks, keydb_stats.parse_keyblocks,
+           keydb_stats.get_keyblocks);
+  log_info("       build=%u update=%u insert=%u delete=%u\n",
+           keydb_stats.build_keyblocks, keydb_stats.update_keyblocks,
+           keydb_stats.insert_keyblocks, keydb_stats.delete_keyblocks);
+  log_info("       reset=%u found=%u not=%u cache=%u not=%u\n",
+           keydb_stats.search_resets, keydb_stats.found, keydb_stats.notfound,
+           keydb_stats.found_cached, keydb_stats.notfound_cached);
+  log_info("kid_not_found_cache: count=%u peak=%u flushes=%u\n",
+           kid_not_found_stats.count, kid_not_found_stats.peak,
+           kid_not_found_stats.flushes);
 }
-
 
 /* Create a new database handle.  A database handle is similar to a
    file handle: it contains a local file position.  This is used when
@@ -791,102 +699,84 @@ keydb_dump_stats (void)
    function returns NULL on error, sets ERRNO, and prints an error
    diagnostic. */
 KEYDB_HANDLE
-keydb_new (void)
-{
+keydb_new(void) {
   KEYDB_HANDLE hd;
   int i, j;
   int die = 0;
   int reterrno;
 
-  if (DBG_CLOCK)
-    log_clock ("keydb_new");
+  if (DBG_CLOCK) log_clock("keydb_new");
 
-  hd = (KEYDB_HANDLE) xtrycalloc (1, sizeof *hd);
-  if (!hd)
-    goto leave;
+  hd = (KEYDB_HANDLE)xtrycalloc(1, sizeof *hd);
+  if (!hd) goto leave;
   hd->found = -1;
   hd->saved_found = -1;
   hd->is_reset = 1;
 
-  log_assert (used_resources <= MAX_KEYDB_RESOURCES);
-  for (i=j=0; ! die && i < used_resources; i++)
-    {
-      switch (all_resources[i].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE: /* ignore */
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          hd->active[j].type   = all_resources[i].type;
-          hd->active[j].token  = all_resources[i].token;
-          hd->active[j].u.kb   = keybox_new_openpgp (all_resources[i].token, 0);
-          if (!hd->active[j].u.kb)
-            {
-              reterrno = errno;
-              die = 1;
-            }
-          j++;
-          break;
+  log_assert(used_resources <= MAX_KEYDB_RESOURCES);
+  for (i = j = 0; !die && i < used_resources; i++) {
+    switch (all_resources[i].type) {
+      case KEYDB_RESOURCE_TYPE_NONE: /* ignore */
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        hd->active[j].type = all_resources[i].type;
+        hd->active[j].token = all_resources[i].token;
+        hd->active[j].u.kb = keybox_new_openpgp(all_resources[i].token, 0);
+        if (!hd->active[j].u.kb) {
+          reterrno = errno;
+          die = 1;
         }
+        j++;
+        break;
     }
+  }
   hd->used = j;
 
   active_handles++;
   keydb_stats.handles++;
 
-  if (die)
-    {
-      keydb_release (hd);
-      gpg_err_set_errno (reterrno);
-      hd = NULL;
-    }
+  if (die) {
+    keydb_release(hd);
+    gpg_err_set_errno(reterrno);
+    hd = NULL;
+  }
 
- leave:
+leave:
   if (!hd)
-    log_error (_("error opening key DB: %s\n"),
-               gpg_strerror (gpg_error_from_syserror()));
+    log_error(_("error opening key DB: %s\n"),
+              gpg_strerror(gpg_error_from_syserror()));
 
   return hd;
 }
 
-
-void
-keydb_release (KEYDB_HANDLE hd)
-{
+void keydb_release(KEYDB_HANDLE hd) {
   int i;
 
-  if (!hd)
-    return;
-  log_assert (active_handles > 0);
+  if (!hd) return;
+  log_assert(active_handles > 0);
   active_handles--;
 
-  unlock_all (hd);
-  for (i=0; i < hd->used; i++)
-    {
-      switch (hd->active[i].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE:
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          keybox_release (hd->active[i].u.kb);
-          break;
-        }
+  unlock_all(hd);
+  for (i = 0; i < hd->used; i++) {
+    switch (hd->active[i].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        keybox_release(hd->active[i].u.kb);
+        break;
     }
+  }
 
-  keyblock_cache_clear (hd);
-  xfree (hd);
+  keyblock_cache_clear(hd);
+  xfree(hd);
 }
-
 
 /* Set a flag on the handle to suppress use of cached results.  This
  * is required for updating a keyring and for key listings.  Fixme:
  * Using a new parameter for keydb_new might be a better solution.  */
-void
-keydb_disable_caching (KEYDB_HANDLE hd)
-{
-  if (hd)
-    hd->no_caching = 1;
+void keydb_disable_caching(KEYDB_HANDLE hd) {
+  if (hd) hd->no_caching = 1;
 }
-
 
 /* Return the file name of the resource in which the current search
  * result was found or, if there is no search result, the filename of
@@ -896,40 +786,32 @@ keydb_disable_caching (KEYDB_HANDLE hd)
  *
  * This function only returns NULL if no handle is specified, in all
  * other error cases an empty string is returned.  */
-const char *
-keydb_get_resource_name (KEYDB_HANDLE hd)
-{
+const char *keydb_get_resource_name(KEYDB_HANDLE hd) {
   int idx;
   const char *s = NULL;
 
-  if (!hd)
-    return NULL;
+  if (!hd) return NULL;
 
-  if ( hd->found >= 0 && hd->found < hd->used)
+  if (hd->found >= 0 && hd->found < hd->used)
     idx = hd->found;
-  else if ( hd->current >= 0 && hd->current < hd->used)
+  else if (hd->current >= 0 && hd->current < hd->used)
     idx = hd->current;
   else
     idx = 0;
 
-  switch (hd->active[idx].type)
-    {
+  switch (hd->active[idx].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       s = NULL;
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
-      s = keybox_get_resource_name (hd->active[idx].u.kb);
+      s = keybox_get_resource_name(hd->active[idx].u.kb);
       break;
-    }
+  }
 
-  return s? s: "";
+  return s ? s : "";
 }
 
-
-
-static int
-lock_all (KEYDB_HANDLE hd)
-{
+static int lock_all(KEYDB_HANDLE hd) {
   int i, rc = 0;
 
   /* Fixme: This locking scheme may lead to a deadlock if the resources
@@ -939,67 +821,52 @@ lock_all (KEYDB_HANDLE hd)
 
      To fix this we need to use a lock file to protect lock_all.  */
 
-  for (i=0; !rc && i < hd->used; i++)
-    {
-      switch (hd->active[i].type)
-        {
+  for (i = 0; !rc && i < hd->used; i++) {
+    switch (hd->active[i].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        rc = keybox_lock(hd->active[i].u.kb, 1);
+        break;
+    }
+  }
+
+  if (rc) {
+    /* Revert the already taken locks.  */
+    for (i--; i >= 0; i--) {
+      switch (hd->active[i].type) {
         case KEYDB_RESOURCE_TYPE_NONE:
           break;
         case KEYDB_RESOURCE_TYPE_KEYBOX:
-          rc = keybox_lock (hd->active[i].u.kb, 1);
+          keybox_lock(hd->active[i].u.kb, 0);
           break;
-        }
+      }
     }
-
-  if (rc)
-    {
-      /* Revert the already taken locks.  */
-      for (i--; i >= 0; i--)
-        {
-          switch (hd->active[i].type)
-            {
-            case KEYDB_RESOURCE_TYPE_NONE:
-              break;
-            case KEYDB_RESOURCE_TYPE_KEYBOX:
-              keybox_lock (hd->active[i].u.kb, 0);
-              break;
-            }
-        }
-    }
-  else
-    {
-      hd->locked = 1;
-      keydb_stats.locks++;
-    }
+  } else {
+    hd->locked = 1;
+    keydb_stats.locks++;
+  }
 
   return rc;
 }
 
-
-static void
-unlock_all (KEYDB_HANDLE hd)
-{
+static void unlock_all(KEYDB_HANDLE hd) {
   int i;
 
-  if (!hd->locked)
-    return;
+  if (!hd->locked) return;
 
-  for (i=hd->used-1; i >= 0; i--)
-    {
-      switch (hd->active[i].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE:
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          keybox_lock (hd->active[i].u.kb, 0);
-          break;
-        }
+  for (i = hd->used - 1; i >= 0; i--) {
+    switch (hd->active[i].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        keybox_lock(hd->active[i].u.kb, 0);
+        break;
     }
+  }
   hd->locked = 0;
 }
 
-
-
 /* Save the last found state and invalidate the current selection
  * (i.e., the entry selected by keydb_search() is invalidated and
  * something like keydb_get_keyblock() will return an error).  This
@@ -1016,61 +883,46 @@ unlock_all (KEYDB_HANDLE hd)
  * Note: it is only possible to save a single save state at a time.
  * In other words, the save stack only has room for a single
  * instance of the state.  */
-void
-keydb_push_found_state (KEYDB_HANDLE hd)
-{
-  if (!hd)
+void keydb_push_found_state(KEYDB_HANDLE hd) {
+  if (!hd) return;
+
+  if (hd->found < 0 || hd->found >= hd->used) {
+    hd->saved_found = -1;
     return;
+  }
 
-  if (hd->found < 0 || hd->found >= hd->used)
-    {
-      hd->saved_found = -1;
-      return;
-    }
-
-  switch (hd->active[hd->found].type)
-    {
+  switch (hd->active[hd->found].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
-      keybox_push_found_state (hd->active[hd->found].u.kb);
+      keybox_push_found_state(hd->active[hd->found].u.kb);
       break;
-    }
+  }
 
   hd->saved_found = hd->found;
   hd->found = -1;
 }
 
-
 /* Restore the previous save state.  If the saved state is NULL or
    invalid, this is a NOP.  */
-void
-keydb_pop_found_state (KEYDB_HANDLE hd)
-{
-  if (!hd)
-    return;
+void keydb_pop_found_state(KEYDB_HANDLE hd) {
+  if (!hd) return;
 
   hd->found = hd->saved_found;
   hd->saved_found = -1;
-  if (hd->found < 0 || hd->found >= hd->used)
-    return;
+  if (hd->found < 0 || hd->found >= hd->used) return;
 
-  switch (hd->active[hd->found].type)
-    {
+  switch (hd->active[hd->found].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
-      keybox_pop_found_state (hd->active[hd->found].u.kb);
+      keybox_pop_found_state(hd->active[hd->found].u.kb);
       break;
-    }
+  }
 }
 
-
-
-static gpg_error_t
-parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
-                      kbnode_t *r_keyblock)
-{
+static gpg_error_t parse_keyblock_image(iobuf_t iobuf, int pk_no, int uid_no,
+                                        kbnode_t *r_keyblock) {
   gpg_error_t err;
   struct parse_packet_ctx_s parsectx;
   PACKET *pkt;
@@ -1081,124 +933,110 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
 
   *r_keyblock = NULL;
 
-  pkt = (PACKET*) xtrymalloc (sizeof *pkt);
-  if (!pkt)
-    return gpg_error_from_syserror ();
-  init_packet (pkt);
-  init_parse_packet (&parsectx, iobuf);
-  save_mode = set_packet_list_mode (0);
+  pkt = (PACKET *)xtrymalloc(sizeof *pkt);
+  if (!pkt) return gpg_error_from_syserror();
+  init_packet(pkt);
+  init_parse_packet(&parsectx, iobuf);
+  save_mode = set_packet_list_mode(0);
   in_cert = 0;
   tail = NULL;
   pk_count = uid_count = 0;
-  while ((err = parse_packet (&parsectx, pkt)) != -1)
-    {
-      if (err == GPG_ERR_UNKNOWN_PACKET)
-        {
-          free_packet (pkt, &parsectx);
-          init_packet (pkt);
-          continue;
-	}
-      if (err)
-        {
-          log_error ("parse_keyblock_image: read error: %s\n",
-                     gpg_strerror (err));
-          err = GPG_ERR_INV_KEYRING;
-          break;
-        }
-
-      /* Filter allowed packets.  */
-      switch (pkt->pkttype)
-        {
-        case PKT_PUBLIC_KEY:
-        case PKT_PUBLIC_SUBKEY:
-        case PKT_SECRET_KEY:
-        case PKT_SECRET_SUBKEY:
-        case PKT_USER_ID:
-        case PKT_ATTRIBUTE:
-        case PKT_SIGNATURE:
-        case PKT_RING_TRUST:
-          break; /* Allowed per RFC.  */
-
-        default:
-          /* Note that can't allow ring trust packets here and some of
-             the other GPG specific packets don't make sense either.  */
-          log_error ("skipped packet of type %d in keybox\n",
-                     (int)pkt->pkttype);
-          free_packet(pkt, &parsectx);
-          init_packet(pkt);
-          continue;
-        }
-
-      /* Other sanity checks.  */
-      if (!in_cert && pkt->pkttype != PKT_PUBLIC_KEY)
-        {
-          log_error ("parse_keyblock_image: first packet in a keybox blob "
-                     "is not a public key packet\n");
-          err = GPG_ERR_INV_KEYRING;
-          break;
-        }
-      if (in_cert && (pkt->pkttype == PKT_PUBLIC_KEY
-                      || pkt->pkttype == PKT_SECRET_KEY))
-        {
-          log_error ("parse_keyblock_image: "
-                     "multiple keyblocks in a keybox blob\n");
-          err = GPG_ERR_INV_KEYRING;
-          break;
-        }
-      in_cert = 1;
-
-      node = new_kbnode (pkt);
-
-      switch (pkt->pkttype)
-        {
-        case PKT_PUBLIC_KEY:
-        case PKT_PUBLIC_SUBKEY:
-        case PKT_SECRET_KEY:
-        case PKT_SECRET_SUBKEY:
-          if (++pk_count == pk_no)
-            node->flag |= 1;
-          break;
-
-        case PKT_USER_ID:
-          if (++uid_count == uid_no)
-            node->flag |= 2;
-          break;
-
-        default:
-          break;
-        }
-
-      if (!keyblock)
-        keyblock = node;
-      else
-        *tail = node;
-      tail = &node->next;
-      pkt = (PACKET*) xtrymalloc (sizeof *pkt);
-      if (!pkt)
-        {
-          err = gpg_error_from_syserror ();
-          break;
-        }
-      init_packet (pkt);
+  while ((err = parse_packet(&parsectx, pkt)) != -1) {
+    if (err == GPG_ERR_UNKNOWN_PACKET) {
+      free_packet(pkt, &parsectx);
+      init_packet(pkt);
+      continue;
     }
-  set_packet_list_mode (save_mode);
+    if (err) {
+      log_error("parse_keyblock_image: read error: %s\n", gpg_strerror(err));
+      err = GPG_ERR_INV_KEYRING;
+      break;
+    }
 
-  if (err == -1 && keyblock)
-    err = 0; /* Got the entire keyblock.  */
+    /* Filter allowed packets.  */
+    switch (pkt->pkttype) {
+      case PKT_PUBLIC_KEY:
+      case PKT_PUBLIC_SUBKEY:
+      case PKT_SECRET_KEY:
+      case PKT_SECRET_SUBKEY:
+      case PKT_USER_ID:
+      case PKT_ATTRIBUTE:
+      case PKT_SIGNATURE:
+      case PKT_RING_TRUST:
+        break; /* Allowed per RFC.  */
+
+      default:
+        /* Note that can't allow ring trust packets here and some of
+           the other GPG specific packets don't make sense either.  */
+        log_error("skipped packet of type %d in keybox\n", (int)pkt->pkttype);
+        free_packet(pkt, &parsectx);
+        init_packet(pkt);
+        continue;
+    }
+
+    /* Other sanity checks.  */
+    if (!in_cert && pkt->pkttype != PKT_PUBLIC_KEY) {
+      log_error(
+          "parse_keyblock_image: first packet in a keybox blob "
+          "is not a public key packet\n");
+      err = GPG_ERR_INV_KEYRING;
+      break;
+    }
+    if (in_cert &&
+        (pkt->pkttype == PKT_PUBLIC_KEY || pkt->pkttype == PKT_SECRET_KEY)) {
+      log_error(
+          "parse_keyblock_image: "
+          "multiple keyblocks in a keybox blob\n");
+      err = GPG_ERR_INV_KEYRING;
+      break;
+    }
+    in_cert = 1;
+
+    node = new_kbnode(pkt);
+
+    switch (pkt->pkttype) {
+      case PKT_PUBLIC_KEY:
+      case PKT_PUBLIC_SUBKEY:
+      case PKT_SECRET_KEY:
+      case PKT_SECRET_SUBKEY:
+        if (++pk_count == pk_no) node->flag |= 1;
+        break;
+
+      case PKT_USER_ID:
+        if (++uid_count == uid_no) node->flag |= 2;
+        break;
+
+      default:
+        break;
+    }
+
+    if (!keyblock)
+      keyblock = node;
+    else
+      *tail = node;
+    tail = &node->next;
+    pkt = (PACKET *)xtrymalloc(sizeof *pkt);
+    if (!pkt) {
+      err = gpg_error_from_syserror();
+      break;
+    }
+    init_packet(pkt);
+  }
+  set_packet_list_mode(save_mode);
+
+  if (err == -1 && keyblock) err = 0; /* Got the entire keyblock.  */
 
   if (err)
-    release_kbnode (keyblock);
-  else
-    {
-      *r_keyblock = keyblock;
-      keydb_stats.parse_keyblocks++;
-    }
-  free_packet (pkt, &parsectx);
-  deinit_parse_packet (&parsectx);
-  xfree (pkt);
+    release_kbnode(keyblock);
+  else {
+    *r_keyblock = keyblock;
+    keydb_stats.parse_keyblocks++;
+  }
+  free_packet(pkt, &parsectx);
+  deinit_parse_packet(&parsectx);
+  xfree(pkt);
   return err;
 }
-
 
 /* Return the keyblock last found by keydb_search() in *RET_KB.
  *
@@ -1209,130 +1047,104 @@ parse_keyblock_image (iobuf_t iobuf, int pk_no, int uid_no,
  * The returned keyblock has the kbnode flag bit 0 set for the node
  * with the public key used to locate the keyblock or flag bit 1 set
  * for the user ID node.  */
-gpg_error_t
-keydb_get_keyblock (KEYDB_HANDLE hd, KBNODE *ret_kb)
-{
+gpg_error_t keydb_get_keyblock(KEYDB_HANDLE hd, KBNODE *ret_kb) {
   gpg_error_t err = 0;
 
   *ret_kb = NULL;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  if (DBG_CLOCK)
-    log_clock ("keydb_get_keybock enter");
+  if (DBG_CLOCK) log_clock("keydb_get_keybock enter");
 
-  if (hd->keyblock_cache.state == KEYBLOCK_CACHE_FILLED)
-    {
-      err = iobuf_seek (hd->keyblock_cache.iobuf, 0);
-      if (err)
-	{
-	  log_error ("keydb_get_keyblock: failed to rewind iobuf for cache\n");
-	  keyblock_cache_clear (hd);
-	}
-      else
-	{
-	  err = parse_keyblock_image (hd->keyblock_cache.iobuf,
-				      hd->keyblock_cache.pk_no,
-				      hd->keyblock_cache.uid_no,
-				      ret_kb);
-	  if (err)
-	    keyblock_cache_clear (hd);
-	  if (DBG_CLOCK)
-	    log_clock (err? "keydb_get_keyblock leave (cached, failed)"
-		       : "keydb_get_keyblock leave (cached)");
-	  return err;
-	}
+  if (hd->keyblock_cache.state == KEYBLOCK_CACHE_FILLED) {
+    err = iobuf_seek(hd->keyblock_cache.iobuf, 0);
+    if (err) {
+      log_error("keydb_get_keyblock: failed to rewind iobuf for cache\n");
+      keyblock_cache_clear(hd);
+    } else {
+      err = parse_keyblock_image(hd->keyblock_cache.iobuf,
+                                 hd->keyblock_cache.pk_no,
+                                 hd->keyblock_cache.uid_no, ret_kb);
+      if (err) keyblock_cache_clear(hd);
+      if (DBG_CLOCK)
+        log_clock(err ? "keydb_get_keyblock leave (cached, failed)"
+                      : "keydb_get_keyblock leave (cached)");
+      return err;
     }
+  }
 
-  if (hd->found < 0 || hd->found >= hd->used)
-    return GPG_ERR_VALUE_NOT_FOUND;
+  if (hd->found < 0 || hd->found >= hd->used) return GPG_ERR_VALUE_NOT_FOUND;
 
-  switch (hd->active[hd->found].type)
-    {
+  switch (hd->active[hd->found].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       err = GPG_ERR_GENERAL; /* oops */
       break;
-    case KEYDB_RESOURCE_TYPE_KEYBOX:
-      {
-        iobuf_t iobuf;
-        int pk_no, uid_no;
+    case KEYDB_RESOURCE_TYPE_KEYBOX: {
+      iobuf_t iobuf;
+      int pk_no, uid_no;
 
-        err = keybox_get_keyblock (hd->active[hd->found].u.kb,
-                                   &iobuf, &pk_no, &uid_no);
-        if (!err)
-          {
-            err = parse_keyblock_image (iobuf, pk_no, uid_no, ret_kb);
-            if (!err && hd->keyblock_cache.state == KEYBLOCK_CACHE_PREPARED)
-              {
-                hd->keyblock_cache.state     = KEYBLOCK_CACHE_FILLED;
-                hd->keyblock_cache.iobuf     = iobuf;
-                hd->keyblock_cache.pk_no     = pk_no;
-                hd->keyblock_cache.uid_no    = uid_no;
-              }
-            else
-              {
-                iobuf_close (iobuf);
-              }
-          }
+      err = keybox_get_keyblock(hd->active[hd->found].u.kb, &iobuf, &pk_no,
+                                &uid_no);
+      if (!err) {
+        err = parse_keyblock_image(iobuf, pk_no, uid_no, ret_kb);
+        if (!err && hd->keyblock_cache.state == KEYBLOCK_CACHE_PREPARED) {
+          hd->keyblock_cache.state = KEYBLOCK_CACHE_FILLED;
+          hd->keyblock_cache.iobuf = iobuf;
+          hd->keyblock_cache.pk_no = pk_no;
+          hd->keyblock_cache.uid_no = uid_no;
+        } else {
+          iobuf_close(iobuf);
+        }
       }
-      break;
-    }
+    } break;
+  }
 
   if (hd->keyblock_cache.state != KEYBLOCK_CACHE_FILLED)
-    keyblock_cache_clear (hd);
+    keyblock_cache_clear(hd);
 
-  if (!err)
-    keydb_stats.get_keyblocks++;
+  if (!err) keydb_stats.get_keyblocks++;
 
   if (DBG_CLOCK)
-    log_clock (err? "keydb_get_keyblock leave (failed)"
-               : "keydb_get_keyblock leave");
+    log_clock(err ? "keydb_get_keyblock leave (failed)"
+                  : "keydb_get_keyblock leave");
   return err;
 }
 
-
 /* Build a keyblock image from KEYBLOCK.  Returns 0 on success and
  * only then stores a new iobuf object at R_IOBUF.  */
-static gpg_error_t
-build_keyblock_image (kbnode_t keyblock, iobuf_t *r_iobuf)
-{
+static gpg_error_t build_keyblock_image(kbnode_t keyblock, iobuf_t *r_iobuf) {
   gpg_error_t err;
   iobuf_t iobuf;
   kbnode_t kbctx, node;
 
   *r_iobuf = NULL;
 
-  iobuf = iobuf_temp ();
-  for (kbctx = NULL; (node = walk_kbnode (keyblock, &kbctx, 0));)
-    {
-      /* Make sure to use only packets valid on a keyblock.  */
-      switch (node->pkt->pkttype)
-        {
-        case PKT_PUBLIC_KEY:
-        case PKT_PUBLIC_SUBKEY:
-        case PKT_SIGNATURE:
-        case PKT_USER_ID:
-        case PKT_ATTRIBUTE:
-        case PKT_RING_TRUST:
-          break;
-        default:
-          continue;
-        }
-
-      err = build_packet_and_meta (iobuf, node->pkt);
-      if (err)
-        {
-          iobuf_close (iobuf);
-          return err;
-        }
+  iobuf = iobuf_temp();
+  for (kbctx = NULL; (node = walk_kbnode(keyblock, &kbctx, 0));) {
+    /* Make sure to use only packets valid on a keyblock.  */
+    switch (node->pkt->pkttype) {
+      case PKT_PUBLIC_KEY:
+      case PKT_PUBLIC_SUBKEY:
+      case PKT_SIGNATURE:
+      case PKT_USER_ID:
+      case PKT_ATTRIBUTE:
+      case PKT_RING_TRUST:
+        break;
+      default:
+        continue;
     }
+
+    err = build_packet_and_meta(iobuf, node->pkt);
+    if (err) {
+      iobuf_close(iobuf);
+      return err;
+    }
+  }
 
   keydb_stats.build_keyblocks++;
   *r_iobuf = iobuf;
   return 0;
 }
-
 
 /* Update the keyblock KB (i.e., extract the fingerprint and find the
  * corresponding keyblock in the keyring).
@@ -1349,71 +1161,59 @@ build_keyblock_image (kbnode_t keyblock, iobuf_t *r_iobuf)
  * keydb_search_reset.  Further, if the selected record is important,
  * you should use keydb_push_found_state and keydb_pop_found_state to
  * save and restore it.  */
-gpg_error_t
-keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
-{
+gpg_error_t keydb_update_keyblock(ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb) {
   gpg_error_t err;
   PKT_public_key *pk;
   KEYDB_SEARCH_DESC desc;
   size_t len;
 
-  log_assert (kb);
-  log_assert (kb->pkt->pkttype == PKT_PUBLIC_KEY);
+  log_assert(kb);
+  log_assert(kb->pkt->pkttype == PKT_PUBLIC_KEY);
   pk = kb->pkt->pkt.public_key;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  kid_not_found_flush ();
-  keyblock_cache_clear (hd);
+  kid_not_found_flush();
+  keyblock_cache_clear(hd);
 
-  if (opt.dry_run)
-    return 0;
+  if (opt.dry_run) return 0;
 
-  err = lock_all (hd);
-  if (err)
-    return err;
+  err = lock_all(hd);
+  if (err) return err;
 
-  memset (&desc, 0, sizeof (desc));
-  fingerprint_from_pk (pk, desc.u.fpr, &len);
+  memset(&desc, 0, sizeof(desc));
+  fingerprint_from_pk(pk, desc.u.fpr, &len);
   if (len == 20)
     desc.mode = KEYDB_SEARCH_MODE_FPR20;
   else
-    log_bug ("%s: Unsupported key length: %zu\n", __func__, len);
+    log_bug("%s: Unsupported key length: %zu\n", __func__, len);
 
-  keydb_search_reset (hd);
-  err = keydb_search (hd, &desc, 1, NULL);
-  if (err)
-    return GPG_ERR_VALUE_NOT_FOUND;
-  log_assert (hd->found >= 0 && hd->found < hd->used);
+  keydb_search_reset(hd);
+  err = keydb_search(hd, &desc, 1, NULL);
+  if (err) return GPG_ERR_VALUE_NOT_FOUND;
+  log_assert(hd->found >= 0 && hd->found < hd->used);
 
-  switch (hd->active[hd->found].type)
-    {
+  switch (hd->active[hd->found].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       err = GPG_ERR_GENERAL; /* oops */
       break;
-    case KEYDB_RESOURCE_TYPE_KEYBOX:
-      {
-        iobuf_t iobuf;
+    case KEYDB_RESOURCE_TYPE_KEYBOX: {
+      iobuf_t iobuf;
 
-        err = build_keyblock_image (kb, &iobuf);
-        if (!err)
-          {
-            err = keybox_update_keyblock (hd->active[hd->found].u.kb,
-                                          iobuf_get_temp_buffer (iobuf),
-                                          iobuf_get_temp_length (iobuf));
-            iobuf_close (iobuf);
-          }
+      err = build_keyblock_image(kb, &iobuf);
+      if (!err) {
+        err = keybox_update_keyblock(hd->active[hd->found].u.kb,
+                                     iobuf_get_temp_buffer(iobuf),
+                                     iobuf_get_temp_length(iobuf));
+        iobuf_close(iobuf);
       }
-      break;
-    }
+    } break;
+  }
 
-  unlock_all (hd);
-  if (!err)
-    keydb_stats.update_keyblocks++;
+  unlock_all(hd);
+  if (!err) keydb_stats.update_keyblocks++;
   return err;
 }
-
 
 /* Insert a keyblock into one of the underlying keyrings or keyboxes.
  *
@@ -1425,20 +1225,16 @@ keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
  * Note: this doesn't do anything if --dry-run was specified.
  *
  * Returns 0 on success.  Otherwise, it returns an error code.  */
-gpg_error_t
-keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
-{
+gpg_error_t keydb_insert_keyblock(KEYDB_HANDLE hd, kbnode_t kb) {
   gpg_error_t err;
   int idx;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  kid_not_found_flush ();
-  keyblock_cache_clear (hd);
+  kid_not_found_flush();
+  keyblock_cache_clear(hd);
 
-  if (opt.dry_run)
-    return 0;
+  if (opt.dry_run) return 0;
 
   if (hd->found >= 0 && hd->found < hd->used)
     idx = hd->found;
@@ -1447,85 +1243,72 @@ keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
   else
     return GPG_ERR_GENERAL;
 
-  err = lock_all (hd);
-  if (err)
-    return err;
+  err = lock_all(hd);
+  if (err) return err;
 
-  switch (hd->active[idx].type)
-    {
+  switch (hd->active[idx].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       err = GPG_ERR_GENERAL; /* oops */
       break;
-    case KEYDB_RESOURCE_TYPE_KEYBOX:
-      { /* We need to turn our kbnode_t list of packets into a proper
-           keyblock first.  This is required by the OpenPGP key parser
-           included in the keybox code.  Eventually we can change this
-           kludge to have the caller pass the image.  */
-        iobuf_t iobuf;
+    case KEYDB_RESOURCE_TYPE_KEYBOX: { /* We need to turn our kbnode_t list of
+                                          packets into a proper
+                                          keyblock first.  This is required by
+                                          the OpenPGP key parser
+                                          included in the keybox code.
+                                          Eventually we can change this
+                                          kludge to have the caller pass the
+                                          image.  */
+      iobuf_t iobuf;
 
-        err = build_keyblock_image (kb, &iobuf);
-        if (!err)
-          {
-            err = keybox_insert_keyblock (hd->active[idx].u.kb,
-                                          iobuf_get_temp_buffer (iobuf),
-                                          iobuf_get_temp_length (iobuf));
-            iobuf_close (iobuf);
-          }
+      err = build_keyblock_image(kb, &iobuf);
+      if (!err) {
+        err = keybox_insert_keyblock(hd->active[idx].u.kb,
+                                     iobuf_get_temp_buffer(iobuf),
+                                     iobuf_get_temp_length(iobuf));
+        iobuf_close(iobuf);
       }
-      break;
-    }
+    } break;
+  }
 
-  unlock_all (hd);
-  if (!err)
-    keydb_stats.insert_keyblocks++;
+  unlock_all(hd);
+  if (!err) keydb_stats.insert_keyblocks++;
   return err;
 }
-
 
 /* Delete the currently selected keyblock.  If you haven't done a
  * search yet on this database handle (or called keydb_search_reset),
  * then this will return an error.
  *
  * Returns 0 on success or an error code, if an error occurs.  */
-gpg_error_t
-keydb_delete_keyblock (KEYDB_HANDLE hd)
-{
+gpg_error_t keydb_delete_keyblock(KEYDB_HANDLE hd) {
   gpg_error_t rc;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  kid_not_found_flush ();
-  keyblock_cache_clear (hd);
+  kid_not_found_flush();
+  keyblock_cache_clear(hd);
 
-  if (hd->found < 0 || hd->found >= hd->used)
-    return GPG_ERR_VALUE_NOT_FOUND;
+  if (hd->found < 0 || hd->found >= hd->used) return GPG_ERR_VALUE_NOT_FOUND;
 
-  if (opt.dry_run)
-    return 0;
+  if (opt.dry_run) return 0;
 
-  rc = lock_all (hd);
-  if (rc)
-    return rc;
+  rc = lock_all(hd);
+  if (rc) return rc;
 
-  switch (hd->active[hd->found].type)
-    {
+  switch (hd->active[hd->found].type) {
     case KEYDB_RESOURCE_TYPE_NONE:
       rc = GPG_ERR_GENERAL;
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
-      rc = keybox_delete (hd->active[hd->found].u.kb);
+      rc = keybox_delete(hd->active[hd->found].u.kb);
       break;
-    }
+  }
 
-  unlock_all (hd);
-  if (!rc)
-    keydb_stats.delete_keyblocks++;
+  unlock_all(hd);
+  if (!rc) keydb_stats.delete_keyblocks++;
   return rc;
 }
 
-
-
 /* A database may consists of multiple keyrings / key boxes.  This
  * sets the "file position" to the start of the first keyring / key
  * box that is writable (i.e., doesn't have the read-only flag set).
@@ -1535,63 +1318,49 @@ keydb_delete_keyblock (KEYDB_HANDLE hd)
  * KEYDB_RESOURCE_FLAG_PRIMARY set).  If that is not writable, then it
  * tries the keyrings / keyboxes in the order in which they were
  * added.  */
-gpg_error_t
-keydb_locate_writable (KEYDB_HANDLE hd)
-{
+gpg_error_t keydb_locate_writable(KEYDB_HANDLE hd) {
   gpg_error_t rc;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  rc = keydb_search_reset (hd); /* this does reset hd->current */
-  if (rc)
-    return rc;
+  rc = keydb_search_reset(hd); /* this does reset hd->current */
+  if (rc) return rc;
 
   /* If we have a primary set, try that one first */
-  if (primary_keydb)
-    {
-      for ( ; hd->current >= 0 && hd->current < hd->used; hd->current++)
-	{
-	  if(hd->active[hd->current].token == primary_keydb)
-	    {
-	      if(keybox_is_writable (hd->active[hd->current].token))
-		return 0;
-	      else
-		break;
-	    }
-	}
-
-      rc = keydb_search_reset (hd); /* this does reset hd->current */
-      if (rc)
-	return rc;
+  if (primary_keydb) {
+    for (; hd->current >= 0 && hd->current < hd->used; hd->current++) {
+      if (hd->active[hd->current].token == primary_keydb) {
+        if (keybox_is_writable(hd->active[hd->current].token))
+          return 0;
+        else
+          break;
+      }
     }
 
-  for ( ; hd->current >= 0 && hd->current < hd->used; hd->current++)
-    {
-      switch (hd->active[hd->current].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE:
-          BUG();
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          if (keybox_is_writable (hd->active[hd->current].token))
-            return 0; /* found (hd->current is set to it) */
-          break;
-        }
+    rc = keydb_search_reset(hd); /* this does reset hd->current */
+    if (rc) return rc;
+  }
+
+  for (; hd->current >= 0 && hd->current < hd->used; hd->current++) {
+    switch (hd->active[hd->current].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        BUG();
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        if (keybox_is_writable(hd->active[hd->current].token))
+          return 0; /* found (hd->current is set to it) */
+        break;
     }
+  }
 
   return GPG_ERR_NOT_FOUND;
 }
 
-
 /* Return the number of skipped blocks (because they were to large to
    read from a keybox) since the last search reset.  */
-unsigned long
-keydb_get_skipped_counter (KEYDB_HANDLE hd)
-{
+unsigned long keydb_get_skipped_counter(KEYDB_HANDLE hd) {
   return hd ? hd->skipped_long_blobs : 0;
 }
-
 
 /* Clears the current search result and resets the handle's position
  * so that the next search starts at the beginning of the database
@@ -1599,44 +1368,35 @@ keydb_get_skipped_counter (KEYDB_HANDLE hd)
  *
  * Returns 0 on success and an error code if an error occurred.
  * (Currently, this function always returns 0 if HD is valid.)  */
-gpg_error_t
-keydb_search_reset (KEYDB_HANDLE hd)
-{
+gpg_error_t keydb_search_reset(KEYDB_HANDLE hd) {
   gpg_error_t rc = 0;
   int i;
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  keyblock_cache_clear (hd);
+  keyblock_cache_clear(hd);
 
-  if (DBG_CLOCK)
-    log_clock ("keydb_search_reset");
+  if (DBG_CLOCK) log_clock("keydb_search_reset");
 
-  if (DBG_CACHE)
-    log_debug ("keydb_search: reset  (hd=%p)", hd);
+  if (DBG_CACHE) log_debug("keydb_search: reset  (hd=%p)", hd);
 
   hd->skipped_long_blobs = 0;
   hd->current = 0;
   hd->found = -1;
   /* Now reset all resources.  */
-  for (i=0; !rc && i < hd->used; i++)
-    {
-      switch (hd->active[i].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE:
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          rc = keybox_search_reset (hd->active[i].u.kb);
-          break;
-        }
+  for (i = 0; !rc && i < hd->used; i++) {
+    switch (hd->active[i].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        rc = keybox_search_reset(hd->active[i].u.kb);
+        break;
     }
+  }
   hd->is_reset = 1;
-  if (!rc)
-    keydb_stats.search_resets++;
+  if (!rc) keydb_stats.search_resets++;
   return rc;
 }
-
 
 /* Search the database for keys matching the search description.  If
  * the DB contains any legacy keys, these are silently ignored.
@@ -1656,152 +1416,127 @@ keydb_search_reset (KEYDB_HANDLE hd)
  *
  * The returned key is considered to be selected and the raw data can,
  * for instance, be returned by calling keydb_get_keyblock().  */
-gpg_error_t
-keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
-              size_t ndesc, size_t *descindex)
-{
+gpg_error_t keydb_search(KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc, size_t ndesc,
+                         size_t *descindex) {
   int i;
   gpg_error_t rc;
   int was_reset = hd->is_reset;
   /* If an entry is already in the cache, then don't add it again.  */
   int already_in_cache = 0;
 
-  if (descindex)
-    *descindex = 0; /* Make sure it is always set on return.  */
+  if (descindex) *descindex = 0; /* Make sure it is always set on return.  */
 
-  if (!hd)
-    return GPG_ERR_INV_ARG;
+  if (!hd) return GPG_ERR_INV_ARG;
 
-  if (!any_registered)
-    {
-      write_status_error ("keydb_search", GPG_ERR_KEYRING_OPEN);
-      return GPG_ERR_NOT_FOUND;
+  if (!any_registered) {
+    write_status_error("keydb_search", GPG_ERR_KEYRING_OPEN);
+    return GPG_ERR_NOT_FOUND;
+  }
+
+  if (DBG_CLOCK) log_clock("keydb_search enter");
+
+  if (DBG_LOOKUP) {
+    log_debug("%s: %zd search descriptions:\n", __func__, ndesc);
+    for (i = 0; i < ndesc; i++) {
+      char *t = keydb_search_desc_dump(&desc[i]);
+      log_debug("%s   %d: %s\n", __func__, i, t);
+      xfree(t);
     }
+  }
 
-  if (DBG_CLOCK)
-    log_clock ("keydb_search enter");
-
-  if (DBG_LOOKUP)
-    {
-      log_debug ("%s: %zd search descriptions:\n", __func__, ndesc);
-      for (i = 0; i < ndesc; i ++)
-        {
-          char *t = keydb_search_desc_dump (&desc[i]);
-          log_debug ("%s   %d: %s\n", __func__, i, t);
-          xfree (t);
-        }
-    }
-
-
-  if (ndesc == 1 && desc[0].mode == KEYDB_SEARCH_MODE_LONG_KID
-      && (already_in_cache = kid_not_found_p (desc[0].u.kid)) == 1 )
-    {
-      if (DBG_CLOCK)
-        log_clock ("keydb_search leave (not found, cached)");
-      keydb_stats.notfound_cached++;
-      return GPG_ERR_NOT_FOUND;
-    }
+  if (ndesc == 1 && desc[0].mode == KEYDB_SEARCH_MODE_LONG_KID &&
+      (already_in_cache = kid_not_found_p(desc[0].u.kid)) == 1) {
+    if (DBG_CLOCK) log_clock("keydb_search leave (not found, cached)");
+    keydb_stats.notfound_cached++;
+    return GPG_ERR_NOT_FOUND;
+  }
 
   /* NB: If one of the exact search modes below is used in a loop to
      walk over all keys (with the same fingerprint) the caching must
      have been disabled for the handle.  */
-  if (!hd->no_caching
-      && ndesc == 1
-      && (desc[0].mode == KEYDB_SEARCH_MODE_FPR20
-          || desc[0].mode == KEYDB_SEARCH_MODE_FPR)
-      && hd->keyblock_cache.state  == KEYBLOCK_CACHE_FILLED
-      && !memcmp (hd->keyblock_cache.fpr, desc[0].u.fpr, 20)
+  if (!hd->no_caching && ndesc == 1 &&
+      (desc[0].mode == KEYDB_SEARCH_MODE_FPR20 ||
+       desc[0].mode == KEYDB_SEARCH_MODE_FPR) &&
+      hd->keyblock_cache.state == KEYBLOCK_CACHE_FILLED &&
+      !memcmp(hd->keyblock_cache.fpr, desc[0].u.fpr, 20)
       /* Make sure the current file position occurs before the cached
          result to avoid an infinite loop.  */
-      && (hd->current < hd->keyblock_cache.resource
-          || (hd->current == hd->keyblock_cache.resource
-              && (keybox_offset (hd->active[hd->current].u.kb)
-                  <= hd->keyblock_cache.offset))))
-    {
-      /* (DESCINDEX is already set).  */
-      if (DBG_CLOCK)
-        log_clock ("keydb_search leave (cached)");
+      && (hd->current < hd->keyblock_cache.resource ||
+          (hd->current == hd->keyblock_cache.resource &&
+           (keybox_offset(hd->active[hd->current].u.kb) <=
+            hd->keyblock_cache.offset)))) {
+    /* (DESCINDEX is already set).  */
+    if (DBG_CLOCK) log_clock("keydb_search leave (cached)");
 
-      hd->current = hd->keyblock_cache.resource;
-      /* HD->KEYBLOCK_CACHE.OFFSET is the last byte in the record.
-         Seek just beyond that.  */
-      keybox_seek (hd->active[hd->current].u.kb,
-                   hd->keyblock_cache.offset + 1);
-      keydb_stats.found_cached++;
-      return 0;
-    }
+    hd->current = hd->keyblock_cache.resource;
+    /* HD->KEYBLOCK_CACHE.OFFSET is the last byte in the record.
+       Seek just beyond that.  */
+    keybox_seek(hd->active[hd->current].u.kb, hd->keyblock_cache.offset + 1);
+    keydb_stats.found_cached++;
+    return 0;
+  }
 
   rc = -1;
-  while ((rc == -1 || rc == GPG_ERR_EOF)
-         && hd->current >= 0 && hd->current < hd->used)
-    {
-      if (DBG_LOOKUP)
-        log_debug ("%s: searching %s (resource %d of %d)\n",
-                   __func__,
-                   (hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX
-                      ? "keybox" : "unknown type"),
-                   hd->current, hd->used);
+  while ((rc == -1 || rc == GPG_ERR_EOF) && hd->current >= 0 &&
+         hd->current < hd->used) {
+    if (DBG_LOOKUP)
+      log_debug("%s: searching %s (resource %d of %d)\n", __func__,
+                (hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX
+                     ? "keybox"
+                     : "unknown type"),
+                hd->current, hd->used);
 
-       switch (hd->active[hd->current].type)
-        {
-        case KEYDB_RESOURCE_TYPE_NONE:
-          BUG(); /* we should never see it here */
-          break;
-        case KEYDB_RESOURCE_TYPE_KEYBOX:
-          do
-            rc = keybox_search (hd->active[hd->current].u.kb, desc,
-                                ndesc, KEYBOX_BLOBTYPE_PGP,
-                                descindex, &hd->skipped_long_blobs);
-          while (rc == GPG_ERR_LEGACY_KEY);
-          break;
-        }
-
-      if (DBG_LOOKUP)
-        log_debug ("%s: searched %s (resource %d of %d) => %s\n",
-                   __func__,
-                   (hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX
-                      ? "keybox" : "unknown type"),
-                   hd->current, hd->used,
-                   rc == -1 ? "EOF" : gpg_strerror (rc));
-
-      if (rc == -1 || rc == GPG_ERR_EOF)
-        {
-          /* EOF -> switch to next resource */
-          hd->current++;
-        }
-      else if (!rc)
-        hd->found = hd->current;
+    switch (hd->active[hd->current].type) {
+      case KEYDB_RESOURCE_TYPE_NONE:
+        BUG(); /* we should never see it here */
+        break;
+      case KEYDB_RESOURCE_TYPE_KEYBOX:
+        do
+          rc = keybox_search(hd->active[hd->current].u.kb, desc, ndesc,
+                             KEYBOX_BLOBTYPE_PGP, descindex,
+                             &hd->skipped_long_blobs);
+        while (rc == GPG_ERR_LEGACY_KEY);
+        break;
     }
+
+    if (DBG_LOOKUP)
+      log_debug("%s: searched %s (resource %d of %d) => %s\n", __func__,
+                (hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX
+                     ? "keybox"
+                     : "unknown type"),
+                hd->current, hd->used, rc == -1 ? "EOF" : gpg_strerror(rc));
+
+    if (rc == -1 || rc == GPG_ERR_EOF) {
+      /* EOF -> switch to next resource */
+      hd->current++;
+    } else if (!rc)
+      hd->found = hd->current;
+  }
   hd->is_reset = 0;
 
-  rc = ((rc == -1 || rc == GPG_ERR_EOF)
-        ? GPG_ERR_NOT_FOUND
-        : rc);
+  rc = ((rc == -1 || rc == GPG_ERR_EOF) ? GPG_ERR_NOT_FOUND : rc);
 
-  keyblock_cache_clear (hd);
-  if (!hd->no_caching
-      && !rc
-      && ndesc == 1 && (desc[0].mode == KEYDB_SEARCH_MODE_FPR20
-                        || desc[0].mode == KEYDB_SEARCH_MODE_FPR)
-      && hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX)
-    {
-      hd->keyblock_cache.state = KEYBLOCK_CACHE_PREPARED;
-      hd->keyblock_cache.resource = hd->current;
-      /* The current offset is at the start of the next record.  Since
-         a record is at least 1 byte, we just use offset - 1, which is
-         within the record.  */
-      hd->keyblock_cache.offset
-        = keybox_offset (hd->active[hd->current].u.kb) - 1;
-      memcpy (hd->keyblock_cache.fpr, desc[0].u.fpr, 20);
-    }
+  keyblock_cache_clear(hd);
+  if (!hd->no_caching && !rc && ndesc == 1 &&
+      (desc[0].mode == KEYDB_SEARCH_MODE_FPR20 ||
+       desc[0].mode == KEYDB_SEARCH_MODE_FPR) &&
+      hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYBOX) {
+    hd->keyblock_cache.state = KEYBLOCK_CACHE_PREPARED;
+    hd->keyblock_cache.resource = hd->current;
+    /* The current offset is at the start of the next record.  Since
+       a record is at least 1 byte, we just use offset - 1, which is
+       within the record.  */
+    hd->keyblock_cache.offset = keybox_offset(hd->active[hd->current].u.kb) - 1;
+    memcpy(hd->keyblock_cache.fpr, desc[0].u.fpr, 20);
+  }
 
-  if (rc == GPG_ERR_NOT_FOUND
-      && ndesc == 1 && desc[0].mode == KEYDB_SEARCH_MODE_LONG_KID && was_reset
-      && !already_in_cache)
-    kid_not_found_insert (desc[0].u.kid);
+  if (rc == GPG_ERR_NOT_FOUND && ndesc == 1 &&
+      desc[0].mode == KEYDB_SEARCH_MODE_LONG_KID && was_reset &&
+      !already_in_cache)
+    kid_not_found_insert(desc[0].u.kid);
 
   if (DBG_CLOCK)
-    log_clock (rc? "keydb_search leave (not found)"
+    log_clock(rc ? "keydb_search leave (not found)"
                  : "keydb_search leave (found)");
   if (!rc)
     keydb_stats.found++;
@@ -1810,42 +1545,34 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
   return rc;
 }
 
-
 /* Return the first non-legacy key in the database.
  *
  * If you want the very first key in the database, you can directly
  * call keydb_search with the search description
  *  KEYDB_SEARCH_MODE_FIRST.  */
-gpg_error_t
-keydb_search_first (KEYDB_HANDLE hd)
-{
+gpg_error_t keydb_search_first(KEYDB_HANDLE hd) {
   gpg_error_t err;
   KEYDB_SEARCH_DESC desc;
 
-  err = keydb_search_reset (hd);
-  if (err)
-    return err;
+  err = keydb_search_reset(hd);
+  if (err) return err;
 
-  memset (&desc, 0, sizeof desc);
+  memset(&desc, 0, sizeof desc);
   desc.mode = KEYDB_SEARCH_MODE_FIRST;
-  return keydb_search (hd, &desc, 1, NULL);
+  return keydb_search(hd, &desc, 1, NULL);
 }
-
 
 /* Return the next key (not the next matching key!).
  *
  * Unlike calling keydb_search with KEYDB_SEARCH_MODE_NEXT, this
  * function silently skips legacy keys.  */
-gpg_error_t
-keydb_search_next (KEYDB_HANDLE hd)
-{
+gpg_error_t keydb_search_next(KEYDB_HANDLE hd) {
   KEYDB_SEARCH_DESC desc;
 
-  memset (&desc, 0, sizeof desc);
+  memset(&desc, 0, sizeof desc);
   desc.mode = KEYDB_SEARCH_MODE_NEXT;
-  return keydb_search (hd, &desc, 1, NULL);
+  return keydb_search(hd, &desc, 1, NULL);
 }
-
 
 /* This is a convenience function for searching for keys with a long
  * key id.
@@ -1853,18 +1580,15 @@ keydb_search_next (KEYDB_HANDLE hd)
  * Note: this function resumes searching where the last search left
  * off.  If you want to search the whole database, then you need to
  * first call keydb_search_reset().  */
-gpg_error_t
-keydb_search_kid (KEYDB_HANDLE hd, u32 *kid)
-{
+gpg_error_t keydb_search_kid(KEYDB_HANDLE hd, u32 *kid) {
   KEYDB_SEARCH_DESC desc;
 
-  memset (&desc, 0, sizeof desc);
+  memset(&desc, 0, sizeof desc);
   desc.mode = KEYDB_SEARCH_MODE_LONG_KID;
   desc.u.kid[0] = kid[0];
   desc.u.kid[1] = kid[1];
-  return keydb_search (hd, &desc, 1, NULL);
+  return keydb_search(hd, &desc, 1, NULL);
 }
-
 
 /* This is a convenience function for searching for keys with a long
  * (20 byte) fingerprint.
@@ -1872,13 +1596,11 @@ keydb_search_kid (KEYDB_HANDLE hd, u32 *kid)
  * Note: this function resumes searching where the last search left
  * off.  If you want to search the whole database, then you need to
  * first call keydb_search_reset().  */
-gpg_error_t
-keydb_search_fpr (KEYDB_HANDLE hd, const byte *fpr)
-{
+gpg_error_t keydb_search_fpr(KEYDB_HANDLE hd, const byte *fpr) {
   KEYDB_SEARCH_DESC desc;
 
-  memset (&desc, 0, sizeof desc);
+  memset(&desc, 0, sizeof desc);
   desc.mode = KEYDB_SEARCH_MODE_FPR;
-  memcpy (desc.u.fpr, fpr, MAX_FINGERPRINT_LEN);
-  return keydb_search (hd, &desc, 1, NULL);
+  memcpy(desc.u.fpr, fpr, MAX_FINGERPRINT_LEN);
+  return keydb_search(hd, &desc, 1, NULL);
 }

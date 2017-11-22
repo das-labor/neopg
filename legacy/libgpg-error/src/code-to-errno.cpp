@@ -22,1434 +22,1428 @@
 
 #include <gpg-error.h>
 
-static int
-code_to_errno(gpg_error_t code)
-{
+static int code_to_errno(gpg_error_t code) {
   switch (code) {
-  case GPG_ERR_E2BIG:
+    case GPG_ERR_E2BIG:
 #ifdef E2BIG
-    return E2BIG;
+      return E2BIG;
 #else
 #ifdef WSAE2BIG
-    return WSAE2BIG;
+      return WSAE2BIG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EACCES:
+    case GPG_ERR_EACCES:
 #ifdef EACCES
-    return EACCES;
+      return EACCES;
 #else
 #ifdef WSAEACCES
-    return WSAEACCES;
+      return WSAEACCES;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EADDRINUSE:
+    case GPG_ERR_EADDRINUSE:
 #ifdef EADDRINUSE
-    return EADDRINUSE;
+      return EADDRINUSE;
 #else
 #ifdef WSAEADDRINUSE
-    return WSAEADDRINUSE;
+      return WSAEADDRINUSE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EADDRNOTAVAIL:
+    case GPG_ERR_EADDRNOTAVAIL:
 #ifdef EADDRNOTAVAIL
-    return EADDRNOTAVAIL;
+      return EADDRNOTAVAIL;
 #else
 #ifdef WSAEADDRNOTAVAIL
-    return WSAEADDRNOTAVAIL;
+      return WSAEADDRNOTAVAIL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EADV:
+    case GPG_ERR_EADV:
 #ifdef EADV
-    return EADV;
+      return EADV;
 #else
 #ifdef WSAEADV
-    return WSAEADV;
+      return WSAEADV;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EAFNOSUPPORT:
+    case GPG_ERR_EAFNOSUPPORT:
 #ifdef EAFNOSUPPORT
-    return EAFNOSUPPORT;
+      return EAFNOSUPPORT;
 #else
 #ifdef WSAEAFNOSUPPORT
-    return WSAEAFNOSUPPORT;
+      return WSAEAFNOSUPPORT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EAGAIN:
+    case GPG_ERR_EAGAIN:
 #ifdef EAGAIN
-    return EAGAIN;
+      return EAGAIN;
 #else
 #ifdef WSAEAGAIN
-    return WSAEAGAIN;
+      return WSAEAGAIN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EALREADY:
+    case GPG_ERR_EALREADY:
 #ifdef EALREADY
-    return EALREADY;
+      return EALREADY;
 #else
 #ifdef WSAEALREADY
-    return WSAEALREADY;
+      return WSAEALREADY;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EAUTH:
+    case GPG_ERR_EAUTH:
 #ifdef EAUTH
-    return EAUTH;
+      return EAUTH;
 #else
 #ifdef WSAEAUTH
-    return WSAEAUTH;
+      return WSAEAUTH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBACKGROUND:
+    case GPG_ERR_EBACKGROUND:
 #ifdef EBACKGROUND
-    return EBACKGROUND;
+      return EBACKGROUND;
 #else
 #ifdef WSAEBACKGROUND
-    return WSAEBACKGROUND;
+      return WSAEBACKGROUND;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADE:
+    case GPG_ERR_EBADE:
 #ifdef EBADE
-    return EBADE;
+      return EBADE;
 #else
 #ifdef WSAEBADE
-    return WSAEBADE;
+      return WSAEBADE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADF:
+    case GPG_ERR_EBADF:
 #ifdef EBADF
-    return EBADF;
+      return EBADF;
 #else
 #ifdef WSAEBADF
-    return WSAEBADF;
+      return WSAEBADF;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADFD:
+    case GPG_ERR_EBADFD:
 #ifdef EBADFD
-    return EBADFD;
+      return EBADFD;
 #else
 #ifdef WSAEBADFD
-    return WSAEBADFD;
+      return WSAEBADFD;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADMSG:
+    case GPG_ERR_EBADMSG:
 #ifdef EBADMSG
-    return EBADMSG;
+      return EBADMSG;
 #else
 #ifdef WSAEBADMSG
-    return WSAEBADMSG;
+      return WSAEBADMSG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADR:
+    case GPG_ERR_EBADR:
 #ifdef EBADR
-    return EBADR;
+      return EBADR;
 #else
 #ifdef WSAEBADR
-    return WSAEBADR;
+      return WSAEBADR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADRPC:
+    case GPG_ERR_EBADRPC:
 #ifdef EBADRPC
-    return EBADRPC;
+      return EBADRPC;
 #else
 #ifdef WSAEBADRPC
-    return WSAEBADRPC;
+      return WSAEBADRPC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADRQC:
+    case GPG_ERR_EBADRQC:
 #ifdef EBADRQC
-    return EBADRQC;
+      return EBADRQC;
 #else
 #ifdef WSAEBADRQC
-    return WSAEBADRQC;
+      return WSAEBADRQC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBADSLT:
+    case GPG_ERR_EBADSLT:
 #ifdef EBADSLT
-    return EBADSLT;
+      return EBADSLT;
 #else
 #ifdef WSAEBADSLT
-    return WSAEBADSLT;
+      return WSAEBADSLT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBFONT:
+    case GPG_ERR_EBFONT:
 #ifdef EBFONT
-    return EBFONT;
+      return EBFONT;
 #else
 #ifdef WSAEBFONT
-    return WSAEBFONT;
+      return WSAEBFONT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EBUSY:
+    case GPG_ERR_EBUSY:
 #ifdef EBUSY
-    return EBUSY;
+      return EBUSY;
 #else
 #ifdef WSAEBUSY
-    return WSAEBUSY;
+      return WSAEBUSY;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECANCELED:
+    case GPG_ERR_ECANCELED:
 #ifdef ECANCELED
-    return ECANCELED;
+      return ECANCELED;
 #else
 #ifdef WSAECANCELED
-    return WSAECANCELED;
+      return WSAECANCELED;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECHILD:
+    case GPG_ERR_ECHILD:
 #ifdef ECHILD
-    return ECHILD;
+      return ECHILD;
 #else
 #ifdef WSAECHILD
-    return WSAECHILD;
+      return WSAECHILD;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECHRNG:
+    case GPG_ERR_ECHRNG:
 #ifdef ECHRNG
-    return ECHRNG;
+      return ECHRNG;
 #else
 #ifdef WSAECHRNG
-    return WSAECHRNG;
+      return WSAECHRNG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECOMM:
+    case GPG_ERR_ECOMM:
 #ifdef ECOMM
-    return ECOMM;
+      return ECOMM;
 #else
 #ifdef WSAECOMM
-    return WSAECOMM;
+      return WSAECOMM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECONNABORTED:
+    case GPG_ERR_ECONNABORTED:
 #ifdef ECONNABORTED
-    return ECONNABORTED;
+      return ECONNABORTED;
 #else
 #ifdef WSAECONNABORTED
-    return WSAECONNABORTED;
+      return WSAECONNABORTED;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECONNREFUSED:
+    case GPG_ERR_ECONNREFUSED:
 #ifdef ECONNREFUSED
-    return ECONNREFUSED;
+      return ECONNREFUSED;
 #else
 #ifdef WSAECONNREFUSED
-    return WSAECONNREFUSED;
+      return WSAECONNREFUSED;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ECONNRESET:
+    case GPG_ERR_ECONNRESET:
 #ifdef ECONNRESET
-    return ECONNRESET;
+      return ECONNRESET;
 #else
 #ifdef WSAECONNRESET
-    return WSAECONNRESET;
+      return WSAECONNRESET;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ED:
+    case GPG_ERR_ED:
 #ifdef ED
-    return ED;
+      return ED;
 #else
 #ifdef WSAED
-    return WSAED;
+      return WSAED;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDEADLK:
+    case GPG_ERR_EDEADLK:
 #ifdef EDEADLK
-    return EDEADLK;
+      return EDEADLK;
 #else
 #ifdef WSAEDEADLK
-    return WSAEDEADLK;
+      return WSAEDEADLK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDEADLOCK:
+    case GPG_ERR_EDEADLOCK:
 #ifdef EDEADLOCK
-    return EDEADLOCK;
+      return EDEADLOCK;
 #else
 #ifdef WSAEDEADLOCK
-    return WSAEDEADLOCK;
+      return WSAEDEADLOCK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDESTADDRREQ:
+    case GPG_ERR_EDESTADDRREQ:
 #ifdef EDESTADDRREQ
-    return EDESTADDRREQ;
+      return EDESTADDRREQ;
 #else
 #ifdef WSAEDESTADDRREQ
-    return WSAEDESTADDRREQ;
+      return WSAEDESTADDRREQ;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDIED:
+    case GPG_ERR_EDIED:
 #ifdef EDIED
-    return EDIED;
+      return EDIED;
 #else
 #ifdef WSAEDIED
-    return WSAEDIED;
+      return WSAEDIED;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDOM:
+    case GPG_ERR_EDOM:
 #ifdef EDOM
-    return EDOM;
+      return EDOM;
 #else
 #ifdef WSAEDOM
-    return WSAEDOM;
+      return WSAEDOM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDOTDOT:
+    case GPG_ERR_EDOTDOT:
 #ifdef EDOTDOT
-    return EDOTDOT;
+      return EDOTDOT;
 #else
 #ifdef WSAEDOTDOT
-    return WSAEDOTDOT;
+      return WSAEDOTDOT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EDQUOT:
+    case GPG_ERR_EDQUOT:
 #ifdef EDQUOT
-    return EDQUOT;
+      return EDQUOT;
 #else
 #ifdef WSAEDQUOT
-    return WSAEDQUOT;
+      return WSAEDQUOT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EEXIST:
+    case GPG_ERR_EEXIST:
 #ifdef EEXIST
-    return EEXIST;
+      return EEXIST;
 #else
 #ifdef WSAEEXIST
-    return WSAEEXIST;
+      return WSAEEXIST;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EFAULT:
+    case GPG_ERR_EFAULT:
 #ifdef EFAULT
-    return EFAULT;
+      return EFAULT;
 #else
 #ifdef WSAEFAULT
-    return WSAEFAULT;
+      return WSAEFAULT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EFBIG:
+    case GPG_ERR_EFBIG:
 #ifdef EFBIG
-    return EFBIG;
+      return EFBIG;
 #else
 #ifdef WSAEFBIG
-    return WSAEFBIG;
+      return WSAEFBIG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EFTYPE:
+    case GPG_ERR_EFTYPE:
 #ifdef EFTYPE
-    return EFTYPE;
+      return EFTYPE;
 #else
 #ifdef WSAEFTYPE
-    return WSAEFTYPE;
+      return WSAEFTYPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EGRATUITOUS:
+    case GPG_ERR_EGRATUITOUS:
 #ifdef EGRATUITOUS
-    return EGRATUITOUS;
+      return EGRATUITOUS;
 #else
 #ifdef WSAEGRATUITOUS
-    return WSAEGRATUITOUS;
+      return WSAEGRATUITOUS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EGREGIOUS:
+    case GPG_ERR_EGREGIOUS:
 #ifdef EGREGIOUS
-    return EGREGIOUS;
+      return EGREGIOUS;
 #else
 #ifdef WSAEGREGIOUS
-    return WSAEGREGIOUS;
+      return WSAEGREGIOUS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EHOSTDOWN:
+    case GPG_ERR_EHOSTDOWN:
 #ifdef EHOSTDOWN
-    return EHOSTDOWN;
+      return EHOSTDOWN;
 #else
 #ifdef WSAEHOSTDOWN
-    return WSAEHOSTDOWN;
+      return WSAEHOSTDOWN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EHOSTUNREACH:
+    case GPG_ERR_EHOSTUNREACH:
 #ifdef EHOSTUNREACH
-    return EHOSTUNREACH;
+      return EHOSTUNREACH;
 #else
 #ifdef WSAEHOSTUNREACH
-    return WSAEHOSTUNREACH;
+      return WSAEHOSTUNREACH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EIDRM:
+    case GPG_ERR_EIDRM:
 #ifdef EIDRM
-    return EIDRM;
+      return EIDRM;
 #else
 #ifdef WSAEIDRM
-    return WSAEIDRM;
+      return WSAEIDRM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EIEIO:
+    case GPG_ERR_EIEIO:
 #ifdef EIEIO
-    return EIEIO;
+      return EIEIO;
 #else
 #ifdef WSAEIEIO
-    return WSAEIEIO;
+      return WSAEIEIO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EILSEQ:
+    case GPG_ERR_EILSEQ:
 #ifdef EILSEQ
-    return EILSEQ;
+      return EILSEQ;
 #else
 #ifdef WSAEILSEQ
-    return WSAEILSEQ;
+      return WSAEILSEQ;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EINPROGRESS:
+    case GPG_ERR_EINPROGRESS:
 #ifdef EINPROGRESS
-    return EINPROGRESS;
+      return EINPROGRESS;
 #else
 #ifdef WSAEINPROGRESS
-    return WSAEINPROGRESS;
+      return WSAEINPROGRESS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EINTR:
+    case GPG_ERR_EINTR:
 #ifdef EINTR
-    return EINTR;
+      return EINTR;
 #else
 #ifdef WSAEINTR
-    return WSAEINTR;
+      return WSAEINTR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EINVAL:
+    case GPG_ERR_EINVAL:
 #ifdef EINVAL
-    return EINVAL;
+      return EINVAL;
 #else
 #ifdef WSAEINVAL
-    return WSAEINVAL;
+      return WSAEINVAL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EIO:
+    case GPG_ERR_EIO:
 #ifdef EIO
-    return EIO;
+      return EIO;
 #else
 #ifdef WSAEIO
-    return WSAEIO;
+      return WSAEIO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EISCONN:
+    case GPG_ERR_EISCONN:
 #ifdef EISCONN
-    return EISCONN;
+      return EISCONN;
 #else
 #ifdef WSAEISCONN
-    return WSAEISCONN;
+      return WSAEISCONN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EISDIR:
+    case GPG_ERR_EISDIR:
 #ifdef EISDIR
-    return EISDIR;
+      return EISDIR;
 #else
 #ifdef WSAEISDIR
-    return WSAEISDIR;
+      return WSAEISDIR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EISNAM:
+    case GPG_ERR_EISNAM:
 #ifdef EISNAM
-    return EISNAM;
+      return EISNAM;
 #else
 #ifdef WSAEISNAM
-    return WSAEISNAM;
+      return WSAEISNAM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EL2HLT:
+    case GPG_ERR_EL2HLT:
 #ifdef EL2HLT
-    return EL2HLT;
+      return EL2HLT;
 #else
 #ifdef WSAEL2HLT
-    return WSAEL2HLT;
+      return WSAEL2HLT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EL2NSYNC:
+    case GPG_ERR_EL2NSYNC:
 #ifdef EL2NSYNC
-    return EL2NSYNC;
+      return EL2NSYNC;
 #else
 #ifdef WSAEL2NSYNC
-    return WSAEL2NSYNC;
+      return WSAEL2NSYNC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EL3HLT:
+    case GPG_ERR_EL3HLT:
 #ifdef EL3HLT
-    return EL3HLT;
+      return EL3HLT;
 #else
 #ifdef WSAEL3HLT
-    return WSAEL3HLT;
+      return WSAEL3HLT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EL3RST:
+    case GPG_ERR_EL3RST:
 #ifdef EL3RST
-    return EL3RST;
+      return EL3RST;
 #else
 #ifdef WSAEL3RST
-    return WSAEL3RST;
+      return WSAEL3RST;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELIBACC:
+    case GPG_ERR_ELIBACC:
 #ifdef ELIBACC
-    return ELIBACC;
+      return ELIBACC;
 #else
 #ifdef WSAELIBACC
-    return WSAELIBACC;
+      return WSAELIBACC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELIBBAD:
+    case GPG_ERR_ELIBBAD:
 #ifdef ELIBBAD
-    return ELIBBAD;
+      return ELIBBAD;
 #else
 #ifdef WSAELIBBAD
-    return WSAELIBBAD;
+      return WSAELIBBAD;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELIBEXEC:
+    case GPG_ERR_ELIBEXEC:
 #ifdef ELIBEXEC
-    return ELIBEXEC;
+      return ELIBEXEC;
 #else
 #ifdef WSAELIBEXEC
-    return WSAELIBEXEC;
+      return WSAELIBEXEC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELIBMAX:
+    case GPG_ERR_ELIBMAX:
 #ifdef ELIBMAX
-    return ELIBMAX;
+      return ELIBMAX;
 #else
 #ifdef WSAELIBMAX
-    return WSAELIBMAX;
+      return WSAELIBMAX;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELIBSCN:
+    case GPG_ERR_ELIBSCN:
 #ifdef ELIBSCN
-    return ELIBSCN;
+      return ELIBSCN;
 #else
 #ifdef WSAELIBSCN
-    return WSAELIBSCN;
+      return WSAELIBSCN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELNRNG:
+    case GPG_ERR_ELNRNG:
 #ifdef ELNRNG
-    return ELNRNG;
+      return ELNRNG;
 #else
 #ifdef WSAELNRNG
-    return WSAELNRNG;
+      return WSAELNRNG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ELOOP:
+    case GPG_ERR_ELOOP:
 #ifdef ELOOP
-    return ELOOP;
+      return ELOOP;
 #else
 #ifdef WSAELOOP
-    return WSAELOOP;
+      return WSAELOOP;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EMEDIUMTYPE:
+    case GPG_ERR_EMEDIUMTYPE:
 #ifdef EMEDIUMTYPE
-    return EMEDIUMTYPE;
+      return EMEDIUMTYPE;
 #else
 #ifdef WSAEMEDIUMTYPE
-    return WSAEMEDIUMTYPE;
+      return WSAEMEDIUMTYPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EMFILE:
+    case GPG_ERR_EMFILE:
 #ifdef EMFILE
-    return EMFILE;
+      return EMFILE;
 #else
 #ifdef WSAEMFILE
-    return WSAEMFILE;
+      return WSAEMFILE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EMLINK:
+    case GPG_ERR_EMLINK:
 #ifdef EMLINK
-    return EMLINK;
+      return EMLINK;
 #else
 #ifdef WSAEMLINK
-    return WSAEMLINK;
+      return WSAEMLINK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EMSGSIZE:
+    case GPG_ERR_EMSGSIZE:
 #ifdef EMSGSIZE
-    return EMSGSIZE;
+      return EMSGSIZE;
 #else
 #ifdef WSAEMSGSIZE
-    return WSAEMSGSIZE;
+      return WSAEMSGSIZE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EMULTIHOP:
+    case GPG_ERR_EMULTIHOP:
 #ifdef EMULTIHOP
-    return EMULTIHOP;
+      return EMULTIHOP;
 #else
 #ifdef WSAEMULTIHOP
-    return WSAEMULTIHOP;
+      return WSAEMULTIHOP;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENAMETOOLONG:
+    case GPG_ERR_ENAMETOOLONG:
 #ifdef ENAMETOOLONG
-    return ENAMETOOLONG;
+      return ENAMETOOLONG;
 #else
 #ifdef WSAENAMETOOLONG
-    return WSAENAMETOOLONG;
+      return WSAENAMETOOLONG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENAVAIL:
+    case GPG_ERR_ENAVAIL:
 #ifdef ENAVAIL
-    return ENAVAIL;
+      return ENAVAIL;
 #else
 #ifdef WSAENAVAIL
-    return WSAENAVAIL;
+      return WSAENAVAIL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENEEDAUTH:
+    case GPG_ERR_ENEEDAUTH:
 #ifdef ENEEDAUTH
-    return ENEEDAUTH;
+      return ENEEDAUTH;
 #else
 #ifdef WSAENEEDAUTH
-    return WSAENEEDAUTH;
+      return WSAENEEDAUTH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENETDOWN:
+    case GPG_ERR_ENETDOWN:
 #ifdef ENETDOWN
-    return ENETDOWN;
+      return ENETDOWN;
 #else
 #ifdef WSAENETDOWN
-    return WSAENETDOWN;
+      return WSAENETDOWN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENETRESET:
+    case GPG_ERR_ENETRESET:
 #ifdef ENETRESET
-    return ENETRESET;
+      return ENETRESET;
 #else
 #ifdef WSAENETRESET
-    return WSAENETRESET;
+      return WSAENETRESET;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENETUNREACH:
+    case GPG_ERR_ENETUNREACH:
 #ifdef ENETUNREACH
-    return ENETUNREACH;
+      return ENETUNREACH;
 #else
 #ifdef WSAENETUNREACH
-    return WSAENETUNREACH;
+      return WSAENETUNREACH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENFILE:
+    case GPG_ERR_ENFILE:
 #ifdef ENFILE
-    return ENFILE;
+      return ENFILE;
 #else
 #ifdef WSAENFILE
-    return WSAENFILE;
+      return WSAENFILE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOANO:
+    case GPG_ERR_ENOANO:
 #ifdef ENOANO
-    return ENOANO;
+      return ENOANO;
 #else
 #ifdef WSAENOANO
-    return WSAENOANO;
+      return WSAENOANO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOBUFS:
+    case GPG_ERR_ENOBUFS:
 #ifdef ENOBUFS
-    return ENOBUFS;
+      return ENOBUFS;
 #else
 #ifdef WSAENOBUFS
-    return WSAENOBUFS;
+      return WSAENOBUFS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOCSI:
+    case GPG_ERR_ENOCSI:
 #ifdef ENOCSI
-    return ENOCSI;
+      return ENOCSI;
 #else
 #ifdef WSAENOCSI
-    return WSAENOCSI;
+      return WSAENOCSI;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENODATA:
+    case GPG_ERR_ENODATA:
 #ifdef ENODATA
-    return ENODATA;
+      return ENODATA;
 #else
 #ifdef WSAENODATA
-    return WSAENODATA;
+      return WSAENODATA;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENODEV:
+    case GPG_ERR_ENODEV:
 #ifdef ENODEV
-    return ENODEV;
+      return ENODEV;
 #else
 #ifdef WSAENODEV
-    return WSAENODEV;
+      return WSAENODEV;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOENT:
+    case GPG_ERR_ENOENT:
 #ifdef ENOENT
-    return ENOENT;
+      return ENOENT;
 #else
 #ifdef WSAENOENT
-    return WSAENOENT;
+      return WSAENOENT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOEXEC:
+    case GPG_ERR_ENOEXEC:
 #ifdef ENOEXEC
-    return ENOEXEC;
+      return ENOEXEC;
 #else
 #ifdef WSAENOEXEC
-    return WSAENOEXEC;
+      return WSAENOEXEC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOLCK:
+    case GPG_ERR_ENOLCK:
 #ifdef ENOLCK
-    return ENOLCK;
+      return ENOLCK;
 #else
 #ifdef WSAENOLCK
-    return WSAENOLCK;
+      return WSAENOLCK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOLINK:
+    case GPG_ERR_ENOLINK:
 #ifdef ENOLINK
-    return ENOLINK;
+      return ENOLINK;
 #else
 #ifdef WSAENOLINK
-    return WSAENOLINK;
+      return WSAENOLINK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOMEDIUM:
+    case GPG_ERR_ENOMEDIUM:
 #ifdef ENOMEDIUM
-    return ENOMEDIUM;
+      return ENOMEDIUM;
 #else
 #ifdef WSAENOMEDIUM
-    return WSAENOMEDIUM;
+      return WSAENOMEDIUM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOMEM:
+    case GPG_ERR_ENOMEM:
 #ifdef ENOMEM
-    return ENOMEM;
+      return ENOMEM;
 #else
 #ifdef WSAENOMEM
-    return WSAENOMEM;
+      return WSAENOMEM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOMSG:
+    case GPG_ERR_ENOMSG:
 #ifdef ENOMSG
-    return ENOMSG;
+      return ENOMSG;
 #else
 #ifdef WSAENOMSG
-    return WSAENOMSG;
+      return WSAENOMSG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENONET:
+    case GPG_ERR_ENONET:
 #ifdef ENONET
-    return ENONET;
+      return ENONET;
 #else
 #ifdef WSAENONET
-    return WSAENONET;
+      return WSAENONET;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOPKG:
+    case GPG_ERR_ENOPKG:
 #ifdef ENOPKG
-    return ENOPKG;
+      return ENOPKG;
 #else
 #ifdef WSAENOPKG
-    return WSAENOPKG;
+      return WSAENOPKG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOPROTOOPT:
+    case GPG_ERR_ENOPROTOOPT:
 #ifdef ENOPROTOOPT
-    return ENOPROTOOPT;
+      return ENOPROTOOPT;
 #else
 #ifdef WSAENOPROTOOPT
-    return WSAENOPROTOOPT;
+      return WSAENOPROTOOPT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOSPC:
+    case GPG_ERR_ENOSPC:
 #ifdef ENOSPC
-    return ENOSPC;
+      return ENOSPC;
 #else
 #ifdef WSAENOSPC
-    return WSAENOSPC;
+      return WSAENOSPC;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOSR:
+    case GPG_ERR_ENOSR:
 #ifdef ENOSR
-    return ENOSR;
+      return ENOSR;
 #else
 #ifdef WSAENOSR
-    return WSAENOSR;
+      return WSAENOSR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOSTR:
+    case GPG_ERR_ENOSTR:
 #ifdef ENOSTR
-    return ENOSTR;
+      return ENOSTR;
 #else
 #ifdef WSAENOSTR
-    return WSAENOSTR;
+      return WSAENOSTR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOSYS:
+    case GPG_ERR_ENOSYS:
 #ifdef ENOSYS
-    return ENOSYS;
+      return ENOSYS;
 #else
 #ifdef WSAENOSYS
-    return WSAENOSYS;
+      return WSAENOSYS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTBLK:
+    case GPG_ERR_ENOTBLK:
 #ifdef ENOTBLK
-    return ENOTBLK;
+      return ENOTBLK;
 #else
 #ifdef WSAENOTBLK
-    return WSAENOTBLK;
+      return WSAENOTBLK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTCONN:
+    case GPG_ERR_ENOTCONN:
 #ifdef ENOTCONN
-    return ENOTCONN;
+      return ENOTCONN;
 #else
 #ifdef WSAENOTCONN
-    return WSAENOTCONN;
+      return WSAENOTCONN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTDIR:
+    case GPG_ERR_ENOTDIR:
 #ifdef ENOTDIR
-    return ENOTDIR;
+      return ENOTDIR;
 #else
 #ifdef WSAENOTDIR
-    return WSAENOTDIR;
+      return WSAENOTDIR;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTEMPTY:
+    case GPG_ERR_ENOTEMPTY:
 #ifdef ENOTEMPTY
-    return ENOTEMPTY;
+      return ENOTEMPTY;
 #else
 #ifdef WSAENOTEMPTY
-    return WSAENOTEMPTY;
+      return WSAENOTEMPTY;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTNAM:
+    case GPG_ERR_ENOTNAM:
 #ifdef ENOTNAM
-    return ENOTNAM;
+      return ENOTNAM;
 #else
 #ifdef WSAENOTNAM
-    return WSAENOTNAM;
+      return WSAENOTNAM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTSOCK:
+    case GPG_ERR_ENOTSOCK:
 #ifdef ENOTSOCK
-    return ENOTSOCK;
+      return ENOTSOCK;
 #else
 #ifdef WSAENOTSOCK
-    return WSAENOTSOCK;
+      return WSAENOTSOCK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTSUP:
+    case GPG_ERR_ENOTSUP:
 #ifdef ENOTSUP
-    return ENOTSUP;
+      return ENOTSUP;
 #else
 #ifdef WSAENOTSUP
-    return WSAENOTSUP;
+      return WSAENOTSUP;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTTY:
+    case GPG_ERR_ENOTTY:
 #ifdef ENOTTY
-    return ENOTTY;
+      return ENOTTY;
 #else
 #ifdef WSAENOTTY
-    return WSAENOTTY;
+      return WSAENOTTY;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENOTUNIQ:
+    case GPG_ERR_ENOTUNIQ:
 #ifdef ENOTUNIQ
-    return ENOTUNIQ;
+      return ENOTUNIQ;
 #else
 #ifdef WSAENOTUNIQ
-    return WSAENOTUNIQ;
+      return WSAENOTUNIQ;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ENXIO:
+    case GPG_ERR_ENXIO:
 #ifdef ENXIO
-    return ENXIO;
+      return ENXIO;
 #else
 #ifdef WSAENXIO
-    return WSAENXIO;
+      return WSAENXIO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EOPNOTSUPP:
+    case GPG_ERR_EOPNOTSUPP:
 #ifdef EOPNOTSUPP
-    return EOPNOTSUPP;
+      return EOPNOTSUPP;
 #else
 #ifdef WSAEOPNOTSUPP
-    return WSAEOPNOTSUPP;
+      return WSAEOPNOTSUPP;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EOVERFLOW:
+    case GPG_ERR_EOVERFLOW:
 #ifdef EOVERFLOW
-    return EOVERFLOW;
+      return EOVERFLOW;
 #else
 #ifdef WSAEOVERFLOW
-    return WSAEOVERFLOW;
+      return WSAEOVERFLOW;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPERM:
+    case GPG_ERR_EPERM:
 #ifdef EPERM
-    return EPERM;
+      return EPERM;
 #else
 #ifdef WSAEPERM
-    return WSAEPERM;
+      return WSAEPERM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPFNOSUPPORT:
+    case GPG_ERR_EPFNOSUPPORT:
 #ifdef EPFNOSUPPORT
-    return EPFNOSUPPORT;
+      return EPFNOSUPPORT;
 #else
 #ifdef WSAEPFNOSUPPORT
-    return WSAEPFNOSUPPORT;
+      return WSAEPFNOSUPPORT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPIPE:
+    case GPG_ERR_EPIPE:
 #ifdef EPIPE
-    return EPIPE;
+      return EPIPE;
 #else
 #ifdef WSAEPIPE
-    return WSAEPIPE;
+      return WSAEPIPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROCLIM:
+    case GPG_ERR_EPROCLIM:
 #ifdef EPROCLIM
-    return EPROCLIM;
+      return EPROCLIM;
 #else
 #ifdef WSAEPROCLIM
-    return WSAEPROCLIM;
+      return WSAEPROCLIM;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROCUNAVAIL:
+    case GPG_ERR_EPROCUNAVAIL:
 #ifdef EPROCUNAVAIL
-    return EPROCUNAVAIL;
+      return EPROCUNAVAIL;
 #else
 #ifdef WSAEPROCUNAVAIL
-    return WSAEPROCUNAVAIL;
+      return WSAEPROCUNAVAIL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROGMISMATCH:
+    case GPG_ERR_EPROGMISMATCH:
 #ifdef EPROGMISMATCH
-    return EPROGMISMATCH;
+      return EPROGMISMATCH;
 #else
 #ifdef WSAEPROGMISMATCH
-    return WSAEPROGMISMATCH;
+      return WSAEPROGMISMATCH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROGUNAVAIL:
+    case GPG_ERR_EPROGUNAVAIL:
 #ifdef EPROGUNAVAIL
-    return EPROGUNAVAIL;
+      return EPROGUNAVAIL;
 #else
 #ifdef WSAEPROGUNAVAIL
-    return WSAEPROGUNAVAIL;
+      return WSAEPROGUNAVAIL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROTO:
+    case GPG_ERR_EPROTO:
 #ifdef EPROTO
-    return EPROTO;
+      return EPROTO;
 #else
 #ifdef WSAEPROTO
-    return WSAEPROTO;
+      return WSAEPROTO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROTONOSUPPORT:
+    case GPG_ERR_EPROTONOSUPPORT:
 #ifdef EPROTONOSUPPORT
-    return EPROTONOSUPPORT;
+      return EPROTONOSUPPORT;
 #else
 #ifdef WSAEPROTONOSUPPORT
-    return WSAEPROTONOSUPPORT;
+      return WSAEPROTONOSUPPORT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EPROTOTYPE:
+    case GPG_ERR_EPROTOTYPE:
 #ifdef EPROTOTYPE
-    return EPROTOTYPE;
+      return EPROTOTYPE;
 #else
 #ifdef WSAEPROTOTYPE
-    return WSAEPROTOTYPE;
+      return WSAEPROTOTYPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ERANGE:
+    case GPG_ERR_ERANGE:
 #ifdef ERANGE
-    return ERANGE;
+      return ERANGE;
 #else
 #ifdef WSAERANGE
-    return WSAERANGE;
+      return WSAERANGE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EREMCHG:
+    case GPG_ERR_EREMCHG:
 #ifdef EREMCHG
-    return EREMCHG;
+      return EREMCHG;
 #else
 #ifdef WSAEREMCHG
-    return WSAEREMCHG;
+      return WSAEREMCHG;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EREMOTE:
+    case GPG_ERR_EREMOTE:
 #ifdef EREMOTE
-    return EREMOTE;
+      return EREMOTE;
 #else
 #ifdef WSAEREMOTE
-    return WSAEREMOTE;
+      return WSAEREMOTE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EREMOTEIO:
+    case GPG_ERR_EREMOTEIO:
 #ifdef EREMOTEIO
-    return EREMOTEIO;
+      return EREMOTEIO;
 #else
 #ifdef WSAEREMOTEIO
-    return WSAEREMOTEIO;
+      return WSAEREMOTEIO;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ERESTART:
+    case GPG_ERR_ERESTART:
 #ifdef ERESTART
-    return ERESTART;
+      return ERESTART;
 #else
 #ifdef WSAERESTART
-    return WSAERESTART;
+      return WSAERESTART;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EROFS:
+    case GPG_ERR_EROFS:
 #ifdef EROFS
-    return EROFS;
+      return EROFS;
 #else
 #ifdef WSAEROFS
-    return WSAEROFS;
+      return WSAEROFS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ERPCMISMATCH:
+    case GPG_ERR_ERPCMISMATCH:
 #ifdef ERPCMISMATCH
-    return ERPCMISMATCH;
+      return ERPCMISMATCH;
 #else
 #ifdef WSAERPCMISMATCH
-    return WSAERPCMISMATCH;
+      return WSAERPCMISMATCH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESHUTDOWN:
+    case GPG_ERR_ESHUTDOWN:
 #ifdef ESHUTDOWN
-    return ESHUTDOWN;
+      return ESHUTDOWN;
 #else
 #ifdef WSAESHUTDOWN
-    return WSAESHUTDOWN;
+      return WSAESHUTDOWN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESOCKTNOSUPPORT:
+    case GPG_ERR_ESOCKTNOSUPPORT:
 #ifdef ESOCKTNOSUPPORT
-    return ESOCKTNOSUPPORT;
+      return ESOCKTNOSUPPORT;
 #else
 #ifdef WSAESOCKTNOSUPPORT
-    return WSAESOCKTNOSUPPORT;
+      return WSAESOCKTNOSUPPORT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESPIPE:
+    case GPG_ERR_ESPIPE:
 #ifdef ESPIPE
-    return ESPIPE;
+      return ESPIPE;
 #else
 #ifdef WSAESPIPE
-    return WSAESPIPE;
+      return WSAESPIPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESRCH:
+    case GPG_ERR_ESRCH:
 #ifdef ESRCH
-    return ESRCH;
+      return ESRCH;
 #else
 #ifdef WSAESRCH
-    return WSAESRCH;
+      return WSAESRCH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESRMNT:
+    case GPG_ERR_ESRMNT:
 #ifdef ESRMNT
-    return ESRMNT;
+      return ESRMNT;
 #else
 #ifdef WSAESRMNT
-    return WSAESRMNT;
+      return WSAESRMNT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESTALE:
+    case GPG_ERR_ESTALE:
 #ifdef ESTALE
-    return ESTALE;
+      return ESTALE;
 #else
 #ifdef WSAESTALE
-    return WSAESTALE;
+      return WSAESTALE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ESTRPIPE:
+    case GPG_ERR_ESTRPIPE:
 #ifdef ESTRPIPE
-    return ESTRPIPE;
+      return ESTRPIPE;
 #else
 #ifdef WSAESTRPIPE
-    return WSAESTRPIPE;
+      return WSAESTRPIPE;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ETIME:
+    case GPG_ERR_ETIME:
 #ifdef ETIME
-    return ETIME;
+      return ETIME;
 #else
 #ifdef WSAETIME
-    return WSAETIME;
+      return WSAETIME;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ETIMEDOUT:
+    case GPG_ERR_ETIMEDOUT:
 #ifdef ETIMEDOUT
-    return ETIMEDOUT;
+      return ETIMEDOUT;
 #else
 #ifdef WSAETIMEDOUT
-    return WSAETIMEDOUT;
+      return WSAETIMEDOUT;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ETOOMANYREFS:
+    case GPG_ERR_ETOOMANYREFS:
 #ifdef ETOOMANYREFS
-    return ETOOMANYREFS;
+      return ETOOMANYREFS;
 #else
 #ifdef WSAETOOMANYREFS
-    return WSAETOOMANYREFS;
+      return WSAETOOMANYREFS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_ETXTBSY:
+    case GPG_ERR_ETXTBSY:
 #ifdef ETXTBSY
-    return ETXTBSY;
+      return ETXTBSY;
 #else
 #ifdef WSAETXTBSY
-    return WSAETXTBSY;
+      return WSAETXTBSY;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EUCLEAN:
+    case GPG_ERR_EUCLEAN:
 #ifdef EUCLEAN
-    return EUCLEAN;
+      return EUCLEAN;
 #else
 #ifdef WSAEUCLEAN
-    return WSAEUCLEAN;
+      return WSAEUCLEAN;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EUNATCH:
+    case GPG_ERR_EUNATCH:
 #ifdef EUNATCH
-    return EUNATCH;
+      return EUNATCH;
 #else
 #ifdef WSAEUNATCH
-    return WSAEUNATCH;
+      return WSAEUNATCH;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EUSERS:
+    case GPG_ERR_EUSERS:
 #ifdef EUSERS
-    return EUSERS;
+      return EUSERS;
 #else
 #ifdef WSAEUSERS
-    return WSAEUSERS;
+      return WSAEUSERS;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EWOULDBLOCK:
+    case GPG_ERR_EWOULDBLOCK:
 #ifdef EWOULDBLOCK
-    return EWOULDBLOCK;
+      return EWOULDBLOCK;
 #else
 #ifdef WSAEWOULDBLOCK
-    return WSAEWOULDBLOCK;
+      return WSAEWOULDBLOCK;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EXDEV:
+    case GPG_ERR_EXDEV:
 #ifdef EXDEV
-    return EXDEV;
+      return EXDEV;
 #else
 #ifdef WSAEXDEV
-    return WSAEXDEV;
+      return WSAEXDEV;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  case GPG_ERR_EXFULL:
+    case GPG_ERR_EXFULL:
 #ifdef EXFULL
-    return EXFULL;
+      return EXFULL;
 #else
 #ifdef WSAEXFULL
-    return WSAEXFULL;
+      return WSAEXFULL;
 #else
-    return 0;
+      return 0;
 #endif
 #endif
-  default:
-    break;
+    default:
+      break;
   }
   return 0;
 }
 
-
 /* Retrieve the system error for the error code CODE.  This returns 0
    if CODE is not a system error code.  */
-int
-gpg_error_to_errno (gpg_error_t code)
-{
-  if (!(code & GPG_ERR_SYSTEM_ERROR))
-    return 0;
+int gpg_error_to_errno(gpg_error_t code) {
+  if (!(code & GPG_ERR_SYSTEM_ERROR)) return 0;
   code &= ~GPG_ERR_SYSTEM_ERROR;
 
   return code_to_errno(code);

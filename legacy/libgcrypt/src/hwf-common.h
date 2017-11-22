@@ -20,8 +20,7 @@
 #ifndef HWF_COMMON_H
 #define HWF_COMMON_H
 
-unsigned int _gcry_hwf_detect_x86 (void);
-unsigned int _gcry_hwf_detect_arm (void);
-
+unsigned int _gcry_hwf_detect_x86(void);
+unsigned int _gcry_hwf_detect_arm(void);
 
 #endif /*HWF_COMMON_H*/

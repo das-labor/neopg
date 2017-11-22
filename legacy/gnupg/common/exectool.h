@@ -38,10 +38,8 @@
  * doc/DETAILS); it is never NULL.  ARGS are the arguments of the
  * status line and will also never be NULL; the caller may modify this
  * string.  */
-typedef void (*exec_tool_status_cb_t) (void *opaque,
-                                       const char *keyword,
-                                       char *args);
-
+typedef void (*exec_tool_status_cb_t)(void *opaque, const char *keyword,
+                                      char *args);
 
 /* Run the program PGMNAME with the command line arguments given in
    the NULL terminates array ARGV.  If INPUT_STRING is not NULL it
@@ -51,19 +49,19 @@ typedef void (*exec_tool_status_cb_t) (void *opaque,
    NULL.  A hidden Nul is appended to the output.  On error NULL is
    stored at RESULT, a diagnostic is printed, and an error code
    returned.  */
-gpg_error_t gnupg_exec_tool (const char *pgmname, const char *argv[],
-                             const char *input_string,
-                             char **result, size_t *resultlen);
+gpg_error_t gnupg_exec_tool(const char *pgmname, const char *argv[],
+                            const char *input_string, char **result,
+                            size_t *resultlen);
 
 /* Run the program PGMNAME with the command line arguments given in
    the NULL terminates array ARGV.  If INPUT is not NULL it will be
    fed to stdin of the process.  stderr is logged using log_info and
    the process' stdout is written to OUTPUT.  On error a diagnostic is
    printed, and an error code returned.  INEXTRA is reserved. */
-gpg_error_t gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
-                                    estream_t input, estream_t inextra,
-                                    estream_t output,
-                                    exec_tool_status_cb_t status_cb,
-                                    void *status_cb_value);
+gpg_error_t gnupg_exec_tool_stream(const char *pgmname, const char *argv[],
+                                   estream_t input, estream_t inextra,
+                                   estream_t output,
+                                   exec_tool_status_cb_t status_cb,
+                                   void *status_cb_value);
 
 #endif /* GNUPG_COMMON_EXECTOOL_H */
