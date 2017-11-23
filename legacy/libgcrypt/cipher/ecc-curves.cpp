@@ -87,8 +87,8 @@ static const struct {
     {NULL, NULL}};
 
 typedef struct {
-  const char *desc;      /* Description of the curve.  */
-  unsigned int nbits;    /* Number of bits.  */
+  const char *desc;   /* Description of the curve.  */
+  unsigned int nbits; /* Number of bits.  */
 
   /* The model describing this curve.  This is mainly used to select
      the group equation. */
@@ -300,8 +300,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000002",
      "0x08e2a8a0e65147d4bd6316030e16d19c85c97f0a9ca267122b96abbcea7e8fc8",
      "0x01"},
-    {"GOST2001-CryptoPro-A", 256,
-     (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2001-CryptoPro-A", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd97",
      "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd94",
@@ -310,8 +309,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000001",
      "0x8d91e471e0989cda27df505a453f2b7635294f2ddf23e3b122acc99c9e9f1e14",
      "0x01"},
-    {"GOST2001-CryptoPro-B", 256,
-     (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2001-CryptoPro-B", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x8000000000000000000000000000000000000000000000000000000000000c99",
      "0x8000000000000000000000000000000000000000000000000000000000000c96",
@@ -320,8 +318,7 @@ static const ecc_domain_parms_t domain_parms[] = {
      "0x0000000000000000000000000000000000000000000000000000000000000001",
      "0x3fa8124359f96680b83d1c3eb2c070e5c545c9858d03ecfb744bf8d717717efc",
      "0x01"},
-    {"GOST2001-CryptoPro-C", 256,
-     (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
+    {"GOST2001-CryptoPro-C", 256, (enum gcry_mpi_ec_models)MPI_EC_WEIERSTRASS,
      (ecc_dialects)ECC_DIALECT_STANDARD,
      "0x9b9f605f5a858107ab1ec85e6b41c8aacf846e86789051d37998f7b9022d759b",
      "0x9b9f605f5a858107ab1ec85e6b41c8aacf846e86789051d37998f7b9022d7598",

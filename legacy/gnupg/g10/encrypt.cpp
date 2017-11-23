@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <botan/mem_ops.h>
+
 #include "../common/compliance.h"
 #include "../common/i18n.h"
 #include "../common/iobuf.h"
@@ -435,7 +437,9 @@ int encrypt_crypt(
   }
 
   /* Create a session key. */
-  cfx.dek = (DEK *)xmalloc_secure_clear(sizeof *cfx.dek);
+  cfx.dek = (DEK *)Botan::allocate_memory(1, sizeof(*cfx.dek));
+  memset(cfx.dek, 0, sizeof(*cfx.dek));
+
   if (!opt.def_cipher_algo) {
     /* Try to get it from the prefs.  */
     cfx.dek->algo = select_algo_from_prefs(pk_list, PREFTYPE_SYM, -1, NULL);
@@ -605,7 +609,7 @@ leave:
   }
   if (pt) pt->buf = NULL;
   free_packet(&pkt, NULL);
-  xfree(cfx.dek);
+  Botan::deallocate_memory(cfx.dek, 1, sizeof(*cfx.dek));
   xfree(symkey_dek);
   xfree(symkey_s2k);
   if (!provided_keys) release_pk_list(pk_list);
@@ -629,7 +633,7 @@ int encrypt_filter(void *opaque, int control, iobuf_t a, byte *buf,
   } else if (control == IOBUFCTRL_FLUSH) /* encrypt */
   {
     if (!efx->header_okay) {
-      efx->cfx.dek = (DEK *)xmalloc_secure_clear(sizeof *efx->cfx.dek);
+      efx->cfx.dek = (DEK *)Botan::allocate_memory(1, sizeof(*efx->cfx.dek));
       if (!opt.def_cipher_algo) {
         /* Try to get it from the prefs. */
         efx->cfx.dek->algo =
@@ -681,6 +685,7 @@ int encrypt_filter(void *opaque, int control, iobuf_t a, byte *buf,
     rc = iobuf_write(a, buf, size);
 
   } else if (control == IOBUFCTRL_FREE) {
+    Botan::deallocate_memory(efx->cfx.dek, 1, sizeof(*efx->cfx.dek));
     xfree(efx->symkey_dek);
     xfree(efx->symkey_s2k);
   } else if (control == IOBUFCTRL_DESC) {

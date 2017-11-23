@@ -121,8 +121,8 @@ static void release_list(CTX c) {
   c->any.data = 0;
   c->any.uncompress_failed = 0;
   c->last_was_session_key = 0;
-  xfree(c->dek);
-  c->dek = NULL;
+  if (c->dek) Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
+  c->dek = nullptr;
 }
 
 static int add_onepass_sig(CTX c, PACKET *pkt) {
@@ -263,11 +263,14 @@ static void proc_symkey_enc(CTX c, PACKET *pkt) {
     c->last_was_session_key = 2;
     if (!s || opt.list_only) goto leave;
 
-    if (opt.override_session_key) {
-      c->dek = (DEK *)xmalloc_clear(sizeof *c->dek);
-      if (get_override_session_key(c->dek, opt.override_session_key->c_str())) {
+    if (!opt.override_session_key.empty()) {
+      c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
+      memset(c->dek, 0, sizeof *c->dek);
+      if (get_override_session_key(
+              c->dek, (const char *)opt.override_session_key.data())) {
+        Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
         xfree(c->dek);
-        c->dek = NULL;
+        c->dek = nullptr;
       }
     } else {
       c->dek = passphrase_to_dek(algo, &enc->s2k, 0, 0, NULL, NULL);
@@ -283,7 +286,7 @@ static void proc_symkey_enc(CTX c, PACKET *pkt) {
            come later. */
         if (enc->seskeylen) {
           if (symkey_decrypt_seskey(c->dek, enc->seskey, enc->seskeylen)) {
-            xfree(c->dek);
+            Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
             c->dek = NULL;
           }
         } else
@@ -321,16 +324,14 @@ static void proc_pubkey_enc(ctrl_t ctrl, CTX c, PACKET *pkt) {
     write_status_text(STATUS_ENC_TO, buf);
   }
 
-  if (!opt.list_only && opt.override_session_key) {
-    /* It does not make much sense to store the session key in
-     * secure memory because it has already been passed on the
-     * command line and the GCHQ knows about it.  */
-    c->dek = (DEK *)xmalloc_clear(sizeof *c->dek);
-    result =
-        get_override_session_key(c->dek, opt.override_session_key->c_str());
+  if (!opt.list_only && !opt.override_session_key.empty()) {
+    c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
+    memset(c->dek, 0, sizeof *c->dek);
+    result = get_override_session_key(
+        c->dek, (const char *)opt.override_session_key.data());
     if (result) {
-      xfree(c->dek);
-      c->dek = NULL;
+      Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
+      c->dek = nullptr;
     }
   } else if (enc->pubkey_algo == PUBKEY_ALGO_ELGAMAL_E ||
              enc->pubkey_algo == PUBKEY_ALGO_ECDH ||
@@ -349,11 +350,12 @@ static void proc_pubkey_enc(ctrl_t ctrl, CTX c, PACKET *pkt) {
       if (opt.list_only)
         result = -1;
       else {
-        c->dek = (DEK *)xmalloc_secure_clear(sizeof *c->dek);
+        c->dek = (DEK *)Botan::allocate_memory(1, sizeof(*c->dek));
+        memset(c->dek, 0, sizeof *c->dek);
         if ((result = get_session_key(ctrl, enc, c->dek))) {
           /* Error: Delete the DEK. */
-          xfree(c->dek);
-          c->dek = NULL;
+          Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
+          c->dek = nullptr;
         }
       }
     } else
@@ -451,13 +453,14 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
     STRING2KEY *s2k = NULL;
     int canceled;
 
-    if (opt.override_session_key) {
-      c->dek = (DEK *)xmalloc_clear(sizeof *c->dek);
-      result =
-          get_override_session_key(c->dek, opt.override_session_key->c_str());
+    if (!opt.override_session_key.empty()) {
+      c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
+      memset(c->dek, 0, sizeof *c->dek);
+      result = get_override_session_key(
+          c->dek, (const char *)opt.override_session_key.data());
       if (result) {
-        xfree(c->dek);
-        c->dek = NULL;
+        Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
+        c->dek = nullptr;
       }
     } else {
       /* Assume this is old style conventional encrypted data. */
@@ -498,7 +501,7 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
       /* Symmetric encryption and asymmetric encryption voids compliance.  */
       && (c->symkeys != !!c->pkenc_list)
       /* Overriding session key voids compliance.  */
-      && !opt.override_session_key
+      && opt.override_session_key.empty()
       /* Check symmetric cipher.  */
       && gnupg_cipher_is_compliant(CO_DE_VS, (cipher_algo_t)(c->dek->algo),
                                    GCRY_CIPHER_MODE_CFB)) {
@@ -563,8 +566,8 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
      * ways to specify the session key (symmmetric and PK). */
   }
 
-  xfree(c->dek);
-  c->dek = NULL;
+  Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
+  c->dek = nullptr;
   free_packet(pkt, NULL);
   c->last_was_session_key = 0;
   write_status(STATUS_END_DECRYPTION);
@@ -1272,7 +1275,7 @@ static int do_proc_packets(ctrl_t ctrl, CTX c, iobuf_t a) {
 
 leave:
   release_list(c);
-  xfree(c->dek);
+  if (c->dek) Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
   free_packet(pkt, &parsectx);
   deinit_parse_packet(&parsectx);
   xfree(pkt);

@@ -600,9 +600,7 @@ gpg_error_t gcry_pk_verify(gcry_sexp_t sigval, gcry_sexp_t data,
   return _gcry_pk_verify(sigval, data, pkey);
 }
 
-gpg_error_t gcry_pk_testkey(gcry_sexp_t key) {
-  return _gcry_pk_testkey(key);
-}
+gpg_error_t gcry_pk_testkey(gcry_sexp_t key) { return _gcry_pk_testkey(key); }
 
 gpg_error_t gcry_pk_genkey(gcry_sexp_t *r_key, gcry_sexp_t s_parms) {
   return _gcry_pk_genkey(r_key, s_parms);
@@ -688,9 +686,7 @@ gpg_error_t gcry_md_hash_buffers(int algo, unsigned int flags, void *digest,
   return _gcry_md_hash_buffers(algo, flags, digest, iov, iovcnt);
 }
 
-int gcry_md_get_algo(gcry_md_hd_t hd) {
-  return _gcry_md_get_algo(hd);
-}
+int gcry_md_get_algo(gcry_md_hd_t hd) { return _gcry_md_get_algo(hd); }
 
 unsigned int gcry_md_get_algo_dlen(int algo) {
   return _gcry_md_get_algo_dlen(algo);
@@ -740,9 +736,7 @@ gpg_error_t gcry_random_add_bytes(const void *buffer, size_t length) {
   return _gcry_random_add_bytes(buffer, length);
 }
 
-void *gcry_random_bytes(size_t nbytes) {
-  return _gcry_random_bytes(nbytes);
-}
+void *gcry_random_bytes(size_t nbytes) { return _gcry_random_bytes(nbytes); }
 
 void *gcry_random_bytes_secure(size_t nbytes) {
   return _gcry_random_bytes_secure(nbytes);

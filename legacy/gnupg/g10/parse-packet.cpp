@@ -113,8 +113,7 @@ static unsigned long read_32(IOBUF inp) {
    read from the pipeline INP.  This function sets *RET_NREAD to be
    the number of bytes actually read from the pipeline.
 
-   If SECURE is true, the integer is stored in secure memory
-   (allocated using gcry_xmalloc_secure).  */
+   If SECURE is true, the integer is stored in secure memory.  */
 static gcry_mpi_t mpi_read(iobuf_t inp, unsigned int *ret_nread, int secure) {
   int c, c1, c2, i;
   unsigned int nmax = *ret_nread;
@@ -138,8 +137,10 @@ static gcry_mpi_t mpi_read(iobuf_t inp, unsigned int *ret_nread, int secure) {
   }
 
   nbytes = (nbits + 7) / 8;
-  buf = (byte *)(secure ? gcry_xmalloc_secure(nbytes + 2)
-                        : gcry_xmalloc(nbytes + 2));
+  if (secure)
+    buf = (byte *)Botan::allocate_memory(1, nbytes + 2);
+  else
+    buf = (byte *)gcry_xmalloc(nbytes + 2);
   p = buf;
   p[0] = c1;
   p[1] = c2;
@@ -155,15 +156,16 @@ static gcry_mpi_t mpi_read(iobuf_t inp, unsigned int *ret_nread, int secure) {
 
   if (gcry_mpi_scan(&a, GCRYMPI_FMT_PGP, buf, nread, &nread)) a = NULL;
 
-  *ret_nread = nread;
-  gcry_free(buf);
-  return a;
+  goto leave;
 
 overflow:
   log_error("mpi larger than indicated length (%u bits)\n", 8 * nmax);
 leave:
   *ret_nread = nread;
-  gcry_free(buf);
+  if (secure)
+    Botan::deallocate_memory(buf, 1, nbytes + 2);
+  else
+    gcry_free(buf);
   return a;
 }
 

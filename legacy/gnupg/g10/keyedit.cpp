@@ -30,6 +30,8 @@
 #include <readline/readline.h>
 #endif
 
+#include <botan/mem_ops.h>
+
 #include "../common/host2net.h"
 #include "../common/i18n.h"
 #include "../common/iobuf.h"
@@ -4789,16 +4791,16 @@ reloop: /* (must use this, because we are modifying the list) */
     attrib.non_exportable = !node->pkt->pkt.signature->flags.exportable;
 
     node->flag &= ~NODFLG_MARK_A;
-    signerkey = (PKT_public_key *)xmalloc_secure_clear(sizeof *signerkey);
+    signerkey = (PKT_public_key *)Botan::allocate_memory(1, sizeof *signerkey);
     if (get_seckey(ctrl, signerkey, node->pkt->pkt.signature->keyid)) {
       log_info(_("no secret key\n"));
-      free_public_key(signerkey);
+      Botan::deallocate_memory(signerkey, 1, sizeof *signerkey);
       continue;
     }
     rc = make_keysig_packet(ctrl, &sig, primary_pk, unode->pkt->pkt.user_id,
                             NULL, signerkey, 0x30, 0, 0, 0, sign_mk_attrib,
                             &attrib, NULL);
-    free_public_key(signerkey);
+    Botan::deallocate_memory(signerkey, 1, sizeof *signerkey);
     if (rc) {
       write_status_error("keysig", rc);
       log_error(_("signing failed: %s\n"), gpg_strerror(rc));

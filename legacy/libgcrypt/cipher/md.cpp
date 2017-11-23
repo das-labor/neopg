@@ -479,9 +479,7 @@ static void md_close(gcry_md_hd_t a) {
   xfree(a);
 }
 
-void _gcry_md_close(gcry_md_hd_t hd) {
-  md_close(hd);
-}
+void _gcry_md_close(gcry_md_hd_t hd) { md_close(hd); }
 
 static void md_write(gcry_md_hd_t a, const void *inbuf, size_t inlen) {
   GcryDigestEntry *r;

@@ -26,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include <botan/secmem.h>
+
 #include <stdint.h>
 #include <sys/types.h>
 #include "../common/compliance.h"
@@ -295,7 +297,7 @@ struct options {
   bool ignore_valid_from{false};
   bool ignore_crc_error{false};
   int command_fd{-1};
-  boost::optional<std::string> override_session_key;
+  Botan::secure_vector<uint8_t> override_session_key;
   bool show_session_key{false};
 
   bool try_all_secrets{false};

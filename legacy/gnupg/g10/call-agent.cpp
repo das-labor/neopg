@@ -126,7 +126,7 @@ static gpg_error_t default_inq_cb(void *opaque, const char *line) {
       const char *s = get_static_passphrase();
       err = assuan_send_data(parm->ctx, s, strlen(s));
     } else {
-      char *pw;
+      Botan::secure_vector<char> *pw;
       char buf[32];
 
       if (parm->keyinfo.keyid)
@@ -138,11 +138,11 @@ static gpg_error_t default_inq_cb(void *opaque, const char *line) {
       write_status_text(STATUS_INQUIRE_MAXLEN, buf);
       pw = cpr_get_hidden("passphrase.enter", _("Enter passphrase: "));
       cpr_kill_prompt();
-      if (*pw == CONTROL_D && !pw[1])
+      if ((*pw)[0] == CONTROL_D && !(*pw)[1])
         err = GPG_ERR_CANCELED;
       else
-        err = assuan_send_data(parm->ctx, pw, strlen(pw));
-      xfree(pw);
+        err = assuan_send_data(parm->ctx, pw, strlen(pw->data()));
+      delete pw;
     }
   } else
     log_debug("ignoring gpg-agent inquiry '%s'\n", line);

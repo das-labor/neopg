@@ -239,8 +239,7 @@ DEK *passphrase_to_dek_ext(u32 *keyid, int pubkey_algo, int cipher_algo,
 DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
                        int nocache, const char *tryagain_text, int *canceled);
 void set_next_passphrase(const char *s);
-char *get_last_passphrase(void);
-void next_to_last_passphrase(void);
+char *get_last_passphrase(size_t *len);
 
 void emit_status_need_passphrase(ctrl_t ctrl, u32 *keyid, u32 *mainkeyid,
                                  int pubkey_algo);

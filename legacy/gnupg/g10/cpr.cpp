@@ -34,6 +34,8 @@
 #include "main.h"
 #include "options.h"
 
+#include <botan/secmem.h>
+
 #define CONTROL_D ('D' - 'A' + 1)
 
 /* The stream to output the status information.  Output is disabled if
@@ -314,27 +316,24 @@ static int myread(int fd, void *buf, size_t count) {
   return rc;
 }
 
-/* Request a string from the client over the command-fd.  If GETBOOL
-   is set the function returns a static string (do not free) if the
-   entered value was true or NULL if the entered value was false.  */
-static char *do_get_from_fd(const char *keyword, int hidden, int *getbool) {
+/* Request a string from the client over the command-fd.  */
+static char *do_get_from_fd(const char *keyword, int *getbool) {
   int i, len;
   char *string;
 
   if (statusfp != es_stdout) es_fflush(es_stdout);
 
-  write_status_text(
-      getbool ? STATUS_GET_BOOL : hidden ? STATUS_GET_HIDDEN : STATUS_GET_LINE,
-      keyword);
+  write_status_text(getbool ? STATUS_GET_BOOL : STATUS_GET_LINE, keyword);
 
   for (string = NULL, i = len = 200;; i++) {
     if (i >= len - 1) {
       char *save = string;
       len += 100;
-      string = (char *)(hidden ? xmalloc_secure(len) : xmalloc(len));
-      if (save)
+      string = (char *)xmalloc(len);
+      if (save) {
         memcpy(string, save, i);
-      else
+        xfree(save);
+      } else
         i = 0;
     }
     /* Fixme: why not use our read_line function here? */
@@ -347,17 +346,49 @@ static char *do_get_from_fd(const char *keyword, int hidden, int *getbool) {
       break;
     }
   }
-  string[i] = 0;
+  string[i] = '\0';
 
   write_status(STATUS_GOT_IT);
 
   if (getbool) /* Fixme: is this correct??? */
   {
     *getbool = (string[0] == 'Y' || string[0] == 'y') ? 1 : 0;
-    return NULL;
+    return nullptr;
   }
 
   return string;
+}
+
+static Botan::secure_vector<char> *do_get_from_fd_hidden(const char *keyword) {
+  int i, len;
+  Botan::secure_vector<char> *result;
+
+  if (statusfp != es_stdout) es_fflush(es_stdout);
+
+  write_status_text(STATUS_GET_HIDDEN, keyword);
+
+  while (true) {
+    size_t size = result->size();
+    result->reserve(size + 1);
+    /* Fixme: why not use our read_line function here? */
+    if (myread(opt.command_fd, &(*result)[size], 1) != 1) {
+      (*result)[size] = '\0';
+      break;
+    } else if ((*result)[size] == '\n') {
+      (*result)[size] = '\0';
+      break;
+    } else if ((*result)[size] == CONTROL_D) {
+      /* Found ETX - Cancel the line and return a sole ETX.  */
+      result->resize(2);
+      (*result)[0] = CONTROL_D;
+      (*result)[1] = '\0';
+      break;
+    }
+  }
+
+  write_status(STATUS_GOT_IT);
+
+  return result;
 }
 
 int cpr_enabled() {
@@ -368,7 +399,7 @@ int cpr_enabled() {
 char *cpr_get_no_help(const char *keyword, const char *prompt) {
   char *p;
 
-  if (opt.command_fd != -1) return do_get_from_fd(keyword, 0, NULL);
+  if (opt.command_fd != -1) return do_get_from_fd(keyword, NULL);
   for (;;) {
     p = tty_get(prompt);
     return p;
@@ -378,7 +409,7 @@ char *cpr_get_no_help(const char *keyword, const char *prompt) {
 char *cpr_get(const char *keyword, const char *prompt) {
   char *p;
 
-  if (opt.command_fd != -1) return do_get_from_fd(keyword, 0, NULL);
+  if (opt.command_fd != -1) return do_get_from_fd(keyword, NULL);
   for (;;) {
     p = tty_get(prompt);
     return p;
@@ -396,10 +427,11 @@ char *cpr_get_utf8(const char *keyword, const char *prompt) {
   return p;
 }
 
-char *cpr_get_hidden(const char *keyword, const char *prompt) {
-  char *p;
+Botan::secure_vector<char> *cpr_get_hidden(const char *keyword,
+                                           const char *prompt) {
+  Botan::secure_vector<char> *p;
 
-  if (opt.command_fd != -1) return do_get_from_fd(keyword, 1, NULL);
+  if (opt.command_fd != -1) return do_get_from_fd_hidden(keyword);
   for (;;) {
     p = tty_get_hidden(prompt);
     return p;
@@ -419,7 +451,7 @@ int cpr_get_answer_is_yes_def(const char *keyword, const char *prompt,
 
   if (opt.command_fd != -1) {
     int ret;
-    do_get_from_fd(keyword, 0, &ret);
+    do_get_from_fd(keyword, &ret);
     return ret;
   }
   for (;;) {
@@ -442,7 +474,7 @@ int cpr_get_answer_yes_no_quit(const char *keyword, const char *prompt) {
 
   if (opt.command_fd != -1) {
     int ret;
-    do_get_from_fd(keyword, 0, &ret);
+    do_get_from_fd(keyword, &ret);
     return ret;
   }
   for (;;) {
@@ -461,7 +493,7 @@ int cpr_get_answer_okay_cancel(const char *keyword, const char *prompt,
   char *answer = NULL;
   char *p;
 
-  if (opt.command_fd != -1) answer = do_get_from_fd(keyword, 0, 0);
+  if (opt.command_fd != -1) answer = do_get_from_fd(keyword, 0);
 
   if (answer) {
     yes = answer_is_okay_cancel(answer, def_answer);
@@ -474,7 +506,6 @@ int cpr_get_answer_okay_cancel(const char *keyword, const char *prompt,
     trim_spaces(p); /* it is okay to do this here */
     tty_kill_prompt();
     yes = answer_is_okay_cancel(p, def_answer);
-    xfree(p);
     return yes;
   }
 }

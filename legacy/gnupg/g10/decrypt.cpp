@@ -222,9 +222,10 @@ void decrypt_messages(ctrl_t ctrl, int nfiles, char *files[]) {
     if (rc)
       log_error("%s: decryption failed: %s\n", print_fname_stdin(filename),
                 gpg_strerror(rc));
-    p = get_last_passphrase();
+    size_t len;
+    p = get_last_passphrase(&len);
     set_next_passphrase(p);
-    xfree(p);
+    Botan::deallocate_memory(p, 1, len);
 
   next_file:
     /* Note that we emit file_done even after an error. */

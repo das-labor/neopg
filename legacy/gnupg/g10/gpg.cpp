@@ -2506,7 +2506,8 @@ next_pass:
         break;
 
       case oOverrideSessionKey:
-        opt.override_session_key = pargs.r.ret_str;
+        opt.override_session_key.resize(strlen(pargs.r.ret_str) + 1);
+        strcpy((char *)opt.override_session_key.data(), pargs.r.ret_str);
         break;
       case oOverrideSessionKeyFD:
         ovrseskeyfd = translate_sys2libc_fd_int(pargs.r.ret_int, 0);
@@ -4008,25 +4009,19 @@ static void add_keyserver_url(const char *string, int which) {
 
 static void read_sessionkey_from_fd(int fd) {
   int i, len;
-  char *line;
 
   if (!gnupg_fd_valid(fd))
     log_fatal("override-session-key-fd is invalid: %s\n", strerror(errno));
 
-  for (line = NULL, i = len = 100;; i++) {
+  for (i = len = 100;; i++) {
     if (i >= len - 1) {
-      char *tmp = line;
       len += 100;
-      line = (char *)xmalloc_secure(len);
-      if (tmp) {
-        memcpy(line, tmp, i);
-        xfree(tmp);
-      } else
-        i = 0;
+      opt.override_session_key.reserve(len);
     }
-    if (read(fd, line + i, 1) != 1 || line[i] == '\n') break;
+    if (read(fd, &opt.override_session_key[i], 1) != 1 ||
+        opt.override_session_key[i] == '\n')
+      break;
   }
-  line[i] = 0;
-  log_debug("seskey: %s\n", line);
-  opt.override_session_key = line;
+  opt.override_session_key[i] = 0;
+  log_debug("seskey: %s\n", opt.override_session_key.data());
 }

@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <botan/secmem.h>
+
 #include "../common/i18n.h"
 #include "../common/util.h"
 #include "gpg.h"
@@ -101,7 +103,8 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
     /* alg+key+csum fit and the size is congruent to 8.  */
     log_assert(!(nframe % 8) && nframe > 1 + dek->keylen + 2);
 
-    frame = (byte *)xmalloc_secure(nframe);
+    Botan::secure_vector<uint8_t> frame_vec(nframe);
+    frame = (byte *)frame_vec.data();
     n = 0;
     frame[n++] = dek->algo;
     memcpy(frame + n, dek->key, dek->keylen);
@@ -120,7 +123,6 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
           frame[nframe - 2], frame[nframe - 1]);
 
     if (gcry_mpi_scan(&a, GCRYMPI_FMT_USG, frame, nframe, &nframe)) BUG();
-    xfree(frame);
     return a;
   }
 
@@ -147,7 +149,8 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
    * CSUM is the 16 bit checksum over the DEK
    */
 
-  frame = (byte *)xmalloc_secure(nframe);
+  Botan::secure_vector<uint8_t> frame_vec(nframe);
+  frame = (byte *)frame_vec.data();
   n = 0;
   frame[n++] = 0;
   frame[n++] = 2;
@@ -184,7 +187,6 @@ gcry_mpi_t encode_session_key(int openpgp_pk_algo, DEK *dek,
   frame[n++] = csum;
   log_assert(n == nframe);
   if (gcry_mpi_scan(&a, GCRYMPI_FMT_USG, frame, n, &nframe)) BUG();
-  xfree(frame);
   return a;
 }
 
@@ -207,8 +209,9 @@ static gcry_mpi_t do_encode_md(gcry_md_hd_t md, int algo, size_t len,
    *
    * PAD consists of FF bytes.
    */
-  frame = (byte *)(gcry_md_is_secure(md) ? xmalloc_secure(nframe)
-                                         : xmalloc(nframe));
+  Botan::secure_vector<uint8_t> frame_vec(nframe);
+  frame = (byte *)frame_vec.data();
+
   n = 0;
   frame[n++] = 0;
   frame[n++] = 1; /* block type */
@@ -224,7 +227,6 @@ static gcry_mpi_t do_encode_md(gcry_md_hd_t md, int algo, size_t len,
   log_assert(n == nframe);
 
   if (gcry_mpi_scan(&a, GCRYMPI_FMT_USG, frame, n, &nframe)) BUG();
-  xfree(frame);
 
   /* Note that PGP before version 2.3 encoded the MD as:
    *

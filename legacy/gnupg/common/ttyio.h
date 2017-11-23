@@ -30,6 +30,9 @@
 #ifndef GNUPG_COMMON_TTYIO_H
 #define GNUPG_COMMON_TTYIO_H
 
+#include <botan/secmem.h>
+#include <vector>
+
 #include "util.h" /* Make sure our readline typedef is available. */
 
 const char *tty_get_ttyname(void);
@@ -49,7 +52,7 @@ void tty_print_utf8_string(const unsigned char *p, size_t n);
 void tty_print_utf8_string2(estream_t fp, const unsigned char *p, size_t n,
                             size_t max_n);
 char *tty_get(const char *prompt);
-char *tty_get_hidden(const char *prompt);
+Botan::secure_vector<char> *tty_get_hidden(const char *prompt);
 void tty_kill_prompt(void);
 int tty_get_answer_is_yes(const char *prompt);
 int tty_no_terminal(int onoff);

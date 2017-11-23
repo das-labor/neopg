@@ -733,9 +733,7 @@ void _gcry_post_syscall(void) {
   if (post_syscall_func) post_syscall_func();
 }
 
-int _gcry_get_debug_flag(unsigned int mask) {
-  return (debug_flags & mask);
-}
+int _gcry_get_debug_flag(unsigned int mask) { return (debug_flags & mask); }
 
 /* It is often useful to get some feedback of long running operations.
    This function may be used to register a handler for this.

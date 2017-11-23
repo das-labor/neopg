@@ -1213,7 +1213,7 @@ static gpg_error_t rsa_decrypt(gcry_sexp_t *r_plain, gcry_sexp_t s_data,
     log_printmpi("rsa_decrypt    d", sk.d);
     log_printmpi("rsa_decrypt    p", sk.p);
     log_printmpi("rsa_decrypt    q", sk.q);
-    log_printmpi("rsa_decrypt    u", sk.u);    
+    log_printmpi("rsa_decrypt    u", sk.u);
   }
 
   /* Better make sure that there are no superfluous leading zeroes in

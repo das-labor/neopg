@@ -214,16 +214,23 @@ u16 checksum_mpi(gcry_mpi_t a) {
   u16 csum;
   byte *buffer;
   size_t nbytes;
+  int secure = gcry_is_secure(a);
 
   if (gcry_mpi_print(GCRYMPI_FMT_PGP, NULL, 0, &nbytes, a)) BUG();
   /* Fixme: For numbers not in secure memory we should use a stack
    * based buffer and only allocate a larger one if mpi_print returns
    * an error. */
-  buffer = (byte *)(gcry_is_secure(a) ? gcry_xmalloc_secure(nbytes)
-                                      : gcry_xmalloc(nbytes));
+  if (secure)
+    buffer = (byte *)Botan::allocate_memory(1, nbytes);
+  else
+    buffer = (byte *)gcry_xmalloc(nbytes);
+
   if (gcry_mpi_print(GCRYMPI_FMT_PGP, buffer, nbytes, NULL, a)) BUG();
   csum = checksum(buffer, nbytes);
-  xfree(buffer);
+  if (secure)
+    Botan::deallocate_memory(buffer, 1, nbytes);
+  else
+    xfree(buffer);
   return csum;
 }
 

@@ -368,8 +368,7 @@ gpg_error_t _gcry_cipher_open_internal(gcry_cipher_hd_t *handle, int algo,
         /* This mode may be used for debugging.  It copies the main
            text verbatim to the ciphertext.  We do not allow this if
            no debug flag has been set.  */
-        if (!_gcry_get_debug_flag(0))
-          err = GPG_ERR_INV_CIPHER_MODE;
+        if (!_gcry_get_debug_flag(0)) err = GPG_ERR_INV_CIPHER_MODE;
         break;
 
       default:
@@ -556,8 +555,7 @@ void _gcry_cipher_close(gcry_cipher_hd_t h) {
 /* Set the key to be used for the encryption context C to KEY with
    length KEYLEN.  The length should match the required length. */
 static gpg_error_t cipher_setkey(gcry_cipher_hd_t c, byte *key, size_t keylen) {
-  gpg_error_t rc
-;
+  gpg_error_t rc;
   if (c->mode == GCRY_CIPHER_MODE_XTS) {
     /* XTS uses two keys. */
     if (keylen % 2) return GPG_ERR_INV_KEYLEN;
@@ -918,7 +916,7 @@ static gpg_error_t cipher_decrypt(gcry_cipher_hd_t c, byte *outbuf,
       break;
 
     case GCRY_CIPHER_MODE_NONE:
-      if ( !_gcry_get_debug_flag(0)) {
+      if (!_gcry_get_debug_flag(0)) {
         rc = GPG_ERR_INV_CIPHER_MODE;
       } else {
         if (inbuf != outbuf) memmove(outbuf, inbuf, inbuflen);

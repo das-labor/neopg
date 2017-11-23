@@ -341,7 +341,7 @@ void tty_print_utf8_string(const byte *p, size_t n) {
   tty_print_utf8_string2(NULL, p, n, 0);
 }
 
-static char *do_get(const char *prompt, int hidden) {
+static char *do_get(const char *prompt) {
   char *buf;
   byte cbuf[1];
   int c, n, i;
@@ -364,8 +364,6 @@ static char *do_get(const char *prompt, int hidden) {
   i = 0;
 
 #ifdef USE_W32_CONSOLE
-  if (hidden) SetConsoleMode(con.in, HID_INPMODE);
-
   for (;;) {
     DWORD nread;
 
@@ -374,7 +372,7 @@ static char *do_get(const char *prompt, int hidden) {
     if (!nread) continue;
     if (*cbuf == '\n') break;
 
-    if (!hidden) last_prompt_len++;
+    last_prompt_len++;
     c = *cbuf;
     if (c == '\t')
       c = ' ';
@@ -390,27 +388,12 @@ static char *do_get(const char *prompt, int hidden) {
     buf[i++] = c;
   }
 
-  if (hidden) SetConsoleMode(con.in, DEF_INPMODE);
-
 #else /* Other systems. */
-  if (hidden) {
-#ifdef HAVE_TCGETATTR
-    struct termios term;
-
-    if (tcgetattr(fileno(ttyfp), &termsave))
-      log_fatal("tcgetattr() failed: %s\n", strerror(errno));
-    restore_termios = 1;
-    term = termsave;
-    term.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
-    if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &term))
-      log_fatal("tcsetattr() failed: %s\n", strerror(errno));
-#endif
-  }
 
   /* fixme: How can we avoid that the \n is echoed w/o disabling
    * canonical mode - w/o this kill_prompt can't work */
   while (read(fileno(ttyfp), cbuf, 1) == 1 && *cbuf != '\n') {
-    if (!hidden) last_prompt_len++;
+    last_prompt_len++;
     c = *cbuf;
     if (c == CONTROL_D) log_info("control d found\n");
     if (c == '\t')
@@ -431,7 +414,101 @@ static char *do_get(const char *prompt, int hidden) {
     i = 1;
   }
 
-  if (hidden) {
+#endif /* end unix version */
+  buf[i] = 0;
+  return buf;
+}
+
+static Botan::secure_vector<char> *do_get_hidden(const char *prompt) {
+  Botan::secure_vector<char> *buf = nullptr;
+  byte cbuf[1];
+  int c, n, i;
+
+  if (batchmode) {
+    log_error("Sorry, we are in batchmode - can't get input\n");
+    exit(2);
+  }
+
+  if (no_terminal) {
+    log_error("Sorry, no terminal at all requested - can't get input\n");
+    exit(2);
+  }
+
+  if (!initialized) init_ttyfp();
+
+  last_prompt_len = 0;
+  tty_printf("%s", prompt);
+  n = 50;
+  buf = new Botan::secure_vector<char>(n);
+  i = 0;
+
+#ifdef USE_W32_CONSOLE
+  SetConsoleMode(con.in, HID_INPMODE);
+
+  for (;;) {
+    DWORD nread;
+
+    if (!ReadConsoleA(con.in, cbuf, 1, &nread, NULL))
+      log_fatal("ReadConsole failed: rc=%d", (int)GetLastError());
+    if (!nread) continue;
+    if (*cbuf == '\n') break;
+
+    c = *cbuf;
+    if (c == '\t')
+      c = ' ';
+    else if (c > 0xa0)
+      ; /* we don't allow 0xa0, as this is a protected blank which may
+         * confuse the user */
+    else if (iscntrl(c))
+      continue;
+    if (!(i < n - 1)) {
+      n += 50;
+      buf->reserve(n);
+    }
+    (*buf)[i++] = c;
+  }
+
+  SetConsoleMode(con.in, DEF_INPMODE);
+
+#else /* Other systems. */
+  {
+#ifdef HAVE_TCGETATTR
+    struct termios term;
+
+    if (tcgetattr(fileno(ttyfp), &termsave))
+      log_fatal("tcgetattr() failed: %s\n", strerror(errno));
+    restore_termios = 1;
+    term = termsave;
+    term.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
+    if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &term))
+      log_fatal("tcsetattr() failed: %s\n", strerror(errno));
+#endif
+  }
+
+  /* fixme: How can we avoid that the \n is echoed w/o disabling
+   * canonical mode - w/o this kill_prompt can't work */
+  while (read(fileno(ttyfp), cbuf, 1) == 1 && *cbuf != '\n') {
+    c = *cbuf;
+    if (c == CONTROL_D) log_info("control d found\n");
+    if (c == '\t')
+      c = ' ';
+    else if (c > 0xa0)
+      ; /* we don't allow 0xa0, as this is a protected blank which may
+         * confuse the user */
+    else if (iscntrl(c))
+      continue;
+    if (!(i < n - 1)) {
+      n += 50;
+      buf->reserve(n);
+    }
+    (*buf)[i++] = c;
+  }
+  if (*cbuf != '\n') {
+    (*buf)[0] = CONTROL_D;
+    i = 1;
+  }
+
+  {
 #ifdef HAVE_TCGETATTR
     if (tcsetattr(fileno(ttyfp), TCSAFLUSH, &termsave))
       log_error("tcsetattr() failed: %s\n", strerror(errno));
@@ -439,7 +516,7 @@ static char *do_get(const char *prompt, int hidden) {
 #endif
   }
 #endif /* end unix version */
-  buf[i] = 0;
+  (*buf)[i] = 0;
   return buf;
 }
 
@@ -470,7 +547,7 @@ char *tty_get(const char *prompt) {
     }
     return buf;
   } else
-    return do_get(prompt, 0);
+    return do_get(prompt);
 }
 
 /* Variable argument version of tty_get.  The prompt is actually a
@@ -489,7 +566,9 @@ char *tty_getf(const char *promptfmt, ...) {
   return answer;
 }
 
-char *tty_get_hidden(const char *prompt) { return do_get(prompt, 1); }
+Botan::secure_vector<char> *tty_get_hidden(const char *prompt) {
+  return do_get_hidden(prompt);
+}
 
 void tty_kill_prompt() {
   if (no_terminal) return;

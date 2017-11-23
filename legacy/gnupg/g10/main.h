@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include <botan/secmem.h>
+
 #include "../common/iobuf.h"
 #include "../common/types.h"
 #include "../common/util.h"
@@ -203,7 +205,8 @@ int cpr_enabled(void);
 char *cpr_get(const char *keyword, const char *prompt);
 char *cpr_get_no_help(const char *keyword, const char *prompt);
 char *cpr_get_utf8(const char *keyword, const char *prompt);
-char *cpr_get_hidden(const char *keyword, const char *prompt);
+Botan::secure_vector<char> *cpr_get_hidden(const char *keyword,
+                                           const char *prompt);
 void cpr_kill_prompt(void);
 int cpr_get_answer_is_yes_def(const char *keyword, const char *prompt,
                               int def_yes);

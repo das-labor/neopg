@@ -43,8 +43,11 @@
 #include "options.h"
 
 static char *fd_passwd = NULL;
+static size_t fd_passwd_len = 0;
 static char *next_pw = NULL;
+static size_t next_pw_len = 0;
 static char *last_pw = NULL;
+static size_t last_pw_len = 0;
 
 /* Pack an s2k iteration count into the form specified in 2440.  If
    we're in between valid values, round up.  With value 0 return the
@@ -99,10 +102,12 @@ const char *get_static_passphrase(void) { return fd_passwd; }
  * one.
  */
 void set_next_passphrase(const char *s) {
-  xfree(next_pw);
-  next_pw = NULL;
+  Botan::deallocate_memory(next_pw, 1, next_pw_len);
+  next_pw = nullptr;
+  next_pw_len = 0;
   if (s) {
-    next_pw = (char *)xmalloc_secure(strlen(s) + 1);
+    next_pw_len = strlen(s) + 1;
+    next_pw = (char *)Botan::allocate_memory(1, next_pw_len);
     strcpy(next_pw, s);
   }
 }
@@ -112,47 +117,38 @@ void set_next_passphrase(const char *s) {
  * Note: This removes the passphrase from this modules and
  * the caller must free the result.  May return NULL:
  */
-char *get_last_passphrase() {
+char *get_last_passphrase(size_t *len) {
   char *p = last_pw;
   last_pw = NULL;
   return p;
 }
 
-/* Here's an interesting question: since this passphrase was passed in
-   on the command line, is there really any point in using secure
-   memory for it?  I'm going with 'yes', since it doesn't hurt, and
-   might help in some small way (swapping). */
-
 void set_passphrase_from_string(const char *pass) {
-  xfree(fd_passwd);
-  fd_passwd = (char *)xmalloc_secure(strlen(pass) + 1);
+  Botan::deallocate_memory(fd_passwd, 1, fd_passwd_len);
+  fd_passwd_len = strlen(pass) + 1;
+  fd_passwd = (char *)Botan::allocate_memory(1, fd_passwd_len);
   strcpy(fd_passwd, pass);
 }
 
 void read_passphrase_from_fd(int fd) {
   int i, len;
-  char *pw;
+  Botan::secure_vector<char> pw;
 
   if (!gnupg_fd_valid(fd))
     log_fatal("passphrase-fd is invalid: %s\n", strerror(errno));
 
-  for (pw = NULL, i = len = 100;; i++) {
+  for (i = len = 100;; i++) {
     if (i >= len - 1) {
-      char *pw2 = pw;
       len += 100;
-      pw = (char *)xmalloc_secure(len);
-      if (pw2) {
-        memcpy(pw, pw2, i);
-        xfree(pw2);
-      } else
-        i = 0;
+      pw.reserve(len);
     }
-    if (read(fd, pw + i, 1) != 1 || pw[i] == '\n') break;
+    if (read(fd, &pw[i], 1) != 1 || pw[i] == '\n') break;
   }
   pw[i] = 0;
 
-  xfree(fd_passwd);
-  fd_passwd = pw;
+  fd_passwd_len = strlen(pw.data()) + 1;
+  fd_passwd = (char *)Botan::allocate_memory(1, fd_passwd_len);
+  strcpy(fd_passwd, pw.data());
 }
 
 /*
@@ -232,7 +228,8 @@ void passphrase_clear_cache(const char *cacheid) {
  * true the symmetric key caching will not be used.  */
 DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
                        int nocache, const char *tryagain_text, int *canceled) {
-  char *pw = NULL;
+  char *pw = nullptr;
+  size_t pw_len = 0;
   DEK *dek;
   STRING2KEY help_s2k;
   int dummy_canceled;
@@ -271,10 +268,13 @@ DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
   if (next_pw) {
     /* Simply return the passphrase we already have in NEXT_PW. */
     pw = next_pw;
-    next_pw = NULL;
+    pw_len = next_pw_len;
+    next_pw = nullptr;
+    next_pw_len = 0;
   } else if (have_static_passphrase()) {
     /* Return the passphrase we have stored in FD_PASSWD. */
-    pw = (char *)xmalloc_secure(strlen(fd_passwd) + 1);
+    pw_len = fd_passwd_len;
+    pw = (char *)Botan::allocate_memory(1, pw_len);
     strcpy(pw, fd_passwd);
   } else {
     if (!nocache && (s2k->mode == 1 || s2k->mode == 3)) {
@@ -292,14 +292,19 @@ DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
     }
 
     /* Divert to the gpg-agent. */
-    pw = passphrase_get(create && nocache, s2k_cacheid,
-                        create ? 1 /* repeat once */ : 0, tryagain_text,
-                        canceled);
+    char *pw_ = passphrase_get(create && nocache, s2k_cacheid,
+                               create ? 1 /* repeat once */ : 0, tryagain_text,
+                               canceled);
     if (*canceled) {
       xfree(pw);
       write_status(STATUS_MISSING_PASSPHRASE);
       return NULL;
     }
+
+    pw_len = strlen(pw_) + 1;
+    pw = (char *)Botan::allocate_memory(1, pw_len);
+    strcpy(pw, pw_);
+    xfree(pw_);
   }
 
   if (!pw || !*pw) write_status(STATUS_MISSING_PASSPHRASE);
@@ -307,7 +312,8 @@ DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
   /* Hash the passphrase and store it in a newly allocated DEK object.
      Keep a copy of the passphrase in LAST_PW for use by
      get_last_passphrase(). */
-  dek = (DEK *)xmalloc_secure_clear(sizeof *dek);
+  dek = (DEK *)Botan::allocate_memory(1, sizeof *dek);
+  memset(dek, 0, sizeof *dek);
   dek->algo = cipher_algo;
   if ((!pw || !*pw) && create)
     dek->keylen = 0;
@@ -325,16 +331,17 @@ DEK *passphrase_to_dek(int cipher_algo, STRING2KEY *s2k, int create,
                           S2K_DECODE_COUNT(s2k->count), dek->keylen, dek->key);
     if (err) {
       log_error("gcry_kdf_derive failed: %s", gpg_strerror(err));
-      xfree(pw);
-      xfree(dek);
+      Botan::deallocate_memory(pw, 1, pw_len);
+      Botan::deallocate_memory(dek, 1, sizeof(*dek));
       write_status(STATUS_MISSING_PASSPHRASE);
       return NULL;
     }
   }
   if (s2k_cacheid)
     memcpy(dek->s2k_cacheid, s2k_cacheid, sizeof dek->s2k_cacheid);
-  xfree(last_pw);
+  Botan::deallocate_memory(last_pw, 1, last_pw_len);
   last_pw = pw;
+  last_pw_len = pw_len;
   return dek;
 }
 

@@ -44,7 +44,6 @@
 #define _npth_socklen_t socklen_t
 #include <pthread.h>
 
-
 /* MacOS has trouble finding NSIG if this comes too early.  */
 #include <signal.h>
 

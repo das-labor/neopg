@@ -82,7 +82,6 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     const byte pk_fp[MAX_FINGERPRINT_LEN], gcry_mpi_t data, gcry_mpi_t *pkey,
     gcry_mpi_t *r_result) {
   gpg_error_t err;
-  byte *secret_x;
   int secret_x_size;
   unsigned int nbits;
   const unsigned char *kek_params;
@@ -97,51 +96,47 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
   nbits = pubkey_nbits(PUBKEY_ALGO_ECDH, pkey);
   if (!nbits) return GPG_ERR_TOO_SHORT;
 
-  {
-    size_t nbytes;
+  size_t nbytes;
 
-    /* Extract x component of the shared point: this is the actual
-       shared secret. */
-    nbytes = (mpi_get_nbits(pkey[1] /* public point */) + 7) / 8;
-    secret_x = (byte *)xtrymalloc_secure(nbytes);
-    if (!secret_x) return gpg_error_from_syserror();
+  /* Extract x component of the shared point: this is the actual
+     shared secret. */
+  nbytes = (mpi_get_nbits(pkey[1] /* public point */) + 7) / 8;
+  Botan::secure_vector<uint8_t> secret_x(nbytes);
 
-    err =
-        gcry_mpi_print(GCRYMPI_FMT_USG, secret_x, nbytes, &nbytes, shared_mpi);
-    if (err) {
-      xfree(secret_x);
-      log_error("ECDH ephemeral export of shared point failed: %s\n",
-                gpg_strerror(err));
-      return err;
-    }
-
-    /* Expected size of the x component */
-    secret_x_size = (nbits + 7) / 8;
-
-    /* Extract X from the result.  It must be in the format of:
-           04 || X || Y
-           40 || X
-           41 || X
-
-       Since it always comes with the prefix, it's larger than X.  In
-       old experimental version of libgcrypt, there is a case where it
-       returns X with no prefix of 40, so, nbytes == secret_x_size
-       is allowed.  */
-    if (nbytes < secret_x_size) {
-      xfree(secret_x);
-      return GPG_ERR_BAD_DATA;
-    }
-
-    /* Remove the prefix.  */
-    if ((nbytes & 1)) memmove(secret_x, secret_x + 1, secret_x_size);
-
-    /* Clear the rest of data.  */
-    if (nbytes - secret_x_size)
-      memset(secret_x + secret_x_size, 0, nbytes - secret_x_size);
-
-    if (DBG_CRYPTO)
-      log_printhex("ECDH shared secret X is:", secret_x, secret_x_size);
+  err = gcry_mpi_print(GCRYMPI_FMT_USG, secret_x.data(), nbytes, &nbytes,
+                       shared_mpi);
+  if (err) {
+    log_error("ECDH ephemeral export of shared point failed: %s\n",
+              gpg_strerror(err));
+    return err;
   }
+
+  /* Expected size of the x component */
+  secret_x_size = (nbits + 7) / 8;
+
+  /* Extract X from the result.  It must be in the format of:
+     04 || X || Y
+     40 || X
+     41 || X
+
+     Since it always comes with the prefix, it's larger than X.  In
+     old experimental version of libgcrypt, there is a case where it
+     returns X with no prefix of 40, so, nbytes == secret_x_size
+     is allowed.  */
+  if (nbytes < secret_x_size) {
+    return GPG_ERR_BAD_DATA;
+  }
+
+  /* Remove the prefix.  */
+  if ((nbytes & 1))
+    memmove(secret_x.data(), secret_x.data() + 1, secret_x_size);
+
+  /* Clear the rest of data.  */
+  if (nbytes - secret_x_size)
+    memset(secret_x.data() + secret_x_size, 0, nbytes - secret_x_size);
+
+  if (DBG_CRYPTO)
+    log_printhex("ECDH shared secret X is:", secret_x.data(), secret_x_size);
 
   /*** We have now the shared secret bytes in secret_x. ***/
 
@@ -152,7 +147,6 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
    * a KEK.
    */
   if (!gcry_mpi_get_flag(pkey[2], GCRYMPI_FLAG_OPAQUE)) {
-    xfree(secret_x);
     return GPG_ERR_BUG;
   }
   kek_params = (const unsigned char *)gcry_mpi_get_opaque(pkey[2], &nbits);
@@ -162,7 +156,6 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
 
   /* Expect 4 bytes  03 01 hash_alg symm_alg.  */
   if (kek_params_size != 4 || kek_params[0] != 3 || kek_params[1] != 1) {
-    xfree(secret_x);
     return GPG_ERR_BAD_PUBKEY;
   }
 
@@ -176,12 +169,10 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
 
   if (kdf_hash_algo != GCRY_MD_SHA256 && kdf_hash_algo != GCRY_MD_SHA384 &&
       kdf_hash_algo != GCRY_MD_SHA512) {
-    xfree(secret_x);
     return GPG_ERR_BAD_PUBKEY;
   }
   if (kdf_encr_algo != CIPHER_ALGO_AES && kdf_encr_algo != CIPHER_ALGO_AES192 &&
       kdf_encr_algo != CIPHER_ALGO_AES256) {
-    xfree(secret_x);
     return GPG_ERR_BAD_PUBKEY;
   }
 
@@ -204,7 +195,6 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     message_size = iobuf_temp_to_buffer(obuf, message, sizeof message);
     iobuf_close(obuf);
     if (err) {
-      xfree(secret_x);
       return err;
     }
 
@@ -221,18 +211,17 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     if (err) {
       log_error("gcry_md_open failed for kdf_hash_algo %d: %s", kdf_hash_algo,
                 gpg_strerror(err));
-      xfree(secret_x);
       return err;
     }
-    gcry_md_write(h, "\x00\x00\x00\x01", 4);   /* counter = 1 */
-    gcry_md_write(h, secret_x, secret_x_size); /* x of the point X */
-    gcry_md_write(h, message, message_size);   /* KDF parameters */
+    gcry_md_write(h, "\x00\x00\x00\x01", 4);          /* counter = 1 */
+    gcry_md_write(h, secret_x.data(), secret_x_size); /* x of the point X */
+    gcry_md_write(h, message, message_size);          /* KDF parameters */
 
     gcry_md_final(h);
 
     log_assert(gcry_md_get_algo_dlen(kdf_hash_algo) >= 32);
 
-    memcpy(secret_x, gcry_md_read(h, kdf_hash_algo),
+    memcpy(secret_x.data(), gcry_md_read(h, kdf_hash_algo),
            gcry_md_get_algo_dlen(kdf_hash_algo));
     gcry_md_close(h);
 
@@ -242,8 +231,9 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     log_assert(secret_x_size <= gcry_md_get_algo_dlen(kdf_hash_algo));
 
     /* We could have allocated more, so clean the tail before returning.  */
-    memset(secret_x + secret_x_size, 0, old_size - secret_x_size);
-    if (DBG_CRYPTO) log_printhex("ecdh KEK is:", secret_x, secret_x_size);
+    memset(secret_x.data() + secret_x_size, 0, old_size - secret_x_size);
+    if (DBG_CRYPTO)
+      log_printhex("ecdh KEK is:", secret_x.data(), secret_x_size);
   }
 
   /* And, finally, aeswrap with key secret_x.  */
@@ -251,7 +241,7 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     gcry_cipher_hd_t hd;
     size_t nbytes;
 
-    byte *data_buf;
+    Botan::secure_vector<uint8_t> data_buf;
     int data_buf_size;
 
     gcry_mpi_t result;
@@ -259,13 +249,11 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
     err = gcry_cipher_open(&hd, kdf_encr_algo, GCRY_CIPHER_MODE_AESWRAP, 0);
     if (err) {
       log_error("ecdh failed to initialize AESWRAP: %s\n", gpg_strerror(err));
-      xfree(secret_x);
       return err;
     }
 
-    err = gcry_cipher_setkey(hd, secret_x, secret_x_size);
-    xfree(secret_x);
-    secret_x = NULL;
+    err = gcry_cipher_setkey(hd, secret_x.data(), secret_x_size);
+    secret_x.clear();
     if (err) {
       gcry_cipher_close(hd);
       log_error("ecdh failed in gcry_cipher_setkey: %s\n", gpg_strerror(err));
@@ -279,15 +267,10 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
       return GPG_ERR_BAD_DATA;
     }
 
-    data_buf = (byte *)xtrymalloc_secure(1 + 2 * data_buf_size + 8);
-    if (!data_buf) {
-      err = gpg_error_from_syserror();
-      gcry_cipher_close(hd);
-      return err;
-    }
+    data_buf.resize(1 + 2 * data_buf_size + 8);
 
     if (is_encrypt) {
-      byte *in = data_buf + 1 + data_buf_size + 8;
+      byte *in = data_buf.data() + 1 + data_buf_size + 8;
 
       /* Write data MPI into the end of data_buf. data_buf is size
          aeswrap data.  */
@@ -296,31 +279,29 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
       if (err) {
         log_error("ecdh failed to export DEK: %s\n", gpg_strerror(err));
         gcry_cipher_close(hd);
-        xfree(data_buf);
         return err;
       }
 
       if (DBG_CRYPTO) log_printhex("ecdh encrypting  :", in, data_buf_size);
 
-      err = gcry_cipher_encrypt(hd, data_buf + 1, data_buf_size + 8, in,
+      err = gcry_cipher_encrypt(hd, data_buf.data() + 1, data_buf_size + 8, in,
                                 data_buf_size);
       memset(in, 0, data_buf_size);
       gcry_cipher_close(hd);
       if (err) {
         log_error("ecdh failed in gcry_cipher_encrypt: %s\n",
                   gpg_strerror(err));
-        xfree(data_buf);
         return err;
       }
       data_buf[0] = data_buf_size + 8;
 
       if (DBG_CRYPTO)
-        log_printhex("ecdh encrypted to:", data_buf + 1, data_buf[0]);
+        log_printhex("ecdh encrypted to:", data_buf.data() + 1, data_buf[0]);
 
-      result = gcry_mpi_set_opaque(NULL, data_buf, 8 * (1 + data_buf[0]));
+      result =
+          gcry_mpi_set_opaque(NULL, data_buf.data(), 8 * (1 + data_buf[0]));
       if (!result) {
         err = gpg_error_from_syserror();
-        xfree(data_buf);
         log_error("ecdh failed to create an MPI: %s\n", gpg_strerror(err));
         return err;
       }
@@ -333,28 +314,25 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
       p = gcry_mpi_get_opaque(data, &nbits);
       nbytes = (nbits + 7) / 8;
       if (!p || nbytes > data_buf_size || !nbytes) {
-        xfree(data_buf);
         return GPG_ERR_BAD_MPI;
       }
-      memcpy(data_buf, p, nbytes);
+      memcpy(data_buf.data(), p, nbytes);
       if (data_buf[0] != nbytes - 1) {
         log_error("ecdh inconsistent size\n");
-        xfree(data_buf);
         return GPG_ERR_BAD_MPI;
       }
-      in = data_buf + data_buf_size;
+      in = data_buf.data() + data_buf_size;
       data_buf_size = data_buf[0];
 
       if (DBG_CRYPTO)
-        log_printhex("ecdh decrypting :", data_buf + 1, data_buf_size);
+        log_printhex("ecdh decrypting :", data_buf.data() + 1, data_buf_size);
 
-      err = gcry_cipher_decrypt(hd, in, data_buf_size, data_buf + 1,
+      err = gcry_cipher_decrypt(hd, in, data_buf_size, data_buf.data() + 1,
                                 data_buf_size);
       gcry_cipher_close(hd);
       if (err) {
         log_error("ecdh failed in gcry_cipher_decrypt: %s\n",
                   gpg_strerror(err));
-        xfree(data_buf);
         return err;
       }
 
@@ -371,7 +349,6 @@ gpg_error_t pk_ecdh_encrypt_with_shared_point(
       /*   } */
 
       err = gcry_mpi_scan(&result, GCRYMPI_FMT_USG, in, data_buf_size, NULL);
-      xfree(data_buf);
       if (err) {
         log_error("ecdh failed to create a plain text MPI: %s\n",
                   gpg_strerror(err));
