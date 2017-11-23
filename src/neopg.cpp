@@ -68,9 +68,11 @@ int main(int argc, char* argv[]) {
   app.set_footer("Report bugs to https://github.com/das-labor/neopg");
   // app.require_subcommand(1);
   app.set_help_flag("--help", "display this help and exit");
+  app.add_subcommand("help", "display help and exit")
+      ->group("")
+      ->set_help_flag();
   bool oVersion = false;
   app.add_flag("--version", oVersion, "output version information and exit");
-
   VersionCommand cmd_version(app, "version",
                              "output version information and exit");
 
@@ -78,8 +80,11 @@ int main(int argc, char* argv[]) {
     if (oVersion) {
       cmd_version.run();
       throw CLI::Success();
-    } else if (app.get_subcommands().empty())
+    } else if (app.get_subcommands().empty() || app.got_subcommand("help")) {
+      // Necessary to not get the help output of the help subcommand.
+      app.reset();
       throw CLI::CallForHelp();
+    }
   });
 
   std::string legacy_group = "command to execute (GnuPG-compatible)";
