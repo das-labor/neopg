@@ -44,9 +44,6 @@
 #define _npth_socklen_t socklen_t
 #include <pthread.h>
 
-/* MacOS has trouble finding NSIG if this comes too early.  */
-#include <signal.h>
-
 #ifdef __ANDROID__
 #include <android/api-level.h>
 #if __ANDROID_API__ < 9
@@ -208,15 +205,11 @@ unsigned int npth_sleep(unsigned int sec);
 
 pid_t npth_waitpid(pid_t pid, int *status, int options);
 int npth_system(const char *cmd);
-#define npth_sigmask pthread_sigmask
-int npth_sigwait(const sigset_t *set, int *sig);
 
 int npth_connect(int s, const struct sockaddr *addr, _npth_socklen_t addrlen);
 int npth_accept(int s, struct sockaddr *addr, _npth_socklen_t *addrlen);
 int npth_select(int nfd, fd_set *rfds, fd_set *wfds, fd_set *efds,
                 struct timeval *timeout);
-int npth_pselect(int nfd, fd_set *rfds, fd_set *wfds, fd_set *efds,
-                 const struct timespec *timeout, const sigset_t *sigmask);
 ssize_t npth_read(int fd, void *buf, size_t nbytes);
 ssize_t npth_write(int fd, const void *buf, size_t nbytes);
 int npth_recvmsg(int fd, struct msghdr *msg, int flags);
