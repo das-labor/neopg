@@ -6,11 +6,15 @@
 
 #include <iostream>
 
+#include <CLI11.hpp>
+
 #include <neopg/cli/command.h>
 #include <neopg/cli/packet_command.h>
 
 #include <neopg/openpgp/marker_packet.h>
 #include <neopg/openpgp/user_id_packet.h>
+
+using ::CLI::CallForHelp;
 
 namespace NeoPG {
 namespace CLI {
@@ -34,7 +38,7 @@ PacketCommand::PacketCommand(CLI::App& app, const std::string& flag,
       cmd_uid(m_cmd, "uid", "output a User ID Package", group) {}
 
 void PacketCommand::run() {
-  //  std::cout << "PACKET\n";
+  if (m_cmd.get_subcommands().empty()) throw CallForHelp();
 }
 
 }  // Namespace CLI
