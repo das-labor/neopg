@@ -295,7 +295,7 @@ target_include_directories(gcrypt PRIVATE
 target_compile_definitions(gcrypt PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gcrypt PRIVATE
-  ${BOTAN2_LIBRARIES}
+  ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
   libneopg)
 target_compile_options(gcrypt PUBLIC
  -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700

@@ -43,7 +43,8 @@ install:
         (cd botan;
         git checkout 2.3.0;
         ./configure.py;
-        sudo make install)
+        sudo make install;
+        sudo ldconfig)
     fi;
 
 matrix:
