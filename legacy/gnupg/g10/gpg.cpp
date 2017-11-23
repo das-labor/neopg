@@ -38,6 +38,9 @@
 #include <windows.h>
 #endif
 
+#include <boost/algorithm/string/join.hpp>
+#include <sstream>
+
 #include <assuan.h>
 #include "../common/asshelp.h"
 #include "../common/compliance.h"
@@ -45,7 +48,6 @@
 #include "../common/init.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
-#include "../common/membuf.h"
 #include "../common/status.h"
 #include "../common/sysutils.h"
 #include "../common/ttyio.h"
@@ -747,8 +749,8 @@ int g10_errors_seen = 0;
 
 static int maybe_setuid = 1;
 
-static char *build_list(const char *text, char letter, const char *(*mapf)(int),
-                        int (*chkf)(int));
+static char *build_list(const std::string &text, char letter,
+                        const char *(*mapf)(int), int (*chkf)(int));
 static void set_cmd(enum cmd_and_opt_values *ret_cmd,
                     enum cmd_and_opt_values new_cmd);
 static void print_mds(const char *fname, int algo);
@@ -860,47 +862,29 @@ static const char *my_strusage(int level) {
   return p;
 }
 
-static char *build_list(const char *text, char letter, const char *(*mapf)(int),
-                        int (*chkf)(int)) {
-  membuf_t mb;
-  int indent;
-  int i, j, len;
+static char *build_list(const std::string &prefix, char letter,
+                        const char *(*mapf)(int), int (*chkf)(int)) {
+  std::vector<std::string> list;
+  int i;
   const char *s;
-  char *string;
 
-  if (maybe_setuid) gcry_control(GCRYCTL_INIT_SECMEM, 0, 0); /* Drop setuid. */
-
-  indent = utf8_charcount(text, -1);
-  len = 0;
-  init_membuf(&mb, 512);
-
-  for (i = 0; i <= 110; i++) {
+  for (i = 0; i <= 110; i++)
     if (!chkf(i) && (s = mapf(i))) {
-      if (mb.len - len > 60) {
-        put_membuf_str(&mb, ",\n");
-        len = mb.len;
-        for (j = 0; j < indent; j++) put_membuf_str(&mb, " ");
-      } else if (mb.len)
-        put_membuf_str(&mb, ", ");
-      else
-        put_membuf_str(&mb, text);
-
-      put_membuf_str(&mb, s);
       if (opt.verbose && letter) {
-        char num[20];
+        std::stringstream fmt;
         if (letter == 1)
-          snprintf(num, sizeof num, " (%d)", i);
+          fmt << s << " (" << i << ")";
         else
-          snprintf(num, sizeof num, " (%c%d)", letter, i);
-        put_membuf_str(&mb, num);
-      }
+          fmt << s << " (" << letter << i << ")";
+        list.emplace_back(fmt.str());
+      } else
+        list.emplace_back(s);
     }
-  }
-  if (mb.len) put_membuf_str(&mb, "\n");
-  put_membuf(&mb, "", 1);
 
-  string = (char *)get_membuf(&mb, NULL);
-  return (char *)xrealloc(string, strlen(string) + 1);
+  std::string out = prefix + boost::algorithm::join(list, ", ") + "\n";
+  char *result = (char *)xmalloc(out.size() + 1);
+  strcpy(result, out.data());
+  return result;
 }
 
 static void wrong_args(const char *text) {

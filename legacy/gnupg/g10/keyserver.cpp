@@ -26,10 +26,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <boost/algorithm/string/join.hpp>
+
 #include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
-#include "../common/membuf.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"
@@ -1269,7 +1270,6 @@ gpg_error_t keyserver_refresh(ctrl_t ctrl,
 gpg_error_t keyserver_search(ctrl_t ctrl,
                              const std::vector<std::string> &tokens) {
   gpg_error_t err;
-  char *searchstr;
   struct search_line_handler_parm_s parm;
 
   memset(&parm, 0, sizeof parm);
@@ -1286,32 +1286,17 @@ gpg_error_t keyserver_search(ctrl_t ctrl,
   /* for(temp=keyserver->options;temp;temp=temp->next) */
   /*   es_fprintf(spawn->tochild,"OPTION %s\n",temp->d); */
 
-  {
-    membuf_t mb;
-    bool first = true;
+  std::string searchstr = boost::algorithm::join(tokens, " ");
 
-    init_membuf(&mb, 1024);
-    for (auto &item : tokens) {
-      if (!first) put_membuf(&mb, " ", 1);
-      first = false;
-      put_membuf_str(&mb, item.c_str());
-    }
-    put_membuf(&mb, "", 1); /* Append Nul.  */
-    searchstr = (char *)get_membuf(&mb, NULL);
-    if (!searchstr) {
-      err = gpg_error_from_syserror();
-      goto leave;
-    }
-  }
   /* FIXME: Enable the next line */
   /* log_info (_("searching for \"%s\" from %s\n"), searchstr, keyserver->uri);
    */
 
   parm.ctrl = ctrl;
-  if (searchstr)
-    parm.searchstr_disp = utf8_to_native(searchstr, strlen(searchstr), 0);
+  parm.searchstr_disp = utf8_to_native(searchstr.c_str(), searchstr.size(), 0);
 
-  err = gpg_dirmngr_ks_search(ctrl, searchstr, search_line_handler, &parm);
+  err = gpg_dirmngr_ks_search(ctrl, searchstr.c_str(), search_line_handler,
+                              &parm);
 
   if (parm.not_found) {
     if (parm.searchstr_disp)
@@ -1352,7 +1337,6 @@ gpg_error_t keyserver_search(ctrl_t ctrl,
 leave:
   xfree(parm.desc);
   xfree(parm.searchstr_disp);
-  xfree(searchstr);
 
   return err;
 }
