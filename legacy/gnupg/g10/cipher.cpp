@@ -53,8 +53,7 @@ static void write_header(cipher_filter_context_t *cfx, IOBUF a) {
   ed.new_ctb = !ed.len;
 
   ed.mdc_method = DIGEST_ALGO_SHA1;
-  gcry_md_open(&cfx->mdc_hash, DIGEST_ALGO_SHA1, 0);
-  if (DBG_HASHING) gcry_md_debug(cfx->mdc_hash, "creatmdc");
+  cfx->mdc_hash = Botan::HashFunction::create_or_throw("SHA-1");
 
   {
     char buf[20];
@@ -85,7 +84,7 @@ static void write_header(cipher_filter_context_t *cfx, IOBUF a) {
   gcry_cipher_setiv(cfx->cipher_hd, NULL, 0);
   /*  log_hexdump( "prefix", temp, nprefix+2 ); */
   if (cfx->mdc_hash) /* Hash the "IV". */
-    gcry_md_write(cfx->mdc_hash, temp, nprefix + 2);
+    cfx->mdc_hash->update(temp, nprefix + 2);
   gcry_cipher_encrypt(cfx->cipher_hd, temp, nprefix + 2, NULL, 0);
   gcry_cipher_sync(cfx->cipher_hd);
   iobuf_write(a, temp, nprefix + 2);
@@ -108,28 +107,23 @@ int cipher_filter(void *opaque, int control, IOBUF a, byte *buf,
     if (!cfx->header) {
       write_header(cfx, a);
     }
-    if (cfx->mdc_hash) gcry_md_write(cfx->mdc_hash, buf, size);
+    if (cfx->mdc_hash)
+      cfx->mdc_hash->update(buf, size);
     gcry_cipher_encrypt(cfx->cipher_hd, buf, size, NULL, 0);
     rc = iobuf_write(a, buf, size);
   } else if (control == IOBUFCTRL_FREE) {
     if (cfx->mdc_hash) {
-      byte *hash;
-      int hashlen = gcry_md_get_algo_dlen(gcry_md_get_algo(cfx->mdc_hash));
       byte temp[22];
 
-      log_assert(hashlen == 20);
       /* We must hash the prefix of the MDC packet here. */
       temp[0] = 0xd3;
       temp[1] = 0x14;
-      gcry_md_putc(cfx->mdc_hash, temp[0]);
-      gcry_md_putc(cfx->mdc_hash, temp[1]);
+      cfx->mdc_hash->update(temp, 2);
 
-      gcry_md_final(cfx->mdc_hash);
-      hash = gcry_md_read(cfx->mdc_hash, 0);
-      memcpy(temp + 2, hash, 20);
+      std::vector<uint8_t> hash = cfx->mdc_hash->final_stdvec();
+      memcpy(temp + 2, hash.data(), 20);
       gcry_cipher_encrypt(cfx->cipher_hd, temp, 22, NULL, 0);
-      gcry_md_close(cfx->mdc_hash);
-      cfx->mdc_hash = NULL;
+      cfx->mdc_hash = nullptr;
       if (iobuf_write(a, temp, 22)) log_error("writing MDC packet failed\n");
     }
     gcry_cipher_close(cfx->cipher_hd);

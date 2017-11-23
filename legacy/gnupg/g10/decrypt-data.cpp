@@ -23,6 +23,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <memory>
+
+#include <botan/hash.h>
+
 #include "../common/compliance.h"
 #include "../common/i18n.h"
 #include "../common/status.h"
@@ -38,7 +42,7 @@ static int decode_filter(void *opaque, int control, IOBUF a, byte *buf,
 
 typedef struct decode_filter_context_s {
   gcry_cipher_hd_t cipher_hd;
-  gcry_md_hd_t mdc_hash;
+  std::unique_ptr<Botan::HashFunction> mdc_hash;
   char defer[22];
   int defer_filled;
   int eof_seen;
@@ -55,8 +59,7 @@ static void release_dfx_context(decode_filter_ctx_t dfx) {
   if (!--dfx->refcount) {
     gcry_cipher_close(dfx->cipher_hd);
     dfx->cipher_hd = NULL;
-    gcry_md_close(dfx->mdc_hash);
-    dfx->mdc_hash = NULL;
+    dfx->mdc_hash = nullptr;
     xfree(dfx);
   }
 }
@@ -132,8 +135,25 @@ int decrypt_data(ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek) {
   }
 
   if (ed->mdc_method) {
-    if (gcry_md_open(&dfx->mdc_hash, ed->mdc_method, 0)) BUG();
-    if (DBG_HASHING) gcry_md_debug(dfx->mdc_hash, "checkmdc");
+    std::string algo;
+    if (ed->mdc_method == DIGEST_ALGO_MD5)
+      algo = "MD5";
+    else if (ed->mdc_method == DIGEST_ALGO_RMD160)
+      algo = "RIPEMD-160";
+    else if (ed->mdc_method == DIGEST_ALGO_SHA1)
+      algo = "SHA-1";
+    else if (ed->mdc_method == DIGEST_ALGO_SHA256)
+      algo = "SHA-256";
+    else if (ed->mdc_method == DIGEST_ALGO_SHA384)
+      algo = "SHA-384";
+    else if (ed->mdc_method == DIGEST_ALGO_SHA512)
+      algo = "SHA-512";
+    else if (ed->mdc_method == DIGEST_ALGO_SHA224)
+      algo = "SHA-224";
+    else {
+      BUG();
+    }
+    dfx->mdc_hash = Botan::HashFunction::create_or_throw(algo);
   }
 
   rc = openpgp_cipher_open(
@@ -190,7 +210,8 @@ int decrypt_data(ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek) {
     goto leave;
   }
 
-  if (dfx->mdc_hash) gcry_md_write(dfx->mdc_hash, temp, nprefix + 2);
+  if (dfx->mdc_hash)
+    dfx->mdc_hash->update(temp, nprefix + 2);
 
   dfx->refcount++;
   dfx->partial = ed->is_partial;
@@ -246,16 +267,15 @@ int decrypt_data(ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek) {
     int datalen = gcry_md_get_algo_dlen(ed->mdc_method);
 
     log_assert(dfx->cipher_hd);
-    log_assert(dfx->mdc_hash);
     gcry_cipher_decrypt(dfx->cipher_hd, dfx->defer, 22, NULL, 0);
-    gcry_md_write(dfx->mdc_hash, dfx->defer, 2);
-    gcry_md_final(dfx->mdc_hash);
+    dfx->mdc_hash->update((uint8_t*)dfx->defer, 2);
+    std::vector<uint8_t> hash = dfx->mdc_hash->final_stdvec();
 
     if (dfx->defer[0] != '\xd3' || dfx->defer[1] != '\x14' || datalen != 20 ||
-        memcmp(gcry_md_read(dfx->mdc_hash, 0), dfx->defer + 2, datalen))
+        memcmp(hash.data(), dfx->defer + 2, datalen))
       rc = GPG_ERR_BAD_SIGNATURE;
     /* log_printhex("MDC message:", dfx->defer, 22); */
-    /* log_printhex("MDC calc:", gcry_md_read (dfx->mdc_hash,0), datalen); */
+    /* log_printhex("MDC calc:", hash.data(), datalen); */
   }
 
 leave:
@@ -349,7 +369,7 @@ static int mdc_decode_filter(void *opaque, int control, IOBUF a, byte *buf,
 
     if (n) {
       if (dfx->cipher_hd) gcry_cipher_decrypt(dfx->cipher_hd, buf, n, NULL, 0);
-      if (dfx->mdc_hash) gcry_md_write(dfx->mdc_hash, buf, n);
+      if (dfx->mdc_hash) dfx->mdc_hash->update(buf, n);
     } else {
       log_assert(dfx->eof_seen);
       rc = -1; /* Return EOF.  */

@@ -20,6 +20,10 @@
 #ifndef G10_FILTER_H
 #define G10_FILTER_H
 
+#include <memory>
+
+#include <botan/hash.h>
+
 #include "../common/iobuf.h"
 #include "../common/types.h"
 #include "dek.h"
@@ -91,7 +95,7 @@ typedef struct {
   u32 datalen;
   gcry_cipher_hd_t cipher_hd;
   int header;
-  gcry_md_hd_t mdc_hash;
+  std::unique_ptr<Botan::HashFunction> mdc_hash;
   byte enchash[20];
   int create_mdc; /* flag will be set by the cipher filter */
 } cipher_filter_context_t;
