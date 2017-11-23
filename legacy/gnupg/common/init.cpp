@@ -138,7 +138,4 @@ void init_common_subsystems(int *argcp, char ***argvp) {
 
   /* --version et al shall use estream as well.  */
   argparse_register_outfnc(writestring_via_estream);
-
-  /* Logging shall use the standard socket directory as fallback.  */
-  log_set_socket_dir_cb(gnupg_socketdir);
 }

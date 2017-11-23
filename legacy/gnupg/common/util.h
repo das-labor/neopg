@@ -206,7 +206,6 @@ const char *default_homedir(void);
 void gnupg_set_homedir(const char *newdir);
 const char *gnupg_homedir(void);
 int gnupg_default_homedir_p(void);
-const char *gnupg_socketdir(void);
 const char *gnupg_sysconfdir(void);
 const char *gnupg_bindir(void);
 const char *gnupg_libexecdir(void);
@@ -214,8 +213,6 @@ const char *gnupg_libdir(void);
 const char *gnupg_datadir(void);
 const char *gnupg_localedir(void);
 const char *gnupg_cachedir(void);
-
-char *_gnupg_socketdir_internal(int skip_checks, unsigned *r_info);
 
 /* All module names.  */
 #define GNUPG_MODULE_NAME_AGENT 1
