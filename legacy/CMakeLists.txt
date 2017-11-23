@@ -297,7 +297,10 @@ target_compile_definitions(gcrypt PRIVATE
 target_link_libraries(gcrypt PRIVATE
   ${BOTAN2_LIBRARIES}
   libneopg)
-target_compile_options(gcrypt PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(gcrypt PUBLIC
+ -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+ -std=c++11
+ ${BOTAN2_CFLAGS_OTHER})
 
 add_executable(gcrypt-test
   libgcrypt/tests/hmac.cpp
