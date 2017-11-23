@@ -720,14 +720,6 @@ void gcry_md_debug(gcry_md_hd_t hd, const char *suffix) {
   _gcry_md_debug(hd, suffix);
 }
 
-gpg_error_t gcry_kdf_derive(const void *passphrase, size_t passphraselen,
-                            int algo, int hashalgo, const void *salt,
-                            size_t saltlen, unsigned long iterations,
-                            size_t keysize, void *keybuffer) {
-  return _gcry_kdf_derive(passphrase, passphraselen, algo, hashalgo, salt,
-                          saltlen, iterations, keysize, keybuffer);
-}
-
 void gcry_randomize(void *buffer, size_t length) {
   _gcry_randomize(buffer, length);
 }
@@ -748,28 +740,6 @@ void gcry_mpi_randomize(gcry_mpi_t w, unsigned int nbits) {
 
 void gcry_create_nonce(void *buffer, size_t length) {
   _gcry_create_nonce(buffer, length);
-}
-
-gpg_error_t gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
-                                unsigned int factor_bits, gcry_mpi_t **factors,
-                                gcry_prime_check_func_t cb_func, void *cb_arg,
-                                unsigned int flags) {
-  return _gcry_prime_generate(prime, prime_bits, factor_bits, factors, cb_func,
-                              cb_arg, flags);
-}
-
-gpg_error_t gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,
-                                       gcry_mpi_t *factors,
-                                       gcry_mpi_t start_g) {
-  return _gcry_prime_group_generator(r_g, prime, factors, start_g);
-}
-
-void gcry_prime_release_factors(gcry_mpi_t *factors) {
-  _gcry_prime_release_factors(factors);
-}
-
-gpg_error_t gcry_prime_check(gcry_mpi_t x, unsigned int flags) {
-  return _gcry_prime_check(x, flags);
 }
 
 void gcry_ctx_release(gcry_ctx_t ctx) { _gcry_ctx_release(ctx); }
@@ -809,21 +779,8 @@ void gcry_set_progress_handler(gcry_handler_progress_t cb, void *cb_data) {
   _gcry_set_progress_handler(cb, cb_data);
 }
 
-void gcry_set_allocation_handler(gcry_handler_alloc_t func_alloc,
-                                 gcry_handler_alloc_t func_alloc_secure,
-                                 gcry_handler_secure_check_t func_secure_check,
-                                 gcry_handler_realloc_t func_realloc,
-                                 gcry_handler_free_t func_free) {
-  _gcry_set_allocation_handler(func_alloc, func_alloc_secure, func_secure_check,
-                               func_realloc, func_free);
-}
-
 void gcry_set_outofcore_handler(gcry_handler_no_mem_t h, void *opaque) {
   _gcry_set_outofcore_handler(h, opaque);
-}
-
-void gcry_set_fatalerror_handler(gcry_handler_error_t fnc, void *opaque) {
-  _gcry_set_fatalerror_handler(fnc, opaque);
 }
 
 void gcry_set_log_handler(gcry_handler_log_t f, void *opaque) {

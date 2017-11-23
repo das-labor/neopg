@@ -384,10 +384,6 @@ int agent_pksign_do(ctrl_t ctrl, const char *cache_nonce, const char *desc_text,
                         ctrl->digest.raw_value);
     if (rc) goto leave;
 
-    if (dsaalgo == 0 && GCRYPT_VERSION_NUMBER < 0x010700)
-      /* It's RSA and Libgcrypt < 1.7 */
-      check_signature = 1;
-
     if (DBG_CRYPTO) {
       gcry_log_debugsxp("skey", s_skey);
       gcry_log_debugsxp("hash", s_hash);
@@ -401,31 +397,6 @@ int agent_pksign_do(ctrl_t ctrl, const char *cache_nonce, const char *desc_text,
     }
 
     if (DBG_CRYPTO) gcry_log_debugsxp("rslt", s_sig);
-  }
-
-  /* Check that the signature verification worked and nothing is
-   * fooling us e.g. by a bug in the signature create code or by
-   * deliberately introduced faults.  Because Libgcrypt 1.7 does this
-   * for RSA internally there is no need to do it here again.  */
-  if (check_signature) {
-    gcry_sexp_t sexp_key = s_pkey ? s_pkey : s_skey;
-
-    if (s_hash == NULL) {
-      if (ctrl->digest.algo == MD_USER_TLS_MD5SHA1)
-        rc = do_encode_raw_pkcs1(data, datalen, gcry_pk_get_nbits(sexp_key),
-                                 &s_hash);
-      else
-        rc = do_encode_md(data, datalen, ctrl->digest.algo, &s_hash,
-                          ctrl->digest.raw_value);
-    }
-
-    if (!rc) rc = gcry_pk_verify(s_sig, s_hash, sexp_key);
-
-    if (rc) {
-      log_error(_("checking created signature failed: %s\n"), gpg_strerror(rc));
-      gcry_sexp_release(s_sig);
-      s_sig = NULL;
-    }
   }
 
 leave:

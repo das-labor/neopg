@@ -51,17 +51,6 @@ extern "C" {
 #endif
 #endif
 
-/* The version of this header should match the one of the library. It
-   should not be used by a program because gcry_check_version() should
-   return the same version.  The purpose of this macro is to let
-   autoconf (using the AM_PATH_GCRYPT macro) check that this header
-   matches the installed library.  */
-#define GCRYPT_VERSION "1.7.8"
-
-/* The version number of this header.  It may be used to handle minor
-   API incompatibilities.  */
-#define GCRYPT_VERSION_NUMBER 0x010708
-
 /* We want to use gcc attributes when possible.  Warning: Don't use
    these macros in your programs: As indicated by the leading
    underscore they are subject to change without notice. */
@@ -150,9 +139,6 @@ typedef struct {
   size_t len;  /* The used length of the buffer.  */
   void *data;  /* The buffer.  */
 } gcry_buffer_t;
-
-/* Check that the library fulfills the version requirement.  */
-const char *gcry_check_version(const char *req_version);
 
 /* Codes for function dispatchers.  */
 
@@ -1487,13 +1473,6 @@ typedef void (*gcry_handler_log_t)(void *, int, const char *, va_list);
 /* Certain operations can provide progress information.  This function
    is used to register a handler for retrieving these information. */
 void gcry_set_progress_handler(gcry_handler_progress_t cb, void *cb_data);
-
-/* Register a custom memory allocation functions. */
-void gcry_set_allocation_handler(gcry_handler_alloc_t func_alloc,
-                                 gcry_handler_alloc_t func_alloc_secure,
-                                 gcry_handler_secure_check_t func_secure_check,
-                                 gcry_handler_realloc_t func_realloc,
-                                 gcry_handler_free_t func_free);
 
 /* Register a function used instead of the internal out of memory
    handler. */

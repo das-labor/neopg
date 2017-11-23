@@ -92,9 +92,7 @@
 #define my_isascii(c) (!((c)&0x80))
 
 /*-- src/global.c -*/
-int _gcry_global_is_operational(void);
 gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr);
-void _gcry_check_heap(const void *a);
 void _gcry_pre_syscall(void);
 void _gcry_post_syscall(void);
 int _gcry_get_debug_flag(unsigned int mask);

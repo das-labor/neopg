@@ -59,11 +59,6 @@ static void (*post_syscall_func)(void);
 
 /* Memory management. */
 
-static gcry_handler_alloc_t alloc_func;
-static gcry_handler_alloc_t alloc_secure_func;
-static gcry_handler_secure_check_t is_secure_func;
-static gcry_handler_realloc_t realloc_func;
-static gcry_handler_free_t free_func;
 static gcry_handler_no_mem_t outofcore_handler;
 static void *outofcore_handler_value;
 static int no_secure_memory;
@@ -72,9 +67,7 @@ static int no_secure_memory;
 static gpg_error_t external_lock_test(int cmd);
 
 /* This is our handmade constructor.  It gets called by any function
-   likely to be called at startup.  The suggested way for an
-   application to make sure that this has been called is by using
-   gcry_check_version. */
+   likely to be called at startup.  */
 static void global_init(void) {
   gpg_error_t err = 0;
 
@@ -435,25 +428,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
   return rc;
 }
 
-/* Set custom allocation handlers.  This is in general not useful
- * because the libgcrypt allocation functions are guaranteed to
- * provide proper allocation handlers which zeroize memory if needed.
- * NOTE: All 5 functions should be set.  */
-void _gcry_set_allocation_handler(
-    gcry_handler_alloc_t new_alloc_func,
-    gcry_handler_alloc_t new_alloc_secure_func,
-    gcry_handler_secure_check_t new_is_secure_func,
-    gcry_handler_realloc_t new_realloc_func,
-    gcry_handler_free_t new_free_func) {
-  global_init();
-
-  alloc_func = new_alloc_func;
-  alloc_secure_func = new_alloc_secure_func;
-  is_secure_func = new_is_secure_func;
-  realloc_func = new_realloc_func;
-  free_func = new_free_func;
-}
-
 /****************
  * Set an optional handler which is called in case the xmalloc functions
  * ran out of memory.  This handler may do one of these things:
@@ -487,15 +461,9 @@ static gpg_error_t do_malloc(size_t n, unsigned int flags, void **mem) {
   void *m;
 
   if ((flags & GCRY_ALLOC_FLAG_SECURE) && !get_no_secure_memory()) {
-    if (alloc_secure_func)
-      m = (*alloc_secure_func)(n);
-    else
-      m = _gcry_private_malloc_secure(n, !!(flags & GCRY_ALLOC_FLAG_XHINT));
+    m = _gcry_private_malloc_secure(n, !!(flags & GCRY_ALLOC_FLAG_XHINT));
   } else {
-    if (alloc_func)
-      m = (*alloc_func)(n);
-    else
-      m = _gcry_private_malloc(n);
+    m = _gcry_private_malloc(n);
   }
 
   if (!m) {
@@ -530,20 +498,7 @@ void *_gcry_malloc_secure(size_t n) { return _gcry_malloc_secure_core(n, 0); }
 
 int _gcry_is_secure(const void *a) {
   if (get_no_secure_memory()) return 0;
-  if (is_secure_func) return is_secure_func(a);
   return _gcry_private_is_secure(a);
-}
-
-void _gcry_check_heap(const void *a) {
-  (void)a;
-
-/* FIXME: implement this*/
-#if 0
-    if( some_handler )
-	some_handler(a)
-    else
-	_gcry_private_check_heap(a)
-#endif
 }
 
 static void *_gcry_realloc_core(void *a, size_t n, int xhint) {
@@ -557,10 +512,7 @@ static void *_gcry_realloc_core(void *a, size_t n, int xhint) {
     return NULL;
   }
 
-  if (realloc_func)
-    p = realloc_func(a, n);
-  else
-    p = _gcry_private_realloc(a, n, xhint);
+  p = _gcry_private_realloc(a, n, xhint);
   if (!p && !errno) gpg_err_set_errno(ENOMEM);
   return p;
 }
@@ -576,10 +528,7 @@ void _gcry_free(void *p) {
      may not accidentally change ERRNO.  We restore it only if it was
      already set to comply with the usual C semantic for ERRNO.  */
   save_errno = errno;
-  if (free_func)
-    free_func(p);
-  else
-    _gcry_private_free(p);
+  _gcry_private_free(p);
 
   if (save_errno) gpg_err_set_errno(save_errno);
 }

@@ -32,8 +32,6 @@
 
 static int verbosity_level = 0;
 
-static void (*fatal_error_handler)(void *, int, const char *) = NULL;
-static void *fatal_error_handler_value = 0;
 static void (*log_handler)(void *, int, const char *, va_list) = NULL;
 static void *log_handler_value = 0;
 
@@ -49,12 +47,6 @@ const char *_gcry_gettext(const char *key) {
   return key;
 }
 
-void _gcry_set_fatalerror_handler(void (*fnc)(void *, int, const char *),
-                                  void *value) {
-  fatal_error_handler_value = value;
-  fatal_error_handler = fnc;
-}
-
 static void write2stderr(const char *s) {
   /* Dummy variable to silence gcc warning.  */
   int res = write(2, s, strlen(s));
@@ -68,9 +60,6 @@ static void write2stderr(const char *s) {
 void _gcry_fatal_error(int rc, const char *text) {
   if (!text) /* get a default text */
     text = gpg_strerror(rc);
-
-  if (fatal_error_handler)
-    fatal_error_handler(fatal_error_handler_value, rc, text);
 
   write2stderr("\nFatal error: ");
   write2stderr(text);

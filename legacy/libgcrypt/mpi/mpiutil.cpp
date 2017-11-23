@@ -88,11 +88,6 @@ gcry_mpi_t _gcry_mpi_alloc(unsigned nlimbs) {
   return a;
 }
 
-void _gcry_mpi_m_check(gcry_mpi_t a) {
-  _gcry_check_heap(a);
-  _gcry_check_heap(a->d);
-}
-
 gcry_mpi_t _gcry_mpi_alloc_secure(unsigned nlimbs) {
   gcry_mpi_t a;
 

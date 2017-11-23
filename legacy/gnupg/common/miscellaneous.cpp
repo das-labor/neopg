@@ -72,14 +72,6 @@ static void my_gcry_logger(void *dummy, int level, const char *fmt,
   log_logv(level, fmt, arg_ptr);
 }
 
-/* This function is called by libgcrypt on a fatal error.  */
-static void my_gcry_fatalerror_handler(void *opaque, int rc, const char *text) {
-  (void)opaque;
-
-  log_fatal("libgcrypt problem: %s\n", text ? text : gpg_strerror(rc));
-  abort();
-}
-
 /* This function is called by libgcrypt if it ran out of core and
    there is no way to return that error to the caller.  We do our own
    function here to make use of our logging functions. */
@@ -108,7 +100,6 @@ static int my_gcry_outofcore_handler(void *opaque, size_t req_n,
    early at startup. */
 void setup_libgcrypt_logging(void) {
   gcry_set_log_handler(my_gcry_logger, NULL);
-  gcry_set_fatalerror_handler(my_gcry_fatalerror_handler, NULL);
   gcry_set_outofcore_handler(my_gcry_outofcore_handler, NULL);
 }
 

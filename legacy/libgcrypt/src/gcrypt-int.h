@@ -161,21 +161,6 @@ int _gcry_mac_map_name(const char *name) _GCRY_GCC_ATTR_PURE;
 
 #define _gcry_mac_reset(h) _gcry_mac_ctl((h), GCRYCTL_RESET, NULL, 0)
 
-gpg_error_t _gcry_kdf_derive(const void *passphrase, size_t passphraselen,
-                             int algo, int subalgo, const void *salt,
-                             size_t saltlen, unsigned long iterations,
-                             size_t keysize, void *keybuffer);
-
-gpg_error_t _gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
-                                 unsigned int factor_bits, gcry_mpi_t **factors,
-                                 gcry_prime_check_func_t cb_func, void *cb_arg,
-                                 unsigned int flags);
-gpg_error_t _gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,
-                                        gcry_mpi_t *factors,
-                                        gcry_mpi_t start_g);
-void _gcry_prime_release_factors(gcry_mpi_t *factors);
-gpg_error_t _gcry_prime_check(gcry_mpi_t x, unsigned int flags);
-
 void _gcry_randomize(void *buffer, size_t length);
 gpg_error_t _gcry_random_add_bytes(const void *buffer, size_t length);
 void *_gcry_random_bytes(size_t nbytes) _GCRY_GCC_ATTR_MALLOC;
@@ -185,13 +170,6 @@ void _gcry_create_nonce(void *buffer, size_t length);
 
 void _gcry_ctx_release(gcry_ctx_t ctx);
 
-const char *_gcry_check_version(const char *req_version);
-
-void _gcry_set_allocation_handler(gcry_handler_alloc_t func_alloc,
-                                  gcry_handler_alloc_t func_alloc_secure,
-                                  gcry_handler_secure_check_t func_secure_check,
-                                  gcry_handler_realloc_t func_realloc,
-                                  gcry_handler_free_t func_free);
 void _gcry_set_outofcore_handler(gcry_handler_no_mem_t h, void *opaque);
 void _gcry_set_fatalerror_handler(gcry_handler_error_t fnc, void *opaque);
 void _gcry_set_log_handler(gcry_handler_log_t f, void *opaque);

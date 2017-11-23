@@ -46,11 +46,8 @@ gpg_error_t gcry_md_get(gcry_md_hd_t hd, int algo, unsigned char *buffer,
 
 /* Now mark all symbols.  */
 
-MARK_VISIBLEX(gcry_check_version)
 MARK_VISIBLEX(gcry_control)
 
-MARK_VISIBLEX(gcry_set_allocation_handler)
-MARK_VISIBLEX(gcry_set_fatalerror_handler)
 MARK_VISIBLEX(gcry_set_gettext_handler)
 MARK_VISIBLEX(gcry_set_log_handler)
 MARK_VISIBLEX(gcry_set_outofcore_handler)
@@ -143,13 +140,6 @@ MARK_VISIBLEX(gcry_pk_sign)
 MARK_VISIBLEX(gcry_pk_testkey)
 MARK_VISIBLEX(gcry_pk_verify)
 MARK_VISIBLEX(gcry_pubkey_get_sexp)
-
-MARK_VISIBLEX(gcry_kdf_derive)
-
-MARK_VISIBLEX(gcry_prime_check)
-MARK_VISIBLEX(gcry_prime_generate)
-MARK_VISIBLEX(gcry_prime_group_generator)
-MARK_VISIBLEX(gcry_prime_release_factors)
 
 MARK_VISIBLEX(gcry_random_add_bytes)
 MARK_VISIBLEX(gcry_random_bytes)
