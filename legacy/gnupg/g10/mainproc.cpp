@@ -2052,7 +2052,7 @@ static void proc_tree(CTX c, kbnode_t node) {
                                n1->pkt->pkt.signature->digest_algo)));
       }
 
-      if (RFC2440 || RFC4880)
+      if (RFC4880)
         ; /* Strict RFC mode.  */
       else if (sig->digest_algo == DIGEST_ALGO_SHA1 &&
                sig->pubkey_algo == PUBKEY_ALGO_DSA && sig->sig_class == 0x01) {

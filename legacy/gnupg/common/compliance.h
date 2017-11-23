@@ -39,7 +39,6 @@ void gnupg_initialize_compliance(int gnupg_module_name);
 enum gnupg_compliance_mode {
   CO_GNUPG,
   CO_RFC4880,
-  CO_RFC2440,
   CO_PGP6,
   CO_PGP7,
   CO_PGP8,

@@ -228,7 +228,6 @@ enum cmd_and_opt_values {
   oMaxCertDepth,
   oCompliance,
   oGnuPG,
-  oRFC2440,
   oRFC4880,
   oRFC4880bis,
   oOpenPGP,
@@ -236,8 +235,6 @@ enum cmd_and_opt_values {
   oPGP7,
   oPGP8,
   oDE_VS,
-  oRFC2440Text,
-  oNoRFC2440Text,
   oCipherAlgo,
   oDigestAlgo,
   oCertDigestAlgo,
@@ -542,15 +539,12 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_n(oGnuPG, "gnupg", "@"), ARGPARSE_s_n(oGnuPG, "no-pgp2", "@"),
     ARGPARSE_s_n(oGnuPG, "no-pgp6", "@"), ARGPARSE_s_n(oGnuPG, "no-pgp7", "@"),
     ARGPARSE_s_n(oGnuPG, "no-pgp8", "@"),
-    ARGPARSE_s_n(oRFC2440, "rfc2440", "@"),
     ARGPARSE_s_n(oRFC4880, "rfc4880", "@"),
     ARGPARSE_s_n(oRFC4880bis, "rfc4880bis", "@"),
     ARGPARSE_s_n(oOpenPGP, "openpgp", N_("use strict OpenPGP behavior")),
     ARGPARSE_s_n(oPGP6, "pgp6", "@"), ARGPARSE_s_n(oPGP7, "pgp7", "@"),
     ARGPARSE_s_n(oPGP8, "pgp8", "@"),
 
-    ARGPARSE_s_n(oRFC2440Text, "rfc2440-text", "@"),
-    ARGPARSE_s_n(oNoRFC2440Text, "no-rfc2440-text", "@"),
     ARGPARSE_s_i(oS2KMode, "s2k-mode", "@"),
     ARGPARSE_s_s(oS2KDigest, "s2k-digest-algo", "@"),
     ARGPARSE_s_s(oS2KCipher, "s2k-cipher-algo", "@"),
@@ -1433,7 +1427,7 @@ static void parse_trust_model(const char *model) {
 
 static struct gnupg_compliance_option compliance_options[] = {
     {"gnupg", oGnuPG},     {"openpgp", oOpenPGP}, {"rfc4880bis", oRFC4880bis},
-    {"rfc4880", oRFC4880}, {"rfc2440", oRFC2440}, {"pgp6", oPGP6},
+    {"rfc4880", oRFC4880}, {"pgp6", oPGP6},
     {"pgp7", oPGP7},       {"pgp8", oPGP8},       {"de-vs", oDE_VS}};
 
 /* Helper to set compliance related options.  This is a separate
@@ -1447,26 +1441,11 @@ static void set_compliance_option(enum cmd_and_opt_values option) {
     case oOpenPGP:
     case oRFC4880:
       /* This is effectively the same as RFC2440, but with
-         "--enable-dsa2 --no-rfc2440-text
+         "--enable-dsa2
          --require-cross-certification". */
       opt.compliance = CO_RFC4880;
       opt.flags.dsa2 = true;
       opt.flags.require_cross_cert = true;
-      opt.rfc2440_text = false;
-      opt.allow_non_selfsigned_uid = true;
-      opt.allow_freeform_uid = true;
-      opt.def_cipher_algo = 0;
-      opt.def_digest_algo = 0;
-      opt.cert_digest_algo = 0;
-      opt.compress_algo = -1;
-      opt.s2k_mode = 3; /* iterated+salted */
-      opt.s2k_digest_algo = DIGEST_ALGO_SHA1;
-      opt.s2k_cipher_algo = CIPHER_ALGO_3DES;
-      break;
-    case oRFC2440:
-      opt.compliance = CO_RFC2440;
-      opt.flags.dsa2 = false;
-      opt.rfc2440_text = true;
       opt.allow_non_selfsigned_uid = true;
       opt.allow_freeform_uid = true;
       opt.def_cipher_algo = 0;
@@ -2066,7 +2045,6 @@ next_pass:
         set_compliance_option((cmd_and_opt_values)(compliance));
       } break;
       case oOpenPGP:
-      case oRFC2440:
       case oRFC4880:
       case oRFC4880bis:
       case oPGP6:
@@ -2074,14 +2052,6 @@ next_pass:
       case oPGP8:
       case oGnuPG:
         set_compliance_option((cmd_and_opt_values)(pargs.r_opt));
-        break;
-
-      case oRFC2440Text:
-        opt.rfc2440_text = true;
-        break;
-
-      case oNoRFC2440Text:
-        opt.rfc2440_text = false;
         break;
 
       case oSetPolicyURL:

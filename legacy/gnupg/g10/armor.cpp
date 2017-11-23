@@ -331,19 +331,7 @@ static int is_armor_header(byte *line, unsigned len) {
   save_p = p;
   p += 5;
 
-  /* Some Windows environments seem to add whitespace to the end of
-     the line, so we strip it here.  This becomes strict if
-     --rfc2440 is set since 2440 reads "The header lines, therefore,
-     MUST start at the beginning of a line, and MUST NOT have text
-     following them on the same line."  It is unclear whether "text"
-     refers to all text or just non-whitespace text.  4880 clarified
-     this was only non-whitespace text. */
-
-  if (RFC2440) {
-    if (*p == '\r') p++;
-    if (*p == '\n') p++;
-  } else
-    while (*p == ' ' || *p == '\r' || *p == '\n' || *p == '\t') p++;
+  while (*p == ' ' || *p == '\r' || *p == '\n' || *p == '\t') p++;
 
   if (*p) return -1; /* garbage after dashes */
   save_c = *save_p;
@@ -382,13 +370,11 @@ static int parse_header_line(armor_filter_context_t *afx, byte *line,
     "Comment: " (with nothing else) is actually legal as an empty
     string comment.  However, email and cut-and-paste being what it
     is, that trailing space may go away.  Therefore, we accept empty
-    headers delimited with only a colon.  --rfc2440, as always,
-    makes this strict and enforces the colon-space pair. -dms
+    headers delimited with only a colon.-dms
   */
 
   p = (byte *)strchr((char *)line, ':');
-  if (!p || (RFC2440 && p[1] != ' ') ||
-      (!RFC2440 && p[1] != ' ' && p[1] != '\n' && p[1] != '\r')) {
+  if (!p || (p[1] != ' ' && p[1] != '\n' && p[1] != '\r')) {
     log_error(_("invalid armor header: "));
     es_write_sanitized(log_get_stream(), line, len, NULL, NULL);
     log_printf("\n");
@@ -499,7 +485,6 @@ static int check_input(armor_filter_context_t *afx, IOBUF a) {
 
     i = parse_header_line(afx, line, len);
     if (i <= 0) {
-      if (i && RFC2440) rc = GPG_ERR_INV_ARMOR;
       break;
     }
   }

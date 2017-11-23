@@ -612,7 +612,6 @@ int openpgp_pk_test_algo2(pubkey_algo_t algo, unsigned int use) {
 
     case PUBKEY_ALGO_ELGAMAL:
       /* Dont't allow type 20 keys unless in rfc2440 mode.  */
-      if (RFC2440) ga = GCRY_PK_ELG;
       break;
 
     default:
@@ -641,7 +640,6 @@ int openpgp_pk_algo_usage(int algo) {
       use = PUBKEY_USAGE_CERT | PUBKEY_USAGE_SIG;
       break;
     case PUBKEY_ALGO_ELGAMAL:
-      if (RFC2440) use = PUBKEY_USAGE_ENC;
       break;
     case PUBKEY_ALGO_ELGAMAL_E:
       use = PUBKEY_USAGE_ENC;
@@ -1154,10 +1152,6 @@ void compliance_failure(void) {
 
     case CO_RFC4880:
       ver = "OpenPGP";
-      break;
-
-    case CO_RFC2440:
-      ver = "OpenPGP (older)";
       break;
 
     case CO_PGP6:

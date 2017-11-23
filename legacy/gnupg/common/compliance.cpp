@@ -168,7 +168,7 @@ int gnupg_pk_is_compliant(enum gnupg_compliance_mode compliance, int algo,
     xfree(curve);
   } else if (algotype == is_elg_sign) {
     /* An Elgamal signing key is only RFC-2440 compliant.  */
-    result = (compliance == CO_RFC2440);
+    result = 0;
   } else {
     result = 1; /* Assume compliance.  */
   }
@@ -406,7 +406,6 @@ const char *gnupg_status_compliance_flag(
     case CO_GNUPG:
       return "8";
     case CO_RFC4880:
-    case CO_RFC2440:
     case CO_PGP6:
     case CO_PGP7:
     case CO_PGP8:
@@ -449,8 +448,6 @@ const char *gnupg_compliance_option_string(
       return "--compliance=gnupg";
     case CO_RFC4880:
       return "--compliance=openpgp";
-    case CO_RFC2440:
-      return "--compliance=rfc2440";
     case CO_PGP6:
       return "--compliance=pgp6";
     case CO_PGP7:

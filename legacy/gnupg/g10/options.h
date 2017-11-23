@@ -108,7 +108,6 @@ extern int memory_stat_debug_mode;
 
 /* Compatibility flags.  */
 #define GNUPG (opt.compliance == CO_GNUPG || opt.compliance == CO_DE_VS)
-#define RFC2440 (opt.compliance == CO_RFC2440)
 #define RFC4880 (opt.compliance == CO_RFC4880)
 #define PGP6 (opt.compliance == CO_PGP6)
 #define PGP7 (opt.compliance == CO_PGP7)
@@ -309,7 +308,6 @@ struct options {
   unsigned int screen_columns{0};
   unsigned int screen_lines{0};
   byte *show_subpackets{nullptr};
-  bool rfc2440_text{false};
 
   /* If true, let write failures on the status-fd exit the process. */
   bool exit_on_status_write_error{false};
