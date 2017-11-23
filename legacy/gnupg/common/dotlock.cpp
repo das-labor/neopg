@@ -198,9 +198,6 @@
 
      HAVE_POSIX_SYSTEM   - Internally defined to !HAVE_DOSISH_SYSTEM.
 
-     HAVE_SIGNAL_H       - Should be defined on Posix systems.  If config.h
-                           is not used defaults to defined.
-
      DIRSEP_C            - Separation character for file name parts.
                            Usually not redefined.
 
@@ -256,9 +253,7 @@
 
 */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 /* Some quick replacements for stuff we usually expect to be defined
    in config.h.  Define HAVE_POSIX_SYSTEM for better readability. */
@@ -267,11 +262,6 @@
 #endif
 #if !defined(HAVE_DOSISH_SYSTEM) && !defined(HAVE_POSIX_SYSTEM)
 #define HAVE_POSIX_SYSTEM 1
-#endif
-
-/* With no config.h assume that we have sitgnal.h.  */
-#if !defined(HAVE_CONFIG_H) && defined(HAVE_POSIX_SYSTEM)
-#define HAVE_SIGNAL_H 1
 #endif
 
 /* Standard headers.  */
@@ -290,10 +280,10 @@
 #include <sys/utsname.h>
 #endif
 #include <fcntl.h>
-#include <signal.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <signal.h>
 #ifdef DOTLOCK_USE_PTHREAD
 #include <pthread.h>
 #endif

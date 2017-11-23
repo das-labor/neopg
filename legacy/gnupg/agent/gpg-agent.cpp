@@ -41,9 +41,6 @@
 #include <sddl.h>
 #endif /*!HAVE_W32_SYSTEM*/
 #include <unistd.h>
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
 #include <npth.h>
 
 #define GNUPG_COMMON_NEED_AFLOCAL
@@ -167,12 +164,6 @@ static struct debug_flags_s debug_flags[] = {
 #define TIMERTICK_INTERVAL (4)
 #else
 #define TIMERTICK_INTERVAL (2)
-#endif
-
-/* The signal mask at startup and a flag telling whether it is valid.  */
-#ifdef HAVE_SIGPROCMASK
-static sigset_t startup_signal_mask;
-static int startup_signal_mask_valid;
 #endif
 
 /* Flag to indicate that a shutdown was requested.  */
@@ -480,14 +471,6 @@ int agent_main(int argc, char **argv) {
   struct assuan_malloc_hooks malloc_hooks;
 
   early_system_init();
-
-/* Before we do anything else we save the list of currently open
-   file descriptors and the signal mask.  This info is required to
-   do the exec call properly.  We don't need it on Windows.  */
-#ifdef HAVE_SIGPROCMASK
-  if (!sigprocmask(SIG_UNBLOCK, NULL, &startup_signal_mask))
-    startup_signal_mask_valid = 1;
-#endif /*HAVE_SIGPROCMASK*/
 
   /* Set program name etc.  */
   set_strusage(my_strusage);

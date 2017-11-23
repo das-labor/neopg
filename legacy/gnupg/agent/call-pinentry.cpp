@@ -28,7 +28,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #ifndef HAVE_W32_SYSTEM
-#include <signal.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
@@ -719,6 +718,8 @@ void agent_popup_message_stop(ctrl_t ctrl) {
 
   (void)ctrl;
 
+  return;
+#if 0
   if (!popup_tid || !entry_ctx) {
     log_debug("agent_popup_message_stop called with no active popup\n");
     return;
@@ -763,6 +764,7 @@ void agent_popup_message_stop(ctrl_t ctrl) {
 
   /* Now we can close the connection. */
   unlock_pinentry(0);
+#endif
 }
 
 int agent_clear_passphrase(ctrl_t ctrl, const char *keyinfo,

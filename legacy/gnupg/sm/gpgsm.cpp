@@ -421,7 +421,6 @@ static char *build_list(const char *text, const char *(*mapf)(int),
 static void set_cmd(enum cmd_and_opt_values *ret_cmd,
                     enum cmd_and_opt_values new_cmd);
 
-static void emergency_cleanup(void);
 static int open_read(const char *filename);
 static estream_t open_es_fread(const char *filename, const char *mode);
 static estream_t open_es_fwrite(const char *filename);
@@ -1306,14 +1305,6 @@ next_pass:
 
   set_debug();
 
-  /* Although we always use gpgsm_exit, we better install a regualr
-     exit handler so that at least the secure memory gets wiped
-     out. */
-  if (atexit(emergency_cleanup)) {
-    log_error("atexit failed\n");
-    gpgsm_exit(2);
-  }
-
   /* Must do this after dropping setuid, because the mapping functions
      may try to load an module and we may have disabled an algorithm.
      We remap the commonly used algorithms to the OIDs for
@@ -1727,15 +1718,12 @@ next_pass:
   return 8; /*NOTREACHED*/
 }
 
-/* Note: This function is used by signal handlers!. */
-static void emergency_cleanup(void) { gcry_control(GCRYCTL_TERM_SECMEM); }
-
 void gpgsm_exit(int rc) {
   if (opt.debug & DBG_MEMSTAT_VALUE) {
     gcry_control(GCRYCTL_DUMP_MEMORY_STATS);
   }
   if (opt.debug) gcry_control(GCRYCTL_DUMP_SECMEM_STATS);
-  emergency_cleanup();
+  gcry_control(GCRYCTL_TERM_SECMEM);
   rc = rc ? rc : log_get_errorcount(0) ? 2 : gpgsm_errors_seen ? 1 : 0;
   exit(rc);
 }

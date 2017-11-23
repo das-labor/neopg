@@ -36,9 +36,6 @@
 #endif
 #include <sys/stat.h>
 #include <unistd.h>
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
 #ifdef HAVE_INOTIFY_INIT
 #include <sys/inotify.h>
 #endif /*HAVE_INOTIFY_INIT*/
@@ -827,13 +824,6 @@ next_pass:
 
   post_option_parsing();
 
-#ifndef HAVE_W32_SYSTEM
-  /* We need to ignore the PIPE signal because the we might log to a
-     socket and that code handles EPIPE properly.  Assuan would set
-     this signal to ignore anyway.*/
-  signal(SIGPIPE, SIG_IGN);
-#endif
-
   /* Ready.  Now to our duties. */
   if (!cmd) cmd = aServer;
   rc = 0;
@@ -1042,20 +1032,6 @@ static fingerprint_list_t parse_ocsp_signer(const char *string) {
 /*
    Stuff used in daemon mode.
  */
-
-/* A global function which allows us to trigger the reload stuff from
-   other places.  */
-void dirmngr_sighup_action(void) {
-  log_info(
-      _("SIGHUP received - "
-        "re-reading configuration and flushing caches\n"));
-  cert_cache_deinit(0);
-  crl_cache_deinit();
-  cert_cache_init(hkp_cacert_filenames);
-  crl_cache_init();
-  reload_dns_stuff(0);
-  ks_hkp_reload();
-}
 
 /* This function is called if some network activity was done.  At this
  * point we know the we have a network and we can decide whether to

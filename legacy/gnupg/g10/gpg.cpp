@@ -751,7 +751,6 @@ static void print_mds(const char *fname, int algo);
 static void add_notation_data(const char *string, int which, bool utf8_strings);
 static void add_policy_url(const char *string, int which);
 static void add_keyserver_url(const char *string, int which);
-static void emergency_cleanup(void);
 static void read_sessionkey_from_fd(int fd);
 
 static int build_list_pk_test_algo(int algo) {
@@ -3707,9 +3706,6 @@ next_pass:
   return 8; /*NEVER REACHED*/
 }
 
-/* Note: This function is used by signal handlers!. */
-static void emergency_cleanup(void) { gcry_control(GCRYCTL_TERM_SECMEM); }
-
 void g10_exit(int rc) {
   if (DBG_CLOCK) log_clock("stop");
 
@@ -3720,7 +3716,7 @@ void g10_exit(int rc) {
   }
   if (opt.debug) gcry_control(GCRYCTL_DUMP_SECMEM_STATS);
 
-  emergency_cleanup();
+  gcry_control(GCRYCTL_TERM_SECMEM);
 
   rc = rc ? rc : log_get_errorcount(0) ? 2 : g10_errors_seen ? 1 : 0;
   exit(rc);
