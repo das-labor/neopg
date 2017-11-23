@@ -62,7 +62,6 @@
 #include "../common/argparse.h"
 #include "../common/dotlock.h"
 #include "../common/dynload.h"
-#include "../common/fwddecl.h"
 #include "../common/logging.h"
 #include "../common/mischelp.h"
 #include "../common/stringhelp.h"

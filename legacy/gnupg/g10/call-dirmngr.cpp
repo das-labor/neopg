@@ -121,8 +121,7 @@ static gpg_error_t create_context(ctrl_t ctrl, assuan_context_t *r_ctx) {
   assuan_context_t ctx;
 
   *r_ctx = NULL;
-  err = start_new_dirmngr(&ctx, opt.autostart, opt.verbose, DBG_IPC,
-                          NULL /*gpg_status2*/, ctrl);
+  err = start_new_dirmngr(&ctx, opt.autostart, opt.verbose, DBG_IPC);
   if (!opt.autostart && err == GPG_ERR_NO_DIRMNGR) {
     static int shown;
 

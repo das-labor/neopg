@@ -200,9 +200,7 @@ extern char *neopg_program;
 gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
                                 const char *opt_lc_ctype,
                                 const char *opt_lc_messages, int autostart,
-                                int verbose, int debug,
-                                gpg_error_t (*status_cb)(ctrl_t, int, ...),
-                                ctrl_t status_cb_arg) {
+                                int verbose, int debug) {
   gpg_error_t err;
   assuan_context_t ctx;
   const char *argv[6];
@@ -220,8 +218,6 @@ gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
     int i;
 
     if (verbose) log_info(_("starting agent'%s'\n"), neopg_program);
-    if (status_cb)
-      status_cb(status_cb_arg, STATUS_PROGRESS, "starting_agent ? 0 0", NULL);
 
     /* We better pass an absolute home directory to the agent just in
      case gpg-agent does not convert the passed name to an absolute
@@ -283,9 +279,7 @@ gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
    supporting it, start it up if needed and if AUTOSTART is true.
    Returns a new assuan context at R_CTX or an error code. */
 gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx, int autostart,
-                              int verbose, int debug,
-                              gpg_error_t (*status_cb)(ctrl_t, int, ...),
-                              ctrl_t status_cb_arg) {
+                              int verbose, int debug) {
   gpg_error_t err;
   assuan_context_t ctx;
 
@@ -304,9 +298,6 @@ gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx, int autostart,
     int i;
 
     if (verbose) log_info(_("starting dirmngr '%s'\n"), neopg_program);
-
-    if (status_cb)
-      status_cb(status_cb_arg, STATUS_PROGRESS, "starting_dirmngr ? 0 0", NULL);
 
     abs_homedir = make_absfilename(gnupg_homedir(), NULL);
     if (!abs_homedir) {

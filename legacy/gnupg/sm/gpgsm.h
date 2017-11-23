@@ -173,6 +173,7 @@ struct server_control_s {
                            2 := STEED model. */
   int offline;          /* If true gpgsm won't do any network access.  */
 };
+typedef struct server_control_s *ctrl_t;
 
 /* An object to keep a list of certificates. */
 struct certlist_s {

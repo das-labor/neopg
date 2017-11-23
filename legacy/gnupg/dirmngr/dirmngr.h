@@ -171,6 +171,7 @@ struct server_control_s {
 
   unsigned int http_no_crl : 1; /* Do not check CRLs for https.  */
 };
+typedef struct server_control_s *ctrl_t;
 
 /*-- dirmngr.c --*/
 void dirmngr_exit(int); /* Wrapper for exit() */

@@ -89,6 +89,7 @@ struct server_control_s {
     int valuelen;
   } in_data;
 };
+typedef struct server_control_s *ctrl_t;
 
 typedef struct app_ctx_s *app_t;
 

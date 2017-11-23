@@ -184,6 +184,7 @@ struct server_control_s {
      count. */
   unsigned long s2k_count;
 };
+typedef struct server_control_s *ctrl_t;
 
 /* Information pertaining to pinentry requests.  */
 struct pin_entry_info_s {

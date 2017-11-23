@@ -75,5 +75,6 @@ struct server_control_s {
   /* This is used to cache a key data base handle.  */
   KEYDB_HANDLE cached_getkey_kdb;
 };
+typedef struct server_control_s *ctrl_t;
 
 #endif /*GNUPG_G10_GPG_H*/
