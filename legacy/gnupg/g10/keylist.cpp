@@ -799,7 +799,7 @@ static void list_keyblock_print(ctrl_t ctrl, kbnode_t keyblock, int secret,
 
       if (opt.with_wkd_hash) {
         char *mbox, *hash, *p;
-        char hashbuf[32];
+	char hashbuf[20];
 
         mbox = mailbox_from_userid(uid->name);
         if (mbox && (p = strchr(mbox, '@'))) {
@@ -808,7 +808,7 @@ static void list_keyblock_print(ctrl_t ctrl, kbnode_t keyblock, int secret,
           std::unique_ptr<Botan::HashFunction> sha1(
               Botan::HashFunction::create_or_throw("SHA-1"));
           sha1->update((const uint8_t *)mbox, strlen(mbox));
-          sha1->final((byte *)hashbuf);
+	  sha1->final((uint8_t*) hashbuf);
 
           hash = zb32_encode(hashbuf, 8 * 20);
           if (hash) {

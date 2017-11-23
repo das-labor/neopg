@@ -36,6 +36,8 @@
 #include <sys/times.h>
 #endif
 
+#include <botan/hash.h>
+
 #include "agent.h"
 
 #include "../common/sexp-parse.h"
@@ -369,18 +371,15 @@ static int do_encryption(const unsigned char *hashbegin, size_t hashlen,
     /* Hash the entire expression for CBC mode.  Because
      * TIMESTAMP_EXP won't get protected, we can't simply hash a
      * continuous buffer but need to call md_write several times.  */
-    gcry_md_hd_t md;
 
-    rc = gcry_md_open(&md, GCRY_MD_SHA1, 0);
-    if (!rc) {
-      gcry_md_write(md, hashbegin, protbegin - hashbegin);
-      gcry_md_write(md, protbegin, protlen);
-      gcry_md_write(md, timestamp_exp, timestamp_exp_len);
-      gcry_md_write(md, protbegin + protlen,
-                    hashlen - (protbegin + protlen - hashbegin));
-      memcpy(hashvalue, gcry_md_read(md, GCRY_MD_SHA1), 20);
-      gcry_md_close(md);
-    }
+    std::unique_ptr<Botan::HashFunction> sha1(
+              Botan::HashFunction::create_or_throw("SHA-1"));
+    sha1->update((const uint8_t *)hashbegin, protbegin - hashbegin);
+    sha1->update((const uint8_t *)protbegin, protlen);
+    sha1->update((const uint8_t *)timestamp_exp, timestamp_exp_len);
+    sha1->update((const uint8_t *)protbegin + protlen,
+		 hashlen - (protbegin + protlen - hashbegin));
+    sha1->final((byte *)hashvalue);
   }
 
   /* Encrypt.  */
