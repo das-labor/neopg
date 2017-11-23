@@ -19,17 +19,15 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <config.h>
+
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #ifndef HAVE_W32_SYSTEM
