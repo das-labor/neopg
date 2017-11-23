@@ -2,7 +2,7 @@ language: cpp
 
 sudo: true
 dist: trusty
-osx_image: xcode8
+osx_image: xcode8.3
 
 os:
   - linux
