@@ -203,10 +203,12 @@ add_executable(neopg
   ../include/neopg/cli/version_command.h
   ../include/neopg/cli/packet_command.h
   ../include/neopg/cli/random_command.h
+  ../include/neopg/cli/hash_command.h
   cli/command.cpp
   cli/version_command.cpp
   cli/packet_command.cpp
   cli/random_command.cpp
+  cli/hash_command.cpp
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE

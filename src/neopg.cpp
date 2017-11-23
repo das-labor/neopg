@@ -9,6 +9,7 @@
 #include <CLI11.hpp>
 
 #include <neopg/cli/command.h>
+#include <neopg/cli/hash_command.h>
 #include <neopg/cli/packet_command.h>
 #include <neopg/cli/random_command.h>
 #include <neopg/cli/version_command.h>
@@ -97,6 +98,7 @@ int main(int argc, char* argv[]) {
   PacketCommand cmd_packet(app, "packet", "read and write OpenPGP packets",
                            tools_group);
   RandomCommand cmd_random(app, "random", "output random bytes", tools_group);
+  HashCommand cmd_hash(app, "hash", "calculate hash function", tools_group);
 
   CLI11_PARSE(app, argc, argv);
   if (oVersion) cmd_version.run();
