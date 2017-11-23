@@ -163,8 +163,6 @@ enum cmd_and_opt_values {
   aCheckKeys,
   aGenRevoke,
   aDesigRevoke,
-  aPrintMD,
-  aPrintMDs,
   aCheckTrustDB,
   aUpdateTrustDB,
   aListTrustDB,
@@ -173,7 +171,6 @@ enum cmd_and_opt_values {
   aImportOwnerTrust,
   aDeArmor,
   aEnArmor,
-  aGenRandom,
   aCardStatus,
   aCardEdit,
   aChangePIN,
@@ -448,8 +445,6 @@ const static ARGPARSE_OPTS opts[] = {
 
     ARGPARSE_c(aDeArmor, "dearmor", "@"), ARGPARSE_c(aDeArmor, "dearmour", "@"),
     ARGPARSE_c(aEnArmor, "enarmor", "@"), ARGPARSE_c(aEnArmor, "enarmour", "@"),
-    ARGPARSE_c(aPrintMD, "print-md", N_("print message digests")),
-    ARGPARSE_c(aGenRandom, "gen-random", "@"),
 
     ARGPARSE_group(301, N_("@\nOptions:\n ")),
 
@@ -572,7 +567,6 @@ const static ARGPARSE_OPTS opts[] = {
                 " --fingerprint [names]      show fingerprints\n")),
 
     /* More hidden commands and options. */
-    ARGPARSE_c(aPrintMDs, "print-mds", "@"), /* old */
 #ifndef NO_TRUST_MODELS
     ARGPARSE_c(aListTrustDB, "list-trustdb", "@"),
 #endif
@@ -1745,9 +1739,6 @@ next_pass:
       case aClearsign:
       case aGenRevoke:
       case aDesigRevoke:
-      case aGenRandom:
-      case aPrintMD:
-      case aPrintMDs:
       case aListTrustDB:
       case aCheckTrustDB:
       case aUpdateTrustDB:
@@ -2966,9 +2957,6 @@ next_pass:
 
 #ifndef NO_TRUST_MODELS
   switch (cmd) {
-    case aPrintMD:
-    case aPrintMDs:
-    case aGenRandom:
     case aDeArmor:
     case aEnArmor:
       break;
@@ -3522,69 +3510,6 @@ next_pass:
       }
       break;
 
-    case aGenRandom: {
-      int level = argc ? atoi(*argv) : 0;
-      int count = argc > 1 ? atoi(argv[1]) : 0;
-      int endless = !count;
-
-      if (argc < 1 || argc > 2 || count < 0)
-        wrong_args("--gen-random 0|1|2 [count]");
-
-      while (endless || count) {
-        byte *p;
-        /* Wee need a multiple of 3, so that in case of
-           armored output we get a correct string.  No
-           linefolding is done, as it is best to levae this to
-           other tools */
-        size_t n = !endless && count < 99 ? count : 99;
-
-        p = (byte *)gcry_random_bytes(n);
-#ifdef HAVE_DOSISH_SYSTEM
-        setmode(fileno(stdout), O_BINARY);
-#endif
-        if (opt.armor) {
-          char *tmp = make_radix64_string(p, n);
-          es_fputs(tmp, es_stdout);
-          xfree(tmp);
-          if (n % 3 == 1) es_putc('=', es_stdout);
-          if (n % 3) es_putc('=', es_stdout);
-        } else {
-          es_fwrite(p, n, 1, es_stdout);
-        }
-        xfree(p);
-        if (!endless) count -= n;
-      }
-      if (opt.armor) es_putc('\n', es_stdout);
-    } break;
-
-    case aPrintMD:
-      if (argc < 1) wrong_args("--print-md algo [files]");
-      {
-        int all_algos = (**argv == '*' && !(*argv)[1]);
-        int algo = all_algos ? 0 : gcry_md_map_name(*argv);
-
-        if (!algo && !all_algos)
-          log_error(_("invalid hash algorithm '%s'\n"), *argv);
-        else {
-          argc--;
-          argv++;
-          if (!argc)
-            print_mds(NULL, algo);
-          else {
-            for (; argc; argc--, argv++) print_mds(*argv, algo);
-          }
-        }
-      }
-      break;
-
-    case aPrintMDs: /* old option */
-      if (!argc)
-        print_mds(NULL, 0);
-      else {
-        for (; argc; argc--, argv++) print_mds(*argv, 0);
-      }
-      break;
-
 #ifndef NO_TRUST_MODELS
     case aListTrustDB:
       if (!argc)
@@ -3720,172 +3645,6 @@ void g10_exit(int rc) {
 
   rc = rc ? rc : log_get_errorcount(0) ? 2 : g10_errors_seen ? 1 : 0;
   exit(rc);
-}
-
-/* Pretty-print hex hashes.  This assumes at least an 80-character
-   display, but there are a few other similar assumptions in the
-   display code. */
-static void print_hex(gcry_md_hd_t md, int algo, const char *fname) {
-  int i, n, count, indent = 0;
-  const byte *p;
-
-  if (fname) indent = es_printf("%s: ", fname);
-
-  if (indent > 40) {
-    es_printf("\n");
-    indent = 0;
-  }
-
-  if (algo == DIGEST_ALGO_RMD160)
-    indent += es_printf("RMD160 = ");
-  else if (algo > 0)
-    indent += es_printf("%6s = ", gcry_md_algo_name(algo));
-  else
-    algo = abs(algo);
-
-  count = indent;
-
-  p = gcry_md_read(md, algo);
-  n = gcry_md_get_algo_dlen(algo);
-
-  count += es_printf("%02X", *p++);
-
-  for (i = 1; i < n; i++, p++) {
-    if (n == 16) {
-      if (count + 2 > 79) {
-        es_printf("\n%*s", indent, " ");
-        count = indent;
-      } else
-        count += es_printf(" ");
-
-      if (!(i % 8)) count += es_printf(" ");
-    } else if (n == 20) {
-      if (!(i % 2)) {
-        if (count + 4 > 79) {
-          es_printf("\n%*s", indent, " ");
-          count = indent;
-        } else
-          count += es_printf(" ");
-      }
-
-      if (!(i % 10)) count += es_printf(" ");
-    } else {
-      if (!(i % 4)) {
-        if (count + 8 > 79) {
-          es_printf("\n%*s", indent, " ");
-          count = indent;
-        } else
-          count += es_printf(" ");
-      }
-    }
-
-    count += es_printf("%02X", *p);
-  }
-
-  es_printf("\n");
-}
-
-static void print_hashline(gcry_md_hd_t md, int algo, const char *fname) {
-  int i, n;
-  const byte *p;
-
-  if (fname) {
-    for (p = (const byte *)fname; *p; p++) {
-      if (*p <= 32 || *p > 127 || *p == ':' || *p == '%')
-        es_printf("%%%02X", *p);
-      else
-        es_putc(*p, es_stdout);
-    }
-  }
-  es_putc(':', es_stdout);
-  es_printf("%d:", algo);
-  p = gcry_md_read(md, algo);
-  n = gcry_md_get_algo_dlen(algo);
-  for (i = 0; i < n; i++, p++) es_printf("%02X", *p);
-  es_fputs(":\n", es_stdout);
-}
-
-static void print_mds(const char *fname, int algo) {
-  estream_t fp;
-  char buf[1024];
-  size_t n;
-  gcry_md_hd_t md;
-
-  if (!fname) {
-    fp = es_stdin;
-    es_set_binary(fp);
-  } else {
-    fp = es_fopen(fname, "rb");
-    if (fp && is_secured_file(es_fileno(fp))) {
-      es_fclose(fp);
-      fp = NULL;
-      gpg_err_set_errno(EPERM);
-    }
-  }
-  if (!fp) {
-    log_error("%s: %s\n", fname ? fname : "[stdin]", strerror(errno));
-    return;
-  }
-
-  gcry_md_open(&md, 0, 0);
-  if (algo)
-    gcry_md_enable(md, algo);
-  else {
-    if (!gcry_md_test_algo(GCRY_MD_MD5)) gcry_md_enable(md, GCRY_MD_MD5);
-    gcry_md_enable(md, GCRY_MD_SHA1);
-    if (!gcry_md_test_algo(GCRY_MD_RMD160)) gcry_md_enable(md, GCRY_MD_RMD160);
-    if (!gcry_md_test_algo(GCRY_MD_SHA224)) gcry_md_enable(md, GCRY_MD_SHA224);
-    if (!gcry_md_test_algo(GCRY_MD_SHA256)) gcry_md_enable(md, GCRY_MD_SHA256);
-    if (!gcry_md_test_algo(GCRY_MD_SHA384)) gcry_md_enable(md, GCRY_MD_SHA384);
-    if (!gcry_md_test_algo(GCRY_MD_SHA512)) gcry_md_enable(md, GCRY_MD_SHA512);
-  }
-
-  while ((n = es_fread(buf, 1, DIM(buf), fp))) gcry_md_write(md, buf, n);
-
-  if (es_ferror(fp))
-    log_error("%s: %s\n", fname ? fname : "[stdin]", strerror(errno));
-  else {
-    gcry_md_final(md);
-    if (opt.with_colons) {
-      if (algo)
-        print_hashline(md, algo, fname);
-      else {
-        if (!gcry_md_test_algo(GCRY_MD_MD5))
-          print_hashline(md, GCRY_MD_MD5, fname);
-        print_hashline(md, GCRY_MD_SHA1, fname);
-        if (!gcry_md_test_algo(GCRY_MD_RMD160))
-          print_hashline(md, GCRY_MD_RMD160, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA224))
-          print_hashline(md, GCRY_MD_SHA224, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA256))
-          print_hashline(md, GCRY_MD_SHA256, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA384))
-          print_hashline(md, GCRY_MD_SHA384, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA512))
-          print_hashline(md, GCRY_MD_SHA512, fname);
-      }
-    } else {
-      if (algo)
-        print_hex(md, -algo, fname);
-      else {
-        if (!gcry_md_test_algo(GCRY_MD_MD5)) print_hex(md, GCRY_MD_MD5, fname);
-        print_hex(md, GCRY_MD_SHA1, fname);
-        if (!gcry_md_test_algo(GCRY_MD_RMD160))
-          print_hex(md, GCRY_MD_RMD160, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA224))
-          print_hex(md, GCRY_MD_SHA224, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA256))
-          print_hex(md, GCRY_MD_SHA256, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA384))
-          print_hex(md, GCRY_MD_SHA384, fname);
-        if (!gcry_md_test_algo(GCRY_MD_SHA512))
-          print_hex(md, GCRY_MD_SHA512, fname);
-      }
-    }
-  }
-  gcry_md_close(md);
-
-  if (fp != es_stdin) es_fclose(fp);
 }
 
 /****************
