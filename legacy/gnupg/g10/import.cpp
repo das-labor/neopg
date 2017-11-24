@@ -1228,22 +1228,6 @@ static int import_one(ctrl_t ctrl, kbnode_t keyblock,
   if (chk_self_sigs(ctrl, keyblock, keyid, &non_self))
     return 0; /* Invalid keyblock - error already printed.  */
 
-  /* If we allow such a thing, mark unsigned uids as valid */
-  if (opt.allow_non_selfsigned_uid) {
-    for (node = keyblock; node; node = node->next)
-      if (node->pkt->pkttype == PKT_USER_ID &&
-          !(node->flag & NODE_GOOD_SELFSIG) &&
-          !(node->flag & NODE_BAD_SELFSIG)) {
-        char *user = utf8_to_native(node->pkt->pkt.user_id->name,
-                                    node->pkt->pkt.user_id->len, 0);
-        /* Fake a good signature status for the user id.  */
-        node->flag |= NODE_GOOD_SELFSIG;
-        log_info(_("key %s: accepted non self-signed user ID \"%s\"\n"),
-                 keystr_from_pk(pk), user);
-        xfree(user);
-      }
-  }
-
   if (!delete_inv_parts(ctrl, keyblock, keyid, options)) {
     if (!silent) {
       log_error(_("key %s: no valid user IDs\n"), keystr_from_pk(pk));

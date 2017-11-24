@@ -290,8 +290,6 @@ enum cmd_and_opt_values {
   oNoUtf8Strings,
   oDisableCipherAlgo,
   oDisablePubkeyAlgo,
-  oAllowNonSelfsignedUID,
-  oNoAllowNonSelfsignedUID,
   oAllowFreeformUID,
   oNoAllowFreeformUID,
   oListOnly,
@@ -628,8 +626,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_n(oWithWKDHash, "with-wkd-hash", "@"),
     ARGPARSE_s_s(oDisableCipherAlgo, "disable-cipher-algo", "@"),
     ARGPARSE_s_s(oDisablePubkeyAlgo, "disable-pubkey-algo", "@"),
-    ARGPARSE_s_n(oAllowNonSelfsignedUID, "allow-non-selfsigned-uid", "@"),
-    ARGPARSE_s_n(oNoAllowNonSelfsignedUID, "no-allow-non-selfsigned-uid", "@"),
     ARGPARSE_s_n(oAllowFreeformUID, "allow-freeform-uid", "@"),
     ARGPARSE_s_n(oNoAllowFreeformUID, "no-allow-freeform-uid", "@"),
     ARGPARSE_s_n(oListOnly, "list-only", "@"),
@@ -1425,7 +1421,6 @@ static void set_compliance_option(enum cmd_and_opt_values option) {
       opt.compliance = CO_RFC4880;
       opt.flags.dsa2 = true;
       opt.flags.require_cross_cert = true;
-      opt.allow_non_selfsigned_uid = true;
       opt.allow_freeform_uid = true;
       opt.def_cipher_algo = 0;
       opt.def_digest_algo = 0;
@@ -2395,14 +2390,6 @@ next_pass:
 
       case oNoSigCache:
         opt.no_sig_cache = true;
-        break;
-
-      case oAllowNonSelfsignedUID:
-        opt.allow_non_selfsigned_uid = true;
-        break;
-
-      case oNoAllowNonSelfsignedUID:
-        opt.allow_non_selfsigned_uid = false;
         break;
 
       case oAllowFreeformUID:

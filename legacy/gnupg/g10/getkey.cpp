@@ -2416,16 +2416,6 @@ static void merge_selfsigs_main(ctrl_t ctrl, kbnode_t keyblock, int *r_revoked,
     pk->flags.valid = 1;
   }
 
-  /* If the key isn't valid yet, and we have
-     --allow-non-selfsigned-uid set, then force it valid. */
-  if (!pk->flags.valid && opt.allow_non_selfsigned_uid) {
-    if (opt.verbose)
-      log_info(_("Invalid key %s made valid by"
-                 " --allow-non-selfsigned-uid\n"),
-               keystr_from_pk(pk));
-    pk->flags.valid = 1;
-  }
-
   /* The key STILL isn't valid, so try and find an ultimately
      trusted signature. */
   if (!pk->flags.valid) {

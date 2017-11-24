@@ -289,7 +289,6 @@ struct options {
   std::vector<std::pair<std::string, unsigned int>> sig_policy_url;
   std::vector<std::pair<std::string, unsigned int>> cert_policy_url;
   std::vector<std::pair<std::string, unsigned int>> sig_keyserver_url;
-  bool allow_non_selfsigned_uid{false};
   bool allow_freeform_uid{false};
   bool ignore_time_conflict{false};
   bool ignore_valid_from{false};

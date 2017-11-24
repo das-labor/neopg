@@ -623,11 +623,8 @@ static int clean_uid_from_key(kbnode_t keyblock, kbnode_t uidnode, int noisy) {
              keyblock->pkt->pkttype == PKT_SECRET_KEY);
   log_assert(uidnode->pkt->pkttype == PKT_USER_ID);
 
-  /* Skip valid user IDs, compacted user IDs, and non-self-signed user
-     IDs if --allow-non-selfsigned-uid is set. */
-  if (uid->created || uid->flags.compacted ||
-      (!uid->flags.expired && !uid->flags.revoked &&
-       opt.allow_non_selfsigned_uid))
+  /* Skip valid and compacted user IDs. */
+  if (uid->created || uid->flags.compacted)
     return 0;
 
   for (node = uidnode->next; node && node->pkt->pkttype == PKT_SIGNATURE;
