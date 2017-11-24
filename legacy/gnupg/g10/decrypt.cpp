@@ -75,7 +75,7 @@ int decrypt_message(ctrl_t ctrl, const char *filename) {
 
   if (!opt.outfile) {
     no_out = 1;
-    *opt.outfile = "-";
+    opt.outfile = "-";
   }
   rc = proc_encryption_packets(ctrl, NULL, fp);
   if (no_out) opt.outfile = boost::none;
