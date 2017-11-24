@@ -6,36 +6,58 @@
 
 #include <iostream>
 
-#include <botan/base64.h>
-#include <botan/hash.h>
+#include <botan/filters.h>
+
 #include <neopg/cli/armor_command.h>
 
 namespace NeoPG {
 namespace CLI {
 
 void ArmorCommand::encode() {
-  bool title = !m_title.empty();
+  bool has_title = !m_title.empty();
 
-  // We process in chunks by output line.  76 characters = 19 * 4 output bytes
-  // are 19 * 3 = 57 input bytes.
-  std::vector<uint8_t> buf(76 / 4 * 3);
-  std::unique_ptr<Botan::HashFunction> hash{
-      Botan::HashFunction::create_or_throw("CRC24")};
+  if (m_files.empty()) m_files.emplace_back("-");
 
-  if (title) std::cout << "-----BEGIN " << m_title << "-----\n\n";
-  while (std::cin.good()) {
-    std::cin.read(reinterpret_cast<char*>(buf.data()), buf.size());
-    const size_t count = std::cin.gcount();
-    hash->update(buf.data(), count);
-    std::cout << Botan::base64_encode(buf.data(), count) << "\n";
+  for (auto& file : m_files) {
+    Botan::Filter* sink = (file == "-")
+                              ? new Botan::DataSink_Stream(std::cout)
+                              : new Botan::DataSink_Stream(file + ".asc", true);
+
+    const int PGP_WIDTH{64};
+    Botan::Pipe pipe(new Botan::Fork(
+        new Botan::Chain(new Botan::Base64_Encoder(true, PGP_WIDTH), sink),
+        new Botan::Chain(new Botan::Hash_Filter("CRC24"),
+                         new Botan::Base64_Encoder())));
+
+    if (has_title) {
+      std::stringstream header_;
+      header_ << "-----BEGIN " << m_title << "-----\n\n";
+      const auto header = header_.str();
+      sink->write((uint8_t*)header.data(), header.size());
+    }
+
+    if (file == "-") {
+      Botan::DataSource_Stream in{std::cin};
+      pipe.process_msg(in);
+    } else {
+      Botan::DataSource_Stream in{file};
+      pipe.process_msg(in);
+    }
+
+    if (m_crc24) {
+      std::stringstream crc_;
+      crc_ << "=" << pipe.read_all_as_string(1) << "\n";
+      const auto crc = crc_.str();
+      sink->write((uint8_t*)crc.data(), crc.size());
+    }
+
+    if (has_title) {
+      std::stringstream footer_;
+      footer_ << "-----END " << m_title << "-----\n";
+      const auto footer = footer_.str();
+      sink->write((uint8_t*)footer.data(), footer.size());
+    }
   }
-  while (!std::cin.eof())
-    ;
-  std::vector<uint8_t> crc24{hash->final_stdvec()};
-  if (m_crc24)
-    std::cout << "=" << Botan::base64_encode(crc24.data(), crc24.size())
-              << "\n";
-  if (title) std::cout << "-----END " << m_title << "-----\n";
 }
 
 void ArmorCommand::decode() {
@@ -43,14 +65,11 @@ void ArmorCommand::decode() {
 }
 
 void ArmorCommand::run() {
-#ifdef __WIN32__
-  _setmode(_fileno(stdin), _O_BINARY);
-#endif
-
   if (m_decode)
     decode();
   else
     encode();
 }
+
 }  // Namespace CLI
 }  // Namespace NeoPG
