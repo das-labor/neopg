@@ -175,8 +175,7 @@ enum cmd_and_opt_values {
   oDisablePubkeyAlgo,
   oIgnoreTimeConflict,
   oNoCommonCertsImport,
-  oIgnoreCertExtension,
-  oNoAutostart
+  oIgnoreCertExtension
 };
 
 static ARGPARSE_OPTS opts[] = {
@@ -366,7 +365,6 @@ static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_n(oIgnoreTimeConflict, "ignore-time-conflict", "@"),
     ARGPARSE_s_n(oNoCommonCertsImport, "no-common-certs-import", "@"),
     ARGPARSE_s_s(oIgnoreCertExtension, "ignore-cert-extension", "@"),
-    ARGPARSE_s_n(oNoAutostart, "no-autostart", "@"),
 
     /* Command aliases.  */
     ARGPARSE_c(aListKeys, "list-key", "@"),
@@ -732,8 +730,6 @@ int gpgsm_main(int argc, char **argv) {
 
   /* Tell the compliance module who we are.  */
   gnupg_initialize_compliance(GNUPG_MODULE_NAME_GPGSM);
-
-  opt.autostart = 1;
 
   opt.def_cipher_algoid = DEFAULT_CIPHER_ALGO;
 
@@ -1216,10 +1212,6 @@ next_pass:
 
       case oIgnoreCertExtension:
         add_to_strlist(&opt.ignored_cert_extensions, pargs.r.ret_str);
-        break;
-
-      case oNoAutostart:
-        opt.autostart = 0;
         break;
 
       case oCompliance: {

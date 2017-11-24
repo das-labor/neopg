@@ -336,7 +336,6 @@ enum cmd_and_opt_values {
   oEnableDSA2,
   oDisableDSA2,
   oFakedSystemTime,
-  oNoAutostart,
   oPrintPKARecords,
   oPrintDANERecords,
   oDefaultNewKeyAlgo,
@@ -699,7 +698,6 @@ const static ARGPARSE_OPTS opts[] = {
     /* New options.  Fixme: Should go more to the top.  */
     ARGPARSE_s_s(oAutoKeyLocate, "auto-key-locate", "@"),
     ARGPARSE_s_n(oNoAutoKeyLocate, "no-auto-key-locate", "@"),
-    ARGPARSE_s_n(oNoAutostart, "no-autostart", "@"),
 
     ARGPARSE_end()};
 
@@ -2612,10 +2610,6 @@ next_pass:
           faked_time = (time_t)strtoul(pargs.r.ret_str, NULL, 10);
         gnupg_set_time(faked_time, freeze);
       } break;
-
-      case oNoAutostart:
-        opt.autostart = false;
-        break;
 
       case oDefaultNewKeyAlgo:
         opt.def_new_key_algo = pargs.r.ret_str;

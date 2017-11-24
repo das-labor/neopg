@@ -277,7 +277,7 @@ int dirmngr_client_main(int argc, char **argv) {
     exit(2);
   }
 
-  err = start_new_dirmngr(&ctx, !cmd_ping, opt.verbose, 0);
+  err = start_new_dirmngr(&ctx, opt.verbose, 0);
   if (err) {
     log_error(_("can't connect to the dirmngr: %s\n"), gpg_strerror(err));
     exit(2);

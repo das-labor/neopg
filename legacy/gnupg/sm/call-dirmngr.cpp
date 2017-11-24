@@ -142,15 +142,7 @@ static gpg_error_t start_dirmngr_ext(ctrl_t ctrl, assuan_context_t *ctx_r) {
   /* Note: if you change this to multiple connections, you also need
      to take care of the implicit option sending caching. */
 
-  err = start_new_dirmngr(&ctx, opt.autostart, opt.verbose, DBG_IPC);
-  if (!opt.autostart && err == GPG_ERR_NO_DIRMNGR) {
-    static int shown;
-
-    if (!shown) {
-      shown = 1;
-      log_info(_("no dirmngr running in this session\n"));
-    }
-  }
+  err = start_new_dirmngr(&ctx, opt.verbose, DBG_IPC);
   if (err) return err;
 
   *ctx_r = ctx;

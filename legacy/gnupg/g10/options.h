@@ -184,7 +184,6 @@ struct options {
   off_t max_output{0};
 
   bool dry_run{false};
-  bool autostart{true};
   bool list_only{false};
   bool mimemode{false};
   bool textmode{false};

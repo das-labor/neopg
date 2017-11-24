@@ -85,16 +85,7 @@ static int start_agent(ctrl_t ctrl) {
                suitable given that the agent is not MT. */
   else {
     rc = start_new_gpg_agent(&agent_ctx, opt.lc_ctype, opt.lc_messages,
-                             opt.autostart, opt.verbose, DBG_IPC);
-
-    if (!opt.autostart && rc == GPG_ERR_NO_AGENT) {
-      static int shown;
-
-      if (!shown) {
-        shown = 1;
-        log_info(_("no gpg-agent running in this session\n"));
-      }
-    }
+                             opt.verbose, DBG_IPC);
   }
 
   if (!ctrl->agent_seen) {

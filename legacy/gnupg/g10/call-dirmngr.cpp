@@ -121,46 +121,39 @@ static gpg_error_t create_context(ctrl_t ctrl, assuan_context_t *r_ctx) {
   assuan_context_t ctx;
 
   *r_ctx = NULL;
-  err = start_new_dirmngr(&ctx, opt.autostart, opt.verbose, DBG_IPC);
-  if (!opt.autostart && err == GPG_ERR_NO_DIRMNGR) {
-    static int shown;
+  err = start_new_dirmngr(&ctx, opt.verbose, DBG_IPC);
+  if (err) return err;
 
-    if (!shown) {
-      shown = 1;
-      log_info(_("no dirmngr running in this session\n"));
-    }
-  } else if (!err) {
-    char *line;
+  char *line;
 
-    /* Tell the dirmngr that we want to collect audit event. */
-    /* err = assuan_transact (agent_ctx, "OPTION audit-events=1", */
-    /*                        NULL, NULL, NULL, NULL, NULL, NULL); */
-    if (opt.keyserver_options.http_proxy) {
-      line = xtryasprintf("OPTION http-proxy=%s",
-                          opt.keyserver_options.http_proxy->c_str());
-      if (!line)
-        err = gpg_error_from_syserror();
-      else {
-        err = assuan_transact(ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
-        xfree(line);
-      }
+  /* Tell the dirmngr that we want to collect audit event. */
+  /* err = assuan_transact (agent_ctx, "OPTION audit-events=1", */
+  /*                        NULL, NULL, NULL, NULL, NULL, NULL); */
+  if (opt.keyserver_options.http_proxy) {
+    line = xtryasprintf("OPTION http-proxy=%s",
+                        opt.keyserver_options.http_proxy->c_str());
+    if (!line)
+      err = gpg_error_from_syserror();
+    else {
+      err = assuan_transact(ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
+      xfree(line);
     }
+  }
 
-    if (err)
-      ;
-    else if ((opt.keyserver_options.options & KEYSERVER_HONOR_KEYSERVER_URL)) {
-      /* Tell the dirmngr that this possibly privacy invading
-         option is in use.  If Dirmngr is running in Tor mode, it
-         will return an error.  */
-      err = assuan_transact(ctx, "OPTION honor-keyserver-url-used", NULL, NULL,
-                            NULL, NULL, NULL, NULL);
-      if (err == GPG_ERR_FORBIDDEN)
-        log_error(
-            _("keyserver option \"honor-keyserver-url\""
-              " may not be used in Tor mode\n"));
-      else if (err == GPG_ERR_UNKNOWN_OPTION)
-        err = 0; /* Old dirmngr versions do not support this option.  */
-    }
+  if (err)
+    ;
+  else if ((opt.keyserver_options.options & KEYSERVER_HONOR_KEYSERVER_URL)) {
+    /* Tell the dirmngr that this possibly privacy invading
+       option is in use.  If Dirmngr is running in Tor mode, it
+       will return an error.  */
+    err = assuan_transact(ctx, "OPTION honor-keyserver-url-used", NULL, NULL,
+                          NULL, NULL, NULL, NULL);
+    if (err == GPG_ERR_FORBIDDEN)
+      log_error(
+          _("keyserver option \"honor-keyserver-url\""
+            " may not be used in Tor mode\n"));
+    else if (err == GPG_ERR_UNKNOWN_OPTION)
+      err = 0; /* Old dirmngr versions do not support this option.  */
   }
 
   if (err)
