@@ -74,9 +74,6 @@ static gpg_error_t poly1305mac_open(gcry_mac_hd_t h) {
     case GCRY_MAC_POLY1305_SERPENT:
       cipher_algo = GCRY_CIPHER_SERPENT128;
       break;
-    case GCRY_MAC_POLY1305_SEED:
-      cipher_algo = GCRY_CIPHER_SEED;
-      break;
   }
 
   err = _gcry_cipher_open_internal(&mac_ctx->hd, cipher_algo,
@@ -286,8 +283,4 @@ gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_twofish = {
 #if USE_SERPENT
 gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_serpent = {
     GCRY_MAC_POLY1305_SERPENT, {0}, "POLY1305_SERPENT", &poly1305mac_ops};
-#endif
-#if USE_SEED
-gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_seed = {
-    GCRY_MAC_POLY1305_SEED, {0}, "POLY1305_SEED", &poly1305mac_ops};
 #endif

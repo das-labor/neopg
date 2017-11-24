@@ -175,9 +175,6 @@ extern gcry_mac_spec_t _gcry_mac_type_spec_cmac_serpent;
 #if USE_RFC2268
 extern gcry_mac_spec_t _gcry_mac_type_spec_cmac_rfc2268;
 #endif
-#if USE_SEED
-extern gcry_mac_spec_t _gcry_mac_type_spec_cmac_seed;
-#endif
 #if USE_CAMELLIA
 extern gcry_mac_spec_t _gcry_mac_type_spec_cmac_camellia;
 #endif
@@ -200,9 +197,6 @@ extern gcry_mac_spec_t _gcry_mac_type_spec_gmac_twofish;
 #if USE_SERPENT
 extern gcry_mac_spec_t _gcry_mac_type_spec_gmac_serpent;
 #endif
-#if USE_SEED
-extern gcry_mac_spec_t _gcry_mac_type_spec_gmac_seed;
-#endif
 #if USE_CAMELLIA
 extern gcry_mac_spec_t _gcry_mac_type_spec_gmac_camellia;
 #endif
@@ -222,7 +216,4 @@ extern gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_twofish;
 #endif
 #if USE_SERPENT
 extern gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_serpent;
-#endif
-#if USE_SEED
-extern gcry_mac_spec_t _gcry_mac_type_spec_poly1305mac_seed;
 #endif

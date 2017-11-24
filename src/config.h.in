@@ -27,7 +27,7 @@
 /* libgcrypt */
 
 /* List of available cipher algorithms */
-#define LIBGCRYPT_CIPHERS "blowfish:cast5:des:aes:twofish:rfc2268:seed:camellia:idea"
+#define LIBGCRYPT_CIPHERS "blowfish:cast5:des:aes:twofish:rfc2268:camellia:idea"
 
 /* List of available digest algorithms */
 #define LIBGCRYPT_DIGESTS "crc:md4:md5:rmd160:sha1:sha256:sha512:sha3:whirlpool"
@@ -82,9 +82,6 @@
 
 /* Defined if this module should be included */
 #define USE_SCRYPT 1
-
-/* Defined if this module should be included */
-#define USE_SEED 1
 
 /* Defined if this module should be included */
 #define USE_SHA1 1

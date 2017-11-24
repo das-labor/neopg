@@ -96,11 +96,6 @@ static gcry_mac_spec_t *mac_list[] = {
 #if USE_RFC2268
     &_gcry_mac_type_spec_cmac_rfc2268,
 #endif
-#if USE_SEED
-    &_gcry_mac_type_spec_cmac_seed,
-    &_gcry_mac_type_spec_gmac_seed,
-    &_gcry_mac_type_spec_poly1305mac_seed,
-#endif
 #if USE_CAMELLIA
     &_gcry_mac_type_spec_cmac_camellia,
     &_gcry_mac_type_spec_gmac_camellia,

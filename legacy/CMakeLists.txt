@@ -216,7 +216,6 @@ add_library(gcrypt
   libgcrypt/cipher/cast5.cpp
   libgcrypt/cipher/twofish.cpp
   libgcrypt/cipher/rfc2268.cpp
-  libgcrypt/cipher/seed.cpp
   libgcrypt/cipher/mac-cmac.cpp
   libgcrypt/cipher/cipher.cpp
   libgcrypt/cipher/cipher-internal.h

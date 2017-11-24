@@ -39,8 +39,6 @@ static int map_mac_algo_to_cipher(int mac_algo) {
       return GCRY_CIPHER_TWOFISH;
     case GCRY_MAC_GMAC_SERPENT:
       return GCRY_CIPHER_SERPENT128;
-    case GCRY_MAC_GMAC_SEED:
-      return GCRY_CIPHER_SEED;
   }
 }
 
@@ -122,10 +120,6 @@ gcry_mac_spec_t _gcry_mac_type_spec_gmac_twofish = {
 #if USE_SERPENT
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_serpent = {
     GCRY_MAC_GMAC_SERPENT, {0}, "GMAC_SERPENT", &gmac_ops};
-#endif
-#if USE_SEED
-gcry_mac_spec_t _gcry_mac_type_spec_gmac_seed = {
-    GCRY_MAC_GMAC_SEED, {0}, "GMAC_SEED", &gmac_ops};
 #endif
 #if USE_CAMELLIA
 gcry_mac_spec_t _gcry_mac_type_spec_gmac_camellia = {

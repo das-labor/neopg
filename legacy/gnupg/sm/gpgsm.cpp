@@ -445,7 +445,6 @@ static int our_cipher_test_algo(int algo) {
     case GCRY_CIPHER_SERPENT128:
     case GCRY_CIPHER_SERPENT192:
     case GCRY_CIPHER_SERPENT256:
-    case GCRY_CIPHER_SEED:
     case GCRY_CIPHER_CAMELLIA128:
     case GCRY_CIPHER_CAMELLIA192:
     case GCRY_CIPHER_CAMELLIA256:
@@ -1326,8 +1325,6 @@ next_pass:
     opt.def_cipher_algoid = "1.3.6.1.4.1.11591.13.2.22";
   else if (!strcmp(opt.def_cipher_algoid, "SERPENT256"))
     opt.def_cipher_algoid = "1.3.6.1.4.1.11591.13.2.42";
-  else if (!strcmp(opt.def_cipher_algoid, "SEED"))
-    opt.def_cipher_algoid = "1.2.410.200004.1.4";
   else if (!strcmp(opt.def_cipher_algoid, "CAMELLIA") ||
            !strcmp(opt.def_cipher_algoid, "CAMELLIA128"))
     opt.def_cipher_algoid = "1.2.392.200011.61.1.1.1.2";

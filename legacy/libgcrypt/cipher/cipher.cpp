@@ -65,9 +65,6 @@ static gcry_cipher_spec_t *cipher_list[] = {
     &_gcry_cipher_spec_rfc2268_40,
     &_gcry_cipher_spec_rfc2268_128,
 #endif
-#if USE_SEED
-    &_gcry_cipher_spec_seed,
-#endif
 #if USE_CAMELLIA
     &_gcry_cipher_spec_camellia128,
     &_gcry_cipher_spec_camellia192,
