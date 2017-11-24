@@ -22,6 +22,7 @@ class ListHashCommand : public Command {
 
 class HashCommand : public Command {
  public:
+  std::vector<std::string> m_files;
   std::string m_algo{"SHA-256"};
   bool m_raw = false;
   const std::string group = "Commands";
@@ -33,6 +34,7 @@ class HashCommand : public Command {
               const std::string& group_name = "")
       : Command(app, flag, description, group_name),
         cmd_list(m_cmd, "list", "list supported hash functions", group) {
+    m_cmd.add_option("file", m_files, "file to hash");
     m_cmd.add_option("--algo", m_algo, "hash function", true);
     m_cmd.add_flag("--raw", m_raw, "output as binary instead hex encoded");
   }

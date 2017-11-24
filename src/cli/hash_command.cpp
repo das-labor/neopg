@@ -6,8 +6,9 @@
 
 #include <iostream>
 
+#include <botan/filters.h>
 #include <botan/hash.h>
-#include <botan/hex.h>
+
 #include <neopg/cli/hash_command.h>
 
 namespace NeoPG {
@@ -108,27 +109,31 @@ void ListHashCommand::run() {
 }
 
 void HashCommand::run() {
+  bool multi_files = false;
+
   if (!m_cmd.get_subcommands().empty()) return;
 
-  std::vector<uint8_t> buf(2048);
-
-#ifdef __WIN32__
-  _setmode(_fileno(stdin), _O_BINARY);
-#endif
-
-  std::unique_ptr<Botan::HashFunction> hash(
-      Botan::HashFunction::create_or_throw(m_algo));
-  while (std::cin.good()) {
-    std::cin.read(reinterpret_cast<char*>(buf.data()), buf.size());
-    hash->update(buf.data(), std::cin.gcount());
+  if (m_files.empty())
+    m_files.emplace_back("-");
+  else if (m_files.size() > 1) {
+    m_raw = false;
+    multi_files = true;
   }
-  while (!std::cin.eof())
-    ;
-  std::vector<uint8_t> result = hash->final_stdvec();
-  if (m_raw)
-    std::cout.write((char*)result.data(), result.size());
-  else
-    std::cout << Botan::hex_encode(result, false) << "\n";
+
+  Botan::Pipe pipe{new Botan::Hash_Filter(m_algo),
+                   m_raw ? nullptr : new Botan::Hex_Encoder(),
+                   new Botan::DataSink_Stream(std::cout)};
+
+  for (auto& file : m_files) {
+    if (file == "-") {
+      Botan::DataSource_Stream in{std::cin};
+      pipe.process_msg(in);
+    } else {
+      Botan::DataSource_Stream in{file};
+      pipe.process_msg(in);
+    }
+    if (multi_files) std::cout << " " << file << "\n";
+  }
 }
 
 }  // Namespace CLI

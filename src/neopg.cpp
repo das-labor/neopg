@@ -9,6 +9,7 @@
 #include <CLI11.hpp>
 
 #include <neopg/cli/armor_command.h>
+#include <neopg/cli/cat_command.h>
 #include <neopg/cli/command.h>
 #include <neopg/cli/hash_command.h>
 #include <neopg/cli/packet_command.h>
@@ -59,7 +60,16 @@ struct openpgp : cli::command<openpgp>
 #define GPGRT_ATTR_SENTINEL(a)
 #include "../legacy/gnupg/common/stringhelp.h"
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
+  setmode(fileno(stdin), O_BINARY);
+  setmode(fileno(stdout), O_BINARY);
+#endif
+
   /* This is also used to invoke ourself.  */
   neopg_program = make_absfilename(argv[0], NULL);
 
@@ -107,6 +117,8 @@ int main(int argc, char* argv[]) {
   HashCommand cmd_hash(app, "hash", "calculate hash function", tools_group);
   ArmorCommand cmd_armor(app, "armor", "ASCII-encode and decode binary data",
                          tools_group);
+  CatCommand cmd_cat(app, "cat", "the beginning of a new Unix system",
+                     tools_group);
 
   CLI11_PARSE(app, argc, argv);
   if (oVersion) cmd_version.run();
