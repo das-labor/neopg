@@ -124,7 +124,11 @@ void HashCommand::run() {
   }
   while (!std::cin.eof())
     ;
-  std::cout << Botan::hex_encode(hash->final_stdvec(), false) << "\n";
+  std::vector<uint8_t> result = hash->final_stdvec();
+  if (m_raw)
+    std::cout.write((char*)result.data(), result.size());
+  else
+    std::cout << Botan::hex_encode(result, false) << "\n";
 }
 
 }  // Namespace CLI

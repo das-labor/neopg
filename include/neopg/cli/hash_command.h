@@ -23,6 +23,7 @@ class ListHashCommand : public Command {
 class HashCommand : public Command {
  public:
   std::string m_algo{"SHA-256"};
+  bool m_raw = false;
   const std::string group = "Commands";
   ListHashCommand cmd_list;
 
@@ -33,6 +34,7 @@ class HashCommand : public Command {
       : Command(app, flag, description, group_name),
         cmd_list(m_cmd, "list", "list supported hash functions", group) {
     m_cmd.add_option("--algo", m_algo, "hash function", true);
+    m_cmd.add_flag("--raw", m_raw, "output as binary instead hex encoded");
   }
   virtual ~HashCommand() {}
 };
