@@ -68,9 +68,6 @@
 #define USE_IDEA 1
 
 /* Defined if this module should be included */
-/* #undef USE_MD2 */
-
-/* Defined if this module should be included */
 #define USE_MD4 1
 
 /* Defined if this module should be included */

@@ -185,7 +185,6 @@ static int get_hash_algo(const char *s, size_t n) {
                    {"sha384", GCRY_MD_SHA384},
                    {"sha512", GCRY_MD_SHA512},
                    {"sha224", GCRY_MD_SHA224},
-                   {"md2", GCRY_MD_MD2},
                    {"md4", GCRY_MD_MD4},
                    {"tiger", GCRY_MD_TIGER},
                    {"haval", GCRY_MD_HAVAL},
