@@ -50,6 +50,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <botan/hash.h>
+
 #if GNUPG_MAJOR_VERSION == 1
 /* This is used with GnuPG version < 1.9.  The code has been source
    copied from the current GnuPG >= 1.9  and is maintained over
@@ -677,7 +679,9 @@ static gpg_error_t store_fpr(app_t app, int keynumber, u32 timestamp,
     p += mlen[i];
   }
 
-  gcry_md_hash_buffer(GCRY_MD_SHA1, fpr, buffer, n + 3);
+  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash = sha1->process(buffer, n + 3);
+  memcpy(fpr, hash.data(), hash.size());
 
   xfree(buffer);
 

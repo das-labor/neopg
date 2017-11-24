@@ -27,6 +27,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <sstream>
+#include <botan/hex.h>
+
 #include "../common/ksba-io-support.h"
 #include "certcache.h"
 #include "crlfetch.h"
@@ -149,19 +152,17 @@ static int compare_serialno(ksba_sexp_t serial1, ksba_sexp_t serial2) {
  * converted from the hex string HEXSN.  Return NULL on memory
  * error.  */
 ksba_sexp_t hexsn_to_sexp(const char *hexsn) {
-  char *buffer, *p;
-  size_t len;
-  char numbuf[40];
+  char *buffer;
 
-  len = unhexify(NULL, hexsn);
-  snprintf(numbuf, sizeof numbuf, "(%u:", (unsigned int)len);
-  buffer = (char *)xtrymalloc(strlen(numbuf) + len + 2);
-  if (!buffer) return NULL;
-  p = stpcpy(buffer, numbuf);
-  len = unhexify((unsigned char *)(p), hexsn);
-  p[len] = ')';
-  p[len + 1] = 0;
+  std::vector<uint8_t> number = Botan::hex_decode(hexsn, strlen(hexsn), false);
+  std::stringstream output;
+  output << "(" << number.size() << ":";
+  output.write((char*)number.data(), number.size());
+  output << ")";
 
+  std::string result = output.str();
+  buffer = (char*)xmalloc(result.size());
+  memcpy(buffer, result.data(), result.size());
   return (ksba_sexp_t)buffer;
 }
 

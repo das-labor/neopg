@@ -230,7 +230,9 @@ gpg_error_t check_signature2(ctrl_t ctrl, PKT_signature *sig,
       p += n;
       nbytes -= n;
     }
-    gcry_md_hash_buffer(GCRY_MD_SHA1, hashbuf, buffer, p - buffer);
+    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    Botan::secure_vector<uint8_t> hash = sha1->process(buffer, p - buffer);
+    memcpy(hashbuf, hash.data(), hash.size());
 
     p = (unsigned char *)make_radix64_string((const byte *)(hashbuf), 20);
     sprintf((char *)(buffer), "%s %s %lu", p, strtimestamp(sig->timestamp),

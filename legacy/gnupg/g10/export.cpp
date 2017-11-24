@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <botan/hex.h>
+#include <botan/hash.h>
+
 #include "../common/host2net.h"
 #include "../common/i18n.h"
 #include "../common/init.h"
@@ -1193,7 +1196,6 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
   kbnode_t kbctx, node;
   PKT_user_id *uid;
   char *mbox = NULL;
-  char hashbuf[32];
   char *hash = NULL;
   char *domain;
   const char *s;
@@ -1232,9 +1234,12 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
       es_fprintf(fp, "$ORIGIN _pka.%s.\n; %s\n; ", domain, hexfpr);
       print_utf8_buffer(fp, uid->name, uid->len);
       es_putc('\n', fp);
-      gcry_md_hash_buffer(GCRY_MD_SHA1, hashbuf, mbox, strlen(mbox));
+
+      std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+      Botan::secure_vector<uint8_t> hashbuf = sha1->process(mbox);
+
       xfree(hash);
-      hash = zb32_encode(hashbuf, 8 * 20);
+      hash = zb32_encode(hashbuf.data(), 8 * 20);
       if (!hash) {
         err = gpg_error_from_syserror();
         goto leave;
@@ -1248,9 +1253,10 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
       es_fprintf(fp, "$ORIGIN _openpgpkey.%s.\n; %s\n; ", domain, hexfpr);
       print_utf8_buffer(fp, uid->name, uid->len);
       es_putc('\n', fp);
-      gcry_md_hash_buffer(GCRY_MD_SHA256, hashbuf, mbox, strlen(mbox));
+      std::unique_ptr<Botan::HashFunction> sha256 = Botan::HashFunction::create_or_throw("SHA-256");
+      std::string hashbuf = Botan::hex_encode(sha256->process(mbox));
       xfree(hash);
-      hash = bin2hex(hashbuf, 28, NULL);
+      hash = xstrdup(hashbuf.c_str());
       if (!hash) {
         err = gpg_error_from_syserror();
         goto leave;

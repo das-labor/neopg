@@ -26,6 +26,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <botan/hash.h>
+
 #include <gcrypt.h>
 #include <ksba.h>
 #include "gpgsm.h"
@@ -252,7 +254,10 @@ char *gpgsm_get_certid(ksba_cert_t cert) {
 
   p = ksba_cert_get_issuer(cert, 0);
   if (!p) return NULL; /* Ooops: No issuer */
-  gcry_md_hash_buffer(GCRY_MD_SHA1, hash, p, strlen(p));
+
+  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hashbuf = sha1->process(p);
+  memcpy(hash, hashbuf.data(), hashbuf.size());
   xfree(p);
 
   serial = ksba_cert_get_serial(cert);

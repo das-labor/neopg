@@ -235,8 +235,10 @@ static int calculate_mic(const unsigned char *plainkey,
   s++;
   hash_end = s;
 
-  gcry_md_hash_buffer(GCRY_MD_SHA1, sha1hash, hash_begin,
-                      hash_end - hash_begin);
+  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash = sha1->process(hash_begin,
+                                                     hash_end - hash_begin);
+  memcpy(sha1hash, hash.data(), hash.size());
 
   return 0;
 }

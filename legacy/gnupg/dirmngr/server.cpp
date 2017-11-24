@@ -31,6 +31,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <botan/hash.h>
+#include <botan/hex.h>
+
 #include <assuan.h>
 #include "dirmngr.h"
 
@@ -547,7 +550,11 @@ static gpg_error_t cmd_dns_cert(assuan_context_t ctx, char *line) {
     *domain++ = 0;
 
     if (pka_mode) {
-      gcry_md_hash_buffer(GCRY_MD_SHA1, hashbuf, mbox, strlen(mbox));
+      std::unique_ptr<Botan::HashFunction> sha1 =
+          Botan::HashFunction::create_or_throw("SHA-1");
+      Botan::secure_vector<uint8_t> hash = sha1->process(mbox);
+      memcpy(hashbuf, hash.data(), hash.size());
+
       encodedhash = zb32_encode(hashbuf, 8 * 20);
       if (!encodedhash) {
         err = gpg_error_from_syserror();
@@ -563,19 +570,14 @@ static gpg_error_t cmd_dns_cert(assuan_context_t ctx, char *line) {
     } else {
       /* Note: The hash is truncated to 28 bytes and we lowercase
          the result only for aesthetic reasons.  */
-      gcry_md_hash_buffer(GCRY_MD_SHA256, hashbuf, mbox, strlen(mbox));
-      encodedhash = bin2hex(hashbuf, 28, NULL);
-      if (!encodedhash) {
-        err = gpg_error_from_syserror();
-        goto leave;
-      }
-      ascii_strlwr(encodedhash);
-      namebuf = strconcat(encodedhash, "._openpgpkey.", domain, NULL);
-      if (!namebuf) {
-        err = gpg_error_from_syserror();
-        goto leave;
-      }
-      name = namebuf;
+      std::unique_ptr<Botan::HashFunction> sha256 =
+          Botan::HashFunction::create_or_throw("SHA-256");
+      Botan::secure_vector<uint8_t> hash = sha256->process(mbox);
+      hash.resize(28);
+      std::string encoded = Botan::hex_encode(hash, false);
+      memcpy(hashbuf, hash.data(), hash.size());
+      encoded = encoded + "._openpgpkey." + domain;
+      name = xstrdup(encoded.c_str());
       certtype = DNS_CERTTYPE_RR61;
     }
   } else
@@ -628,7 +630,6 @@ static gpg_error_t cmd_wkd_get(assuan_context_t ctx, char *line) {
   char *mbox = NULL;
   char *domainbuf = NULL;
   char *domain; /* Points to mbox or domainbuf.  */
-  char sha1buf[20];
   char *uri = NULL;
   char *encodedhash = NULL;
   int opt_submission_addr;
@@ -686,8 +687,11 @@ static gpg_error_t cmd_wkd_get(assuan_context_t ctx, char *line) {
     log_debug("srv: got '%s%s'\n", domain, portstr);
   }
 
-  gcry_md_hash_buffer(GCRY_MD_SHA1, sha1buf, mbox, strlen(mbox));
-  encodedhash = zb32_encode(sha1buf, 8 * 20);
+  {
+    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    Botan::secure_vector<uint8_t> hash = sha1->process(mbox);
+    encodedhash = zb32_encode(hash.data(), 8 * 20);
+  }
   if (!encodedhash) {
     err = gpg_error_from_syserror();
     goto leave;

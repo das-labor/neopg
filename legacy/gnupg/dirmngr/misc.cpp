@@ -30,45 +30,6 @@
 #include "dirmngr.h"
 #include "misc.h"
 
-/* Convert the hex encoded STRING back into binary and store the
-   result into the provided buffer RESULT.  The actual size of that
-   buffer will be returned.  The caller should provide RESULT of at
-   least strlen(STRING)/2 bytes.  There is no error detection, the
-   parsing stops at the first non hex character.  With RESULT given as
-   NULL, the function does only return the size of the buffer which
-   would be needed.  */
-size_t unhexify(unsigned char *result, const char *string) {
-  const char *s;
-  size_t n;
-
-  for (s = string, n = 0; hexdigitp(s) && hexdigitp(s + 1); s += 2) {
-    if (result) result[n] = xtoi_2(s);
-    n++;
-  }
-  return n;
-}
-
-char *hashify_data(const char *data, size_t len) {
-  unsigned char buf[20];
-  gcry_md_hash_buffer(GCRY_MD_SHA1, buf, data, len);
-  return hexify_data(buf, 20, 0);
-}
-
-/* FIXME: Replace this by hextobin.  */
-char *hexify_data(const unsigned char *data, size_t len, int with_prefix) {
-  int i;
-  char *result = (char *)xmalloc(2 * len + (with_prefix ? 2 : 0) + 1);
-  char *p;
-
-  if (with_prefix)
-    p = stpcpy(result, "0x");
-  else
-    p = result;
-
-  for (i = 0; i < 2 * len; i += 2) snprintf(p + i, 3, "%02X", *data++);
-  return result;
-}
-
 char *serial_hex(ksba_sexp_t serial) {
   unsigned char *p = serial;
   char *endp;

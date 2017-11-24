@@ -33,6 +33,8 @@
 #include <unistd.h>
 #endif
 
+#include <botan/hash.h>
+
 #include "../common/logging.h"
 #include "../common/utf8conv.h"
 #include "minip12.h"
@@ -292,10 +294,9 @@ static int string_to_key(int id, char *salt, size_t saltlen, int iter,
                          const char *pw, int req_keylen,
                          unsigned char *keybuf) {
   int rc, i, j;
-  gcry_md_hd_t md;
   gcry_mpi_t num_b1 = NULL;
   int pwlen;
-  unsigned char hash[20], buf_b[64], buf_i[128], *p;
+  unsigned char buf_b[64], buf_i[128], *p;
   size_t cur_keylen;
   size_t n;
 
@@ -322,17 +323,17 @@ static int string_to_key(int id, char *salt, size_t saltlen, int iter,
   }
 
   for (;;) {
-    rc = gcry_md_open(&md, GCRY_MD_SHA1, 0);
-    if (rc) {
-      log_error("gcry_md_open failed: %s\n", gpg_strerror(rc));
-      return rc;
-    }
-    for (i = 0; i < 64; i++) gcry_md_putc(md, id);
-    gcry_md_write(md, buf_i, 128);
-    memcpy(hash, gcry_md_read(md, 0), 20);
-    gcry_md_close(md);
+    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    Botan::secure_vector<uint8_t> hash;
+
+    uint8_t id_ = (uint8_t) id;
+    for (i = 0; i < 64; i++) sha1->update(&id_, 1);
+    sha1->update(buf_i, 128);
+    hash = sha1->final();
     for (i = 1; i < iter; i++)
-      gcry_md_hash_buffer(GCRY_MD_SHA1, hash, hash, 20);
+      {
+	hash = sha1->process(hash.data(), hash.size());
+      }
 
     for (i = 0; i < 20 && cur_keylen < req_keylen; i++)
       keybuf[cur_keylen++] = hash[i];
@@ -2002,13 +2003,12 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
   char salt[8];
   struct buffer_s seqlist[3];
   int seqlistidx = 0;
-  unsigned char sha1hash[20];
   char keyidstr[8 + 1];
   char *pwbuf = NULL;
   size_t pwbufsize = 0;
+  Botan::secure_vector<uint8_t> sha1hash;
 
   n = buflen = 0; /* (avoid compiler warning). */
-  memset(sha1hash, 0, 20);
   *keyidstr = 0;
 
   if (charset && pw && *pw) {
@@ -2055,13 +2055,14 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
 
   if (cert && certlen) {
     /* Calculate the hash value we need for the bag attributes. */
-    gcry_md_hash_buffer(GCRY_MD_SHA1, sha1hash, cert, certlen);
+    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    sha1hash = sha1->process((uint8_t*)cert, certlen);
     sprintf(keyidstr, "%02x%02x%02x%02x", sha1hash[16], sha1hash[17],
             sha1hash[18], sha1hash[19]);
 
     /* Encode the certificate. */
     buffer = build_cert_sequence((const unsigned char *)(cert), certlen,
-                                 sha1hash, keyidstr, &buflen);
+                                 sha1hash.data(), keyidstr, &buflen);
     if (!buffer) goto failure;
 
     /* Encrypt it. */
@@ -2091,7 +2092,7 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
     /* Encode the encrypted stuff into a bag. */
     if (cert && certlen)
       seqlist[seqlistidx].buffer =
-          build_key_bag(buffer, buflen, salt, sha1hash, keyidstr, &n);
+	build_key_bag(buffer, buflen, salt, sha1hash.data(), keyidstr, &n);
     else
       seqlist[seqlistidx].buffer =
           build_key_bag(buffer, buflen, salt, NULL, NULL, &n);

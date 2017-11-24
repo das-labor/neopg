@@ -42,8 +42,9 @@
 #include <npth.h>
 
 #include <gpg-error.h>
-
 #include <gnutls/gnutls.h>
+
+#include <botan/hash.h>
 
 #define GNUPG_COMMON_NEED_AFLOCAL
 #include "dirmngr.h"
@@ -315,7 +316,9 @@ static gpg_error_t my_ksba_hash_buffer(void *arg, const char *oid,
 
   if (oid && strcmp(oid, "1.3.14.3.2.26")) return GPG_ERR_NOT_SUPPORTED;
   if (resultsize < 20) return GPG_ERR_BUFFER_TOO_SHORT;
-  gcry_md_hash_buffer(2, result, buffer, length);
+  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash = sha1->process((uint8_t*)buffer, length);
+  memcpy(result, hash.data(), hash.size());
   *resultlen = 20;
   return 0;
 }
