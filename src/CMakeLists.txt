@@ -115,7 +115,6 @@ add_executable(neopg
   ../legacy/gnupg/g10/tdbio.cpp
   ../legacy/gnupg/g10/tdbdump.cpp
   ../legacy/gnupg/g10/delkey.cpp
-  ../legacy/gnupg/g10/dearmor.cpp
   ../legacy/gnupg/g10/card-util.cpp
   ../legacy/gnupg/g10/gpgsql.cpp
   ../legacy/gnupg/g10/compress-bz2.cpp

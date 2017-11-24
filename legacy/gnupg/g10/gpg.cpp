@@ -169,8 +169,6 @@ enum cmd_and_opt_values {
   aListTrustPath,
   aExportOwnerTrust,
   aImportOwnerTrust,
-  aDeArmor,
-  aEnArmor,
   aCardStatus,
   aCardEdit,
   aChangePIN,
@@ -443,9 +441,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_c(aCheckTrustDB, "check-trustdb", "@"),
 #endif
 
-    ARGPARSE_c(aDeArmor, "dearmor", "@"), ARGPARSE_c(aDeArmor, "dearmour", "@"),
-    ARGPARSE_c(aEnArmor, "enarmor", "@"), ARGPARSE_c(aEnArmor, "enarmour", "@"),
-
     ARGPARSE_group(301, N_("@\nOptions:\n ")),
 
     ARGPARSE_s_n(oArmor, "armor", N_("create ascii armored output")),
@@ -595,7 +590,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_n(oNoRequireSecmem, "no-require-secmem", "@"),
     ARGPARSE_s_n(oNoPermissionWarn, "no-permission-warning", "@"),
     ARGPARSE_s_n(oNoArmor, "no-armor", "@"),
-    ARGPARSE_s_n(oNoArmor, "no-armour", "@"),
     ARGPARSE_s_n(oNoDefKeyring, "no-default-keyring", "@"),
     ARGPARSE_s_n(oNoKeyring, "no-keyring", "@"),
     ARGPARSE_s_n(oNoOptions, "no-options", "@"),
@@ -726,12 +720,6 @@ const static struct debug_flags_s debug_flags[] = {
     {DBG_LOOKUP_VALUE, "lookup"},
     {DBG_EXTPROG_VALUE, "extprog"},
     {0, NULL}};
-
-#ifdef ENABLE_SELINUX_HACKS
-#define ALWAYS_ADD_KEYRINGS 1
-#else
-#define ALWAYS_ADD_KEYRINGS 0
-#endif
 
 int g10_errors_seen = 0;
 
@@ -1743,8 +1731,6 @@ next_pass:
       case aCheckTrustDB:
       case aUpdateTrustDB:
       case aListTrustPath:
-      case aDeArmor:
-      case aEnArmor:
       case aSign:
       case aQuickSignKey:
       case aQuickLSignKey:
@@ -2934,8 +2920,7 @@ next_pass:
    * need to add the keyrings if we are running under SELinux, this
    * is so that the rings are added to the list of secured files.
    * We do not add any keyring if --no-keyring has been used.  */
-  if (default_keyring >= 0 &&
-      (ALWAYS_ADD_KEYRINGS || (cmd != aDeArmor && cmd != aEnArmor))) {
+  if (default_keyring >= 0) {
     if (nrings.empty() || default_keyring > 0) /* Add default ring. */
       keydb_add_resource("pubring" EXTSEP_S "kbx", KEYDB_RESOURCE_FLAG_DEFAULT);
     for (auto &nring : nrings)
@@ -2957,9 +2942,6 @@ next_pass:
 
 #ifndef NO_TRUST_MODELS
   switch (cmd) {
-    case aDeArmor:
-    case aEnArmor:
-      break;
     case aExportOwnerTrust:
       rc = setup_trustdb(0, trustdb_name);
       break;
@@ -3490,24 +3472,6 @@ next_pass:
       username = make_username(*argv, utf8_strings);
       gen_desig_revoke(ctrl, username, locusr);
       xfree(username);
-      break;
-
-    case aDeArmor:
-      if (argc > 1) wrong_args("--dearmor [file]");
-      rc = dearmor_file(argc ? *argv : NULL);
-      if (rc) {
-        write_status_failure("dearmor", rc);
-        log_error(_("dearmoring failed: %s\n"), gpg_strerror(rc));
-      }
-      break;
-
-    case aEnArmor:
-      if (argc > 1) wrong_args("--enarmor [file]");
-      rc = enarmor_file(argc ? *argv : NULL);
-      if (rc) {
-        write_status_failure("enarmor", rc);
-        log_error(_("enarmoring failed: %s\n"), gpg_strerror(rc));
-      }
       break;
 
 #ifndef NO_TRUST_MODELS
