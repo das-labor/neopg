@@ -3,6 +3,7 @@
 #
 # NeoPG is released under the Simplified BSD License (see license.txt)
 
+FIND_PACKAGE(Boost COMPONENTS date_time locale REQUIRED)
 
 add_executable(neopg
   ../legacy/gnupg/common/logging.h
@@ -238,7 +239,7 @@ target_link_libraries(neopg PRIVATE
   gcrypt
   npth
   ksba
-# ${Boost_LIBRARIES}
+${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}

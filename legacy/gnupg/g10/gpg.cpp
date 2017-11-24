@@ -86,10 +86,7 @@ std::string str_to_utf8(const char *string, int is_utf8) {
   if (is_utf8)
     return string;
   else {
-    char *p = native_to_utf8(string);
-    std::string str{p};
-    xfree(p);
-    return str;
+    return native_to_utf8(string);
   }
 }
 
@@ -859,15 +856,6 @@ static void wrong_args(const char *text) {
   g10_exit(2);
 }
 
-static char *make_username(const char *string, bool utf8_strings) {
-  char *p;
-  if (utf8_strings)
-    p = xstrdup(string);
-  else
-    p = native_to_utf8(string);
-  return p;
-}
-
 /* Setup the debugging.  With a LEVEL of NULL only the active debug
    flags are propagated to the subsystems.  With LEVEL set, a specific
    set of debug flags is set; thus overriding all flags already
@@ -1521,7 +1509,6 @@ int gpg_main(int argc, char **argv) {
   int orig_argc;
   char **orig_argv;
   const char *fname;
-  char *username;
   int may_coredump;
   std::vector<std::pair<std::string, unsigned int>> remusr;
   std::vector<std::pair<std::string, unsigned int>> locusr;
@@ -1933,7 +1920,7 @@ next_pass:
       } break;
       case oDefRecipient:
         if (*pargs.r.ret_str)
-          opt.def_recipient = make_username(pargs.r.ret_str, utf8_strings);
+          opt.def_recipient = str_to_utf8(pargs.r.ret_str, utf8_strings);
         break;
       case oDefRecipientSelf:
         opt.def_recipient = boost::none;
@@ -3131,9 +3118,8 @@ next_pass:
         BUG();
 
       commands.emplace_back("save");
-      username = make_username(fname, utf8_strings);
-      keyedit_menu(ctrl, username, locusr, commands, 0, 0);
-      xfree(username);
+      std::string username = str_to_utf8(fname, utf8_strings);
+      keyedit_menu(ctrl, username.c_str(), locusr, commands, 0, 0);
     } break;
 
     case aEditKey: /* Edit a key signature */
@@ -3141,22 +3127,20 @@ next_pass:
       std::vector<std::string> commands;
 
       if (!argc) wrong_args("--edit-key user-id [commands]");
-      username = make_username(fname, utf8_strings);
+      std::string username = str_to_utf8(fname, utf8_strings);
       if (argc > 1) {
         for (argc--, argv++; argc; argc--, argv++) commands.emplace_back(*argv);
-        keyedit_menu(ctrl, username, locusr, commands, 0, 1);
+        keyedit_menu(ctrl, username.c_str(), locusr, commands, 0, 1);
       } else
-        keyedit_menu(ctrl, username, locusr, commands, 0, 1);
-      xfree(username);
+        keyedit_menu(ctrl, username.c_str(), locusr, commands, 0, 1);
     } break;
 
     case aPasswd:
       if (argc != 1)
         wrong_args("--change-passphrase <user-id>");
       else {
-        username = make_username(fname, utf8_strings);
-        keyedit_passwd(ctrl, username);
-        xfree(username);
+	std::string username = str_to_utf8(fname, utf8_strings);
+        keyedit_passwd(ctrl, username.c_str());
       }
       break;
 
@@ -3201,7 +3185,7 @@ next_pass:
 
       if (argc < 1 || argc > 4)
         wrong_args("--quick-generate-key USER-ID [ALGO [USAGE [EXPIRE]]]");
-      username = make_username(fname, utf8_strings);
+      std::string username = str_to_utf8(fname, utf8_strings);
       argv++, argc--;
       x_algo = "";
       x_usage = "";
@@ -3218,8 +3202,7 @@ next_pass:
           }
         }
       }
-      quick_generate_keypair(ctrl, username, x_algo, x_usage, x_expire);
-      xfree(username);
+      quick_generate_keypair(ctrl, username.c_str(), x_algo, x_usage, x_expire);
     } break;
 
     case aKeygen: /* generate a key */
@@ -3325,11 +3308,6 @@ next_pass:
       import_keys(ctrl, argc ? argv : NULL, argc, NULL, opt.import_options);
       break;
 
-    /* TODO: There are a number of command that use this same
-       "make strlist, call function, report error, free strlist"
-       pattern.  Join them together here and avoid all that
-       duplicated code. */
-
     case aExport:
     case aSendKeys:
     case aRecvKeys: {
@@ -3429,17 +3407,19 @@ next_pass:
     } break;
 
     case aGenRevoke:
-      if (argc != 1) wrong_args("--generate-revocation user-id");
-      username = make_username(*argv, utf8_strings);
-      gen_revoke(ctrl, username);
-      xfree(username);
+      {
+	if (argc != 1) wrong_args("--generate-revocation user-id");
+	std::string username = str_to_utf8(*argv, utf8_strings);
+	gen_revoke(ctrl, username.c_str());
+      }
       break;
 
     case aDesigRevoke:
-      if (argc != 1) wrong_args("--generate-designated-revocation user-id");
-      username = make_username(*argv, utf8_strings);
-      gen_desig_revoke(ctrl, username, locusr);
-      xfree(username);
+      {
+	if (argc != 1) wrong_args("--generate-designated-revocation user-id");
+	std::string username = str_to_utf8(*argv, utf8_strings);
+	gen_desig_revoke(ctrl, username.c_str(), locusr);
+      }
       break;
 
 #ifndef NO_TRUST_MODELS
@@ -3462,11 +3442,12 @@ next_pass:
       break;
 
     case aListTrustPath:
-      if (!argc) wrong_args("--list-trust-path <user-ids>");
-      for (; argc; argc--, argv++) {
-        username = make_username(*argv, utf8_strings);
-        list_trust_path(username);
-        xfree(username);
+      {
+	if (!argc) wrong_args("--list-trust-path <user-ids>");
+	for (; argc; argc--, argv++) {
+	  std::string username = str_to_utf8(*argv, utf8_strings);
+	  list_trust_path(username.c_str());
+	}
       }
       break;
 

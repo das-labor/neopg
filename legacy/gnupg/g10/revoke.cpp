@@ -43,25 +43,14 @@ struct revocation_reason_info {
 
 int revocation_reason_build_cb(PKT_signature *sig, void *opaque) {
   struct revocation_reason_info *reason = (revocation_reason_info *)opaque;
-  char *ud = NULL;
-  byte *buffer;
-  size_t buflen = 1;
+  std::string buffer;
 
   if (!reason) return 0;
+  buffer += (char) reason->code;
+  if (reason->desc)
+    buffer += native_to_utf8(reason->desc);
 
-  if (reason->desc) {
-    ud = native_to_utf8(reason->desc);
-    buflen += strlen(ud);
-  }
-  buffer = (byte *)xmalloc(buflen);
-  *buffer = reason->code;
-  if (ud) {
-    memcpy(buffer + 1, ud, strlen(ud));
-    xfree(ud);
-  }
-
-  build_sig_subpkt(sig, SIGSUBPKT_REVOC_REASON, buffer, buflen);
-  xfree(buffer);
+  build_sig_subpkt(sig, SIGSUBPKT_REVOC_REASON, (uint8_t*)buffer.data(), buffer.size());
   return 0;
 }
 

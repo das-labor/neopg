@@ -198,10 +198,9 @@ void cache_public_key(PKT_public_key *pk) {
    This function is required so that we don't need to switch gettext's
    encoding temporary.  */
 static const char *user_id_not_found_utf8(void) {
-  static char *text;
+  static std::string text = native_to_utf8(_("[User ID not found]"));
 
-  if (!text) text = native_to_utf8(_("[User ID not found]"));
-  return text;
+  return text.c_str();
 }
 
 /* Return the user ID from the given keyblock.

@@ -1137,8 +1137,10 @@ struct notation *string_to_notation(const char *string, int is_utf8) {
 
     if (!highbit || is_utf8)
       notation->value = xstrdup(i);
-    else
-      notation->value = native_to_utf8(i);
+    else {
+      std::string value_ = native_to_utf8(i);
+      notation->value = xstrdup(value_.c_str());
+    }
   }
 
   return notation;

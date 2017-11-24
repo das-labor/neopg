@@ -421,9 +421,9 @@ char *cpr_get_utf8(const char *keyword, const char *prompt) {
   char *p;
   p = cpr_get(keyword, prompt);
   if (p) {
-    char *utf8 = native_to_utf8(p);
+    std::string utf8 = native_to_utf8(p);
     xfree(p);
-    p = utf8;
+    p = xstrdup(utf8.c_str());
   }
   return p;
 }

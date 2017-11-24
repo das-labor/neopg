@@ -39,6 +39,8 @@
 #endif
 #include <errno.h>
 
+#include <boost/locale.hpp>
+
 #if HAVE_W32_SYSTEM
 #/* Tell libgpg-error to provide the iconv macros.  */
 #define GPGRT_ENABLE_W32_ICONV_MACROS 1
@@ -305,75 +307,8 @@ int is_native_utf8(void) { return no_translation; }
 /* Convert string, which is in native encoding to UTF8 and return a
    new allocated UTF-8 string.  This function terminates the process
    on memory shortage.  */
-char *native_to_utf8(const char *orig_string) {
-  const unsigned char *string = (const unsigned char *)orig_string;
-  const unsigned char *s;
-  char *buffer;
-  unsigned char *p;
-  size_t length = 0;
-
-  if (no_translation) {
-    /* Already utf-8 encoded. */
-    buffer = xstrdup(orig_string);
-  } else if (!use_iconv) {
-    /* For Latin-1 we can avoid the iconv overhead. */
-    for (s = string; *s; s++) {
-      length++;
-      if (*s & 0x80) length++;
-    }
-    buffer = (char *)xmalloc(length + 1);
-    for (p = (unsigned char *)buffer, s = string; *s; s++) {
-      if ((*s & 0x80)) {
-        *p++ = 0xc0 | ((*s >> 6) & 3);
-        *p++ = 0x80 | (*s & 0x3f);
-      } else
-        *p++ = *s;
-    }
-    *p = 0;
-  } else {
-    /* Need to use iconv.  */
-    iconv_t cd;
-    const char *inptr;
-    char *outptr;
-    size_t inbytes, outbytes;
-
-    cd = iconv_open("utf-8", active_charset_name);
-    if (cd == (iconv_t)-1) {
-      handle_iconv_error("utf-8", active_charset_name, 1);
-      return native_to_utf8((const char *)(string));
-    }
-
-    for (s = string; *s; s++) {
-      length++;
-      if ((*s & 0x80))
-        length += 5; /* We may need up to 6 bytes for the utf8 output. */
-    }
-    buffer = (char *)xmalloc(length + 1);
-
-    inptr = (const char *)string;
-    inbytes = strlen((const char *)(string));
-    outptr = buffer;
-    outbytes = length;
-    if (iconv(cd, (ICONV_CONST char **)&inptr, &inbytes, &outptr, &outbytes) ==
-        (size_t)-1) {
-      static int shown;
-
-      if (!shown)
-        log_info(_("conversion from '%s' to '%s' failed: %s\n"),
-                 active_charset_name, "utf-8", strerror(errno));
-      shown = 1;
-      /* We don't do any conversion at all but use the strings as is. */
-      strcpy(buffer, (const char *)(string));
-    } else /* Success.  */
-    {
-      *outptr = 0;
-      /* We could realloc the buffer now but I doubt that it makes
-         much sense given that it will get freed anyway soon
-         after.  */
-    }
-    iconv_close(cd);
-  }
-  return buffer;
+std::string native_to_utf8(const std::string& orig_string) {
+  return boost::locale::conv::to_utf<char>(orig_string, active_charset_name);
 }
 
 static char *do_utf8_to_native(const char *string, size_t length, int delim,

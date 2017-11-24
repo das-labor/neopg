@@ -2388,9 +2388,8 @@ static char *ask_user_id(int mode, int full, KBNODE keyblock) {
     uid = NULL;
   }
   if (uid) {
-    char *p = native_to_utf8(uid);
-    xfree(uid);
-    uid = p;
+    std::string p = native_to_utf8(uid);
+    uid = xstrdup(p.c_str());
   }
   return uid;
 }

@@ -97,9 +97,8 @@ strlist_t add_to_strlist2(strlist_t *list, const char *string, int is_utf8) {
   if (is_utf8)
     sl = add_to_strlist(list, string);
   else {
-    char *p = native_to_utf8(string);
-    sl = add_to_strlist(list, p);
-    xfree(p);
+    std::string p = native_to_utf8(string);
+    sl = add_to_strlist(list, p.c_str());
   }
   return sl;
 }
@@ -139,9 +138,8 @@ strlist_t append_to_strlist2(strlist_t *list, const char *string, int is_utf8) {
   if (is_utf8)
     sl = append_to_strlist(list, string);
   else {
-    char *p = native_to_utf8(string);
-    sl = append_to_strlist(list, p);
-    xfree(p);
+    std::string p = native_to_utf8(string);
+    sl = append_to_strlist(list, p.c_str());
   }
   return sl;
 }

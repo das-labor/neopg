@@ -31,11 +31,13 @@
 #ifndef GNUPG_COMMON_UTF8CONF_H
 #define GNUPG_COMMON_UTF8CONF_H
 
+#include <string>
+
 int set_native_charset(const char *newset);
 const char *get_native_charset(void);
 int is_native_utf8(void);
 
-char *native_to_utf8(const char *string);
+std::string native_to_utf8(const std::string& string);
 char *utf8_to_native(const char *string, size_t length, int delim);
 
 /* Silly wrappers, required for W32 portability.  */
