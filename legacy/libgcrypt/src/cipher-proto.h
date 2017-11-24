@@ -217,14 +217,4 @@ typedef struct gcry_md_spec {
   selftest_func_t selftest;
 } gcry_md_spec_t;
 
-/* The selftest functions.  */
-gpg_error_t _gcry_cipher_selftest(int algo, int extended,
-                                  selftest_report_func_t report);
-gpg_error_t _gcry_md_selftest(int algo, int extended,
-                              selftest_report_func_t report);
-gpg_error_t _gcry_pk_selftest(int algo, int extended,
-                              selftest_report_func_t report);
-gpg_error_t _gcry_hmac_selftest(int algo, int extended,
-                                selftest_report_func_t report);
-
 #endif /*G10_CIPHER_PROTO_H*/
