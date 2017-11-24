@@ -178,9 +178,6 @@ static int is_supervised;
 /* Flag to inhibit socket removal in cleanup.  */
 static int inhibit_socket_removal;
 
-/* It is possible that we are currently running under setuid permissions */
-static int maybe_setuid = 1;
-
 /* Default values for options passed to the pinentry. */
 static char *default_lc_ctype;
 static char *default_lc_messages;
@@ -475,9 +472,6 @@ int agent_main(int argc, char **argv) {
   /* Set program name etc.  */
   set_strusage(my_strusage);
   gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
-  /* Please note that we may running SUID(ROOT), so be very CAREFUL
-     when adding any stuff between here and the call to INIT_SECMEM()
-     somewhere after the option parsing */
   log_set_prefix(GPG_AGENT_NAME, GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_PID);
 
   /* Make sure that our subsystems are ready.  */
@@ -526,7 +520,6 @@ int agent_main(int argc, char **argv) {
 
   /* Initialize the secure memory. */
   gcry_control(GCRYCTL_INIT_SECMEM, SECMEM_BUFFER_SIZE, 0);
-  maybe_setuid = 0;
 
   /*
      Now we are now working under our real uid

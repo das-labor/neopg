@@ -717,8 +717,6 @@ const static struct debug_flags_s debug_flags[] = {
 
 int g10_errors_seen = 0;
 
-static int maybe_setuid = 1;
-
 static char *build_list(const std::string &text, char letter,
                         const char *(*mapf)(int), int (*chkf)(int));
 static void set_cmd(enum cmd_and_opt_values *ret_cmd,
@@ -1565,9 +1563,6 @@ int gpg_main(int argc, char **argv) {
 
   opt = options();
 
-  /* Please note that we may running SUID(ROOT), so be very CAREFUL
-     when adding any stuff between here and the call to
-     secmem_init() somewhere after the option parsing. */
   early_system_init();
   gnupg_reopen_std(GPG_NAME);
   trap_unaligned();
@@ -1639,14 +1634,6 @@ int gpg_main(int argc, char **argv) {
 
   /* Initialize the secure memory. */
   if (!gcry_control(GCRYCTL_INIT_SECMEM, SECMEM_BUFFER_SIZE, 0)) got_secmem = 1;
-#if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
-  /* There should be no way to get to this spot while still carrying
-     setuid privs.  Just in case, bomb out if we are. */
-  if (getuid() != geteuid()) BUG();
-#endif
-  maybe_setuid = 0;
-
-  /* Okay, we are now working under our real uid */
 
   /* malloc hooks go here ... */
   malloc_hooks.malloc = gcry_malloc;

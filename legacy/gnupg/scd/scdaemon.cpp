@@ -162,9 +162,6 @@ static struct debug_flags_s debug_flags[] = {
 /* Flag to indicate that a shutdown was requested. */
 static int shutdown_pending;
 
-/* It is possible that we are currently running under setuid permissions */
-static int maybe_setuid = 1;
-
 #ifdef HAVE_W32_SYSTEM
 static HANDLE the_event;
 #else
@@ -177,10 +174,6 @@ static char *make_libversion(const char *libname,
   const char *s;
   char *result;
 
-  if (maybe_setuid) {
-    gcry_control(GCRYCTL_INIT_SECMEM, 0, 0); /* Drop setuid. */
-    maybe_setuid = 0;
-  }
   s = getfnc(NULL);
   result = (char *)xmalloc(strlen(libname) + 1 + strlen(s) + 1);
   strcpy(stpcpy(stpcpy(result, libname), " "), s);
@@ -303,9 +296,6 @@ int scd_main(int argc, char **argv) {
   early_system_init();
   set_strusage(my_strusage);
   gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
-  /* Please note that we may running SUID(ROOT), so be very CAREFUL
-     when adding any stuff between here and the call to INIT_SECMEM()
-     somewhere after the option parsing */
   log_set_prefix("scdaemon", GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_PID);
 
   /* Make sure that our subsystems are ready.  */
@@ -350,7 +340,6 @@ int scd_main(int argc, char **argv) {
 
   /* initialize the secure memory. */
   gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
-  maybe_setuid = 0;
 
   /*
      Now we are working under our real uid

@@ -390,9 +390,6 @@ static struct debug_flags_s debug_flags[] = {{DBG_X509_VALUE, "x509"},
 /* Global variable to keep an error count. */
 int gpgsm_errors_seen = 0;
 
-/* It is possible that we are currentlu running under setuid permissions */
-static int maybe_setuid = 1;
-
 /* Helper to implement --debug-level and --debug*/
 static const char *debug_level;
 static unsigned int debug_value;
@@ -473,10 +470,6 @@ static char *make_libversion(const char *libname,
   const char *s;
   char *result;
 
-  if (maybe_setuid) {
-    gcry_control(GCRYCTL_INIT_SECMEM, 0, 0); /* Drop setuid. */
-    maybe_setuid = 0;
-  }
   s = getfnc(NULL);
   result = (char *)xmalloc(strlen(libname) + 1 + strlen(s) + 1);
   strcpy(stpcpy(stpcpy(result, libname), " "), s);
@@ -548,10 +541,6 @@ static char *build_list(const char *text, const char *(*mapf)(int),
   int i;
   size_t n = strlen(text) + 2;
   char *list, *p;
-
-  if (maybe_setuid) {
-    gcry_control(GCRYCTL_DROP_PRIVS); /* drop setuid */
-  }
 
   for (i = 1; i < 400; i++)
     if (!chkf(i)) n += strlen(mapf(i)) + 2;
@@ -760,7 +749,6 @@ int gpgsm_main(int argc, char **argv) {
 
   /* Initialize the secure memory. */
   gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
-  maybe_setuid = 0;
 
   /*
      Now we are now working under our real uid
@@ -1296,11 +1284,11 @@ next_pass:
 
   set_debug();
 
-  /* Must do this after dropping setuid, because the mapping functions
-     may try to load an module and we may have disabled an algorithm.
-     We remap the commonly used algorithms to the OIDs for
-     convenience.  We need to work with the OIDs because they are used
-     to check whether the encryption mode is actually available. */
+  /* The mapping functions may try to load an module and we may have
+     disabled an algorithm.  We remap the commonly used algorithms to
+     the OIDs for convenience.  We need to work with the OIDs because
+     they are used to check whether the encryption mode is actually
+     available. */
   if (!strcmp(opt.def_cipher_algoid, "3DES"))
     opt.def_cipher_algoid = "1.2.840.113549.3.7";
   else if (!strcmp(opt.def_cipher_algoid, "AES") ||

@@ -103,9 +103,7 @@ void early_system_init(void) {}
    of the parameters given to main.  This function may modify them.
 
    This function should be called only via the macro
-   init_common_subsystems.
-
-   CAUTION: This might be called while running suid(root).  */
+   init_common_subsystems.  */
 void init_common_subsystems(int *argcp, char ***argvp) {
   atexit(run_mem_cleanup);
 

@@ -666,8 +666,6 @@ gpg_error_t gnupg_spawn_process_detached(const char *pgmname,
   pid_t pid;
   int i;
 
-  if (getuid() != geteuid()) return GPG_ERR_BUG;
-
   if (access(pgmname, X_OK)) return gpg_error_from_syserror();
 
   pid = fork();
