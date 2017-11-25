@@ -205,6 +205,7 @@ add_executable(neopg
   ../include/neopg/cli/hash_command.h
   ../include/neopg/cli/armor_command.h
   ../include/neopg/cli/cat_command.h
+  ../include/neopg/cli/compress_command.h
   cli/command.cpp
   cli/version_command.cpp
   cli/packet_command.cpp
@@ -212,6 +213,7 @@ add_executable(neopg
   cli/hash_command.cpp
   cli/armor_command.cpp
   cli/cat_command.cpp
+  cli/compress_command.cpp
   neopg.cpp
 )
 target_include_directories(neopg PRIVATE

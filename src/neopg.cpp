@@ -11,6 +11,7 @@
 #include <neopg/cli/armor_command.h>
 #include <neopg/cli/cat_command.h>
 #include <neopg/cli/command.h>
+#include <neopg/cli/compress_command.h>
 #include <neopg/cli/hash_command.h>
 #include <neopg/cli/packet_command.h>
 #include <neopg/cli/random_command.h>
@@ -115,6 +116,8 @@ int main(int argc, char* argv[]) {
                            tools_group);
   RandomCommand cmd_random(app, "random", "output random bytes", tools_group);
   HashCommand cmd_hash(app, "hash", "calculate hash function", tools_group);
+  CompressCommand cmd_compress(app, "compress", "compress and decompress data",
+                               tools_group);
   ArmorCommand cmd_armor(app, "armor", "ASCII-encode and decode binary data",
                          tools_group);
   CatCommand cmd_cat(app, "cat", "the beginning of a new Unix system",
