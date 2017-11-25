@@ -26,6 +26,7 @@ addons:
       - doxygen
       - lcov
       - libboost-date-time1.60-dev
+      - libboost-locale1.60-dev
       - pkg-config
       - libusb-1.0-0-dev
       - libbz2-dev
