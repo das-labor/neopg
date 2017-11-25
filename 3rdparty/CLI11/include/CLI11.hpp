@@ -4,7 +4,7 @@
 // file LICENSE or https://github.com/CLIUtils/CLI11 for details.
 
 // This file was generated using MakeSingleHeader.py in CLI11/scripts
-// from: v1.2.0-41-gbda27d9
+// from: v1.2.0-77-gd28c230
 
 // This has the complete CLI library in one file.
 
@@ -13,6 +13,7 @@
 #include <set>
 #include <iostream>
 #include <string>
+#include <iterator>
 #include <tuple>
 #include <locale>
 #include <functional>
@@ -33,6 +34,21 @@
 
 namespace CLI {
 
+// Use one of these on all error classes
+#define CLI11_ERROR_DEF(parent, name)                                                                                  \
+  protected:                                                                                                           \
+    name(std::string name, std::string msg, int exit_code) : parent(std::move(name), std::move(msg), exit_code) {}     \
+    name(std::string name, std::string msg, ExitCodes exit_code)                                                       \
+        : parent(std::move(name), std::move(msg), exit_code) {}                                                        \
+                                                                                                                       \
+  public:                                                                                                              \
+    name(std::string msg, ExitCodes exit_code) : parent(#name, std::move(msg), exit_code) {}                           \
+    name(std::string msg, int exit_code) : parent(#name, std::move(msg), exit_code) {}
+
+// This is added after the one above if a class is used directly and builds its own message
+#define CLI11_ERROR_SIMPLE(name)                                                                                       \
+    name(std::string msg) : name(#name, msg, ExitCodes::name) {}
+
 /// These codes are part of every error in CLI. They can be obtained from e using e.exit_code or as a quick shortcut,
 /// int values from e.get_error_code().
 enum class ExitCodes {
@@ -41,15 +57,15 @@ enum class ExitCodes {
     BadNameString,
     OptionAlreadyAdded,
     File,
-    Conversion,
-    Validation,
-    Required,
-    Requires,
-    Excludes,
-    Extras,
-    ExtrasINI,
-    Invalid,
-    Horrible,
+    ConversionError,
+    ValidationError,
+    RequiredError,
+    RequiresError,
+    ExcludesError,
+    ExtrasError,
+    ExtrasINIError,
+    InvalidError,
+    HorribleError,
     OptionNotFound,
     BaseClass = 127
 };
@@ -63,135 +79,141 @@ enum class ExitCodes {
 /// @{
 
 /// All errors derive from this one
-struct Error : public std::runtime_error {
+class Error : public std::runtime_error {
     int exit_code;
-    bool print_help;
+    std::string name{"Error"};
+
+  public:
     int get_exit_code() const { return exit_code; }
-    Error(std::string parent, std::string name, ExitCodes exit_code = ExitCodes::BaseClass, bool print_help = true)
-        : runtime_error(parent + ": " + name), exit_code(static_cast<int>(exit_code)), print_help(print_help) {}
-    Error(std::string parent,
-          std::string name,
-          int exit_code = static_cast<int>(ExitCodes::BaseClass),
-          bool print_help = true)
-        : runtime_error(parent + ": " + name), exit_code(exit_code), print_help(print_help) {}
+
+    std::string get_name() const { return name; }
+
+    Error(std::string name, std::string msg, int exit_code = static_cast<int>(ExitCodes::BaseClass))
+        : runtime_error(msg), exit_code(exit_code), name(std::move(name)) {}
+
+    Error(std::string name, std::string msg, ExitCodes exit_code) : Error(name, msg, static_cast<int>(exit_code)) {}
 };
 
+// Note: Using Error::Error constructors does not work on GCC 4.7
+
 /// Construction errors (not in parsing)
-struct ConstructionError : public Error {
-    // Using Error::Error constructors seem to not work on GCC 4.7
-    ConstructionError(std::string parent,
-                      std::string name,
-                      ExitCodes exit_code = ExitCodes::BaseClass,
-                      bool print_help = true)
-        : Error(parent, name, exit_code, print_help) {}
+class ConstructionError : public Error {
+    CLI11_ERROR_DEF(Error, ConstructionError)
 };
 
 /// Thrown when an option is set to conflicting values (non-vector and multi args, for example)
-struct IncorrectConstruction : public ConstructionError {
-    IncorrectConstruction(std::string name)
-        : ConstructionError("IncorrectConstruction", name, ExitCodes::IncorrectConstruction) {}
+class IncorrectConstruction : public ConstructionError {
+    CLI11_ERROR_DEF(ConstructionError, IncorrectConstruction)
+    CLI11_ERROR_SIMPLE(IncorrectConstruction)
 };
 
 /// Thrown on construction of a bad name
-struct BadNameString : public ConstructionError {
-    BadNameString(std::string name) : ConstructionError("BadNameString", name, ExitCodes::BadNameString) {}
+class BadNameString : public ConstructionError {
+    CLI11_ERROR_DEF(ConstructionError, BadNameString)
+    CLI11_ERROR_SIMPLE(BadNameString)
 };
 
 /// Thrown when an option already exists
-struct OptionAlreadyAdded : public ConstructionError {
-    OptionAlreadyAdded(std::string name)
-        : ConstructionError("OptionAlreadyAdded", name, ExitCodes::OptionAlreadyAdded) {}
+class OptionAlreadyAdded : public ConstructionError {
+    CLI11_ERROR_DEF(ConstructionError, OptionAlreadyAdded)
+    CLI11_ERROR_SIMPLE(OptionAlreadyAdded)
 };
 
 // Parsing errors
 
 /// Anything that can error in Parse
-struct ParseError : public Error {
-    ParseError(std::string parent, std::string name, ExitCodes exit_code = ExitCodes::BaseClass, bool print_help = true)
-        : Error(parent, name, exit_code, print_help) {}
-    ParseError(std::string parent,
-               std::string name,
-               int exit_code = static_cast<int>(ExitCodes::BaseClass),
-               bool print_help = true)
-        : Error(parent, name, exit_code, print_help) {}
+class ParseError : public Error {
+    CLI11_ERROR_DEF(Error, ParseError)
 };
 
 // Not really "errors"
 
 /// This is a successful completion on parsing, supposed to exit
-struct Success : public ParseError {
-    Success() : ParseError("Success", "Successfully completed, should be caught and quit", ExitCodes::Success, false) {}
+class Success : public ParseError {
+    CLI11_ERROR_DEF(ParseError, Success)
+    Success() : Success("Successfully completed, should be caught and quit", ExitCodes::Success) {}
 };
 
 /// -h or --help on command line
-struct CallForHelp : public ParseError {
-    CallForHelp()
-        : ParseError("CallForHelp", "This should be caught in your main function, see examples", ExitCodes::Success) {}
+class CallForHelp : public ParseError {
+    CLI11_ERROR_DEF(ParseError, CallForHelp)
+    CallForHelp() : CallForHelp("This should be caught in your main function, see examples", ExitCodes::Success) {}
 };
 
 /// Does not output a diagnostic in CLI11_PARSE, but allows to return from main() with a specific error code.
-struct RuntimeError : public ParseError {
-    RuntimeError(int exit_code = 1) : ParseError("RuntimeError", "runtime error", exit_code, false) {}
+class RuntimeError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, RuntimeError)
+    RuntimeError(int exit_code = 1) : RuntimeError("Runtime error", exit_code) {}
 };
 
 /// Thrown when parsing an INI file and it is missing
-struct FileError : public ParseError {
-    FileError(std::string name) : ParseError("FileError", name, ExitCodes::File) {}
+class FileError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, FileError)
+    FileError(std::string msg) : FileError(msg, ExitCodes::File) {}
 };
 
 /// Thrown when conversion call back fails, such as when an int fails to coerce to a string
-struct ConversionError : public ParseError {
-    ConversionError(std::string name) : ParseError("ConversionError", name, ExitCodes::Conversion) {}
+class ConversionError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, ConversionError)
+    CLI11_ERROR_SIMPLE(ConversionError)
 };
 
 /// Thrown when validation of results fails
-struct ValidationError : public ParseError {
-    ValidationError(std::string name) : ParseError("ValidationError", name, ExitCodes::Validation) {}
+class ValidationError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, ValidationError)
+    CLI11_ERROR_SIMPLE(ValidationError)
 };
 
 /// Thrown when a required option is missing
-struct RequiredError : public ParseError {
-    RequiredError(std::string name) : ParseError("RequiredError", name, ExitCodes::Required) {}
+class RequiredError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, RequiredError)
+    CLI11_ERROR_SIMPLE(RequiredError)
 };
 
 /// Thrown when a requires option is missing
-struct RequiresError : public ParseError {
-    RequiresError(std::string name, std::string subname)
-        : ParseError("RequiresError", name + " requires " + subname, ExitCodes::Requires) {}
+class RequiresError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, RequiresError)
+    RequiresError(std::string curname, std::string subname)
+        : RequiresError(curname + " requires " + subname, ExitCodes::RequiresError) {}
 };
 
 /// Thrown when a exludes option is present
-struct ExcludesError : public ParseError {
-    ExcludesError(std::string name, std::string subname)
-        : ParseError("ExcludesError", name + " excludes " + subname, ExitCodes::Excludes) {}
+class ExcludesError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, ExcludesError)
+    ExcludesError(std::string curname, std::string subname)
+        : ExcludesError(curname + " excludes " + subname, ExitCodes::ExcludesError) {}
 };
 
 /// Thrown when too many positionals or options are found
-struct ExtrasError : public ParseError {
-    ExtrasError(std::string name) : ParseError("ExtrasError", name, ExitCodes::Extras) {}
+class ExtrasError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, ExtrasError)
+    CLI11_ERROR_SIMPLE(ExtrasError)
 };
 
 /// Thrown when extra values are found in an INI file
-struct ExtrasINIError : public ParseError {
-    ExtrasINIError(std::string name) : ParseError("ExtrasINIError", name, ExitCodes::ExtrasINI) {}
+class ExtrasINIError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, ExtrasINIError)
+    CLI11_ERROR_SIMPLE(ExtrasINIError)
 };
 
 /// Thrown when validation fails before parsing
-struct InvalidError : public ParseError {
-    InvalidError(std::string name) : ParseError("InvalidError", name, ExitCodes::Invalid) {}
+class InvalidError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, InvalidError)
+    CLI11_ERROR_SIMPLE(InvalidError)
 };
 
-/// This is just a safety check to verify selection and parsing match
-struct HorribleError : public ParseError {
-    HorribleError(std::string name)
-        : ParseError("HorribleError", "(You should never see this error) " + name, ExitCodes::Horrible) {}
+/// This is just a safety check to verify selection and parsing match - you should not ever see it
+class HorribleError : public ParseError {
+    CLI11_ERROR_DEF(ParseError, HorribleError)
+    CLI11_ERROR_SIMPLE(HorribleError)
 };
 
 // After parsing
 
 /// Thrown when counting a non-existent option
-struct OptionNotFound : public Error {
-    OptionNotFound(std::string name) : Error("OptionNotFound", name, ExitCodes::OptionNotFound) {}
+class OptionNotFound : public Error {
+    CLI11_ERROR_DEF(Error, OptionNotFound)
+    CLI11_ERROR_SIMPLE(OptionNotFound)
 };
 
 /// @}
@@ -665,7 +687,7 @@ inline std::vector<ini_ret_t> parse_ini(const std::string &name) {
 
     std::ifstream input{name};
     if(!input.good())
-        throw FileError(name);
+        throw FileError(name + " was not readable (missing?)");
 
     return parse_ini(input);
 }
@@ -680,64 +702,62 @@ namespace CLI {
 /// @defgroup validator_group Validators
 /// @brief Some validators that are provided
 ///
-/// These are simple `bool(std::string)` validators that are useful.
+/// These are simple `void(std::string&)` validators that are useful. They throw
+/// a ValidationError if they fail (or the normally expected error if the cast fails)
 /// @{
 
 /// Check for an existing file
-inline bool ExistingFile(std::string filename) {
+inline std::string ExistingFile(const std::string &filename) {
     struct stat buffer;
     bool exist = stat(filename.c_str(), &buffer) == 0;
     bool is_dir = (buffer.st_mode & S_IFDIR) != 0;
     if(!exist) {
-        std::cerr << "File does not exist: " << filename << std::endl;
-        return false;
+        return "File does not exist: " + filename;
     } else if(is_dir) {
-        std::cerr << "File is actually a directory: " << filename << std::endl;
-        return false;
-    } else {
-        return true;
+        return "File is actually a directory: " + filename;
     }
+    return std::string();
 }
 
 /// Check for an existing directory
-inline bool ExistingDirectory(std::string filename) {
+inline std::string ExistingDirectory(const std::string &filename) {
     struct stat buffer;
     bool exist = stat(filename.c_str(), &buffer) == 0;
     bool is_dir = (buffer.st_mode & S_IFDIR) != 0;
     if(!exist) {
-        std::cerr << "Directory does not exist: " << filename << std::endl;
-        return false;
-    } else if(is_dir) {
-        return true;
-    } else {
-        std::cerr << "Directory is actually a file: " << filename << std::endl;
-        return false;
+        return "Directory does not exist: " + filename;
+    } else if(!is_dir) {
+        return "Directory is actually a file: " + filename;
     }
+    return std::string();
 }
 
 /// Check for a non-existing path
-inline bool NonexistentPath(std::string filename) {
+inline std::string NonexistentPath(const std::string &filename) {
     struct stat buffer;
     bool exist = stat(filename.c_str(), &buffer) == 0;
-    if(!exist) {
-        return true;
-    } else {
-        std::cerr << "Path exists: " << filename << std::endl;
-        return false;
+    if(exist) {
+        return "Path already exists: " + filename;
     }
+    return std::string();
 }
 
 /// Produce a range validator function
-template <typename T> std::function<bool(std::string)> Range(T min, T max) {
+template <typename T> std::function<std::string(const std::string &)> Range(T min, T max) {
     return [min, max](std::string input) {
         T val;
         detail::lexical_cast(input, val);
-        return val >= min && val <= max;
+        if(val < min || val > max)
+            return "Value " + input + " not in range " + std::to_string(min) + " to " + std::to_string(max);
+
+        return std::string();
     };
 }
 
 /// Range of one value is 0 to value
-template <typename T> std::function<bool(std::string)> Range(T max) { return Range(static_cast<T>(0), max); }
+template <typename T> std::function<std::string(const std::string &)> Range(T max) {
+    return Range(static_cast<T>(0), max);
+}
 
 /// @}
 
@@ -877,7 +897,7 @@ class Option : public OptionBase<Option> {
     bool changeable_{false};
 
     /// A list of validators to run on each value parsed
-    std::vector<std::function<bool(std::string)>> validators_;
+    std::vector<std::function<std::string(std::string &)>> validators_;
 
     /// A list of options that are required with this option
     std::set<Option *> requires_;
@@ -949,9 +969,21 @@ class Option : public OptionBase<Option> {
     }
 
     /// Adds a validator
-    Option *check(std::function<bool(std::string)> validator) {
+    Option *check(std::function<std::string(const std::string &)> validator) {
+        validators_.emplace_back(validator);
+        return this;
+    }
 
-        validators_.push_back(validator);
+    /// Adds a validator-like function that can change result
+    Option *transform(std::function<std::string(std::string)> func) {
+        validators_.emplace_back([func](std::string &inout) {
+            try {
+                inout = func(inout);
+            } catch(const ValidationError &e) {
+                return std::string(e.what());
+            }
+            return std::string();
+        });
         return this;
     }
 
@@ -1088,10 +1120,20 @@ class Option : public OptionBase<Option> {
         return out;
     }
 
-    /// The first half of the help print, name plus default, etc
-    std::string help_name() const {
+    /// The most discriptive name available
+    std::string single_name() const {
+        if(!lnames_.empty())
+            return std::string("--") + lnames_[0];
+        else if(!snames_.empty())
+            return std::string("-") + snames_[0];
+        else
+            return pname_;
+    }
+
+    /// The first half of the help print, name plus default, etc. Setting opt_only to true avoids the positional name.
+    std::string help_name(bool opt_only = false) const {
         std::stringstream out;
-        out << get_name(true) << help_aftername();
+        out << get_name(opt_only) << help_aftername();
         return out.str();
     }
 
@@ -1136,24 +1178,29 @@ class Option : public OptionBase<Option> {
     ///@{
 
     /// Process the callback
-    void run_callback() const {
-        bool result;
+    void run_callback() {
+
+        // Run the validators (can change the string)
+        if(!validators_.empty()) {
+            for(std::string &result : results_)
+                for(const std::function<std::string(std::string &)> &vali : validators_) {
+                    std::string err_msg = vali(result);
+                    if(!err_msg.empty())
+                        throw ValidationError(single_name() + ": " + err_msg);
+                }
+        }
+
+        bool local_result;
         // If take_last, only operate on the final item
         if(last_) {
             results_t partial_result = {results_.back()};
-            result = !callback_(partial_result);
+            local_result = !callback_(partial_result);
         } else {
-            result = !callback_(results_);
+            local_result = !callback_(results_);
         }
 
-        if(result)
-            throw ConversionError(get_name() + "=" + detail::join(results_));
-        if(!validators_.empty()) {
-            for(const std::string &result : results_)
-                for(const std::function<bool(std::string)> &vali : validators_)
-                    if(!vali(result))
-                        throw ValidationError(get_name() + "=" + result);
-        }
+        if(local_result)
+            throw ConversionError("Could not convert: " + get_name() + "=" + detail::join(results_));
     }
 
     /// If options share any of the same names, they are equal (not counting positional)
@@ -1285,6 +1332,11 @@ enum class Classifer { NONE, POSITIONAL_MARK, SHORT, LONG, SUBCOMMAND };
 struct AppFriend;
 } // namespace detail
 
+namespace FailureMessage {
+std::string simple(const App *app, const Error &e);
+std::string help(const App *app, const Error &e);
+} // namespace FailureMessage
+
 class App;
 
 using App_p = std::unique_ptr<App>;
@@ -1309,9 +1361,6 @@ class App {
     /// Description of the current program/subcommand
     std::string description_;
 
-    /// Footer to put after all options in the help output INHERITABLE
-    std::string footer_;
-
     /// If true, allow extra arguments (ie, don't throw an error). INHERITABLE
     bool allow_extras_{false};
 
@@ -1331,8 +1380,18 @@ class App {
     /// The list of options, stored locally
     std::vector<Option_p> options_;
 
+    ///@}
+    /// @name Help
+    ///@{
+
+    /// Footer to put after all options in the help output INHERITABLE
+    std::string footer_;
+
     /// A pointer to the help flag if there is one INHERITABLE
     Option *help_ptr_{nullptr};
+
+    /// The error message printing function INHERITABLE
+    std::function<std::string(const App *, const Error &e)> failure_message_ = FailureMessage::simple;
 
     ///@}
     /// @name Parsing
@@ -1347,6 +1406,9 @@ class App {
 
     /// This is a list of pointers to options with the original parse order
     std::vector<Option *> parse_order_;
+
+    /// This is a list of the subcommands collected, in order
+    std::vector<App *> parsed_subcommands_;
 
     ///@}
     /// @name Subcommands
@@ -1367,8 +1429,11 @@ class App {
     /// True if this command/subcommand was parsed
     bool parsed_{false};
 
-    /// -1 for 1 or more, 0 for not required, # for exact number required
-    int require_subcommand_ = 0;
+    /// Minimum required subcommands
+    size_t require_subcommand_min_ = 0;
+
+    /// Max number of subcommands allowed (parsing stops after this number). 0 is unlimited INHERITABLE
+    size_t require_subcommand_max_ = 0;
 
     /// The group membership INHERITABLE
     std::string group_{"Subcommands"};
@@ -1399,12 +1464,14 @@ class App {
             option_defaults_ = parent_->option_defaults_;
 
             // INHERITABLE
+            failure_message_ = parent_->failure_message_;
             allow_extras_ = parent_->allow_extras_;
             prefix_command_ = parent_->prefix_command_;
             ignore_case_ = parent_->ignore_case_;
             fallthrough_ = parent_->fallthrough_;
             group_ = parent_->group_;
             footer_ = parent_->footer_;
+            require_subcommand_max_ = parent_->require_subcommand_max_;
         }
     }
 
@@ -1416,15 +1483,6 @@ class App {
     App(std::string description_ = "") : App(description_, nullptr) {
         set_help_flag("-h,--help", "Print this help message and exit");
     }
-
-    /// Set footer.
-    App *set_footer(std::string footer) {
-        footer_ = footer;
-        return this;
-    }
-
-    /// Get footer.
-    std::string get_footer() const { return footer_; }
 
     /// Set a callback for the end of parsing.
     ///
@@ -1443,16 +1501,11 @@ class App {
         return this;
     }
 
-    /// Get the status of allow extras
-    bool get_allow_extras() const { return allow_extras_; }
-
     /// Do not parse anything after the first unrecognised option and return
     App *prefix_command(bool allow = true) {
         prefix_command_ = allow;
         return this;
     }
-
-    bool get_prefix_command() const { return prefix_command_; }
 
     /// Ignore case. Subcommand inherit value.
     App *ignore_case(bool value = true) {
@@ -1466,40 +1519,8 @@ class App {
         return this;
     }
 
-    bool get_ignore_case() const { return ignore_case_; }
-
     /// Check to see if this subcommand was parsed, true only if received on command line.
     bool parsed() const { return parsed_; }
-
-    /// Check to see if this subcommand was parsed, true only if received on command line.
-    /// This allows the subcommand to be directly checked.
-    operator bool() const { return parsed_; }
-
-    /// Require a subcommand to be given (does not affect help call)
-    /// Does not return a pointer since it is supposed to be called on the main App.
-    App *require_subcommand(int value = -1) {
-        require_subcommand_ = value;
-        return this;
-    }
-
-    /// Stop subcommand fallthrough, so that parent commands cannot collect commands after subcommand.
-    /// Default from parent, usually set on parent.
-    App *fallthrough(bool value = true) {
-        fallthrough_ = value;
-        return this;
-    }
-
-    /// Check the status of fallthrough
-    bool get_fallthrough() const { return fallthrough_; }
-
-    /// Changes the group membership
-    App *group(std::string name) {
-        group_ = name;
-        return this;
-    }
-
-    /// Get the group of this subcommand
-    const std::string &get_group() const { return group_; }
 
     /// Get the OptionDefault object, to set option defaults
     OptionDefaults *option_defaults() { return &option_defaults_; }
@@ -1923,6 +1944,52 @@ class App {
         throw CLI::OptionNotFound(subcom);
     }
 
+    /// Changes the group membership
+    App *group(std::string name) {
+        group_ = name;
+        return this;
+    }
+
+    /// The argumentless form of require subcommand requires 1 or more subcommands
+    App *require_subcommand() {
+        require_subcommand_min_ = 1;
+        require_subcommand_max_ = 0;
+        return this;
+    }
+
+    /// Require a subcommand to be given (does not affect help call)
+    /// The number required can be given. Negative values indicate maximum
+    /// number allowed (0 for any number). Max number inheritable.
+    App *require_subcommand(int value) {
+        if(value < 0) {
+            require_subcommand_min_ = 0;
+            require_subcommand_max_ = static_cast<size_t>(-value);
+        } else {
+            require_subcommand_min_ = static_cast<size_t>(value);
+            require_subcommand_max_ = static_cast<size_t>(value);
+        }
+        return this;
+    }
+
+    /// Explicitly control the number of subcommands required. Setting 0
+    /// for the max means unlimited number allowed. Max number inheritable.
+    App *require_subcommand(size_t min, size_t max) {
+        require_subcommand_min_ = min;
+        require_subcommand_max_ = max;
+        return this;
+    }
+
+    /// Stop subcommand fallthrough, so that parent commands cannot collect commands after subcommand.
+    /// Default from parent, usually set on parent.
+    App *fallthrough(bool value = true) {
+        fallthrough_ = value;
+        return this;
+    }
+
+    /// Check to see if this subcommand was parsed, true only if received on command line.
+    /// This allows the subcommand to be directly checked.
+    operator bool() const { return parsed_; }
+
     ///@}
     /// @name Extras for subclassing
     ///@{
@@ -1954,22 +2021,28 @@ class App {
         run_callback();
     }
 
+    /// Provide a function to print a help message. The function gets access to the App pointer and error.
+    void set_failure_message(std::function<std::string(const App *, const Error &e)> function) {
+        failure_message_ = function;
+    }
+
     /// Print a nice error message and return the exit code
-    int exit(const Error &e) const {
+    int exit(const Error &e, std::ostream &out = std::cout, std::ostream &err = std::cerr) const {
 
         /// Avoid printing anything if this is a CLI::RuntimeError
         if(dynamic_cast<const CLI::RuntimeError *>(&e) != nullptr)
             return e.get_exit_code();
 
-        if(e.exit_code != static_cast<int>(ExitCodes::Success)) {
-            std::cerr << "ERROR: ";
-            std::cerr << e.what() << std::endl;
-            if(e.print_help)
-                std::cerr << help();
-        } else {
-            if(e.print_help)
-                std::cout << help();
+        if(dynamic_cast<const CLI::CallForHelp *>(&e) != nullptr) {
+            out << help();
+            return e.get_exit_code();
         }
+
+        if(e.get_exit_code() != static_cast<int>(ExitCodes::Success)) {
+            if(failure_message_)
+                err << failure_message_(this, e) << std::flush;
+        }
+
         return e.get_exit_code();
     }
 
@@ -1978,6 +2051,7 @@ class App {
 
         parsed_ = false;
         missing_.clear();
+        parsed_subcommands_.clear();
 
         for(const Option_p &opt : options_) {
             opt->clear();
@@ -2001,13 +2075,18 @@ class App {
         throw OptionNotFound(name);
     }
 
-    /// Get a subcommand pointer list to the currently selected subcommands (after parsing)
-    std::vector<App *> get_subcommands() const {
-        std::vector<App *> subcomms;
-        for(const App_p &subcomptr : subcommands_)
-            if(subcomptr->parsed_)
-                subcomms.push_back(subcomptr.get());
-        return subcomms;
+    /// Get a subcommand pointer list to the currently selected subcommands (after parsing by default, in command line
+    /// order)
+    std::vector<App *> get_subcommands(bool parsed = true) const {
+        if(parsed) {
+            return parsed_subcommands_;
+        } else {
+            std::vector<App *> subcomms(subcommands_.size());
+            std::transform(std::begin(subcommands_), std::end(subcommands_), std::begin(subcomms), [](const App_p &v) {
+                return v.get();
+            });
+            return subcomms;
+        }
     }
 
     /// Check to see if given subcommand was selected
@@ -2022,6 +2101,12 @@ class App {
     ///@}
     /// @name Help
     ///@{
+
+    /// Set footer.
+    App *set_footer(std::string footer) {
+        footer_ = footer;
+        return this;
+    }
 
     /// Produce a string that could be read in as a config of the current values of the App. Set default_also to include
     /// default arguments. Prefix will add a string to the beginning of each option.
@@ -2104,7 +2189,7 @@ class App {
             }
 
         if(!subcommands_.empty()) {
-            if(require_subcommand_ != 0)
+            if(require_subcommand_min_ > 0)
                 out << " SUBCOMMAND";
             else
                 out << " [SUBCOMMAND]";
@@ -2131,7 +2216,7 @@ class App {
                 out << std::endl << group << ":" << std::endl;
                 for(const Option_p &opt : options_) {
                     if(opt->nonpositional() && opt->get_group() == group)
-                        detail::format_help(out, opt->help_name(), opt->get_description(), wid);
+                        detail::format_help(out, opt->help_name(true), opt->get_description(), wid);
                 }
             }
         }
@@ -2146,9 +2231,9 @@ class App {
 
                 subcmd_groups_seen.insert(group_key);
                 out << std::endl << com->get_group() << ":" << std::endl;
-                for(const App_p &com : subcommands_)
-                    if(detail::to_lower(com->get_group()) == group_key)
-                        detail::format_help(out, com->get_name(), com->description_, wid);
+                for(const App_p &new_com : subcommands_)
+                    if(detail::to_lower(new_com->get_group()) == group_key)
+                        detail::format_help(out, new_com->get_name(), new_com->description_, wid);
             }
         }
 
@@ -2162,6 +2247,30 @@ class App {
     ///@}
     /// @name Getters
     ///@{
+
+    /// Check the status of ignore_case
+    bool get_ignore_case() const { return ignore_case_; }
+
+    /// Check the status of fallthrough
+    bool get_fallthrough() const { return fallthrough_; }
+
+    /// Get the group of this subcommand
+    const std::string &get_group() const { return group_; }
+
+    /// Get footer.
+    std::string get_footer() const { return footer_; }
+
+    /// Get the required min subcommand value
+    size_t get_require_subcommand_min() const { return require_subcommand_min_; }
+
+    /// Get the required max subcommand value
+    size_t get_require_subcommand_max() const { return require_subcommand_max_; }
+
+    /// Get the prefix command status
+    bool get_prefix_command() const { return prefix_command_; }
+
+    /// Get the status of allow extras
+    bool get_allow_extras() const { return allow_extras_; }
 
     /// Get a pointer to the help flag.
     Option *get_help_ptr() { return help_ptr_; }
@@ -2198,7 +2307,7 @@ class App {
             miss_list.push_back(std::get<1>(miss));
         }
         if(recurse) {
-            for(const App_p &sub : subcommands_) {
+            for(const App *sub : parsed_subcommands_) {
                 std::vector<std::string> output = sub->remaining(recurse);
                 std::copy(std::begin(output), std::end(output), std::back_inserter(miss_list));
             }
@@ -2246,14 +2355,19 @@ class App {
         }
     }
 
+    /// Check to see if a subcommand is valid. Give up immediately if subcommand max has been reached.
     bool _valid_subcommand(const std::string &current) const {
+        // Don't match if max has been reached - but still check parents
+        if(require_subcommand_max_ != 0 && parsed_subcommands_.size() >= require_subcommand_max_) {
+            return parent_ != nullptr && parent_->_valid_subcommand(current);
+        }
+
         for(const App_p &com : subcommands_)
             if(com->check_name(current) && !*com)
                 return true;
-        if(parent_ != nullptr)
-            return parent_->_valid_subcommand(current);
-        else
-            return false;
+
+        // Check parent if exists, else return false
+        return parent_ != nullptr && parent_->_valid_subcommand(current);
     }
 
     /// Selects a Classifier enum based on the type of the current argument
@@ -2340,24 +2454,33 @@ class App {
 
         // Verify required options
         for(const Option_p &opt : options_) {
-            // Required
-            if(opt->get_required() && (static_cast<int>(opt->count()) < opt->get_expected() || opt->count() == 0))
-                throw RequiredError(opt->get_name());
+            // Required or partially filled
+            if(opt->get_required() || opt->count() != 0) {
+
+                // Required but empty
+                if(opt->get_required() && opt->count() == 0)
+                    throw RequiredError(opt->help_name() + " is required");
+
+                // Partially filled
+                if(opt->get_expected() > 0 && static_cast<int>(opt->count()) < opt->get_expected())
+                    throw RequiredError(opt->help_name() + " requires " + std::to_string(opt->get_expected()) +
+                                        " arguments");
+            }
             // Requires
             for(const Option *opt_req : opt->requires_)
                 if(opt->count() > 0 && opt_req->count() == 0)
-                    throw RequiresError(opt->get_name(), opt_req->get_name());
+                    throw RequiresError(opt->single_name(), opt_req->single_name());
             // Excludes
             for(const Option *opt_ex : opt->excludes_)
                 if(opt->count() > 0 && opt_ex->count() != 0)
-                    throw ExcludesError(opt->get_name(), opt_ex->get_name());
+                    throw ExcludesError(opt->single_name(), opt_ex->single_name());
         }
 
         auto selected_subcommands = get_subcommands();
-        if(require_subcommand_ < 0 && selected_subcommands.empty())
+        if(require_subcommand_min_ > 0 && selected_subcommands.empty())
             throw RequiredError("Subcommand required");
-        else if(require_subcommand_ > 0 && static_cast<int>(selected_subcommands.size()) != require_subcommand_)
-            throw RequiredError(std::to_string(require_subcommand_) + " subcommand(s) required");
+        else if(require_subcommand_min_ > selected_subcommands.size())
+            throw RequiredError("Requires at least " + std::to_string(require_subcommand_min_) + " subcommands");
 
         // Convert missing (pairs) to extras (string only)
         if(!(allow_extras_ || prefix_command_)) {
@@ -2456,10 +2579,10 @@ class App {
     }
 
     /// Count the required remaining positional arguments
-    size_t _count_remaining_required_positionals() const {
+    size_t _count_remaining_positionals(bool required = false) const {
         size_t retval = 0;
         for(const Option_p &opt : options_)
-            if(opt->get_positional() && opt->get_required() && opt->get_expected() > 0 &&
+            if(opt->get_positional() && (!required || opt->get_required()) && opt->get_expected() > 0 &&
                static_cast<int>(opt->count()) < opt->get_expected())
                 retval = static_cast<size_t>(opt->get_expected()) - opt->count();
 
@@ -2501,11 +2624,14 @@ class App {
     ///
     /// Unlike the others, this one will always allow fallthrough
     void _parse_subcommand(std::vector<std::string> &args) {
-        if(_count_remaining_required_positionals() > 0)
+        if(_count_remaining_positionals(/* required */ true) > 0)
             return _parse_positional(args);
         for(const App_p &com : subcommands_) {
             if(com->check_name(args.back())) {
                 args.pop_back();
+                if(std::find(std::begin(parsed_subcommands_), std::end(parsed_subcommands_), com.get()) ==
+                   std::end(parsed_subcommands_))
+                    parsed_subcommands_.push_back(com.get());
                 com->_parse(args);
                 return;
             }
@@ -2523,7 +2649,7 @@ class App {
         std::string name;
         std::string rest;
         if(!detail::split_short(current, name, rest))
-            throw HorribleError("Short");
+            throw HorribleError("Short parsed but missing! You should not see this");
 
         auto op_ptr = std::find_if(
             std::begin(options_), std::end(options_), [name](const Option_p &opt) { return opt->check_sname(name); });
@@ -2559,11 +2685,27 @@ class App {
             rest = "";
         }
 
+        // Unlimited vector parser
         if(num == -1) {
+            bool already_ate_one = false; // Make sure we always eat one
             while(!args.empty() && _recognize(args.back()) == detail::Classifer::NONE) {
+                if(already_ate_one) {
+                    // We could break here for allow extras, but we don't
+
+                    // If any positionals remain, don't keep eating
+                    if(_count_remaining_positionals() > 0)
+                        break;
+
+                    // If there are any unlimited positionals, those also take priority
+                    if(std::any_of(std::begin(options_), std::end(options_), [](const Option_p &opt) {
+                           return opt->get_positional() && opt->get_expected() < 0;
+                       }))
+                        break;
+                }
                 op->add_result(args.back());
                 parse_order_.push_back(op.get());
                 args.pop_back();
+                already_ate_one = true;
             }
         } else
             while(num > 0 && !args.empty()) {
@@ -2587,7 +2729,7 @@ class App {
         std::string name;
         std::string value;
         if(!detail::split_long(current, name, value))
-            throw HorribleError("Long:" + args.back());
+            throw HorribleError("Long parsed but missing (you should not see this):" + args.back());
 
         auto op_ptr = std::find_if(
             std::begin(options_), std::end(options_), [name](const Option_p &v) { return v->check_lname(name); });
@@ -2620,24 +2762,56 @@ class App {
         } else if(num == 0) {
             op->add_result("");
             parse_order_.push_back(op.get());
-        }
-
-        if(num == -1) {
+        } else if(num == -1) {
+            // Unlimited vector parser
+            bool already_ate_one = false; // Make sure we always eat one
             while(!args.empty() && _recognize(args.back()) == detail::Classifer::NONE) {
+                if(already_ate_one) {
+                    // We could break here for allow extras, but we don't
+
+                    // If any positionals remain, don't keep eating
+                    if(_count_remaining_positionals() > 0)
+                        break;
+
+                    // If there are any unlimited positionals, those also take priority
+                    if(std::any_of(std::begin(options_), std::end(options_), [](const Option_p &opt) {
+                           return opt->get_positional() && opt->get_expected() < 0;
+                       }))
+                        break;
+                }
                 op->add_result(args.back());
                 parse_order_.push_back(op.get());
                 args.pop_back();
+                already_ate_one = true;
             }
-        } else
+        } else {
             while(num > 0 && !args.empty()) {
                 num--;
                 op->add_result(args.back());
                 parse_order_.push_back(op.get());
                 args.pop_back();
             }
+        }
         return;
     }
 };
+
+namespace FailureMessage {
+
+inline std::string simple(const App *app, const Error &e) {
+    std::string header = std::string(e.what()) + "\n";
+    if(app->get_help_ptr() != nullptr)
+        header += "Run with " + app->get_help_ptr()->single_name() + " for more information.\n";
+    return header;
+}
+
+inline std::string help(const App *app, const Error &e) {
+    std::string header = std::string("ERROR: ") + e.get_name() + ": " + e.what() + "\n";
+    header += app->help();
+    return header;
+}
+
+} // namespace FailureMessage
 
 namespace detail {
 /// This class is simply to allow tests access to App's protected functions
