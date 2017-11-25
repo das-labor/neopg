@@ -59,7 +59,6 @@
 
 #include "sysutils.h"
 #include "util.h"
-#include "zb32.h"
 
 /* The GnuPG homedir.  This is only accessed by the functions
  * gnupg_homedir and gnupg_set_homedir.  Malloced.  */
