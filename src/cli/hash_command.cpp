@@ -15,7 +15,6 @@ namespace NeoPG {
 namespace CLI {
 
 void ListHashCommand::run() {
-  const std::string group = "Write packet";
   std::cout << "Any Botan-compatible algorithm specifier can be used:\n\n";
 #if defined(BOTAN_HAS_SHA1)
   std::cout << "SHA-160, SHA-1, SHA1\n";
@@ -120,9 +119,10 @@ void HashCommand::run() {
     multi_files = true;
   }
 
-  Botan::Pipe pipe{new Botan::Hash_Filter(m_algo),
-                   m_raw ? nullptr : new Botan::Hex_Encoder(),
-                   new Botan::DataSink_Stream(std::cout)};
+  Botan::Pipe pipe{
+      new Botan::Hash_Filter(m_algo),
+      m_raw ? nullptr : new Botan::Hex_Encoder(Botan::Hex_Encoder::Lowercase),
+      new Botan::DataSink_Stream(std::cout)};
 
   for (auto& file : m_files) {
     if (file == "-") {
