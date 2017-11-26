@@ -43,7 +43,7 @@ install:
         git clone https://github.com/randombit/botan.git
         (cd botan;
         git checkout 2.3.0;
-        ./configure.py;
+        ./configure.py --with-boost --with-bzip2 --with-zlib --with-sqlite3;
         sudo make install;
         sudo ldconfig)
     fi;
