@@ -263,42 +263,28 @@ void print_cipher_algo_note(cipher_algo_t algo) {
 
 void print_digest_algo_note(digest_algo_t algo) {
   const enum gcry_md_algos galgo = map_md_openpgp_to_gcry(algo);
-  const struct weakhash *weak;
 
   if (algo >= 100 && algo <= 110) {
-    static int warn = 0;
-    if (!warn) {
-      warn = 1;
+    if (!glo_ctrl.shown_experimental_digest_warning) {
+      glo_ctrl.shown_experimental_digest_warning = true;
       es_fflush(es_stdout);
       log_info(_("WARNING: using experimental digest algorithm %s\n"),
                gcry_md_algo_name(galgo));
     }
-  } else
-    for (weak = opt.weak_digests; weak != NULL; weak = weak->next)
-      if (weak->algo == galgo) {
-        es_fflush(es_stdout);
-        log_info(_("WARNING: digest algorithm %s is deprecated\n"),
-                 gcry_md_algo_name(galgo));
-      }
+  } else if (opt.weak_digests.count(galgo)) {
+    es_fflush(es_stdout);
+    log_info(_("WARNING: digest algorithm %s is deprecated\n"),
+             gcry_md_algo_name(galgo));
+  }
 }
 
 void print_digest_rejected_note(enum gcry_md_algos algo) {
-  struct weakhash *weak;
-  int show = 1;
-  for (weak = opt.weak_digests; weak; weak = weak->next)
-    if (weak->algo == algo) {
-      if (weak->rejection_shown)
-        show = 0;
-      else
-        weak->rejection_shown = 1;
-      break;
-    }
+  if (glo_ctrl.shown_rejection_notice.count(algo)) return;
 
-  if (show) {
-    es_fflush(es_stdout);
-    log_info(_("Note: signatures using the %s algorithm are rejected\n"),
-             gcry_md_algo_name(algo));
-  }
+  glo_ctrl.shown_rejection_notice.emplace(algo);
+  es_fflush(es_stdout);
+  log_info(_("Note: signatures using the %s algorithm are rejected\n"),
+           gcry_md_algo_name(algo));
 }
 
 /* Print a message
@@ -1556,24 +1542,14 @@ unsigned int ecdsa_qbits_from_Q(unsigned int qbits) {
  * algorithms by default, MD5 is considered weak.  This allows users
  * to deprecate support for other algorithms as well.
  */
-void additional_weak_digest(const char *digestname) {
-  struct weakhash *weak = NULL;
+void additional_weak_digest(const std::string &digestname) {
   const enum gcry_md_algos algo =
-      (gcry_md_algos)string_to_digest_algo(digestname);
+      (gcry_md_algos)string_to_digest_algo(digestname.c_str());
 
   if (algo == GCRY_MD_NONE) {
-    log_error(_("unknown weak digest '%s'\n"), digestname);
+    log_error(_("unknown weak digest '%s'\n"), digestname.c_str());
     return;
   }
 
-  /* Check to ensure it's not already present.  */
-  for (weak = opt.weak_digests; weak; weak = weak->next)
-    if (algo == weak->algo) return;
-
-  /* Add it to the head of the list.  */
-  weak = (weakhash *)xmalloc(sizeof(*weak));
-  weak->algo = algo;
-  weak->rejection_shown = 0;
-  weak->next = opt.weak_digests;
-  opt.weak_digests = weak;
+  opt.weak_digests.emplace(algo);
 }

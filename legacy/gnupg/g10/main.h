@@ -72,12 +72,6 @@ struct groupitem {
   std::vector<std::string> values;
 };
 
-struct weakhash {
-  enum gcry_md_algos algo;
-  int rejection_shown;
-  struct weakhash *next;
-};
-
 /*-- gpg.c --*/
 extern int g10_errors_seen;
 
@@ -92,7 +86,7 @@ void print_digest_algo_note(digest_algo_t algo);
 void print_digest_rejected_note(enum gcry_md_algos algo);
 void print_reported_error(gpg_error_t err, gpg_error_t skip_if_ec);
 void print_further_info(const char *format, ...) GPGRT_ATTR_PRINTF(1, 2);
-void additional_weak_digest(const char *digestname);
+void additional_weak_digest(const std::string &digestname);
 
 /*-- armor.c --*/
 char *make_radix64_string(const byte *data, size_t len);

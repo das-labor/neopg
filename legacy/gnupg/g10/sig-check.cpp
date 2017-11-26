@@ -230,7 +230,8 @@ gpg_error_t check_signature2(ctrl_t ctrl, PKT_signature *sig,
       p += n;
       nbytes -= n;
     }
-    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    std::unique_ptr<Botan::HashFunction> sha1 =
+        Botan::HashFunction::create_or_throw("SHA-1");
     Botan::secure_vector<uint8_t> hash = sha1->process(buffer, p - buffer);
     memcpy(hashbuf, hash.data(), hash.size());
 
@@ -393,13 +394,12 @@ static int check_signature_end_simple(PKT_public_key *pk, PKT_signature *sig,
                                       gcry_md_hd_t digest) {
   gcry_mpi_t result = NULL;
   int rc = 0;
-  const struct weakhash *weak;
+  gcry_md_algos algo = (gcry_md_algos)sig->digest_algo;
 
-  for (weak = opt.weak_digests; weak; weak = weak->next)
-    if (sig->digest_algo == weak->algo) {
-      print_digest_rejected_note((gcry_md_algos)(sig->digest_algo));
-      return GPG_ERR_DIGEST_ALGO;
-    }
+  if (opt.weak_digests.count(algo)) {
+    print_digest_rejected_note(algo);
+    return GPG_ERR_DIGEST_ALGO;
+  }
 
   /* Make sure the digest algo is enabled (in case of a detached
      signature).  */

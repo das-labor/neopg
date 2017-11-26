@@ -22,6 +22,7 @@
 #define G10_OPTIONS_H
 
 #include <boost/optional.hpp>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -279,7 +280,7 @@ struct options {
   std::vector<prefitem_t> personal_cipher_prefs;
   std::vector<prefitem_t> personal_digest_prefs;
   std::vector<prefitem_t> personal_compress_prefs;
-  struct weakhash *weak_digests{NULL};
+  std::set<enum gcry_md_algos> weak_digests;
   bool no_perm_warn{false};
   bool no_encrypt_to{false};
   int encrypt_to_default_key{0};
@@ -342,13 +343,16 @@ extern struct options gpg2_opt;
    avoid.  Future concurrent versions of gpg will put it into a per
    request structure CTRL. */
 struct glo_ctrl {
-  int in_auto_key_retrieve; /* True if we are doing an
-                               auto_key_retrieve. */
+  int in_auto_key_retrieve{0}; /* True if we are doing an
+                                  auto_key_retrieve. */
   /* Hack to store the last error.  We currently need it because the
      proc_packet machinery is not able to reliabale return error
      codes.  Thus for the --server purposes we store some of the error
      codes here.  FIXME! */
-  gpg_error_t lasterr;
+  gpg_error_t lasterr{0};
+
+  bool shown_experimental_digest_warning{false};
+  std::set<enum gcry_md_algos> shown_rejection_notice;
 };
 extern struct glo_ctrl glo_ctrl;
 
