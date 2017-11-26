@@ -1324,14 +1324,8 @@ static int parse_list_options(char *str) {
        N_("show the keyring name in key listings")},
       {"show-sig-expire", LIST_SHOW_SIG_EXPIRE, NULL,
        N_("show expiration dates during signature listings")},
-      {"show-sig-subpackets", LIST_SHOW_SIG_SUBPACKETS, NULL, NULL},
+      {"show-sig-subpackets", LIST_SHOW_SIG_SUBPACKETS, (char **)&subpackets, NULL},
       {NULL, 0, NULL, NULL}};
-
-  /* C99 allows for non-constant initializers, but we'd like to
-     compile everywhere, so fill in the show-sig-subpackets argument
-     here.  Note that if the parse_options array changes, we'll have
-     to change the subscript here. */
-  lopts[13].value = (char **)&subpackets;
 
   if (parse_options(str, &opt.list_options, lopts, 1)) {
     if (opt.list_options & LIST_SHOW_SIG_SUBPACKETS) {
