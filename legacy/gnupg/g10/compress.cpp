@@ -30,9 +30,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_ZIP
-#include <zlib.h>
-#endif
+
+#include <iostream>
+#include <map>
+
+#include <botan/compression.h>
 
 #include "../common/util.h"
 #include "filter.h"
@@ -41,228 +43,121 @@
 #include "options.h"
 #include "packet.h"
 
-#define BYTEF_CAST(a) (a)
+const std::map<int, std::string> algo_to_spec{{COMPRESS_ALGO_ZIP, "deflate"},
+                                              {COMPRESS_ALGO_ZLIB, "zlib"},
+                                              {COMPRESS_ALGO_BZIP2, "bz2"}};
 
-int compress_filter_bz2(void *opaque, int control, IOBUF a, byte *buf,
-                        size_t *ret_len);
-
-#ifdef HAVE_ZIP
-static void init_compress(compress_filter_context_t *zfx, z_stream *zs) {
-  int rc;
-  int level;
-
-  level = Z_DEFAULT_COMPRESSION;
-
-  if ((rc = zfx->algo == 1 ? deflateInit2(zs, level, Z_DEFLATED, -13, 8,
-                                          Z_DEFAULT_STRATEGY)
-                           : deflateInit(zs, level)) != Z_OK) {
-    log_fatal("zlib problem: %s\n",
-              zs->msg ? zs->msg
-                      : rc == Z_MEM_ERROR
-                            ? "out of core"
-                            : rc == Z_VERSION_ERROR ? "invalid lib version"
-                                                    : "unknown error");
-  }
-
-  zfx->outbufsize = 8192;
-  zfx->outbuf = (byte *)xmalloc(zfx->outbufsize);
-}
-
-static int do_compress(compress_filter_context_t *zfx, z_stream *zs, int flush,
-                       IOBUF a) {
-  int rc;
-  int zrc;
-  unsigned n;
-
-  do {
-    zs->next_out = BYTEF_CAST(zfx->outbuf);
-    zs->avail_out = zfx->outbufsize;
-    if (DBG_FILTER)
-      log_debug("enter deflate: avail_in=%u, avail_out=%u, flush=%d\n",
-                (unsigned)zs->avail_in, (unsigned)zs->avail_out, flush);
-    zrc = deflate(zs, flush);
-    if (zrc == Z_STREAM_END && flush == Z_FINISH)
-      ;
-    else if (zrc != Z_OK) {
-      if (zs->msg)
-        log_fatal("zlib deflate problem: %s\n", zs->msg);
-      else
-        log_fatal("zlib deflate problem: rc=%d\n", zrc);
-    }
-    n = zfx->outbufsize - zs->avail_out;
-    if (DBG_FILTER)
-      log_debug(
-          "leave deflate: "
-          "avail_in=%u, avail_out=%u, n=%u, zrc=%d\n",
-          (unsigned)zs->avail_in, (unsigned)zs->avail_out, (unsigned)n, zrc);
-
-    if ((rc = iobuf_write(a, zfx->outbuf, n))) {
-      log_debug("deflate: iobuf_write failed\n");
-      return rc;
-    }
-  } while (zs->avail_in || (flush == Z_FINISH && zrc != Z_STREAM_END));
-  return 0;
-}
-
-static void init_uncompress(compress_filter_context_t *zfx, z_stream *zs) {
-  int rc;
-
-  /****************
-   * PGP uses a windowsize of 13 bits. Using a negative value for
-   * it forces zlib not to expect a zlib header.  This is a
-   * undocumented feature Peter Gutmann told me about.
-   *
-   * We must use 15 bits for the inflator because CryptoEx uses 15
-   * bits thus the output would get scrambled w/o error indication
-   * if we would use 13 bits.  For the uncompressing this does not
-   * matter at all.
-   */
-  if ((rc = zfx->algo == 1 ? inflateInit2(zs, -15) : inflateInit(zs)) != Z_OK) {
-    log_fatal("zlib problem: %s\n",
-              zs->msg ? zs->msg
-                      : rc == Z_MEM_ERROR
-                            ? "out of core"
-                            : rc == Z_VERSION_ERROR ? "invalid lib version"
-                                                    : "unknown error");
-  }
-
-  zfx->inbufsize = 2048;
-  zfx->inbuf = (byte *)xmalloc(zfx->inbufsize);
-  zs->avail_in = 0;
-}
-
-static int do_uncompress(compress_filter_context_t *zfx, z_stream *zs, IOBUF a,
-                         size_t *ret_len) {
-  int zrc;
-  int rc = 0;
-  int leave = 0;
-  size_t n;
-  int nread, count;
-  int refill = !zs->avail_in;
-
-  if (DBG_FILTER)
-    log_debug("begin inflate: avail_in=%u, avail_out=%u, inbuf=%u\n",
-              (unsigned)zs->avail_in, (unsigned)zs->avail_out,
-              (unsigned)zfx->inbufsize);
-  do {
-    if (zs->avail_in < zfx->inbufsize && refill) {
-      n = zs->avail_in;
-      if (!n) zs->next_in = BYTEF_CAST(zfx->inbuf);
-      count = zfx->inbufsize - n;
-      nread = iobuf_read(a, zfx->inbuf + n, count);
-      if (nread == -1) nread = 0;
-      n += nread;
-      /* Algo 1 has no zlib header which requires us to give
-       * inflate an extra dummy byte to read. To be on the safe
-       * side we allow for up to 4 ff bytes.  */
-      if (nread < count && zfx->algo == 1 && zfx->algo1hack < 4) {
-        *(zfx->inbuf + n) = 0xFF;
-        zfx->algo1hack++;
-        n++;
-        leave = 1;
-      }
-      zs->avail_in = n;
-    }
-    refill = 1;
-    if (DBG_FILTER)
-      log_debug("enter inflate: avail_in=%u, avail_out=%u\n",
-                (unsigned)zs->avail_in, (unsigned)zs->avail_out);
-    zrc = inflate(zs, Z_SYNC_FLUSH);
-    if (DBG_FILTER)
-      log_debug("leave inflate: avail_in=%u, avail_out=%u, zrc=%d\n",
-                (unsigned)zs->avail_in, (unsigned)zs->avail_out, zrc);
-    if (zrc == Z_STREAM_END)
-      rc = -1; /* eof */
-    else if (zrc != Z_OK && zrc != Z_BUF_ERROR) {
-      if (zs->msg)
-        log_fatal("zlib inflate problem: %s\n", zs->msg);
-      else
-        log_fatal("zlib inflate problem: rc=%d\n", zrc);
-    }
-  } while (zs->avail_out && zrc != Z_STREAM_END && zrc != Z_BUF_ERROR &&
-           !leave);
-
-  *ret_len = zfx->outbufsize - zs->avail_out;
-  if (DBG_FILTER)
-    log_debug("do_uncompress: returning %u bytes (%u ignored)\n",
-              (unsigned int)*ret_len, (unsigned int)zs->avail_in);
-  return rc;
-}
-
-static int compress_filter(void *opaque, int control, IOBUF a, byte *buf,
-                           size_t *ret_len) {
+int compress_filter(void *opaque, int control, IOBUF a, byte *buf,
+                    size_t *ret_len) {
   size_t size = *ret_len;
   compress_filter_context_t *zfx = (compress_filter_context_t *)opaque;
-  z_stream *zs = (z_stream *)zfx->opaque;
   int rc = 0;
 
   if (control == IOBUFCTRL_UNDERFLOW) {
     if (!zfx->status) {
-      zs = (z_stream *)xmalloc_clear(sizeof *zs);
-      zfx->opaque = zs;
-      init_uncompress(zfx, zs);
+      /* We just found out we are used as a decompressor.  */
+      std::string algo = algo_to_spec.at(zfx->algo);
+      auto decompressor = Botan::make_decompressor(algo);
+      auto input = new Botan::secure_vector<uint8_t>;
+      zfx->opaque =
+          new std::pair<Botan::Decompression_Algorithm *,
+                        Botan::secure_vector<uint8_t> *>(decompressor, input);
+      decompressor->start();
       zfx->status = 1;
     }
-
-    zs->next_out = BYTEF_CAST(buf);
-    zs->avail_out = size;
-    zfx->outbufsize = size; /* needed only for calculation */
-    rc = do_uncompress(zfx, zs, a, ret_len);
+    auto *opaque_ = (std::pair<Botan::Decompression_Algorithm *,
+                               Botan::secure_vector<uint8_t> *> *)zfx->opaque;
+    auto decompressor = opaque_->first;
+    auto input = opaque_->second;
+    while (input->empty() && decompressor) {
+      input->resize(2048);
+      int nread = iobuf_read(a, input->data(), input->size());
+      if (nread <= 0) {
+        input->clear();
+        decompressor->finish(*input);
+        delete decompressor;
+        decompressor = nullptr;
+        opaque_->first = nullptr;
+      } else {
+        input->resize(nread);
+        decompressor->update(*input);
+      }
+    }
+    if (!input->empty()) {
+      size_t amount = std::min(input->size(), size);
+      memcpy(buf, input->data(), amount);
+      *ret_len = amount;
+      input->erase(input->begin(), input->begin() + amount);
+    } else {
+      *ret_len = 0;
+      rc = -1;
+    }
   } else if (control == IOBUFCTRL_FLUSH) {
     if (!zfx->status) {
       PACKET pkt;
       PKT_compressed cd;
-      if (zfx->algo != COMPRESS_ALGO_ZIP && zfx->algo != COMPRESS_ALGO_ZLIB)
-        BUG();
+
       memset(&cd, 0, sizeof cd);
       cd.len = 0;
       cd.algorithm = zfx->algo;
-      /* Fixme: We should force a new CTB here:
-         cd.new_ctb = zfx->new_ctb;
-      */
       init_packet(&pkt);
       pkt.pkttype = PKT_COMPRESSED;
       pkt.pkt.compressed = &cd;
       if (build_packet(a, &pkt))
         log_bug("build_packet(PKT_COMPRESSED) failed\n");
-      zs = (z_stream *)xmalloc_clear(sizeof *zs);
-      zfx->opaque = zs;
-      init_compress(zfx, zs);
+      std::string algo = algo_to_spec.at(zfx->algo);
+      zfx->opaque = Botan::make_compressor(algo);
+      auto compression = (Botan::Compression_Algorithm *)zfx->opaque;
+      compression->start(0);  // compression level: default
       zfx->status = 2;
     }
 
-    zs->next_in = BYTEF_CAST(buf);
-    zs->avail_in = size;
-    rc = do_compress(zfx, zs, Z_NO_FLUSH, a);
+    Botan::secure_vector<uint8_t> input(size);
+    memcpy(input.data(), buf, size);
+    auto compression = (Botan::Compression_Algorithm *)zfx->opaque;
+    compression->update(input, 0, false);
+    if ((rc = iobuf_write(a, input.data(), input.size()))) {
+      log_debug("bzCompress: iobuf_write failed\n");
+      return rc;
+    }
   } else if (control == IOBUFCTRL_FREE) {
     if (zfx->status == 1) {
-      inflateEnd(zs);
-      xfree(zs);
+      auto opaque_ = (std::pair<Botan::Decompression_Algorithm *,
+                                Botan::secure_vector<uint8_t> *> *)zfx->opaque;
+      auto decompressor = opaque_->first;
+      auto input = opaque_->second;
+      if (decompressor) delete decompressor;
+      delete input;
+      delete opaque_;
       zfx->opaque = NULL;
-      xfree(zfx->outbuf);
-      zfx->outbuf = NULL;
     } else if (zfx->status == 2) {
-      zs->next_in = BYTEF_CAST(buf);
-      zs->avail_in = 0;
-      do_compress(zfx, zs, Z_FINISH, a);
-      deflateEnd(zs);
-      xfree(zs);
+      Botan::secure_vector<uint8_t> input;
+      auto compression = (Botan::Compression_Algorithm *)zfx->opaque;
+
+      compression->update(input, 0, true);
+      if ((rc = iobuf_write(a, input.data(), input.size()))) {
+        log_debug("bzCompress: iobuf_write failed\n");
+        return rc;
+      }
+
+      input.clear();
+      compression->finish(input, 0);
+      if ((rc = iobuf_write(a, input.data(), input.size()))) {
+        log_debug("bzCompress: iobuf_write failed\n");
+        return rc;
+      }
+
+      delete compression;
       zfx->opaque = NULL;
-      xfree(zfx->outbuf);
-      zfx->outbuf = NULL;
     }
     if (zfx->release) zfx->release(zfx);
   } else if (control == IOBUFCTRL_DESC)
     mem2str((char *)(buf), "compress_filter", *ret_len);
   return rc;
 }
-#endif /*HAVE_ZIP*/
+
 
 static void release_context(compress_filter_context_t *ctx) {
-  xfree(ctx->inbuf);
-  ctx->inbuf = NULL;
-  xfree(ctx->outbuf);
-  ctx->outbuf = NULL;
   xfree(ctx);
 }
 
@@ -302,18 +197,11 @@ void push_compress_filter2(IOBUF out, compress_filter_context_t *zfx, int algo,
     case COMPRESS_ALGO_NONE:
       break;
 
-#ifdef HAVE_ZIP
     case COMPRESS_ALGO_ZIP:
     case COMPRESS_ALGO_ZLIB:
+    case COMPRESS_ALGO_BZIP2:
       iobuf_push_filter2(out, compress_filter, zfx, rel);
       break;
-#endif
-
-#ifdef HAVE_BZIP2
-    case COMPRESS_ALGO_BZIP2:
-      iobuf_push_filter2(out, compress_filter_bz2, zfx, rel);
-      break;
-#endif
 
     default:
       BUG();
