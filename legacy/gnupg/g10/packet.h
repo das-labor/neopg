@@ -275,12 +275,12 @@ typedef struct {
   u32 help_key_expire;
   int help_full_count;
   int help_marginal_count;
-  u32 expiredate;    /* expires at this date or 0 if not at all */
-  prefitem_t *prefs; /* list of preferences (may be NULL)*/
-  u32 created;       /* according to the self-signature */
-  u32 keyupdate;     /* From the ring trust packet.  */
-  char *updateurl;   /* NULL or the URL of the last update origin.  */
-  byte keyorg;       /* From the ring trust packet.  */
+  u32 expiredate;                 /* expires at this date or 0 if not at all */
+  std::vector<prefitem_t> *prefs; /* list of preferences (may be NULL)*/
+  u32 created;                    /* according to the self-signature */
+  u32 keyupdate;                  /* From the ring trust packet.  */
+  char *updateurl; /* NULL or the URL of the last update origin.  */
+  byte keyorg;     /* From the ring trust packet.  */
   byte selfsigversion;
   struct {
     unsigned int mdc : 1;
@@ -370,7 +370,7 @@ typedef struct {
   /* keyid of this key.  Never access this value directly!  Instead,
      use pk_keyid().  */
   u32 keyid[2];
-  prefitem_t *prefs; /* list of preferences (may be NULL) */
+  std::vector<prefitem_t> *prefs; /* list of preferences (may be NULL) */
   struct {
     unsigned int mdc : 1;            /* MDC feature set.  */
     unsigned int disabled_valid : 1; /* The next flag is valid.  */
@@ -818,7 +818,6 @@ void free_attributes(PKT_user_id *uid);
 void free_user_id(PKT_user_id *uid);
 void free_comment(PKT_comment *rem);
 void free_packet(PACKET *pkt, parse_packet_ctx_t parsectx);
-prefitem_t *copy_prefs(const prefitem_t *prefs);
 PKT_public_key *copy_public_key(PKT_public_key *d, PKT_public_key *s);
 PKT_signature *copy_signature(PKT_signature *d, PKT_signature *s);
 PKT_user_id *scopy_user_id(PKT_user_id *sd);

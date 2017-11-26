@@ -1244,7 +1244,7 @@ int select_algo_from_prefs(PK_LIST pk_list, int preftype, int request,
                            const union pref_hint *hint) {
   PK_LIST pkr;
   u32 bits[8];
-  const prefitem_t *prefs;
+  std::vector<prefitem_t> *prefs;
   int result = -1, i;
   u16 scores[256];
 
@@ -1293,22 +1293,22 @@ int select_algo_from_prefs(PK_LIST pk_list, int preftype, int request,
       prefs = pkr->pk->prefs;
 
     if (prefs) {
-      for (i = 0; prefs[i].type; i++) {
-        if (prefs[i].type == preftype) {
+      for (auto &pref : *prefs) {
+        if (pref.type == preftype) {
           /* Make sure all scores don't add up past 0xFFFF
              (and roll around) */
-          if (rank + scores[prefs[i].value] <= 0xFFFF)
-            scores[prefs[i].value] += rank;
+          if (rank + scores[pref.value] <= 0xFFFF)
+            scores[pref.value] += rank;
           else
-            scores[prefs[i].value] = 0xFFFF;
+            scores[pref.value] = 0xFFFF;
 
-          mask[prefs[i].value / 32] |= 1 << (prefs[i].value % 32);
+          mask[pref.value / 32] |= 1 << (pref.value % 32);
 
           rank++;
 
           /* We saw the implicit algorithm, so we don't need
              tack it on the end ourselves. */
-          if (implicit == prefs[i].value) implicit = -1;
+          if (implicit == pref.value) implicit = -1;
         }
       }
     }
@@ -1341,19 +1341,19 @@ int select_algo_from_prefs(PK_LIST pk_list, int preftype, int request,
 
   if (result == -1) {
     /* If we have personal prefs set, use them. */
-    prefs = NULL;
-    if (preftype == PREFTYPE_SYM && opt.personal_cipher_prefs)
-      prefs = opt.personal_cipher_prefs;
-    else if (preftype == PREFTYPE_HASH && opt.personal_digest_prefs)
-      prefs = opt.personal_digest_prefs;
-    else if (preftype == PREFTYPE_ZIP && opt.personal_compress_prefs)
-      prefs = opt.personal_compress_prefs;
+    prefs = nullptr;
+    if (preftype == PREFTYPE_SYM && !opt.personal_cipher_prefs.empty())
+      prefs = &opt.personal_cipher_prefs;
+    else if (preftype == PREFTYPE_HASH && !opt.personal_digest_prefs.empty())
+      prefs = &opt.personal_digest_prefs;
+    else if (preftype == PREFTYPE_ZIP && !opt.personal_compress_prefs.empty())
+      prefs = &opt.personal_compress_prefs;
 
     if (prefs)
-      for (i = 0; prefs[i].type; i++) {
-        if (bits[prefs[i].value / 32] & (1 << (prefs[i].value % 32)) &&
-            algo_available((preftype_t)(preftype), prefs[i].value, hint)) {
-          result = prefs[i].value;
+      for (auto &pref : *prefs) {
+        if (bits[pref.value / 32] & (1 << (pref.value % 32)) &&
+            algo_available((preftype_t)(preftype), pref.value, hint)) {
+          result = pref.value;
           break;
         }
       }
@@ -1444,15 +1444,14 @@ void warn_missing_aes_from_pklist(PK_LIST pk_list) {
   PK_LIST pkr;
 
   for (pkr = pk_list; pkr; pkr = pkr->next) {
-    const prefitem_t *prefs;
+    std::vector<prefitem_t> *prefs;
     int i;
     int gotit = 0;
 
     prefs = pkr->pk->user_id ? pkr->pk->user_id->prefs : pkr->pk->prefs;
     if (prefs) {
-      for (i = 0; !gotit && prefs[i].type; i++)
-        if (prefs[i].type == PREFTYPE_SYM && prefs[i].value == CIPHER_ALGO_AES)
-          gotit++;
+      for (auto &pref : *prefs)
+        if (pref.type == PREFTYPE_SYM && pref.value == CIPHER_ALGO_AES) gotit++;
     }
     if (!gotit)
       log_info(_("Note: key %s has no preference for %s\n"),

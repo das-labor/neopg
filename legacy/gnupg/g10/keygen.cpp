@@ -410,61 +410,22 @@ int keygen_set_std_prefs(const char *string, int personal) {
   if (!rc) {
     if (personal) {
       if (personal == PREFTYPE_SYM) {
-        xfree(opt.personal_cipher_prefs);
-
-        if (nsym == 0)
-          opt.personal_cipher_prefs = NULL;
-        else {
-          int i;
-
-          opt.personal_cipher_prefs =
-              (prefitem_t *)xmalloc(sizeof(prefitem_t *) * (nsym + 1));
-
-          for (i = 0; i < nsym; i++) {
-            opt.personal_cipher_prefs[i].type = PREFTYPE_SYM;
-            opt.personal_cipher_prefs[i].value = sym[i];
-          }
-
-          opt.personal_cipher_prefs[i].type = PREFTYPE_NONE;
-          opt.personal_cipher_prefs[i].value = 0;
+        opt.personal_cipher_prefs.resize(nsym);
+        for (int i = 0; i < nsym; i++) {
+          opt.personal_cipher_prefs[i].type = PREFTYPE_SYM;
+          opt.personal_cipher_prefs[i].value = sym[i];
         }
       } else if (personal == PREFTYPE_HASH) {
-        xfree(opt.personal_digest_prefs);
-
-        if (nhash == 0)
-          opt.personal_digest_prefs = NULL;
-        else {
-          int i;
-
-          opt.personal_digest_prefs =
-              (prefitem_t *)xmalloc(sizeof(prefitem_t *) * (nhash + 1));
-
-          for (i = 0; i < nhash; i++) {
-            opt.personal_digest_prefs[i].type = PREFTYPE_HASH;
-            opt.personal_digest_prefs[i].value = hash[i];
-          }
-
-          opt.personal_digest_prefs[i].type = PREFTYPE_NONE;
-          opt.personal_digest_prefs[i].value = 0;
+        opt.personal_digest_prefs.resize(nhash);
+        for (int i = 0; i < nhash; i++) {
+          opt.personal_digest_prefs[i].type = PREFTYPE_HASH;
+          opt.personal_digest_prefs[i].value = hash[i];
         }
       } else if (personal == PREFTYPE_ZIP) {
-        xfree(opt.personal_compress_prefs);
-
-        if (nzip == 0)
-          opt.personal_compress_prefs = NULL;
-        else {
-          int i;
-
-          opt.personal_compress_prefs =
-              (prefitem_t *)xmalloc(sizeof(prefitem_t *) * (nzip + 1));
-
-          for (i = 0; i < nzip; i++) {
-            opt.personal_compress_prefs[i].type = PREFTYPE_ZIP;
-            opt.personal_compress_prefs[i].value = zip[i];
-          }
-
-          opt.personal_compress_prefs[i].type = PREFTYPE_NONE;
-          opt.personal_compress_prefs[i].value = 0;
+        opt.personal_compress_prefs.resize(nzip);
+        for (int i = 0; i < nzip; i++) {
+          opt.personal_compress_prefs[i].type = PREFTYPE_ZIP;
+          opt.personal_compress_prefs[i].value = zip[i];
         }
       }
     } else {
@@ -490,26 +451,19 @@ PKT_user_id *keygen_get_std_prefs(void) {
 
   uid->ref = 1;
 
-  uid->prefs = (prefitem_t *)xmalloc(
-      (sizeof(prefitem_t *) * (nsym_prefs + nhash_prefs + nzip_prefs + 1)));
+  uid->prefs = new std::vector<prefitem_t>;
 
   for (i = 0; i < nsym_prefs; i++, j++) {
-    uid->prefs[j].type = PREFTYPE_SYM;
-    uid->prefs[j].value = sym_prefs[i];
+    uid->prefs->emplace_back((prefitem_t){PREFTYPE_SYM, sym_prefs[i]});
   }
 
   for (i = 0; i < nhash_prefs; i++, j++) {
-    uid->prefs[j].type = PREFTYPE_HASH;
-    uid->prefs[j].value = hash_prefs[i];
+    uid->prefs->emplace_back((prefitem_t){PREFTYPE_HASH, hash_prefs[i]});
   }
 
   for (i = 0; i < nzip_prefs; i++, j++) {
-    uid->prefs[j].type = PREFTYPE_ZIP;
-    uid->prefs[j].value = zip_prefs[i];
+    uid->prefs->emplace_back((prefitem_t){PREFTYPE_ZIP, zip_prefs[i]});
   }
-
-  uid->prefs[j].type = PREFTYPE_NONE;
-  uid->prefs[j].value = 0;
 
   uid->flags.mdc = mdc_available;
   uid->flags.ks_modify = ks_modify;

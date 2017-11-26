@@ -86,7 +86,7 @@ void release_public_key_parts(PKT_public_key *pk) {
     pk->seckey_info = NULL;
   }
   if (pk->prefs) {
-    xfree(pk->prefs);
+    delete pk->prefs;
     pk->prefs = NULL;
   }
   free_user_id(pk->user_id);
@@ -129,24 +129,6 @@ static subpktarea_t *cp_subpktarea(subpktarea_t *s) {
 /*
  * Return a copy of the preferences
  */
-prefitem_t *copy_prefs(const prefitem_t *prefs) {
-  size_t n;
-  prefitem_t *neu;
-
-  if (!prefs) return NULL;
-
-  for (n = 0; prefs[n].type; n++)
-    ;
-  neu = (prefitem_t *)xmalloc(sizeof(*neu) * (n + 1));
-  for (n = 0; prefs[n].type; n++) {
-    neu[n].type = prefs[n].type;
-    neu[n].value = prefs[n].value;
-  }
-  neu[n].type = PREFTYPE_NONE;
-  neu[n].value = 0;
-
-  return neu;
-}
 
 /* Copy the public key S to D.  If D is NULL allocate a new public key
    structure.  If S has seckret key infos, only the public stuff is
@@ -158,7 +140,7 @@ PKT_public_key *copy_public_key(PKT_public_key *d, PKT_public_key *s) {
   memcpy(d, s, sizeof *d);
   d->seckey_info = NULL;
   d->user_id = scopy_user_id(s->user_id);
-  d->prefs = copy_prefs(s->prefs);
+  if (s->prefs) d->prefs = new std::vector<prefitem_t>(*s->prefs);
 
   n = pubkey_get_npkey((pubkey_algo_t)(s->pubkey_algo));
   i = 0;
@@ -241,7 +223,7 @@ void free_user_id(PKT_user_id *uid) {
   if (--uid->ref) return;
 
   free_attributes(uid);
-  xfree(uid->prefs);
+  delete uid->prefs;
   xfree(uid->namehash);
   xfree(uid->updateurl);
   xfree(uid->mbox);

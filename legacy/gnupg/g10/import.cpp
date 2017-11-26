@@ -900,41 +900,40 @@ static void check_prefs(ctrl_t ctrl, kbnode_t keyblock) {
     if (node->pkt->pkttype == PKT_USER_ID && node->pkt->pkt.user_id->created &&
         node->pkt->pkt.user_id->prefs) {
       PKT_user_id *uid = node->pkt->pkt.user_id;
-      prefitem_t *prefs = uid->prefs;
       char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
 
-      for (; prefs->type; prefs++) {
+      for (auto &pref : *uid->prefs) {
         char num[10]; /* prefs->value is a byte, so we're over
                          safe here */
 
-        sprintf(num, "%u", prefs->value);
+        sprintf(num, "%u", pref.value);
 
-        if (prefs->type == PREFTYPE_SYM) {
-          if (openpgp_cipher_test_algo((cipher_algo_t)(prefs->value))) {
+        if (pref.type == PREFTYPE_SYM) {
+          if (openpgp_cipher_test_algo((cipher_algo_t)(pref.value))) {
             const char *algo =
-                (openpgp_cipher_test_algo((cipher_algo_t)(prefs->value))
+                (openpgp_cipher_test_algo((cipher_algo_t)(pref.value))
                      ? num
-                     : openpgp_cipher_algo_name((cipher_algo_t)(prefs->value)));
+                     : openpgp_cipher_algo_name((cipher_algo_t)(pref.value)));
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for cipher"
                        " algorithm %s\n"),
                      user, algo);
             problem = 1;
           }
-        } else if (prefs->type == PREFTYPE_HASH) {
-          if (openpgp_md_test_algo((digest_algo_t)(prefs->value))) {
-            const char *algo = (gcry_md_test_algo(prefs->value)
-                                    ? num
-                                    : gcry_md_algo_name(prefs->value));
+        } else if (pref.type == PREFTYPE_HASH) {
+          if (openpgp_md_test_algo((digest_algo_t)(pref.value))) {
+            const char *algo =
+                (gcry_md_test_algo(pref.value) ? num
+                                               : gcry_md_algo_name(pref.value));
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for digest"
                        " algorithm %s\n"),
                      user, algo);
             problem = 1;
           }
-        } else if (prefs->type == PREFTYPE_ZIP) {
-          if (check_compress_algo(prefs->value)) {
-            const char *algo = compress_algo_to_string(prefs->value);
+        } else if (pref.type == PREFTYPE_ZIP) {
+          if (check_compress_algo(pref.value)) {
+            const char *algo = compress_algo_to_string(pref.value);
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for compression"
                        " algorithm %s\n"),

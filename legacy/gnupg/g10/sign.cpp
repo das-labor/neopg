@@ -413,7 +413,7 @@ static int hash_for(PKT_public_key *pk) {
     return recipient_digest_algo;
   } else if (pk->pubkey_algo == PUBKEY_ALGO_EDDSA &&
              openpgp_oid_is_ed25519(pk->pkey[0])) {
-    if (opt.personal_digest_prefs)
+    if (!opt.personal_digest_prefs.empty())
       return opt.personal_digest_prefs[0].value;
     else
       return DIGEST_ALGO_SHA256;
@@ -432,18 +432,12 @@ static int hash_for(PKT_public_key *pk) {
        (i.e. allow truncation).  If q is not 160, by definition it
        must be a new DSA key. */
 
-    if (opt.personal_digest_prefs) {
-      prefitem_t *prefs;
-
-      if (qbytes != 20 || opt.flags.dsa2) {
-        for (prefs = opt.personal_digest_prefs; prefs->type; prefs++)
-          if (gcry_md_get_algo_dlen(prefs->value) >= qbytes)
-            return prefs->value;
-      } else {
-        for (prefs = opt.personal_digest_prefs; prefs->type; prefs++)
-          if (gcry_md_get_algo_dlen(prefs->value) == qbytes)
-            return prefs->value;
-      }
+    if (qbytes != 20 || opt.flags.dsa2) {
+      for (auto &pref : opt.personal_digest_prefs)
+        if (gcry_md_get_algo_dlen(pref.value) >= qbytes) return pref.value;
+    } else {
+      for (auto &pref : opt.personal_digest_prefs)
+        if (gcry_md_get_algo_dlen(pref.value) == qbytes) return pref.value;
     }
 
     return match_dsa_hash(qbytes);
@@ -453,17 +447,11 @@ static int hash_for(PKT_public_key *pk) {
        this restriction anymore.  Fortunately the serial number
        encodes the version of the card and thus we know that this
        key is on a v1 card. */
-    if (opt.personal_digest_prefs) {
-      prefitem_t *prefs;
-
-      for (prefs = opt.personal_digest_prefs; prefs->type; prefs++)
-        if (prefs->value == DIGEST_ALGO_SHA1 ||
-            prefs->value == DIGEST_ALGO_RMD160)
-          return prefs->value;
-    }
-
+    for (auto &pref : opt.personal_digest_prefs)
+      if (pref.value == DIGEST_ALGO_SHA1 || pref.value == DIGEST_ALGO_RMD160)
+        return pref.value;
     return DIGEST_ALGO_SHA1;
-  } else if (opt.personal_digest_prefs) {
+  } else if (!opt.personal_digest_prefs.empty()) {
     /* It's not DSA, so we can use whatever the first hash algorithm
        is in the pref list */
     return opt.personal_digest_prefs[0].value;

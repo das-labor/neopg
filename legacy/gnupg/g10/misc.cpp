@@ -1124,7 +1124,7 @@ int check_compress_algo(int algo) {
 int default_cipher_algo(void) {
   if (opt.def_cipher_algo)
     return opt.def_cipher_algo;
-  else if (opt.personal_cipher_prefs)
+  else if (!opt.personal_cipher_prefs.empty())
     return opt.personal_cipher_prefs[0].value;
   else
     return opt.s2k_cipher_algo;
@@ -1136,7 +1136,7 @@ int default_cipher_algo(void) {
 int default_compress_algo(void) {
   if (opt.compress_algo != -1)
     return opt.compress_algo;
-  else if (opt.personal_compress_prefs)
+  else if (!opt.personal_compress_prefs.empty())
     return opt.personal_compress_prefs[0].value;
   else
     return DEFAULT_COMPRESS_ALGO;

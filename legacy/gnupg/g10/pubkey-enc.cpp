@@ -47,11 +47,11 @@ static int is_algo_in_prefs(kbnode_t keyblock, preftype_t type, int algo) {
   for (k = keyblock; k; k = k->next) {
     if (k->pkt->pkttype == PKT_USER_ID) {
       PKT_user_id *uid = k->pkt->pkt.user_id;
-      prefitem_t *prefs = uid->prefs;
 
-      if (uid->created && prefs && !uid->flags.revoked && !uid->flags.expired) {
-        for (; prefs->type; prefs++)
-          if (prefs->type == type && prefs->value == algo) return 1;
+      if (uid->created && uid->prefs && !uid->flags.revoked &&
+          !uid->flags.expired) {
+        for (auto &pref : *uid->prefs)
+          if (pref.type == type && pref.value == algo) return 1;
       }
     }
   }

@@ -276,9 +276,9 @@ struct options {
        VERIFY_SHOW_STD_NOTATIONS | VERIFY_SHOW_KEYSERVER_URLS)};
   boost::optional<std::string> def_preference_list;
   boost::optional<std::string> def_keyserver_url;
-  prefitem_t *personal_cipher_prefs{nullptr};
-  prefitem_t *personal_digest_prefs{nullptr};
-  prefitem_t *personal_compress_prefs{nullptr};
+  std::vector<prefitem_t> personal_cipher_prefs;
+  std::vector<prefitem_t> personal_digest_prefs;
+  std::vector<prefitem_t> personal_compress_prefs;
   struct weakhash *weak_digests{NULL};
   bool no_perm_warn{false};
   bool no_encrypt_to{false};

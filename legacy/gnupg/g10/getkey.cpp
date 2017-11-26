@@ -2084,27 +2084,18 @@ static void fixup_uidnode(KBNODE uidnode, KBNODE signode, u32 keycreated) {
   p = parse_sig_subpkt(sig->hashed, SIGSUBPKT_PREF_COMPR, &n);
   zip = p;
   nzip = p ? n : 0;
-  if (uid->prefs) xfree(uid->prefs);
+  if (uid->prefs) delete uid->prefs;
+  uid->prefs = nullptr;
   n = nsym + nhash + nzip;
-  if (!n)
-    uid->prefs = NULL;
-  else {
-    uid->prefs = (prefitem_t *)xmalloc(sizeof(*uid->prefs) * (n + 1));
+  if (n) {
+    uid->prefs = new std::vector<prefitem_t>;
     n = 0;
-    for (; nsym; nsym--, n++) {
-      uid->prefs[n].type = PREFTYPE_SYM;
-      uid->prefs[n].value = *sym++;
-    }
-    for (; nhash; nhash--, n++) {
-      uid->prefs[n].type = PREFTYPE_HASH;
-      uid->prefs[n].value = *hash++;
-    }
-    for (; nzip; nzip--, n++) {
-      uid->prefs[n].type = PREFTYPE_ZIP;
-      uid->prefs[n].value = *zip++;
-    }
-    uid->prefs[n].type = PREFTYPE_NONE; /* End of list marker  */
-    uid->prefs[n].value = 0;
+    for (; nsym; nsym--, n++)
+      uid->prefs->emplace_back((prefitem_t){PREFTYPE_SYM, *sym++});
+    for (; nhash; nhash--, n++)
+      uid->prefs->emplace_back((prefitem_t){PREFTYPE_HASH, *hash++});
+    for (; nzip; nzip--, n++)
+      uid->prefs->emplace_back((prefitem_t){PREFTYPE_ZIP, *zip++});
   }
 
   /* See whether we have the MDC feature.  */
@@ -2794,7 +2785,6 @@ static void merge_selfsigs(ctrl_t ctrl, kbnode_t keyblock) {
   int revoked;
   struct revoke_info rinfo;
   PKT_public_key *main_pk;
-  prefitem_t *prefs;
   unsigned int mdc_feature;
 
   if (keyblock->pkt->pkttype != PKT_PUBLIC_KEY) {
@@ -2847,12 +2837,12 @@ static void merge_selfsigs(ctrl_t ctrl, kbnode_t keyblock) {
    * FIXME: it might be better to use the intersection of
    * all preferences.
    * Do a similar thing for the MDC feature flag.  */
-  prefs = NULL;
+  std::vector<prefitem_t> prefs;
   mdc_feature = 0;
   for (k = keyblock; k && k->pkt->pkttype != PKT_PUBLIC_SUBKEY; k = k->next) {
     if (k->pkt->pkttype == PKT_USER_ID && !k->pkt->pkt.user_id->attrib_data &&
         k->pkt->pkt.user_id->flags.primary) {
-      prefs = k->pkt->pkt.user_id->prefs;
+      prefs = *(k->pkt->pkt.user_id->prefs);
       mdc_feature = k->pkt->pkt.user_id->flags.mdc;
       break;
     }
@@ -2861,8 +2851,8 @@ static void merge_selfsigs(ctrl_t ctrl, kbnode_t keyblock) {
     if (k->pkt->pkttype == PKT_PUBLIC_KEY ||
         k->pkt->pkttype == PKT_PUBLIC_SUBKEY) {
       PKT_public_key *pk = k->pkt->pkt.public_key;
-      if (pk->prefs) xfree(pk->prefs);
-      pk->prefs = copy_prefs(prefs);
+      if (pk->prefs) delete pk->prefs;
+      pk->prefs = new std::vector<prefitem_t>(prefs);
       pk->flags.mdc = mdc_feature;
     }
   }
