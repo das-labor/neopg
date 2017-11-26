@@ -44,8 +44,6 @@
 #include <gpg-error.h>
 #include <gnutls/gnutls.h>
 
-#include <botan/hash.h>
-
 #define GNUPG_COMMON_NEED_AFLOCAL
 #include "dirmngr.h"
 
@@ -302,25 +300,6 @@ static const char *my_strusage(int level) {
       p = NULL;
   }
   return p;
-}
-
-/* Callback from libksba to hash a provided buffer.  Our current
-   implementation does only allow SHA-1 for hashing. This may be
-   extended by mapping the name, testing for algorithm availibility
-   and adjust the length checks accordingly. */
-static gpg_error_t my_ksba_hash_buffer(void *arg, const char *oid,
-                                       const void *buffer, size_t length,
-                                       size_t resultsize, unsigned char *result,
-                                       size_t *resultlen) {
-  (void)arg;
-
-  if (oid && strcmp(oid, "1.3.14.3.2.26")) return GPG_ERR_NOT_SUPPORTED;
-  if (resultsize < 20) return GPG_ERR_BUFFER_TOO_SHORT;
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
-  Botan::secure_vector<uint8_t> hash = sha1->process((uint8_t*)buffer, length);
-  memcpy(result, hash.data(), hash.size());
-  *resultlen = 20;
-  return 0;
 }
 
 /* GNUTLS log function callback.  */
@@ -625,7 +604,6 @@ int dirmngr_main(int argc, char **argv) {
   gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
 
   ksba_set_malloc_hooks(gcry_malloc, gcry_realloc, gcry_free);
-  ksba_set_hash_buffer_function(my_ksba_hash_buffer, NULL);
 
   /* Init TLS library.  */
   rc = gnutls_global_init();

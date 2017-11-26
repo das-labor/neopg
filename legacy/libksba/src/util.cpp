@@ -35,16 +35,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <botan/hash.h>
+
 #include "util.h"
 
 static void *(*alloc_func)(size_t n) = malloc;
 static void *(*realloc_func)(void *p, size_t n) = realloc;
 static void (*free_func)(void *) = free;
-static gpg_error_t (*hash_buffer_fnc)(void *arg, const char *oid,
-                                      const void *buffer, size_t length,
-                                      size_t resultsize, unsigned char *result,
-                                      size_t *resultlen);
-static void *hash_buffer_fnc_arg;
 
 /* Note, that we expect that the free fucntion does not change
    ERRNO. */
@@ -54,39 +51,6 @@ void ksba_set_malloc_hooks(void *(*new_alloc_func)(size_t n),
   alloc_func = new_alloc_func;
   realloc_func = new_realloc_func;
   free_func = new_free_func;
-}
-
-/* Register a has function for general use by libksba.  This is
-   required to avoid dependencies to specific low-level
-   crypolibraries.  The function should be used right at the startup
-   of the main program, similar to ksba_set_malloc_hooks.
-
-   The function provided should behave like this:
-
-   gpg_error_t hash_buffer (void *arg, const char *oid,
-                            const void *buffer, size_t length,
-                            size_t resultsize,
-                            unsigned char *result,
-                            size_t *resultlen);
-
-   Where ARG is the same pointer as set along with the fucntion, OID
-   is an OID string telling the hash algorithm to be used - SHA-1
-   shall be used if OID is NULL.  The text to hash is expected in
-   BUFFER of LENGTH and the result will be placed into the provided
-   buffer RESULT which has been allocated by the caller with at LEAST
-   RESULTSIZE bytes; the actual length of the result is put into
-   RESULTLEN.
-
-   The function shall return 0 on success or any other appropriate
-   gpg-error.
-*/
-void ksba_set_hash_buffer_function(
-    gpg_error_t (*fnc)(void *arg, const char *oid, const void *buffer,
-                       size_t length, size_t resultsize, unsigned char *result,
-                       size_t *resultlen),
-    void *fnc_arg) {
-  hash_buffer_fnc = fnc;
-  hash_buffer_fnc_arg = fnc_arg;
 }
 
 /* Hash BUFFER of LENGTH bytes using the algorithjm denoted by OID,
@@ -101,10 +65,15 @@ void ksba_set_hash_buffer_function(
 gpg_error_t _ksba_hash_buffer(const char *oid, const void *buffer,
                               size_t length, size_t resultsize,
                               unsigned char *result, size_t *resultlen) {
-  if (!hash_buffer_fnc) return GPG_ERR_CONFIGURATION;
-  return hash_buffer_fnc(hash_buffer_fnc_arg, oid, buffer, length, resultsize,
-                         result, resultlen);
+  if (oid && strcmp(oid, "1.3.14.3.2.26")) return GPG_ERR_NOT_SUPPORTED;
+  if (resultsize < 20) return GPG_ERR_BUFFER_TOO_SHORT;
+  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash = sha1->process((uint8_t*)buffer, length);
+  memcpy(result, hash.data(), hash.size());
+  *resultlen = 20;
+  return 0;
 }
+
 
 /* Wrapper for the common memory allocation functions.  These are here
    so that we can add hooks.  The corresponding macros should be used.

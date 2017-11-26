@@ -360,9 +360,14 @@ add_library(neopg::ksba ALIAS ksba)
 target_include_directories(ksba PRIVATE
   libgpg-error/src
   libksba/src
-  ${CMAKE_BINARY_DIR}/.)
+  ${CMAKE_BINARY_DIR}/.
+  ${BOTAN2_INCLUDE_DIRS})
+target_link_libraries(ksba PRIVATE
+  ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES})
 target_compile_definitions(ksba PRIVATE
-  HAVE_CONFIG_H=1)
+  HAVE_CONFIG_H=1
+  ${BOTAN2_CFLAGS_OTHER}
+)
 
 target_compile_options(ksba PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
 
