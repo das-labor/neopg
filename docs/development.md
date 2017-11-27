@@ -19,7 +19,7 @@ or other anti-patterns.
 Sometimes, it is easier to always use a strong primitive than to
 differentiate.  For example, all random we are using is
 cryptographically strong, and all Hashes are calculated in secure
-memory. In generally, this is not a problem.
+memory. In general, this is not a problem.
 
 ## Coding-style
 
