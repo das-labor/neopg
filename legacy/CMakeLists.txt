@@ -49,7 +49,9 @@ target_compile_definitions(gpg-error PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread
   ${Intl_LDFLAGS} ${Intl_LIBRARIES})
-target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 
 add_executable(gpg-error-test
   libgpg-error/tests/t-b64dec.cpp
@@ -104,7 +106,9 @@ else()
 )
 endif()
 
-target_compile_options(assuan PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(assuan PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 
 add_library(neopg::assuan ALIAS assuan)
 
@@ -125,7 +129,9 @@ target_include_directories(assuan-test PRIVATE
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(assuan-test PRIVATE
 CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/legacy/libassuan/tests")
-target_compile_options(assuan-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(assuan-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 target_link_libraries(assuan-test PRIVATE
   assuan
   GTest::GTest GTest::Main)
@@ -145,7 +151,9 @@ target_include_directories(npth PRIVATE
 target_compile_definitions(npth PRIVATE
   HAVE_CONFIG_H=1)
 
-target_compile_options(npth PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(npth PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 
 add_executable(npth-test
   npth/tests/t-mutex.cpp
@@ -307,7 +315,9 @@ target_include_directories(gcrypt-test PRIVATE
   libgpg-error/src
   libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
-target_compile_options(gcrypt-test PUBLIC -fpermissive -Wnarrowing -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(gcrypt-test PUBLIC -fpermissive -Wnarrowing -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 target_link_libraries(gcrypt-test PRIVATE
   gcrypt
   gpg-error
@@ -321,7 +331,9 @@ target_include_directories(gcrypt-secmem-test PRIVATE
     libgpg-error/src
     libgcrypt/src
     ${CMAKE_BINARY_DIR}/.)
-target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
   target_link_libraries(gcrypt-secmem-test PRIVATE
     gcrypt
     gpg-error
@@ -368,7 +380,9 @@ target_compile_definitions(ksba PRIVATE
   ${BOTAN2_CFLAGS_OTHER}
 )
 
-target_compile_options(ksba PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700)
+target_compile_options(ksba PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
+  -std=c++11
+)
 
 add_executable(ksba-test
   libksba/tests/ksba-test.cpp
