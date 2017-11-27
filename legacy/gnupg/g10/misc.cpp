@@ -1049,11 +1049,9 @@ const char *compress_algo_to_string(int algo) {
       s = "ZLIB";
       break;
 
-#ifdef HAVE_BZIP2
     case COMPRESS_ALGO_BZIP2:
       s = "BZIP2";
       break;
-#endif
   }
 
   return s;
@@ -1071,20 +1069,16 @@ int string_to_compress_algo(const char *string) {
     return 1;
   else if (ascii_strcasecmp(string, "zlib") == 0)
     return 2;
-#ifdef HAVE_BZIP2
   else if (ascii_strcasecmp(string, "bzip2") == 0)
     return 3;
-#endif
   else if (ascii_strcasecmp(string, "z0") == 0)
     return 0;
   else if (ascii_strcasecmp(string, "z1") == 0)
     return 1;
   else if (ascii_strcasecmp(string, "z2") == 0)
     return 2;
-#ifdef HAVE_BZIP2
   else if (ascii_strcasecmp(string, "z3") == 0)
     return 3;
-#endif
   else
     return -1;
 }
@@ -1093,12 +1087,12 @@ int check_compress_algo(int algo) {
   switch (algo) {
     case 0:
       return 0;
-#ifdef HAVE_ZIP
+#ifdef BOTAN_HAS_ZLIB
     case 1:
     case 2:
       return 0;
 #endif
-#ifdef HAVE_BZIP2
+#ifdef BOTAN_HAS_BZIP2
     case 3:
       return 0;
 #endif

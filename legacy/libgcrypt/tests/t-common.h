@@ -76,18 +76,12 @@ static void die(const char *format, ...) {
   (void)debug;
 
   fflush(stdout);
-#ifdef HAVE_FLOCKFILE
-  flockfile(stderr);
-#endif
   fprintf(stderr, "%s: ", PGM);
   if (wherestr) fprintf(stderr, "%s: ", wherestr);
   va_start(arg_ptr, format);
   vfprintf(stderr, format, arg_ptr);
   va_end(arg_ptr);
   if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
-#ifdef HAVE_FLOCKFILE
-  funlockfile(stderr);
-#endif
   exit(1);
 }
 
@@ -95,18 +89,12 @@ static void fail(const char *format, ...) {
   va_list arg_ptr;
 
   fflush(stdout);
-#ifdef HAVE_FLOCKFILE
-  flockfile(stderr);
-#endif
   fprintf(stderr, "%s: ", PGM);
   if (wherestr) fprintf(stderr, "%s: ", wherestr);
   va_start(arg_ptr, format);
   vfprintf(stderr, format, arg_ptr);
   va_end(arg_ptr);
   if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
-#ifdef HAVE_FLOCKFILE
-  funlockfile(stderr);
-#endif
   if (die_on_error) exit(1);
   error_count++;
   if (error_count >= 50) die("stopped after 50 errors.");
@@ -116,18 +104,12 @@ static void info(const char *format, ...) {
   va_list arg_ptr;
 
   if (!verbose) return;
-#ifdef HAVE_FLOCKFILE
-  flockfile(stderr);
-#endif
   fprintf(stderr, "%s: ", PGM);
   if (wherestr) fprintf(stderr, "%s: ", wherestr);
   va_start(arg_ptr, format);
   vfprintf(stderr, format, arg_ptr);
   if (*format && format[strlen(format) - 1] != '\n') putc('\n', stderr);
   va_end(arg_ptr);
-#ifdef HAVE_FLOCKFILE
-  funlockfile(stderr);
-#endif
 }
 
 /* Convenience macro for initializing gcrypt with error checking.  */

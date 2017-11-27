@@ -104,29 +104,21 @@
 /* Defined if this module should be included */
 #define USE_WHIRLPOOL 1
 
-#define NAME_OF_DEV_RANDOM "/dev/random"
-#define NAME_OF_DEV_URANDOM "/dev/urandom"
-
 /* USE_CAPABILITIES */
 #define HAVE_MLOCK 1
 
 /* libgpg-error */
 
 #define ENABLE_NLS 1
-#define GPGRT_USE_VISIBILITY 1
 #define HAVE_DCGETTEXT 1
 #define HAVE_DLFCN_H 1
-#define HAVE_FLOCKFILE 1
 #define HAVE_GCC_ATTRIBUTE_ALIGNED 1
 #define HAVE_GETTEXT 1
 #define HAVE_INTMAX_T 1
 #define HAVE_LOCALE_H 1
 #define HAVE_LONG_DOUBLE 1
-/* #undef HAVE_CFLOCALECOPYCURRENT */
-/* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
 #define HAVE_LONG_LONG_INT 1
 #define HAVE_MEMRCHR 1
-#define HAVE_PTHREAD_MUTEX_RECURSIVE 1
 #define HAVE_PTHREAD_RWLOCK 1
 #define HAVE_PTRDIFF_T 1
 #define HAVE_STDINT_H 1
@@ -136,7 +128,6 @@
 #define HAVE_SYS_TIME_H 1
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_UINTMAX_T 1
-#define HAVE_UNSIGNED_LONG_LONG_INT 1
 #define HAVE_VASPRINTF 1
 #define REPLACEMENT_FOR_OFF_T "long"
 /* #undef HAVE_W32_SYSTEM */
@@ -189,9 +180,6 @@
 /* #undef _MINIX */
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
-/* #undef const */
-/* #undef intmax_t */
-/* #undef uintmax_t */
 #if defined(HAVE_W32_SYSTEM) && !defined(ENABLE_NLS)
 #define ENABLE_NLS 1
 #endif
@@ -204,7 +192,6 @@
 #define HAVE_DLFCN_H 1
 /* #undef HAVE_DOSISH_SYSTEM */
 #define HAVE_FCNTL_H 1
-#define HAVE_FLOCKFILE 1
 #define HAVE_FOPENCOOKIE 1
 #define HAVE_FUNLOCKFILE 1
 /* #undef HAVE_FUNOPEN */
@@ -218,7 +205,6 @@
 /* #undef HAVE_LOCAL_PEEREID */
 #define HAVE_MEMRCHR 1
 #define HAVE_NANOSLEEP 1
-#define HAVE_PUTC_UNLOCKED 1
 #define HAVE_STAT 1
 #define HAVE_STDINT_H 1
 #define HAVE_STDLIB_H 1
@@ -235,11 +221,9 @@
 /* #undef HAVE_W64_SYSTEM */
 /* #undef HAVE_WINSOCK2_H */
 /* #undef HAVE_WS2TCPIP_H */
-#define RETSIGTYPE void
 #define STDC_HEADERS 1
 #define USE_DESCRIPTOR_PASSING 1
 /* #undef _DARWIN_C_SOURCE */
-/* #undef _MINIX */
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
 /* #undef _XOPEN_SOURCE */
@@ -336,10 +320,8 @@
 #define GPG_USE_SHA512 1
 #define GPG_USE_TWOFISH 1
 /* #undef HAVE_ANDROID_SYSTEM */
-#define HAVE_ATEXIT 1
 /* #undef HAVE_BROKEN_TTYNAME */
 /* #undef HAVE_BYTE_TYPEDEF */
-#define HAVE_BZIP2 1
 #define HAVE_CLOCK_GETTIME 1
 #define HAVE_CTERMID 1
 #define HAVE_DCGETTEXT 1
@@ -350,11 +332,9 @@
 /* #undef HAVE_DOSISH_SYSTEM */
 /* #undef HAVE_DRIVE_LETTERS */
 #define HAVE_FCNTL 1
-#define HAVE_FLOCKFILE 1
 #define HAVE_FORK 1
 #define HAVE_FSEEKO 1
 #define HAVE_FSYNC 1
-#define HAVE_FTELLO 1
 #define HAVE_FTRUNCATE 1
 #define HAVE_FUNLOCKFILE 1
 #define HAVE_GETADDRINFO 1
@@ -381,10 +361,7 @@
 #define HAVE_LC_MESSAGES 1
 /* #undef HAVE_LIBREADLINE */
 #define HAVE_LIBUSB 1
-#define HAVE_LIBUTIL 1
-/* #undef HAVE_LIBUTIL_H */
 #define HAVE_LOCALE_H 1
-#define HAVE_LSTAT 1
 /* #undef HAVE_MEMICMP */
 #define HAVE_MEMRCHR 1
 #define HAVE_MMAP 1
@@ -394,14 +371,9 @@
 #define HAVE_PIPE 1
 #define HAVE_PTY_H 1
 #define HAVE_PWD_H 1
-#define HAVE_RAISE 1
-#define HAVE_RAND 1
 #define HAVE_SETLOCALE 1
 #define HAVE_SETRLIMIT 1
-#define HAVE_SIGACTION 1
 #define HAVE_SIGNAL_H 1
-#define HAVE_SIGPROCMASK 1
-#define HAVE_SIGSET_T 1
 #define HAVE_STAT 1
 #define HAVE_STDINT_H 1
 #define HAVE_STDLIB_H 1
@@ -452,7 +424,6 @@
 /* #undef NO_EXEC */
 /* #undef NO_TRUST_MODELS */
 #define PK_UID_CACHE_SIZE 4096
-#define RETSIGTYPE void
 #define SCDAEMON_DISP_NAME "SCDaemon"
 #define SCDAEMON_NAME "scdaemon"
 #define SCDAEMON_SOCK_NAME "S.scdaemon"
@@ -467,7 +438,6 @@
 #define USE_NPTH 1
 /* #undef USE_ONLY_8DOT3 */
 /* #undef USE_SIMPLE_GETTEXT */
-#define USE_TOFU 1
 /* #undef _DARWIN_C_SOURCE */
 #ifndef _DARWIN_USE_64_BIT_INODE
 # define _DARWIN_USE_64_BIT_INODE 1
@@ -475,7 +445,6 @@
 /* #undef _FILE_OFFSET_BITS */
 /* #undef _LARGEFILE_SOURCE */
 /* #undef _LARGE_FILES */
-/* #undef _MINIX */
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
 
