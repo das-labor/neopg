@@ -232,7 +232,8 @@ target_include_directories(neopg PRIVATE
   ../include
 )
 target_compile_definitions(neopg PRIVATE
-  HAVE_CONFIG_H=1)
+  HAVE_CONFIG_H=1
+  CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 target_link_libraries(neopg PRIVATE
   gpg-error
@@ -254,3 +255,33 @@ target_compile_options(neopg PUBLIC
 -std=c++11
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER})
+
+# Locale
+
+add_subdirectory(locale)
+
+SET(_potFile neopg.pot)
+SET(_xgettext_option_list
+  -cTranslators
+  --msgid-bugs-address="https://github.com/das-labor/neopg"
+  --package-version "${PROJECT_VERSION}"
+  --package-name NeoPG
+  --copyright "The NeoPG Developers"
+  -d neopg
+  --boost
+  --keyword=_
+)
+
+# get_target_property(_src_list neopg SOURCES)
+SET(_src_list neopg.cpp)
+
+ADD_CUSTOM_COMMAND(OUTPUT ${_potFile}
+    COMMAND ${XGETTEXT_CMD} ${_xgettext_option_list} -o locale/${_potFile} ${_src_list}
+    DEPENDS ${_src_list}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Extract translatable messages to ${_potFile}"
+)
+
+ADD_CUSTOM_TARGET(update-pot ${_all}
+DEPENDS ${_potFile}
+)

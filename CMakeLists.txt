@@ -93,8 +93,6 @@ if(BUILD_DOC)
     # install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
 endif()
 
-find_package(Intl REQUIRED)
-
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)
 pkg_check_modules(BOTAN2 REQUIRED botan-2)

@@ -1,0 +1,38 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The NeoPG Developers
+# This file is distributed under the same license as the NeoPG package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: NeoPG 0.1\n"
+"Report-Msgid-Bugs-To: https://github.com/das-labor/neopg\n"
+"POT-Creation-Date: 2017-11-27 18:47+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: neopg.cpp:99
+msgid "NeoPG implements the OpenPGP standard."
+msgstr ""
+
+#. Translators, please add a second line saying "Report translation bugs to
+#. <...>" with the address for translation bugs (typically your translation
+#. team's web or email address).
+#: neopg.cpp:104
+#, c-format, boost-format
+msgid "Report bugs to %s"
+msgstr ""
+
+#: neopg.cpp:108 neopg.cpp:109
+msgid "display help and exit"
+msgstr ""
+
+#: neopg.cpp:113 neopg.cpp:114
+msgid "display version and exit"
+msgstr ""

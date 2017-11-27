@@ -8,6 +8,23 @@
 
 #include <CLI11.hpp>
 
+#include <boost/format.hpp>
+#include <boost/locale.hpp>
+
+//#define _ boost::locale::translate
+#define _ boost::locale::gettext
+
+static void setup_locale() {
+  boost::locale::generator gen;
+  /* FIXME: Maybe use custom filesystem to include all mo files in the
+     binary (for portable
+     apps). http://www.boost.org/doc/libs/1_65_0/libs/locale/doc/html/messages_formatting.html#custom_file_system_support */
+  gen.add_messages_path(CMAKE_INSTALL_PREFIX "/share/locale");
+  gen.add_messages_domain("neopg");
+  std::locale::global(gen(""));
+  std::cout.imbue(std::locale());
+}
+
 #include <neopg/cli/armor_command.h>
 #include <neopg/cli/cat_command.h>
 #include <neopg/cli/command.h>
@@ -71,22 +88,30 @@ int main(int argc, char* argv[]) {
   setmode(fileno(stdout), O_BINARY);
 #endif
 
+  /* Initialize translations.  */
+  setup_locale();
+
   /* This is also used to invoke ourself.  */
   neopg_program = make_absfilename(argv[0], NULL);
 
   const std::vector<std::string> args(argv + 1, argv + argc);
 
-  CLI::App app{"NeoPG implements the OpenPGP standard."};
-  app.set_footer("Report bugs to https://github.com/das-labor/neopg");
+  CLI::App app{_("NeoPG implements the OpenPGP standard.")};
+
+  /* Translators, please add a second line saying "Report translation bugs to
+   <...>" with the address for translation bugs (typically your translation
+   team's web or email address).  */
+  app.set_footer((boost::format(_("Report bugs to %s")) %
+                  "https://github.com/das-labor/neopg")
+                     .str());
   // app.require_subcommand(1);
-  app.set_help_flag("--help", "display this help and exit");
-  app.add_subcommand("help", "display help and exit")
+  app.set_help_flag("--help", _("display help and exit"));
+  app.add_subcommand("help", _("display help and exit"))
       ->group("")
       ->set_help_flag();
   bool oVersion = false;
-  app.add_flag("--version", oVersion, "output version information and exit");
-  VersionCommand cmd_version(app, "version",
-                             "output version information and exit");
+  app.add_flag("--version", oVersion, _("display version and exit"));
+  VersionCommand cmd_version(app, "version", _("display version and exit"));
 
   app.set_callback([&oVersion, &cmd_version, &app]() {
     if (oVersion) {
