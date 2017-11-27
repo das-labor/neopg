@@ -1,3 +1,13 @@
-theme: jekyll-theme-cayman
 title: NeoPG
-description: NeoPG implements the OpenPGP standard.
+email: marcus.brinkmann@ruhr-uni-bochum.de
+description: "NeoPG implements the OpenPGP standard."
+baseurl: ""
+url: "http://neopg.io"
+twitter_username: lambdafu
+github_username: lambdafu
+
+plugins:
+ - jekyll-mentions
+ - jemoji
+
+theme: jekyll-theme-cayman

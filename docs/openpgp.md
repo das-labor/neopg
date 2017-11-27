@@ -1,3 +1,7 @@
+---
+layout: default
+title: OpenPGP Profile (RFC 4880) for NeoPG
+---
 OpenPGP Profile (RFC 4880) for NeoPG
 ====================================
 
