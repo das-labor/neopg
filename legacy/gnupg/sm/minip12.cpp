@@ -34,9 +34,9 @@
 #endif
 
 #include <botan/hash.h>
+#include <boost/locale.hpp>
 
 #include "../common/logging.h"
-#include "../common/utf8conv.h"
 #include "minip12.h"
 
 #ifndef DIM
@@ -323,17 +323,17 @@ static int string_to_key(int id, char *salt, size_t saltlen, int iter,
   }
 
   for (;;) {
-    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    std::unique_ptr<Botan::HashFunction> sha1 =
+        Botan::HashFunction::create_or_throw("SHA-1");
     Botan::secure_vector<uint8_t> hash;
 
-    uint8_t id_ = (uint8_t) id;
+    uint8_t id_ = (uint8_t)id;
     for (i = 0; i < 64; i++) sha1->update(&id_, 1);
     sha1->update(buf_i, 128);
     hash = sha1->final();
-    for (i = 1; i < iter; i++)
-      {
-	hash = sha1->process(hash.data(), hash.size());
-      }
+    for (i = 1; i < iter; i++) {
+      hash = sha1->process(hash.data(), hash.size());
+    }
 
     for (i = 0; i < 20 && cur_keylen < req_keylen; i++)
       keybuf[cur_keylen++] = hash[i];
@@ -462,6 +462,24 @@ leave:
   gcry_cipher_close(chd);
 }
 
+static Botan::secure_vector<uint8_t> convert_password(const char *password,
+                                                      const char *charset) {
+  std::string convertedpw_ =
+      boost::locale::conv::from_utf<char>(password, charset);
+  Botan::secure_vector<uint8_t> convertedpw(convertedpw_.size());
+  memcpy(convertedpw.data(), convertedpw_.data(), convertedpw_.size());
+  /* Best effort.  GnuPG uses iconv directly here, leading to a
+     bit better results in practice, but even there the passphrase
+     came through the libassuan line handler which doesn't use
+     secure memory.  With return value optimization, I hope there
+     will (locally) only be this one copy in non-secure memory,
+     ignoring caches and what not.  Don't use p12, don't use other
+     charsets than UTF-8.  */
+  Botan::secure_scrub_memory((void *)convertedpw_.data(), convertedpw_.size());
+  convertedpw.emplace_back(0);
+  return convertedpw;
+}
+
 /* Decrypt a block of data and try several encodings of the key.
    CIPHERTEXT is the encrypted data of size LENGTH bytes; PLAINTEXT is
    a buffer of the same size to receive the decryption result. SALT,
@@ -477,60 +495,22 @@ static void decrypt_block(const void *ciphertext, unsigned char *plaintext,
                           int cipher_algo,
                           int (*check_fnc)(const void *, size_t)) {
   static const char *const charsets[] = {
-      "", /* No conversion - use the UTF-8 passphrase direct.  */
+      nullptr, /* No conversion - use the UTF-8 passphrase direct.  */
       "ISO-8859-1", "ISO-8859-15", "ISO-8859-2", "ISO-8859-3",
       "ISO-8859-4", "ISO-8859-5",  "ISO-8859-6", "ISO-8859-7",
       "ISO-8859-8", "ISO-8859-9",  "KOI8-R",     "IBM437",
       "IBM850",     "EUC-JP",      "BIG5",       NULL};
   int charsetidx = 0;
-  char *convertedpw = NULL;   /* Malloced and converted password or NULL.  */
-  size_t convertedpwsize = 0; /* Allocated length.  */
+  Botan::secure_vector<uint8_t> convertedpw;
 
   for (charsetidx = 0; charsets[charsetidx]; charsetidx++) {
-    if (*charsets[charsetidx]) {
-      jnlib_iconv_t cd;
-      const char *inptr;
-      char *outptr;
-      size_t inbytes, outbytes;
-
-      if (!convertedpw) {
-        /* We assume one byte encodings.  Thus we can allocate
-           the buffer of the same size as the original
-           passphrase; the result will actually be shorter
-           then.  */
-        convertedpwsize = strlen(pw) + 1;
-        convertedpw = (char *)gcry_malloc_secure(convertedpwsize);
-        if (!convertedpw) {
-          log_info(
-              "out of secure memory while"
-              " converting passphrase\n");
-          break; /* Give up.  */
-        }
-      }
-
-      cd = jnlib_iconv_open(charsets[charsetidx], "utf-8");
-      if (cd == (jnlib_iconv_t)(-1)) continue;
-
-      inptr = pw;
-      inbytes = strlen(pw);
-      outptr = convertedpw;
-      outbytes = convertedpwsize - 1;
-      if (jnlib_iconv(cd, (const char **)&inptr, &inbytes, &outptr,
-                      &outbytes) == (size_t)-1) {
-        jnlib_iconv_close(cd);
-        continue;
-      }
-      *outptr = 0;
-      jnlib_iconv_close(cd);
-      log_info("decryption failed; trying charset '%s'\n",
-               charsets[charsetidx]);
-    }
+    bool original_pw = !charsets[charsetidx];
+    if (!original_pw) convertedpw = convert_password(pw, charsets[charsetidx]);
     memcpy(plaintext, ciphertext, length);
     crypt_block(plaintext, length, salt, saltlen, iter, iv, ivlen,
-                convertedpw ? convertedpw : pw, cipher_algo, 0);
+                original_pw ? pw : (char *)convertedpw.data(), cipher_algo, 0);
     if (check_fnc(plaintext, length)) break; /* Decryption succeeded. */
   }
-  gcry_free(convertedpw);
 }
 
 /* Return true if the decryption of an bag_encrypted_data object has
@@ -2004,59 +1984,26 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
   struct buffer_s seqlist[3];
   int seqlistidx = 0;
   char keyidstr[8 + 1];
-  char *pwbuf = NULL;
-  size_t pwbufsize = 0;
   Botan::secure_vector<uint8_t> sha1hash;
+  Botan::secure_vector<uint8_t> convertedpw;
+  bool original_pw = true;
+  const char *used_pw;
 
   n = buflen = 0; /* (avoid compiler warning). */
   *keyidstr = 0;
 
+  /* Maybe not convert if charset == "utf-8" (ignoring case).  */
   if (charset && pw && *pw) {
-    jnlib_iconv_t cd;
-    const char *inptr;
-    char *outptr;
-    size_t inbytes, outbytes;
-
-    /* We assume that the converted passphrase is at max 2 times
-       longer than its utf-8 encoding. */
-    pwbufsize = strlen(pw) * 2 + 1;
-    pwbuf = (char *)gcry_malloc_secure(pwbufsize);
-    if (!pwbuf) {
-      log_error("out of secure memory while converting passphrase\n");
-      goto failure;
-    }
-
-    cd = jnlib_iconv_open(charset, "utf-8");
-    if (cd == (jnlib_iconv_t)(-1)) {
-      log_error(
-          "can't convert passphrase to"
-          " requested charset '%s': %s\n",
-          charset, strerror(errno));
-      goto failure;
-    }
-
-    inptr = pw;
-    inbytes = strlen(pw);
-    outptr = pwbuf;
-    outbytes = pwbufsize - 1;
-    if (jnlib_iconv(cd, (const char **)&inptr, &inbytes, &outptr, &outbytes) ==
-        (size_t)-1) {
-      log_error(
-          "error converting passphrase to"
-          " requested charset '%s': %s\n",
-          charset, strerror(errno));
-      jnlib_iconv_close(cd);
-      goto failure;
-    }
-    *outptr = 0;
-    jnlib_iconv_close(cd);
-    pw = pwbuf;
+    convertedpw = convert_password(pw, charset);
+    original_pw = false;
   }
+  used_pw = original_pw ? pw : (char *)convertedpw.data();
 
   if (cert && certlen) {
     /* Calculate the hash value we need for the bag attributes. */
-    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
-    sha1hash = sha1->process((uint8_t*)cert, certlen);
+    std::unique_ptr<Botan::HashFunction> sha1 =
+        Botan::HashFunction::create_or_throw("SHA-1");
+    sha1hash = sha1->process((uint8_t *)cert, certlen);
     sprintf(keyidstr, "%02x%02x%02x%02x", sha1hash[16], sha1hash[17],
             sha1hash[18], sha1hash[19]);
 
@@ -2067,7 +2014,7 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
 
     /* Encrypt it. */
     gcry_randomize(salt, 8);
-    crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, pw,
+    crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, used_pw,
                 GCRY_CIPHER_RFC2268_40, 1);
 
     /* Encode the encrypted stuff into a bag. */
@@ -2086,13 +2033,13 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
 
     /* Encrypt it. */
     gcry_randomize(salt, 8);
-    crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, pw, GCRY_CIPHER_3DES,
-                1);
+    crypt_block(buffer, buflen, salt, 8, 2048, NULL, 0, used_pw,
+                GCRY_CIPHER_3DES, 1);
 
     /* Encode the encrypted stuff into a bag. */
     if (cert && certlen)
       seqlist[seqlistidx].buffer =
-	build_key_bag(buffer, buflen, salt, sha1hash.data(), keyidstr, &n);
+          build_key_bag(buffer, buflen, salt, sha1hash.data(), keyidstr, &n);
     else
       seqlist[seqlistidx].buffer =
           build_key_bag(buffer, buflen, salt, NULL, NULL, &n);
@@ -2106,15 +2053,9 @@ unsigned char *p12_build(gcry_mpi_t *kparms, const void *cert, size_t certlen,
   seqlist[seqlistidx].buffer = NULL;
   seqlist[seqlistidx].length = 0;
 
-  buffer = create_final(seqlist, pw, &buflen);
+  buffer = create_final(seqlist, used_pw, &buflen);
 
 failure:
-  if (pwbuf) {
-    /* Note that wipememory is not really needed due to the use of
-       gcry_malloc_secure.  */
-    wipememory(pwbuf, pwbufsize);
-    gcry_free(pwbuf);
-  }
   for (; seqlistidx; seqlistidx--) gcry_free(seqlist[seqlistidx].buffer);
 
   *r_length = buffer ? buflen : 0;
