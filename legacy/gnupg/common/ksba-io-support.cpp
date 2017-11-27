@@ -38,7 +38,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "i18n.h"
 #include "ksba-io-support.h"
 #include "util.h"
 

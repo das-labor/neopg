@@ -33,7 +33,6 @@
 #include <botan/mem_ops.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"

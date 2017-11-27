@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "i18n.h"
 #include "util.h"
 
 #define B64ENC_DID_HEADER 1

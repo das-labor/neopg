@@ -29,7 +29,6 @@
 #include "agent.h"
 
 #include "../common/exechelp.h"
-#include "../common/i18n.h"
 #include "../common/sysutils.h"
 
 static int store_key(gcry_sexp_t privater, const char *passphrase, int force,

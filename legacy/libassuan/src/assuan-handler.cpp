@@ -571,12 +571,11 @@ gpg_error_t assuan_process_done(assuan_context_t ctx, gpg_error_t rc) {
   } else {
     char errline[300];
     const char *text = ctx->err_no == rc ? ctx->err_str : NULL;
-    char ebuf[50];
 
     if (ctx->flags.force_close) text = "[closing connection]";
 
-    gpg_strerror_r(rc, ebuf, sizeof(ebuf));
-    snprintf(errline, sizeof errline, "ERR %d %.50s %s%.100s", rc, ebuf,
+    snprintf(errline, sizeof errline, "ERR %d %.50s %s%.100s", rc,
+	     gpg_strerror(rc),
              text ? " - " : "", text ? text : "");
 
     rc = assuan_write_line(ctx, errline);

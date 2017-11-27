@@ -232,25 +232,8 @@ typedef enum {
 /* The type of a function to lookup a TTL by a keygrip.  */
 typedef int (*lookup_ttl_t)(const char *hexgrip);
 
-/* This is a special version of the usual _() gettext macro.  It
-   assumes a server connection control variable with the name "ctrl"
-   and uses that to translate a string according to the locale set for
-   the connection.  The macro LunderscoreIMPL is used by i18n to
-   actually define the inline function when needed.  */
-#ifdef ENABLE_NLS
-#define L_(a) agent_Lunderscore(ctrl, (a))
-#define LunderscorePROTO                                                       \
-  static inline const char *agent_Lunderscore(ctrl_t ctrl, const char *string) \
-      GNUPG_GCC_ATTR_FORMAT_ARG(2);
-#define LunderscoreIMPL                                                   \
-  static inline const char *agent_Lunderscore(ctrl_t ctrl,                \
-                                              const char *string) {       \
-    return ctrl ? i18n_localegettext(ctrl->lc_messages, string) /*     */ \
-                : gettext(string);                                        \
-  }
-#else
+/* Used to translate agent strings for connections.  */
 #define L_(a) (a)
-#endif
 
 /*-- gpg-agent.c --*/
 void agent_exit(int rc)

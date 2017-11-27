@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../common/i18n.h"
 #include "../kbx/keybox.h"
 #include "gpgsm.h"
 #include "keydb.h"

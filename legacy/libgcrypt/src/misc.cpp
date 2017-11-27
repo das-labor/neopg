@@ -35,18 +35,6 @@ static int verbosity_level = 0;
 static void (*log_handler)(void *, int, const char *, va_list) = NULL;
 static void *log_handler_value = 0;
 
-static const char *(*user_gettext_handler)(const char *) = NULL;
-
-void _gcry_set_gettext_handler(const char *(*f)(const char *)) {
-  user_gettext_handler = f;
-}
-
-const char *_gcry_gettext(const char *key) {
-  if (user_gettext_handler) return user_gettext_handler(key);
-  /* FIXME: switch the domain to gnupg and restore later */
-  return key;
-}
-
 static void write2stderr(const char *s) {
   /* Dummy variable to silence gcc warning.  */
   int res = write(2, s, strlen(s));

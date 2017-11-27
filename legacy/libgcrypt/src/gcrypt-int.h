@@ -173,7 +173,6 @@ void _gcry_ctx_release(gcry_ctx_t ctx);
 void _gcry_set_outofcore_handler(gcry_handler_no_mem_t h, void *opaque);
 void _gcry_set_fatalerror_handler(gcry_handler_error_t fnc, void *opaque);
 void _gcry_set_log_handler(gcry_handler_log_t f, void *opaque);
-void _gcry_set_gettext_handler(const char *(*f)(const char *));
 void _gcry_set_progress_handler(gcry_handler_progress_t cb, void *cb_data);
 
 gpg_error_t _gcry_sexp_new(gcry_sexp_t *retsexp, const void *buffer,

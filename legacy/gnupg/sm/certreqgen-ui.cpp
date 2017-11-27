@@ -29,7 +29,6 @@
 #include <gcrypt.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "../common/membuf.h"
 #include "../common/ttyio.h"
 

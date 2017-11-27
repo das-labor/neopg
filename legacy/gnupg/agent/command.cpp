@@ -37,7 +37,6 @@
 
 #include <assuan.h>
 #include "../common/asshelp.h"
-#include "../common/i18n.h"
 #include "../common/server-help.h"
 #include "agent.h"
 #include "cvt-openpgp.h"

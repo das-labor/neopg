@@ -21,7 +21,6 @@
 
 #include <config.h>
 
-#include "../common/i18n.h"
 #include "../common/ttyio.h"
 #include "gpg.h"
 #include "keydb.h"

@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"
@@ -454,7 +453,6 @@ int gen_standard_revoke(ctrl_t ctrl, PKT_public_key *psk,
   size_t len;
   u32 keyid[2];
   int kl;
-  char *orig_codeset;
 
   dir = get_openpgp_revocdir(gnupg_homedir());
   tmpstr = hexfingerprint(psk, NULL, 0);
@@ -467,7 +465,7 @@ int gen_standard_revoke(ctrl_t ctrl, PKT_public_key *psk,
   memfp = es_fopenmem(0, "r+");
   if (!memfp) log_fatal("error creating memory stream\n");
 
-  orig_codeset = i18n_switchto_utf8();
+  // switch to utf8
 
   es_fprintf(memfp, "%s\n\n",
              _("This is a revocation certificate for the OpenPGP key:"));
@@ -499,7 +497,7 @@ int gen_standard_revoke(ctrl_t ctrl, PKT_public_key *psk,
 
   es_putc(0, memfp);
 
-  i18n_switchback(orig_codeset);
+  // switch back to native
 
   if (es_fclose_snatch(memfp, &leadin, NULL))
     log_fatal("error snatching memory stream\n");

@@ -33,7 +33,6 @@
 
 #include "agent.h"
 
-#include "../common/i18n.h"
 #include "../common/name-value.h"
 
 #ifndef O_BINARY

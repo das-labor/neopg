@@ -29,7 +29,6 @@
 #include <strings.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
 #include "../common/status.h"

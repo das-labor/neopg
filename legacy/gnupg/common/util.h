@@ -50,6 +50,10 @@
 
 #include "gettime.h"
 
+#define _(x) x
+#define N_(x) x
+#define ngettext(s,p,c) ((c) != 1 ? (p) : (s))
+
 /* Redefine asprintf by our estream version which uses our own memory
    allocator..  */
 #define asprintf gpgrt_asprintf
@@ -210,9 +214,6 @@ const char *gnupg_module_name(int which);
 
 /*-- gpgrlhelp.c --*/
 void gnupg_rl_initialize(void);
-
-/*-- localename.c --*/
-const char *gnupg_messages_locale_name(void);
 
 /*-- miscellaneous.c --*/
 

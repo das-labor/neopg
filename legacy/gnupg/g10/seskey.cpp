@@ -25,7 +25,6 @@
 
 #include <botan/secmem.h>
 
-#include "../common/i18n.h"
 #include "../common/util.h"
 #include "gpg.h"
 #include "main.h"

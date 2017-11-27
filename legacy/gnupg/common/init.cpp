@@ -37,7 +37,6 @@
 #endif
 
 #include <gcrypt.h>
-#include "i18n.h"
 #include "util.h"
 
 /* This object is used to register memory cleanup functions.

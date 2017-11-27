@@ -28,7 +28,6 @@
 
 #include <boost/algorithm/string/join.hpp>
 
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
 #include "../common/status.h"

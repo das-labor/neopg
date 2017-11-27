@@ -28,7 +28,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "../common/i18n.h"
 #include "agent.h"
 
 static int do_encode_md(const byte *md, size_t mdlen, int algo,

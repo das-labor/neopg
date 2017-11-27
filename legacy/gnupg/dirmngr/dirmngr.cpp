@@ -598,7 +598,6 @@ int dirmngr_main(int argc, char **argv) {
   log_set_prefix(DIRMNGR_NAME, GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_PID);
 
   /* Make sure that our subsystems are ready.  */
-  i18n_init();
   init_common_subsystems(&argc, &argv);
 
   gcry_control(GCRYCTL_DISABLE_SECMEM, 0);

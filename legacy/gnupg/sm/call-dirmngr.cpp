@@ -33,7 +33,6 @@
 #include "gpgsm.h"
 
 #include "../common/asshelp.h"
-#include "../common/i18n.h"
 #include "keydb.h"
 
 struct membuf {

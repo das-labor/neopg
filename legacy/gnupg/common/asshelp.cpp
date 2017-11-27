@@ -39,7 +39,6 @@
 
 #include "asshelp.h"
 #include "exechelp.h"
-#include "i18n.h"
 #include "membuf.h"
 #include "status.h"
 #include "sysutils.h"

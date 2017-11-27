@@ -31,7 +31,6 @@
 #include "gpgsm.h"
 
 #include "../common/exechelp.h"
-#include "../common/i18n.h"
 #include "../common/membuf.h"
 #include "../common/sysutils.h"
 #include "../kbx/keybox.h" /* for KEYBOX_FLAG_* */
@@ -629,7 +628,7 @@ static gpg_error_t parse_p12(ctrl_t ctrl, ksba_reader_t reader,
 
   err = gpgsm_agent_ask_passphrase(
       ctrl,
-      i18n_utf8("Please enter the passphrase to unprotect the PKCS#12 object."),
+      "Please enter the passphrase to unprotect the PKCS#12 object.",
       0, &passphrase);
   if (err) goto leave;
 

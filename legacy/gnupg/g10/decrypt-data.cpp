@@ -28,7 +28,6 @@
 #include <botan/hash.h>
 
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/util.h"
 #include "gpg.h"

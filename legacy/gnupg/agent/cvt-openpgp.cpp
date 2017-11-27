@@ -27,7 +27,6 @@
 #include <botan/hash.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "agent.h"
 #include "cvt-openpgp.h"
 

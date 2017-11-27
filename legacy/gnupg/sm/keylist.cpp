@@ -33,7 +33,6 @@
 #include <ksba.h>
 
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "../common/tlv.h"
 #include "../kbx/keybox.h" /* for KEYBOX_FLAG_* */
 #include "keydb.h"

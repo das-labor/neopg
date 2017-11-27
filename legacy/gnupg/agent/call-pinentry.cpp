@@ -35,7 +35,6 @@
 #include <npth.h>
 
 #include <assuan.h>
-#include "../common/i18n.h"
 #include "../common/sysutils.h"
 #include "agent.h"
 

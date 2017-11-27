@@ -31,7 +31,6 @@
 
 #include <assuan.h>
 #include "../common/asshelp.h"
-#include "../common/i18n.h"
 #include "../common/keyserver.h"
 #include "../common/membuf.h"
 #include "../common/status.h"

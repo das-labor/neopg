@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/mbox-util.h"
 #include "../common/membuf.h"

@@ -787,10 +787,6 @@ void gcry_set_log_handler(gcry_handler_log_t f, void *opaque) {
   _gcry_set_log_handler(f, opaque);
 }
 
-void gcry_set_gettext_handler(const char *(*f)(const char *)) {
-  _gcry_set_gettext_handler(f);
-}
-
 void *gcry_malloc(size_t n) { return _gcry_malloc(n); }
 
 void *gcry_calloc(size_t n, size_t m) { return _gcry_calloc(n, m); }

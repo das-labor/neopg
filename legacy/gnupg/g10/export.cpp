@@ -29,7 +29,6 @@
 #include <botan/hash.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/mbox-util.h"
 #include "../common/membuf.h"

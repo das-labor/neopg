@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #endif /* !DISABLE_REGEX */
 
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
 #include "../common/status.h"

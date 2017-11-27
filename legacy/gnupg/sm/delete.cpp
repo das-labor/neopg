@@ -30,7 +30,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 /* Delete a certificate or an secret key from a key database. */

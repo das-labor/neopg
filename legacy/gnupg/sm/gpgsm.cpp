@@ -34,7 +34,6 @@
 
 #include "../common/asshelp.h"
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/sysutils.h"
 #include "../kbx/keybox.h" /* malloc hooks */
@@ -708,7 +707,6 @@ int gpgsm_main(int argc, char **argv) {
   log_set_prefix(GPGSM_NAME, GPGRT_LOG_WITH_PREFIX);
 
   /* Make sure that our subsystems are ready.  */
-  i18n_init();
   init_common_subsystems(&argc, &argv);
 
   gcry_control(GCRYCTL_USE_SECURE_RNDPOOL);

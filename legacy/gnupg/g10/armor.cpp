@@ -28,7 +28,6 @@
 #include <botan/base64.h>
 #include <boost/algorithm/string.hpp>
 
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/status.h"
 #include "../common/util.h"

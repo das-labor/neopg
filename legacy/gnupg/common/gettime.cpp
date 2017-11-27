@@ -36,7 +36,6 @@
 #endif
 
 #include "gettime.h"
-#include "i18n.h"
 #include "util.h"
 
 #include <neopg/utils/time.h>

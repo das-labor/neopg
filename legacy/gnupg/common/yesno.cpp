@@ -31,7 +31,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "i18n.h"
 #include "util.h"
 
 /* Check the string S for a YES or NO answer and take care of

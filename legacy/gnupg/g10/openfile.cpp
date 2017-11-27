@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"

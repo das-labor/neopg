@@ -30,7 +30,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 /* Return the number of bits of the Q parameter from the DSA key

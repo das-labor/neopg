@@ -43,7 +43,6 @@
 #include <boost/locale.hpp>
 
 #include "common-defs.h"
-#include "i18n.h"
 #include "stringhelp.h"
 #include "utf8conv.h"
 #include "util.h"

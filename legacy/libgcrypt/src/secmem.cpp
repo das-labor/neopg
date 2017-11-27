@@ -219,7 +219,7 @@ static memblock_t *mb_get_new(pooldesc_t *pool, memblock_t *block,
 
 /* Print a warning message.  */
 static void print_warn(void) {
-  if (!no_warning) log_info(_("Warning: using insecure memory!\n"));
+  if (!no_warning) log_info("Warning: using insecure memory!\n");
 }
 
 /* Lock the memory pages of pool P of size N into core and drop
@@ -501,8 +501,8 @@ static void *_gcry_secmem_malloc_internal(size_t size, int xhint) {
     _gcry_secmem_init_internal(STANDARD_POOL_SIZE);
     if (!pool->okay) {
       log_info(
-          _("operation is not possible without "
-            "initialized secure memory\n"));
+          "operation is not possible without "
+	  "initialized secure memory\n");
       gpg_err_set_errno(ENOMEM);
       return NULL;
     }

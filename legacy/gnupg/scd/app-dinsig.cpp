@@ -75,7 +75,6 @@
 
 #include "scdaemon.h"
 
-#include "../common/i18n.h"
 #include "../common/tlv.h"
 #include "app-common.h"
 #include "iso7816.h"

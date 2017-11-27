@@ -84,7 +84,6 @@
 
 #include <assuan.h> /* We need the socket wrapper.  */
 
-#include "../common/i18n.h"
 #include "../common/sysutils.h" /* (gnupg_fd_t) */
 #include "../common/util.h"
 #include "dns-stuff.h"

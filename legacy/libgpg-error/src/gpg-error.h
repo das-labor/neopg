@@ -27,14 +27,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-/* The version string of this header. */
-#define GPG_ERROR_VERSION "1.28-beta8"
-#define GPGRT_VERSION "1.28-beta8"
-
-/* The version number of this header. */
-#define GPG_ERROR_VERSION_NUMBER 0x011c00
-#define GPGRT_VERSION_NUMBER 0x011c00
-
 #ifdef __GNUC__
 #define GPG_ERR_INLINE __inline__
 #elif defined(_MSC_VER) && _MSC_VER >= 1300
@@ -53,16 +45,6 @@ extern "C" {
 }
 #endif
 #endif /* __cplusplus */
-
-/* The GnuPG project consists of many components.  Error codes are
-   exchanged between all components.  The common error codes and their
-   user-presentable descriptions are kept into a shared library to
-   allow adding new error codes and components without recompiling any
-   of the other components.  The interface will not change in a
-   backward incompatible way.
-
-   In addition to the error codes, Libgpg-error also provides a set of
-   functions used by most GnuPG components.  */
 
 /* The error code type gpg_error_t.  */
 
@@ -111,7 +93,6 @@ enum {
   GPG_ERR_TIME_CONFLICT = 39,
   GPG_ERR_KEYSERVER = 40,
   GPG_ERR_WRONG_PUBKEY_ALGO = 41,
-  GPG_ERR_TRIBUTE_TO_D_A = 42,
   GPG_ERR_WEAK_KEY = 43,
   GPG_ERR_INV_KEYLEN = 44,
   GPG_ERR_INV_ARG = 45,
@@ -452,21 +433,6 @@ enum {
   GPG_ERR_LDAP_ASSERTION_FAILED = 890,
   GPG_ERR_LDAP_PROX_AUTH_DENIED = 891,
   GPG_ERR_USER_1 = 1024,
-  GPG_ERR_USER_2 = 1025,
-  GPG_ERR_USER_3 = 1026,
-  GPG_ERR_USER_4 = 1027,
-  GPG_ERR_USER_5 = 1028,
-  GPG_ERR_USER_6 = 1029,
-  GPG_ERR_USER_7 = 1030,
-  GPG_ERR_USER_8 = 1031,
-  GPG_ERR_USER_9 = 1032,
-  GPG_ERR_USER_10 = 1033,
-  GPG_ERR_USER_11 = 1034,
-  GPG_ERR_USER_12 = 1035,
-  GPG_ERR_USER_13 = 1036,
-  GPG_ERR_USER_14 = 1037,
-  GPG_ERR_USER_15 = 1038,
-  GPG_ERR_USER_16 = 1039,
   GPG_ERR_MISSING_ERRNO = 16381,
   GPG_ERR_UNKNOWN_ERRNO = 16382,
   GPG_ERR_EOF = 16383,
@@ -753,10 +719,6 @@ gpg_error_t gpg_err_init(void) _GPG_ERR_CONSTRUCTOR;
   } while (0)
 #endif
 
-/* See the source on how to use the deinit function; it is usually not
-   required.  */
-void gpg_err_deinit(int mode);
-
 /* Register blocking system I/O clamping functions.  */
 void gpgrt_set_syscall_clamp(void (*pre)(void), void (*post)(void));
 
@@ -771,15 +733,6 @@ void gpgrt_set_alloc_func(void *(*f)(void *a, size_t n));
 /* Return a pointer to a string containing a description of the error
    code in the error value ERR.  */
 const char *gpg_strerror(gpg_error_t err);
-
-/* Return the error string for ERR in the user-supplied buffer BUF of
-   size BUFLEN.  This function is, in contrast to gpg_strerror,
-   thread-safe if a thread-safe strerror_r() function is provided by
-   the system.  If the function succeeds, 0 is returned and BUF
-   contains the string describing the error.  If the buffer was not
-   large enough, ERANGE is returned and BUF contains as much of the
-   beginning of the error string as fits into the buffer.  */
-int gpg_strerror_r(gpg_error_t err, char *buf, size_t buflen);
 
 /* Mapping of system errors (errno).  */
 

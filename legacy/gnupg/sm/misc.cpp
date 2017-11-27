@@ -28,7 +28,6 @@
 #include <locale.h>
 #endif
 
-#include "../common/i18n.h"
 #include "../common/sexp-parse.h"
 #include "../common/sysutils.h"
 #include "../common/tlv.h"

@@ -25,7 +25,6 @@
 #include <string.h>
 
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
 #include "../common/status.h"

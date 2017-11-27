@@ -32,7 +32,6 @@
 #include <ksba.h>
 
 #include "../common/asshelp.h" /* (assuan_context_t) */
-#include "../common/i18n.h"
 #include "../common/membuf.h"
 #include "../common/sysutils.h" /* (gnupg_fd_t) */
 #include "../common/util.h"

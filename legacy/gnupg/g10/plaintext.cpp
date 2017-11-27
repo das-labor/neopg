@@ -28,7 +28,6 @@
 #include <fcntl.h> /* for setmode() */
 #endif
 
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"

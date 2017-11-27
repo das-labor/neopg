@@ -65,7 +65,6 @@
 #endif /* GNUPG_MAJOR_VERSION != 1 */
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/openpgpdefs.h"
 #include "../common/tlv.h"
 #include "../common/util.h"

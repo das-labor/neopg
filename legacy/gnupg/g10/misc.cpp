@@ -61,7 +61,6 @@
 #ifdef HAVE_W32_SYSTEM
 #include "../common/status.h"
 #endif /*HAVE_W32_SYSTEM*/
-#include "../common/i18n.h"
 #include "../common/util.h"
 #include "../common/zb32.h"
 #include "call-agent.h"

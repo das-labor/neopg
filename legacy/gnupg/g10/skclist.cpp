@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/util.h"
 #include "call-agent.h"

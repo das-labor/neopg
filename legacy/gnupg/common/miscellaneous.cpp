@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <strings.h>
 
-#include "i18n.h"
 #include "iobuf.h"
 #include "util.h"
 

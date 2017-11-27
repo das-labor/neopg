@@ -31,7 +31,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 static const char oid_kp_serverAuth[] = "1.3.6.1.5.5.7.3.1";

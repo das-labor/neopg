@@ -32,7 +32,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "../common/tlv.h"
 #include "../kbx/keybox.h" /* for KEYBOX_FLAG_* */
 #include "keydb.h"

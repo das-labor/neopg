@@ -44,7 +44,6 @@
 #include <assuan.h>
 #include "../common/asshelp.h"
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/iobuf.h"
 #include "../common/mbox-util.h"
@@ -1553,7 +1552,6 @@ int gpg_main(int argc, char **argv) {
   log_set_prefix(GPG_NAME, GPGRT_LOG_WITH_PREFIX);
 
   /* Make sure that our subsystems are ready.  */
-  i18n_init();
   init_common_subsystems(&argc, &argv);
 
   /* Use our own logging handler for Libcgrypt.  */

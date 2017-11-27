@@ -32,7 +32,6 @@
 #include <langinfo.h>
 #endif
 
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"
@@ -165,13 +164,11 @@ static char *passphrase_get(int nocache, const char *cacheid, int repeat,
                             const char *tryagain_text, int *canceled) {
   int rc;
   char *pw = NULL;
-  char *orig_codeset;
   const char *my_cacheid;
 
   if (canceled) *canceled = 0;
 
-  orig_codeset = i18n_switchto_utf8();
-
+  // switch to utf8
   if (!nocache && cacheid)
     my_cacheid = cacheid;
   else
@@ -181,8 +178,7 @@ static char *passphrase_get(int nocache, const char *cacheid, int repeat,
 
   rc = agent_get_passphrase(my_cacheid, tryagain_text, NULL,
                             _("Enter passphrase\n"), repeat, nocache, &pw);
-
-  i18n_switchback(orig_codeset);
+  // switch back to native
 
   if (!rc)
     ;
@@ -374,7 +370,6 @@ char *gpg_format_keydesc(ctrl_t ctrl, PKT_public_key *pk, int mode,
   size_t uidlen;
   const char *algo_name;
   const char *timestr;
-  char *orig_codeset;
   char *maink;
   char *desc;
   const char *prompt;
@@ -388,8 +383,7 @@ char *gpg_format_keydesc(ctrl_t ctrl, PKT_public_key *pk, int mode,
   timestr = strtimestamp(pk->timestamp);
   uid = get_user_id(ctrl, is_subkey ? pk->main_keyid : pk->keyid, &uidlen);
 
-  orig_codeset = i18n_switchto_utf8();
-
+  // switch to utf8
   if (is_subkey)
     maink = xtryasprintf(_(" (main key ID %s)"), keystr(pk->main_keyid));
   else
@@ -441,7 +435,7 @@ char *gpg_format_keydesc(ctrl_t ctrl, PKT_public_key *pk, int mode,
   xfree(maink);
   xfree(uid);
 
-  i18n_switchback(orig_codeset);
+  // switch back to native
 
   if (escaped) {
     char *tmp = percent_plus_escape(desc);

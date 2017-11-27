@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/iobuf.h"
 #include "../common/util.h"
 #include "filter.h"

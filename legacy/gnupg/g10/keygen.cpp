@@ -30,7 +30,6 @@
 #include <unistd.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/mbox-util.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"

@@ -25,7 +25,6 @@
 
 /* Local error function prototypes.  */
 const char *_gpg_strerror(gpg_error_t err);
-int _gpg_strerror_r(gpg_error_t err, char *buf, size_t buflen);
 void _gpg_err_set_errno(int err);
 
 void _gpgrt_set_alloc_func(void *(*f)(void *a, size_t n));

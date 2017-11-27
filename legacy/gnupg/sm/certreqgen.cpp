@@ -64,7 +64,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 enum para_name {
@@ -1108,12 +1107,12 @@ static int create_request(ctrl_t ctrl, struct para_data_s *para,
         char *orig_codeset;
         char *desc;
 
-        orig_codeset = i18n_switchto_utf8();
+        // switch to utf8
         desc = percent_plus_escape(
             _("To complete this certificate request please enter"
               " the passphrase for the key you just created once"
               " more.\n"));
-        i18n_switchback(orig_codeset);
+        // switch back to native
         rc = gpgsm_agent_pksign(ctrl, hexgrip, desc, gcry_md_read(md, mdalgo),
                                 gcry_md_get_algo_dlen(mdalgo), mdalgo, &sigval,
                                 &siglen);

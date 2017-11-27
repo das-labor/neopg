@@ -36,7 +36,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 struct dn_array_s {
@@ -664,7 +663,7 @@ char *gpgsm_format_keydesc(ksba_cert_t cert) {
   else
     *expires = 0;
 
-  orig_codeset = i18n_switchto_utf8();
+  // switch to utf8
 
   name =
       xtryasprintf(_("Please enter the passphrase to unlock the"
@@ -675,7 +674,7 @@ char *gpgsm_format_keydesc(ksba_cert_t cert) {
                    subject ? subject : "?", sn ? sn : "?",
                    gpgsm_get_short_fingerprint(cert, NULL), created, expires);
 
-  i18n_switchback(orig_codeset);
+  // switch back to native
 
   if (!name) {
     xfree(subject);

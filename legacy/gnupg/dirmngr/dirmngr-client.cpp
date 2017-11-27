@@ -38,7 +38,6 @@
 #include "../common/stringhelp.h"
 #include "../common/strlist.h"
 
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/util.h"
 
@@ -195,9 +194,6 @@ int dirmngr_client_main(int argc, char **argv) {
 
   /* Init Assuan.  */
   assuan_set_assuan_log_prefix(log_get_prefix(NULL));
-
-  /* Setup I18N. */
-  i18n_init();
 
   /* Parse the command line.  */
   pargs.argc = &argc;

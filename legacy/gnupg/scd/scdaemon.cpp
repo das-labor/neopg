@@ -46,7 +46,6 @@
 
 #include "../common/asshelp.h"
 #include "../common/exechelp.h"
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/sysutils.h"
 #include "apdu.h"
@@ -299,7 +298,6 @@ int scd_main(int argc, char **argv) {
   log_set_prefix("scdaemon", GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_PID);
 
   /* Make sure that our subsystems are ready.  */
-  i18n_init();
   init_common_subsystems(&argc, &argv);
 
   ksba_set_malloc_hooks(gcry_malloc, gcry_realloc, gcry_free);

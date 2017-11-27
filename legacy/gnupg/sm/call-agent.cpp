@@ -33,7 +33,6 @@
 #include <assuan.h>
 #include <gcrypt.h>
 #include "../common/asshelp.h"
-#include "../common/i18n.h"
 #include "../common/membuf.h"
 #include "gpgsm.h"
 #include "keydb.h" /* fixme: Move this to import.c */

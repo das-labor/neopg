@@ -40,7 +40,6 @@
 #include <string.h>
 
 #include "common-defs.h"
-#include "i18n.h"
 #include "logging.h"
 #include "mischelp.h"
 #include "stringhelp.h"

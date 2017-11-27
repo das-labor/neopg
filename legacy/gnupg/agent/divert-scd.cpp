@@ -29,7 +29,6 @@
 
 #include "agent.h"
 
-#include "../common/i18n.h"
 #include "../common/sexp-parse.h"
 
 static int ask_for_card(ctrl_t ctrl, const unsigned char *shadow_info,

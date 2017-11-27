@@ -1482,9 +1482,6 @@ void gcry_set_fatalerror_handler(gcry_handler_error_t fnc, void *opaque);
    facility. */
 void gcry_set_log_handler(gcry_handler_log_t f, void *opaque);
 
-/* Reserved for future use. */
-void gcry_set_gettext_handler(const char *(*f)(const char *));
-
 /* Libgcrypt uses its own memory allocation.  It is important to use
    gcry_free () to release memory allocated by libgcrypt. */
 void *gcry_malloc(size_t n) _GCRY_GCC_ATTR_MALLOC;

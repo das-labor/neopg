@@ -57,7 +57,6 @@
 
 #define GNUPG_COMMON_NEED_AFLOCAL 1
 #include "common-defs.h"
-#include "i18n.h"
 #include "logging.h"
 #include "sysutils.h"
 #include "util.h"

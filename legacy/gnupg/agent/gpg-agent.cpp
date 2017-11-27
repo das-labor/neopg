@@ -49,7 +49,6 @@
 
 #include "../common/asshelp.h"
 #include "../common/exechelp.h"
-#include "../common/i18n.h"
 #include "../common/init.h"
 #include "../common/sysutils.h"
 
@@ -475,7 +474,6 @@ int agent_main(int argc, char **argv) {
   log_set_prefix(GPG_AGENT_NAME, GPGRT_LOG_WITH_PREFIX | GPGRT_LOG_WITH_PID);
 
   /* Make sure that our subsystems are ready.  */
-  i18n_init();
   init_common_subsystems(&argc, &argv);
 
   malloc_hooks.malloc = gcry_malloc;
@@ -642,17 +640,6 @@ next_pass:
       if (argv[i][0] == '-' && argv[i][1] == '-')
         log_info(_("Note: '%s' is not considered an option\n"), argv[i]);
   }
-
-#ifdef ENABLE_NLS
-  /* gpg-agent usually does not output any messages because it runs in
-     the background.  For log files it is acceptable to have messages
-     always encoded in utf-8.  We switch here to utf-8, so that
-     commands like --help still give native messages.  It is far
-     easier to switch only once instead of for every message and it
-     actually helps when more then one thread is active (avoids an
-     extra copy step). */
-  bind_textdomain_codeset(PACKAGE_GT, "UTF-8");
-#endif
 
   if (!pipe_server && !is_daemon && !is_supervised) {
     /* We have been called without any command and thus we merely

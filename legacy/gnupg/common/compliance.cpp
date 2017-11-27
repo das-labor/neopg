@@ -32,7 +32,6 @@
 #include <gcrypt.h>
 
 #include "compliance.h"
-#include "i18n.h"
 #include "logging.h"
 #include "openpgpdefs.h"
 #include "util.h"

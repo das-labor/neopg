@@ -74,7 +74,6 @@
 
 #include <assuan.h>
 
-#include "i18n.h"
 #include "util.h"
 
 #include "sysutils.h"

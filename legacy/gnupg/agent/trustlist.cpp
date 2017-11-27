@@ -32,8 +32,6 @@
 #include <assuan.h> /* fixme: need a way to avoid assuan calls here */
 #include "agent.h"
 
-#include "../common/i18n.h"
-
 /* A structure to store the information from the trust file. */
 struct trustitem_s {
   struct {

@@ -32,7 +32,6 @@
 #include "gpgsm.h"
 
 #include "../common/compliance.h"
-#include "../common/i18n.h"
 #include "keydb.h"
 
 struct dek_s {

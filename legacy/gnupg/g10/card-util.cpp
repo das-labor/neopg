@@ -31,7 +31,6 @@
 #if GNUPG_MAJOR_VERSION != 1
 #include "gpg.h"
 #endif /*GNUPG_MAJOR_VERSION != 1*/
-#include "../common/i18n.h"
 #include "../common/status.h"
 #include "../common/ttyio.h"
 #include "../common/util.h"

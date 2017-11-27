@@ -40,7 +40,6 @@
 #include <assuan.h>
 #include "exechelp.h"
 #include "exectool.h"
-#include "i18n.h"
 #include "logging.h"
 #include "membuf.h"
 #include "mischelp.h"

@@ -71,7 +71,6 @@
 #endif /*__linux__ */
 
 #include "exechelp.h"
-#include "i18n.h"
 #include "sysutils.h"
 #include "util.h"
 

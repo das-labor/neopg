@@ -26,8 +26,6 @@ add_executable(neopg
   ../legacy/gnupg/common/status.cpp
   ../legacy/gnupg/common/iobuf.h
   ../legacy/gnupg/common/iobuf.cpp
-  ../legacy/gnupg/common/i18n.h
-  ../legacy/gnupg/common/i18n.cpp
   ../legacy/gnupg/common/gettime.h
   ../legacy/gnupg/common/gettime.cpp
   ../legacy/gnupg/common/asshelp.h
@@ -58,7 +56,6 @@ add_executable(neopg
   ../legacy/gnupg/common/sexputil.cpp
   ../legacy/gnupg/common/tlv.cpp
   ../legacy/gnupg/common/util.h
-  ../legacy/gnupg/common/localename.cpp
   ../legacy/gnupg/common/convert.cpp
   ../legacy/gnupg/common/b64enc.cpp
   ../legacy/gnupg/kbx/keybox-init.cpp

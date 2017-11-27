@@ -31,7 +31,6 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
-#include "../common/i18n.h"
 #include "keydb.h"
 
 /* Hash the data and return if something was hashed.  Return -1 on error.  */

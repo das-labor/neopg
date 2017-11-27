@@ -17,18 +17,15 @@ add_library(gpg-error
   libgpg-error/src/gpg-error.h
   libgpg-error/src/gpgrt.h
   libgpg-error/src/gpgrt-int.h
-  libgpg-error/src/init.h
   libgpg-error/src/init.cpp
   libgpg-error/src/visibility.h
   libgpg-error/src/visibility.cpp
-  libgpg-error/src/gettext.h
 )
 
 if(WIN32)
   target_sources(gpg-error PRIVATE
     libgpg-error/src/w32-add.h
     libgpg-error/src/w32-estream.cpp
-    libgpg-error/src/w32-gettext.cpp
     libgpg-error/src/w32-lock.cpp
     libgpg-error/src/w32-thread.cpp
   )

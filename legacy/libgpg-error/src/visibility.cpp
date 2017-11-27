@@ -25,10 +25,6 @@
 
 const char *gpg_strerror(gpg_error_t err) { return _gpg_strerror(err); }
 
-int gpg_strerror_r(gpg_error_t err, char *buf, size_t buflen) {
-  return _gpg_strerror_r(err, buf, buflen);
-}
-
 void gpg_err_set_errno(int err) { _gpg_err_set_errno(err); }
 
 void gpgrt_set_syscall_clamp(void (*pre)(void), void (*post)(void)) {

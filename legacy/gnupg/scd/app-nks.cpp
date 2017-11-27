@@ -51,7 +51,6 @@
 #include <time.h>
 
 #include "../common/host2net.h"
-#include "../common/i18n.h"
 #include "../common/tlv.h"
 #include "apdu.h"
 #include "app-common.h"

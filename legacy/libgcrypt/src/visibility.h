@@ -48,7 +48,6 @@ gpg_error_t gcry_md_get(gcry_md_hd_t hd, int algo, unsigned char *buffer,
 
 MARK_VISIBLEX(gcry_control)
 
-MARK_VISIBLEX(gcry_set_gettext_handler)
 MARK_VISIBLEX(gcry_set_log_handler)
 MARK_VISIBLEX(gcry_set_outofcore_handler)
 MARK_VISIBLEX(gcry_set_progress_handler)
