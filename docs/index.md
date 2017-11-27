@@ -1,3 +1,7 @@
+---
+layout: default
+title: NeoPG
+---
 # Easy to install
 
 NeoPG comes in a single source package and installs as a single
