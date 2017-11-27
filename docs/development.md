@@ -53,4 +53,4 @@ allocated memory buffer, so converting passwords (to guess the right
 encoding) currently has a race condition where the password is
 exposed.  This is currently only used in the p12 export function.
 
-See: https://svn.boost.org/trac10/ticket/13312
+See: [Boost Trac #13312](https://svn.boost.org/trac10/ticket/13312)
