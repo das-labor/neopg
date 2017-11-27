@@ -124,7 +124,6 @@
 #define HAVE_LONG_DOUBLE 1
 /* #undef HAVE_CFLOCALECOPYCURRENT */
 /* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
-/* #undef HAVE_ICONV */
 #define HAVE_LONG_LONG_INT 1
 #define HAVE_MEMRCHR 1
 #define HAVE_PTHREAD_MUTEX_RECURSIVE 1
@@ -370,7 +369,6 @@
 #define HAVE_GETTEXT 1
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_GMTIME_R 1
-#define HAVE_ICONV 1
 #define HAVE_INET_NTOP 1
 #define HAVE_INET_PTON 1
 #ifndef __APPLE__
@@ -448,7 +446,6 @@
 #define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
 #define HAVE_ZIP 1
-#define ICONV_CONST
 #define LITTLE_ENDIAN_HOST 1
 /* #undef MKDIR_TAKES_ONE_ARG */
 /* #undef NEED_LBER_H */

@@ -40,14 +40,6 @@ int is_native_utf8(void);
 std::string native_to_utf8(const std::string &string);
 std::string utf8_to_native(const char *string, size_t length, int delim);
 
-/* Silly wrappers, required for W32 portability.  */
-typedef void *jnlib_iconv_t;
-
-jnlib_iconv_t jnlib_iconv_open(const char *tocode, const char *fromcode);
-size_t jnlib_iconv(jnlib_iconv_t cd, const char **inbuf, size_t *inbytesleft,
-                   char **outbuf, size_t *outbytesleft);
-int jnlib_iconv_close(jnlib_iconv_t cd);
-
 #ifdef HAVE_W32_SYSTEM
 char *wchar_to_native(const wchar_t *string);
 wchar_t *native_to_wchar(const char *string);

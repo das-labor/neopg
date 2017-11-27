@@ -29,7 +29,6 @@ if(WIN32)
     libgpg-error/src/w32-add.h
     libgpg-error/src/w32-estream.cpp
     libgpg-error/src/w32-gettext.cpp
-    libgpg-error/src/w32-iconv.cpp
     libgpg-error/src/w32-lock.cpp
     libgpg-error/src/w32-thread.cpp
   )

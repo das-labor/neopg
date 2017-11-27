@@ -94,7 +94,6 @@ if(BUILD_DOC)
 endif()
 
 find_package(Intl REQUIRED)
-find_package(Iconv REQUIRED)
 
 find_package(PkgConfig)
 pkg_check_modules(SQLITE3 REQUIRED sqlite3)

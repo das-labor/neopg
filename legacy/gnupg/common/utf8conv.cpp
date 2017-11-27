@@ -42,15 +42,6 @@
 #include <boost/format.hpp>
 #include <boost/locale.hpp>
 
-#if HAVE_W32_SYSTEM
-#/* Tell libgpg-error to provide the iconv macros.  */
-#define GPGRT_ENABLE_W32_ICONV_MACROS 1
-#elif HAVE_ANDROID_SYSTEM
-#/* No iconv support.  */
-#else
-#include <iconv.h>
-#endif
-
 #include "common-defs.h"
 #include "i18n.h"
 #include "stringhelp.h"
@@ -63,39 +54,12 @@
 
 static const char *active_charset_name = "iso-8859-1";
 static int no_translation; /* Set to true if we let simply pass through. */
-static int use_iconv;      /* iconv conversion functions required. */
-
-#ifdef HAVE_ANDROID_SYSTEM
-/* Fake stuff to get things building.  */
-typedef void *iconv_t;
-#define ICONV_CONST
-
-static iconv_t iconv_open(const char *tocode, const char *fromcode) {
-  (void)tocode;
-  (void)fromcode;
-  return (iconv_t)(-1);
-}
-
-static size_t iconv(iconv_t cd, char **inbuf, size_t *inbytesleft,
-                    char **outbuf, size_t *outbytesleft) {
-  (void)cd;
-  (void)inbuf;
-  (void)inbytesleft;
-  (void)outbuf;
-  (void)outbytesleft;
-  return (size_t)(0);
-}
-
-static int iconv_close(iconv_t cd) {
-  (void)cd;
-  return 0;
-}
-#endif /*HAVE_ANDROID_SYSTEM*/
+static int use_conv;       /* use conversion */
 
 /* Error handler for iconv failures. This is needed to not clutter the
    output with repeated diagnostics about a missing conversion. */
-static void handle_iconv_error(const char *to, const char *from,
-                               int use_fallback) {
+static void handle_conv_error(const char *to, const char *from,
+                              int use_fallback) {
   if (errno == EINVAL) {
     static int shown1, shown2;
     int x;
@@ -123,7 +87,7 @@ static void handle_iconv_error(const char *to, const char *from,
        case of errors from iconv or nl_langinfo.  */
     active_charset_name = "utf-8";
     no_translation = 0;
-    use_iconv = 0;
+    use_conv = 0;
   }
 }
 
@@ -272,12 +236,12 @@ int set_native_charset(const char *newset) {
       !ascii_strcasecmp(newset, "ANSI_X3.4-1968")) {
     active_charset_name = "iso-8859-1";
     no_translation = 0;
-    use_iconv = 0;
+    use_conv = 0;
   } else if (!ascii_strcasecmp(newset, "utf8") ||
              !ascii_strcasecmp(newset, "utf-8")) {
     active_charset_name = "utf-8";
     no_translation = 1;
-    use_iconv = 0;
+    use_conv = 0;
   } else {
     const std::string test = "test";
     try {
@@ -292,7 +256,7 @@ int set_native_charset(const char *newset) {
 
     active_charset_name = full_newset;
     no_translation = 0;
-    use_iconv = 1;
+    use_conv = 1;
   }
   return 0;
 }
@@ -310,7 +274,7 @@ std::string native_to_utf8(const std::string &orig_string) {
 }
 
 static std::string do_utf8_to_native(const char *string, size_t length,
-                                     int delim, int with_iconv) {
+                                     int delim, int with_conv) {
   int nleft;
   int i;
   unsigned char encbuf[8];
@@ -417,7 +381,7 @@ static std::string do_utf8_to_native(const char *string, size_t length,
         if (no_translation) {
           for (i = 0; i < encidx; i++) buffer << (char)encbuf[i];
           encidx = 0;
-        } else if (with_iconv) {
+        } else if (with_conv) {
           /* Our strategy for using iconv is a bit strange but it
              better keeps compatibility with previous versions in
              regard to how invalid encodings are displayed.  What we
@@ -449,14 +413,14 @@ static std::string do_utf8_to_native(const char *string, size_t length,
     }
   }
   std::string output = buffer.str();
-  if (with_iconv) {
+  if (with_conv) {
     /* Note: See above for comments.  */
     try {
       std::string result =
           boost::locale::conv::from_utf<char>(output, active_charset_name);
       return result;
     } catch (boost::locale::conv::invalid_charset_error &e) {
-      handle_iconv_error(active_charset_name, "utf-8", 1);
+      handle_conv_error(active_charset_name, "utf-8", 1);
       return utf8_to_native(string, length, delim);
     } catch (boost::locale::conv::conversion_error &e) {
       static int shown;
@@ -479,26 +443,8 @@ static std::string do_utf8_to_native(const char *string, size_t length,
    it disables all quoting of control characters.  This function
    terminates the process on memory shortage.  */
 std::string utf8_to_native(const char *string, size_t length, int delim) {
-  return do_utf8_to_native(string, length, delim, use_iconv);
+  return do_utf8_to_native(string, length, delim, use_conv);
 }
-
-/* Wrapper function for iconv_open, required for W32 as we dlopen that
-   library on that system.  */
-jnlib_iconv_t jnlib_iconv_open(const char *tocode, const char *fromcode) {
-  return (jnlib_iconv_t)iconv_open(tocode, fromcode);
-}
-
-/* Wrapper function for iconv, required for W32 as we dlopen that
-   library on that system.  */
-size_t jnlib_iconv(jnlib_iconv_t cd, const char **inbuf, size_t *inbytesleft,
-                   char **outbuf, size_t *outbytesleft) {
-  return iconv((iconv_t)cd, (ICONV_CONST char **)inbuf, inbytesleft, outbuf,
-               outbytesleft);
-}
-
-/* Wrapper function for iconv_close, required for W32 as we dlopen that
-   library on that system.  */
-int jnlib_iconv_close(jnlib_iconv_t cd) { return iconv_close((iconv_t)cd); }
 
 #ifdef HAVE_W32_SYSTEM
 /* Return a malloced string encoded for CODEPAGE from the wide char input
