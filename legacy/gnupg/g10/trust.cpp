@@ -624,8 +624,7 @@ static int clean_uid_from_key(kbnode_t keyblock, kbnode_t uidnode, int noisy) {
   log_assert(uidnode->pkt->pkttype == PKT_USER_ID);
 
   /* Skip valid and compacted user IDs. */
-  if (uid->created || uid->flags.compacted)
-    return 0;
+  if (uid->created || uid->flags.compacted) return 0;
 
   for (node = uidnode->next; node && node->pkt->pkttype == PKT_SIGNATURE;
        node = node->next) {
@@ -638,7 +637,7 @@ static int clean_uid_from_key(kbnode_t keyblock, kbnode_t uidnode, int noisy) {
 
   if (noisy) {
     const char *reason;
-    char *user = utf8_to_native(uid->name, uid->len, 0);
+    std::string user = utf8_to_native(uid->name, uid->len, 0);
 
     if (uid->flags.revoked)
       reason = _("revoked");
@@ -647,10 +646,8 @@ static int clean_uid_from_key(kbnode_t keyblock, kbnode_t uidnode, int noisy) {
     else
       reason = _("invalid");
 
-    log_info("compacting user ID \"%s\" on key %s: %s\n", user,
+    log_info("compacting user ID \"%s\" on key %s: %s\n", user.c_str(),
              keystr_from_pk(keyblock->pkt->pkt.public_key), reason);
-
-    xfree(user);
   }
 
   return deleted;

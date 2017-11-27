@@ -161,14 +161,12 @@ static int do_print_utf8_buffer(estream_t stream, const void *buffer,
   }
   if (i < length) {
     int delim = delimiters ? *delimiters : 0;
-    char *buf;
     int ret;
 
     /*(utf8 conversion already does the control character quoting). */
-    buf = utf8_to_native(p, length, delim);
-    if (bytes_written) *bytes_written = strlen(buf);
-    ret = es_fputs(buf, stream);
-    xfree(buf);
+    std::string buf = utf8_to_native(p, length, delim);
+    if (bytes_written) *bytes_written = strlen(buf.c_str());
+    ret = es_fputs(buf.c_str(), stream);
     return ret == EOF ? ret : (int)i;
   } else
     return es_write_sanitized(stream, p, length, delimiters, bytes_written);

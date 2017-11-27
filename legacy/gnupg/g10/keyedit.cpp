@@ -476,19 +476,18 @@ static int sign_uids(
         uidnode = (node->flag & NODFLG_MARK_A) ? node : NULL;
         if (uidnode) {
           int yesreally = 0;
-          char *user;
 
-          user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
-                                uidnode->pkt->pkt.user_id->len, 0);
+          std::string user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
+                                            uidnode->pkt->pkt.user_id->len, 0);
 
           if (opt.only_sign_text_ids && uidnode->pkt->pkt.user_id->attribs) {
             tty_fprintf(fp, _("Skipping user ID \"%s\","
                               " which is not a text ID.\n"),
-                        user);
+                        user.c_str());
             uidnode->flag &= ~NODFLG_MARK_A;
             uidnode = NULL;
           } else if (uidnode->pkt->pkt.user_id->flags.revoked) {
-            tty_fprintf(fp, _("User ID \"%s\" is revoked."), user);
+            tty_fprintf(fp, _("User ID \"%s\" is revoked."), user.c_str());
 
             if (selfsig)
               tty_fprintf(fp, "\n");
@@ -509,7 +508,7 @@ static int sign_uids(
               tty_fprintf(fp, _("  Unable to sign.\n"));
             }
           } else if (uidnode->pkt->pkt.user_id->flags.expired) {
-            tty_fprintf(fp, _("User ID \"%s\" is expired."), user);
+            tty_fprintf(fp, _("User ID \"%s\" is expired."), user.c_str());
 
             if (selfsig)
               tty_fprintf(fp, "\n");
@@ -530,7 +529,8 @@ static int sign_uids(
               tty_fprintf(fp, _("  Unable to sign.\n"));
             }
           } else if (!uidnode->pkt->pkt.user_id->created && !selfsig) {
-            tty_fprintf(fp, _("User ID \"%s\" is not self-signed."), user);
+            tty_fprintf(fp, _("User ID \"%s\" is not self-signed."),
+                        user.c_str());
 
             if (opt.expert && !quick) {
               tty_fprintf(fp, "\n");
@@ -551,31 +551,27 @@ static int sign_uids(
           }
 
           if (uidnode && interactive && !yesreally && !quick) {
-            tty_fprintf(fp, _("User ID \"%s\" is signable.  "), user);
+            tty_fprintf(fp, _("User ID \"%s\" is signable.  "), user.c_str());
             if (!cpr_get_answer_is_yes("sign_uid.sign_okay",
                                        _("Sign it? (y/N) "))) {
               uidnode->flag &= ~NODFLG_MARK_A;
               uidnode = NULL;
             }
           }
-
-          xfree(user);
         }
       } else if (uidnode && node->pkt->pkttype == PKT_SIGNATURE &&
                  (node->pkt->pkt.signature->sig_class & ~3) == 0x10) {
         if (sk_keyid[0] == node->pkt->pkt.signature->keyid[0] &&
             sk_keyid[1] == node->pkt->pkt.signature->keyid[1]) {
           char buf[50];
-          char *user;
-
-          user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
-                                uidnode->pkt->pkt.user_id->len, 0);
+          std::string user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
+                                            uidnode->pkt->pkt.user_id->len, 0);
 
           /* It's a v3 self-sig.  Make it into a v4 self-sig? */
           if (node->pkt->pkt.signature->version < 4 && selfsig && !quick) {
             tty_fprintf(fp, _("The self-signature on \"%s\"\n"
                               "is a PGP 2.x-style signature.\n"),
-                        user);
+                        user.c_str());
 
             /* Note that the regular PGP2 warning below
                still applies if there are no v4 sigs on
@@ -587,7 +583,6 @@ static int sign_uids(
                                           "it to an OpenPGP self-"
                                           "signature? (y/N) "))) {
                 node->flag |= NODFLG_DELSIG;
-                xfree(user);
                 continue;
               }
           }
@@ -596,7 +591,7 @@ static int sign_uids(
           if (node->pkt->pkt.signature->flags.expired) {
             tty_fprintf(fp, _("Your current signature on \"%s\"\n"
                               "has expired.\n"),
-                        user);
+                        user.c_str());
 
             if (quick || cpr_get_answer_is_yes("sign_uid.replace_expired_okay",
                                                _("Do you want to issue a "
@@ -610,7 +605,6 @@ static int sign_uids(
                  in place. */
 
               node->flag |= NODFLG_DELSIG;
-              xfree(user);
               continue;
             }
           }
@@ -620,7 +614,7 @@ static int sign_uids(
                exportable sig. */
             tty_fprintf(fp, _("Your current signature on \"%s\"\n"
                               "is a local signature.\n"),
-                        user);
+                        user.c_str());
 
             if (quick || cpr_get_answer_is_yes("sign_uid.local_promote_okay",
                                                _("Do you want to promote "
@@ -634,7 +628,6 @@ static int sign_uids(
                  in place. */
 
               node->flag |= NODFLG_DELSIG;
-              xfree(user);
               continue;
             }
           }
@@ -643,10 +636,10 @@ static int sign_uids(
            * case we should allow signing it again. */
           if (!node->pkt->pkt.signature->flags.exportable && local)
             tty_fprintf(fp, _("\"%s\" was already locally signed by key %s\n"),
-                        user, keystr_from_pk(pk));
+                        user.c_str(), keystr_from_pk(pk));
           else
-            tty_fprintf(fp, _("\"%s\" was already signed by key %s\n"), user,
-                        keystr_from_pk(pk));
+            tty_fprintf(fp, _("\"%s\" was already signed by key %s\n"),
+                        user.c_str(), keystr_from_pk(pk));
 
           if (opt.expert && !quick &&
               cpr_get_answer_is_yes("sign_uid.dupe_okay",
@@ -654,7 +647,6 @@ static int sign_uids(
                                       "again anyway? (y/N) "))) {
             /* Don't delete the old sig here since this is
                an --expert thing. */
-            xfree(user);
             continue;
           }
 
@@ -662,8 +654,6 @@ static int sign_uids(
                    (unsigned long)pk->keyid[1]);
           write_status_text(STATUS_ALREADY_SIGNED, buf);
           uidnode->flag &= ~NODFLG_MARK_A; /* remove mark */
-
-          xfree(user);
         }
       }
     }
@@ -3386,8 +3376,8 @@ static int menu_clean(ctrl_t ctrl, kbnode_t keyblock, int self_only) {
     if (uidnode->pkt->pkttype == PKT_USER_ID &&
         (uidnode->flag & NODFLG_SELUID || select_all)) {
       int uids = 0, sigs = 0;
-      char *user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
-                                  uidnode->pkt->pkt.user_id->len, 0);
+      std::string user = utf8_to_native(uidnode->pkt->pkt.user_id->name,
+                                        uidnode->pkt->pkt.user_id->len, 0);
 
       clean_one_uid(ctrl, keyblock, uidnode, opt.verbose, self_only, &uids,
                     &sigs);
@@ -3401,21 +3391,19 @@ static int menu_clean(ctrl_t ctrl, kbnode_t keyblock, int self_only) {
         else
           reason = _("invalid");
 
-        tty_printf(_("User ID \"%s\" compacted: %s\n"), user, reason);
+        tty_printf(_("User ID \"%s\" compacted: %s\n"), user.c_str(), reason);
 
         modified = 1;
       } else if (sigs) {
         tty_printf(ngettext("User ID \"%s\": %d signature removed\n",
                             "User ID \"%s\": %d signatures removed\n", sigs),
-                   user, sigs);
+                   user.c_str(), sigs);
         modified = 1;
       } else {
         tty_printf(self_only == 1 ? _("User ID \"%s\": already minimized\n")
                                   : _("User ID \"%s\": already clean\n"),
-                   user);
+                   user.c_str());
       }
-
-      xfree(user);
     }
   }
 
@@ -3953,10 +3941,10 @@ static int menu_set_primary_uid(ctrl_t ctrl, kbnode_t pub_keyblock) {
           attribute == (uid->attrib_data != NULL) &&
           sig->flags.chosen_selfsig) {
         if (sig->version < 4) {
-          char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
+          std::string user = utf8_to_native(uid->name, strlen(uid->name), 0);
 
-          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"), user);
-          xfree(user);
+          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"),
+                   user.c_str());
         } else {
           /* This is a selfsignature which is to be replaced.
              We can just ignore v3 signatures because they are
@@ -4044,10 +4032,10 @@ static int menu_set_preferences(ctrl_t ctrl, kbnode_t pub_keyblock) {
       if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1] &&
           (uid && (sig->sig_class & ~3) == 0x10) && sig->flags.chosen_selfsig) {
         if (sig->version < 4) {
-          char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
+          std::string user = utf8_to_native(uid->name, strlen(uid->name), 0);
 
-          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"), user);
-          xfree(user);
+          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"),
+                   user.c_str());
         } else {
           /* This is a selfsignature which is to be replaced
            * We have to ignore v3 signatures because they are
@@ -4136,9 +4124,10 @@ static int menu_set_keyserver_url(ctrl_t ctrl, const char *url,
       PKT_signature *sig = node->pkt->pkt.signature;
       if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1] &&
           (uid && (sig->sig_class & ~3) == 0x10) && sig->flags.chosen_selfsig) {
-        char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
+        std::string user = utf8_to_native(uid->name, strlen(uid->name), 0);
         if (sig->version < 4)
-          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"), user);
+          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"),
+                   user.c_str());
         else {
           /* This is a selfsignature which is to be replaced
            * We have to ignore v3 signatures because they are
@@ -4154,7 +4143,7 @@ static int menu_set_keyserver_url(ctrl_t ctrl, const char *url,
             tty_printf(
                 "Current preferred keyserver for user"
                 " ID \"%s\": ",
-                user);
+                user.c_str());
             tty_print_utf8_string(p, plen);
             tty_printf("\n");
             if (!cpr_get_answer_is_yes(
@@ -4184,8 +4173,6 @@ static int menu_set_keyserver_url(ctrl_t ctrl, const char *url,
           node->pkt = newpkt;
           modified = 1;
         }
-
-        xfree(user);
       }
     }
   }
@@ -4249,19 +4236,20 @@ static int menu_set_notation(ctrl_t ctrl, const char *string,
       PKT_signature *sig = node->pkt->pkt.signature;
       if (keyid[0] == sig->keyid[0] && keyid[1] == sig->keyid[1] &&
           (uid && (sig->sig_class & ~3) == 0x10) && sig->flags.chosen_selfsig) {
-        char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
+        std::string user = utf8_to_native(uid->name, strlen(uid->name), 0);
         if (sig->version < 4)
-          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"), user);
+          log_info(_("skipping v3 self-signature on user ID \"%s\"\n"),
+                   user.c_str());
         else {
           PKT_signature *newsig;
           PACKET *newpkt;
           int rc, skip = 0, addonly = 1;
 
           if (sig->flags.notation) {
-            tty_printf("Current notations for user ID \"%s\":\n", user);
+            tty_printf("Current notations for user ID \"%s\":\n", user.c_str());
             tty_print_notations(-9, sig);
           } else {
-            tty_printf("No notations on user ID \"%s\"\n", user);
+            tty_printf("No notations on user ID \"%s\"\n", user.c_str());
             if (notation == NULL) {
               /* There are no current notations, so there
                  is no point in trying to un-set them. */
@@ -4329,7 +4317,6 @@ static int menu_set_notation(ctrl_t ctrl, const char *string,
           if (rc) {
             log_error("update_keysig_packet failed: %s\n", gpg_strerror(rc));
             free_notation(notation);
-            xfree(user);
             return 0;
           }
 
@@ -4347,8 +4334,6 @@ static int menu_set_notation(ctrl_t ctrl, const char *string,
             free_notation(notation->next);
             notation->next = NULL;
           }
-
-          xfree(user);
         }
       }
     }
@@ -4635,10 +4620,9 @@ static void ask_revoke_sig(ctrl_t ctrl, kbnode_t keyblock, kbnode_t node) {
     print_and_check_one_sig_colon(ctrl, keyblock, node, NULL, NULL, NULL, NULL,
                                   1);
   } else {
-    char *p = utf8_to_native(unode->pkt->pkt.user_id->name,
-                             unode->pkt->pkt.user_id->len, 0);
-    tty_printf(_("user ID: \"%s\"\n"), p);
-    xfree(p);
+    std::string p = utf8_to_native(unode->pkt->pkt.user_id->name,
+                                   unode->pkt->pkt.user_id->len, 0);
+    tty_printf(_("user ID: \"%s\"\n"), p.c_str());
 
     tty_printf(_("signed by your key %s on %s%s%s\n"), keystr(sig->keyid),
                datestr_from_sig(sig),
@@ -4845,9 +4829,8 @@ static int core_revuid(ctrl_t ctrl, kbnode_t keyblock, KBNODE node,
     PKT_user_id *uid = node->pkt->pkt.user_id;
 
     if (uid->flags.revoked) {
-      char *user = utf8_to_native(uid->name, uid->len, 0);
-      log_info(_("user ID \"%s\" is already revoked\n"), user);
-      xfree(user);
+      std::string user = utf8_to_native(uid->name, uid->len, 0);
+      log_info(_("user ID \"%s\" is already revoked\n"), user.c_str());
     } else {
       PACKET *pkt;
       PKT_signature *sig;

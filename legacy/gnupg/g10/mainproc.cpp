@@ -1369,7 +1369,7 @@ static char *issuer_fpr_string(PKT_signature *sig) {
 
 static void print_good_bad_signature(int statno, const char *keyid_str,
                                      kbnode_t un, PKT_signature *sig, int rc) {
-  char *p;
+  std::string p;
 
   write_status_text_and_buffer(statno, keyid_str,
                                un ? un->pkt->pkt.user_id->name : "[?]",
@@ -1379,16 +1379,14 @@ static void print_good_bad_signature(int statno, const char *keyid_str,
     p = utf8_to_native(un->pkt->pkt.user_id->name, un->pkt->pkt.user_id->len,
                        0);
   else
-    p = xstrdup("[?]");
+    p = "[?]";
 
   if (rc)
-    log_info(_("BAD signature from \"%s\""), p);
+    log_info(_("BAD signature from \"%s\""), p.c_str());
   else if (sig->flags.expired)
-    log_info(_("Expired signature from \"%s\""), p);
+    log_info(_("Expired signature from \"%s\""), p.c_str());
   else
-    log_info(_("Good signature from \"%s\""), p);
-
-  xfree(p);
+    log_info(_("Good signature from \"%s\""), p.c_str());
 }
 
 static int check_sig_and_print(CTX c, kbnode_t node) {
@@ -1743,7 +1741,6 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
     /* If we have a good signature and already printed
      * the primary user ID, print all the other user IDs */
     if (count && !rc && !(opt.verify_options & VERIFY_SHOW_PRIMARY_UID_ONLY)) {
-      char *p;
       for (un = keyblock; un; un = un->next) {
         if (un->pkt->pkttype != PKT_USER_ID) continue;
         if ((un->pkt->pkt.user_id->flags.revoked ||
@@ -1760,10 +1757,9 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
           dump_attribs(un->pkt->pkt.user_id, mainpk);
         }
 
-        p = utf8_to_native(un->pkt->pkt.user_id->name,
-                           un->pkt->pkt.user_id->len, 0);
-        log_info(_("                aka \"%s\""), p);
-        xfree(p);
+        std::string p = utf8_to_native(un->pkt->pkt.user_id->name,
+                                       un->pkt->pkt.user_id->len, 0);
+        log_info(_("                aka \"%s\""), p.c_str());
 
         if ((opt.verify_options & VERIFY_SHOW_UID_VALIDITY)) {
           const char *valid;

@@ -229,9 +229,9 @@ static int do_edit_ownertrust(ctrl_t ctrl, PKT_public_key *pk, int mode,
               !un->pkt->pkt.user_id->attrib_data)
             continue;
 
-          p = utf8_to_native(un->pkt->pkt.user_id->name,
-                             un->pkt->pkt.user_id->len, 0);
-
+          std::string p_ = utf8_to_native(un->pkt->pkt.user_id->name,
+                                          un->pkt->pkt.user_id->len, 0);
+          p = xstrdup(p_.c_str());
           tty_printf(_("  aka \"%s\"\n"), p);
         }
 

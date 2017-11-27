@@ -900,7 +900,7 @@ static void check_prefs(ctrl_t ctrl, kbnode_t keyblock) {
     if (node->pkt->pkttype == PKT_USER_ID && node->pkt->pkt.user_id->created &&
         node->pkt->pkt.user_id->prefs) {
       PKT_user_id *uid = node->pkt->pkt.user_id;
-      char *user = utf8_to_native(uid->name, strlen(uid->name), 0);
+      std::string user = utf8_to_native(uid->name, strlen(uid->name), 0);
 
       for (auto &pref : *uid->prefs) {
         char num[10]; /* prefs->value is a byte, so we're over
@@ -917,7 +917,7 @@ static void check_prefs(ctrl_t ctrl, kbnode_t keyblock) {
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for cipher"
                        " algorithm %s\n"),
-                     user, algo);
+                     user.c_str(), algo);
             problem = 1;
           }
         } else if (pref.type == PREFTYPE_HASH) {
@@ -928,7 +928,7 @@ static void check_prefs(ctrl_t ctrl, kbnode_t keyblock) {
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for digest"
                        " algorithm %s\n"),
-                     user, algo);
+                     user.c_str(), algo);
             problem = 1;
           }
         } else if (pref.type == PREFTYPE_ZIP) {
@@ -937,13 +937,11 @@ static void check_prefs(ctrl_t ctrl, kbnode_t keyblock) {
             if (!problem) check_prefs_warning(pk);
             log_info(_("         \"%s\": preference for compression"
                        " algorithm %s\n"),
-                     user, algo ? algo : num);
+                     user.c_str(), algo ? algo : num);
             problem = 1;
           }
         }
       }
-
-      xfree(user);
     }
   }
 
@@ -2098,15 +2096,15 @@ static int chk_self_sigs(ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
         rc = check_key_signature(ctrl, keyblock, n, NULL);
         if (rc) {
           if (opt.verbose) {
-            char *p = utf8_to_native(unode->pkt->pkt.user_id->name,
-                                     strlen(unode->pkt->pkt.user_id->name), 0);
+            std::string p =
+                utf8_to_native(unode->pkt->pkt.user_id->name,
+                               strlen(unode->pkt->pkt.user_id->name), 0);
             log_info(rc == GPG_ERR_PUBKEY_ALGO
                          ? _("key %s: unsupported public key "
                              "algorithm on user ID \"%s\"\n")
                          : _("key %s: invalid self-signature "
                              "on user ID \"%s\"\n"),
-                     keystr(keyid), p);
-            xfree(p);
+                     keystr(keyid), p.c_str());
           }
         } else
           unode->flag |= NODE_GOOD_SELFSIG;
@@ -2222,10 +2220,10 @@ static int delete_inv_parts(ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
       if ((node->flag & NODE_BAD_SELFSIG) ||
           !(node->flag & NODE_GOOD_SELFSIG)) {
         if (opt.verbose) {
-          char *p = utf8_to_native(node->pkt->pkt.user_id->name,
-                                   node->pkt->pkt.user_id->len, 0);
-          log_info(_("key %s: skipped user ID \"%s\"\n"), keystr(keyid), p);
-          xfree(p);
+          std::string p = utf8_to_native(node->pkt->pkt.user_id->name,
+                                         node->pkt->pkt.user_id->len, 0);
+          log_info(_("key %s: skipped user ID \"%s\"\n"), keystr(keyid),
+                   p.c_str());
         }
         delete_kbnode(node); /* the user-id */
         /* and all following packets up to the next user-id */

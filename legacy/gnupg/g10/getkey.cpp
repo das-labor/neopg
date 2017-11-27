@@ -3474,9 +3474,9 @@ static char *get_user_id_string(ctrl_t ctrl, u32 *keyid, int mode,
 
 char *get_user_id_string_native(ctrl_t ctrl, u32 *keyid) {
   char *p = get_user_id_string(ctrl, keyid, 0, NULL);
-  char *p2 = utf8_to_native(p, strlen(p), 0);
+  std::string p2 = utf8_to_native(p, strlen(p), 0);
   xfree(p);
-  return p2;
+  return xstrdup(p2.c_str());
 }
 
 char *get_long_user_id_string(ctrl_t ctrl, u32 *keyid) {
@@ -3492,9 +3492,9 @@ char *get_user_id(ctrl_t ctrl, u32 *keyid, size_t *rn) {
 char *get_user_id_native(ctrl_t ctrl, u32 *keyid) {
   size_t rn;
   char *p = get_user_id(ctrl, keyid, &rn);
-  char *p2 = utf8_to_native(p, rn, 0);
+  std::string p2 = utf8_to_native(p, rn, 0);
   xfree(p);
-  return p2;
+  return xstrdup(p2.c_str());
 }
 
 /* Return the user id for a key designated by its fingerprint, FPR,
@@ -3536,9 +3536,9 @@ char *get_user_id_byfpr(ctrl_t ctrl, const byte *fpr, size_t *rn) {
 char *get_user_id_byfpr_native(ctrl_t ctrl, const byte *fpr) {
   size_t rn;
   char *p = get_user_id_byfpr(ctrl, fpr, &rn);
-  char *p2 = utf8_to_native(p, rn, 0);
+  std::string p2 = utf8_to_native(p, rn, 0);
   xfree(p);
-  return p2;
+  return xstrdup(p2.c_str());
 }
 
 /* Return the database handle used by this context.  The context still

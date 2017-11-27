@@ -39,6 +39,7 @@
 #endif
 #include <errno.h>
 
+#include <boost/format.hpp>
 #include <boost/locale.hpp>
 
 #if HAVE_W32_SYSTEM
@@ -112,7 +113,7 @@ static void handle_iconv_error(const char *to, const char *from,
   } else {
     static int shown;
 
-    if (!shown) log_info(_("iconv_open failed: %s\n"), strerror(errno));
+    if (!shown) log_info(_("conversion failed: %s\n"), strerror(errno));
     shown = 1;
   }
 
@@ -278,20 +279,17 @@ int set_native_charset(const char *newset) {
     no_translation = 1;
     use_iconv = 0;
   } else {
-    iconv_t cd;
+    const std::string test = "test";
+    try {
+      std::string test_native =
+          boost::locale::conv::from_utf<char>(test, full_newset);
+      std::string test_utf8 =
+          boost::locale::conv::to_utf<char>(test_native, full_newset);
+      if (test != test_utf8) throw std::runtime_error("conversion failed");
+    } catch (std::runtime_error &e) {
+      return -1;
+    }
 
-    cd = iconv_open(full_newset, "utf-8");
-    if (cd == (iconv_t)-1) {
-      handle_iconv_error(full_newset, "utf-8", 0);
-      return -1;
-    }
-    iconv_close(cd);
-    cd = iconv_open("utf-8", full_newset);
-    if (cd == (iconv_t)-1) {
-      handle_iconv_error("utf-8", full_newset, 0);
-      return -1;
-    }
-    iconv_close(cd);
     active_charset_name = full_newset;
     no_translation = 0;
     use_iconv = 1;
@@ -307,247 +305,170 @@ int is_native_utf8(void) { return no_translation; }
 /* Convert string, which is in native encoding to UTF8 and return a
    new allocated UTF-8 string.  This function terminates the process
    on memory shortage.  */
-std::string native_to_utf8(const std::string& orig_string) {
+std::string native_to_utf8(const std::string &orig_string) {
   return boost::locale::conv::to_utf<char>(orig_string, active_charset_name);
 }
 
-static char *do_utf8_to_native(const char *string, size_t length, int delim,
-                               int with_iconv) {
+static std::string do_utf8_to_native(const char *string, size_t length,
+                                     int delim, int with_iconv) {
   int nleft;
   int i;
   unsigned char encbuf[8];
   int encidx;
   const unsigned char *s;
   size_t n;
-  char *buffer = NULL;
   char *p = NULL;
   unsigned long val = 0;
   size_t slen;
   int resync = 0;
+  std::stringstream buffer;
 
-  /* First pass (p==NULL): count the extended utf-8 characters.  */
-  /* Second pass (p!=NULL): create string.  */
-  for (;;) {
-    for (slen = length, nleft = encidx = 0, n = 0,
-        s = (const unsigned char *)string;
-         slen; s++, slen--) {
-      if (resync) {
-        if (!(*s < 128 || (*s >= 0xc0 && *s <= 0xfd))) {
-          /* Still invalid. */
-          if (p) {
-            sprintf(p, "\\x%02x", *s);
-            p += 4;
-          }
-          n += 4;
-          continue;
-        }
-        resync = 0;
+  for (slen = length, nleft = encidx = 0, s = (const unsigned char *)string;
+       slen; s++, slen--) {
+    if (resync) {
+      if (!(*s < 128 || (*s >= 0xc0 && *s <= 0xfd))) {
+        /* Still invalid. */
+        buffer << boost::format("\\x%02x") % *s;
+        continue;
       }
-      if (!nleft) {
-        if (!(*s & 0x80)) {
-          /* Plain ascii. */
-          if (delim != -1 && (*s < 0x20 || *s == 0x7f || *s == delim ||
-                              (delim && *s == '\\'))) {
-            n++;
-            if (p) *p++ = '\\';
-            switch (*s) {
-              case '\n':
-                n++;
-                if (p) *p++ = 'n';
-                break;
-              case '\r':
-                n++;
-                if (p) *p++ = 'r';
-                break;
-              case '\f':
-                n++;
-                if (p) *p++ = 'f';
-                break;
-              case '\v':
-                n++;
-                if (p) *p++ = 'v';
-                break;
-              case '\b':
-                n++;
-                if (p) *p++ = 'b';
-                break;
-              case 0:
-                n++;
-                if (p) *p++ = '0';
-                break;
-              default:
-                n += 3;
-                if (p) {
-                  sprintf(p, "x%02x", *s);
-                  p += 3;
-                }
-                break;
-            }
-          } else {
-            if (p) *p++ = *s;
-            n++;
+      resync = 0;
+    }
+    if (!nleft) {
+      if (!(*s & 0x80)) {
+        /* Plain ascii. */
+        if (delim != -1 &&
+            (*s < 0x20 || *s == 0x7f || *s == delim || (delim && *s == '\\'))) {
+          buffer << '\\';
+          switch (*s) {
+            case '\n':
+              buffer << 'n';
+              break;
+            case '\r':
+              buffer << 'r';
+              break;
+            case '\f':
+              buffer << 'f';
+              break;
+            case '\v':
+              buffer << 'v';
+              break;
+            case '\b':
+              buffer << 'b';
+              break;
+            case 0:
+              buffer << '0';
+              break;
+            default:
+              buffer << boost::format("x%02x") % *s;
+              break;
           }
-        } else if ((*s & 0xe0) == 0xc0) /* 110x xxxx */
-        {
-          val = *s & 0x1f;
-          nleft = 1;
-          encidx = 0;
-          encbuf[encidx++] = *s;
-        } else if ((*s & 0xf0) == 0xe0) /* 1110 xxxx */
-        {
-          val = *s & 0x0f;
-          nleft = 2;
-          encidx = 0;
-          encbuf[encidx++] = *s;
-        } else if ((*s & 0xf8) == 0xf0) /* 1111 0xxx */
-        {
-          val = *s & 0x07;
-          nleft = 3;
-          encidx = 0;
-          encbuf[encidx++] = *s;
-        } else if ((*s & 0xfc) == 0xf8) /* 1111 10xx */
-        {
-          val = *s & 0x03;
-          nleft = 4;
-          encidx = 0;
-          encbuf[encidx++] = *s;
-        } else if ((*s & 0xfe) == 0xfc) /* 1111 110x */
-        {
-          val = *s & 0x01;
-          nleft = 5;
-          encidx = 0;
-          encbuf[encidx++] = *s;
-        } else /* Invalid encoding: print as \xNN. */
-        {
-          if (p) {
-            sprintf(p, "\\x%02x", *s);
-            p += 4;
-          }
-          n += 4;
-          resync = 1;
-        }
-      } else if (*s < 0x80 || *s >= 0xc0) /* Invalid utf-8 */
+        } else
+          buffer << (char)*s;
+      } else if ((*s & 0xe0) == 0xc0) /* 110x xxxx */
       {
-        if (p) {
-          for (i = 0; i < encidx; i++) {
-            sprintf(p, "\\x%02x", encbuf[i]);
-            p += 4;
-          }
-          sprintf(p, "\\x%02x", *s);
-          p += 4;
-        }
-        n += 4 + 4 * encidx;
-        nleft = 0;
+        val = *s & 0x1f;
+        nleft = 1;
         encidx = 0;
-        resync = 1;
-      } else {
         encbuf[encidx++] = *s;
-        val <<= 6;
-        val |= *s & 0x3f;
-        if (!--nleft) /* Ready. */
+      } else if ((*s & 0xf0) == 0xe0) /* 1110 xxxx */
+      {
+        val = *s & 0x0f;
+        nleft = 2;
+        encidx = 0;
+        encbuf[encidx++] = *s;
+      } else if ((*s & 0xf8) == 0xf0) /* 1111 0xxx */
+      {
+        val = *s & 0x07;
+        nleft = 3;
+        encidx = 0;
+        encbuf[encidx++] = *s;
+      } else if ((*s & 0xfc) == 0xf8) /* 1111 10xx */
+      {
+        val = *s & 0x03;
+        nleft = 4;
+        encidx = 0;
+        encbuf[encidx++] = *s;
+      } else if ((*s & 0xfe) == 0xfc) /* 1111 110x */
+      {
+        val = *s & 0x01;
+        nleft = 5;
+        encidx = 0;
+        encbuf[encidx++] = *s;
+      } else /* Invalid encoding: print as \xNN. */
+      {
+        buffer << boost::format("\\x%02x") % *s;
+        resync = 1;
+      }
+    } else if (*s < 0x80 || *s >= 0xc0) /* Invalid utf-8 */
+    {
+      for (i = 0; i < encidx; i++) {
+        buffer << boost::format("\\x%02x") % encbuf[i];
+        buffer << boost::format("\\x%02x") % *s;
+      }
+      nleft = 0;
+      encidx = 0;
+      resync = 1;
+    } else {
+      encbuf[encidx++] = *s;
+      val <<= 6;
+      val |= *s & 0x3f;
+      if (!--nleft) /* Ready. */
+      {
+        if (no_translation) {
+          for (i = 0; i < encidx; i++) buffer << (char)encbuf[i];
+          encidx = 0;
+        } else if (with_iconv) {
+          /* Our strategy for using iconv is a bit strange but it
+             better keeps compatibility with previous versions in
+             regard to how invalid encodings are displayed.  What we
+             do is to keep the utf-8 as is and have the real
+             translation step then at the end.  Yes, I know that
+             this is ugly.  However we are short of the 1.4 release
+             and for this branch we should not mess too much around
+             with iconv things.  One reason for this is that we
+             don't know enough about non-GNU iconv implementation
+             and want to minimize the risk of breaking the code on
+             too many platforms.  */
+          for (i = 0; i < encidx; i++) buffer << (char)encbuf[i];
+          n += encidx;
+          encidx = 0;
+        } else /* Latin-1 case. */
         {
-          if (no_translation) {
-            if (p) {
-              for (i = 0; i < encidx; i++) *p++ = encbuf[i];
+          if (val >= 0x80 && val < 256) {
+            /* We can simply print this character */
+            buffer << (char)val;
+          } else {
+            /* We do not have a translation: print utf8. */
+            for (i = 0; i < encidx; i++) {
+              buffer << boost::format("\\x%02x") % encbuf[i];
             }
-            n += encidx;
             encidx = 0;
-          } else if (with_iconv) {
-            /* Our strategy for using iconv is a bit strange
-               but it better keeps compatibility with
-               previous versions in regard to how invalid
-               encodings are displayed.  What we do is to
-               keep the utf-8 as is and have the real
-               translation step then at the end.  Yes, I
-               know that this is ugly.  However we are short
-               of the 1.4 release and for this branch we
-               should not mess too much around with iconv
-               things.  One reason for this is that we don't
-               know enough about non-GNU iconv
-               implementation and want to minimize the risk
-               of breaking the code on too many platforms.  */
-            if (p) {
-              for (i = 0; i < encidx; i++) *p++ = encbuf[i];
-            }
-            n += encidx;
-            encidx = 0;
-          } else /* Latin-1 case. */
-          {
-            if (val >= 0x80 && val < 256) {
-              /* We can simply print this character */
-              n++;
-              if (p) *p++ = val;
-            } else {
-              /* We do not have a translation: print utf8. */
-              if (p) {
-                for (i = 0; i < encidx; i++) {
-                  sprintf(p, "\\x%02x", encbuf[i]);
-                  p += 4;
-                }
-              }
-              n += encidx * 4;
-              encidx = 0;
-            }
           }
         }
       }
     }
-    if (!buffer) {
-      /* Allocate the buffer after the first pass. */
-      buffer = p = (char *)xmalloc(n + 1);
-    } else if (with_iconv) {
-      /* Note: See above for comments.  */
-      iconv_t cd;
-      const char *inptr;
-      char *outbuf, *outptr;
-      size_t inbytes, outbytes;
+  }
+  std::string output = buffer.str();
+  if (with_iconv) {
+    /* Note: See above for comments.  */
+    try {
+      std::string result =
+          boost::locale::conv::from_utf<char>(output, active_charset_name);
+      return result;
+    } catch (boost::locale::conv::invalid_charset_error &e) {
+      handle_iconv_error(active_charset_name, "utf-8", 1);
+      return utf8_to_native(string, length, delim);
+    } catch (boost::locale::conv::conversion_error &e) {
+      static int shown;
 
-      *p = 0; /* Terminate the buffer. */
-
-      cd = iconv_open(active_charset_name, "utf-8");
-      if (cd == (iconv_t)-1) {
-        handle_iconv_error(active_charset_name, "utf-8", 1);
-        xfree(buffer);
-        return utf8_to_native(string, length, delim);
-      }
-
-      /* Allocate a new buffer large enough to hold all possible
-         encodings. */
-      n = p - buffer + 1;
-      inbytes = n - 1;
-      ;
-      inptr = buffer;
-      outbytes = n * MB_LEN_MAX;
-      if (outbytes / MB_LEN_MAX != n) BUG(); /* Actually an overflow. */
-      outbuf = outptr = (char *)xmalloc(outbytes);
-      if (iconv(cd, (ICONV_CONST char **)&inptr, &inbytes, &outptr,
-                &outbytes) == (size_t)-1) {
-        static int shown;
-
-        if (!shown)
-          log_info(_("conversion from '%s' to '%s' failed: %s\n"), "utf-8",
-                   active_charset_name, strerror(errno));
-        shown = 1;
-        /* Didn't worked out.  Try again but without iconv.  */
-        xfree(buffer);
-        buffer = NULL;
-        xfree(outbuf);
-        outbuf = do_utf8_to_native(string, length, delim, 0);
-      } else /* Success.  */
-      {
-        *outptr = 0; /* Make sure it is a string. */
-        /* We could realloc the buffer now but I doubt that it
-           makes much sense given that it will get freed
-           anyway soon after.  */
-        xfree(buffer);
-      }
-      iconv_close(cd);
-      return outbuf;
-    } else /* Not using iconv. */
-    {
-      *p = 0; /* Make sure it is a string. */
-      return buffer;
+      if (!shown)
+        log_info(_("conversion from '%s' to '%s' failed\n"), "utf-8",
+                 active_charset_name);
+      shown = 1;
+      return do_utf8_to_native(string, length, delim, 0);
     }
+  } else {
+    return output;
   }
 }
 
@@ -557,7 +478,7 @@ static char *do_utf8_to_native(const char *string, size_t length, int delim,
    must be a vanilla ASCII character.  A DELIM value of -1 is special:
    it disables all quoting of control characters.  This function
    terminates the process on memory shortage.  */
-char *utf8_to_native(const char *string, size_t length, int delim) {
+std::string utf8_to_native(const char *string, size_t length, int delim) {
   return do_utf8_to_native(string, length, delim, use_iconv);
 }
 

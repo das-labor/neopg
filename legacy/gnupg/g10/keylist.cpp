@@ -163,7 +163,7 @@ void print_seckey_info(ctrl_t ctrl, PKT_public_key *pk) {
    the given stream.  */
 void print_pubkey_info(ctrl_t ctrl, estream_t fp, PKT_public_key *pk) {
   u32 keyid[2];
-  char *p;
+  std::string p;
   char pkstrbuf[PUBKEY_STRING_SIZE];
 
   keyid_from_pk(pk, keyid);
@@ -172,14 +172,16 @@ void print_pubkey_info(ctrl_t ctrl, estream_t fp, PKT_public_key *pk) {
      print.  */
   if (pk->user_id)
     p = utf8_to_native(pk->user_id->name, pk->user_id->len, 0);
-  else
-    p = get_user_id_native(ctrl, keyid);
+  else {
+    char *p_ = get_user_id_native(ctrl, keyid);
+    p = p_;
+    xfree(p_);
+  }
 
   if (fp) tty_printf("\n");
   tty_fprintf(fp, "%s  %s/%s %s %s\n", pk->flags.primary ? "pub" : "sub",
               pubkey_string(pk, pkstrbuf, sizeof pkstrbuf), keystr(keyid),
-              datestr_from_pk(pk), p);
-  xfree(p);
+              datestr_from_pk(pk), p.c_str());
 }
 
 /* Print basic information of a secret key including the card serial
@@ -799,7 +801,7 @@ static void list_keyblock_print(ctrl_t ctrl, kbnode_t keyblock, int secret,
 
       if (opt.with_wkd_hash) {
         char *mbox, *hash, *p;
-	char hashbuf[20];
+        char hashbuf[20];
 
         mbox = mailbox_from_userid(uid->name);
         if (mbox && (p = strchr(mbox, '@'))) {
@@ -808,7 +810,7 @@ static void list_keyblock_print(ctrl_t ctrl, kbnode_t keyblock, int secret,
           std::unique_ptr<Botan::HashFunction> sha1(
               Botan::HashFunction::create_or_throw("SHA-1"));
           sha1->update((const uint8_t *)mbox, strlen(mbox));
-	  sha1->final((uint8_t*) hashbuf);
+          sha1->final((uint8_t *)hashbuf);
 
           hash = zb32_encode(hashbuf, 8 * 20);
           if (hash) {

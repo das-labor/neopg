@@ -37,8 +37,8 @@ int set_native_charset(const char *newset);
 const char *get_native_charset(void);
 int is_native_utf8(void);
 
-std::string native_to_utf8(const std::string& string);
-char *utf8_to_native(const char *string, size_t length, int delim);
+std::string native_to_utf8(const std::string &string);
+std::string utf8_to_native(const char *string, size_t length, int delim);
 
 /* Silly wrappers, required for W32 portability.  */
 typedef void *jnlib_iconv_t;

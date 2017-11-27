@@ -313,7 +313,6 @@ static void do_print_string(estream_t fp, const byte *p, size_t n) {
 void tty_print_utf8_string2(estream_t fp, const byte *p, size_t n,
                             size_t max_n) {
   size_t i;
-  char *buf;
 
   if (no_terminal && !fp) return;
 
@@ -322,13 +321,12 @@ void tty_print_utf8_string2(estream_t fp, const byte *p, size_t n,
     if (p[i] & 0x80) break;
   }
   if (i < n) {
-    buf = utf8_to_native((const char *)p, n, 0);
-    if (max_n && (strlen(buf) > max_n)) {
+    std::string buf = utf8_to_native((const char *)p, n, 0);
+    if (max_n && (strlen(buf.c_str()) > max_n)) {
       buf[max_n] = 0;
     }
     /*(utf8 conversion already does the control character quoting)*/
-    tty_fprintf(fp, "%s", buf);
-    xfree(buf);
+    tty_fprintf(fp, "%s", buf.c_str());
   } else {
     if (max_n && (n > max_n)) {
       n = max_n;

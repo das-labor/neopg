@@ -590,7 +590,7 @@ static struct keyrec *parse_keyrec(char *keystring) {
           break;
       }
   } else if (ascii_strcasecmp("uid", record) == 0 && work->desc.mode) {
-    char *userid, *tok, *decoded;
+    char *userid, *tok;
 
     if ((tok = gpg_strsep(&keystring, ":")) == NULL) return ret;
 
@@ -620,11 +620,10 @@ static struct keyrec *parse_keyrec(char *keystring) {
     /* No need to check for control characters, as utf8_to_native
        does this for us. */
 
-    decoded = utf8_to_native(userid, i, 0);
-    if (strlen(decoded) > opt.screen_columns - 10)
+    std::string decoded = utf8_to_native(userid, i, 0);
+    if (strlen(decoded.c_str()) > opt.screen_columns - 10)
       decoded[opt.screen_columns - 10] = '\0';
-    iobuf_writestr(work->uidbuf, decoded);
-    xfree(decoded);
+    iobuf_writestr(work->uidbuf, decoded.c_str());
     iobuf_writestr(work->uidbuf, "\n\t");
     work->lines++;
   }
@@ -1293,7 +1292,8 @@ gpg_error_t keyserver_search(ctrl_t ctrl,
    */
 
   parm.ctrl = ctrl;
-  parm.searchstr_disp = utf8_to_native(searchstr.c_str(), searchstr.size(), 0);
+  std::string disp = utf8_to_native(searchstr.c_str(), searchstr.size(), 0);
+  parm.searchstr_disp = xstrdup(disp.c_str());
 
   err = gpg_dirmngr_ks_search(ctrl, searchstr.c_str(), search_line_handler,
                               &parm);
