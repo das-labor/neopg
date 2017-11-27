@@ -24,12 +24,11 @@ licenses.
 
 Aside from a working C++ toolchain you'll need the following libraries.
 
-1. SQLite >= 3.0
-1. Botan >= 2.0
 1. CMake >= 3.2
+1. SQLite >= 3.0
+1. Botan >= 2.0 --with-zlib --with-bzip2
 1. Boost >= 1.64.0
-1. zlib
-1. bzip2
+1. gettext-tools
 1. gcovr (debug builds only)
 1. clang-format (debug builds only)
 1. cppcheck (debug builds only)
@@ -70,7 +69,7 @@ $ make; make coverage-data # Cobertura XML report
 * format strings for list-keys etc
 
 Code metrics:
-- sloccount
+- sloccount, git-loc
 - secretgrind
 - sonarqube
 
