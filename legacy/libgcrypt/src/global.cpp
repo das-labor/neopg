@@ -232,7 +232,7 @@ char *_gcry_get_config(int mode, const char *what) {
     return NULL;
   }
 
-  fp = gpgrt_fopenmem(0, "w+b,samethread");
+  fp = gpgrt_fopenmem(0, "w+b");
   if (!fp) return NULL;
 
   print_config(what, fp);

@@ -446,7 +446,7 @@ gpg_error_t armor_data(char **r_string, const void *data, size_t datalen) {
 
   *r_string = NULL;
 
-  fp = es_fopenmem(0, "rw,samethread");
+  fp = es_fopenmem(0, "rw");
   if (!fp) return gpg_error_from_syserror();
 
   if ((err = b64enc_start_es(&b64state, fp, "PGP PUBLIC KEY BLOCK")) ||

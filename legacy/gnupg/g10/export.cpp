@@ -1210,7 +1210,7 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
     goto leave;
   }
   ascii_strlwr(hexdata);
-  fp = es_fopenmem(0, "rw,samethread");
+  fp = es_fopenmem(0, "rw");
   if (!fp) {
     err = gpg_error_from_syserror();
     goto leave;

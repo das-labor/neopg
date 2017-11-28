@@ -47,7 +47,7 @@ char *atr_dump(const void *buffer, size_t buflen) {
   unsigned char chksum;
   char *result;
 
-  fp = es_fopenmem(0, "rwb,samethread");
+  fp = es_fopenmem(0, "rwb");
   if (!fp) return NULL;
 
   if (!atrlen) {

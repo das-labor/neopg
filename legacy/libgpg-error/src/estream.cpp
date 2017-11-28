@@ -249,42 +249,30 @@ static int map_w32_to_errno(DWORD w32_err) {
  */
 
 static int init_stream_lock(estream_t _GPGRT__RESTRICT stream) {
-  if (!stream->intern->samethread) {
-    memset(&stream->intern->lock, 0, sizeof stream->intern->lock);
-    stream->intern->lock = new std::mutex;
-  }
+  memset(&stream->intern->lock, 0, sizeof stream->intern->lock);
+  stream->intern->lock = new std::mutex;
   return 0;
 }
 
 static void destroy_stream_lock(estream_t _GPGRT__RESTRICT stream) {
-  if (!stream->intern->samethread) {
-    delete stream->intern->lock;
-  }
+  delete stream->intern->lock;
 }
 
 static void lock_stream(estream_t _GPGRT__RESTRICT stream) {
-  if (!stream->intern->samethread) {
-    stream->intern->lock->lock();
-  }
+  stream->intern->lock->lock();
 }
 
 static int trylock_stream(estream_t _GPGRT__RESTRICT stream) {
   int rc;
-
-  if (!stream->intern->samethread) {
-    if (stream->intern->lock->try_lock())
-      rc = 0;
-    else
-      rc = GPG_ERR_LOCKED;
-  } else
+  if (stream->intern->lock->try_lock())
     rc = 0;
+  else
+    rc = GPG_ERR_LOCKED;
   return rc;
 }
 
 static void unlock_stream(estream_t _GPGRT__RESTRICT stream) {
-  if (!stream->intern->samethread) {
-    stream->intern->lock->unlock();
-  }
+  stream->intern->lock->unlock();
 }
 
 static void lock_list(void) {
@@ -1304,7 +1292,6 @@ out:
 }
 
 /* Flags used by parse_mode and friends.  */
-#define X_SAMETHREAD (1 << 0)
 #define X_SYSOPEN (1 << 1)
 #define X_POLLABLE (1 << 2)
 
@@ -1326,12 +1313,6 @@ out:
  *    the mode when crating a file.  Example:
  *
  *       "wb,mode=-rw-r--"
- *
- * samethread
- *
- *    Assumes that the object is only used by the creating thread and
- *    disables any internal locking.  This keyword is also found on
- *    IBM systems.
  *
  * nonblock
  *
@@ -1426,13 +1407,6 @@ keyvalue:
         _set_errno(EINVAL);
         return -1;
       }
-    } else if (!strncmp(modestr, "samethread", 10)) {
-      modestr += 10;
-      if (*modestr && !strchr(" \t,", *modestr)) {
-        _set_errno(EINVAL);
-        return -1;
-      }
-      *r_xmode |= X_SAMETHREAD;
     } else if (!strncmp(modestr, "nonblock", 8)) {
       modestr += 8;
       if (*modestr && !strchr(" \t,", *modestr)) {
@@ -1614,7 +1588,6 @@ static void init_stream_obj(estream_t stream, void *cookie, es_syshd_t *syshd,
   stream->intern->deallocate_buffer = 0;
   stream->intern->printable_fname = NULL;
   stream->intern->printable_fname_inuse = 0;
-  stream->intern->samethread = !!(xmode & X_SAMETHREAD);
   stream->intern->onclose = NULL;
 
   stream->data_len = 0;
@@ -2910,17 +2883,15 @@ estream_t _gpgrt__get_std_stream(int fd) {
   return stream;
 }
 
-/* Note: A "samethread" keyword given in "mode" is ignored and the
- * value used by STREAM is used instead.  Note that this function is
- * the reasons why some of the init and deinit code is split up into
- * several functions.  */
+/* This function is the reasons why some of the init and deinit code
+ * is split up into several functions.  */
 estream_t _gpgrt_freopen(const char *_GPGRT__RESTRICT path,
                          const char *_GPGRT__RESTRICT mode,
                          estream_t _GPGRT__RESTRICT stream) {
   int err;
 
   if (path) {
-    unsigned int modeflags, cmode, xmode, dummy;
+    unsigned int modeflags, cmode, dummy;
     int create_called;
     void *cookie;
     int fd;
@@ -2929,7 +2900,6 @@ estream_t _gpgrt_freopen(const char *_GPGRT__RESTRICT path,
     cookie = NULL;
     create_called = 0;
 
-    xmode = stream->intern->samethread ? X_SAMETHREAD : 0;
 
     lock_stream(stream);
 
@@ -2946,7 +2916,7 @@ estream_t _gpgrt_freopen(const char *_GPGRT__RESTRICT path,
     syshd.u.fd = fd;
     create_called = 1;
     init_stream_obj(stream, cookie, &syshd, BACKEND_FD, estream_functions_fd,
-                    modeflags, xmode);
+                    modeflags, 0);
 
   leave:
 

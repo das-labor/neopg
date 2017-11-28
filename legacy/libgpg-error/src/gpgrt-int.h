@@ -116,7 +116,6 @@ struct _gpgrt_stream_internal {
   unsigned int is_stdstream : 1; /* This is a standard stream.  */
   unsigned int stdstream_fd : 2; /* 0, 1 or 2 for a standard stream.  */
   unsigned int printable_fname_inuse : 1; /* es_fname_get has been used.  */
-  unsigned int samethread : 1;            /* The "samethread" mode keyword.  */
   size_t print_ntotal;   /* Bytes written from in print_writer. */
   notify_list_t onclose; /* On close notify function list.  */
 };
