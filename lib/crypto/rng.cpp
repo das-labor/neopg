@@ -10,7 +10,11 @@
 namespace NeoPG {
 namespace Crypto {
 
-thread_local Botan::RandomNumberGenerator* rng{new Botan::AutoSeeded_RNG};
+Botan::RandomNumberGenerator* rng(void) {
+  static thread_local Botan::RandomNumberGenerator* rng_local;
+  if (rng_local == nullptr) rng_local = new Botan::AutoSeeded_RNG;
+  return rng_local;
+}
 
 }  // Namespace CLI
 }  // Namespace NeoPG

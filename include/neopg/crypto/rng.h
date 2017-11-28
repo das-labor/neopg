@@ -11,7 +11,7 @@
 namespace NeoPG {
 namespace Crypto {
 
-extern thread_local Botan::RandomNumberGenerator* rng;
+Botan::RandomNumberGenerator* rng(void);
 
 }  // Namespace CLI
 }  // Namespace NeoPG
