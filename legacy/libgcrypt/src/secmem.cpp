@@ -20,6 +20,9 @@
  */
 
 #include <config.h>
+
+#include <mutex>
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -97,11 +100,11 @@ static int no_mlock;
 static int no_priv_drop;
 
 /* Lock protecting accesses to the memory pools.  */
-GPGRT_LOCK_DEFINE(secmem_lock);
+std::mutex secmem_lock;
 
 /* Convenient macros.  */
-#define SECMEM_LOCK gpgrt_lock_lock(&secmem_lock)
-#define SECMEM_UNLOCK gpgrt_lock_unlock(&secmem_lock)
+#define SECMEM_LOCK secmem_lock.lock()
+#define SECMEM_UNLOCK secmem_lock.unlock()
 
 /* The size of the memblock structure; this does not include the
    memory that is available to the user.  */
@@ -402,8 +405,7 @@ static void init_pool(pooldesc_t *pool, size_t n) {
 
 void _gcry_secmem_set_flags(unsigned flags) {
   int was_susp;
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
 
   was_susp = suspend_warning;
   no_warning = flags & GCRY_SECMEM_FLAG_NO_WARNING;
@@ -416,23 +418,17 @@ void _gcry_secmem_set_flags(unsigned flags) {
     show_warning = 0;
     print_warn();
   }
-
-  SECMEM_UNLOCK;
 }
 
 unsigned int _gcry_secmem_get_flags(void) {
   unsigned flags;
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
 
   flags = no_warning ? GCRY_SECMEM_FLAG_NO_WARNING : 0;
   flags |= suspend_warning ? GCRY_SECMEM_FLAG_SUSPEND_WARNING : 0;
   flags |= not_locked ? GCRY_SECMEM_FLAG_NOT_LOCKED : 0;
   flags |= no_mlock ? GCRY_SECMEM_FLAG_NO_MLOCK : 0;
   flags |= no_priv_drop ? GCRY_SECMEM_FLAG_NO_PRIV_DROP : 0;
-
-  SECMEM_UNLOCK;
-
   return flags;
 }
 
@@ -478,11 +474,8 @@ static void _gcry_secmem_init_internal(size_t n) {
    order to prevent page-outs of the data.  Furthermore allocated
    secure memory will be wiped out when released.  */
 void _gcry_secmem_init(size_t n) {
-  SECMEM_LOCK;
-
+  std::lock_guard<std::mutex> lock(secmem_lock);
   _gcry_secmem_init_internal(n);
-
-  SECMEM_UNLOCK;
 }
 
 gpg_error_t _gcry_secmem_module_init() {
@@ -572,11 +565,8 @@ static void *_gcry_secmem_malloc_internal(size_t size, int xhint) {
  * that the caller is a xmalloc style function.  */
 void *_gcry_secmem_malloc(size_t size, int xhint) {
   void *p;
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
   p = _gcry_secmem_malloc_internal(size, xhint);
-  SECMEM_UNLOCK;
-
   return p;
 }
 
@@ -618,10 +608,8 @@ int _gcry_secmem_free(void *a) {
   int mine;
 
   if (!a) return 1; /* Tell caller that we handled it.  */
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
   mine = _gcry_secmem_free_internal(a);
-  SECMEM_UNLOCK;
   return mine;
 }
 
@@ -652,11 +640,8 @@ static void *_gcry_secmem_realloc_internal(void *p, size_t newsize, int xhint) {
  * style function.  */
 void *_gcry_secmem_realloc(void *p, size_t newsize, int xhint) {
   void *a;
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
   a = _gcry_secmem_realloc_internal(p, newsize, xhint);
-  SECMEM_UNLOCK;
-
   return a;
 }
 
@@ -715,8 +700,7 @@ void _gcry_secmem_dump_stats(int extended) {
   pooldesc_t *pool;
   memblock_t *mb;
   int i, poolno;
-
-  SECMEM_LOCK;
+  std::lock_guard<std::mutex> lock(secmem_lock);
 
   for (pool = &mainpool, poolno = 0; pool; pool = pool->next, poolno++) {
     if (!extended) {
@@ -731,5 +715,4 @@ void _gcry_secmem_dump_stats(int extended) {
                  (mb->flags & MB_FLAG_ACTIVE) ? "used" : "free", i, mb->size);
     }
   }
-  SECMEM_UNLOCK;
 }

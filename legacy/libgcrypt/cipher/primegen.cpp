@@ -21,6 +21,8 @@
 
 #include <config.h>
 
+#include <mutex>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,7 +113,7 @@ struct primepool_s {
 };
 struct primepool_s *primepool;
 /* Mutex used to protect access to the primepool.  */
-GPGRT_LOCK_DEFINE(primepool_lock);
+std::mutex primepool_lock;
 
 gpg_error_t _gcry_primegen_init(void) {
   /* This function was formerly used to initialize the primepool
@@ -347,8 +349,7 @@ static gpg_error_t prime_generate_internal(
         goto leave;
       }
 
-      err = gpgrt_lock_lock(&primepool_lock);
-      if (err) goto leave;
+      primepool_lock.lock();
       is_locked = 1;
 
       for (i = 0; i < n; i++) {
@@ -363,8 +364,7 @@ static gpg_error_t prime_generate_internal(
         if (is_locked) {
           pool[i] = get_pool_prime(fbits);
           if (!pool[i]) {
-            err = gpgrt_lock_unlock(&primepool_lock);
-            if (err) goto leave;
+            primepool_lock.unlock();
             is_locked = 0;
           }
         }
@@ -373,13 +373,15 @@ static gpg_error_t prime_generate_internal(
         factors[i] = pool[i];
       }
 
-      if (is_locked && (err = gpgrt_lock_unlock(&primepool_lock))) goto leave;
-      is_locked = 0;
+      if (is_locked) {
+	primepool_lock.unlock();
+	is_locked = 0;
+      }
     } else {
       /* Get next permutation. */
       m_out_of_n((char *)perms, n, m);
 
-      if ((err = gpgrt_lock_lock(&primepool_lock))) goto leave;
+      primepool_lock.lock();
       is_locked = 1;
 
       for (i = j = 0; (i < m) && (j < n); i++)
@@ -388,8 +390,7 @@ static gpg_error_t prime_generate_internal(
           if (!pool[i] && is_locked) {
             pool[i] = get_pool_prime(fbits);
             if (!pool[i]) {
-              if ((err = gpgrt_lock_unlock(&primepool_lock))) goto leave;
-              is_locked = 0;
+              primepool_lock.unlock();
             }
           }
           if (!pool[i]) pool[i] = gen_prime(fbits, 0, NULL, NULL);
@@ -397,8 +398,10 @@ static gpg_error_t prime_generate_internal(
           factors[j++] = pool[i];
         }
 
-      if (is_locked && (err = gpgrt_lock_unlock(&primepool_lock))) goto leave;
-      is_locked = 0;
+      if (is_locked) {
+	primepool_lock.lock();
+	is_locked = 0;
+      }
 
       if (i == n) {
         /* Ran out of permutations: Allocate new primes.  */
@@ -521,7 +524,8 @@ static gpg_error_t prime_generate_internal(
 
 leave:
   if (pool) {
-    is_locked = !gpgrt_lock_lock(&primepool_lock);
+    primepool_lock.lock();
+    is_locked = 1;
     for (i = 0; i < m; i++) {
       if (pool[i]) {
         for (j = 0; j < n; j++)
@@ -533,8 +537,10 @@ leave:
           mpi_free(pool[i]);
       }
     }
-    if (is_locked) err = gpgrt_lock_unlock(&primepool_lock);
-    is_locked = 0;
+    if (is_locked) {
+      primepool_lock.unlock();
+      is_locked = 0;
+    }
     xfree(pool);
   }
   xfree(pool_in_use);

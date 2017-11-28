@@ -3,7 +3,6 @@
 #include "gtest/gtest.h"
 
 int b64dec_main(int argc, char* argv[]);
-int lock_main(int argc, char* argv[]);
 int poll_main(int argc, char* argv[]);
 int printf_main(int argc, char* argv[]);
 int strerror_main(int argc, char* argv[]);
@@ -16,11 +15,6 @@ TEST(GpgErrorTest, ErrorType) {
 
 TEST(GpgErrorTest, b64dec) {
   int result = b64dec_main(0, NULL);
-  ASSERT_EQ(result, 0);
-}
-
-TEST(GpgErrorTest, lock) {
-  int result = lock_main(0, NULL);
   ASSERT_EQ(result, 0);
 }
 

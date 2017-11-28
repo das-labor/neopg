@@ -52,11 +52,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_ESTREAM_SUPPORT_H
-#include <estream-support.h>
-#endif
-
 #include <config.h>
+
+#include <mutex>
 
 #if defined(_WIN32) && !defined(HAVE_W32_SYSTEM)
 #define HAVE_W32_SYSTEM 1
@@ -176,9 +174,9 @@ static unsigned char custom_std_fds_valid[3];
 
 /*
  * A lock object to protect ESTREAM LIST, CUSTOM_STD_FDS and
- * CUSTOM_STD_FDS_VALID.  Used by lock_list() and unlock_list().
+ * CUSTOM_STD_FDS_VALID.
  */
-GPGRT_LOCK_DEFINE(estream_list_lock);
+std::mutex estream_list_lock;
 
 /*
  * Functions called before and after blocking syscalls.
@@ -246,42 +244,24 @@ static int map_w32_to_errno(DWORD w32_err) {
 /*
  * Wrappers to lock a stream or the list of streams.
  */
-#if 0
-#define dbg_lock_0(f) fprintf(stderr, "estream: " f);
-#define dbg_lock_1(f, a) fprintf(stderr, "estream: " f, (a));
-#define dbg_lock_2(f, a, b) fprintf(stderr, "estream: " f, (a), (b));
-#else
-#define dbg_lock_0(f)
-#define dbg_lock_1(f, a)
-#define dbg_lock_2(f, a, b)
-#endif
 
 static int init_stream_lock(estream_t _GPGRT__RESTRICT stream) {
-  int rc;
-
   if (!stream->intern->samethread) {
-    dbg_lock_1("enter init_stream_lock for %p\n", stream);
     memset(&stream->intern->lock, 0, sizeof stream->intern->lock);
-    rc = _gpgrt_lock_init(&stream->intern->lock);
-    dbg_lock_2("leave init_stream_lock for %p: rc=%d\n", stream, rc);
-  } else
-    rc = 0;
-  return rc;
+    stream->intern->lock = new std::mutex;
+  }
+  return 0;
 }
 
 static void destroy_stream_lock(estream_t _GPGRT__RESTRICT stream) {
   if (!stream->intern->samethread) {
-    dbg_lock_1("enter destroy_stream_lock for %p\n", stream);
-    _gpgrt_lock_destroy(&stream->intern->lock);
-    dbg_lock_1("leave destroy_stream_lock for %p\n", stream);
+    delete stream->intern->lock;
   }
 }
 
 static void lock_stream(estream_t _GPGRT__RESTRICT stream) {
   if (!stream->intern->samethread) {
-    dbg_lock_1("enter lock_stream for %p\n", stream);
-    _gpgrt_lock_lock(&stream->intern->lock);
-    dbg_lock_1("leave lock_stream for %p\n", stream);
+    stream->intern->lock->lock();
   }
 }
 
@@ -289,9 +269,10 @@ static int trylock_stream(estream_t _GPGRT__RESTRICT stream) {
   int rc;
 
   if (!stream->intern->samethread) {
-    dbg_lock_1("enter trylock_stream for %p\n", stream);
-    rc = _gpgrt_lock_trylock(&stream->intern->lock) ? 0 : -1;
-    dbg_lock_2("leave trylock_stream for %p: rc=%d\n", stream, rc);
+    if (stream->intern->lock->try_lock())
+      rc = 0;
+    else
+      rc = GPG_ERR_LOCKED;
   } else
     rc = 0;
   return rc;
@@ -299,27 +280,17 @@ static int trylock_stream(estream_t _GPGRT__RESTRICT stream) {
 
 static void unlock_stream(estream_t _GPGRT__RESTRICT stream) {
   if (!stream->intern->samethread) {
-    dbg_lock_1("enter unlock_stream for %p\n", stream);
-    _gpgrt_lock_unlock(&stream->intern->lock);
-    dbg_lock_1("leave unlock_stream for %p\n", stream);
+    stream->intern->lock->unlock();
   }
 }
 
 static void lock_list(void) {
-  dbg_lock_0("enter lock_list\n");
-  _gpgrt_lock_lock(&estream_list_lock);
-  dbg_lock_0("leave lock_list\n");
+  estream_list_lock.lock();
 }
 
 static void unlock_list(void) {
-  dbg_lock_0("enter unlock_list\n");
-  _gpgrt_lock_unlock(&estream_list_lock);
-  dbg_lock_0("leave unlock_list\n");
+  estream_list_lock.unlock();
 }
-
-#undef dbg_lock_0
-#undef dbg_lock_1
-#undef dbg_lock_2
 
 /*
  * Manipulation of the list of stream.
@@ -339,8 +310,8 @@ static void unlock_list(void) {
  */
 static int do_list_add(estream_t stream, int with_locked_list) {
   estream_list_t item;
-
-  if (!with_locked_list) lock_list();
+  if (!with_locked_list)
+    estream_list_lock.lock();
 
   for (item = estream_list; item && item->stream; item = item->next)
     ;
@@ -353,8 +324,8 @@ static int do_list_add(estream_t stream, int with_locked_list) {
   }
   if (item) item->stream = stream;
 
-  if (!with_locked_list) unlock_list();
-
+  if (!with_locked_list)
+    estream_list_lock.unlock();
   return item ? 0 : -1;
 }
 
@@ -363,8 +334,8 @@ static int do_list_add(estream_t stream, int with_locked_list) {
  */
 static void do_list_remove(estream_t stream, int with_locked_list) {
   estream_list_t item, item_prev = NULL;
-
-  if (!with_locked_list) lock_list();
+  if (!with_locked_list)
+    estream_list_lock.lock();
 
   for (item = estream_list; item; item = item->next)
     if (item->stream == stream)
@@ -381,8 +352,8 @@ static void do_list_remove(estream_t stream, int with_locked_list) {
       mem_free(item);
     }
   }
-
-  if (!with_locked_list) unlock_list();
+  if (!with_locked_list)
+    estream_list_lock.unlock();
 }
 
 /*
@@ -403,8 +374,6 @@ static void do_deinit(void) {
   /* Reset the syscall clamp.  */
   pre_syscall_func = NULL;
   post_syscall_func = NULL;
-  _gpgrt_thread_set_syscall_clamp(NULL, NULL);
-  _gpgrt_lock_set_lock_clamp(NULL, NULL);
 }
 
 /*
@@ -433,8 +402,6 @@ int _gpgrt_estream_init(void) {
 void _gpgrt_set_syscall_clamp(void (*pre)(void), void (*post)(void)) {
   pre_syscall_func = pre;
   post_syscall_func = post;
-  _gpgrt_thread_set_syscall_clamp(pre, post);
-  _gpgrt_lock_set_lock_clamp(pre, post);
 }
 
 /*
@@ -792,7 +759,6 @@ static gpgrt_ssize_t func_fd_read(void *cookie, void *buffer, size_t size)
   if (!size)
     bytes_read = -1; /* We don't know whether anything is pending.  */
   else if (IS_INVALID_FD(file_cookie->fd)) {
-    _gpgrt_yield();
     bytes_read = 0;
   } else {
     if (pre_syscall_func) pre_syscall_func();
@@ -817,7 +783,6 @@ static gpgrt_ssize_t func_fd_write(void *cookie, const void *buffer,
   trace(("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
 
   if (IS_INVALID_FD(file_cookie->fd)) {
-    _gpgrt_yield();
     bytes_written = size; /* Yeah:  Success writing to the bit bucket.  */
   } else if (buffer) {
     if (pre_syscall_func) pre_syscall_func();
@@ -983,7 +948,6 @@ static gpgrt_ssize_t func_w32_read(void *cookie, void *buffer, size_t size) {
   if (!size)
     bytes_read = -1; /* We don't know whether anything is pending.  */
   else if (w32_cookie->hd == INVALID_HANDLE_VALUE) {
-    _gpgrt_yield();
     bytes_read = 0;
   } else {
     if (pre_syscall_func && !w32_cookie->no_syscall_clamp) pre_syscall_func();
@@ -1024,7 +988,6 @@ static gpgrt_ssize_t func_w32_write(void *cookie, const void *buffer,
   trace(("enter: cookie=%p buffer=%p size=%d", cookie, buffer, (int)size));
 
   if (w32_cookie->hd == INVALID_HANDLE_VALUE) {
-    _gpgrt_yield();
     bytes_written = size; /* Yeah:  Success writing to the bit bucket.  */
   } else if (buffer) {
     if (pre_syscall_func && !w32_cookie->no_syscall_clamp) pre_syscall_func();
@@ -2879,12 +2842,11 @@ estream_t _gpgrt_sysopen_nc(es_syshd_t *syshd, const char *mode) {
    dash inside its name. */
 void _gpgrt__set_std_fd(int no, int fd) {
   /* fprintf (stderr, "es_set_std_fd(%d, %d)\n", no, fd); */
-  lock_list();
+  std::lock_guard<std::mutex> lock(estream_list_lock);
   if (no >= 0 && no < 3 && !custom_std_fds_valid[no]) {
     custom_std_fds[no] = fd;
     custom_std_fds_valid[no] = 1;
   }
-  unlock_list();
 }
 
 /* Return the stream used for stdin, stdout or stderr.
@@ -2895,7 +2857,7 @@ estream_t _gpgrt__get_std_stream(int fd) {
 
   fd %= 3; /* We only allow 0, 1 or 2 but we don't want to return an error. */
 
-  lock_list();
+  std::lock_guard<std::mutex> lock(estream_list_lock);
 
   for (list_obj = estream_list; list_obj; list_obj = list_obj->next)
     if (list_obj->stream && list_obj->stream->intern->is_stdstream &&
@@ -2942,7 +2904,6 @@ estream_t _gpgrt__get_std_stream(int fd) {
         stream, fd == 0 ? "[stdin]" : fd == 1 ? "[stdout]" : "[stderr]", 0);
   }
 
-  unlock_list();
   return stream;
 }
 
@@ -3238,14 +3199,13 @@ int _gpgrt_fflush(estream_t stream) {
     estream_list_t item;
 
     err = 0;
-    lock_list();
+    std::lock_guard<std::mutex> lock(estream_list_lock);
     for (item = estream_list; item; item = item->next)
       if (item->stream) {
         lock_stream(item->stream);
         err |= do_fflush(item->stream);
         unlock_stream(item->stream);
       }
-    unlock_list();
   }
   return err ? EOF : 0;
 }

@@ -769,27 +769,6 @@ typedef long gpgrt_off_t;
 #endif
 #endif /* _WIN32 */
 
-/* Lock functions.  */
-
-#include <pthread.h>
-#define gpgrt_lock_t pthread_mutex_t
-#define GPGRT_LOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER
-
-#define GPGRT_LOCK_DEFINE(name) \
-  static gpgrt_lock_t name = GPGRT_LOCK_INITIALIZER
-
-/* NB: If GPGRT_LOCK_DEFINE is not used, zero out the lock variable
-   before passing it to gpgrt_lock_init.  */
-gpg_error_t gpgrt_lock_init(gpgrt_lock_t *lockhd);
-gpg_error_t gpgrt_lock_lock(gpgrt_lock_t *lockhd);
-gpg_error_t gpgrt_lock_trylock(gpgrt_lock_t *lockhd);
-gpg_error_t gpgrt_lock_unlock(gpgrt_lock_t *lockhd);
-gpg_error_t gpgrt_lock_destroy(gpgrt_lock_t *lockhd);
-
-/* Thread functions.  */
-
-gpg_error_t gpgrt_yield(void);
-
 /* Estream */
 
 /* The definition of this struct is entirely private.  You must not

@@ -12,6 +12,9 @@ namespace Crypto {
 
 Botan::RandomNumberGenerator* rng(void) {
   static thread_local Botan::RandomNumberGenerator* rng_local;
+
+  /* We delay allocation so that only threads which actually use neopg
+     crypto are creating a random pool.  */
   if (rng_local == nullptr) rng_local = new Botan::AutoSeeded_RNG;
   return rng_local;
 }

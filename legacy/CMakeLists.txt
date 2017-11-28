@@ -29,11 +29,6 @@ if(WIN32)
     libgpg-error/src/w32-lock.cpp
     libgpg-error/src/w32-thread.cpp
   )
-else()
-  target_sources(gpg-error PRIVATE
-  libgpg-error/src/posix-lock.cpp
-  libgpg-error/src/posix-thread.cpp
-)
 endif()
 
 add_library(neopg::gpg-error ALIAS gpg-error)
@@ -52,7 +47,6 @@ target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOUR
 
 add_executable(gpg-error-test
   libgpg-error/tests/t-b64dec.cpp
-  libgpg-error/tests/t-lock.cpp
   libgpg-error/tests/t-poll.cpp
   libgpg-error/tests/t-printf.cpp
   libgpg-error/tests/t-strerror.cpp
@@ -371,6 +365,7 @@ target_include_directories(ksba PRIVATE
   ${CMAKE_BINARY_DIR}/.
   ${BOTAN2_INCLUDE_DIRS})
 target_link_libraries(ksba PRIVATE
+  gpg-error
   ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES})
 target_compile_definitions(ksba PRIVATE
   HAVE_CONFIG_H=1

@@ -45,13 +45,6 @@
 #define gpg_strerror_r _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpg_err_set_errno _gpgrt_USE_UNDERSCORED_FUNCTION
 
-#define gpgrt_lock_init _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_lock_lock _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_lock_unlock _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_lock_destroy _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_yield _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_lock_trylock _gpgrt_USE_UNDERSCORED_FUNCTION
-
 #define gpgrt_fopen _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_mopen _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fopenmem _gpgrt_USE_UNDERSCORED_FUNCTION

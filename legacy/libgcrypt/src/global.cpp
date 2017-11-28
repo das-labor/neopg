@@ -63,9 +63,6 @@ static gcry_handler_no_mem_t outofcore_handler;
 static void *outofcore_handler_value;
 static int no_secure_memory;
 
-/* Prototypes.  */
-static gpg_error_t external_lock_test(int cmd);
-
 /* This is our handmade constructor.  It gets called by any function
    likely to be called at startup.  */
 static void global_init(void) {
@@ -387,9 +384,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 #endif
-    case PRIV_CTL_EXTERNAL_LOCK_TEST: /* Run external lock test */
-      rc = external_lock_test(va_arg(arg_ptr, int));
-      break;
     case PRIV_CTL_DUMP_SECMEM_STATS:
       _gcry_secmem_dump_stats(1);
       break;
@@ -725,44 +719,4 @@ void _gcry_set_progress_handler(void (*cb)(void *, const char *, int, int, int),
   _gcry_register_pk_elg_progress(cb, cb_data);
 #endif
   _gcry_register_primegen_progress(cb, cb_data);
-}
-
-/* This is a helper for the regression test suite to test Libgcrypt's locks.
-   It works using a one test lock with CMD controlling what to do:
-
-     30111 - Allocate and init lock
-     30112 - Take lock
-     30113 - Release lock
-     30114 - Destroy lock.
-
-   This function is used by tests/t-lock.c - it is not part of the
-   public API!
- */
-static gpg_error_t external_lock_test(int cmd) {
-  GPGRT_LOCK_DEFINE(testlock);
-  gpg_error_t rc = 0;
-
-  switch (cmd) {
-    case 30111: /* Init Lock.  */
-      rc = gpgrt_lock_init(&testlock);
-      break;
-
-    case 30112: /* Take Lock.  */
-      rc = gpgrt_lock_lock(&testlock);
-      break;
-
-    case 30113: /* Release Lock.  */
-      rc = gpgrt_lock_unlock(&testlock);
-      break;
-
-    case 30114: /* Destroy Lock.  */
-      rc = gpgrt_lock_destroy(&testlock);
-      break;
-
-    default:
-      rc = GPG_ERR_INV_OP;
-      break;
-  }
-
-  return rc;
 }
