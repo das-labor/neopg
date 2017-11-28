@@ -56,6 +56,9 @@
 
 #include <mutex>
 
+#define trace(...)
+#define trace_errno(...)
+
 #if defined(_WIN32) && !defined(HAVE_W32_SYSTEM)
 #define HAVE_W32_SYSTEM 1
 #endif
