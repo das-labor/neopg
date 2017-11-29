@@ -35,6 +35,9 @@ add_subdirectory(${RANG_ROOT} EXCLUDE_FROM_ALL)
 set(CLI11_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/CLI11)
 set(CLI11_INCLUDE_DIR ${CLI11_ROOT}/include)
 
+# json
+set(JSON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/json)
+set(JSON_INCLUDE_DIR ${JSON_ROOT}/include)
 
 # CodeCoverage
 
