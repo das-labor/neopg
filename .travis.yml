@@ -10,7 +10,7 @@ os:
 
 compiler:
   - clang
-  - gcc
+#  - gcc
 
 addons:
   apt:
