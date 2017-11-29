@@ -6,6 +6,17 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project(NeoPG VERSION 0.1 LANGUAGES C CXX)
 
+# Compiler setup.
+
+set(CXXSTD 11)
+if(DEFINED ENV{CXXSTD})
+  set(CXXSTD $ENV{CXXSTD})
+endif()
+set(CMAKE_CXX_STANDARD ${CXXSTD})
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+
 # Google Test
 set(GTEST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/googletest/googletest/)
 set(GTEST_INCLUDE_DIR ${GTEST_ROOT}/include)

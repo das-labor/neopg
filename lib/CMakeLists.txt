@@ -44,7 +44,6 @@ add_library(libneopg
 target_compile_options(libneopg
   PRIVATE
   -fvisibility=hidden -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
   ${BOTAN2_CFLAGS_OTHER}
 )
 

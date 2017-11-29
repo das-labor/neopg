@@ -42,7 +42,6 @@ target_compile_definitions(gpg-error PRIVATE
 target_link_libraries(gpg-error PRIVATE pthread
   ${Intl_LDFLAGS} ${Intl_LIBRARIES})
 target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 
 add_executable(gpg-error-test
@@ -97,7 +96,6 @@ else()
 endif()
 
 target_compile_options(assuan PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 
 add_library(neopg::assuan ALIAS assuan)
@@ -120,7 +118,6 @@ target_include_directories(assuan-test PRIVATE
 target_compile_definitions(assuan-test PRIVATE
 CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/legacy/libassuan/tests")
 target_compile_options(assuan-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 target_link_libraries(assuan-test PRIVATE
   assuan
@@ -142,7 +139,6 @@ target_compile_definitions(npth PRIVATE
   HAVE_CONFIG_H=1)
 
 target_compile_options(npth PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 
 add_executable(npth-test
@@ -295,7 +291,6 @@ target_link_libraries(gcrypt PRIVATE
   libneopg)
 target_compile_options(gcrypt PUBLIC
  -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
- -std=c++11
  ${BOTAN2_CFLAGS_OTHER})
 
 add_executable(gcrypt-test
@@ -306,7 +301,6 @@ target_include_directories(gcrypt-test PRIVATE
   libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
 target_compile_options(gcrypt-test PUBLIC -fpermissive -Wnarrowing -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 target_link_libraries(gcrypt-test PRIVATE
   gcrypt
@@ -322,7 +316,6 @@ target_include_directories(gcrypt-secmem-test PRIVATE
     libgcrypt/src
     ${CMAKE_BINARY_DIR}/.)
 target_compile_options(gcrypt-secmem-test PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
   target_link_libraries(gcrypt-secmem-test PRIVATE
     gcrypt
@@ -372,7 +365,6 @@ target_compile_definitions(ksba PRIVATE
 )
 
 target_compile_options(ksba PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOURCE=1 -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
-  -std=c++11
 )
 
 add_executable(ksba-test

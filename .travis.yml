@@ -1,16 +1,7 @@
-language: cpp
-
-sudo: true
+language: generic
+os: linux
 dist: trusty
-osx_image: xcode8.3
-
-os:
-  - linux
-  - osx
-
-compiler:
-  - clang
-#  - gcc
+sudo: true
 
 addons:
   apt:
@@ -50,8 +41,7 @@ install:
 
 matrix:
   include:
-    # works on Precise and Trusty
-    - os: linux
+    - compiler: gcc
       addons:
         apt:
           sources:
@@ -61,10 +51,9 @@ matrix:
             - *base_packages
             - g++-4.9
       env:
-         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+        - CXX=g++-4.9
 
-    # works on Precise and Trusty
-    - os: linux
+    - compiler: gcc
       addons:
         apt:
           sources:
@@ -74,10 +63,9 @@ matrix:
             - *base_packages
             - g++-5
       env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+        - CXX=g++-5
 
-    # works on Precise and Trusty
-    - os: linux
+    - compiler: gcc
       addons:
         apt:
           sources:
@@ -87,10 +75,22 @@ matrix:
             - *base_packages
             - g++-6
       env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+        - CXX=g++-6
 
-    # works on Precise and Trusty
-    - os: linux
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+          packages:
+            - *base_packages
+            - g++-6
+      env:
+        - CXX=g++-6
+        - CXXSTD=14
+
+    - compiler: gcc
       addons:
         apt:
           sources:
@@ -100,23 +100,171 @@ matrix:
             - *base_packages
             - g++-7
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - CXX=g++-7
 
-before_install:
-  - eval "${MATRIX_EVAL}"
+#    - compiler: gcc
+#      addons:
+#        apt:
+#          sources:
+#            - sourceline: 'ppa:samuel-bachmann/boost'
+#            - ubuntu-toolchain-r-test
+#          packages:
+#            - *base_packages
+#            - g++-7
+#      env:
+#        - CXX=g++-7
+#        - CXXSTD=17 # Requires cmake 3.9
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+          packages:
+            - *base_packages
+            - clang++-3.5
+      env:
+        - CXX=clang++-3.5
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+          packages:
+            - *base_packages
+            - clang++-3.6
+      env:
+        - CXX=clang++-3.6
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+          packages:
+            - *base_packages
+            - clang++-3.8
+      env:
+        - CXX=clang++-3.8
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+          packages:
+            - *base_packages
+            - clang++-3.9
+      env:
+        - CXX=clang++-3.9
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - *base_packages
+            - clang++-4.0
+      env:
+        - CXX=clang++-4.0
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - *base_packages
+            - clang++-5.0
+      env:
+        - CXX=clang++-5.0
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - *base_packages
+            - clang++-5.0
+      env:
+        - CXX=clang++-5.0
+        - CXXSTD=14
+
+    - os: osx
+      osx_image: xcode6.4
+      compiler: clang
+      env:
+       - CXX=clang++
+
+    - os: osx
+      osx_image: xcode7.3
+      compiler: clang
+      env:
+        - CXX=clang++
+
+    - os: osx
+      osx_image: xcode8.3
+      compiler: clang
+      env:
+        - CXX=clang++
+
+    - os: osx
+      osx_image: xcode9.1
+      compiler: clang
+      env:
+        - CXX=clang++
+
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+          packages:
+            - *base_packages
+            - g++-7
+      env:
+        - CXX=g++-7
+        - NEOPG_BUILD_TYPE=Debug
+      script:
+        - $CXX --version
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=${NEOPG_BUILD_TYPE:-Release} ..
+        - make -j3 coverage
+      after_success:
+	- bash <(curl -s https://codecov.io/bash)
+
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:samuel-bachmann/boost'
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - *base_packages
+            - clang++-5.0
+      env:
+        - CXX=clang++-5.0
+      script:
+        - $CXX --version
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=${NEOPG_BUILD_TYPE:-Release} ..
+        - make pretty
+        - git diff --exit-code
 
 script:
+  - $CXX --version
   - cd build
-
-  - |
-    if [ $TRAVIS_OS_NAME = osx ]; then
-      cmake -DCMAKE_BUILD_TYPE=Debug -C ../src/clang.txt ..
-    fi;
-
-  - |
-    if [ $TRAVIS_OS_NAME = linux ]; then
-      cmake -DCMAKE_BUILD_TYPE=Debug ..
-    fi;
-
-  - make
+  - cmake -DCMAKE_BUILD_TYPE=${NEOPG_BUILD_TYPE:-Release} ..
+  - make -j3
   - make test CTEST_OUTPUT_ON_FAILURE=1
