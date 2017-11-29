@@ -226,6 +226,7 @@ target_include_directories(neopg PRIVATE
   ${GNUTLS_INCLUDE_DIRS}
   ${RANG_INCLUDE_DIR}
   ${CLI11_INCLUDE_DIR}
+  ${JSON_INCLUDE_DIR}
   ../include
 )
 target_compile_definitions(neopg PRIVATE

@@ -21,6 +21,7 @@
 #define G10_MAIN_H
 
 #include <boost/optional.hpp>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -176,6 +177,7 @@ int pubkey_get_nenc(pubkey_algo_t algo);
 /* Temporary helpers. */
 unsigned int pubkey_nbits(int algo, gcry_mpi_t *pkey);
 int mpi_print(estream_t stream, gcry_mpi_t a, int mode);
+void mpi_print_stream(std::ostream &stream, gcry_mpi_t a, int mode);
 unsigned int ecdsa_qbits_from_Q(unsigned int qbits);
 
 /*-- cpr.c --*/

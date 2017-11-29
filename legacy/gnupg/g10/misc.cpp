@@ -20,6 +20,10 @@
  */
 
 #include <config.h>
+
+#include <botan/hex.h>
+#include <boost/format.hpp>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1515,6 +1519,36 @@ int mpi_print(estream_t fp, gcry_mpi_t a, int mode) {
     gcry_free(buffer);
   }
   return n;
+}
+
+void mpi_print_stream(std::ostream &fp, gcry_mpi_t a, int mode) {
+  int n = 0;
+  size_t nwritten;
+
+  if (!a) {
+    fp << "[MPI_NULL]";
+    return;
+  }
+  if (!mode) {
+    unsigned int n1;
+    n1 = gcry_mpi_get_nbits(a);
+    fp << boost::format("[%u bits]") % n1;
+  } else if (gcry_mpi_get_flag(a, GCRYMPI_FLAG_OPAQUE)) {
+    unsigned int nbits;
+    unsigned char *p = (unsigned char *)gcry_mpi_get_opaque(a, &nbits);
+    if (!p)
+      fp << "[invalid opaque value]";
+    else {
+      fp << Botan::hex_encode(p, (nbits + 7) / 8);
+    }
+  } else {
+    unsigned char *buffer;
+    size_t buflen;
+
+    if (gcry_mpi_aprint(GCRYMPI_FMT_USG, &buffer, &buflen, a)) BUG();
+    fp << Botan::hex_encode(buffer, buflen);
+    gcry_free(buffer);
+  }
 }
 
 /* pkey[1] or skey[1] is Q for ECDSA, which is an uncompressed point,

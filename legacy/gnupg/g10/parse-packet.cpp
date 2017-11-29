@@ -21,6 +21,14 @@
  */
 
 #include <config.h>
+
+#include <botan/hex.h>
+#include <boost/format.hpp>
+#include <iostream>
+
+#include <json.hpp>
+using json = nlohmann::json;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +50,7 @@
 
 static int mpi_print_mode;
 static int list_mode;
-static estream_t listfp;
+static std::ostream *listfp;
 
 static int parse(parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts,
                  off_t *retpos, int *skip, IOBUF out, int do_skip
@@ -83,6 +91,15 @@ static int parse_mdc(IOBUF inp, int pkttype, unsigned long pktlen,
                      PACKET *packet, int new_ctb);
 static int parse_gpg_control(IOBUF inp, int pkttype, unsigned long pktlen,
                              PACKET *packet, int partial);
+
+/* We use json strings for display, rather than the C-style strings from GnuPG
+ * (which were not really C string literals).  */
+static void write_sanitized(std::ostream &fp, const byte *buffer,
+                            int buffer_len) {
+  std::string str((const char *)buffer, buffer_len);
+  json j = str;
+  fp << j;
+}
 
 /* Read a 16-bit value in MSB order (big endian) from an iobuf.  */
 static unsigned short read_16(IOBUF inp) {
@@ -191,10 +208,10 @@ int set_packet_list_mode(int mode) {
      enable the list mode only with a special option. */
   if (!listfp) {
     if (opt.list_packets) {
-      listfp = es_stdout;
+      listfp = &std::cout;
       if (opt.verbose) mpi_print_mode = 1;
     } else
-      listfp = es_stderr;
+      listfp = &std::cerr;
 
     if (DBG_MPI) mpi_print_mode = 1;
   }
@@ -221,7 +238,7 @@ static void unknown_pubkey_warning(int algo) {
     algo &= 0xff;
     if (!unknown_pubkey_algos[algo]) {
       if (opt.verbose)
-        log_info(_("can't handle public key algorithm %d\n"), algo);
+        log_info(_("can't handle public key algorithm %d\n"), (unsigned)algo);
       unknown_pubkey_algos[algo] = 1;
     }
   }
@@ -545,7 +562,7 @@ again:
           log_error(
               "%s: partial length invalid for"
               " packet type %d\n",
-              iobuf_where(inp), pkttype);
+              iobuf_where(inp), (unsigned)pkttype);
           rc = GPG_ERR_INV_PACKET;
           goto leave;
       }
@@ -570,7 +587,7 @@ again:
         log_error(
             "%s: indeterminate length for invalid"
             " packet type %d\n",
-            iobuf_where(inp), pkttype);
+            iobuf_where(inp), (unsigned)pkttype);
         rc = GPG_ERR_INV_PACKET;
         goto leave;
       }
@@ -639,19 +656,21 @@ again:
   if (DBG_PACKET) {
 #if DEBUG_PARSE_PACKET
     log_debug("parse_packet(iob=%d): type=%d length=%lu%s (%s.%s.%d)\n",
-              iobuf_id(inp), pkttype, pktlen, new_ctb ? " (new_ctb)" : "",
-              dbg_w, dbg_f, dbg_l);
+              iobuf_id(inp), (unsigned)pkttype, pktlen,
+              new_ctb ? " (new_ctb)" : "", dbg_w, dbg_f, dbg_l);
 #else
     log_debug("parse_packet(iob=%d): type=%d length=%lu%s\n", iobuf_id(inp),
-              pkttype, pktlen, new_ctb ? " (new_ctb)" : "");
+              (unsigned)pkttype, pktlen, new_ctb ? " (new_ctb)" : "");
 #endif
   }
 
   if (list_mode)
-    es_fprintf(listfp, "# off=%lu ctb=%02x tag=%d hlen=%d plen=%lu%s%s\n",
-               (unsigned long)pos, ctb, pkttype, hdrlen, pktlen,
-               partial ? (new_ctb ? " partial" : " indeterminate") : "",
-               new_ctb ? " new-ctb" : "");
+    *listfp << boost::format(
+                   "# off=%lu ctb=%02x tag=%d hlen=%d plen=%lu%s%s\n") %
+                   (unsigned long)pos % ctb % (unsigned)pkttype % hdrlen %
+                   pktlen %
+                   (partial ? (new_ctb ? " partial" : " indeterminate") : "") %
+                   (new_ctb ? " new-ctb" : "");
 
   /* Count it.  */
   ctx->n_parsed_packets++;
@@ -742,14 +761,14 @@ leave:
 static void dump_hex_line(int c, int *i) {
   if (*i && !(*i % 8)) {
     if (*i && !(*i % 24))
-      es_fprintf(listfp, "\n%4d:", *i);
+      *listfp << boost::format("\n%4d:") % *i;
     else
-      es_putc(' ', listfp);
+      *listfp << ' ';
   }
   if (c == -1)
-    es_fprintf(listfp, " EOF");
+    *listfp << " EOF";
   else
-    es_fprintf(listfp, " %02x", c);
+    *listfp << boost::format(" %02x") % c;
   ++*i;
 }
 
@@ -798,11 +817,11 @@ static int copy_packet(IOBUF inp, IOBUF out, int pkttype, unsigned long pktlen,
 static void skip_packet(IOBUF inp, int pkttype, unsigned long pktlen,
                         int partial) {
   if (list_mode) {
-    es_fprintf(listfp, ":unknown packet: type %2d, length %lu\n", pkttype,
-               pktlen);
+    *listfp << boost::format(":unknown packet: type %2d, length %lu\n") %
+                   pkttype % pktlen;
     if (pkttype) {
       int c, i = 0;
-      es_fputs("dump:", listfp);
+      *listfp << "dump:";
       if (partial) {
         while ((c = iobuf_get(inp)) != -1) dump_hex_line(c, &i);
       } else {
@@ -811,7 +830,7 @@ static void skip_packet(IOBUF inp, int pkttype, unsigned long pktlen,
           if (c == -1) break;
         }
       }
-      es_putc('\n', listfp);
+      *listfp << '\n';
       return;
     }
   }
@@ -909,13 +928,13 @@ static int parse_marker(IOBUF inp, int pkttype, unsigned long pktlen) {
     goto fail;
   }
 
-  if (list_mode) es_fputs(":marker packet: PGP\n", listfp);
+  if (list_mode) *listfp << ":marker packet: PGP\n";
 
   return 0;
 
 fail:
   log_error("invalid marker packet\n");
-  if (list_mode) es_fputs(":marker packet: [invalid]\n", listfp);
+  if (list_mode) *listfp << ":marker packet: [invalid]\n";
   iobuf_skip_rest(inp, pktlen, 0);
   return GPG_ERR_INV_PACKET;
 }
@@ -927,23 +946,23 @@ static int parse_symkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
   int i, version, s2kmode, cipher_algo, hash_algo, seskeylen, minlen;
 
   if (pktlen < 4) {
-    log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fprintf(listfp, ":symkey enc packet: [too short]\n");
+    log_error("packet(%d) too short\n", (unsigned)pkttype);
+    if (list_mode) *listfp << ":symkey enc packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
   version = iobuf_get_noeof(inp);
   pktlen--;
   if (version != 4) {
-    log_error("packet(%d) with unknown version %d\n", pkttype, version);
-    if (list_mode)
-      es_fprintf(listfp, ":symkey enc packet: [unknown version]\n");
+    log_error("packet(%d) with unknown version %d\n", (unsigned)pkttype,
+              (unsigned)version);
+    if (list_mode) *listfp << ":symkey enc packet: [unknown version]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
   if (pktlen > 200) { /* (we encode the seskeylen in a byte) */
-    log_error("packet(%d) too large\n", pkttype);
-    if (list_mode) es_fprintf(listfp, ":symkey enc packet: [too large]\n");
+    log_error("packet(%d) too large\n", (unsigned)pkttype);
+    if (list_mode) *listfp << ":symkey enc packet: [too large]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -964,14 +983,13 @@ static int parse_symkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
       minlen = 9;
       break;
     default:
-      log_error("unknown S2K mode %d\n", s2kmode);
-      if (list_mode)
-        es_fprintf(listfp, ":symkey enc packet: [unknown S2K mode]\n");
+      log_error("unknown S2K mode %d\n", (unsigned)s2kmode);
+      if (list_mode) *listfp << ":symkey enc packet: [unknown S2K mode]\n";
       goto leave;
   }
   if (minlen > pktlen) {
-    log_error("packet with S2K %d too short\n", s2kmode);
-    if (list_mode) es_fprintf(listfp, ":symkey enc packet: [too short]\n");
+    log_error("packet with S2K %d too short\n", (unsigned)s2kmode);
+    if (list_mode) *listfp << ":symkey enc packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1006,19 +1024,22 @@ static int parse_symkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
   log_assert(!pktlen);
 
   if (list_mode) {
-    es_fprintf(listfp,
-               ":symkey enc packet: version %d, cipher %d, s2k %d, hash %d",
-               version, cipher_algo, s2kmode, hash_algo);
-    if (seskeylen) es_fprintf(listfp, ", seskey %d bits", (seskeylen - 1) * 8);
-    es_fprintf(listfp, "\n");
+    *listfp
+        << boost::format(
+               ":symkey enc packet: version %d, cipher %d, s2k %d, hash %d") %
+               (unsigned)version % (unsigned)cipher_algo % (unsigned)s2kmode %
+               (unsigned)hash_algo;
+    if (seskeylen)
+      *listfp << boost::format(", seskey %d bits") % ((seskeylen - 1) * 8);
+    *listfp << "\n";
     if (s2kmode == 1 || s2kmode == 3) {
-      es_fprintf(listfp, "\tsalt ");
-      es_write_hexstring(listfp, k->s2k.salt, 8, 0, NULL);
+      *listfp << "\tsalt ";
+      *listfp << Botan::hex_encode(k->s2k.salt, 8);
       if (s2kmode == 3)
-        es_fprintf(listfp, ", count %lu (%lu)",
-                   S2K_DECODE_COUNT((unsigned long)k->s2k.count),
-                   (unsigned long)k->s2k.count);
-      es_fprintf(listfp, "\n");
+        *listfp << boost::format(", count %lu (%lu)") %
+                       S2K_DECODE_COUNT((unsigned long)k->s2k.count) %
+                       (unsigned long)k->s2k.count;
+      *listfp << "\n";
     }
   }
 
@@ -1036,16 +1057,17 @@ static int parse_pubkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
   k = packet->pkt.pubkey_enc =
       (PKT_pubkey_enc *)xmalloc_clear(sizeof *packet->pkt.pubkey_enc);
   if (pktlen < 12) {
-    log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fputs(":pubkey enc packet: [too short]\n", listfp);
+    log_error("packet(%d) too short\n", (unsigned)pkttype);
+    if (list_mode) *listfp << ":pubkey enc packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
   k->version = iobuf_get_noeof(inp);
   pktlen--;
   if (k->version != 2 && k->version != 3) {
-    log_error("packet(%d) with unknown version %d\n", pkttype, k->version);
-    if (list_mode) es_fputs(":pubkey enc packet: [unknown version]\n", listfp);
+    log_error("packet(%d) with unknown version %d\n", (unsigned)pkttype,
+              (unsigned)k->version);
+    if (list_mode) *listfp << ":pubkey enc packet: [unknown version]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1057,15 +1079,17 @@ static int parse_pubkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
   pktlen--;
   k->throw_keyid = 0; /* Only used as flag for build_packet.  */
   if (list_mode)
-    es_fprintf(listfp,
-               ":pubkey enc packet: version %d, algo %d, keyid %08lX%08lX\n",
-               k->version, k->pubkey_algo, (unsigned long)k->keyid[0],
-               (unsigned long)k->keyid[1]);
+    *listfp
+        << boost::format(
+               ":pubkey enc packet: version %d, algo %d, keyid %08lX%08lX\n") %
+               (unsigned)k->version % (unsigned)k->pubkey_algo %
+               (unsigned long)k->keyid[0] % (unsigned long)k->keyid[1];
 
   ndata = pubkey_get_nenc((pubkey_algo_t)(k->pubkey_algo));
   if (!ndata) {
     if (list_mode)
-      es_fprintf(listfp, "\tunsupported algorithm %d\n", k->pubkey_algo);
+      *listfp << boost::format("\tunsupported algorithm %d\n") %
+                     (unsigned)k->pubkey_algo;
     unknown_pubkey_warning(k->pubkey_algo);
     k->data[0] = NULL; /* No need to store the encrypted data.  */
   } else {
@@ -1082,9 +1106,9 @@ static int parse_pubkeyenc(IOBUF inp, int pkttype, unsigned long pktlen,
       }
       if (rc) goto leave;
       if (list_mode) {
-        es_fprintf(listfp, "\tdata: ");
-        mpi_print(listfp, k->data[i], mpi_print_mode);
-        es_putc('\n', listfp);
+        *listfp << "\tdata: ";
+        mpi_print_stream(*listfp, k->data[i], mpi_print_mode);
+        *listfp << '\n';
       }
     }
   }
@@ -1109,102 +1133,99 @@ static void dump_sig_subpkt(int hashed, int type, int critical,
    * the ARRs - we print our old message here when it is a faked ARR
    * and add an additional notice.  */
   if (type == SIGSUBPKT_ARR && !hashed) {
-    es_fprintf(listfp,
-               "\tsubpkt %d len %u (additional recipient request)\n"
-               "WARNING: PGP versions > 5.0 and < 6.5.8 will automagically "
-               "encrypt to this key and thereby reveal the plaintext to "
-               "the owner of this ARR key. Detailed info follows:\n",
-               type, (unsigned)length);
+    *listfp << boost::format(
+                   "\tsubpkt %d len %u (additional recipient request)\n"
+                   "WARNING: PGP versions > 5.0 and < 6.5.8 will automagically "
+                   "encrypt to this key and thereby reveal the plaintext to "
+                   "the owner of this ARR key. Detailed info follows:\n") %
+                   (unsigned)type % (unsigned)length;
   }
 
   buffer++;
   length--;
 
-  es_fprintf(listfp, "\t%s%ssubpkt %d len %u (", /*) */
-             critical ? "critical " : "", hashed ? "hashed " : "", type,
-             (unsigned)length);
+  *listfp << boost::format("\t%s%ssubpkt %d len %u (") %
+                 (critical ? "critical " : "") % (hashed ? "hashed " : "") %
+                 (unsigned)type % (unsigned)length;
   if (length > buflen) {
-    es_fprintf(listfp, "too short: buffer is only %u)\n", (unsigned)buflen);
+    *listfp << boost::format("too short: buffer is only %u)\n") %
+                   (unsigned)buflen;
     return;
   }
   switch (type) {
     case SIGSUBPKT_SIG_CREATED:
       if (length >= 4)
-        es_fprintf(listfp, "sig created %s",
-                   strtimestamp(buf32_to_u32(buffer)));
+        *listfp << "sig created " << strtimestamp(buf32_to_u32(buffer));
       break;
     case SIGSUBPKT_SIG_EXPIRE:
       if (length >= 4) {
         if (buf32_to_u32(buffer))
-          es_fprintf(listfp, "sig expires after %s",
-                     strtimevalue(buf32_to_u32(buffer)));
+          *listfp << "sig expires after " << strtimevalue(buf32_to_u32(buffer));
         else
-          es_fprintf(listfp, "sig does not expire");
+          *listfp << "sig does not expire";
       }
       break;
     case SIGSUBPKT_EXPORTABLE:
-      if (length) es_fprintf(listfp, "%sexportable", *buffer ? "" : "not ");
+      if (length)
+        *listfp << boost::format("%sexportable") % (*buffer ? "" : "not ");
       break;
     case SIGSUBPKT_TRUST:
       if (length != 2)
         p = "[invalid trust subpacket]";
       else
-        es_fprintf(listfp, "trust signature of depth %d, value %d", buffer[0],
-                   buffer[1]);
+        *listfp << boost::format("trust signature of depth %d, value %d") %
+                       buffer[0] % buffer[1];
       break;
     case SIGSUBPKT_REGEXP:
       if (!length)
         p = "[invalid regexp subpacket]";
       else {
-        es_fprintf(listfp, "regular expression: \"");
-        es_write_sanitized(listfp, buffer, length, "\"", NULL);
+        *listfp << "regular expression: ";
+        write_sanitized(*listfp, buffer, length);
         p = "\"";
       }
       break;
     case SIGSUBPKT_REVOCABLE:
-      if (length) es_fprintf(listfp, "%srevocable", *buffer ? "" : "not ");
+      if (length) *listfp << (*buffer ? "revocable" : "not revocable");
       break;
     case SIGSUBPKT_KEY_EXPIRE:
       if (length >= 4) {
         if (buf32_to_u32(buffer))
-          es_fprintf(listfp, "key expires after %s",
-                     strtimevalue(buf32_to_u32(buffer)));
+          *listfp << "key expires after " << strtimevalue(buf32_to_u32(buffer));
         else
-          es_fprintf(listfp, "key does not expire");
+          *listfp << "key does not expire";
       }
       break;
     case SIGSUBPKT_PREF_SYM:
-      es_fputs("pref-sym-algos:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %d", buffer[i]);
+      *listfp << "pref-sym-algos:";
+      for (i = 0; i < length; i++) *listfp << boost::format(" %d") % buffer[i];
       break;
     case SIGSUBPKT_REV_KEY:
-      es_fputs("revocation key: ", listfp);
+      *listfp << "revocation key: ";
       if (length < 22)
         p = "[too short]";
       else {
-        es_fprintf(listfp, "c=%02x a=%d f=", buffer[0], buffer[1]);
-        for (i = 2; i < length; i++) es_fprintf(listfp, "%02X", buffer[i]);
+        *listfp << boost::format("c=%02x a=%d f=") % buffer[0] % buffer[1];
+        for (i = 2; i < length; i++)
+          *listfp << boost::format("%02X") % buffer[i];
       }
       break;
     case SIGSUBPKT_ISSUER:
       if (length >= 8)
-        es_fprintf(listfp, "issuer key ID %08lX%08lX",
-                   (unsigned long)buf32_to_u32(buffer),
-                   (unsigned long)buf32_to_u32(buffer + 4));
+        *listfp << boost::format("issuer key ID %08lX%08lX") %
+                       (unsigned long)buf32_to_u32(buffer) %
+                       (unsigned long)buf32_to_u32(buffer + 4);
       break;
     case SIGSUBPKT_ISSUER_FPR:
       if (length >= 21) {
         char *tmp;
-        es_fprintf(listfp, "issuer fpr v%d ", buffer[0]);
-        tmp = bin2hex(buffer + 1, length - 1, NULL);
-        if (tmp) {
-          es_fputs(tmp, listfp);
-          xfree(tmp);
-        }
+        *listfp << boost::format("issuer fpr v%d ") % buffer[0];
+        *listfp << Botan::hex_encode(buffer + 1, length - 1);
       }
+
       break;
     case SIGSUBPKT_NOTATION: {
-      es_fputs("notation: ", listfp);
+      *listfp << "notation: ";
       if (length < 8)
         p = "[too short]";
       else {
@@ -1217,76 +1238,78 @@ static void dump_sig_subpkt(int hashed, int type, int critical,
         if (8 + n1 + n2 != length)
           p = "[error]";
         else {
-          es_write_sanitized(listfp, s, n1, ")", NULL);
-          es_putc('=', listfp);
+          write_sanitized(*listfp, s, n1);
+          *listfp << '=';
 
           if (*buffer & 0x80)
-            es_write_sanitized(listfp, s + n1, n2, ")", NULL);
+            write_sanitized(*listfp, s + n1, n2);
           else
             p = "[not human readable]";
         }
       }
     } break;
     case SIGSUBPKT_PREF_HASH:
-      es_fputs("pref-hash-algos:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %d", buffer[i]);
+      *listfp << "pref-hash-algos:";
+      for (i = 0; i < length; i++) *listfp << boost::format(" %d") % buffer[i];
       break;
     case SIGSUBPKT_PREF_COMPR:
-      es_fputs("pref-zip-algos:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %d", buffer[i]);
+      *listfp << "pref-zip-algos:";
+      for (i = 0; i < length; i++) *listfp << boost::format(" %d") % buffer[i];
       break;
     case SIGSUBPKT_KS_FLAGS:
-      es_fputs("keyserver preferences:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %02X", buffer[i]);
+      *listfp << "keyserver preferences:";
+      for (i = 0; i < length; i++)
+        *listfp << boost::format(" %02X") % buffer[i];
       break;
     case SIGSUBPKT_PREF_KS:
-      es_fputs("preferred keyserver: ", listfp);
-      es_write_sanitized(listfp, buffer, length, ")", NULL);
+      *listfp << "preferred keyserver: ";
+      write_sanitized(*listfp, buffer, length);
       break;
     case SIGSUBPKT_PRIMARY_UID:
       p = "primary user ID";
       break;
     case SIGSUBPKT_POLICY:
-      es_fputs("policy: ", listfp);
-      es_write_sanitized(listfp, buffer, length, ")", NULL);
+      *listfp << "policy: ";
+      write_sanitized(*listfp, buffer, length);
       break;
     case SIGSUBPKT_KEY_FLAGS:
-      es_fputs("key flags:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %02X", buffer[i]);
+      *listfp << "key flags:";
+      for (i = 0; i < length; i++)
+        *listfp << ' ' << Botan::hex_encode(&buffer[i], 1);
       break;
     case SIGSUBPKT_SIGNERS_UID:
       p = "signer's user ID";
       break;
     case SIGSUBPKT_REVOC_REASON:
       if (length) {
-        es_fprintf(listfp, "revocation reason 0x%02x (", *buffer);
-        es_write_sanitized(listfp, buffer + 1, length - 1, ")", NULL);
+        *listfp << boost::format("revocation reason 0x%02x (") % *buffer;
+        write_sanitized(*listfp, buffer + 1, length - 1);
         p = ")";
       }
       break;
     case SIGSUBPKT_ARR:
-      es_fputs("Big Brother's key (ignored): ", listfp);
+      *listfp << "Big Brother's key (ignored): ";
       if (length < 22)
         p = "[too short]";
       else {
-        es_fprintf(listfp, "c=%02x a=%d f=", buffer[0], buffer[1]);
-        if (length > 2)
-          es_write_hexstring(listfp, buffer + 2, length - 2, 0, NULL);
+        *listfp << boost::format("c=%02x a=%d f=") % buffer[0] % buffer[1];
+        if (length > 2) *listfp << Botan::hex_encode(buffer + 2, length - 2);
       }
       break;
     case SIGSUBPKT_FEATURES:
-      es_fputs("features:", listfp);
-      for (i = 0; i < length; i++) es_fprintf(listfp, " %02x", buffer[i]);
+      *listfp << "features:";
+      for (i = 0; i < length; i++)
+        *listfp << boost::format(" %02x") % buffer[i];
       break;
     case SIGSUBPKT_SIGNATURE:
-      es_fputs("signature: ", listfp);
+      *listfp << "signature: ";
       if (length < 17)
         p = "[too short]";
       else
-        es_fprintf(listfp, "v%d, class 0x%02X, algo %d, digest algo %d",
-                   buffer[0], buffer[0] == 3 ? buffer[2] : buffer[1],
-                   buffer[0] == 3 ? buffer[15] : buffer[2],
-                   buffer[0] == 3 ? buffer[16] : buffer[3]);
+        *listfp << boost::format("v%d, class 0x%02X, algo %d, digest algo %d") %
+                       buffer[0] % (buffer[0] == 3 ? buffer[2] : buffer[1]) %
+                       (buffer[0] == 3 ? buffer[15] : buffer[2]) %
+                       (buffer[0] == 3 ? buffer[16] : buffer[3]);
       break;
     default:
       if (type >= 100 && type <= 110)
@@ -1296,7 +1319,7 @@ static void dump_sig_subpkt(int hashed, int type, int critical,
       break;
   }
 
-  es_fprintf(listfp, "%s)\n", p ? p : "");
+  *listfp << (p ? p : "") << ")\n";
 }
 
 /*
@@ -1554,7 +1577,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (pktlen < 16) {
     log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fputs(":signature packet: [too short]\n", listfp);
+    if (list_mode) *listfp << ":signature packet: [too short]\n";
     goto leave;
   }
   sig->version = iobuf_get_noeof(inp);
@@ -1563,7 +1586,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
     is_v4 = 1;
   else if (sig->version != 2 && sig->version != 3) {
     log_error("packet(%d) with unknown version %d\n", pkttype, sig->version);
-    if (list_mode) es_fputs(":signature packet: [unknown version]\n", listfp);
+    if (list_mode) *listfp << ":signature packet: [unknown version]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1600,8 +1623,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
     if (pktlen < n) goto underflow;
     if (n > 10000) {
       log_error("signature packet: hashed data too long\n");
-      if (list_mode)
-        es_fputs(":signature packet: [hashed data too long]\n", listfp);
+      if (list_mode) *listfp << ":signature packet: [hashed data too long]\n";
       rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
@@ -1613,7 +1635,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
         log_error(
             "premature eof while reading "
             "hashed signature data\n");
-        if (list_mode) es_fputs(":signature packet: [premature eof]\n", listfp);
+        if (list_mode) *listfp << ":signature packet: [premature eof]\n";
         rc = -1;
         goto leave;
       }
@@ -1625,8 +1647,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
     if (pktlen < n) goto underflow;
     if (n > 10000) {
       log_error("signature packet: unhashed data too long\n");
-      if (list_mode)
-        es_fputs(":signature packet: [unhashed data too long]\n", listfp);
+      if (list_mode) *listfp << ":signature packet: [unhashed data too long]\n";
       rc = GPG_ERR_INV_PACKET;
       goto leave;
     }
@@ -1638,7 +1659,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
         log_error(
             "premature eof while reading "
             "unhashed signature data\n");
-        if (list_mode) es_fputs(":signature packet: [premature eof]\n", listfp);
+        if (list_mode) *listfp << ":signature packet: [premature eof]\n";
         rc = -1;
         goto leave;
       }
@@ -1732,14 +1753,15 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
   }
 
   if (list_mode) {
-    es_fprintf(listfp,
-               ":signature packet: algo %d, keyid %08lX%08lX\n"
-               "\tversion %d, created %lu, md5len %d, sigclass 0x%02x\n"
-               "\tdigest algo %d, begin of digest %02x %02x\n",
-               sig->pubkey_algo, (unsigned long)sig->keyid[0],
-               (unsigned long)sig->keyid[1], sig->version,
-               (unsigned long)sig->timestamp, md5_len, sig->sig_class,
-               sig->digest_algo, sig->digest_start[0], sig->digest_start[1]);
+    *listfp << boost::format(
+                   ":signature packet: algo %d, keyid %08lX%08lX\n"
+                   "\tversion %d, created %lu, md5len %d, sigclass 0x%02x\n"
+                   "\tdigest algo %d, begin of digest %02x %02x\n") %
+                   sig->pubkey_algo % (unsigned long)sig->keyid[0] %
+                   (unsigned long)sig->keyid[1] % sig->version %
+                   (unsigned long)sig->timestamp % md5_len % sig->sig_class %
+                   sig->digest_algo % sig->digest_start[0] %
+                   sig->digest_start[1];
     if (is_v4) {
       parse_sig_subpkt(sig->hashed, SIGSUBPKT_LIST_HASHED, NULL);
       parse_sig_subpkt(sig->unhashed, SIGSUBPKT_LIST_UNHASHED, NULL);
@@ -1749,7 +1771,7 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
   ndata = pubkey_get_nsig((pubkey_algo_t)(sig->pubkey_algo));
   if (!ndata) {
     if (list_mode)
-      es_fprintf(listfp, "\tunknown algorithm %d\n", sig->pubkey_algo);
+      *listfp << boost::format("\tunknown algorithm %d\n") % sig->pubkey_algo;
     unknown_pubkey_warning(sig->pubkey_algo);
 
     /* We store the plain material in data[0], so that we are able
@@ -1770,9 +1792,9 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
       sig->data[i] = mpi_read(inp, &n, 0);
       pktlen -= n;
       if (list_mode) {
-        es_fprintf(listfp, "\tdata: ");
-        mpi_print(listfp, sig->data[i], mpi_print_mode);
-        es_putc('\n', listfp);
+        *listfp << "\tdata: ";
+        mpi_print_stream(*listfp, sig->data[i], mpi_print_mode);
+        *listfp << '\n';
       }
       if (!sig->data[i]) rc = GPG_ERR_INV_PACKET;
     }
@@ -1784,7 +1806,7 @@ leave:
 
 underflow:
   log_error("packet(%d) too short\n", pkttype);
-  if (list_mode) es_fputs(":signature packet: [too short]\n", listfp);
+  if (list_mode) *listfp << ":signature packet: [too short]\n";
 
   iobuf_skip_rest(inp, pktlen, 0);
 
@@ -1798,7 +1820,7 @@ static int parse_onepass_sig(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (pktlen < 13) {
     log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fputs(":onepass_sig packet: [too short]\n", listfp);
+    if (list_mode) *listfp << ":onepass_sig packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1806,7 +1828,7 @@ static int parse_onepass_sig(IOBUF inp, int pkttype, unsigned long pktlen,
   pktlen--;
   if (version != 3) {
     log_error("onepass_sig with unknown version %d\n", version);
-    if (list_mode) es_fputs(":onepass_sig packet: [unknown version]\n", listfp);
+    if (list_mode) *listfp << ":onepass_sig packet: [unknown version]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1823,13 +1845,13 @@ static int parse_onepass_sig(IOBUF inp, int pkttype, unsigned long pktlen,
   ops->last = iobuf_get_noeof(inp);
   pktlen--;
   if (list_mode)
-    es_fprintf(listfp,
-               ":onepass_sig packet: keyid %08lX%08lX\n"
-               "\tversion %d, sigclass 0x%02x, digest %d, pubkey %d, "
-               "last=%d\n",
-               (unsigned long)ops->keyid[0], (unsigned long)ops->keyid[1],
-               version, ops->sig_class, ops->digest_algo, ops->pubkey_algo,
-               ops->last);
+    *listfp << boost::format(
+                   ":onepass_sig packet: keyid %08lX%08lX\n"
+                   "\tversion %d, sigclass 0x%02x, digest %d, pubkey %d, "
+                   "last=%d\n") %
+                   (unsigned long)ops->keyid[0] % (unsigned long)ops->keyid[1] %
+                   version % ops->sig_class % ops->digest_algo %
+                   ops->pubkey_algo % ops->last;
 
 leave:
   iobuf_skip_rest(inp, pktlen, 0);
@@ -1856,19 +1878,19 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
        version (i.e. gpg 1.4) to parse v3 packets.  */
   } else {
     log_error("packet(%d) with unknown version %d\n", pkttype, version);
-    if (list_mode) es_fputs(":key packet: [unknown version]\n", listfp);
+    if (list_mode) *listfp << ":key packet: [unknown version]\n";
     err = GPG_ERR_INV_PACKET;
     goto leave;
   }
 
   if (pktlen < 11) {
     log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fputs(":key packet: [too short]\n", listfp);
+    if (list_mode) *listfp << ":key packet: [too short]\n";
     err = GPG_ERR_INV_PACKET;
     goto leave;
   } else if (pktlen > MAX_KEY_PACKET_LENGTH) {
     log_error("packet(%d) too large\n", pkttype);
-    if (list_mode) es_fputs(":key packet: [too larget]\n", listfp);
+    if (list_mode) *listfp << ":key packet: [too larget]\n";
     err = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -1880,18 +1902,19 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
   algorithm = iobuf_get_noeof(inp);
   pktlen--;
   if (list_mode)
-    es_fprintf(
-        listfp,
-        ":%s key packet:\n"
-        "\tversion %d, algo %d, created %lu, expires %lu\n",
-        pkttype == PKT_PUBLIC_KEY
-            ? "public"
-            : pkttype == PKT_SECRET_KEY
-                  ? "secret"
-                  : pkttype == PKT_PUBLIC_SUBKEY
-                        ? "public sub"
-                        : pkttype == PKT_SECRET_SUBKEY ? "secret sub" : "??",
-        version, algorithm, timestamp, expiredate);
+    *listfp << boost::format(
+                   ":%s key packet:\n"
+                   "\tversion %d, algo %d, created %lu, expires %lu\n") %
+                   (pkttype == PKT_PUBLIC_KEY
+                        ? "public"
+                        : pkttype == PKT_SECRET_KEY
+                              ? "secret"
+                              : pkttype == PKT_PUBLIC_SUBKEY
+                                    ? "public sub"
+                                    : pkttype == PKT_SECRET_SUBKEY
+                                          ? "secret sub"
+                                          : "??") %
+                   version % algorithm % timestamp % expiredate;
 
   pk->timestamp = timestamp;
   pk->expiredate = expiredate;
@@ -1904,7 +1927,8 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
   nskey = pubkey_get_nskey((pubkey_algo_t)(algorithm));
   npkey = pubkey_get_npkey((pubkey_algo_t)(algorithm));
   if (!npkey) {
-    if (list_mode) es_fprintf(listfp, "\tunknown algorithm %d\n", algorithm);
+    if (list_mode)
+      *listfp << boost::format("\tunknown algorithm %d\n") % algorithm;
     unknown_pubkey_warning(algorithm);
   }
 
@@ -1930,17 +1954,17 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
       }
       if (err) goto leave;
       if (list_mode) {
-        es_fprintf(listfp, "\tpkey[%d]: ", i);
-        mpi_print(listfp, pk->pkey[i], mpi_print_mode);
+        *listfp << boost::format("\tpkey[%d]: ") % i;
+        mpi_print_stream(*listfp, pk->pkey[i], mpi_print_mode);
         if ((algorithm == PUBKEY_ALGO_ECDSA || algorithm == PUBKEY_ALGO_EDDSA ||
              algorithm == PUBKEY_ALGO_ECDH) &&
             i == 0) {
           char *curve = openpgp_oid_to_str(pk->pkey[0]);
           const char *name = openpgp_oid_to_curve(curve, 0);
-          es_fprintf(listfp, " %s (%s)", name ? name : "", curve);
+          *listfp << boost::format(" %s (%s)") % (name ? name : "") % curve;
           xfree(curve);
         }
-        es_putc('\n', listfp);
+        *listfp << '\n';
       }
     }
   }
@@ -1988,7 +2012,7 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
             temp[i] = iobuf_get_noeof(inp);
           if (i < 4 || memcmp(temp, "GNU", 3)) {
             if (list_mode)
-              es_fprintf(listfp, "\tunknown S2K %d\n", ski->s2k.mode);
+              *listfp << boost::format("\tunknown S2K %d\n") % ski->s2k.mode;
             err = GPG_ERR_INV_PACKET;
             goto leave;
           }
@@ -2016,38 +2040,40 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
         /* Check the mode.  */
         switch (ski->s2k.mode) {
           case 0:
-            if (list_mode) es_fprintf(listfp, "\tsimple S2K");
+            if (list_mode) *listfp << "\tsimple S2K";
             break;
           case 1:
-            if (list_mode) es_fprintf(listfp, "\tsalted S2K");
+            if (list_mode) *listfp << "\tsalted S2K";
             break;
           case 3:
-            if (list_mode) es_fprintf(listfp, "\titer+salt S2K");
+            if (list_mode) *listfp << "\titer+salt S2K";
             break;
           case 1001:
-            if (list_mode) es_fprintf(listfp, "\tgnu-dummy S2K");
+            if (list_mode) *listfp << "\tgnu-dummy S2K";
             break;
           case 1002:
-            if (list_mode) es_fprintf(listfp, "\tgnu-divert-to-card S2K");
+            if (list_mode) *listfp << "\tgnu-divert-to-card S2K";
             break;
           default:
             if (list_mode)
-              es_fprintf(listfp, "\tunknown %sS2K %d\n",
-                         ski->s2k.mode < 1000 ? "" : "GNU ", ski->s2k.mode);
+              *listfp << boost::format("\tunknown %sS2K %d\n") %
+                             (ski->s2k.mode < 1000 ? "" : "GNU ") %
+                             ski->s2k.mode;
             err = GPG_ERR_INV_PACKET;
             goto leave;
         }
 
         /* Print some info.  */
         if (list_mode) {
-          es_fprintf(listfp, ", algo: %d,%s hash: %d", ski->algo,
-                     ski->sha1chk ? " SHA1 protection," : " simple checksum,",
-                     ski->s2k.hash_algo);
+          *listfp << boost::format(", algo: %d,%s hash: %d") % ski->algo %
+                         (ski->sha1chk ? " SHA1 protection,"
+                                       : " simple checksum,") %
+                         ski->s2k.hash_algo;
           if (ski->s2k.mode == 1 || ski->s2k.mode == 3) {
-            es_fprintf(listfp, ", salt: ");
-            es_write_hexstring(listfp, ski->s2k.salt, 8, 0, NULL);
+            *listfp << ", salt: ";
+            *listfp << Botan::hex_encode(ski->s2k.salt, 8);
           }
-          es_putc('\n', listfp);
+          *listfp << '\n';
         }
 
         /* Read remaining protection parameters.  */
@@ -2059,10 +2085,10 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
           ski->s2k.count = iobuf_get(inp);
           pktlen--;
           if (list_mode)
-            es_fprintf(
-                listfp, "\tprotect count: %lu (%lu)\n",
-                (unsigned long)S2K_DECODE_COUNT((unsigned long)ski->s2k.count),
-                (unsigned long)ski->s2k.count);
+            *listfp << boost::format("\tprotect count: %lu (%lu)\n") %
+                           (unsigned long)S2K_DECODE_COUNT(
+                               (unsigned long)ski->s2k.count) %
+                           (unsigned long)ski->s2k.count;
         } else if (ski->s2k.mode == 1002) {
           /* Read the serial number. */
           if (pktlen < 1) {
@@ -2084,8 +2110,8 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
         ski->s2k.mode = 0;
         ski->s2k.hash_algo = DIGEST_ALGO_MD5;
         if (list_mode)
-          es_fprintf(listfp, "\tprotect algo: %d  (hash algo: %d)\n", ski->algo,
-                     ski->s2k.hash_algo);
+          *listfp << boost::format("\tprotect algo: %d  (hash algo: %d)\n") %
+                         ski->algo % ski->s2k.hash_algo;
       }
 
       /* It is really ugly that we don't know the size
@@ -2109,11 +2135,11 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
       }
       for (i = 0; i < ski->ivlen; i++, pktlen--) temp[i] = iobuf_get_noeof(inp);
       if (list_mode) {
-        es_fprintf(
-            listfp,
-            ski->s2k.mode == 1002 ? "\tserial-number: " : "\tprotect IV: ");
-        for (i = 0; i < ski->ivlen; i++) es_fprintf(listfp, " %02x", temp[i]);
-        es_putc('\n', listfp);
+        *listfp << (ski->s2k.mode == 1002 ? "\tserial-number: "
+                                          : "\tprotect IV: ");
+        for (i = 0; i < ski->ivlen; i++)
+          *listfp << boost::format(" %02x") % temp[i];
+        *listfp << '\n';
       }
       memcpy(ski->iv, temp, ski->ivlen);
     }
@@ -2144,7 +2170,8 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
       if (pk->pkey[npkey])
         gcry_mpi_set_flag(pk->pkey[npkey], GCRYMPI_FLAG_USER1);
       pktlen = 0;
-      if (list_mode) es_fprintf(listfp, "\tskey[%d]: [v4 protected]\n", npkey);
+      if (list_mode)
+        *listfp << boost::format("\tskey[%d]: [v4 protected]\n") % npkey;
     } else {
       /* Not encrypted.  */
       for (i = npkey; i < nskey; i++) {
@@ -2159,9 +2186,9 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
         pk->pkey[i] = mpi_read(inp, &n, 0);
         pktlen -= n;
         if (list_mode) {
-          es_fprintf(listfp, "\tskey[%d]: ", i);
-          mpi_print(listfp, pk->pkey[i], mpi_print_mode);
-          es_putc('\n', listfp);
+          *listfp << boost::format("\tskey[%d]: ") % i;
+          mpi_print_stream(*listfp, pk->pkey[i], mpi_print_mode);
+          *listfp << '\n';
         }
 
         if (!pk->pkey[i]) err = GPG_ERR_INV_PACKET;
@@ -2174,14 +2201,15 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
       }
       ski->csum = read_16(inp);
       pktlen -= 2;
-      if (list_mode) es_fprintf(listfp, "\tchecksum: %04hx\n", ski->csum);
+      if (list_mode)
+        *listfp << boost::format("\tchecksum: %04hx\n") % ski->csum;
     }
   }
 
   /* Note that KEYID below has been initialized above in list_mode.  */
   if (list_mode)
-    es_fprintf(listfp, "\tkeyid: %08lX%08lX\n", (unsigned long)keyid[0],
-               (unsigned long)keyid[1]);
+    *listfp << boost::format("\tkeyid: %08lX%08lX\n") %
+                   (unsigned long)keyid[0] % (unsigned long)keyid[1];
 
 leave:
   iobuf_skip_rest(inp, pktlen, 0);
@@ -2266,7 +2294,7 @@ static int parse_user_id(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (pktlen > MAX_UID_PACKET_LENGTH) {
     log_error("packet(%d) too large\n", pkttype);
-    if (list_mode) es_fprintf(listfp, ":user ID packet: [too large]\n");
+    if (list_mode) *listfp << ":user ID packet: [too large]\n";
     iobuf_skip_rest(inp, pktlen, 0);
     return GPG_ERR_INV_PACKET;
   }
@@ -2282,15 +2310,15 @@ static int parse_user_id(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (list_mode) {
     int n = packet->pkt.user_id->len;
-    es_fprintf(listfp, ":user ID packet: \"");
+    *listfp << ":user ID packet: \"";
     /* fixme: Hey why don't we replace this with es_write_sanitized?? */
     for (p = (byte *)packet->pkt.user_id->name; n; p++, n--) {
       if (*p >= ' ' && *p <= 'z')
-        es_putc(*p, listfp);
+        *listfp << *p;
       else
-        es_fprintf(listfp, "\\x%02x", *p);
+        *listfp << boost::format("\\x%02x") % *p;
     }
-    es_fprintf(listfp, "\"\n");
+    *listfp << "\"\n";
   }
   return 0;
 }
@@ -2323,7 +2351,7 @@ static int parse_attribute(IOBUF inp, int pkttype, unsigned long pktlen,
      (ie. a photo).  */
   if (pktlen > MAX_ATTR_PACKET_LENGTH) {
     log_error("packet(%d) too large\n", pkttype);
-    if (list_mode) es_fprintf(listfp, ":attribute packet: [too large]\n");
+    if (list_mode) *listfp << ":attribute packet: [too large]\n";
     iobuf_skip_rest(inp, pktlen, 0);
     return GPG_ERR_INV_PACKET;
   }
@@ -2346,7 +2374,7 @@ static int parse_attribute(IOBUF inp, int pkttype, unsigned long pktlen,
   make_attribute_uidname(packet->pkt.user_id, EXTRA_UID_NAME_SPACE);
 
   if (list_mode) {
-    es_fprintf(listfp, ":attribute packet: %s\n", packet->pkt.user_id->name);
+    *listfp << ":attribute packet: " << packet->pkt.user_id->name << "\n";
   }
   return 0;
 }
@@ -2362,8 +2390,8 @@ static int parse_comment(IOBUF inp, int pkttype, unsigned long pktlen,
   if (pktlen > MAX_COMMENT_PACKET_LENGTH) {
     log_error("packet(%d) too large\n", pkttype);
     if (list_mode)
-      es_fprintf(listfp, ":%scomment packet: [too large]\n",
-                 pkttype == PKT_OLD_COMMENT ? "OpenPGP draft " : "");
+      *listfp << boost::format(":%scomment packet: [too large]\n") %
+                     (pkttype == PKT_OLD_COMMENT ? "OpenPGP draft " : "");
     iobuf_skip_rest(inp, pktlen, 0);
     return GPG_ERR_INV_PACKET;
   }
@@ -2375,15 +2403,15 @@ static int parse_comment(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (list_mode) {
     int n = packet->pkt.comment->len;
-    es_fprintf(listfp, ":%scomment packet: \"",
-               pkttype == PKT_OLD_COMMENT ? "OpenPGP draft " : "");
+    *listfp << boost::format(":%scomment packet: \"") %
+                   (pkttype == PKT_OLD_COMMENT ? "OpenPGP draft " : "");
     for (p = (byte *)packet->pkt.comment->data; n; p++, n--) {
       if (*p >= ' ' && *p <= 'z')
-        es_putc(*p, listfp);
+        *listfp << *p;
       else
-        es_fprintf(listfp, "\\x%02x", *p);
+        *listfp << boost::format("\\x%02x") % *p;
     }
-    es_fprintf(listfp, "\"\n");
+    *listfp << "\"\n";
   }
   return 0;
 }
@@ -2401,7 +2429,7 @@ static gpg_error_t parse_ring_trust(parse_packet_ctx_t ctx,
   int not_gpg = 0;
 
   if (!pktlen) {
-    if (list_mode) es_fprintf(listfp, ":trust packet: empty\n");
+    if (list_mode) *listfp << ":trust packet: empty\n";
     err = 0;
     goto leave;
   }
@@ -2459,28 +2487,28 @@ static gpg_error_t parse_ring_trust(parse_packet_ctx_t ctx,
 
   if (list_mode) {
     if (rt.subtype == RING_TRUST_SIG)
-      es_fprintf(listfp, ":trust packet: sig flag=%02x sigcache=%02x\n",
-                 rt.trustval, rt.sigcache);
+      *listfp << boost::format(":trust packet: sig flag=%02x sigcache=%02x\n") %
+                     rt.trustval % rt.sigcache;
     else if (rt.subtype == RING_TRUST_UID || rt.subtype == RING_TRUST_KEY) {
       unsigned char *p;
 
-      es_fprintf(listfp, ":trust packet: %s upd=%lu src=%d%s",
-                 (rt.subtype == RING_TRUST_UID ? "uid" : "key"),
-                 (unsigned long)rt.keyupdate, rt.keyorg,
-                 (rt.url ? " url=" : ""));
+      *listfp << boost::format(":trust packet: %s upd=%lu src=%d%s") %
+                     (rt.subtype == RING_TRUST_UID ? "uid" : "key") %
+                     (unsigned long)rt.keyupdate % rt.keyorg %
+                     (rt.url ? " url=" : "");
       if (rt.url) {
         for (p = (unsigned char *)rt.url; *p; p++) {
           if (*p >= ' ' && *p <= 'z')
-            es_putc(*p, listfp);
+            *listfp << *p;
           else
-            es_fprintf(listfp, "\\x%02x", *p);
+            *listfp << boost::format("\\x%02x") % *p;
         }
       }
-      es_putc('\n', listfp);
+      *listfp << '\n';
     } else if (not_gpg)
-      es_fprintf(listfp, ":trust packet: not created by gpg\n");
+      *listfp << ":trust packet: not created by gpg\n";
     else
-      es_fprintf(listfp, ":trust packet: subtype=%02x\n", rt.subtype);
+      *listfp << boost::format(":trust packet: subtype=%02x\n") % rt.subtype;
   }
 
   /* Now transfer the data to the respective packet.  Do not do this
@@ -2534,7 +2562,7 @@ static int parse_plaintext(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (!partial && pktlen < 6) {
     log_error("packet(%d) too short (%lu)\n", pkttype, (unsigned long)pktlen);
-    if (list_mode) es_fputs(":literal data packet: [too short]\n", listfp);
+    if (list_mode) *listfp << ":literal data packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     goto leave;
   }
@@ -2565,22 +2593,22 @@ static int parse_plaintext(IOBUF inp, int pkttype, unsigned long pktlen,
   pt->buf = inp;
 
   if (list_mode) {
-    es_fprintf(listfp,
-               ":literal data packet:\n"
-               "\tmode %c (%X), created %lu, name=\"",
-               mode >= ' ' && mode < 'z' ? mode : '?', mode,
-               (unsigned long)pt->timestamp);
+    *listfp << boost::format(
+                   ":literal data packet:\n"
+                   "\tmode %c (%X), created %lu, name=\"") %
+                   (mode >= ' ' && mode < 'z' ? mode : '?') % mode %
+                   (unsigned long)pt->timestamp;
     for (p = (byte *)pt->name, i = 0; i < namelen; p++, i++) {
       if (*p >= ' ' && *p <= 'z')
-        es_putc(*p, listfp);
+        *listfp << *p;
       else
-        es_fprintf(listfp, "\\x%02x", *p);
+        *listfp << boost::format("\\x%02x") % *p;
     }
-    es_fprintf(listfp, "\",\n\traw data: ");
+    *listfp << "\",\n\traw data: ";
     if (partial)
-      es_fprintf(listfp, "unknown length\n");
+      *listfp << "unknown length\n";
     else
-      es_fprintf(listfp, "%lu bytes\n", (unsigned long)pt->len);
+      *listfp << boost::format("%lu bytes\n") % (unsigned long)pt->len;
   }
 
 leave:
@@ -2604,7 +2632,8 @@ static int parse_compressed(IOBUF inp, int pkttype, unsigned long pktlen,
   zd->new_ctb = new_ctb;
   zd->buf = inp;
   if (list_mode)
-    es_fprintf(listfp, ":compressed packet: algo=%d\n", zd->algorithm);
+    *listfp << boost::format(":compressed packet: algo=%d\n") %
+                   (unsigned)zd->algorithm;
   return 0;
 }
 
@@ -2629,8 +2658,7 @@ static int parse_encrypted(IOBUF inp, int pkttype, unsigned long pktlen,
     if (orig_pktlen) pktlen--;
     if (version != 1) {
       log_error("encrypted_mdc packet with unknown version %d\n", version);
-      if (list_mode)
-        es_fputs(":encrypted data packet: [unknown version]\n", listfp);
+      if (list_mode) *listfp << ":encrypted data packet: [unknown version]\n";
       /*skip_rest(inp, pktlen); should we really do this? */
       rc = GPG_ERR_INV_PACKET;
       goto leave;
@@ -2645,7 +2673,7 @@ static int parse_encrypted(IOBUF inp, int pkttype, unsigned long pktlen,
   if (orig_pktlen && pktlen < 10) {
     /* Actually this is blocksize+2.  */
     log_error("packet(%d) too short\n", pkttype);
-    if (list_mode) es_fputs(":encrypted data packet: [too short]\n", listfp);
+    if (list_mode) *listfp << ":encrypted data packet: [too short]\n";
     rc = GPG_ERR_INV_PACKET;
     iobuf_skip_rest(inp, pktlen, partial);
     goto leave;
@@ -2658,12 +2686,12 @@ static int parse_encrypted(IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (list_mode) {
     if (orig_pktlen)
-      es_fprintf(listfp, ":encrypted data packet:\n\tlength: %lu\n",
-                 orig_pktlen);
+      *listfp << boost::format(":encrypted data packet:\n\tlength: %lu\n") %
+                     orig_pktlen;
     else
-      es_fprintf(listfp, ":encrypted data packet:\n\tlength: unknown\n");
+      *listfp << ":encrypted data packet:\n\tlength: unknown\n";
     if (ed->mdc_method)
-      es_fprintf(listfp, "\tmdc_method: %d\n", ed->mdc_method);
+      *listfp << boost::format("\tmdc_method: %d\n") % (unsigned)ed->mdc_method;
   }
 
   ed->buf = inp;
@@ -2684,7 +2712,7 @@ static int parse_mdc(IOBUF inp, int pkttype, unsigned long pktlen, PACKET *pkt,
   (void)pkttype;
 
   mdc = pkt->pkt.mdc = (PKT_mdc *)xmalloc(sizeof *pkt->pkt.mdc);
-  if (list_mode) es_fprintf(listfp, ":mdc packet: length=%lu\n", pktlen);
+  if (list_mode) *listfp << boost::format(":mdc packet: length=%lu\n") % pktlen;
   if (!new_ctb || pktlen != 20) {
     log_error("mdc_packet with invalid encoding\n");
     rc = GPG_ERR_INV_PACKET;
@@ -2717,7 +2745,7 @@ static int parse_gpg_control(IOBUF inp, int pkttype, unsigned long pktlen,
 
   (void)pkttype;
 
-  if (list_mode) es_fprintf(listfp, ":packet 63: length %lu ", pktlen);
+  if (list_mode) *listfp << boost::format(":packet 63: length %lu ") % pktlen;
 
   sesmark = get_session_marker(&sesmarklen);
   if (pktlen < sesmarklen + 1) /* 1 is for the control bytes */
@@ -2728,7 +2756,7 @@ static int parse_gpg_control(IOBUF inp, int pkttype, unsigned long pktlen,
   if (pktlen > 4096)
     goto skipit; /* Definitely too large.  We skip it to avoid an
                     overflow in the malloc.  */
-  if (list_mode) es_fputs("- gpg control packet", listfp);
+  if (list_mode) *listfp << "- gpg control packet";
 
   packet->pkt.gpg_control =
       (PKT_gpg_control *)xmalloc(sizeof *packet->pkt.gpg_control + pktlen - 1);
@@ -2745,7 +2773,7 @@ skipit:
     int c;
 
     i = 0;
-    es_fprintf(listfp, "- private (rest length %lu)\n", pktlen);
+    *listfp << boost::format("- private (rest length %lu)\n") % pktlen;
     if (partial) {
       while ((c = iobuf_get(inp)) != -1) dump_hex_line(c, &i);
     } else {
@@ -2754,7 +2782,7 @@ skipit:
         if (c == -1) break;
       }
     }
-    es_putc('\n', listfp);
+    *listfp << '\n';
   }
   iobuf_skip_rest(inp, pktlen, 0);
   return GPG_ERR_INV_PACKET;
