@@ -79,48 +79,18 @@ static void one_test_x1(const char *format, ...) {
   free(buf2);
 }
 
-static void one_test_x2(const char *format, ...) {
-  va_list arg_ptr;
-  char *buf2;
-
-  /* Test once more using the bsprintf variant.  */
-  errno = ENOENT;
-  va_start(arg_ptr, format);
-  buf2 = gpgrt_vbsprintf(format, arg_ptr);
-  va_end(arg_ptr);
-  if (!buf2) {
-    fail("   our(2): errno=%d (%s)\n", errno, strerror(errno));
-  } else if (verbose)
-    show("   our: ->%s<-\n", buf2);
-
-  if (one_test_rc1 != -1 && buf2 && strcmp(one_test_buf1, buf2)) {
-    fail(
-        "error: output does not match\n"
-        "format(2): ->%s<-\n   sys: ->%s<-\n   our: ->%s<-\n",
-        format, one_test_buf1, buf2);
-  }
-  es_free(buf2);
-
-  free(one_test_buf1);
-  one_test_buf1 = NULL;
-}
-
 #define one_test_0(a) \
   one_test_x0(a);     \
-  one_test_x1(a);     \
-  one_test_x2(a)
+  one_test_x1(a)
 #define one_test_1(a, b) \
   one_test_x0(a, b);     \
-  one_test_x1(a, b);     \
-  one_test_x2(a, b)
+  one_test_x1(a, b)
 #define one_test_2(a, b, c) \
   one_test_x0(a, b, c);     \
-  one_test_x1(a, b, c);     \
-  one_test_x2(a, b, c)
+  one_test_x1(a, b, c)
 #define one_test_3(a, b, c, d) \
   one_test_x0(a, b, c, d);     \
-  one_test_x1(a, b, c, d);     \
-  one_test_x2(a, b, c, d)
+  one_test_x1(a, b, c, d)
 
 static void run_tests(void) {
 #ifndef HAVE_VASPRINTF

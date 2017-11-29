@@ -42,9 +42,12 @@
 
 */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+
+#include <sstream>
+
+#include <boost/format.hpp>
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -1368,16 +1371,18 @@ static gpg_error_t send_request(http_t hd, const char *httphost,
   if (!p) return gpg_error_from_syserror();
 
   if (http_proxy && *http_proxy) {
-    request =
-        es_bsprintf("%s %s://%s:%hu%s%s HTTP/1.0\r\n%s%s",
-                    hd->req_type == HTTP_REQ_GET
-                        ? "GET"
-                        : hd->req_type == HTTP_REQ_HEAD
-                              ? "HEAD"
-                              : hd->req_type == HTTP_REQ_POST ? "POST" : "OOPS",
-                    hd->uri->use_tls ? "https" : "http",
-                    httphost ? httphost : server, port, *p == '/' ? "" : "/", p,
-                    authstr ? authstr : "", proxy_authstr ? proxy_authstr : "");
+    std::stringstream req;
+    req << boost::format("%s %s://%s:%hu%s%s HTTP/1.0\r\n%s%s") %
+               (hd->req_type == HTTP_REQ_GET
+                    ? "GET"
+                    : hd->req_type == HTTP_REQ_HEAD
+                          ? "HEAD"
+                          : hd->req_type == HTTP_REQ_POST ? "POST" : "OOPS") %
+               (hd->uri->use_tls ? "https" : "http") %
+               (httphost ? httphost : server) % (port) %
+               (*p == '/' ? "" : "/") % p % (authstr ? authstr : "") %
+               (proxy_authstr ? proxy_authstr : "");
+    request = xstrdup(req.str().c_str());
   } else {
     char portstr[35];
 
@@ -1386,15 +1391,16 @@ static gpg_error_t send_request(http_t hd, const char *httphost,
     else
       snprintf(portstr, sizeof portstr, ":%u", port);
 
-    request =
-        es_bsprintf("%s %s%s HTTP/1.0\r\nHost: %s%s\r\n%s",
-                    hd->req_type == HTTP_REQ_GET
-                        ? "GET"
-                        : hd->req_type == HTTP_REQ_HEAD
-                              ? "HEAD"
-                              : hd->req_type == HTTP_REQ_POST ? "POST" : "OOPS",
-                    *p == '/' ? "" : "/", p, httphost ? httphost : server,
-                    portstr, authstr ? authstr : "");
+    std::stringstream req;
+    req << boost::format("%s %s%s HTTP/1.0\r\nHost: %s%s\r\n%s") %
+               (hd->req_type == HTTP_REQ_GET
+                    ? "GET"
+                    : hd->req_type == HTTP_REQ_HEAD
+                          ? "HEAD"
+                          : hd->req_type == HTTP_REQ_POST ? "POST" : "OOPS") %
+               (*p == '/' ? "" : "/") % (p) % (httphost ? httphost : server) %
+               (portstr) % (authstr ? authstr : "");
+    request = xstrdup(req.str().c_str());
   }
   xfree(p);
   if (!request) {

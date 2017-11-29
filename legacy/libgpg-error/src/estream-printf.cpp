@@ -1755,20 +1755,3 @@ int _gpgrt_estream_asprintf(char **bufp, const char *format, ...) {
 
   return rc;
 }
-
-/* A variant of asprintf.  The function returns the allocated buffer
-   or NULL on error; ERRNO is set in the error case.  The caller
-   should use es_free to release the buffer.  This function actually
-   belongs into estream-printf but we put it here as a convenience
-   and because es_free is required anyway.  */
-char *_gpgrt_estream_bsprintf(const char *format, ...) {
-  int rc;
-  va_list ap;
-  char *buf;
-
-  va_start(ap, format);
-  rc = _gpgrt_estream_vasprintf(&buf, format, ap);
-  va_end(ap);
-  if (rc < 0) return NULL;
-  return buf;
-}

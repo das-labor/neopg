@@ -940,7 +940,7 @@ gpg_error_t gpg_dirmngr_dns_cert(ctrl_t ctrl, const char *name,
   gpg_error_t err;
   assuan_context_t ctx;
   struct dns_cert_parm_s parm;
-  char *line = NULL;
+  std::string line;
 
   memset(&parm, 0, sizeof parm);
   if (r_key) *r_key = NULL;
@@ -951,12 +951,11 @@ gpg_error_t gpg_dirmngr_dns_cert(ctrl_t ctrl, const char *name,
   err = open_context(ctrl, &ctx);
   if (err) return err;
 
-  line = es_bsprintf("DNS_CERT %s %s", certtype ? certtype : "--dane", name);
-  if (!line) {
-    err = gpg_error_from_syserror();
-    goto leave;
-  }
-  if (strlen(line) + 2 >= ASSUAN_LINELENGTH) {
+  line = "DNS_CERT ";
+  line += (certtype ? certtype : "--dane");
+  line += " ";
+  line += name;
+  if (line.size() + 2 >= ASSUAN_LINELENGTH) {
     err = GPG_ERR_TOO_LARGE;
     goto leave;
   }
@@ -966,7 +965,7 @@ gpg_error_t gpg_dirmngr_dns_cert(ctrl_t ctrl, const char *name,
     err = gpg_error_from_syserror();
     goto leave;
   }
-  err = assuan_transact(ctx, line, dns_cert_data_cb, &parm, NULL, NULL,
+  err = assuan_transact(ctx, line.c_str(), dns_cert_data_cb, &parm, NULL, NULL,
                         dns_cert_status_cb, &parm);
   if (err) goto leave;
 
@@ -991,7 +990,6 @@ leave:
   xfree(parm.fpr);
   xfree(parm.url);
   es_fclose(parm.memfp);
-  xfree(line);
   close_context(ctrl, ctx);
   return err;
 }
@@ -1006,7 +1004,7 @@ gpg_error_t gpg_dirmngr_get_pka(ctrl_t ctrl, const char *userid,
   gpg_error_t err;
   assuan_context_t ctx;
   struct dns_cert_parm_s parm;
-  char *line = NULL;
+  std::string line;
 
   memset(&parm, 0, sizeof parm);
   if (r_fpr) *r_fpr = NULL;
@@ -1016,17 +1014,14 @@ gpg_error_t gpg_dirmngr_get_pka(ctrl_t ctrl, const char *userid,
   err = open_context(ctrl, &ctx);
   if (err) return err;
 
-  line = es_bsprintf("DNS_CERT --pka -- %s", userid);
-  if (!line) {
-    err = gpg_error_from_syserror();
-    goto leave;
-  }
-  if (strlen(line) + 2 >= ASSUAN_LINELENGTH) {
+  line = "DNS_CERT --pka -- ";
+  line += userid;
+  if (line.size() + 2 >= ASSUAN_LINELENGTH) {
     err = GPG_ERR_TOO_LARGE;
     goto leave;
   }
 
-  err = assuan_transact(ctx, line, dns_cert_data_cb, &parm, NULL, NULL,
+  err = assuan_transact(ctx, line.c_str(), dns_cert_data_cb, &parm, NULL, NULL,
                         dns_cert_status_cb, &parm);
   if (err) goto leave;
 
@@ -1044,7 +1039,6 @@ gpg_error_t gpg_dirmngr_get_pka(ctrl_t ctrl, const char *userid,
 leave:
   xfree(parm.fpr);
   xfree(parm.url);
-  xfree(line);
   close_context(ctrl, ctx);
   return err;
 }
@@ -1058,19 +1052,18 @@ gpg_error_t gpg_dirmngr_wkd_get(ctrl_t ctrl, const char *name, int quick,
   gpg_error_t err;
   assuan_context_t ctx;
   struct dns_cert_parm_s parm;
-  char *line = NULL;
+  std::string line;
 
   memset(&parm, 0, sizeof parm);
 
   err = open_context(ctrl, &ctx);
   if (err) return err;
 
-  line = es_bsprintf("WKD_GET%s -- %s", quick ? " --quick" : "", name);
-  if (!line) {
-    err = gpg_error_from_syserror();
-    goto leave;
-  }
-  if (strlen(line) + 2 >= ASSUAN_LINELENGTH) {
+  line = "WKD_GET";
+  line += quick ? " --quick" : "";
+  line += " -- ";
+  line += name;
+  if (line.size() + 2 >= ASSUAN_LINELENGTH) {
     err = GPG_ERR_TOO_LARGE;
     goto leave;
   }
@@ -1080,8 +1073,8 @@ gpg_error_t gpg_dirmngr_wkd_get(ctrl_t ctrl, const char *name, int quick,
     err = gpg_error_from_syserror();
     goto leave;
   }
-  err = assuan_transact(ctx, line, dns_cert_data_cb, &parm, NULL, NULL, NULL,
-                        &parm);
+  err = assuan_transact(ctx, line.c_str(), dns_cert_data_cb, &parm, NULL, NULL,
+                        NULL, &parm);
   if (err) goto leave;
 
   if (r_key) {
@@ -1094,7 +1087,6 @@ leave:
   xfree(parm.fpr);
   xfree(parm.url);
   es_fclose(parm.memfp);
-  xfree(line);
   close_context(ctrl, ctx);
   return err;
 }

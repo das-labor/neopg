@@ -1507,15 +1507,16 @@ int mpi_print(estream_t fp, gcry_mpi_t a, int mode) {
     if (!p)
       n += es_fprintf(fp, "[invalid opaque value]");
     else {
-      if (!es_write_hexstring(fp, p, (nbits + 7) / 8, 0, &nwritten))
-        n += nwritten;
+      std::string str = Botan::hex_encode(p, (nbits + 7) / 8);
+      if (!es_fputs(str.c_str(), fp)) n += str.size();
     }
   } else {
     unsigned char *buffer;
     size_t buflen;
 
     if (gcry_mpi_aprint(GCRYMPI_FMT_USG, &buffer, &buflen, a)) BUG();
-    if (!es_write_hexstring(fp, buffer, buflen, 0, &nwritten)) n += nwritten;
+    std::string str = Botan::hex_encode(buffer, buflen);
+    if (!es_fputs(str.c_str(), fp)) n += str.size();
     gcry_free(buffer);
   }
   return n;

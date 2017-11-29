@@ -35,11 +35,7 @@
 
 /* Same as asprintf but return an allocated buffer suitable to be
    freed using xfree.  This function simply dies on memory failure,
-   thus no extra check is required.
-
-   FIXME: We should remove these functions in favor of gpgrt_bsprintf
-   and a xgpgrt_bsprintf or rename them to xbsprintf and
-   xtrybsprintf.  */
+   thus no extra check is required. */
 char *xasprintf(const char *fmt, ...) {
   va_list ap;
   char *buf;

@@ -98,9 +98,7 @@ gpg_error_t gnupg_create_pipe(int filedes[2]);
    GNUPG_SPAWN_NONBLOCK
           If set the two output streams are created in non-blocking
           mode and the input stream is switched to non-blocking mode.
-          This is merely a convenience feature because the caller
-          could do the same with gpgrt_set_nonblock.  Does not yet
-          work for Windows.
+          Does not yet work for Windows.
 
    GNUPG_SPAWN_DETACHED
           If set the process will be started as a background process.

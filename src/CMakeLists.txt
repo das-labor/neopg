@@ -153,7 +153,6 @@ add_executable(neopg
   ../legacy/gnupg/dirmngr/certcache.cpp
   ../legacy/gnupg/dirmngr/cdblib.cpp
   ../legacy/gnupg/common/ksba-io-support.cpp
-  ../legacy/gnupg/common/exectool.cpp
 
   ../legacy/gnupg/sm/call-agent.cpp
   ../legacy/gnupg/sm/certcheck.cpp

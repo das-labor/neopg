@@ -35,7 +35,6 @@
 
 #ifdef _GPGRT_INCL_BY_VISIBILITY_C
 
-
 #else /*!_GPGRT_INCL_BY_VISIBILITY_C*/
 
 /* To avoid accidental use of the public functions inside Libgpg-error,
@@ -51,26 +50,15 @@
 #define gpgrt_fopenmem_init _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fdopen _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fdopen_nc _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_sysopen _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_sysopen_nc _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_fpopen _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_fpopen_nc _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_freopen _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fopencookie _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fclose _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fclose_snatch _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_onclose _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fileno _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fileno_unlocked _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_syshd _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_syshd_unlocked _gpgrt_USE_UNDERSCORED_FUNCTION
-#define _gpgrt_set_std_fd _gpgrt_USE_UNDERSCORED_FUNCTION
 #define _gpgrt_get_std_stream _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_flockfile _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_ftrylockfile _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_funlockfile _gpgrt_USE_UNDERSCORED_FUNCTION
-#define _gpgrt_pending _gpgrt_USE_UNDERSCORED_FUNCTION
-#define _gpgrt_pending_unlocked _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_feof _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_feof_unlocked _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_ferror _gpgrt_USE_UNDERSCORED_FUNCTION
@@ -91,13 +79,11 @@
 #define gpgrt_read _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_write _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_write_sanitized _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_write_hexstring _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fread _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fwrite _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fgets _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fputs _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fputs_unlocked _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_getline _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_read_line _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_free _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_fprintf _gpgrt_USE_UNDERSCORED_FUNCTION
@@ -109,13 +95,8 @@
 #define gpgrt_setvbuf _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_setbuf _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_set_binary _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_set_nonblock _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_get_nonblock _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_poll _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_asprintf _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_vasprintf _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_bsprintf _gpgrt_USE_UNDERSCORED_FUNCTION
-#define gpgrt_vbsprintf _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_snprintf _gpgrt_USE_UNDERSCORED_FUNCTION
 #define gpgrt_vsnprintf _gpgrt_USE_UNDERSCORED_FUNCTION
 

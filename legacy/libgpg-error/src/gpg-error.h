@@ -863,29 +863,6 @@ typedef struct _gpgrt_syshd es_syshd_t;
 #define ES_SYSHD_RVID GPGRT_SYSHD_RVID
 #define ES_SYSHD_HANDLE GPGRT_SYSHD_HANDLE
 
-/* The object used with gpgrt_poll.  */
-struct _gpgrt_poll_s {
-  gpgrt_stream_t stream;
-  unsigned int want_read : 1;
-  unsigned int want_write : 1;
-  unsigned int want_oob : 1;
-  unsigned int want_rdhup : 1;
-  unsigned int _reserv1 : 4;
-  unsigned int got_read : 1;
-  unsigned int got_write : 1;
-  unsigned int got_oob : 1;
-  unsigned int got_rdhup : 1;
-  unsigned int _reserv2 : 4;
-  unsigned int got_err : 1;
-  unsigned int got_hup : 1;
-  unsigned int got_nval : 1;
-  unsigned int _reserv3 : 4;
-  unsigned int ignore : 1;
-  unsigned int user : 8; /* For application use.  */
-};
-typedef struct _gpgrt_poll_s gpgrt_poll_t;
-typedef struct _gpgrt_poll_s es_poll_t;
-
 gpgrt_stream_t gpgrt_fopen(const char *_GPGRT__RESTRICT path,
                            const char *_GPGRT__RESTRICT mode);
 gpgrt_stream_t gpgrt_mopen(void *_GPGRT__RESTRICT data, size_t data_n,
@@ -900,13 +877,6 @@ gpgrt_stream_t gpgrt_fopenmem_init(size_t memlimit,
                                    const void *data, size_t datalen);
 gpgrt_stream_t gpgrt_fdopen(int filedes, const char *mode);
 gpgrt_stream_t gpgrt_fdopen_nc(int filedes, const char *mode);
-gpgrt_stream_t gpgrt_sysopen(gpgrt_syshd_t *syshd, const char *mode);
-gpgrt_stream_t gpgrt_sysopen_nc(gpgrt_syshd_t *syshd, const char *mode);
-gpgrt_stream_t gpgrt_fpopen(FILE *fp, const char *mode);
-gpgrt_stream_t gpgrt_fpopen_nc(FILE *fp, const char *mode);
-gpgrt_stream_t gpgrt_freopen(const char *_GPGRT__RESTRICT path,
-                             const char *_GPGRT__RESTRICT mode,
-                             gpgrt_stream_t _GPGRT__RESTRICT stream);
 gpgrt_stream_t gpgrt_fopencookie(void *_GPGRT__RESTRICT cookie,
                                  const char *_GPGRT__RESTRICT mode,
                                  gpgrt_cookie_io_functions_t functions);
@@ -920,7 +890,6 @@ int gpgrt_fileno_unlocked(gpgrt_stream_t stream);
 int gpgrt_syshd(gpgrt_stream_t stream, gpgrt_syshd_t *syshd);
 int gpgrt_syshd_unlocked(gpgrt_stream_t stream, gpgrt_syshd_t *syshd);
 
-void _gpgrt_set_std_fd(int no, int fd);
 gpgrt_stream_t _gpgrt_get_std_stream(int fd);
 
 #define gpgrt_stdin _gpgrt_get_std_stream(0)
@@ -928,7 +897,6 @@ gpgrt_stream_t _gpgrt_get_std_stream(int fd);
 #define gpgrt_stderr _gpgrt_get_std_stream(2)
 
 void gpgrt_flockfile(gpgrt_stream_t stream);
-int gpgrt_ftrylockfile(gpgrt_stream_t stream);
 void gpgrt_funlockfile(gpgrt_stream_t stream);
 
 int gpgrt_feof(gpgrt_stream_t stream);
@@ -937,18 +905,6 @@ int gpgrt_ferror(gpgrt_stream_t stream);
 int gpgrt_ferror_unlocked(gpgrt_stream_t stream);
 void gpgrt_clearerr(gpgrt_stream_t stream);
 void gpgrt_clearerr_unlocked(gpgrt_stream_t stream);
-
-int _gpgrt_pending(gpgrt_stream_t stream);          /* (private) */
-int _gpgrt_pending_unlocked(gpgrt_stream_t stream); /* (private) */
-
-#define gpgrt_pending(stream) _gpgrt_pending(stream)
-
-#define gpgrt_pending_unlocked(stream)               \
-  (((!(stream)->flags.writing) &&                    \
-    (((stream)->data_offset < (stream)->data_len) || \
-     ((stream)->unread_data_len)))                   \
-       ? 1                                           \
-       : _gpgrt_pending_unlocked((stream)))
 
 int gpgrt_fflush(gpgrt_stream_t stream);
 int gpgrt_fseek(gpgrt_stream_t stream, long int offset, int whence);
@@ -991,9 +947,6 @@ int gpgrt_write_sanitized(gpgrt_stream_t _GPGRT__RESTRICT stream,
                           const void *_GPGRT__RESTRICT buffer, size_t length,
                           const char *delimiters,
                           size_t *_GPGRT__RESTRICT bytes_written);
-int gpgrt_write_hexstring(gpgrt_stream_t _GPGRT__RESTRICT stream,
-                          const void *_GPGRT__RESTRICT buffer, size_t length,
-                          int reserved, size_t *_GPGRT__RESTRICT bytes_written);
 
 size_t gpgrt_fread(void *_GPGRT__RESTRICT ptr, size_t size, size_t nitems,
                    gpgrt_stream_t _GPGRT__RESTRICT stream);
@@ -1007,8 +960,6 @@ int gpgrt_fputs(const char *_GPGRT__RESTRICT s,
 int gpgrt_fputs_unlocked(const char *_GPGRT__RESTRICT s,
                          gpgrt_stream_t _GPGRT__RESTRICT stream);
 
-ssize_t gpgrt_getline(char *_GPGRT__RESTRICT *_GPGRT__RESTRICT lineptr,
-                      size_t *_GPGRT__RESTRICT n, gpgrt_stream_t stream);
 ssize_t gpgrt_read_line(gpgrt_stream_t stream, char **addr_of_buffer,
                         size_t *length_of_buffer, size_t *max_length);
 void gpgrt_free(void *a);
@@ -1038,19 +989,11 @@ void gpgrt_setbuf(gpgrt_stream_t _GPGRT__RESTRICT stream,
                   char *_GPGRT__RESTRICT buf);
 
 void gpgrt_set_binary(gpgrt_stream_t stream);
-int gpgrt_set_nonblock(gpgrt_stream_t stream, int onoff);
-int gpgrt_get_nonblock(gpgrt_stream_t stream);
-
-int gpgrt_poll(gpgrt_poll_t *fdlist, unsigned int nfds, int timeout);
 
 int gpgrt_asprintf(char **r_buf, const char *_GPGRT__RESTRICT format, ...)
     GPGRT_ATTR_PRINTF(2, 3);
 int gpgrt_vasprintf(char **r_buf, const char *_GPGRT__RESTRICT format,
                     va_list ap) GPGRT_ATTR_PRINTF(2, 0);
-char *gpgrt_bsprintf(const char *_GPGRT__RESTRICT format, ...)
-    GPGRT_ATTR_PRINTF(1, 2);
-char *gpgrt_vbsprintf(const char *_GPGRT__RESTRICT format, va_list ap)
-    GPGRT_ATTR_PRINTF(1, 0);
 int gpgrt_snprintf(char *buf, size_t bufsize,
                    const char *_GPGRT__RESTRICT format, ...)
     GPGRT_ATTR_PRINTF(3, 4);
@@ -1064,19 +1007,12 @@ int gpgrt_vsnprintf(char *buf, size_t bufsize,
 #define es_fopenmem_init gpgrt_fopenmem_init
 #define es_fdopen gpgrt_fdopen
 #define es_fdopen_nc gpgrt_fdopen_nc
-#define es_sysopen gpgrt_sysopen
-#define es_sysopen_nc gpgrt_sysopen_nc
-#define es_fpopen gpgrt_fpopen
-#define es_fpopen_nc gpgrt_fpopen_nc
-#define es_freopen gpgrt_freopen
 #define es_fopencookie gpgrt_fopencookie
 #define es_fclose gpgrt_fclose
 #define es_fclose_snatch gpgrt_fclose_snatch
 #define es_onclose gpgrt_onclose
 #define es_fileno gpgrt_fileno
 #define es_fileno_unlocked gpgrt_fileno_unlocked
-#define es_syshd gpgrt_syshd
-#define es_syshd_unlocked gpgrt_syshd_unlocked
 #define es_stdin _gpgrt_get_std_stream(0)
 #define es_stdout _gpgrt_get_std_stream(1)
 #define es_stderr _gpgrt_get_std_stream(2)
@@ -1089,8 +1025,6 @@ int gpgrt_vsnprintf(char *buf, size_t bufsize,
 #define es_ferror_unlocked gpgrt_ferror_unlocked
 #define es_clearerr gpgrt_clearerr
 #define es_clearerr_unlocked gpgrt_clearerr_unlocked
-#define es_pending gpgrt_pending
-#define es_pending_unlocked gpgrt_pending_unlocked
 #define es_fflush gpgrt_fflush
 #define es_fseek gpgrt_fseek
 #define es_fseeko gpgrt_fseeko
@@ -1107,13 +1041,11 @@ int gpgrt_vsnprintf(char *buf, size_t bufsize,
 #define es_read gpgrt_read
 #define es_write gpgrt_write
 #define es_write_sanitized gpgrt_write_sanitized
-#define es_write_hexstring gpgrt_write_hexstring
 #define es_fread gpgrt_fread
 #define es_fwrite gpgrt_fwrite
 #define es_fgets gpgrt_fgets
 #define es_fputs gpgrt_fputs
 #define es_fputs_unlocked gpgrt_fputs_unlocked
-#define es_getline gpgrt_getline
 #define es_read_line gpgrt_read_line
 #define es_free gpgrt_free
 #define es_fprintf gpgrt_fprintf
@@ -1125,13 +1057,8 @@ int gpgrt_vsnprintf(char *buf, size_t bufsize,
 #define es_setvbuf gpgrt_setvbuf
 #define es_setbuf gpgrt_setbuf
 #define es_set_binary gpgrt_set_binary
-#define es_set_nonblock gpgrt_set_nonblock
-#define es_get_nonblock gpgrt_get_nonblock
-#define es_poll gpgrt_poll
 #define es_asprintf gpgrt_asprintf
 #define es_vasprintf gpgrt_vasprintf
-#define es_bsprintf gpgrt_bsprintf
-#define es_vbsprintf gpgrt_vbsprintf
 
 /* Base64 decode functions.  */
 

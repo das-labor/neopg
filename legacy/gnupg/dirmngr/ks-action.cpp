@@ -43,8 +43,8 @@ gpg_error_t ks_printf_help(ctrl_t ctrl, const char *format, ...) {
   char *buf;
 
   va_start(arg_ptr, format);
-  buf = es_vbsprintf(format, arg_ptr);
-  err = buf ? 0 : gpg_error_from_syserror();
+  int rc = es_vasprintf(&buf, format, arg_ptr);
+  err = rc >= 0 ? 0 : gpg_error_from_syserror();
   va_end(arg_ptr);
   if (!err) err = dirmngr_status_help(ctrl, buf);
   es_free(buf);

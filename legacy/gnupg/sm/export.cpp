@@ -18,8 +18,11 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <config.h>
+
+#include <botan/hex.h>
+
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -436,7 +439,10 @@ static void print_short_info(ksba_cert_t cert, estream_t stream) {
       s++;
       for (len = 0; *s && *s != ':' && digitp(s); s++)
         len = len * 10 + atoi_1(s);
-      if (*s == ':') es_write_hexstring(stream, s + 1, len, 0, NULL);
+      if (*s == ':') {
+        std::string str = Botan::hex_encode(s + 1, len);
+        es_fputs(str.c_str(), stream);
+      }
     }
     xfree(sexp);
   }
@@ -559,10 +565,11 @@ static gpg_error_t export_p12(ctrl_t ctrl, const unsigned char *certimg,
     result = p12_raw_build(kparms, rawmode, &resultlen);
     if (!result) err = GPG_ERR_GENERAL;
   } else {
-    err = gpgsm_agent_ask_passphrase(
-        ctrl, "Please enter the passphrase to protect the "
-                        "new PKCS#12 object.",
-        1, &passphrase);
+    err =
+        gpgsm_agent_ask_passphrase(ctrl,
+                                   "Please enter the passphrase to protect the "
+                                   "new PKCS#12 object.",
+                                   1, &passphrase);
     if (err) goto leave;
 
     result = p12_build(kparms, certimg, certimglen, passphrase, opt.p12_charset,

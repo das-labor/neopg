@@ -134,8 +134,6 @@ int _gpgrt_estream_asprintf(char **bufp, const char *format, ...)
     _ESTREAM_GCC_A_PRINTF(2, 3);
 int _gpgrt_estream_vasprintf(char **bufp, const char *format, va_list arg_ptr)
     _ESTREAM_GCC_A_PRINTF(2, 0);
-char *_gpgrt_estream_bsprintf(const char *format, ...)
-    _ESTREAM_GCC_A_PRINTF(1, 2);
 
 #ifdef __cplusplus
 }

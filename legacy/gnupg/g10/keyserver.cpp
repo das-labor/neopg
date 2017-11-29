@@ -1740,10 +1740,9 @@ gpg_error_t keyserver_import_wkd(ctrl_t ctrl, const char *name, int quick,
     if (!save_filt)
       err = gpg_error_from_syserror();
     else {
-      char *filtstr = es_bsprintf("keep-uid=mbox = %s", mbox);
-      err = filtstr ? 0 : gpg_error_from_syserror();
-      if (!err) err = parse_and_set_import_filter(filtstr);
-      xfree(filtstr);
+      std::string filtstr("keep-uid=mbox = ");
+      filtstr += mbox;
+      err = parse_and_set_import_filter(filtstr.c_str());
       if (!err)
         err = import_keys_es_stream(ctrl, key, NULL, fpr, fpr_len,
                                     IMPORT_NO_SECKEY, NULL, NULL);

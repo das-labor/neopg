@@ -17,8 +17,11 @@
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <config.h>
+
+#include <botan/hex.h>
+
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,8 +64,10 @@ void gpgsm_print_serial(estream_t fp, ksba_const_sexp_t sn) {
     p = endp;
     if (*p++ != ':')
       es_fputs("[Internal Error - invalid S-expression]", fp);
-    else
-      es_write_hexstring(fp, p, n, 0, NULL);
+    else {
+      std::string str = Botan::hex_encode((uint8_t *)p, n);
+      es_fputs(str.c_str(), fp);
+    }
   }
 }
 

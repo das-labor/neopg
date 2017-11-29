@@ -1316,8 +1316,7 @@ out:
  *
  * nonblock
  *
- *    The object is opened in non-blocking mode.  This is the same as
- *    calling gpgrt_set_nonblock on the file.
+ *    The object is opened in non-blocking mode.
  *
  * sysopen
  *
@@ -1587,7 +1586,6 @@ static void init_stream_obj(estream_t stream, void *cookie, es_syshd_t *syshd,
   stream->intern->stdstream_fd = 0;
   stream->intern->deallocate_buffer = 0;
   stream->intern->printable_fname = NULL;
-  stream->intern->printable_fname_inuse = 0;
   stream->intern->onclose = NULL;
 
   stream->data_len = 0;
@@ -1629,7 +1627,6 @@ static int deinit_stream_obj(estream_t stream) {
 
   mem_free(stream->intern->printable_fname);
   stream->intern->printable_fname = NULL;
-  stream->intern->printable_fname_inuse = 0;
   while (stream->intern->onclose) {
     notify_list_t tmp = stream->intern->onclose->next;
     mem_free(stream->intern->onclose);
@@ -1828,18 +1825,6 @@ static int do_read_nbf(estream_t _GPGRT__RESTRICT stream,
 }
 
 /*
- * Helper for check_pending.
- */
-static int check_pending_nbf(estream_t _GPGRT__RESTRICT stream) {
-  gpgrt_cookie_read_function_t func_read = stream->intern->func_read;
-  char buffer[1];
-
-  if (!(*func_read)(stream->intern->cookie, buffer, 0))
-    return 1; /* Pending bytes.  */
-  return 0;   /* No pending bytes or error.  */
-}
-
-/*
  * Try to read BYTES_TO_READ bytes from STREAM into BUFFER in
  * fully-buffered-mode, storing the amount of bytes read at
  * BYTES_READ.
@@ -1883,23 +1868,6 @@ static int do_read_fbf(estream_t _GPGRT__RESTRICT stream,
   *bytes_read = data_read;
 
   return err;
-}
-
-/*
- * Helper for check_pending.
- */
-static int check_pending_fbf(estream_t _GPGRT__RESTRICT stream) {
-  gpgrt_cookie_read_function_t func_read = stream->intern->func_read;
-  char buffer[1];
-
-  if (stream->data_offset == stream->data_len) {
-    /* Nothing more to read in current container, check whether it
-       would be possible to fill the container with new data.  */
-    if (!(*func_read)(stream->intern->cookie, buffer, 0))
-      return 1; /* Pending bytes.  */
-  } else
-    return 1;
-  return 0;
 }
 
 /*
@@ -1970,32 +1938,6 @@ out:
 }
 
 /*
- * Return true if at least one byte is pending for read.  This is a
- * best effort check and it it possible that bytes are still pending
- * even if false is returned.  If the stream is in writing mode it is
- * switched to read mode.
- */
-static int check_pending(estream_t _GPGRT__RESTRICT stream) {
-  if (stream->flags.writing) {
-    /* Switching to reading mode -> flush output.  */
-    if (flush_stream(stream)) return 0; /* Better return 0 on error.  */
-    stream->flags.writing = 0;
-  }
-
-  /* Check unread data first.  */
-  if (stream->unread_data_len) return 1;
-
-  switch (stream->intern->strategy) {
-    case _IONBF:
-      return check_pending_nbf(stream);
-    case _IOLBF:
-    case _IOFBF:
-      return check_pending_fbf(stream);
-  }
-
-  return 0;
-}
-
 /*
  * Try to unread DATA_N bytes from DATA into STREAM, storing the
  * amount of bytes successfully unread at BYTES_UNREAD.
@@ -2722,109 +2664,6 @@ out:
   return stream;
 }
 
-/* Create an estream from the stdio stream FP.  This mechanism is
-   useful in case the stdio streams have special properties and may
-   not be mixed with fd based functions.  This is for example the case
-   under Windows where the 3 standard streams are associated with the
-   console whereas a duped and fd-opened stream of one of this stream
-   won't be associated with the console.  As this messes things up it
-   is easier to keep on using the standard I/O stream as a backend for
-   estream. */
-estream_t _gpgrt_fpopen(FILE *fp, const char *mode) {
-  return do_fpopen(fp, mode, 0, 0);
-}
-
-/* Same as es_fpopen but does not close  FP at the end.  */
-estream_t _gpgrt_fpopen_nc(FILE *fp, const char *mode) {
-  return do_fpopen(fp, mode, 1, 0);
-}
-
-#ifdef HAVE_W32_SYSTEM
-estream_t do_w32open(HANDLE hd, const char *mode, int no_close,
-                     int with_locked_list) {
-  unsigned int modeflags, cmode, xmode;
-  int create_called = 0;
-  estream_t stream = NULL;
-  void *cookie = NULL;
-  int err;
-  es_syshd_t syshd;
-
-  /* For obvious reasons we ignore sysmode here.  */
-  err = parse_mode(mode, &modeflags, &xmode, &cmode);
-  if (err) goto leave;
-
-  /* If we are pollable we create the function cookie with syscall
-   * clamp disabled.  This is because functions are called from
-   * separatre reader and writer threads in w32-stream.  */
-  err =
-      func_w32_create(&cookie, hd, modeflags, no_close, !!(xmode & X_POLLABLE));
-  if (err) goto leave;
-
-  syshd.type = ES_SYSHD_HANDLE;
-  syshd.u.handle = hd;
-  create_called = 1;
-  err =
-      create_stream(&stream, cookie, &syshd, BACKEND_W32, estream_functions_w32,
-                    modeflags, xmode, with_locked_list);
-
-leave:
-  if (err && create_called)
-    (*estream_functions_w32.public_x.func_close)(cookie);
-
-  return stream;
-}
-#endif /*HAVE_W32_SYSTEM*/
-
-static estream_t do_sysopen(es_syshd_t *syshd, const char *mode, int no_close) {
-  estream_t stream;
-
-  switch (syshd->type) {
-    case ES_SYSHD_FD:
-    case ES_SYSHD_SOCK:
-      stream = do_fdopen(syshd->u.fd, mode, no_close, 0);
-      break;
-
-#ifdef HAVE_W32_SYSTEM
-    case ES_SYSHD_HANDLE:
-      stream = do_w32open(syshd->u.handle, mode, no_close, 0);
-      break;
-#endif
-
-    /* FIXME: Support RVIDs under Wince?  */
-
-    default:
-      _set_errno(EINVAL);
-      stream = NULL;
-  }
-  return stream;
-}
-
-/* On POSIX systems this function is an alias for es_fdopen.  Under
-   Windows it uses the bare W32 API and thus a HANDLE instead of a
-   file descriptor.  */
-estream_t _gpgrt_sysopen(es_syshd_t *syshd, const char *mode) {
-  return do_sysopen(syshd, mode, 0);
-}
-
-/* Same as es_sysopen but the handle/fd will not be closed by
-   es_fclose.  */
-estream_t _gpgrt_sysopen_nc(es_syshd_t *syshd, const char *mode) {
-  return do_sysopen(syshd, mode, 1);
-}
-
-/* Set custom standard descriptors to be used for stdin, stdout and
-   stderr.  This function needs to be called before any of the
-   standard streams are accessed.  This internal version uses a double
-   dash inside its name. */
-void _gpgrt__set_std_fd(int no, int fd) {
-  /* fprintf (stderr, "es_set_std_fd(%d, %d)\n", no, fd); */
-  std::lock_guard<std::mutex> lock(estream_list_lock);
-  if (no >= 0 && no < 3 && !custom_std_fds_valid[no]) {
-    custom_std_fds[no] = fd;
-    custom_std_fds_valid[no] = 1;
-  }
-}
-
 /* Return the stream used for stdin, stdout or stderr.
    This internal version uses a double dash inside its name. */
 estream_t _gpgrt__get_std_stream(int fd) {
@@ -2878,63 +2717,6 @@ estream_t _gpgrt__get_std_stream(int fd) {
     if (fd == 2) es_set_buffering(stream, NULL, _IOLBF, 0);
     fname_set_internal(
         stream, fd == 0 ? "[stdin]" : fd == 1 ? "[stdout]" : "[stderr]", 0);
-  }
-
-  return stream;
-}
-
-/* This function is the reasons why some of the init and deinit code
- * is split up into several functions.  */
-estream_t _gpgrt_freopen(const char *_GPGRT__RESTRICT path,
-                         const char *_GPGRT__RESTRICT mode,
-                         estream_t _GPGRT__RESTRICT stream) {
-  int err;
-
-  if (path) {
-    unsigned int modeflags, cmode, dummy;
-    int create_called;
-    void *cookie;
-    int fd;
-    es_syshd_t syshd;
-
-    cookie = NULL;
-    create_called = 0;
-
-
-    lock_stream(stream);
-
-    deinit_stream_obj(stream);
-
-    err = parse_mode(mode, &modeflags, &dummy, &cmode);
-    if (err) goto leave;
-    (void)dummy;
-
-    err = func_file_create(&cookie, &fd, path, modeflags, cmode);
-    if (err) goto leave;
-
-    syshd.type = ES_SYSHD_FD;
-    syshd.u.fd = fd;
-    create_called = 1;
-    init_stream_obj(stream, cookie, &syshd, BACKEND_FD, estream_functions_fd,
-                    modeflags, 0);
-
-  leave:
-
-    if (err) {
-      if (create_called) func_fd_destroy(cookie);
-
-      do_close(stream, 0);
-      stream = NULL;
-    } else {
-      if (path) fname_set_internal(stream, path, 1);
-      unlock_stream(stream);
-    }
-  } else {
-    /* FIXME?  We don't support re-opening at the moment.  */
-    _set_errno(EINVAL);
-    deinit_stream_obj(stream);
-    do_close(stream, 0);
-    stream = NULL;
   }
 
   return stream;
@@ -3030,7 +2812,12 @@ int _gpgrt_onclose(estream_t stream, int mode, void (*fnc)(estream_t, void *),
 int _gpgrt_fileno_unlocked(estream_t stream) {
   es_syshd_t syshd;
 
-  if (_gpgrt_syshd_unlocked(stream, &syshd)) return -1;
+  if (!stream || stream->intern->syshd.type == ES_SYSHD_NONE) {
+    _set_errno(EINVAL);
+    return -1;
+  }
+
+  syshd = stream->intern->syshd;
   switch (syshd.type) {
     case ES_SYSHD_FD:
       return syshd.u.fd;
@@ -3042,24 +2829,8 @@ int _gpgrt_fileno_unlocked(estream_t stream) {
   }
 }
 
-/* Return the handle of a stream which has been opened by es_sysopen.
-   The caller needs to pass a structure which will be filled with the
-   sys handle.  Return 0 on success or true on error and sets errno.
-   This is the unlocked version.  */
-int _gpgrt_syshd_unlocked(estream_t stream, es_syshd_t *syshd) {
-  if (!stream || !syshd || stream->intern->syshd.type == ES_SYSHD_NONE) {
-    if (syshd) syshd->type = ES_SYSHD_NONE;
-    _set_errno(EINVAL);
-    return -1;
-  }
-
-  *syshd = stream->intern->syshd;
-  return 0;
-}
 
 void _gpgrt_flockfile(estream_t stream) { lock_stream(stream); }
-
-int _gpgrt_ftrylockfile(estream_t stream) { return trylock_stream(stream); }
 
 void _gpgrt_funlockfile(estream_t stream) { unlock_stream(stream); }
 
@@ -3068,40 +2839,6 @@ int _gpgrt_fileno(estream_t stream) {
 
   lock_stream(stream);
   ret = _gpgrt_fileno_unlocked(stream);
-  unlock_stream(stream);
-
-  return ret;
-}
-
-/* Return the handle of a stream which has been opened by es_sysopen.
-   The caller needs to pass a structure which will be filled with the
-   sys handle.  Return 0 on success or true on error and sets errno.
-   This is the unlocked version.  */
-int _gpgrt_syshd(estream_t stream, es_syshd_t *syshd) {
-  int ret;
-
-  lock_stream(stream);
-  ret = _gpgrt_syshd_unlocked(stream, syshd);
-  unlock_stream(stream);
-
-  return ret;
-}
-
-int _gpgrt__pending_unlocked(estream_t stream) { return check_pending(stream); }
-
-/* Return true if there is at least one byte pending for read on
-   STREAM.  This does only work if the backend supports checking for
-   pending bytes and is thus mostly useful with cookie based backends.
-
-   Note that if this function is used with cookie based functions, the
-   read cookie may be called with 0 for the SIZE argument.  If bytes
-   are pending the function is expected to return -1 in this case and
-   thus deviates from the standard behavior of read(2).   */
-int _gpgrt__pending(estream_t stream) {
-  int ret;
-
-  lock_stream(stream);
-  ret = _gpgrt__pending_unlocked(stream);
   unlock_stream(stream);
 
   return ret;
@@ -3390,50 +3127,6 @@ int _gpgrt_fputs(const char *_GPGRT__RESTRICT s,
   return err ? EOF : 0;
 }
 
-gpgrt_ssize_t _gpgrt_getline(char *_GPGRT__RESTRICT *_GPGRT__RESTRICT lineptr,
-                             size_t *_GPGRT__RESTRICT n,
-                             estream_t _GPGRT__RESTRICT stream) {
-  char *line = NULL;
-  size_t line_n = 0;
-  int err;
-
-  lock_stream(stream);
-  err = doreadline(stream, 0, &line, &line_n);
-  unlock_stream(stream);
-  if (err) goto out;
-
-  if (*n) {
-    /* Caller wants us to use his buffer.  */
-
-    if (*n < (line_n + 1)) {
-      /* Provided buffer is too small -> resize.  */
-
-      void *p;
-
-      p = mem_realloc(*lineptr, line_n + 1);
-      if (!p)
-        err = -1;
-      else {
-        if (*lineptr != p) *lineptr = (char *__restrict)p;
-      }
-    }
-
-    if (!err) {
-      memcpy(*lineptr, line, line_n + 1);
-      if (*n != line_n) *n = line_n;
-    }
-    mem_free(line);
-  } else {
-    /* Caller wants new buffers.  */
-    *lineptr = line;
-    *n = line_n;
-  }
-
-out:
-
-  return err ? err : (gpgrt_ssize_t)line_n;
-}
-
 /* Same as fgets() but if the provided buffer is too short a larger
    one will be allocated.  This is similar to getline. A line is
    considered a byte stream ending in a LF.
@@ -3532,17 +3225,6 @@ gpgrt_ssize_t _gpgrt_read_line(estream_t stream, char **addr_of_buffer,
 
   return nbytes;
 }
-
-/* Wrapper around free() to match the memory allocation system used by
-   estream.  Should be used for all buffers returned to the caller by
-   libestream.  If a custom allocation handler has been set with
-   gpgrt_set_alloc_func that register function may be used
-   instead.  This function has been moved to init.c.  */
-/* void */
-/* _gpgrt_free (void *a) */
-/* { */
-/*   mem_free (a); */
-/* } */
 
 int _gpgrt_vfprintf_unlocked(estream_t _GPGRT__RESTRICT stream,
                              const char *_GPGRT__RESTRICT format, va_list ap) {
@@ -3696,234 +3378,8 @@ void _gpgrt_set_binary(estream_t stream) {
   unlock_stream(stream);
 }
 
-/* Set non-blocking mode for STREAM.  Use true for ONOFF to enable and
-   false to disable non-blocking mode.  Returns 0 on success or -1 on
-   error and sets ERRNO.  Note that not all backends support
-   non-blocking mode.
-
-   In non-blocking mode a system call will not block but return an
-   error and set errno to EAGAIN.  The estream API always uses EAGAIN
-   and not EWOULDBLOCK.  If a buffered function like es_fgetc() or
-   es_fgets() returns an error and both, feof() and ferror() return
-   false the caller may assume that the error condition was EAGAIN.
-
-   Switching back from non-blocking to blocking may raise problems
-   with buffering, thus care should be taken.  Although read+write
-   sockets are supported in theory, switching from write to read may
-   result into problems because estream may first flush the write
-   buffers and there is no way to handle that non-blocking (EAGAIN)
-   case.  Explicit flushing should thus be done before before
-   switching to read.  */
-int _gpgrt_set_nonblock(estream_t stream, int onoff) {
-  cookie_ioctl_function_t func_ioctl;
-  int ret;
-
-  lock_stream(stream);
-  func_ioctl = stream->intern->func_ioctl;
-  if (!func_ioctl) {
-    _set_errno(EOPNOTSUPP);
-    ret = -1;
-  } else {
-    unsigned int save_flags = stream->intern->modeflags;
-
-    if (onoff)
-      stream->intern->modeflags |= O_NONBLOCK;
-    else
-      stream->intern->modeflags &= ~O_NONBLOCK;
-
-    ret = func_ioctl(stream->intern->cookie, COOKIE_IOCTL_NONBLOCK,
-                     (void *)(onoff ? "" : NULL), NULL);
-    if (ret) stream->intern->modeflags = save_flags;
-  }
-  unlock_stream(stream);
-  return ret;
-}
-
-/* Return true if STREAM is in non-blocking mode.  */
-int _gpgrt_get_nonblock(estream_t stream) {
-  int ret;
-
-  lock_stream(stream);
-  ret = !!(stream->intern->modeflags & O_NONBLOCK);
-  unlock_stream(stream);
-  return ret;
-}
-
-/* A version of poll(2) working on estream handles.  Note that not all
-   estream types work with this function.  In contrast to the standard
-   poll function the gpgrt_poll_t object uses a set of bit flags
-   instead of the EVENTS and REVENTS members.  An item with the IGNORE
-   flag set is entirely ignored.  The TIMEOUT values is given in
-   milliseconds, a value of -1 waits indefinitely, and a value of 0
-   returns immediately.
-
-   A positive return value gives the number of fds with new
-   information.  A return value of 0 indicates a timeout and -1
-   indicates an error in which case ERRNO is set.  */
-int _gpgrt_poll(gpgrt_poll_t *fds, unsigned int nfds, int timeout) {
-  gpgrt_poll_t *item;
-  int count = 0;
-  int idx;
-#ifndef HAVE_W32_SYSTEM
-  fd_set readfds, writefds, exceptfds;
-  int any_readfd, any_writefd, any_exceptfd;
-  int max_fd;
-  int fd, ret, any;
-#endif /*HAVE_W32_SYSTEM*/
-
-  trace(("enter: nfds=%u timeout=%d", nfds, timeout));
-
-  if (!fds) {
-    _set_errno(EINVAL);
-    count = -1;
-    goto leave;
-  }
-
-  /* Clear all response fields (even for ignored items).  */
-  for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-    item->got_read = 0;
-    item->got_write = 0;
-    item->got_oob = 0;
-    item->got_rdhup = 0;
-    item->got_err = 0;
-    item->got_hup = 0;
-    item->got_nval = 0;
-  }
-
-  /* Check for pending reads.  */
-  for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-    if (item->ignore) continue;
-    if (!item->want_read) continue;
-    if (_gpgrt__pending(item->stream)) {
-      item->got_read = 1;
-      count++;
-    }
-  }
-
-  /* Check for space in the write buffers.  */
-  for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-    if (item->ignore) continue;
-    if (!item->want_write) continue;
-    /* FIXME */
-  }
-
-/* Now do the real select.  */
-#ifdef HAVE_W32_SYSTEM
-
-  count = _gpgrt_w32_poll(fds, nfds, timeout);
-
-#else  /*!HAVE_W32_SYSTEM*/
-
-  any_readfd = any_writefd = any_exceptfd = 0;
-  max_fd = 0;
-  for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-    if (item->ignore) continue;
-    fd = _gpgrt_fileno(item->stream);
-    if (fd == -1) continue; /* Stream does not support polling.  */
-
-    if (item->want_read) {
-      if (!any_readfd) {
-        FD_ZERO(&readfds);
-        any_readfd = 1;
-      }
-      FD_SET(fd, &readfds);
-      if (fd > max_fd) max_fd = fd;
-    }
-    if (item->want_write) {
-      if (!any_writefd) {
-        FD_ZERO(&writefds);
-        any_writefd = 1;
-      }
-      FD_SET(fd, &writefds);
-      if (fd > max_fd) max_fd = fd;
-    }
-    if (item->want_oob) {
-      if (!any_exceptfd) {
-        FD_ZERO(&exceptfds);
-        any_exceptfd = 1;
-      }
-      FD_SET(fd, &exceptfds);
-      if (fd > max_fd) max_fd = fd;
-    }
-  }
-
-  if (pre_syscall_func) pre_syscall_func();
-  do {
-    struct timeval timeout_val;
-
-    timeout_val.tv_sec = timeout / 1000;
-    timeout_val.tv_usec = (timeout % 1000) * 1000;
-    ret =
-        select(max_fd + 1, any_readfd ? &readfds : NULL,
-               any_writefd ? &writefds : NULL, any_exceptfd ? &exceptfds : NULL,
-               timeout == -1 ? NULL : &timeout_val);
-  } while (ret == -1 && errno == EINTR);
-  if (post_syscall_func) post_syscall_func();
-
-  if (ret == -1) {
-    trace_errno(1, ("select failed: "));
-    count = -1;
-    goto leave;
-  }
-  if (!ret) {
-    /* Timeout.  Note that in this case we can't return got_err for
-     * an invalid stream.  */
-    count = 0;
-    goto leave;
-  }
-
-  for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-    if (item->ignore) continue;
-    fd = _gpgrt_fileno(item->stream);
-    if (fd == -1) {
-      item->got_err = 1; /* Stream does not support polling.  */
-      count++;
-      continue;
-    }
-
-    any = 0;
-    if (item->stream->intern->indicators.hup) {
-      item->got_hup = 1;
-      any = 1;
-    }
-    if (item->want_read && FD_ISSET(fd, &readfds)) {
-      item->got_read = 1;
-      any = 1;
-    }
-    if (item->want_write && FD_ISSET(fd, &writefds)) {
-      item->got_write = 1;
-      any = 1;
-    }
-    if (item->want_oob && FD_ISSET(fd, &exceptfds)) {
-      item->got_oob = 1;
-      any = 1;
-    }
-
-    if (any) count++;
-  }
-#endif /*!HAVE_W32_SYSTEM*/
-
-leave:
-#ifdef ENABLE_TRACING
-  trace(("leave: count=%d", count));
-  if (count > 0) {
-    for (item = fds, idx = 0; idx < nfds; item++, idx++) {
-      trace(("     %3d  %c%c%c%c%c  %c%c%c%c%c%c%c", idx,
-             fds[idx].want_read ? 'r' : '-', fds[idx].want_write ? 'w' : '-',
-             fds[idx].want_oob ? 'o' : '-', fds[idx].want_rdhup ? 'h' : '-',
-             fds[idx].ignore ? 'i' : '-', fds[idx].got_read ? 'r' : '-',
-             fds[idx].got_write ? 'w' : '-', fds[idx].got_oob ? 'o' : '-',
-             fds[idx].got_rdhup ? 'h' : '-', fds[idx].got_hup ? 'H' : '-',
-             fds[idx].got_err ? 'e' : '-', fds[idx].got_nval ? 'n' : '-'));
-    }
-  }
-#endif /*ENABLE_TRACING*/
-  return count;
-}
-
 static void fname_set_internal(estream_t stream, const char *fname, int quote) {
-  if (stream->intern->printable_fname &&
-      !stream->intern->printable_fname_inuse) {
+  if (stream->intern->printable_fname) {
     mem_free(stream->intern->printable_fname);
     stream->intern->printable_fname = NULL;
   }
@@ -3993,40 +3449,4 @@ int _gpgrt_write_sanitized(estream_t _GPGRT__RESTRICT stream,
   unlock_stream(stream);
 
   return ret;
-}
-
-/* Write LENGTH bytes of BUFFER to STREAM as a hex encoded string.
-   RESERVED must be 0.  Returns 0 on success or -1 on error.  If
-   BYTES_WRITTEN is not NULL the number of bytes actually written are
-   stored at this address.  */
-int _gpgrt_write_hexstring(estream_t _GPGRT__RESTRICT stream,
-                           const void *_GPGRT__RESTRICT buffer, size_t length,
-                           int reserved,
-                           size_t *_GPGRT__RESTRICT bytes_written) {
-  int ret;
-  const unsigned char *s;
-  size_t count = 0;
-
-  (void)reserved;
-
-#define tohex(n) ((n) < 10 ? ((n) + '0') : (((n)-10) + 'A'))
-
-  if (!length) return 0;
-
-  lock_stream(stream);
-
-  for (s = (const unsigned char *)buffer; length; s++, length--) {
-    _gpgrt_putc_unlocked(tohex((*s >> 4) & 15), stream);
-    _gpgrt_putc_unlocked(tohex(*s & 15), stream);
-    count += 2;
-  }
-
-  if (bytes_written) *bytes_written = count;
-  ret = _gpgrt_ferror_unlocked(stream) ? -1 : 0;
-
-  unlock_stream(stream);
-
-  return ret;
-
-#undef tohex
 }

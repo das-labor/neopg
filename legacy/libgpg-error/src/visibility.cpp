@@ -71,28 +71,6 @@ estream_t gpgrt_fdopen_nc(int filedes, const char *mode) {
   return _gpgrt_fdopen_nc(filedes, mode);
 }
 
-estream_t gpgrt_sysopen(es_syshd_t *syshd, const char *mode) {
-  return _gpgrt_sysopen(syshd, mode);
-}
-
-estream_t gpgrt_sysopen_nc(es_syshd_t *syshd, const char *mode) {
-  return _gpgrt_sysopen_nc(syshd, mode);
-}
-
-estream_t gpgrt_fpopen(FILE *fp, const char *mode) {
-  return _gpgrt_fpopen(fp, mode);
-}
-
-estream_t gpgrt_fpopen_nc(FILE *fp, const char *mode) {
-  return _gpgrt_fpopen_nc(fp, mode);
-}
-
-estream_t gpgrt_freopen(const char *_GPGRT__RESTRICT path,
-                        const char *_GPGRT__RESTRICT mode,
-                        estream_t _GPGRT__RESTRICT stream) {
-  return _gpgrt_freopen(path, mode, stream);
-}
-
 estream_t gpgrt_fopencookie(void *_GPGRT__RESTRICT cookie,
                             const char *_GPGRT__RESTRICT mode,
                             gpgrt_cookie_io_functions_t functions) {
@@ -116,33 +94,13 @@ int gpgrt_fileno_unlocked(estream_t stream) {
   return _gpgrt_fileno_unlocked(stream);
 }
 
-int gpgrt_syshd(estream_t stream, es_syshd_t *syshd) {
-  return _gpgrt_syshd(stream, syshd);
-}
-
-int gpgrt_syshd_unlocked(estream_t stream, es_syshd_t *syshd) {
-  return _gpgrt_syshd_unlocked(stream, syshd);
-}
-
-void _gpgrt_set_std_fd(int no, int fd) {
-  _gpgrt__set_std_fd(no, fd); /* (double dash in name) */
-}
-
 estream_t _gpgrt_get_std_stream(int fd) {
   return _gpgrt__get_std_stream(fd); /* (double dash in name) */
 }
 
 void gpgrt_flockfile(estream_t stream) { _gpgrt_flockfile(stream); }
 
-int gpgrt_ftrylockfile(estream_t stream) { return _gpgrt_ftrylockfile(stream); }
-
 void gpgrt_funlockfile(estream_t stream) { _gpgrt_funlockfile(stream); }
-
-int _gpgrt_pending(estream_t stream) { return _gpgrt__pending(stream); }
-
-int _gpgrt_pending_unlocked(estream_t stream) {
-  return _gpgrt__pending_unlocked(stream);
-}
 
 int gpgrt_feof(estream_t stream) { return _gpgrt_feof(stream); }
 
@@ -211,14 +169,6 @@ int gpgrt_write_sanitized(estream_t _GPGRT__RESTRICT stream,
                                 bytes_written);
 }
 
-int gpgrt_write_hexstring(estream_t _GPGRT__RESTRICT stream,
-                          const void *_GPGRT__RESTRICT buffer, size_t length,
-                          int reserved,
-                          size_t *_GPGRT__RESTRICT bytes_written) {
-  return _gpgrt_write_hexstring(stream, buffer, length, reserved,
-                                bytes_written);
-}
-
 size_t gpgrt_fread(void *_GPGRT__RESTRICT ptr, size_t size, size_t nitems,
                    estream_t _GPGRT__RESTRICT stream) {
   return _gpgrt_fread(ptr, size, nitems, stream);
@@ -242,12 +192,6 @@ int gpgrt_fputs(const char *_GPGRT__RESTRICT s,
 int gpgrt_fputs_unlocked(const char *_GPGRT__RESTRICT s,
                          estream_t _GPGRT__RESTRICT stream) {
   return _gpgrt_fputs_unlocked(s, stream);
-}
-
-gpgrt_ssize_t gpgrt_getline(char *_GPGRT__RESTRICT *_GPGRT__RESTRICT lineptr,
-                            size_t *_GPGRT__RESTRICT n,
-                            estream_t _GPGRT__RESTRICT stream) {
-  return _gpgrt_getline(lineptr, n, stream);
 }
 
 gpgrt_ssize_t gpgrt_read_line(estream_t stream, char **addr_of_buffer,
@@ -327,16 +271,6 @@ void gpgrt_setbuf(estream_t _GPGRT__RESTRICT stream,
 
 void gpgrt_set_binary(estream_t stream) { _gpgrt_set_binary(stream); }
 
-int gpgrt_set_nonblock(estream_t stream, int onoff) {
-  return _gpgrt_set_nonblock(stream, onoff);
-}
-
-int gpgrt_get_nonblock(estream_t stream) { return _gpgrt_get_nonblock(stream); }
-
-int gpgrt_poll(gpgrt_poll_t *fds, unsigned int nfds, int timeout) {
-  return _gpgrt_poll(fds, nfds, timeout);
-}
-
 int gpgrt_asprintf(char **r_buf, const char *_GPGRT__RESTRICT format, ...) {
   va_list ap;
   int rc;
@@ -351,27 +285,6 @@ int gpgrt_asprintf(char **r_buf, const char *_GPGRT__RESTRICT format, ...) {
 int gpgrt_vasprintf(char **r_buf, const char *_GPGRT__RESTRICT format,
                     va_list ap) {
   return _gpgrt_estream_vasprintf(r_buf, format, ap);
-}
-
-char *gpgrt_bsprintf(const char *_GPGRT__RESTRICT format, ...) {
-  int rc;
-  va_list ap;
-  char *buf;
-
-  va_start(ap, format);
-  rc = _gpgrt_estream_vasprintf(&buf, format, ap);
-  va_end(ap);
-  if (rc < 0) return NULL;
-  return buf;
-}
-
-char *gpgrt_vbsprintf(const char *_GPGRT__RESTRICT format, va_list ap) {
-  int rc;
-  char *buf;
-
-  rc = _gpgrt_estream_vasprintf(&buf, format, ap);
-  if (rc < 0) return NULL;
-  return buf;
 }
 
 int gpgrt_snprintf(char *buf, size_t bufsize, const char *format, ...) {

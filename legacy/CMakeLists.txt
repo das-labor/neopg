@@ -47,7 +47,6 @@ target_compile_options(gpg-error PUBLIC -fpermissive -U_GNU_SOURCE -D_POSIX_SOUR
 
 add_executable(gpg-error-test
   libgpg-error/tests/t-b64dec.cpp
-  libgpg-error/tests/t-poll.cpp
   libgpg-error/tests/t-printf.cpp
   libgpg-error/tests/t-strerror.cpp
   libgpg-error/tests/t-syserror.cpp
