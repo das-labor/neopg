@@ -92,7 +92,7 @@ struct _gpgrt_stream_internal {
   unsigned char buffer[BUFFER_BLOCK_SIZE];
   unsigned char unread_buffer[BUFFER_UNREAD_SIZE];
 
-  std::mutex* lock; /* Lock.  Used by *_stream_lock(). */
+  std::mutex *lock; /* Lock.  Used by *_stream_lock(). */
 
   gpgrt_stream_backend_kind_t kind;
   void *cookie;           /* Cookie.                */
@@ -115,8 +115,8 @@ struct _gpgrt_stream_internal {
   unsigned int deallocate_buffer : 1;
   unsigned int is_stdstream : 1; /* This is a standard stream.  */
   unsigned int stdstream_fd : 2; /* 0, 1 or 2 for a standard stream.  */
-  size_t print_ntotal;   /* Bytes written from in print_writer. */
-  notify_list_t onclose; /* On close notify function list.  */
+  size_t print_ntotal;           /* Bytes written from in print_writer. */
+  notify_list_t onclose;         /* On close notify function list.  */
 };
 typedef struct _gpgrt_stream_internal *estream_internal_t;
 

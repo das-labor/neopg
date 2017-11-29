@@ -235,9 +235,10 @@ static int calculate_mic(const unsigned char *plainkey,
   s++;
   hash_end = s;
 
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
-  Botan::secure_vector<uint8_t> hash = sha1->process(hash_begin,
-                                                     hash_end - hash_begin);
+  std::unique_ptr<Botan::HashFunction> sha1 =
+      Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash =
+      sha1->process(hash_begin, hash_end - hash_begin);
   memcpy(sha1hash, hash.data(), hash.size());
 
   return 0;
@@ -375,12 +376,12 @@ static int do_encryption(const unsigned char *hashbegin, size_t hashlen,
      * continuous buffer but need to call md_write several times.  */
 
     std::unique_ptr<Botan::HashFunction> sha1(
-              Botan::HashFunction::create_or_throw("SHA-1"));
+        Botan::HashFunction::create_or_throw("SHA-1"));
     sha1->update((const uint8_t *)hashbegin, protbegin - hashbegin);
     sha1->update((const uint8_t *)protbegin, protlen);
     sha1->update((const uint8_t *)timestamp_exp, timestamp_exp_len);
     sha1->update((const uint8_t *)protbegin + protlen,
-		 hashlen - (protbegin + protlen - hashbegin));
+                 hashlen - (protbegin + protlen - hashbegin));
     sha1->final((byte *)hashvalue);
   }
 

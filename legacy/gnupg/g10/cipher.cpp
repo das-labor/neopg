@@ -107,8 +107,7 @@ int cipher_filter(void *opaque, int control, IOBUF a, byte *buf,
     if (!cfx->header) {
       write_header(cfx, a);
     }
-    if (cfx->mdc_hash)
-      cfx->mdc_hash->update(buf, size);
+    if (cfx->mdc_hash) cfx->mdc_hash->update(buf, size);
     gcry_cipher_encrypt(cfx->cipher_hd, buf, size, NULL, 0);
     rc = iobuf_write(a, buf, size);
   } else if (control == IOBUFCTRL_FREE) {

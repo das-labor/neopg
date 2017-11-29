@@ -67,13 +67,13 @@ gpg_error_t _ksba_hash_buffer(const char *oid, const void *buffer,
                               unsigned char *result, size_t *resultlen) {
   if (oid && strcmp(oid, "1.3.14.3.2.26")) return GPG_ERR_NOT_SUPPORTED;
   if (resultsize < 20) return GPG_ERR_BUFFER_TOO_SHORT;
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
-  Botan::secure_vector<uint8_t> hash = sha1->process((uint8_t*)buffer, length);
+  std::unique_ptr<Botan::HashFunction> sha1 =
+      Botan::HashFunction::create_or_throw("SHA-1");
+  Botan::secure_vector<uint8_t> hash = sha1->process((uint8_t *)buffer, length);
   memcpy(result, hash.data(), hash.size());
   *resultlen = 20;
   return 0;
 }
-
 
 /* Wrapper for the common memory allocation functions.  These are here
    so that we can add hooks.  The corresponding macros should be used.

@@ -51,13 +51,12 @@ gpg_error_t send_pinentry_environment(assuan_context_t ctx,
    agent.  */
 gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
                                 const char *opt_lc_ctype,
-                                const char *opt_lc_messages,
-                                int verbose, int debug);
+                                const char *opt_lc_messages, int verbose,
+                                int debug);
 
 /* This function is used to connect to the dirmngr.  On some platforms
    the function is able starts a dirmngr process if needed.  */
-gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx,
-                              int verbose, int debug);
+gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx, int verbose, int debug);
 
 /* Return the version of a server using "GETINFO version".  */
 gpg_error_t get_assuan_server_version(assuan_context_t ctx, int mode,

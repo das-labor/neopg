@@ -18,7 +18,9 @@ static void setup_locale() {
   boost::locale::generator gen;
   /* FIXME: Maybe use custom filesystem to include all mo files in the
      binary (for portable
-     apps). http://www.boost.org/doc/libs/1_65_0/libs/locale/doc/html/messages_formatting.html#custom_file_system_support */
+     apps).
+     http://www.boost.org/doc/libs/1_65_0/libs/locale/doc/html/messages_formatting.html#custom_file_system_support
+     */
   gen.add_messages_path(CMAKE_INSTALL_PREFIX "/share/locale");
   gen.add_messages_domain("neopg");
   std::locale::global(gen(""));

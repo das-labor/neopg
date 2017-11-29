@@ -40,8 +40,8 @@
 #include <aclapi.h>
 #include <sddl.h>
 #endif /*!HAVE_W32_SYSTEM*/
-#include <unistd.h>
 #include <npth.h>
+#include <unistd.h>
 
 #define GNUPG_COMMON_NEED_AFLOCAL
 #include <assuan.h> /* Malloc hooks  and socket wrappers. */

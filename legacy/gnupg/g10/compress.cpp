@@ -156,10 +156,7 @@ int compress_filter(void *opaque, int control, IOBUF a, byte *buf,
   return rc;
 }
 
-
-static void release_context(compress_filter_context_t *ctx) {
-  xfree(ctx);
-}
+static void release_context(compress_filter_context_t *ctx) { xfree(ctx); }
 
 /****************
  * Handle a compressed packet

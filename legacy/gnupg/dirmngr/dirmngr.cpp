@@ -41,8 +41,8 @@
 #endif /*HAVE_INOTIFY_INIT*/
 #include <npth.h>
 
-#include <gpg-error.h>
 #include <gnutls/gnutls.h>
+#include <gpg-error.h>
 
 #define GNUPG_COMMON_NEED_AFLOCAL
 #include "dirmngr.h"

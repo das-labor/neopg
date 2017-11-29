@@ -67,4 +67,3 @@ void *_gpgrt_malloc(size_t n) {
 void _gpgrt_free(void *a) { _gpgrt_realloc(a, 0); }
 
 void _gpg_err_set_errno(int err) { errno = err; }
-

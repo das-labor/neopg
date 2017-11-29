@@ -627,9 +627,8 @@ static gpg_error_t parse_p12(ctrl_t ctrl, ksba_reader_t reader,
     p12bufoff = 0;
 
   err = gpgsm_agent_ask_passphrase(
-      ctrl,
-      "Please enter the passphrase to unprotect the PKCS#12 object.",
-      0, &passphrase);
+      ctrl, "Please enter the passphrase to unprotect the PKCS#12 object.", 0,
+      &passphrase);
   if (err) goto leave;
 
   kparms = p12_parse((const unsigned char *)(p12buffer + p12bufoff),

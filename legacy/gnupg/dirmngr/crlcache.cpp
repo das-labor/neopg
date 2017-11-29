@@ -1147,17 +1147,18 @@ static crl_cache_result_t cache_isvalid(ctrl_t ctrl, const char *issuer_hash,
       std::string tmp = Botan::hex_encode(sn, snlen);
 
       if (cdb_read(cdb, record, n, cdb_datapos(cdb)))
-        log_error(_("problem reading cache record for S/N 0x%s: %s\n"), tmp.c_str(),
-                  strerror(errno));
+        log_error(_("problem reading cache record for S/N 0x%s: %s\n"),
+                  tmp.c_str(), strerror(errno));
       else
-        log_info(_("S/N 0x%s is not valid; reason=%02X  date=%.15s\n"), tmp.c_str(),
-                 *record, record + 1);
+        log_info(_("S/N 0x%s is not valid; reason=%02X  date=%.15s\n"),
+                 tmp.c_str(), *record, record + 1);
     }
     retval = CRL_CACHE_INVALID;
   } else if (!rc) {
     if (opt.verbose) {
       std::string serialno = Botan::hex_encode(sn, snlen);
-      log_info(_("S/N 0x%s is valid, it is not listed in the CRL\n"), serialno.c_str());
+      log_info(_("S/N 0x%s is valid, it is not listed in the CRL\n"),
+               serialno.c_str());
     }
     retval = CRL_CACHE_VALID;
   } else {
@@ -1194,8 +1195,10 @@ static crl_cache_result_t cache_isvalid(ctrl_t ctrl, const char *issuer_hash,
 crl_cache_result_t crl_cache_isvalid(ctrl_t ctrl, const char *issuer_hash,
                                      const char *serialno, int force_refresh) {
   crl_cache_result_t result;
-  std::vector<uint8_t> sn = Botan::hex_decode(serialno, strlen(serialno), false);
-  result = cache_isvalid(ctrl, issuer_hash, sn.data(), sn.size(), force_refresh);
+  std::vector<uint8_t> sn =
+      Botan::hex_decode(serialno, strlen(serialno), false);
+  result =
+      cache_isvalid(ctrl, issuer_hash, sn.data(), sn.size(), force_refresh);
   return result;
 }
 
@@ -1221,7 +1224,8 @@ gpg_error_t crl_cache_cert_isvalid(ctrl_t ctrl, ksba_cert_t cert,
     return GPG_ERR_INV_CERT_OBJ;
   }
 
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  std::unique_ptr<Botan::HashFunction> sha1 =
+      Botan::HashFunction::create_or_throw("SHA-1");
   std::string issuerhash_hex = Botan::hex_encode(sha1->process(tmp));
 
   /* Get the serial number.  */
@@ -1247,7 +1251,8 @@ gpg_error_t crl_cache_cert_isvalid(ctrl_t ctrl, ksba_cert_t cert,
   sn++;
 
   /* Check the cache.  */
-  result = cache_isvalid(ctrl, issuerhash_hex.c_str(), sn, snlen, force_refresh);
+  result =
+      cache_isvalid(ctrl, issuerhash_hex.c_str(), sn, snlen, force_refresh);
   switch (result) {
     case CRL_CACHE_VALID:
       err = 0;
@@ -1799,7 +1804,8 @@ gpg_error_t crl_cache_insert(ctrl_t ctrl, const char *url,
   {
     /* Create an hex encoded SHA-1 hash of the issuer DN to be
        used as the key for the cache. */
-    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    std::unique_ptr<Botan::HashFunction> sha1 =
+        Botan::HashFunction::create_or_throw("SHA-1");
     std::string hexencoded = Botan::hex_encode(sha1->process(issuer));
     issuer_hash = xstrdup(hexencoded.c_str());
   }

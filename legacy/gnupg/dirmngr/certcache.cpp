@@ -27,8 +27,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include <sstream>
 #include <botan/hex.h>
+#include <sstream>
 
 #include "../common/ksba-io-support.h"
 #include "certcache.h"
@@ -157,11 +157,11 @@ ksba_sexp_t hexsn_to_sexp(const char *hexsn) {
   std::vector<uint8_t> number = Botan::hex_decode(hexsn, strlen(hexsn), false);
   std::stringstream output;
   output << "(" << number.size() << ":";
-  output.write((char*)number.data(), number.size());
+  output.write((char *)number.data(), number.size());
   output << ")";
 
   std::string result = output.str();
-  buffer = (char*)xmalloc(result.size());
+  buffer = (char *)xmalloc(result.size());
   memcpy(buffer, result.data(), result.size());
   return (ksba_sexp_t)buffer;
 }

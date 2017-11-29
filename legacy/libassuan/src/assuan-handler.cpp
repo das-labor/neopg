@@ -575,8 +575,7 @@ gpg_error_t assuan_process_done(assuan_context_t ctx, gpg_error_t rc) {
     if (ctx->flags.force_close) text = "[closing connection]";
 
     snprintf(errline, sizeof errline, "ERR %d %.50s %s%.100s", rc,
-	     gpg_strerror(rc),
-             text ? " - " : "", text ? text : "");
+             gpg_strerror(rc), text ? " - " : "", text ? text : "");
 
     rc = assuan_write_line(ctx, errline);
 

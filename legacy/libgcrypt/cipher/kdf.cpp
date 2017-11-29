@@ -210,9 +210,9 @@ gpg_error_t _gcry_kdf_pkdf2(const void *passphrase, size_t passphraselen,
    positive integer parameter to most KDFs.  0 is returned on success,
    or an error code on failure.  */
 gpg_error_t gcry_kdf_derive(const void *passphrase, size_t passphraselen,
-                             int algo, int subalgo, const void *salt,
-                             size_t saltlen, unsigned long iterations,
-                             size_t keysize, void *keybuffer) {
+                            int algo, int subalgo, const void *salt,
+                            size_t saltlen, unsigned long iterations,
+                            size_t keysize, void *keybuffer) {
   gpg_error_t ec;
 
   if (!passphrase) {

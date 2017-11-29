@@ -678,7 +678,8 @@ static gpg_error_t store_fpr(app_t app, int keynumber, u32 timestamp,
     p += mlen[i];
   }
 
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  std::unique_ptr<Botan::HashFunction> sha1 =
+      Botan::HashFunction::create_or_throw("SHA-1");
   Botan::secure_vector<uint8_t> hash = sha1->process(buffer, n + 3);
   memcpy(fpr, hash.data(), hash.size());
 

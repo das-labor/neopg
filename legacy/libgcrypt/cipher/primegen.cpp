@@ -374,8 +374,8 @@ static gpg_error_t prime_generate_internal(
       }
 
       if (is_locked) {
-	primepool_lock.unlock();
-	is_locked = 0;
+        primepool_lock.unlock();
+        is_locked = 0;
       }
     } else {
       /* Get next permutation. */
@@ -399,8 +399,8 @@ static gpg_error_t prime_generate_internal(
         }
 
       if (is_locked) {
-	primepool_lock.lock();
-	is_locked = 0;
+        primepool_lock.lock();
+        is_locked = 0;
       }
 
       if (i == n) {
@@ -881,9 +881,9 @@ leave:
    factors and store it in FACTORS.  FLAGS might be used to influence
    the prime number generation process.  */
 gpg_error_t gcry_prime_generate(gcry_mpi_t *prime, unsigned int prime_bits,
-                                 unsigned int factor_bits, gcry_mpi_t **factors,
-                                 gcry_prime_check_func_t cb_func, void *cb_arg,
-                                 unsigned int flags) {
+                                unsigned int factor_bits, gcry_mpi_t **factors,
+                                gcry_prime_check_func_t cb_func, void *cb_arg,
+                                unsigned int flags) {
   gpg_error_t rc = 0;
   gcry_mpi_t *factors_generated = NULL;
   gcry_mpi_t prime_generated = NULL;
@@ -963,8 +963,8 @@ gpg_error_t _gcry_fips186_4_prime_check(gcry_mpi_t x, unsigned int bits) {
    newly allocated MPI in R_G.  If START_G is not NULL, use this as s
    atart for the search. Returns 0 on success.*/
 gpg_error_t gcry_prime_group_generator(gcry_mpi_t *r_g, gcry_mpi_t prime,
-                                        gcry_mpi_t *factors,
-                                        gcry_mpi_t start_g) {
+                                       gcry_mpi_t *factors,
+                                       gcry_mpi_t start_g) {
   gcry_mpi_t tmp, b, pmin1, g;
   int first, i, n;
 

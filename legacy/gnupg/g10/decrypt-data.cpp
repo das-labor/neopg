@@ -209,8 +209,7 @@ int decrypt_data(ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek) {
     goto leave;
   }
 
-  if (dfx->mdc_hash)
-    dfx->mdc_hash->update(temp, nprefix + 2);
+  if (dfx->mdc_hash) dfx->mdc_hash->update(temp, nprefix + 2);
 
   dfx->refcount++;
   dfx->partial = ed->is_partial;
@@ -267,7 +266,7 @@ int decrypt_data(ctrl_t ctrl, void *procctx, PKT_encrypted *ed, DEK *dek) {
 
     log_assert(dfx->cipher_hd);
     gcry_cipher_decrypt(dfx->cipher_hd, dfx->defer, 22, NULL, 0);
-    dfx->mdc_hash->update((uint8_t*)dfx->defer, 2);
+    dfx->mdc_hash->update((uint8_t *)dfx->defer, 2);
     std::vector<uint8_t> hash = dfx->mdc_hash->final_stdvec();
 
     if (dfx->defer[0] != '\xd3' || dfx->defer[1] != '\x14' || datalen != 20 ||

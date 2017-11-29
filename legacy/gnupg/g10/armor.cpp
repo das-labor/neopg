@@ -1130,4 +1130,3 @@ char *make_radix64_string(const byte *data, size_t len) {
   boost::trim_right_if(str, boost::is_any_of("="));
   return xstrdup(str.c_str());
 }
-

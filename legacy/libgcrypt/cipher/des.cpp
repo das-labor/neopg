@@ -491,10 +491,10 @@ static void des_key_schedule(const byte *rawkey, u32 *subkey) {
   u32 left, right, work;
   int round;
 
-  READ_64BIT_DATA(rawkey, left, right)
+  READ_64BIT_DATA(rawkey, left, right);
 
-  DO_PERMUTATION(right, work, left, 4, 0x0f0f0f0f)
-  DO_PERMUTATION(right, work, left, 0, 0x10101010)
+  DO_PERMUTATION(right, work, left, 4, 0x0f0f0f0f);
+  DO_PERMUTATION(right, work, left, 0, 0x10101010);
 
   left = ((leftkey_swap[(left >> 0) & 0xf] << 3) |
           (leftkey_swap[(left >> 8) & 0xf] << 2) |
@@ -582,27 +582,30 @@ static int des_ecb_crypt(struct _des_ctx *ctx, const byte *from, byte *to,
 
   keys = mode ? ctx->decrypt_subkeys : ctx->encrypt_subkeys;
 
-  READ_64BIT_DATA(from, left, right)
-  INITIAL_PERMUTATION(left, work, right)
+  READ_64BIT_DATA(from, left, right);
+  INITIAL_PERMUTATION(left, work, right);
 
-  DES_ROUND(right, left, work, keys)
-  DES_ROUND(left, right, work, keys)
-  DES_ROUND(right, left, work, keys)
-  DES_ROUND(left, right, work, keys) DES_ROUND(right, left, work, keys)
-      DES_ROUND(left, right, work, keys) DES_ROUND(right, left, work, keys)
-          DES_ROUND(left, right, work, keys) DES_ROUND(right, left, work, keys)
-              DES_ROUND(left, right, work, keys)
-                  DES_ROUND(right, left, work, keys)
-                      DES_ROUND(left, right, work, keys)
-                          DES_ROUND(right, left, work, keys)
-                              DES_ROUND(left, right, work, keys)
-                                  DES_ROUND(right, left, work, keys)
-                                      DES_ROUND(left, right, work, keys)
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
 
-                                          FINAL_PERMUTATION(right, work, left)
-                                              WRITE_64BIT_DATA(to, right, left)
+  FINAL_PERMUTATION(right, work, left);
+  WRITE_64BIT_DATA(to, right, left);
 
-                                                  return 0;
+  return 0;
 }
 
 /*
@@ -757,77 +760,64 @@ static int tripledes_ecb_crypt(struct _tripledes_ctx *ctx, const byte *from,
 
   keys = mode ? ctx->decrypt_subkeys : ctx->encrypt_subkeys;
 
-  READ_64BIT_DATA(from, left, right)
-  INITIAL_PERMUTATION(left, work, right)
+  READ_64BIT_DATA(from, left, right);
+  INITIAL_PERMUTATION(left, work, right);
 
-  DES_ROUND(right, left, work, keys)
-  DES_ROUND(left, right, work, keys)
-  DES_ROUND(right, left, work, keys)
-  DES_ROUND(left, right, work, keys) DES_ROUND(
-      right, left, work,
-      keys) DES_ROUND(left, right, work,
-                      keys) DES_ROUND(right, left, work,
-                                      keys) DES_ROUND(left, right, work, keys)
-      DES_ROUND(right, left, work, keys) DES_ROUND(
-          left, right, work, keys) DES_ROUND(right, left, work, keys)
-          DES_ROUND(left, right, work, keys) DES_ROUND(
-              right, left, work,
-              keys) DES_ROUND(left, right, work,
-                              keys) DES_ROUND(right, left, work,
-                                              keys) DES_ROUND(left, right, work,
-                                                              keys)
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
 
-              DES_ROUND(left, right, work, keys) DES_ROUND(
-                  right, left, work,
-                  keys) DES_ROUND(left, right, work,
-                                  keys) DES_ROUND(right, left, work,
-                                                  keys) DES_ROUND(left, right,
-                                                                  work, keys)
-                  DES_ROUND(right, left, work, keys) DES_ROUND(
-                      left, right, work,
-                      keys) DES_ROUND(right, left, work,
-                                      keys) DES_ROUND(left, right, work,
-                                                      keys) DES_ROUND(right,
-                                                                      left,
-                                                                      work,
-                                                                      keys)
-                      DES_ROUND(left, right, work, keys) DES_ROUND(
-                          right, left, work,
-                          keys) DES_ROUND(left, right, work, keys)
-                          DES_ROUND(right, left, work, keys) DES_ROUND(
-                              left, right, work,
-                              keys) DES_ROUND(right, left, work, keys)
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
 
-                              DES_ROUND(right, left, work, keys) DES_ROUND(
-                                  left, right, work,
-                                  keys) DES_ROUND(right, left, work, keys)
-                                  DES_ROUND(left, right, work, keys) DES_ROUND(
-                                      right, left, work,
-                                      keys) DES_ROUND(left, right, work, keys)
-                                      DES_ROUND(right, left, work, keys) DES_ROUND(
-                                          left, right, work,
-                                          keys) DES_ROUND(right, left, work, keys)
-                                          DES_ROUND(left, right, work, keys) DES_ROUND(
-                                              right, left, work,
-                                              keys) DES_ROUND(left, right, work, keys)
-                                              DES_ROUND(right, left, work, keys)
-                                                  DES_ROUND(left, right, work,
-                                                            keys)
-                                                      DES_ROUND(right, left,
-                                                                work,
-                                                                keys)
-                                                          DES_ROUND(left, right,
-                                                                    work,
-                                                                    keys)
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
+  DES_ROUND(right, left, work, keys);
+  DES_ROUND(left, right, work, keys);
 
-                                                              FINAL_PERMUTATION(
-                                                                  right, work,
-                                                                  left)
-                                                                  WRITE_64BIT_DATA(
-                                                                      to, right,
-                                                                      left)
+  FINAL_PERMUTATION(right, work, left);
+  WRITE_64BIT_DATA(to, right, left);
 
-                                                                      return 0;
+  return 0;
 }
 
 #endif /*!USE_AMD64_ASM*/

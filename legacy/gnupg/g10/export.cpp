@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <botan/hex.h>
 #include <botan/hash.h>
+#include <botan/hex.h>
 
 #include "../common/host2net.h"
 #include "../common/init.h"
@@ -1234,7 +1234,8 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
       print_utf8_buffer(fp, uid->name, uid->len);
       es_putc('\n', fp);
 
-      std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+      std::unique_ptr<Botan::HashFunction> sha1 =
+          Botan::HashFunction::create_or_throw("SHA-1");
       Botan::secure_vector<uint8_t> hashbuf = sha1->process(mbox);
 
       xfree(hash);
@@ -1252,7 +1253,8 @@ static gpg_error_t print_pka_or_dane_records(iobuf_t out, kbnode_t keyblock,
       es_fprintf(fp, "$ORIGIN _openpgpkey.%s.\n; %s\n; ", domain, hexfpr);
       print_utf8_buffer(fp, uid->name, uid->len);
       es_putc('\n', fp);
-      std::unique_ptr<Botan::HashFunction> sha256 = Botan::HashFunction::create_or_throw("SHA-256");
+      std::unique_ptr<Botan::HashFunction> sha256 =
+          Botan::HashFunction::create_or_throw("SHA-256");
       std::string hashbuf = Botan::hex_encode(sha256->process(mbox));
       xfree(hash);
       hash = xstrdup(hashbuf.c_str());

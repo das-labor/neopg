@@ -461,7 +461,8 @@ static int do_unprotect(const char *passphrase, int pkt_version,
       if (ndata < 20)
         log_error("not enough bytes for SHA-1 checksum\n");
       else {
-	std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+        std::unique_ptr<Botan::HashFunction> sha1 =
+            Botan::HashFunction::create_or_throw("SHA-1");
         Botan::secure_vector<uint8_t> hash = sha1->process(data, ndata - 20);
         if (!memcmp(hash.data(), data + ndata - 20, 20))
           actual_csum = 0; /* Digest does match.  */
@@ -980,7 +981,8 @@ static gpg_error_t apply_protection(gcry_mpi_t *array, int npkey, int nskey,
   assert(p == data + ndata - 20);
 
   /* Append a hash of the secret key parameters.  */
-  std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+  std::unique_ptr<Botan::HashFunction> sha1 =
+      Botan::HashFunction::create_or_throw("SHA-1");
   Botan::secure_vector<uint8_t> hash = sha1->process(data, ndata - 20);
   memcpy(p, hash.data(), hash.size());
 

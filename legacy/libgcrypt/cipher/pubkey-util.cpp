@@ -177,22 +177,15 @@ static int get_hash_algo(const char *s, size_t n) {
   static const struct {
     const char *name;
     int algo;
-  } hashnames[] = {{"sha1", GCRY_MD_SHA1},
-                   {"md5", GCRY_MD_MD5},
-                   {"sha256", GCRY_MD_SHA256},
-                   {"ripemd160", GCRY_MD_RMD160},
-                   {"rmd160", GCRY_MD_RMD160},
-                   {"sha384", GCRY_MD_SHA384},
-                   {"sha512", GCRY_MD_SHA512},
-                   {"sha224", GCRY_MD_SHA224},
-                   {"md4", GCRY_MD_MD4},
-                   {"tiger", GCRY_MD_TIGER},
-                   {"haval", GCRY_MD_HAVAL},
-                   {"sha3-224", GCRY_MD_SHA3_224},
-                   {"sha3-256", GCRY_MD_SHA3_256},
-                   {"sha3-384", GCRY_MD_SHA3_384},
-                   {"sha3-512", GCRY_MD_SHA3_512},
-                   {NULL, 0}};
+  } hashnames[] = {
+      {"sha1", GCRY_MD_SHA1},         {"md5", GCRY_MD_MD5},
+      {"sha256", GCRY_MD_SHA256},     {"ripemd160", GCRY_MD_RMD160},
+      {"rmd160", GCRY_MD_RMD160},     {"sha384", GCRY_MD_SHA384},
+      {"sha512", GCRY_MD_SHA512},     {"sha224", GCRY_MD_SHA224},
+      {"md4", GCRY_MD_MD4},           {"tiger", GCRY_MD_TIGER},
+      {"haval", GCRY_MD_HAVAL},       {"sha3-224", GCRY_MD_SHA3_224},
+      {"sha3-256", GCRY_MD_SHA3_256}, {"sha3-384", GCRY_MD_SHA3_384},
+      {"sha3-512", GCRY_MD_SHA3_512}, {NULL, 0}};
   int algo;
   int i;
 

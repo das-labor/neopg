@@ -143,9 +143,7 @@ static void print_config(const char *what, gpgrt_stream_t fp) {
     gpgrt_fprintf(fp, "version:%s:%x:%s:%x:\n", "", 0, "", 0);
   }
   if (!what || !strcmp(what, "cc")) {
-    gpgrt_fprintf(fp, "cc:%d:%s:\n",
-                  GPGRT_GCC_VERSION
-                  ,
+    gpgrt_fprintf(fp, "cc:%d:%s:\n", GPGRT_GCC_VERSION,
 #ifdef __clang__
                   "clang:" __VERSION__
 #elif __GNUC__

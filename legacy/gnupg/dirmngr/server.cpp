@@ -688,7 +688,8 @@ static gpg_error_t cmd_wkd_get(assuan_context_t ctx, char *line) {
   }
 
   {
-    std::unique_ptr<Botan::HashFunction> sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+    std::unique_ptr<Botan::HashFunction> sha1 =
+        Botan::HashFunction::create_or_throw("SHA-1");
     Botan::secure_vector<uint8_t> hash = sha1->process(mbox);
     encodedhash = zb32_encode(hash.data(), 8 * 20);
   }

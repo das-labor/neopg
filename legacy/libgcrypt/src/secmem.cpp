@@ -495,7 +495,7 @@ static void *_gcry_secmem_malloc_internal(size_t size, int xhint) {
     if (!pool->okay) {
       log_info(
           "operation is not possible without "
-	  "initialized secure memory\n");
+          "initialized secure memory\n");
       gpg_err_set_errno(ENOMEM);
       return NULL;
     }

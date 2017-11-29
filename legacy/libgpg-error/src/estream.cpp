@@ -275,13 +275,9 @@ static void unlock_stream(estream_t _GPGRT__RESTRICT stream) {
   stream->intern->lock->unlock();
 }
 
-static void lock_list(void) {
-  estream_list_lock.lock();
-}
+static void lock_list(void) { estream_list_lock.lock(); }
 
-static void unlock_list(void) {
-  estream_list_lock.unlock();
-}
+static void unlock_list(void) { estream_list_lock.unlock(); }
 
 /*
  * Manipulation of the list of stream.
@@ -301,8 +297,7 @@ static void unlock_list(void) {
  */
 static int do_list_add(estream_t stream, int with_locked_list) {
   estream_list_t item;
-  if (!with_locked_list)
-    estream_list_lock.lock();
+  if (!with_locked_list) estream_list_lock.lock();
 
   for (item = estream_list; item && item->stream; item = item->next)
     ;
@@ -315,8 +310,7 @@ static int do_list_add(estream_t stream, int with_locked_list) {
   }
   if (item) item->stream = stream;
 
-  if (!with_locked_list)
-    estream_list_lock.unlock();
+  if (!with_locked_list) estream_list_lock.unlock();
   return item ? 0 : -1;
 }
 
@@ -325,8 +319,7 @@ static int do_list_add(estream_t stream, int with_locked_list) {
  */
 static void do_list_remove(estream_t stream, int with_locked_list) {
   estream_list_t item, item_prev = NULL;
-  if (!with_locked_list)
-    estream_list_lock.lock();
+  if (!with_locked_list) estream_list_lock.lock();
 
   for (item = estream_list; item; item = item->next)
     if (item->stream == stream)
@@ -343,8 +336,7 @@ static void do_list_remove(estream_t stream, int with_locked_list) {
       mem_free(item);
     }
   }
-  if (!with_locked_list)
-    estream_list_lock.unlock();
+  if (!with_locked_list) estream_list_lock.unlock();
 }
 
 /*
@@ -2828,7 +2820,6 @@ int _gpgrt_fileno_unlocked(estream_t stream) {
       return -1;
   }
 }
-
 
 void _gpgrt_flockfile(estream_t stream) { lock_stream(stream); }
 

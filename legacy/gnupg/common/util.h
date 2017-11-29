@@ -52,7 +52,7 @@
 
 #define _(x) x
 #define N_(x) x
-#define ngettext(s,p,c) ((c) != 1 ? (p) : (s))
+#define ngettext(s, p, c) ((c) != 1 ? (p) : (s))
 
 /* Redefine asprintf by our estream version which uses our own memory
    allocator..  */

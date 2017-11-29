@@ -280,10 +280,10 @@
 #include <sys/utsname.h>
 #endif
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <signal.h>
 #ifdef DOTLOCK_USE_PTHREAD
 #include <pthread.h>
 #endif

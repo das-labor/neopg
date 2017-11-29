@@ -82,8 +82,7 @@ static int standard(text_filter_context_t *tfx, IOBUF a, byte *buf, size_t size,
     }
     lf_seen = tfx->buffer[tfx->buffer_len - 1] == '\n';
 
-    tfx->buffer_len =
-      trim_trailing_chars(tfx->buffer, tfx->buffer_len, "\r\n");
+    tfx->buffer_len = trim_trailing_chars(tfx->buffer, tfx->buffer_len, "\r\n");
 
     if (lf_seen) {
       tfx->buffer[tfx->buffer_len++] = '\r';

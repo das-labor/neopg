@@ -554,7 +554,7 @@ const static ARGPARSE_OPTS opts[] = {
                 " --list-keys [names]        show keys\n"
                 " --fingerprint [names]      show fingerprints\n")),
 
-    /* More hidden commands and options. */
+/* More hidden commands and options. */
 #ifndef NO_TRUST_MODELS
     ARGPARSE_c(aListTrustDB, "list-trustdb", "@"),
 #endif
@@ -1323,7 +1323,8 @@ static int parse_list_options(char *str) {
        N_("show the keyring name in key listings")},
       {"show-sig-expire", LIST_SHOW_SIG_EXPIRE, NULL,
        N_("show expiration dates during signature listings")},
-      {"show-sig-subpackets", LIST_SHOW_SIG_SUBPACKETS, (char **)&subpackets, NULL},
+      {"show-sig-subpackets", LIST_SHOW_SIG_SUBPACKETS, (char **)&subpackets,
+       NULL},
       {NULL, 0, NULL, NULL}};
 
   if (parse_options(str, &opt.list_options, lopts, 1)) {
@@ -1381,8 +1382,8 @@ static void parse_trust_model(const char *model) {
 
 static struct gnupg_compliance_option compliance_options[] = {
     {"gnupg", oGnuPG},     {"openpgp", oOpenPGP}, {"rfc4880bis", oRFC4880bis},
-    {"rfc4880", oRFC4880}, {"pgp6", oPGP6},
-    {"pgp7", oPGP7},       {"pgp8", oPGP8},       {"de-vs", oDE_VS}};
+    {"rfc4880", oRFC4880}, {"pgp6", oPGP6},       {"pgp7", oPGP7},
+    {"pgp8", oPGP8},       {"de-vs", oDE_VS}};
 
 /* Helper to set compliance related options.  This is a separate
  * function so that it can also be used by the --compliance option
@@ -3131,7 +3132,7 @@ next_pass:
       if (argc != 1)
         wrong_args("--change-passphrase <user-id>");
       else {
-	std::string username = str_to_utf8(fname, utf8_strings);
+        std::string username = str_to_utf8(fname, utf8_strings);
         keyedit_passwd(ctrl, username.c_str());
       }
       break;
@@ -3398,21 +3399,17 @@ next_pass:
       }
     } break;
 
-    case aGenRevoke:
-      {
-	if (argc != 1) wrong_args("--generate-revocation user-id");
-	std::string username = str_to_utf8(*argv, utf8_strings);
-	gen_revoke(ctrl, username.c_str());
-      }
-      break;
+    case aGenRevoke: {
+      if (argc != 1) wrong_args("--generate-revocation user-id");
+      std::string username = str_to_utf8(*argv, utf8_strings);
+      gen_revoke(ctrl, username.c_str());
+    } break;
 
-    case aDesigRevoke:
-      {
-	if (argc != 1) wrong_args("--generate-designated-revocation user-id");
-	std::string username = str_to_utf8(*argv, utf8_strings);
-	gen_desig_revoke(ctrl, username.c_str(), locusr);
-      }
-      break;
+    case aDesigRevoke: {
+      if (argc != 1) wrong_args("--generate-designated-revocation user-id");
+      std::string username = str_to_utf8(*argv, utf8_strings);
+      gen_desig_revoke(ctrl, username.c_str(), locusr);
+    } break;
 
 #ifndef NO_TRUST_MODELS
     case aListTrustDB:
@@ -3433,15 +3430,13 @@ next_pass:
       check_trustdb(ctrl);
       break;
 
-    case aListTrustPath:
-      {
-	if (!argc) wrong_args("--list-trust-path <user-ids>");
-	for (; argc; argc--, argv++) {
-	  std::string username = str_to_utf8(*argv, utf8_strings);
-	  list_trust_path(username.c_str());
-	}
+    case aListTrustPath: {
+      if (!argc) wrong_args("--list-trust-path <user-ids>");
+      for (; argc; argc--, argv++) {
+        std::string username = str_to_utf8(*argv, utf8_strings);
+        list_trust_path(username.c_str());
       }
-      break;
+    } break;
 
     case aExportOwnerTrust:
       if (argc) wrong_args("--export-ownertrust");

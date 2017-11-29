@@ -45,11 +45,11 @@ int revocation_reason_build_cb(PKT_signature *sig, void *opaque) {
   std::string buffer;
 
   if (!reason) return 0;
-  buffer += (char) reason->code;
-  if (reason->desc)
-    buffer += native_to_utf8(reason->desc);
+  buffer += (char)reason->code;
+  if (reason->desc) buffer += native_to_utf8(reason->desc);
 
-  build_sig_subpkt(sig, SIGSUBPKT_REVOC_REASON, (uint8_t*)buffer.data(), buffer.size());
+  build_sig_subpkt(sig, SIGSUBPKT_REVOC_REASON, (uint8_t *)buffer.data(),
+                   buffer.size());
   return 0;
 }
 

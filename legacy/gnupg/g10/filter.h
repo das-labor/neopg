@@ -79,7 +79,7 @@ typedef struct unarmor_pump_s *UnarmorPump;
 struct compress_filter_context_s {
   int status;
   void *opaque; /* (used for z_stream) */
-  int algo; /* compress algo */
+  int algo;     /* compress algo */
   int new_ctb;
   void (*release)(struct compress_filter_context_s *);
 };

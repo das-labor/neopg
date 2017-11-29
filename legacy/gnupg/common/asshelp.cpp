@@ -196,8 +196,8 @@ extern char *neopg_program;
    at R_CTX or an error code. */
 gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
                                 const char *opt_lc_ctype,
-                                const char *opt_lc_messages,
-                                int verbose, int debug) {
+                                const char *opt_lc_messages, int verbose,
+                                int debug) {
   gpg_error_t err;
   assuan_context_t ctx;
   const char *argv[6];
@@ -273,8 +273,7 @@ gpg_error_t start_new_gpg_agent(assuan_context_t *r_ctx,
 }
 
 /* Returns a new assuan context at R_CTX or an error code. */
-gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx,
-                              int verbose, int debug) {
+gpg_error_t start_new_dirmngr(assuan_context_t *r_ctx, int verbose, int debug) {
   gpg_error_t err;
   assuan_context_t ctx;
 
