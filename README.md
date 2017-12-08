@@ -27,7 +27,7 @@ licenses.
 * Ubuntu 14.04.5 LTS: Clang 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 5.0
 * MacOS: Xcode 6.4, 7.3, 8.3, 9.1
 
-GCC 4.8 is not supported (see [nlohmann/json](https://github.com/nlohmann/json).
+GCC 4.8 is not supported (see [nlohmann/json](https://github.com/nlohmann/json)).
 
 ### Dependencies
 
