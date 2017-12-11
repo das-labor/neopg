@@ -226,7 +226,7 @@ matrix:
       script:
         - $CXX --version
         - cd build
-        - cmake -DCMAKE_BUILD_TYPE=${NEOPG_BUILD_TYPE:-Release} ..
+        - cmake -DCMAKE_BUILD_TYPE=${NEOPG_BUILD_TYPE:-Release} -DCOVERAGE=ON ..
         - make -j3 coverage
       after_success:
         - bash <(curl -s https://codecov.io/bash)

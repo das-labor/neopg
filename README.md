@@ -71,7 +71,7 @@ Development builds have extra dependencies:
 To enable a debug build, set the CMAKE_BUILD_TYPE flag (default is `Release`):
 
 ```bash
-# cmake -DCMAKE_BUILD_TYPE=Debug ..
+# cmake -DCMAKE_BUILD_TYPE=Debug -DCOVERAGE=ON ..
 # make coverage
 ```
 

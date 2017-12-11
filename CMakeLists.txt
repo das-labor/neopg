@@ -70,6 +70,10 @@ ProcessorCount(PROCESSOR_COUNT)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 
+option(COVERAGE "Create coverage data")
+
+if(COVERAGE)
+
 include(CodeCoverage)
 APPEND_COVERAGE_COMPILER_FLAGS()
 
@@ -89,6 +93,7 @@ SETUP_TARGET_FOR_COVERAGE_COBERTURA(
      EXECUTABLE test-neopg
      DEPENDENCIES neopg
 )
+endif(COVERAGE)
 
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
@@ -124,12 +129,14 @@ pkg_check_modules(BOTAN2 REQUIRED botan-2)
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 pkg_check_modules(GNUTLS REQUIRED gnutls)
 
-include(CheckIncludeFiles)
-check_include_files(malloc.h HAVE_MALLOC_H)
+find_package(CURL REQUIRED)
 
-include (CheckFunctionExists)
-check_function_exists (log HAVE_LOG)
-check_function_exists (exp HAVE_EXP)
+# Example how to test for header files and functions with cmake:
+# include(CheckIncludeFiles)
+# check_include_files(malloc.h HAVE_MALLOC_H)
+# include (CheckFunctionExists)
+# check_function_exists (log HAVE_LOG)
+# check_function_exists (exp HAVE_EXP)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
