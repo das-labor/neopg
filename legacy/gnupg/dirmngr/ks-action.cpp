@@ -68,7 +68,6 @@ gpg_error_t ks_action_help(ctrl_t ctrl, const char *url) {
   /* Call all engines to give them a chance to print a help sting.  */
   err = ks_hkp_help(ctrl, parsed_uri);
   if (!err) err = ks_http_help(ctrl, parsed_uri);
-  if (!err) err = ks_kdns_help(ctrl, parsed_uri);
 
   if (!parsed_uri)
     ks_print_help(ctrl, "(Use an URL for engine specific help.)");
@@ -229,12 +228,6 @@ gpg_error_t ks_action_fetch(ctrl_t ctrl, const char *url, estream_t outfp) {
     }
   } else if (!parsed_uri->opaque) {
     err = GPG_ERR_INV_URI;
-  } else if (!strcmp(parsed_uri->scheme, "kdns")) {
-    err = ks_kdns_fetch(ctrl, parsed_uri, &infp);
-    if (!err) {
-      err = copy_stream(infp, outfp);
-      es_fclose(infp);
-    }
   } else
     err = GPG_ERR_INV_URI;
 
