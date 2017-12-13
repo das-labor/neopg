@@ -150,10 +150,12 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
 file(GLOB_RECURSE ALL_SOURCE_FILES
      ${CMAKE_SOURCE_DIR}/legacy/*.cpp
      ${CMAKE_SOURCE_DIR}/legacy/*.h
-     ${CMAKE_SOURCE_DIR}/src/*.cpp
-     ${CMAKE_SOURCE_DIR}/src/*.h
      ${CMAKE_SOURCE_DIR}/include/*.cpp
      ${CMAKE_SOURCE_DIR}/include/*.h
+     ${CMAKE_SOURCE_DIR}/lib/*.cpp
+     ${CMAKE_SOURCE_DIR}/lib/*.h
+     ${CMAKE_SOURCE_DIR}/src/*.cpp
+     ${CMAKE_SOURCE_DIR}/src/*.h
      ${CMAKE_SOURCE_DIR}/tests/*.cpp
      ${CMAKE_SOURCE_DIR}/tests/*.h
 )
