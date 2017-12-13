@@ -2,11 +2,11 @@
 #define LOCALEDIR "/usr/share/neopg"
 #define GNUPG_LOCALSTATEDIR "/usr/share/neopg"
 
-#define GNUPG_BINDIR      "/usr/bin"
-#define GNUPG_LIBEXECDIR  "/usr/libexec"
-#define GNUPG_LIBDIR      "/usr/lib"
-#define GNUPG_DATADIR     "/usr/share/neopg"
-#define GNUPG_SYSCONFDIR  "/etc/neopg"
+#define GNUPG_BINDIR "/usr/bin"
+#define GNUPG_LIBEXECDIR "/usr/libexec"
+#define GNUPG_LIBDIR "/usr/lib"
+#define GNUPG_DATADIR "/usr/share/neopg"
+#define GNUPG_SYSCONFDIR "/etc/neopg"
 
 #define PACKAGE "neopg"
 #define PACKAGE_GT PACKAGE
@@ -69,7 +69,6 @@
 
 /* Defined if this module should be included */
 #define USE_MD5 1
-
 
 /* Defined if this module should be included */
 #define USE_RSA 1
@@ -144,19 +143,19 @@
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
-# define _ALL_SOURCE 1
+#define _ALL_SOURCE 1
 #endif
 /* Enable threading extensions on Solaris.  */
 #ifndef _POSIX_PTHREAD_SEMANTICS
-# define _POSIX_PTHREAD_SEMANTICS 1
+#define _POSIX_PTHREAD_SEMANTICS 1
 #endif
 /* Enable extensions on HP NonStop.  */
 #ifndef _TANDEM_SOURCE
-# define _TANDEM_SOURCE 1
+#define _TANDEM_SOURCE 1
 #endif
 /* Enable general extensions on Solaris.  */
 #ifndef __EXTENSIONS__
-# define __EXTENSIONS__ 1
+#define __EXTENSIONS__ 1
 #endif
 
 /* #undef USE_WINDOWS_THREADS */
@@ -166,7 +165,7 @@
 #define _DARWIN_C_SOURCE 1
 #endif
 #ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
+#define _DARWIN_USE_64_BIT_INODE 1
 #endif
 /* #undef _FILE_OFFSET_BITS */
 /* #undef _LARGE_FILES */
@@ -253,9 +252,8 @@
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
 #ifndef _REENTRANT
-# define _REENTRANT 1
+#define _REENTRANT 1
 #endif
-
 
 /* gnupg */
 
@@ -333,7 +331,7 @@
 #define HAVE_INET_NTOP 1
 #define HAVE_INET_PTON 1
 #ifndef __APPLE__
-  #define HAVE_INOTIFY_INIT 1
+#define HAVE_INOTIFY_INIT 1
 #endif
 #define HAVE_ISASCII 1
 #define HAVE_LANGINFO_CODESET 1
@@ -420,7 +418,7 @@
 /* #undef USE_ONLY_8DOT3 */
 /* #undef _DARWIN_C_SOURCE */
 #ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
+#define _DARWIN_USE_64_BIT_INODE 1
 #endif
 /* #undef _FILE_OFFSET_BITS */
 /* #undef _LARGEFILE_SOURCE */
@@ -450,22 +448,22 @@
 #endif
 
 #define SAFE_VERSION VERSION
-#define SAFE_VERSION_DOT  '.'
+#define SAFE_VERSION_DOT '.'
 #define SAFE_VERSION_DASH '-'
 
 /* Some global constants. */
 #ifdef HAVE_DOSISH_SYSTEM
-# ifdef HAVE_DRIVE_LETTERS
-#  define GNUPG_DEFAULT_HOMEDIR "c:/neopg"
-# else
-#  define GNUPG_DEFAULT_HOMEDIR "/neopg"
-# endif
+#ifdef HAVE_DRIVE_LETTERS
+#define GNUPG_DEFAULT_HOMEDIR "c:/neopg"
+#else
+#define GNUPG_DEFAULT_HOMEDIR "/neopg"
+#endif
 #elif defined(__VMS)
 #define GNUPG_DEFAULT_HOMEDIR "/SYS$LOGIN/neopg"
 #else
 #define GNUPG_DEFAULT_HOMEDIR "~/.neopg"
 #endif
-#define GNUPG_PRIVATE_KEYS_DIR  "private-keys-v1.d"
+#define GNUPG_PRIVATE_KEYS_DIR "private-keys-v1.d"
 #define GNUPG_OPENPGP_REVOC_DIR "openpgp-revocs.d"
 
 /* For some systems (DOS currently), we hardcode the path here.  For
@@ -474,26 +472,25 @@
    comply with the GNU coding standards.  Note that these values are
    only defaults.  */
 #ifdef HAVE_DOSISH_SYSTEM
-# ifdef HAVE_DRIVE_LETTERS
-#  define GNUPG_BINDIR      "c:\\neopg"
-#  define GNUPG_LIBEXECDIR  "c:\\neopg"
-#  define GNUPG_LIBDIR      "c:\\neopg"
-#  define GNUPG_DATADIR     "c:\\neopg"
-#  define GNUPG_SYSCONFDIR  "c:\\neopg"
-# else
-#  define GNUPG_BINDIR      "\\neopg"
-#  define GNUPG_LIBEXECDIR  "\\neopg"
-#  define GNUPG_LIBDIR      "\\neopg"
-#  define GNUPG_DATADIR     "\\neopg"
-#  define GNUPG_SYSCONFDIR  "\\neopg"
-# endif
+#ifdef HAVE_DRIVE_LETTERS
+#define GNUPG_BINDIR "c:\\neopg"
+#define GNUPG_LIBEXECDIR "c:\\neopg"
+#define GNUPG_LIBDIR "c:\\neopg"
+#define GNUPG_DATADIR "c:\\neopg"
+#define GNUPG_SYSCONFDIR "c:\\neopg"
+#else
+#define GNUPG_BINDIR "\\neopg"
+#define GNUPG_LIBEXECDIR "\\neopg"
+#define GNUPG_LIBDIR "\\neopg"
+#define GNUPG_DATADIR "\\neopg"
+#define GNUPG_SYSCONFDIR "\\neopg"
+#endif
 #endif
 
 /* Derive some other constants. */
 #if !(defined(HAVE_FORK) && defined(HAVE_PIPE) && defined(HAVE_WAITPID))
 #define EXEC_TEMPFILE_ONLY
 #endif
-
 
 /* We didn't define endianness above, so get it from OS macros.  This
    is intended for making fat binary builds on OS X. */
@@ -506,6 +503,5 @@
 #error "No endianness found"
 #endif
 #endif
-
 
 #define USE_RNDLINUX 1
