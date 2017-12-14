@@ -1155,7 +1155,7 @@ static gpg_error_t ensure_keyserver(ctrl_t ctrl) {
 
   if (ctrl->server_local->keyservers)
     return 0; /* Already set for this session.  */
-  if (!opt.keyserver.empty()) {
+  if (opt.keyserver.empty()) {
     /* No global option set.  Fall back to default:  */
     return make_keyserver_item(DIRMNGR_DEFAULT_KEYSERVER,
                                &ctrl->server_local->keyservers);
