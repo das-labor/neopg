@@ -57,11 +57,6 @@ void dump_string(const char *string);
    TEXT.  This is used for debugging. */
 void dump_cert(const char *text, ksba_cert_t cert);
 
-/* Return the host name and the port (0 if none was given) from the
-   URL.  Return NULL on error or if host is not included in the
-   URL.  */
-char *host_and_port_from_url(const char *url, int *port);
-
 /* Create a KSBA reader object and connect it to the estream FP.  */
 gpg_error_t create_estream_ksba_reader(ksba_reader_t *r_reader, estream_t fp);
 

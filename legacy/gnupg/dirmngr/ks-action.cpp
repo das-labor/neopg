@@ -221,8 +221,6 @@ gpg_error_t ks_action_fetch(ctrl_t ctrl, const char *url, estream_t outfp) {
     if (!err) {
       es_write(outfp, response.data(), response.size(), NULL);
     }
-  } else if (!parsed_uri->opaque) {
-    err = GPG_ERR_INV_URI;
   } else
     err = GPG_ERR_INV_URI;
 

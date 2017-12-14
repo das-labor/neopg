@@ -38,7 +38,6 @@
 
 #include "../common/util.h"
 #include "dns-stuff.h"
-#include "http-common.h"
 #include "http.h"
 
 #define VALID_URI_CHARS        \
@@ -54,13 +53,6 @@ static gpg_error_t parse_uri(parsed_uri_t *ret_uri, const char *uri,
 static int remove_escapes(char *string);
 static int insert_escapes(char *buffer, const char *string,
                           const char *special);
-static uri_tuple_t parse_tuple(char *string);
-static char *build_rel_path(parsed_uri_t uri);
-
-/* Register a CA certificate for future use.  The certificate is
-   expected to be in FNAME.  PEM format is assume if FNAME has a
-   suffix of ".pem".  If FNAME is NULL the list of CA files is
-   removed.  */
 
 static gpg_error_t parse_uri(parsed_uri_t *ret_uri, const char *uri,
                              int no_scheme_check, int force_tls) {
@@ -89,21 +81,10 @@ gpg_error_t http_parse_uri(parsed_uri_t *ret_uri, const char *uri,
   return parse_uri(ret_uri, uri, no_scheme_check, 0);
 }
 
-void http_release_parsed_uri(parsed_uri_t uri) {
-  if (uri) {
-    uri_tuple_t r, r2;
-
-    for (r = uri->query; r; r = r2) {
-      r2 = r->next;
-      xfree(r);
-    }
-    xfree(uri);
-  }
-}
+void http_release_parsed_uri(parsed_uri_t uri) { xfree(uri); }
 
 static gpg_error_t do_parse_uri(parsed_uri_t uri, int only_local_part,
                                 int no_scheme_check, int force_tls) {
-  uri_tuple_t *tail;
   char *p, *p2, *p3, *pp;
   int n;
 
@@ -111,12 +92,9 @@ static gpg_error_t do_parse_uri(parsed_uri_t uri, int only_local_part,
   n = strlen(uri->buffer);
 
   /* Initialize all fields to an empty string or an empty list. */
-  uri->scheme = uri->host = uri->path = p + n;
+  uri->scheme = uri->host = p + n;
   uri->port = 0;
-  uri->params = uri->query = NULL;
-  uri->use_tls = 0;
   uri->is_http = 0;
-  uri->opaque = 0;
   uri->v6lit = 0;
   uri->onion = 0;
 
@@ -142,7 +120,6 @@ static gpg_error_t do_parse_uri(parsed_uri_t uri, int only_local_part,
                               !strcmp(uri->scheme, "hkp")))) {
       uri->port = 443;
       uri->is_http = 1;
-      uri->use_tls = 1;
     } else if (!no_scheme_check)
       return GPG_ERR_INV_URI; /* Unsupported scheme */
 
@@ -184,42 +161,10 @@ static gpg_error_t do_parse_uri(parsed_uri_t uri, int only_local_part,
     } else if (uri->is_http)
       return GPG_ERR_INV_URI; /* No Leading double slash for HTTP.  */
     else {
-      uri->opaque = 1;
-      uri->path = p;
-      if (is_onion_address(uri->path)) uri->onion = 1;
-      return 0;
+      return GPG_ERR_INV_URI;
     }
 
   } /* End global URI part. */
-
-  /* Parse the pathname part if any.  */
-  if (p && *p) {
-    /* TODO: Here we have to check params. */
-
-    /* Do we have a query part? */
-    if ((p2 = strchr(p, '?'))) *p2++ = 0;
-
-    uri->path = p;
-    if ((n = remove_escapes(p)) < 0) return GPG_ERR_BAD_URI;
-    if (n != strlen(p)) return GPG_ERR_BAD_URI; /* Path includes a Nul. */
-    p = p2 ? p2 : NULL;
-
-    /* Parse a query string if any.  */
-    if (p && *p) {
-      tail = &uri->query;
-      for (;;) {
-        uri_tuple_t elem;
-
-        if ((p2 = strchr(p, '&'))) *p2++ = 0;
-        if (!(elem = parse_tuple(p))) return GPG_ERR_BAD_URI;
-        *tail = elem;
-        tail = &elem->next;
-
-        if (!p2) break; /* Ready. */
-        p = p2;
-      }
-    }
-  }
 
   if (is_onion_address(uri->host)) uri->onion = 1;
 
@@ -323,33 +268,4 @@ std::string http_escape_string(const char *string, const char *specials) {
   std::string result = buf;
   xfree(buf);
   return result;
-}
-
-static uri_tuple_t parse_tuple(char *string) {
-  char *p = string;
-  char *p2;
-  int n;
-  uri_tuple_t tuple;
-
-  if ((p2 = strchr(p, '='))) *p2++ = 0;
-  if ((n = remove_escapes(p)) < 0) return NULL; /* Bad URI. */
-  if (n != strlen(p)) return NULL;              /* Name with a Nul in it. */
-  tuple = (uri_tuple_t)xtrycalloc(1, sizeof *tuple);
-  if (!tuple) return NULL; /* Out of core. */
-  tuple->name = p;
-  if (!p2) /* We have only the name, so we assume an empty value string. */
-  {
-    tuple->value = p + strlen(p);
-    tuple->valuelen = 0;
-    tuple->no_value = 1; /* Explicitly mark that we have seen no '='. */
-  } else                 /* Name and value. */
-  {
-    if ((n = remove_escapes(p2)) < 0) {
-      xfree(tuple);
-      return NULL; /* Bad URI. */
-    }
-    tuple->value = p2;
-    tuple->valuelen = n;
-  }
-  return tuple;
 }

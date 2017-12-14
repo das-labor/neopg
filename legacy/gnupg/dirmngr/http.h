@@ -35,31 +35,15 @@
 
 #include <gpg-error.h>
 
-struct uri_tuple_s {
-  struct uri_tuple_s *next;
-  const char *name; /* A pointer into name. */
-  char *value;      /* A pointer to value (a Nul is always appended). */
-  size_t valuelen;  /* The real length of the value; we need it
-                       because the value may contain embedded Nuls. */
-  int no_value;     /* True if no value has been given in the URL. */
-};
-typedef struct uri_tuple_s *uri_tuple_t;
-
 struct parsed_uri_s {
   /* All these pointers point into BUFFER; most stuff is not escaped. */
   char *scheme; /* Pointer to the scheme string (always lowercase). */
-  unsigned int is_http : 1;       /* This is a HTTP style URI.   */
-  unsigned int use_tls : 1;       /* Whether TLS should be used. */
-  unsigned int opaque : 1;        /* Unknown scheme; PATH has the rest.  */
-  unsigned int v6lit : 1;         /* Host was given as a literal v6 address.  */
-  unsigned int onion : 1;         /* .onion address given.  */
-  unsigned int explicit_port : 1; /* The port was explicitly specified.  */
-  char *auth;                     /* username/password for basic auth.  */
-  char *host;                     /* Host (converted to lowercase). */
-  unsigned short port;            /* Port (always set if the host is set). */
-  char *path;                     /* Path. */
-  uri_tuple_t params;             /* ";xxxxx" */
-  uri_tuple_t query;              /* "?xxx=yyy" */
+  unsigned int is_http : 1; /* This is a HTTP style URI.   */
+  unsigned int v6lit : 1;   /* Host was given as a literal v6 address.  */
+  unsigned int onion : 1;   /* .onion address given.  */
+  char *auth;               /* username/password for basic auth.  */
+  char *host;               /* Host (converted to lowercase). */
+  unsigned short port;      /* Port (always set if the host is set). */
   char buffer[1]; /* Buffer which holds a (modified) copy of the URI. */
 };
 typedef struct parsed_uri_s *parsed_uri_t;

@@ -330,52 +330,6 @@ char *x_strlwr(char *s) {
   return s;
 }
 
-/* Return the host name and the port (0 if none was given) from the
-   URL.  Return NULL on error or if host is not included in the
-   URL.  */
-char *host_and_port_from_url(const char *url, int *port) {
-  const char *s, *s2;
-  char *buf, *p;
-  int n;
-
-  s = url;
-
-  *port = 0;
-
-  /* Find the scheme */
-  if (!(s2 = strchr(s, ':')) || s2 == s) return NULL; /* No scheme given. */
-  s = s2 + 1;
-
-  /* Find the hostname */
-  if (*s != '/') return NULL; /* Does not start with a slash. */
-
-  s++;
-  if (*s != '/') return NULL; /* No host name.  */
-  s++;
-
-  buf = xtrystrdup(s);
-  if (!buf) {
-    log_error(_("malloc failed: %s\n"), strerror(errno));
-    return NULL;
-  }
-  if ((p = strchr(buf, '/'))) *p++ = 0;
-  x_strlwr(buf);
-  if ((p = strchr(p, ':'))) {
-    *p++ = 0;
-    *port = atoi(p);
-  }
-
-  /* Remove quotes and make sure that no Nul has been encoded. */
-  if ((n = remove_percent_escapes((unsigned char *)(buf))) < 0 ||
-      n != strlen(buf)) {
-    log_error(_("bad URL encoding detected\n"));
-    xfree(buf);
-    return NULL;
-  }
-
-  return buf;
-}
-
 /* A KSBA reader callback to read from an estream.  */
 static int my_estream_ksba_reader_cb(void *cb_value, char *buffer, size_t count,
                                      size_t *r_nread) {

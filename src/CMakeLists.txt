@@ -139,7 +139,6 @@ add_executable(neopg
   ../legacy/gnupg/dirmngr/dirmngr-client.cpp
   ../legacy/gnupg/dirmngr/dirmngr.cpp
   ../legacy/gnupg/dirmngr/dns-stuff.cpp
-  ../legacy/gnupg/dirmngr/http-common.cpp
   ../legacy/gnupg/dirmngr/http.cpp
   ../legacy/gnupg/dirmngr/ks-action.cpp
   ../legacy/gnupg/dirmngr/ks-engine-hkp.cpp

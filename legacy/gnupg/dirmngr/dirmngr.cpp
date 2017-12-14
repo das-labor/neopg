@@ -54,7 +54,6 @@
 #include "crlcache.h"
 #include "crlfetch.h"
 #include "dns-stuff.h"
-#include "http-common.h"
 #include "misc.h"
 
 #ifndef ENAMETOOLONG
