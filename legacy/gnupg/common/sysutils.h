@@ -49,39 +49,21 @@ typedef int gnupg_fd_t;
 #define FD2INT(h) (h)
 #endif
 
-void trap_unaligned(void);
 int disable_core_dumps(void);
 int enable_core_dumps(void);
 const unsigned char *get_session_marker(size_t *rlen);
-unsigned int get_uint_nonce(void);
 /*int check_permissions (const char *path,int extension,int checkonly);*/
 void gnupg_sleep(unsigned int seconds);
 int translate_sys2libc_fd(gnupg_fd_t fd, int for_write);
 int translate_sys2libc_fd_int(int fd, int for_write);
-int check_special_filename(const char *fname, int for_write, int notranslate);
-FILE *gnupg_tmpfile(void);
 void gnupg_reopen_std(const char *pgmname);
 void gnupg_allow_set_foregound_window(pid_t pid);
 int gnupg_remove(const char *fname);
 gpg_error_t gnupg_rename_file(const char *oldname, const char *newname);
 int gnupg_mkdir(const char *name, const char *modestr);
 int gnupg_chmod(const char *name, const char *modestr);
-char *gnupg_mkdtemp(char *tempel);
 int gnupg_setenv(const char *name, const char *value, int overwrite);
-int gnupg_unsetenv(const char *name);
 char *gnupg_getcwd(void);
-char *gnupg_get_socket_name(int fd);
 int gnupg_fd_valid(int fd);
-
-gpg_error_t gnupg_inotify_watch_delete_self(int *r_fd, const char *fname);
-gpg_error_t gnupg_inotify_watch_socket(int *r_fd, const char *socket_name);
-int gnupg_inotify_has_name(int fd, const char *name);
-
-#ifdef HAVE_W32_SYSTEM
-void *w32_get_user_sid(void);
-
-#include "../common/w32help.h"
-
-#endif /*HAVE_W32_SYSTEM*/
 
 #endif /*GNUPG_COMMON_SYSUTILS_H*/

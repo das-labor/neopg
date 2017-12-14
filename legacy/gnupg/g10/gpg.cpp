@@ -1540,7 +1540,6 @@ int gpg_main(int argc, char **argv) {
 
   early_system_init();
   gnupg_reopen_std(GPG_NAME);
-  trap_unaligned();
   gnupg_rl_initialize();
   set_strusage(my_strusage);
   gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);

@@ -36,9 +36,6 @@
 #endif
 #include <sys/stat.h>
 #include <unistd.h>
-#ifdef HAVE_INOTIFY_INIT
-#include <sys/inotify.h>
-#endif /*HAVE_INOTIFY_INIT*/
 
 #include <gnutls/gnutls.h>
 #include <gpg-error.h>
@@ -948,29 +945,3 @@ static fingerprint_list_t parse_ocsp_signer(const char *string) {
   }
   /*NOTREACHED*/
 }
-
-/*
-   Stuff used in daemon mode.
- */
-
-#ifdef HAVE_INOTIFY_INIT
-/* Read an inotify event and return true if it matches NAME.  */
-static int my_inotify_is_name(int fd, const char *name) {
-  union {
-    struct inotify_event ev;
-    char _buf[sizeof(struct inotify_event) + 100 + 1];
-  } buf;
-  int n;
-  const char *s;
-
-  s = strrchr(name, '/');
-  if (s && s[1]) name = s + 1;
-
-  n = read(fd, &buf, sizeof buf);
-  if (n < sizeof(struct inotify_event)) return 0;
-  if (buf.ev.len < strlen(name) + 1) return 0;
-  if (strcmp(buf.ev.name, name)) return 0; /* Not the desired file.  */
-
-  return 1; /* Found.  */
-}
-#endif /*HAVE_INOTIFY_INIT*/

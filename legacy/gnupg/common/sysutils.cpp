@@ -59,9 +59,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #endif
-#ifdef HAVE_INOTIFY_INIT
-#include <sys/inotify.h>
-#endif /*HAVE_INOTIFY_INIT*/
 #include <fcntl.h>
 
 #include <assuan.h>
@@ -69,27 +66,6 @@
 #include "util.h"
 
 #include "sysutils.h"
-
-#define tohex(n) ((n) < 10 ? ((n) + '0') : (((n)-10) + 'A'))
-
-#if defined(__linux__) && defined(__alpha__) && __GLIBC__ < 2
-#warning using trap_unaligned
-static int setsysinfo(unsigned long op, void *buffer, unsigned long size,
-                      int *start, void *arg, unsigned long flag) {
-  return syscall(__NR_osf_setsysinfo, op, buffer, size, start, arg, flag);
-}
-
-void trap_unaligned(void) {
-  unsigned int buf[2];
-
-  buf[0] = SSIN_UACPROC;
-  buf[1] = UAC_SIGBUS | UAC_NOPRINT;
-  setsysinfo(SSI_NVPAIRS, buf, 1, 0, 0, 0);
-}
-#else
-void trap_unaligned(void) { /* dummy */
-}
-#endif
 
 int disable_core_dumps(void) {
 #ifdef HAVE_DOSISH_SYSTEM
@@ -140,14 +116,6 @@ const byte *get_session_marker(size_t *rlen) {
   return marker;
 }
 
-/* Return a random number in an unsigned int. */
-unsigned int get_uint_nonce(void) {
-  unsigned int value;
-
-  gcry_create_nonce(&value, sizeof value);
-  return value;
-}
-
 /* Wrapper around the usual sleep function.  This one won't wake up
    before the sleep time has really elapsed.  When build with Pth it
    merely calls pth_sleep and thus suspends only the current
@@ -196,76 +164,6 @@ int translate_sys2libc_fd_int(int fd, int for_write) {
   (void)for_write;
   return fd;
 #endif
-}
-
-/* Replacement for tmpfile().  This is required because the tmpfile
-   function of Windows' runtime library is broken, insecure, ignores
-   TMPDIR and so on.  In addition we create a file with an inheritable
-   handle.  */
-FILE *gnupg_tmpfile(void) {
-#ifdef HAVE_W32_SYSTEM
-  int attempts, n;
-  char buffer[MAX_PATH + 7 + 12 + 1];
-#define mystrlen(a) strlen(a)
-  char *name, *p;
-  HANDLE file;
-  int pid = GetCurrentProcessId();
-  unsigned int value;
-  int i;
-  SECURITY_ATTRIBUTES sec_attr;
-
-  memset(&sec_attr, 0, sizeof sec_attr);
-  sec_attr.nLength = sizeof sec_attr;
-  sec_attr.bInheritHandle = TRUE;
-
-  n = GetTempPath(MAX_PATH + 1, buffer);
-  if (!n || n > MAX_PATH || mystrlen(buffer) > MAX_PATH) {
-    gpg_err_set_errno(ENOENT);
-    return NULL;
-  }
-  p = buffer + mystrlen(buffer);
-  p = stpcpy(p, "_gnupg");
-  /* We try to create the directory but don't care about an error as
-     it may already exist and the CreateFile would throw an error
-     anyway.  */
-  CreateDirectory(buffer, NULL);
-  *p++ = '\\';
-  name = p;
-  for (attempts = 0; attempts < 10; attempts++) {
-    p = name;
-    value = (GetTickCount() ^ ((pid << 16) & 0xffff0000));
-    for (i = 0; i < 8; i++) {
-      *p++ = tohex(((value >> 28) & 0x0f));
-      value <<= 4;
-    }
-    strcpy(p, ".tmp");
-    file = CreateFile(
-        buffer, GENERIC_READ | GENERIC_WRITE, 0, &sec_attr, CREATE_NEW,
-        FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, NULL);
-    if (file != INVALID_HANDLE_VALUE) {
-      FILE *fp;
-      int fd = _open_osfhandle((long)file, 0);
-      if (fd == -1) {
-        CloseHandle(file);
-        return NULL;
-      }
-      fp = fdopen(fd, "w+b");
-      if (!fp) {
-        int save = errno;
-        close(fd);
-        gpg_err_set_errno(save);
-        return NULL;
-      }
-      return fp;
-    }
-    Sleep(1); /* One ms as this is the granularity of GetTickCount.  */
-  }
-  gpg_err_set_errno(ENOENT);
-  return NULL;
-#undef mystrlen
-#else  /*!HAVE_W32_SYSTEM*/
-  return tmpfile();
-#endif /*!HAVE_W32_SYSTEM*/
 }
 
 /* Make sure that the standard file descriptors are opened. Obviously
@@ -457,82 +355,6 @@ int gnupg_chmod(const char *name, const char *modestr) {
 #endif
 }
 
-/* Our version of mkdtemp.  The API is identical to POSIX.1-2008
-   version.  We do not use a system provided mkdtemp because we have a
-   good RNG instantly available and this way we don't have diverging
-   versions.  */
-char *gnupg_mkdtemp(char *tmpl) {
-/* A lower bound on the number of temporary files to attempt to
-   generate.  The maximum total number of temporary file names that
-   can exist for a given template is 62**6 (5*36**3 for Windows).
-   It should never be necessary to try all these combinations.
-   Instead if a reasonable number of names is tried (we define
-   reasonable as 62**3 or 5*36**3) fail to give the system
-   administrator the chance to remove the problems.  */
-#ifdef HAVE_W32_SYSTEM
-  static const char letters[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-#define NUMBER_OF_LETTERS 36
-#define ATTEMPTS_MIN (5 * 36 * 36 * 36)
-#else
-  static const char letters[] =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-#define NUMBER_OF_LETTERS 62
-#define ATTEMPTS_MIN (62 * 62 * 62)
-#endif
-  int len;
-  char *XXXXXX;
-  uint64_t value;
-  unsigned int count;
-  int save_errno = errno;
-/* The number of times to attempt to generate a temporary file.  To
-   conform to POSIX, this must be no smaller than TMP_MAX.  */
-#if ATTEMPTS_MIN < TMP_MAX
-  unsigned int attempts = TMP_MAX;
-#else
-  unsigned int attempts = ATTEMPTS_MIN;
-#endif
-
-  len = strlen(tmpl);
-  if (len < 6 || strcmp(&tmpl[len - 6], "XXXXXX")) {
-    gpg_err_set_errno(EINVAL);
-    return NULL;
-  }
-
-  /* This is where the Xs start.  */
-  XXXXXX = &tmpl[len - 6];
-
-  /* Get a random start value.  */
-  gcry_create_nonce(&value, sizeof value);
-
-  /* Loop until a directory was created.  */
-  for (count = 0; count < attempts; value += 7777, ++count) {
-    uint64_t v = value;
-
-    /* Fill in the random bits.  */
-    XXXXXX[0] = letters[v % NUMBER_OF_LETTERS];
-    v /= NUMBER_OF_LETTERS;
-    XXXXXX[1] = letters[v % NUMBER_OF_LETTERS];
-    v /= NUMBER_OF_LETTERS;
-    XXXXXX[2] = letters[v % NUMBER_OF_LETTERS];
-    v /= NUMBER_OF_LETTERS;
-    XXXXXX[3] = letters[v % NUMBER_OF_LETTERS];
-    v /= NUMBER_OF_LETTERS;
-    XXXXXX[4] = letters[v % NUMBER_OF_LETTERS];
-    v /= NUMBER_OF_LETTERS;
-    XXXXXX[5] = letters[v % NUMBER_OF_LETTERS];
-
-    if (!gnupg_mkdir(tmpl, "-rwx")) {
-      gpg_err_set_errno(save_errno);
-      return tmpl;
-    }
-    if (errno != EEXIST) return NULL;
-  }
-
-  /* We got out of the loop because we ran out of combinations to try.  */
-  gpg_err_set_errno(EEXIST);
-  return NULL;
-}
-
 int gnupg_setenv(const char *name, const char *value, int overwrite) {
 #ifdef HAVE_W32_SYSTEM
   /*  Windows maintains (at least) two sets of environment variables.
@@ -556,23 +378,6 @@ int gnupg_setenv(const char *name, const char *value, int overwrite) {
   return setenv(name, value, overwrite);
 }
 
-int gnupg_unsetenv(const char *name) {
-#ifdef HAVE_W32_SYSTEM
-  /*  Windows maintains (at least) two sets of environment variables.
-      One set can be accessed by GetEnvironmentVariable and
-      SetEnvironmentVariable.  This set is inherited by the children.
-      The other set is maintained in the C runtime, and is accessed
-      using getenv and putenv.  We try to keep them in sync by
-      modifying both sets.  */
-  if (!SetEnvironmentVariable(name, NULL)) {
-    gpg_err_set_errno(EINVAL); /* (Might also be ENOMEM.) */
-    return -1;
-  }
-#endif /*W32*/
-
-  return unsetenv(name);
-}
-
 /* Return the current working directory as a malloced string.  Return
    NULL and sets ERRNo on error.  */
 char *gnupg_getcwd(void) {
@@ -588,215 +393,6 @@ char *gnupg_getcwd(void) {
     size *= 2;
   }
 }
-
-#ifdef HAVE_W32_SYSTEM
-/* Return the user's security identifier from the current process.  */
-PSID w32_get_user_sid(void) {
-  int okay = 0;
-  HANDLE proc = NULL;
-  HANDLE token = NULL;
-  TOKEN_USER *user = NULL;
-  PSID sid = NULL;
-  DWORD tokenlen, sidlen;
-
-  proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, GetCurrentProcessId());
-  if (!proc) goto leave;
-
-  if (!OpenProcessToken(proc, TOKEN_QUERY, &token)) goto leave;
-
-  if (!GetTokenInformation(token, TokenUser, NULL, 0, &tokenlen) &&
-      GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-    goto leave;
-
-  user = xtrymalloc(tokenlen);
-  if (!user) goto leave;
-
-  if (!GetTokenInformation(token, TokenUser, user, tokenlen, &tokenlen))
-    goto leave;
-  if (!IsValidSid(user->User.Sid)) goto leave;
-  sidlen = GetLengthSid(user->User.Sid);
-  sid = xtrymalloc(sidlen);
-  if (!sid) goto leave;
-  if (!CopySid(sidlen, sid, user->User.Sid)) goto leave;
-  okay = 1;
-
-leave:
-  xfree(user);
-  if (token) CloseHandle(token);
-  if (proc) CloseHandle(proc);
-
-  if (!okay) {
-    xfree(sid);
-    sid = NULL;
-  }
-  return sid;
-}
-#endif /*HAVE_W32_SYSTEM*/
-
-/* Support for inotify under Linux.  */
-
-/* Store a new inotify file handle for FNAME at R_FD or return an
- * error code.  This file descriptor watch the removal of FNAME. */
-gpg_error_t gnupg_inotify_watch_delete_self(int *r_fd, const char *fname) {
-#if HAVE_INOTIFY_INIT
-  gpg_error_t err;
-  int fd;
-
-  *r_fd = -1;
-
-  if (!fname) return GPG_ERR_INV_VALUE;
-
-  fd = inotify_init();
-  if (fd == -1) return gpg_error_from_syserror();
-
-  if (inotify_add_watch(fd, fname, IN_DELETE_SELF) == -1) {
-    err = gpg_error_from_syserror();
-    close(fd);
-    return err;
-  }
-
-  *r_fd = fd;
-  return 0;
-#else /*!HAVE_INOTIFY_INIT*/
-
-  (void)fname;
-  *r_fd = -1;
-  return GPG_ERR_NOT_SUPPORTED;
-
-#endif /*!HAVE_INOTIFY_INIT*/
-}
-
-/* Store a new inotify file handle for SOCKET_NAME at R_FD or return
- * an error code. */
-gpg_error_t gnupg_inotify_watch_socket(int *r_fd, const char *socket_name) {
-#if HAVE_INOTIFY_INIT
-  gpg_error_t err;
-  char *fname;
-  int fd;
-  char *p;
-
-  *r_fd = -1;
-
-  if (!socket_name) return GPG_ERR_INV_VALUE;
-
-  fname = xtrystrdup(socket_name);
-  if (!fname) return gpg_error_from_syserror();
-
-  fd = inotify_init();
-  if (fd == -1) {
-    err = gpg_error_from_syserror();
-    xfree(fname);
-    return err;
-  }
-
-  /* We need to watch the directory for the file because there won't
-   * be an IN_DELETE_SELF for a socket file.  To handle a removal of
-   * the directory we also watch the directory itself. */
-  p = strrchr(fname, '/');
-  if (p) *p = 0;
-  if (inotify_add_watch(fd, fname,
-                        (IN_DELETE | IN_DELETE_SELF | IN_EXCL_UNLINK)) == -1) {
-    err = gpg_error_from_syserror();
-    close(fd);
-    xfree(fname);
-    return err;
-  }
-
-  xfree(fname);
-
-  *r_fd = fd;
-  return 0;
-#else /*!HAVE_INOTIFY_INIT*/
-
-  (void)socket_name;
-  *r_fd = -1;
-  return GPG_ERR_NOT_SUPPORTED;
-
-#endif /*!HAVE_INOTIFY_INIT*/
-}
-
-/* Read an inotify event and return true if it matches NAME or if it
- * sees an IN_DELETE_SELF event for the directory of NAME.  */
-int gnupg_inotify_has_name(int fd, const char *name) {
-#if HAVE_INOTIFY_INIT
-#define BUFSIZE_FOR_INOTIFY (sizeof(struct inotify_event) + 255 + 1)
-  union {
-    struct inotify_event ev;
-    char _buf[sizeof(struct inotify_event) + 255 + 1];
-  } buf;
-  struct inotify_event *evp;
-  int n;
-
-  n = read(fd, &buf, sizeof buf);
-  /* log_debug ("notify read: n=%d\n", n); */
-  evp = &buf.ev;
-  while (n >= sizeof(struct inotify_event)) {
-    /* log_debug ("             mask=%x len=%u name=(%s)\n", */
-    /*        evp->mask, (unsigned int)evp->len, evp->len? evp->name:""); */
-    if ((evp->mask & IN_UNMOUNT)) {
-      /* log_debug ("             found (dir unmounted)\n"); */
-      return 3; /* Directory was unmounted.  */
-    }
-    if ((evp->mask & IN_DELETE_SELF)) {
-      /* log_debug ("             found (dir removed)\n"); */
-      return 2; /* Directory was removed.  */
-    }
-    if ((evp->mask & IN_DELETE)) {
-      if (evp->len >= strlen(name) && !strcmp(evp->name, name)) {
-        /* log_debug ("             found (file removed)\n"); */
-        return 1; /* File was removed.  */
-      }
-    }
-    n -= sizeof(*evp) + evp->len;
-    evp =
-        (struct inotify_event *)(void *)((char *)evp + sizeof(*evp) + evp->len);
-  }
-#endif
-  return 0; /* Not found.  */
-}
-
-/* Return a malloc'ed string that is the path to the passed
- * unix-domain socket (or return NULL if this is not a valid
- * unix-domain socket).  We use a plain int here because it is only
- * used on Linux.
- *
- * FIXME: This function needs to be moved to libassuan.  */
-#ifndef HAVE_W32_SYSTEM
-char *gnupg_get_socket_name(int fd) {
-  struct sockaddr_un un;
-  socklen_t len = sizeof(un);
-  char *name = NULL;
-
-  if (getsockname(fd, (struct sockaddr *)&un, &len) != 0)
-    log_error("could not getsockname(%d): %s\n", fd,
-              gpg_strerror(gpg_error_from_syserror()));
-  else if (un.sun_family != AF_UNIX)
-    log_error("file descriptor %d is not a unix-domain socket\n", fd);
-  else if (len <= offsetof(struct sockaddr_un, sun_path))
-    log_error("socket name not present for file descriptor %d\n", fd);
-  else if (len > sizeof(un))
-    log_error(
-        "socket name for file descriptor %d was truncated "
-        "(passed %zu bytes, wanted %u)\n",
-        fd, sizeof(un), len);
-  else {
-    size_t namelen = len - offsetof(struct sockaddr_un, sun_path);
-
-    /* log_debug ("file descriptor %d has path %s (%zu octets)\n", fd, */
-    /*            un.sun_path, namelen); */
-    name = (char *)xtrymalloc(namelen + 1);
-    if (!name)
-      log_error("failed to allocate memory for name of fd %d: %s\n", fd,
-                gpg_strerror(gpg_error_from_syserror()));
-    else {
-      memcpy(name, un.sun_path, namelen);
-      name[namelen] = 0;
-    }
-  }
-
-  return name;
-}
-#endif /*!HAVE_W32_SYSTEM*/
 
 /* Check whether FD is valid.  */
 int gnupg_fd_valid(int fd) {

@@ -93,7 +93,6 @@ void additional_weak_digest(const std::string &digestname);
 char *make_radix64_string(const byte *data, size_t len);
 
 /*-- misc.c --*/
-void trap_unaligned(void);
 void register_secured_file(const char *fname);
 void unregister_secured_file(const char *fname);
 int is_secured_file(int fd);
