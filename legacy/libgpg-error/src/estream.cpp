@@ -2913,7 +2913,6 @@ int _gpgrt_write(estream_t _GPGRT__RESTRICT stream,
                  const void *_GPGRT__RESTRICT buffer, size_t bytes_to_write,
                  size_t *_GPGRT__RESTRICT bytes_written) {
   int err;
-
   if (bytes_to_write) {
     lock_stream(stream);
     err = es_writen(stream, buffer, bytes_to_write, bytes_written);

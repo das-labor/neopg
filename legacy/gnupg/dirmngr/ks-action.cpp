@@ -132,7 +132,8 @@ gpg_error_t ks_action_search(ctrl_t ctrl, uri_item_t keyservers,
       }
 
       if (!err) {
-        es_write(outfp, response.data(), response.size(), NULL);
+        if (es_write(outfp, response.data(), response.size(), NULL))
+          err = gpg_error_from_syserror();
         any_results = 1;
         break;
       }
@@ -175,7 +176,6 @@ gpg_error_t ks_action_get(ctrl_t ctrl, uri_item_t keyservers,
       any_server = 1;
       for (auto &pattern : patterns) {
         {
-          std::string response;
           err = ks_hkp_get(ctrl, uri->parsed_uri, pattern.c_str(), response);
           if (err) break;
         }
