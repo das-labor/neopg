@@ -93,10 +93,10 @@ static void md4_init(void *context, unsigned int flags) {
 static unsigned int transform_blk(void *c, const unsigned char *data) {
   MD4_CONTEXT *ctx = (MD4_CONTEXT *)c;
   u32 in[16];
-  register u32 A = ctx->A;
-  register u32 B = ctx->B;
-  register u32 C = ctx->C;
-  register u32 D = ctx->D;
+  u32 A = ctx->A;
+  u32 B = ctx->B;
+  u32 C = ctx->C;
+  u32 D = ctx->D;
   int i;
 
   for (i = 0; i < 16; i++) in[i] = buf_get_le32(data + i * 4);

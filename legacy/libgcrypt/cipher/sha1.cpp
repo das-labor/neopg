@@ -183,8 +183,8 @@ unsigned int _gcry_sha1_transform_armv8_ce(void *state,
 static unsigned int transform_blk(void *ctx, const unsigned char *data) {
   SHA1_CONTEXT *hd = (SHA1_CONTEXT *)ctx;
   const u32 *idata = (const u32 *)(const void *)data;
-  register u32 a, b, c, d, e; /* Local copies of the chaining variables.  */
-  register u32 tm;            /* Helper.  */
+  u32 a, b, c, d, e; /* Local copies of the chaining variables.  */
+  u32 tm;            /* Helper.  */
   u32 x[16];                  /* The array we work on. */
 
 #define I(i) (x[i] = buf_get_be32(idata + i))

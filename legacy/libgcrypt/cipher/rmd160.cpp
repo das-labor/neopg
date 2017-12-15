@@ -171,7 +171,7 @@ static void rmd160_init(void *context, unsigned int flags) {
  */
 static unsigned int transform_blk(void *ctx, const unsigned char *data) {
   RMD160_CONTEXT *hd = (RMD160_CONTEXT *)ctx;
-  register u32 al, ar, bl, br, cl, cr, dl, dr, el, er;
+  u32 al, ar, bl, br, cl, cr, dl, dr, el, er;
   u32 x[16];
   int i;
 

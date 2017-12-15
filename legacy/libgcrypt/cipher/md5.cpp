@@ -83,10 +83,10 @@ static void md5_init(void *context, unsigned int flags) {
 static unsigned int transform_blk(void *c, const unsigned char *data) {
   MD5_CONTEXT *ctx = (MD5_CONTEXT *)c;
   u32 correct_words[16];
-  register u32 A = ctx->A;
-  register u32 B = ctx->B;
-  register u32 C = ctx->C;
-  register u32 D = ctx->D;
+  u32 A = ctx->A;
+  u32 B = ctx->B;
+  u32 C = ctx->C;
+  u32 D = ctx->D;
   u32 *cwp = correct_words;
   int i;
 

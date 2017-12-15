@@ -67,7 +67,7 @@ static const char *selftest(void);
 static void do_encrypt(void *context, unsigned char *outbuf,
                        const unsigned char *inbuf) {
   RFC2268_context *ctx = (RFC2268_context *)context;
-  register int i, j;
+  int i, j;
   u16 word0 = 0, word1 = 0, word2 = 0, word3 = 0;
 
   word0 = (word0 << 8) | inbuf[1];
@@ -121,7 +121,7 @@ static unsigned int encrypt_block(void *context, unsigned char *outbuf,
 static void do_decrypt(void *context, unsigned char *outbuf,
                        const unsigned char *inbuf) {
   RFC2268_context *ctx = (RFC2268_context *)context;
-  register int i, j;
+  int i, j;
   u16 word0 = 0, word1 = 0, word2 = 0, word3 = 0;
 
   word0 = (word0 << 8) | inbuf[1];
