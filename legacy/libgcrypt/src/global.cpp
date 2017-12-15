@@ -248,7 +248,7 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
       break;
 
     case GCRYCTL_DUMP_SECMEM_STATS:
-      _gcry_secmem_dump_stats(0);
+      _gcry_secmem_dump_stats();
       break;
 
     case GCRYCTL_DROP_PRIVS:
@@ -347,17 +347,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
         xfree(tmpstr);
       }
     } break;
-
-#if _GCRY_GCC_VERSION >= 40600
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch"
-#endif
-    case PRIV_CTL_DUMP_SECMEM_STATS:
-      _gcry_secmem_dump_stats(1);
-      break;
-#if _GCRY_GCC_VERSION >= 40600
-#pragma GCC diagnostic pop
-#endif
 
     case GCRYCTL_DISABLE_HWF: {
       const char *name = va_arg(arg_ptr, const char *);

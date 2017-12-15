@@ -696,23 +696,16 @@ void _gcry_secmem_term() {
 
 /* Print stats of the secmem allocator.  With EXTENDED passwed as true
  * a detiled listing is returned (used for testing).  */
-void _gcry_secmem_dump_stats(int extended) {
+void _gcry_secmem_dump_stats() {
   pooldesc_t *pool;
   memblock_t *mb;
   int i, poolno;
   std::lock_guard<std::mutex> lock(secmem_lock);
 
   for (pool = &mainpool, poolno = 0; pool; pool = pool->next, poolno++) {
-    if (!extended) {
-      if (pool->okay)
-        log_info("%-13s %u/%lu bytes in %u blocks\n",
-                 pool == &mainpool ? "secmem usage:" : "", pool->cur_alloced,
-                 (unsigned long)pool->size, pool->cur_blocks);
-    } else {
-      for (i = 0, mb = (memblock_t *)pool->mem; ptr_into_pool_p(pool, mb);
-           mb = mb_get_next(pool, mb), i++)
-        log_info("SECMEM: pool %d %s block %i size %i\n", poolno,
-                 (mb->flags & MB_FLAG_ACTIVE) ? "used" : "free", i, mb->size);
-    }
+    if (pool->okay)
+      log_info("%-13s %u/%lu bytes in %u blocks\n",
+               pool == &mainpool ? "secmem usage:" : "", pool->cur_alloced,
+               (unsigned long)pool->size, pool->cur_blocks);
   }
 }
