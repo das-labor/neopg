@@ -414,14 +414,3 @@ gpg_error_t armor_data(char **r_string, const void *data, size_t datalen) {
   return 0;
 }
 
-/* Copy all data from IN to OUT.  */
-gpg_error_t copy_stream(estream_t in, estream_t out) {
-  char buffer[512];
-  size_t nread;
-
-  while (!es_read(in, buffer, sizeof buffer, &nread)) {
-    if (!nread) return 0; /* EOF */
-    if (es_write(out, buffer, nread, NULL)) break;
-  }
-  return gpg_error_from_syserror();
-}

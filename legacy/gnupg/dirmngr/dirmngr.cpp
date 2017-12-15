@@ -806,7 +806,6 @@ void dirmngr_exit(int rc) {
 }
 
 void dirmngr_init_default_ctrl(ctrl_t ctrl) {
-  ctrl->magic = SERVER_CONTROL_MAGIC;
   if (opt.http_proxy) ctrl->http_proxy = xstrdup(opt.http_proxy);
   ctrl->http_no_crl = 1;
   ctrl->timeout = opt.connect_timeout;
@@ -814,7 +813,6 @@ void dirmngr_init_default_ctrl(ctrl_t ctrl) {
 
 void dirmngr_deinit_default_ctrl(ctrl_t ctrl) {
   if (!ctrl) return;
-  ctrl->magic = 0xdeadbeef;
 
   xfree(ctrl->http_proxy);
   ctrl->http_proxy = NULL;

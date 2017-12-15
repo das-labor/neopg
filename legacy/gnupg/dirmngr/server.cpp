@@ -1555,15 +1555,10 @@ void start_command_handler() {
 
   if (ctrl->server_local->stopme) dirmngr_exit(0);
 
-  if (ctrl->refcount)
-    log_error("oops: connection control structure still referenced (%d)\n",
-              ctrl->refcount);
-  else {
-    release_ctrl_ocsp_certs(ctrl);
-    xfree(ctrl->server_local);
-    dirmngr_deinit_default_ctrl(ctrl);
-    xfree(ctrl);
-  }
+  release_ctrl_ocsp_certs(ctrl);
+  xfree(ctrl->server_local);
+  dirmngr_deinit_default_ctrl(ctrl);
+  xfree(ctrl);
 }
 
 /* Send a status line back to the client.  KEYWORD is the status
@@ -1621,26 +1616,3 @@ gpg_error_t dirmngr_status_help(ctrl_t ctrl, const char *text) {
   return err;
 }
 
-/* Send a tick progress indicator back.  Fixme: This is only done for
-   the currently active channel.  */
-gpg_error_t dirmngr_tick(ctrl_t ctrl) {
-  static time_t next_tick = 0;
-  gpg_error_t err = 0;
-  time_t now = time(NULL);
-
-  if (!next_tick) {
-    next_tick = now + 1;
-  } else if (now > next_tick) {
-    if (ctrl) {
-      err = dirmngr_status(ctrl, "PROGRESS", "tick", "? 0 0", NULL);
-      if (err) {
-        /* Take this as in indication for a cancel request.  */
-        err = GPG_ERR_CANCELED;
-      }
-      now = time(NULL);
-    }
-
-    next_tick = now + 1;
-  }
-  return err;
-}

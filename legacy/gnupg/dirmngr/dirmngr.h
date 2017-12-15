@@ -146,18 +146,8 @@ typedef struct cert_ref_s *cert_ref_t;
 /* Forward references; access only through server.c.  */
 struct server_local_s;
 
-#if SIZEOF_UNSIGNED_LONG == 8
-#define SERVER_CONTROL_MAGIC 0x6469726d6e677220
-#else
-#define SERVER_CONTROL_MAGIC 0x6469726d
-#endif
-
 /* Connection control structure.  */
 struct server_control_s {
-  unsigned long magic; /* Always has SERVER_CONTROL_MAGIC.  */
-  int refcount;        /* Count additional references to this object.  */
-  int no_server;       /* We are not running under server control. */
-  int status_fd;       /* Only for non-server mode. */
   struct server_local_s *server_local;
   int force_crl_refresh; /* Always load a fresh CRL. */
 
@@ -194,6 +184,5 @@ int dirmngr_assuan_log_monitor(assuan_context_t ctx, unsigned int cat,
 void start_command_handler();
 gpg_error_t dirmngr_status(ctrl_t ctrl, const char *keyword, ...);
 gpg_error_t dirmngr_status_help(ctrl_t ctrl, const char *text);
-gpg_error_t dirmngr_tick(ctrl_t ctrl);
 
 #endif /*DIRMNGR_H*/
