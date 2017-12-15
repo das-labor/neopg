@@ -13,6 +13,7 @@ set(NeopgToolHeaders
   cli/cat_command.h
   cli/command.h
   cli/compress_command.h
+  cli/curl_command.h
   cli/hash_command.h
   cli/packet_command.h
   cli/random_command.h
@@ -23,6 +24,7 @@ add_library(neopg-tool STATIC
   cli/cat_command.cpp
   cli/command.cpp
   cli/compress_command.cpp
+  cli/curl_command.cpp
   cli/hash_command.cpp
   cli/packet_command.cpp
   cli/random_command.cpp
