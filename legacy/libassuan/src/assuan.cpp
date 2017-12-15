@@ -101,7 +101,6 @@ gpg_error_t assuan_new_ext(assuan_context_t *r_ctx,
     ctx->output_fd = ASSUAN_INVALID_FD;
     ctx->inbound.fd = ASSUAN_INVALID_FD;
     ctx->outbound.fd = ASSUAN_INVALID_FD;
-    ctx->listen_fd = ASSUAN_INVALID_FD;
 
     *r_ctx = ctx;
 

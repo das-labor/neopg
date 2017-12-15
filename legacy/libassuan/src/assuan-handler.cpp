@@ -56,8 +56,6 @@ static const char std_help_cancel[] =
     "\n"
     "Run the server's cancel handler if one has been registered.";
 static gpg_error_t std_handler_cancel(assuan_context_t ctx, char *line) {
-  if (ctx->cancel_notify_fnc) /* Return value ignored.  */
-    ctx->cancel_notify_fnc(ctx, line);
   return PROCESS_DONE(ctx, set_error(ctx, GPG_ERR_NOT_IMPLEMENTED, NULL));
 }
 
@@ -118,8 +116,6 @@ static const char std_help_bye[] =
     "\n"
     "Close the connection.  The server will reply with OK.";
 static gpg_error_t std_handler_bye(assuan_context_t ctx, char *line) {
-  if (ctx->bye_notify_fnc) /* Return value ignored.  */
-    ctx->bye_notify_fnc(ctx, line);
   assuan_close_input_fd(ctx);
   assuan_close_output_fd(ctx);
   /* pretty simple :-) */
@@ -391,40 +387,10 @@ const char *assuan_get_command_name(assuan_context_t ctx) {
   return ctx ? ctx->current_cmd_name : NULL;
 }
 
-gpg_error_t assuan_register_pre_cmd_notify(
-    assuan_context_t ctx,
-    gpg_error_t (*fnc)(assuan_context_t, const char *cmd)) {
-  if (!ctx) return GPG_ERR_ASS_INV_VALUE;
-  ctx->pre_cmd_notify_fnc = fnc;
-  return 0;
-}
-
-gpg_error_t assuan_register_post_cmd_notify(assuan_context_t ctx,
-                                            void (*fnc)(assuan_context_t,
-                                                        gpg_error_t)) {
-  if (!ctx) return GPG_ERR_ASS_INV_VALUE;
-  ctx->post_cmd_notify_fnc = fnc;
-  return 0;
-}
-
-gpg_error_t assuan_register_bye_notify(assuan_context_t ctx,
-                                       assuan_handler_t fnc) {
-  if (!ctx) return GPG_ERR_ASS_INV_VALUE;
-  ctx->bye_notify_fnc = fnc;
-  return 0;
-}
-
 gpg_error_t assuan_register_reset_notify(assuan_context_t ctx,
                                          assuan_handler_t fnc) {
   if (!ctx) return GPG_ERR_ASS_INV_VALUE;
   ctx->reset_notify_fnc = fnc;
-  return 0;
-}
-
-gpg_error_t assuan_register_cancel_notify(assuan_context_t ctx,
-                                          assuan_handler_t fnc) {
-  if (!ctx) return GPG_ERR_ASS_INV_VALUE;
-  ctx->cancel_notify_fnc = fnc;
   return 0;
 }
 
@@ -526,12 +492,6 @@ static gpg_error_t dispatch_command(assuan_context_t ctx, char *line,
   line += shift;
   /* linelen -= shift; -- not needed.  */
 
-  if (ctx->pre_cmd_notify_fnc) {
-    err = ctx->pre_cmd_notify_fnc(ctx, ctx->cmdtbl[i].name);
-
-    if (err) return PROCESS_DONE(ctx, err);
-  }
-
   /*    fprintf (stderr, "DBG-assuan: processing %s `%s'\n", s, line); */
   ctx->current_cmd_name = ctx->cmdtbl[i].name;
   err = ctx->cmdtbl[i].handler(ctx, line);
@@ -581,8 +541,6 @@ gpg_error_t assuan_process_done(assuan_context_t ctx, gpg_error_t rc) {
 
     if (ctx->flags.force_close) ctx->finish_handler(ctx);
   }
-
-  if (ctx->post_cmd_notify_fnc) ctx->post_cmd_notify_fnc(ctx, rc);
 
   ctx->flags.confidential = 0;
   if (ctx->okay_line) {
@@ -707,44 +665,6 @@ gpg_error_t assuan_process(assuan_context_t ctx) {
   return rc;
 }
 
-/**
- * assuan_get_active_fds:
- * @ctx: Assuan context
- * @what: 0 for read fds, 1 for write fds
- * @fdarray: Caller supplied array to store the FDs
- * @fdarraysize: size of that array
- *
- * Return all active filedescriptors for the given context.  This
- * function can be used to select on the fds and call
- * assuan_process_next() if there is an active one.  The first fd in
- * the array is the one used for the command connection.
- *
- * Note, that write FDs are not yet supported.
- *
- * Return value: number of FDs active and put into @fdarray or -1 on
- * error which is most likely a too small fdarray.
- **/
-int assuan_get_active_fds(assuan_context_t ctx, int what, assuan_fd_t *fdarray,
-                          int fdarraysize) {
-  int n = 0;
-
-  if (!ctx || fdarraysize < 2 || what < 0 || what > 1) return -1;
-
-  if (!what) {
-    if (ctx->inbound.fd != ASSUAN_INVALID_FD) fdarray[n++] = ctx->inbound.fd;
-  } else {
-    if (ctx->outbound.fd != ASSUAN_INVALID_FD) fdarray[n++] = ctx->outbound.fd;
-    if (ctx->outbound.data.fp)
-#if defined(HAVE_W32_SYSTEM)
-      fdarray[n++] = (void *)_get_osfhandle(fileno(ctx->outbound.data.fp));
-#else
-      fdarray[n++] = fileno(ctx->outbound.data.fp);
-#endif
-  }
-
-  return n;
-}
-
 /* Two simple wrappers to make the expected function types match. */
 #ifdef HAVE_FUNOPEN
 static int fun1_cookie_write(void *cookie, const char *buffer, int orig_size) {
@@ -757,19 +677,6 @@ static ssize_t fun2_cookie_write(void *cookie, const char *buffer,
   return _assuan_cookie_write_data(cookie, buffer, orig_size);
 }
 #endif /*HAVE_FOPENCOOKIE*/
-
-/* Return a FP to be used for data output.  The FILE pointer is valid
-   until the end of a handler.  So a close is not needed.  Assuan does
-   all the buffering needed to insert the status line as well as the
-   required line wappping and quoting for data lines.
-
-   We use GNU's custom streams here.  There should be an alternative
-   implementaion for systems w/o a glibc, a simple implementation
-   could use a child process */
-FILE *assuan_get_data_fp(assuan_context_t ctx) {
-  gpg_err_set_errno(ENOSYS);
-  return NULL;
-}
 
 /* Set the text used for the next OK response.  This string is
    automatically reset to NULL after the next command. */

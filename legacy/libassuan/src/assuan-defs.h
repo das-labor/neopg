@@ -36,12 +36,6 @@
 
 #include "assuan.h"
 
-#if __GNUC__ > 2
-#define ASSUAN_GCC_A_PURE __attribute__((__pure__))
-#else
-#define ASSUAN_GCC_A_PURE
-#endif
-
 #ifndef HAVE_W32_SYSTEM
 #define DIRSEP_C '/'
 #else
@@ -156,13 +150,8 @@ struct assuan_context_s {
   int max_accepts;       /* If we can not handle more than one connection,
                             set this to 1, otherwise to -1.  */
   pid_t pid;             /* The pid of the peer. */
-  assuan_fd_t listen_fd; /* The fd we are listening on (used by
-                            socket servers) */
-  assuan_sock_nonce_t listen_nonce; /* Used with LISTEN_FD.  */
-  assuan_fd_t connected_fd;         /* helper */
 
   /* Used for Unix domain sockets.  */
-  struct sockaddr_un myaddr;
   struct sockaddr_un serveraddr;
 
   /* Structure used for unix domain sockets.  */
@@ -183,20 +172,11 @@ struct assuan_context_s {
      handler.  */
   const char *current_cmd_name;
 
-  assuan_handler_t bye_notify_fnc;
   assuan_handler_t reset_notify_fnc;
-  assuan_handler_t cancel_notify_fnc;
   gpg_error_t (*option_handler_fnc)(assuan_context_t, const char *,
                                     const char *);
   assuan_handler_t input_notify_fnc;
   assuan_handler_t output_notify_fnc;
-
-  /* This function is called right before a command handler is called. */
-  gpg_error_t (*pre_cmd_notify_fnc)(assuan_context_t, const char *cmd);
-
-  /* This function is called right after a command has been processed.
-     It may be used to command related cleanup.  */
-  void (*post_cmd_notify_fnc)(assuan_context_t, gpg_error_t);
 
   assuan_fd_t input_fd;  /* Set by the INPUT command.  */
   assuan_fd_t output_fd; /* Set by the OUTPUT command.  */
@@ -302,18 +282,6 @@ ssize_t _assuan_simple_write(assuan_context_t ctx, const void *buffer,
 
 /*-- assuan-socket.c --*/
 
-assuan_fd_t _assuan_sock_new(assuan_context_t ctx, int domain, int type,
-                             int proto);
-int _assuan_sock_connect(assuan_context_t ctx, assuan_fd_t sockfd,
-                         struct sockaddr *addr, int addrlen);
-int _assuan_sock_bind(assuan_context_t ctx, assuan_fd_t sockfd,
-                      struct sockaddr *addr, int addrlen);
-int _assuan_sock_set_sockaddr_un(const char *fname, struct sockaddr *addr,
-                                 int *r_redirected);
-int _assuan_sock_get_nonce(assuan_context_t ctx, struct sockaddr *addr,
-                           int addrlen, assuan_sock_nonce_t *nonce);
-int _assuan_sock_check_nonce(assuan_context_t ctx, assuan_fd_t fd,
-                             assuan_sock_nonce_t *nonce);
 #ifdef HAVE_W32_SYSTEM
 int _assuan_sock_wsa2errno(int err);
 #endif
@@ -353,8 +321,5 @@ void _assuan_client_release(assuan_context_t ctx);
 
 void _assuan_server_finish(assuan_context_t ctx);
 void _assuan_server_release(assuan_context_t ctx);
-
-/* Encode the C formatted string SRC and return the malloc'ed result.  */
-char *_assuan_encode_c_string(assuan_context_t ctx, const char *src);
 
 #endif /*ASSUAN_DEFS_H*/

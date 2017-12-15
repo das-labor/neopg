@@ -47,35 +47,6 @@ typedef struct msghdr *assuan_msghdr_t;
 
 #include <gpg-error.h>
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-}
-#endif
-#endif
-
-/* The version of this header should match the one of the library.  Do
-   not use this symbol in your application; use assuan_check_version
-   instead.  */
-#define ASSUAN_VERSION "2.4.4"
-
-/* The version number of this header.  It may be used to handle minor
-   API incompatibilities.  */
-#define ASSUAN_VERSION_NUMBER 0x020404
-
-/* Check for compiler features.  */
-#if __GNUC__
-#define _ASSUAN_GCC_VERSION \
-  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-
-#if _ASSUAN_GCC_VERSION > 30100
-#define _ASSUAN_DEPRECATED __attribute__((__deprecated__))
-#endif
-#endif
-#ifndef _ASSUAN_DEPRECATED
-#define _ASSUAN_DEPRECATED
-#endif
-
 #define ASSUAN_LINELENGTH 1002 /* 1000 + [CR,]LF */
 
 struct assuan_context_s;
@@ -104,16 +75,6 @@ static GPG_ERR_INLINE assuan_fd_t assuan_fd_from_posix_fd(int fd) { return fd; }
 assuan_fd_t assuan_fdopen(int fd);
 
 #ifdef _WIN32
-/* Assuan features an emulation of Unix domain sockets based on local
-   TCP connections.  To implement access permissions based on file
-   permissions a nonce is used which is expected by the server as the
-   first bytes received.  This structure is used by the server to save
-   the nonce created initially by bind.  */
-struct assuan_sock_nonce_s {
-  size_t length;
-  char nonce[16];
-};
-typedef struct assuan_sock_nonce_s assuan_sock_nonce_t;
 
 /* Define the Unix domain socket structure for Windows.  */
 #ifndef _ASSUAN_NO_SOCKET_WRAPPER
@@ -131,17 +92,6 @@ struct sockaddr_un {
 };
 #endif
 
-#else
-
-/* Under Windows Assuan features an emulation of Unix domain sockets
-   based on a local TCP connections.  To implement access permissions
-   based on file permissions a nonce is used which is expected by the
-   server as the first bytes received.  On POSIX systems this is a
-   dummy structure. */
-struct assuan_sock_nonce_s {
-  size_t length;
-};
-typedef struct assuan_sock_nonce_s assuan_sock_nonce_t;
 #endif
 
 /* Global interface.  */
@@ -325,18 +275,8 @@ gpg_error_t assuan_register_command(assuan_context_t ctx,
                                     const char *cmd_string,
                                     assuan_handler_t handler,
                                     const char *help_string);
-gpg_error_t assuan_register_pre_cmd_notify(assuan_context_t ctx,
-                                           gpg_error_t (*fnc)(assuan_context_t,
-                                                              const char *cmd));
-gpg_error_t assuan_register_post_cmd_notify(assuan_context_t ctx,
-                                            void (*fnc)(assuan_context_t,
-                                                        gpg_error_t));
-gpg_error_t assuan_register_bye_notify(assuan_context_t ctx,
-                                       assuan_handler_t handler);
 gpg_error_t assuan_register_reset_notify(assuan_context_t ctx,
                                          assuan_handler_t handler);
-gpg_error_t assuan_register_cancel_notify(assuan_context_t ctx,
-                                          assuan_handler_t handler);
 gpg_error_t assuan_register_input_notify(assuan_context_t ctx,
                                          assuan_handler_t handler);
 gpg_error_t assuan_register_output_notify(assuan_context_t ctx,
@@ -350,12 +290,9 @@ gpg_error_t assuan_register_option_handler(assuan_context_t ctx,
 gpg_error_t assuan_process(assuan_context_t ctx);
 gpg_error_t assuan_process_next(assuan_context_t ctx, int *done);
 gpg_error_t assuan_process_done(assuan_context_t ctx, gpg_error_t rc);
-int assuan_get_active_fds(assuan_context_t ctx, int what, assuan_fd_t *fdarray,
-                          int fdarraysize);
 
 const char *assuan_get_command_name(assuan_context_t ctx);
 
-FILE *assuan_get_data_fp(assuan_context_t ctx);
 gpg_error_t assuan_set_okay_line(assuan_context_t ctx, const char *line);
 gpg_error_t assuan_write_status(assuan_context_t ctx, const char *keyword,
                                 const char *text);
@@ -446,32 +383,9 @@ gpg_error_t assuan_set_error(assuan_context_t ctx, gpg_error_t err,
 
 /*-- assuan-socket.c --*/
 
-/* This flag is used with assuan_sock_connect_byname to
-   connect via SOCKS.  */
-#define ASSUAN_SOCK_SOCKS 1
-/* This flag is used with assuan_sock_connect_byname to force a
-   connection via Tor even if the socket subsystem has not been
-   swicthed into Tor mode.  This flags overrides ASSUAN_SOCK_SOCKS. */
-#define ASSUAN_SOCK_TOR 2
-
 /* These are socket wrapper functions to support an emulation of Unix
    domain sockets on Windows W32.  */
 gpg_error_t assuan_sock_init(void);
-void assuan_sock_deinit(void);
-int assuan_sock_close(assuan_fd_t fd);
-assuan_fd_t assuan_sock_new(int domain, int type, int proto);
-int assuan_sock_set_flag(assuan_fd_t sockfd, const char *name, int value);
-int assuan_sock_get_flag(assuan_fd_t sockfd, const char *name, int *r_value);
-int assuan_sock_connect(assuan_fd_t sockfd, struct sockaddr *addr, int addrlen);
-assuan_fd_t assuan_sock_connect_byname(const char *host, unsigned short port,
-                                       int reserved, const char *credentials,
-                                       unsigned int flags);
-int assuan_sock_bind(assuan_fd_t sockfd, struct sockaddr *addr, int addrlen);
-int assuan_sock_set_sockaddr_un(const char *fname, struct sockaddr *addr,
-                                int *r_redirected);
-int assuan_sock_get_nonce(struct sockaddr *addr, int addrlen,
-                          assuan_sock_nonce_t *nonce);
-int assuan_sock_check_nonce(assuan_fd_t fd, assuan_sock_nonce_t *nonce);
 
 /* Set the default or per context system callbacks.  This is
    irreversible.  */
@@ -505,7 +419,4 @@ int __assuan_sendmsg(assuan_context_t ctx, assuan_fd_t fd,
 pid_t __assuan_waitpid(assuan_context_t ctx, pid_t pid, int nowait, int *status,
                        int options);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* ASSUAN_H */

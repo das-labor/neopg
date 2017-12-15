@@ -33,9 +33,6 @@
 
 /* Remove path components from filenames (i.e. __FILE__) for cleaner
    logs. */
-static GPG_ERR_INLINE const char *_assuan_debug_srcname(const char *file)
-    ASSUAN_GCC_A_PURE;
-
 static GPG_ERR_INLINE const char *_assuan_debug_srcname(const char *file) {
   const char *s = strrchr(file, '/');
   return s ? s + 1 : file;
