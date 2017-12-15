@@ -40,7 +40,6 @@ char *gen_help_stpcpy(char *a, const char *b);
 #define stpcpy(a, b) gen_help_stpcpy((a), (b))
 
 #define DIM(v) (sizeof(v) / sizeof((v)[0]))
-#define DIMof(type, member) DIM(((type *)0)->member)
 #ifndef STR
 #define STR(v) #v
 #endif

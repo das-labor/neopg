@@ -42,7 +42,6 @@
 
 #ifndef DIM
 #define DIM(v) (sizeof(v) / sizeof((v)[0]))
-#define DIMof(type, member) DIM(((type *)0)->member)
 #endif
 
 /* Replacement prototypes. */

@@ -29,7 +29,6 @@
 #ifndef DIM
 #define DIM(v) (sizeof(v) / sizeof((v)[0]))
 #endif
-#define DIMof(type, member) DIM(((type *)0)->member)
 #define xmalloc(a) gcry_xmalloc((a))
 #define xcalloc(a, b) gcry_xcalloc((a), (b))
 #define xstrdup(a) gcry_xstrdup((a))

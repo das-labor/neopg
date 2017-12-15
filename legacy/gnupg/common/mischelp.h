@@ -33,7 +33,6 @@
 #define GNUPG_COMMON_MISCHELP_H
 
 #define DIM(v) (sizeof(v) / sizeof((v)[0]))
-#define DIMof(type, member) DIM(((type *)0)->member)
 
 /* To avoid that a compiler optimizes certain memset calls away, these
    macros may be used instead. */
@@ -48,10 +47,5 @@
     }                                               \
   } while (0)
 #define wipememory(_ptr, _len) wipememory2(_ptr, 0, _len)
-
-#ifndef SUN_LEN
-#define SUN_LEN(ptr) \
-  ((size_t)(((struct sockaddr_un *)0)->sun_path) + strlen((ptr)->sun_path))
-#endif /*SUN_LEN*/
 
 #endif /*GNUPG_COMMON_MISCHELP_H*/

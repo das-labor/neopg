@@ -770,7 +770,7 @@ static int lookup_cert_by_pattern(assuan_context_t ctx, char *line, int single,
   int local_count = 0;
   int any_no_data = 0;
 
-  /* Break the line down into an STRLIST */
+  /* Break the line down into an list. */
   for (p = line; *p; line = p) {
     while (*p && *p != ' ') p++;
     if (*p) *p++ = 0;
@@ -1218,8 +1218,8 @@ static gpg_error_t cmd_ks_search(assuan_context_t ctx, char *line) {
   if (has_option(line, "--quick")) ctrl->timeout = opt.connect_quick_timeout;
   line = skip_options(line);
 
-  /* Break the line down into an strlist.  Each pattern is
-     percent-plus escaped. */
+  /* Break the line down into a list.  Each pattern is percent-plus
+     escaped. */
   for (p = line; *p; line = p) {
     while (*p && *p != ' ') p++;
     if (*p) *p++ = 0;

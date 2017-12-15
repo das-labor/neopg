@@ -31,12 +31,6 @@
 #include <sys/stat.h> /* for stat() */
 #endif
 #include <fcntl.h>
-#ifdef HAVE_W32_SYSTEM
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
-#include <windows.h>
-#endif
 
 #include <boost/algorithm/string/join.hpp>
 #include <sstream>
@@ -704,8 +698,6 @@ const static struct debug_flags_s debug_flags[] = {
     {DBG_LOOKUP_VALUE, "lookup"},
     {DBG_EXTPROG_VALUE, "extprog"},
     {0, NULL}};
-
-int g10_errors_seen = 0;
 
 static char *build_list(const std::string &text, char letter,
                         const char *(*mapf)(int), int (*chkf)(int));
@@ -3528,7 +3520,7 @@ void g10_exit(int rc) {
 
   gcry_control(GCRYCTL_TERM_SECMEM);
 
-  rc = rc ? rc : log_get_errorcount(0) ? 2 : g10_errors_seen ? 1 : 0;
+  rc = rc ? rc : log_get_errorcount(0) ? 2 : glo_ctrl.errors_seen ? 1 : 0;
   exit(rc);
 }
 

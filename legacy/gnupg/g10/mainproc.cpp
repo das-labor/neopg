@@ -1729,7 +1729,7 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
     free_public_key(pk);
     pk = NULL;
     release_kbnode(keyblock);
-    if (rc) g10_errors_seen = 1;
+    if (rc) glo_ctrl.errors_seen = true;
     if (opt.batch && rc) g10_exit(1);
   } else {
     char buf[50];

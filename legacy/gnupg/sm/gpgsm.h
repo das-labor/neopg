@@ -27,6 +27,7 @@
 #include "../common/compliance.h"
 #include "../common/ksba-io-support.h"
 #include "../common/status.h"
+#include "../common/strlist.h"
 #include "../common/util.h"
 
 #define MAX_DIGEST_LEN 64

@@ -30,6 +30,8 @@
 #ifndef GNUPG_COMMON_KEYSERVER_H
 #define GNUPG_COMMON_KEYSERVER_H
 
+#include "strlist.h"
+
 #define KEYSERVER_PROTO_VERSION 1
 
 /* These are usable for return codes for the gpgkeys_ process, and

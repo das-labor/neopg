@@ -45,7 +45,6 @@
 #include "../common/logging.h"
 #include "../common/mischelp.h"
 #include "../common/stringhelp.h"
-#include "../common/strlist.h"
 #include "../common/utf8conv.h"
 
 #include "gettime.h"

@@ -37,7 +37,6 @@
 #endif
 
 #include <assuan.h>
-#include "../common/strlist.h"
 #include "agent.h"
 
 #ifdef _POSIX_OPEN_MAX
@@ -840,9 +839,8 @@ static gpg_error_t card_cardlist_cb(void *opaque, const char *line) {
   return 0;
 }
 
-/* Call the scdaemon to retrieve list of available cards. On success
-   the allocated strlist is stored at RESULT.  On error an error code is
-   returned and NULL stored at RESULT. */
+/* Call the scdaemon to retrieve list of available cards.  On error an
+   error code is returned and NULL stored at RESULT. */
 gpg_error_t agent_card_cardlist(ctrl_t ctrl, std::vector<std::string> &result) {
   int err;
   struct card_cardlist_parm_s parm;

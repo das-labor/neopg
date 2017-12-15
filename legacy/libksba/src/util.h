@@ -59,7 +59,6 @@ char *_ksba_xstrdup(const char *p);
 #define xstrdup(a) _ksba_xstrdup((a))
 
 #define DIM(v) (sizeof(v) / sizeof((v)[0]))
-#define DIMof(type, member) DIM(((type *)0)->member)
 #ifndef STR
 #define STR(v) #v
 #endif

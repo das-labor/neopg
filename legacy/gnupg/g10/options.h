@@ -336,6 +336,8 @@ struct glo_ctrl {
 
   bool shown_experimental_digest_warning{false};
   std::set<enum gcry_md_algos> shown_rejection_notice;
+
+  bool errors_seen{false};
 };
 extern struct glo_ctrl glo_ctrl;
 
