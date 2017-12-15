@@ -17,10 +17,6 @@
 /* libassuan */
 #define USE_DESCRIPTOR_PASSING 1
 
-/* npth */
-#define HAVE_PSELECT 1
-#define HAVE_CLOCK_GETTIME 1
-
 /* libgcrypt */
 
 /* List of available cipher algorithms */
@@ -111,7 +107,6 @@
 #define HAVE_LONG_DOUBLE 1
 #define HAVE_LONG_LONG_INT 1
 #define HAVE_MEMRCHR 1
-#define HAVE_PTHREAD_RWLOCK 1
 #define HAVE_PTRDIFF_T 1
 #define HAVE_STDINT_H 1
 #define HAVE_STDLIB_H 1
@@ -128,42 +123,14 @@
 #define SIZEOF_INT 4
 #define SIZEOF_LONG 8
 #define SIZEOF_LONG_LONG 8
-#define SIZEOF_PTHREAD_MUTEX_T 40
 #define SIZEOF_TIME_T 8
 #define SIZEOF_UNSIGNED_LONG 8
 #define SIZEOF_VOID_P 8
-#define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
-#define USE_POSIX_THREADS 1
-#define USE_POSIX_THREADS_WEAK 1
-/* #undef USE_PTH_THREADS */
-/* #undef USE_PTH_THREADS_WEAK */
-/* #undef USE_SOLARIS_THREADS */
-/* #undef USE_SOLARIS_THREADS_WEAK */
-
-/* Enable extensions on AIX 3, Interix.  */
-#ifndef _ALL_SOURCE
-#define _ALL_SOURCE 1
-#endif
-/* Enable threading extensions on Solaris.  */
-#ifndef _POSIX_PTHREAD_SEMANTICS
-#define _POSIX_PTHREAD_SEMANTICS 1
-#endif
-/* Enable extensions on HP NonStop.  */
-#ifndef _TANDEM_SOURCE
-#define _TANDEM_SOURCE 1
-#endif
-/* Enable general extensions on Solaris.  */
-#ifndef __EXTENSIONS__
-#define __EXTENSIONS__ 1
-#endif
 
 /* #undef USE_WINDOWS_THREADS */
 /* This makes sure libassuan gets CMSG macros to make descriptor
    passing work.  */
-#ifdef __APPLE__
-#define _DARWIN_C_SOURCE 1
-#endif
 #ifndef _DARWIN_USE_64_BIT_INODE
 #define _DARWIN_USE_64_BIT_INODE 1
 #endif
@@ -177,17 +144,14 @@
 
 /* libassuan */
 
-#define HAVE_DECL_SYS_SIGLIST 1
 /* #undef HAVE_DOSISH_SYSTEM */
 #define HAVE_FCNTL_H 1
 #define HAVE_FOPENCOOKIE 1
 /* #undef HAVE_FUNOPEN */
-#define HAVE_GETADDRINFO 1
 /* #undef HAVE_GETPEEREID */
 /* #undef HAVE_GETPEERUCRED */
 #define HAVE_GETRLIMIT 1
 #define HAVE_INET_PTON 1
-#define HAVE_ISASCII 1
 #define HAVE_LOCALE_H 1
 /* #undef HAVE_LOCAL_PEEREID */
 #define HAVE_MEMRCHR 1
@@ -208,9 +172,6 @@
 /* #undef HAVE_W64_SYSTEM */
 /* #undef HAVE_WINSOCK2_H */
 /* #undef HAVE_WS2TCPIP_H */
-#define STDC_HEADERS 1
-#define USE_DESCRIPTOR_PASSING 1
-/* #undef _DARWIN_C_SOURCE */
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
 /* #undef _XOPEN_SOURCE */
@@ -219,20 +180,6 @@
 
 /* npth */
 
-#define HAVE_CLOCK_GETTIME 1
-#define HAVE_GETTIMEOFDAY 1
-#define HAVE_PSELECT 1
-#define HAVE_PTHREAD 1
-#define HAVE_PTHREAD_ATFORK 1
-#ifndef __APPLE__
-#define HAVE_PTHREAD_MUTEX_TIMEDLOCK 1
-#define HAVE_PTHREAD_RWLOCK_TIMEDRDLOCK 1
-#define HAVE_PTHREAD_RWLOCK_TIMEDWRLOCK 1
-#endif
-#define HAVE_PTHREAD_RWLOCK_RDLOCK 1
-#define HAVE_PTHREAD_RWLOCK_TRYRDLOCK 1
-#define HAVE_PTHREAD_RWLOCK_TRYWRLOCK 1
-#define HAVE_PTHREAD_RWLOCK_WRLOCK 1
 #define HAVE_SELECT 1
 #define HAVE_SIGNAL_H 1
 #define HAVE_STDINT_H 1
@@ -247,7 +194,6 @@
 /* #undef HAVE_W64_SYSTEM */
 /* #undef HAVE_WINSOCK2_H */
 /* #undef HAVE_WS2TCPIP_H */
-#define STDC_HEADERS 1
 /* #undef _MINIX */
 /* #undef _POSIX_1_SOURCE */
 /* #undef _POSIX_SOURCE */
@@ -304,10 +250,7 @@
 /* #undef HAVE_ANDROID_SYSTEM */
 /* #undef HAVE_BROKEN_TTYNAME */
 /* #undef HAVE_BYTE_TYPEDEF */
-#define HAVE_CLOCK_GETTIME 1
 #define HAVE_CTERMID 1
-#define HAVE_DECL_GETPAGESIZE 1
-#define HAVE_DECL_SYS_SIGLIST 1
 /* #undef HAVE_DIRECT_H */
 /* #undef HAVE_DOPRNT */
 /* #undef HAVE_DOSISH_SYSTEM */
@@ -316,24 +259,16 @@
 #define HAVE_FORK 1
 #define HAVE_FSEEKO 1
 #define HAVE_FSYNC 1
-#define HAVE_FTRUNCATE 1
-#define HAVE_GETADDRINFO 1
 #define HAVE_GETENV 1
 #define HAVE_GETOPT_H 1
-#define HAVE_GETPAGESIZE 1
 /* #undef HAVE_GETPEERUCRED */
 #define HAVE_GETPWNAM 1
 #define HAVE_GETPWUID 1
 #define HAVE_GETRLIMIT 1
-#define HAVE_GETRUSAGE 1
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_GMTIME_R 1
 #define HAVE_INET_NTOP 1
 #define HAVE_INET_PTON 1
-#ifndef __APPLE__
-#define HAVE_INOTIFY_INIT 1
-#endif
-#define HAVE_ISASCII 1
 #define HAVE_LANGINFO_CODESET 1
 #define HAVE_LANGINFO_H 1
 /* #undef HAVE_LBER */
@@ -346,7 +281,6 @@
 #define HAVE_MMAP 1
 #define HAVE_NANOSLEEP 1
 #define HAVE_NL_LANGINFO 1
-#define HAVE_NPTH 1
 #define HAVE_PIPE 1
 #define HAVE_PTY_H 1
 #define HAVE_PWD_H 1
@@ -384,17 +318,9 @@
 /* #undef HAVE_UNSIGNED_TIME_T */
 #define HAVE_USHORT_TYPEDEF 1
 /* #undef HAVE_UTIL_H */
-#define HAVE_UTMP_H 1
-#define HAVE_VFORK 1
-/* #undef HAVE_VFORK_H */
-#define HAVE_VPRINTF 1
 /* Defined if we run on a W32 API based system */
 /* #undef HAVE_W32_SYSTEM */
-#define HAVE_WAIT4 1
-#define HAVE_WAITPID 1
 /* #undef HAVE_WINSOCK2_H */
-#define HAVE_WORKING_FORK 1
-#define HAVE_WORKING_VFORK 1
 /* #undef HAVE_WS2TCPIP_H */
 #define HAVE_ZIP 1
 #define LITTLE_ENDIAN_HOST 1
@@ -412,14 +338,8 @@
 #define SIZEOF_UNSIGNED_LONG 8
 #define SIZEOF_UNSIGNED_LONG_LONG 8
 #define SIZEOF_UNSIGNED_SHORT 2
-#define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
-#define USE_NPTH 1
 /* #undef USE_ONLY_8DOT3 */
-/* #undef _DARWIN_C_SOURCE */
-#ifndef _DARWIN_USE_64_BIT_INODE
-#define _DARWIN_USE_64_BIT_INODE 1
-#endif
 /* #undef _FILE_OFFSET_BITS */
 /* #undef _LARGEFILE_SOURCE */
 /* #undef _LARGE_FILES */
@@ -486,22 +406,3 @@
 #define GNUPG_SYSCONFDIR "\\neopg"
 #endif
 #endif
-
-/* Derive some other constants. */
-#if !(defined(HAVE_FORK) && defined(HAVE_PIPE) && defined(HAVE_WAITPID))
-#define EXEC_TEMPFILE_ONLY
-#endif
-
-/* We didn't define endianness above, so get it from OS macros.  This
-   is intended for making fat binary builds on OS X. */
-#if !defined(BIG_ENDIAN_HOST) && !defined(LITTLE_ENDIAN_HOST)
-#if defined(__BIG_ENDIAN__)
-#define BIG_ENDIAN_HOST 1
-#elif defined(__LITTLE_ENDIAN__)
-#define LITTLE_ENDIAN_HOST 1
-#else
-#error "No endianness found"
-#endif
-#endif
-
-#define USE_RNDLINUX 1

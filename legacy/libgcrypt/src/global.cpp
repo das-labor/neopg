@@ -149,24 +149,6 @@ static void print_config(const char *what, gpgrt_stream_t fp) {
   if (!what || !strcmp(what, "digests"))
     gpgrt_fprintf(fp, "digests:%s:\n", LIBGCRYPT_DIGESTS);
 
-  if (!what || !strcmp(what, "rnd-mod")) {
-    gpgrt_fprintf(fp,
-                  "rnd-mod:"
-#if USE_RNDEGD
-                  "egd:"
-#endif
-#if USE_RNDLINUX
-                  "linux:"
-#endif
-#if USE_RNDUNIX
-                  "unix:"
-#endif
-#if USE_RNDW32
-                  "w32:"
-#endif
-                  "\n");
-  }
-
   if (!what || !strcmp(what, "cpu-arch")) {
     gpgrt_fprintf(fp,
                   "cpu-arch:"

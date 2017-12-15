@@ -90,38 +90,6 @@ extern "C" {
 
 /* Wrappers for the libgpg-error library.  */
 
-/* NOTE: Since Libgcrypt 1.6 the thread callbacks are not anymore
-   used.  However we keep it to allow for some source code
-   compatibility if used in the standard way.  */
-
-/* Constants defining the thread model to use.  Used with the OPTION
-   field of the struct gcry_thread_cbs.  */
-#define GCRY_THREAD_OPTION_DEFAULT 0
-#define GCRY_THREAD_OPTION_USER 1
-#define GCRY_THREAD_OPTION_PTH 2
-#define GCRY_THREAD_OPTION_PTHREAD 3
-
-/* The version number encoded in the OPTION field of the struct
-   gcry_thread_cbs.  */
-#define GCRY_THREAD_OPTION_VERSION 1
-
-/* Wrapper for struct ath_ops.  */
-struct gcry_thread_cbs {
-  /* The OPTION field encodes the thread model and the version number
-     of this structure.
-       Bits  7 - 0  are used for the thread model
-       Bits 15 - 8  are used for the version number.  */
-  unsigned int option;
-};
-
-#define GCRY_THREAD_OPTION_PTH_IMPL                  \
-  static struct gcry_thread_cbs gcry_threads_pth = { \
-      (GCRY_THREAD_OPTION_PTH | (GCRY_THREAD_OPTION_VERSION << 8))}
-
-#define GCRY_THREAD_OPTION_PTHREAD_IMPL                  \
-  static struct gcry_thread_cbs gcry_threads_pthread = { \
-      (GCRY_THREAD_OPTION_PTHREAD | (GCRY_THREAD_OPTION_VERSION << 8))}
-
 /* A generic context object as used by some functions.  */
 struct gcry_context;
 typedef struct gcry_context *gcry_ctx_t;
