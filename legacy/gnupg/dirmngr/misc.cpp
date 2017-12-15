@@ -413,4 +413,3 @@ gpg_error_t armor_data(char **r_string, const void *data, size_t datalen) {
   *r_string = buffer;
   return 0;
 }
-

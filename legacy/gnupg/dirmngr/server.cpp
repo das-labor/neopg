@@ -1615,4 +1615,3 @@ gpg_error_t dirmngr_status_help(ctrl_t ctrl, const char *text) {
 
   return err;
 }
-

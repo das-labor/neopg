@@ -185,7 +185,7 @@ static unsigned int transform_blk(void *ctx, const unsigned char *data) {
   const u32 *idata = (const u32 *)(const void *)data;
   u32 a, b, c, d, e; /* Local copies of the chaining variables.  */
   u32 tm;            /* Helper.  */
-  u32 x[16];                  /* The array we work on. */
+  u32 x[16];         /* The array we work on. */
 
 #define I(i) (x[i] = buf_get_be32(idata + i))
 

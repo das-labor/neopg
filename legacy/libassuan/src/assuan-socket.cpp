@@ -32,7 +32,6 @@
 
 #include "assuan-defs.h"
 
-
 #ifdef HAVE_W32_SYSTEM
 #ifndef ECONNREFUSED
 #define ECONNREFUSED 107
@@ -70,4 +69,3 @@ gpg_error_t assuan_sock_init() {
 
   return err;
 }
-

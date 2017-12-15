@@ -147,9 +147,9 @@ struct assuan_context_s {
     } data;
   } outbound;
 
-  int max_accepts;       /* If we can not handle more than one connection,
-                            set this to 1, otherwise to -1.  */
-  pid_t pid;             /* The pid of the peer. */
+  int max_accepts; /* If we can not handle more than one connection,
+                      set this to 1, otherwise to -1.  */
+  pid_t pid;       /* The pid of the peer. */
 
   /* Used for Unix domain sockets.  */
   struct sockaddr_un serveraddr;
