@@ -28,7 +28,7 @@ class Http {
   Http& set_proxy(const std::string& proxy);
   Http& default_proxy(bool allow_default = true);
   Http& set_redirects(long nr);
-  Http& set_timeout(long seconds);
+  Http& set_timeout(long milliseconds);
   Http& set_post(const boost::optional<std::string>& data = boost::none);
   Http& set_post(const char* data, size_t len);
   Http& no_cache(bool no_cache = true);

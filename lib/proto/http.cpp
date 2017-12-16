@@ -55,8 +55,8 @@ Http& Http::set_redirects(long nr) {
   return *this;
 }
 
-Http& Http::set_timeout(long seconds) {
-  return set_opt_long(CURLOPT_TIMEOUT, seconds);
+Http& Http::set_timeout(long milliseconds) {
+  return set_opt_long(CURLOPT_TIMEOUT_MS, milliseconds);
 }
 
 Http& Http::set_post(const boost::optional<std::string>& data) {
