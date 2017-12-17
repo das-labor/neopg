@@ -245,77 +245,6 @@ static HANDLE w32_open_null(int for_write) {
   return hfile;
 }
 
-static gpg_error_t create_pipe_and_estream(int filedes[2], int flags,
-                                           estream_t *r_fp, int outbound,
-                                           int nonblock) {
-  gpg_error_t err = 0;
-  HANDLE fds[2];
-  es_syshd_t syshd;
-
-  filedes[0] = filedes[1] = -1;
-  err = my_error(GPG_ERR_GENERAL);
-  if (!create_inheritable_pipe(fds, flags)) {
-    filedes[0] = _open_osfhandle(handle_to_fd(fds[0]), O_RDONLY);
-    if (filedes[0] == -1) {
-      log_error("failed to translate osfhandle %p\n", fds[0]);
-      CloseHandle(fds[1]);
-    } else {
-      filedes[1] = _open_osfhandle(handle_to_fd(fds[1]), O_APPEND);
-      if (filedes[1] == -1) {
-        log_error("failed to translate osfhandle %p\n", fds[1]);
-        close(filedes[0]);
-        filedes[0] = -1;
-        CloseHandle(fds[1]);
-      } else
-        err = 0;
-    }
-  }
-
-  if (!err && r_fp) {
-    syshd.type = ES_SYSHD_HANDLE;
-    if (!outbound) {
-      syshd.u.handle = fds[0];
-      *r_fp = es_sysopen(&syshd, nonblock ? "r,nonblock" : "r");
-    } else {
-      syshd.u.handle = fds[1];
-      *r_fp = es_sysopen(&syshd, nonblock ? "w,nonblock" : "w");
-    }
-    if (!*r_fp) {
-      err = my_error_from_syserror();
-      log_error(_("error creating a stream for a pipe: %s\n"),
-                gpg_strerror(err));
-      close(filedes[0]);
-      close(filedes[1]);
-      filedes[0] = filedes[1] = -1;
-      return err;
-    }
-  }
-
-  return err;
-}
-
-/* Portable function to create a pipe.  Under Windows the write end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   read end and stored at R_FP.  */
-gpg_error_t gnupg_create_inbound_pipe(int filedes[2], estream_t *r_fp,
-                                      int nonblock) {
-  return create_pipe_and_estream(filedes, INHERIT_WRITE, r_fp, 0, nonblock);
-}
-
-/* Portable function to create a pipe.  Under Windows the read end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   write end and stored at R_FP.  */
-gpg_error_t gnupg_create_outbound_pipe(int filedes[2], estream_t *r_fp,
-                                       int nonblock) {
-  return create_pipe_and_estream(filedes, INHERIT_READ, r_fp, 1, nonblock);
-}
-
-/* Portable function to create a pipe.  Under Windows both ends are
-   inheritable.  */
-gpg_error_t gnupg_create_pipe(int filedes[2]) {
-  return create_pipe_and_estream(filedes, INHERIT_BOTH, NULL, 0, 0);
-}
-
 /* Fork and exec the PGMNAME, see exechelp.h for details.  */
 gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
                                 int *except, void (*preexec)(void),
@@ -343,7 +272,6 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
                       INVALID_HANDLE_VALUE};
   int i;
   es_syshd_t syshd;
-  int nonblock = !!(flags & GNUPG_SPAWN_NONBLOCK);
 
   (void)except; /* Not yet used.  */
 
@@ -361,7 +289,7 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
 
     syshd.type = ES_SYSHD_HANDLE;
     syshd.u.handle = inpipe[1];
-    infp = es_sysopen(&syshd, nonblock ? "w,nonblock" : "w");
+    infp = es_sysopen(&syshd, "w");
     if (!infp) {
       err = gpg_error(gpg_err_code_from_syserror());
       log_error(_("error creating a stream for a pipe: %s\n"),
@@ -382,7 +310,7 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
 
     syshd.type = ES_SYSHD_HANDLE;
     syshd.u.handle = outpipe[0];
-    outfp = es_sysopen(&syshd, nonblock ? "r,nonblock" : "r");
+    outfp = es_sysopen(&syshd, "r");
     if (!outfp) {
       err = gpg_error(gpg_err_code_from_syserror());
       log_error(_("error creating a stream for a pipe: %s\n"),
@@ -408,7 +336,7 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
 
     syshd.type = ES_SYSHD_HANDLE;
     syshd.u.handle = errpipe[0];
-    errfp = es_sysopen(&syshd, nonblock ? "r,nonblock" : "r");
+    errfp = es_sysopen(&syshd, "r");
     if (!errfp) {
       err = gpg_error(gpg_err_code_from_syserror());
       log_error(_("error creating a stream for a pipe: %s\n"),

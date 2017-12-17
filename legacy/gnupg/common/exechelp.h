@@ -49,23 +49,6 @@ void close_all_fds(int first, int *except);
    been initialized.  Returns NULL on error and sets ERRNO accordingly.  */
 int *get_all_open_fds(void);
 
-/* Portable function to create a pipe.  Under Windows the write end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   write end and stored at R_FP.  */
-gpg_error_t gnupg_create_inbound_pipe(int filedes[2], estream_t *r_fp,
-                                      int nonblock);
-
-/* Portable function to create a pipe.  Under Windows the read end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   write end and stored at R_FP.  */
-gpg_error_t gnupg_create_outbound_pipe(int filedes[2], estream_t *r_fp,
-                                       int nonblock);
-
-/* Portable function to create a pipe.  Under Windows both ends are
-   inheritable.  */
-gpg_error_t gnupg_create_pipe(int filedes[2]);
-
-#define GNUPG_SPAWN_NONBLOCK 16
 #define GNUPG_SPAWN_RUN_ASFW 64
 #define GNUPG_SPAWN_DETACHED 128
 
@@ -94,11 +77,6 @@ gpg_error_t gnupg_create_pipe(int filedes[2]);
    and gnupg_release_process is required if the function succeeded.
 
    FLAGS is a bit vector:
-
-   GNUPG_SPAWN_NONBLOCK
-          If set the two output streams are created in non-blocking
-          mode and the input stream is switched to non-blocking mode.
-          Does not yet work for Windows.
 
    GNUPG_SPAWN_DETACHED
           If set the process will be started as a background process.

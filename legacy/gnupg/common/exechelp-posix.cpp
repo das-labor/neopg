@@ -274,7 +274,7 @@ static gpg_error_t do_create_pipe(int filedes[2]) {
 }
 
 static gpg_error_t create_pipe_and_estream(int filedes[2], estream_t *r_fp,
-                                           int outbound, int nonblock) {
+                                           int outbound) {
   gpg_error_t err;
 
   if (pipe(filedes) == -1) {
@@ -286,9 +286,9 @@ static gpg_error_t create_pipe_and_estream(int filedes[2], estream_t *r_fp,
   }
 
   if (!outbound)
-    *r_fp = es_fdopen(filedes[0], nonblock ? "r,nonblock" : "r");
+    *r_fp = es_fdopen(filedes[0], "r");
   else
-    *r_fp = es_fdopen(filedes[1], nonblock ? "w,nonblock" : "w");
+    *r_fp = es_fdopen(filedes[1], "w");
   if (!*r_fp) {
     err = gpg_error_from_syserror();
     log_error(_("error creating a stream for a pipe: %s\n"), gpg_strerror(err));
@@ -298,34 +298,6 @@ static gpg_error_t create_pipe_and_estream(int filedes[2], estream_t *r_fp,
     return err;
   }
   return 0;
-}
-
-/* Portable function to create a pipe.  Under Windows the write end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   read end and stored at R_FP.  */
-gpg_error_t gnupg_create_inbound_pipe(int filedes[2], estream_t *r_fp,
-                                      int nonblock) {
-  if (r_fp)
-    return create_pipe_and_estream(filedes, r_fp, 0, nonblock);
-  else
-    return do_create_pipe(filedes);
-}
-
-/* Portable function to create a pipe.  Under Windows the read end is
-   inheritable.  If R_FP is not NULL, an estream is created for the
-   write end and stored at R_FP.  */
-gpg_error_t gnupg_create_outbound_pipe(int filedes[2], estream_t *r_fp,
-                                       int nonblock) {
-  if (r_fp)
-    return create_pipe_and_estream(filedes, r_fp, 1, nonblock);
-  else
-    return do_create_pipe(filedes);
-}
-
-/* Portable function to create a pipe.  Under Windows both ends are
-   inheritable.  */
-gpg_error_t gnupg_create_pipe(int filedes[2]) {
-  return do_create_pipe(filedes);
 }
 
 /* Fork and exec the PGMNAME, see exechelp.h for details.  */
@@ -341,7 +313,6 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
   estream_t infp = NULL;
   estream_t outfp = NULL;
   estream_t errfp = NULL;
-  int nonblock = !!(flags & GNUPG_SPAWN_NONBLOCK);
 
   if (r_infp) *r_infp = NULL;
   if (r_outfp) *r_outfp = NULL;
@@ -349,12 +320,12 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
   *pid = (pid_t)(-1); /* Always required.  */
 
   if (r_infp) {
-    err = create_pipe_and_estream(inpipe, &infp, 1, nonblock);
+    err = create_pipe_and_estream(inpipe, &infp, 1);
     if (err) return err;
   }
 
   if (r_outfp) {
-    err = create_pipe_and_estream(outpipe, &outfp, 0, nonblock);
+    err = create_pipe_and_estream(outpipe, &outfp, 0);
     if (err) {
       if (infp)
         es_fclose(infp);
@@ -367,7 +338,7 @@ gpg_error_t gnupg_spawn_process(const char *pgmname, const char *argv[],
   }
 
   if (r_errfp) {
-    err = create_pipe_and_estream(errpipe, &errfp, 0, nonblock);
+    err = create_pipe_and_estream(errpipe, &errfp, 0);
     if (err) {
       if (infp)
         es_fclose(infp);

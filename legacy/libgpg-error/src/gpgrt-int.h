@@ -37,12 +37,6 @@ void _gpgrt_free(void *a);
 
 /* Local definitions for estream.  */
 
-#if _WIN32
-#ifndef O_NONBLOCK
-#define O_NONBLOCK 0x40000000 /* FIXME: Is that safe?  */
-#endif
-#endif
-
 /*
  * A private cookie function to implement an internal IOCTL service.
  * and ist IOCTL numbers.
@@ -50,7 +44,6 @@ void _gpgrt_free(void *a);
 typedef int (*cookie_ioctl_function_t)(void *cookie, int cmd, void *ptr,
                                        size_t *len);
 #define COOKIE_IOCTL_SNATCH_BUFFER 1
-#define COOKIE_IOCTL_NONBLOCK 2
 
 /* An internal variant of gpgrt_cookie_close_function_t with a slot
    for the ioctl function.  */
@@ -62,10 +55,8 @@ struct cookie_io_functions_s {
 typedef enum {
   BACKEND_MEM,
   BACKEND_FD,
-  BACKEND_W32,
   BACKEND_FP,
-  BACKEND_USER,
-  BACKEND_W32_POLLABLE
+  BACKEND_USER
 } gpgrt_stream_backend_kind_t;
 
 /*
@@ -231,16 +222,6 @@ int _gpgrt_setvbuf(gpgrt_stream_t _GPGRT__RESTRICT stream,
 void _gpgrt_set_binary(gpgrt_stream_t stream);
 
 #include "estream-printf.h"
-
-#if _WIN32
-/* Prototypes for w32-estream.c.  */
-struct cookie_io_functions_s _gpgrt_functions_w32_pollable;
-int _gpgrt_w32_pollable_create(void *_GPGRT__RESTRICT *_GPGRT__RESTRICT cookie,
-                               unsigned int modeflags,
-                               struct cookie_io_functions_s next_functions,
-                               void *next_cookie);
-int _gpgrt_w32_poll(gpgrt_poll_t *fds, size_t nfds, int timeout);
-#endif
 
 gpgrt_b64state_t _gpgrt_b64dec_start(const char *title);
 gpg_error_t _gpgrt_b64dec_proc(gpgrt_b64state_t state, void *buffer,

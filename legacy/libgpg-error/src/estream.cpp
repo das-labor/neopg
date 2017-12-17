@@ -661,7 +661,6 @@ static struct cookie_io_functions_s estream_functions_mem = {
 typedef struct estream_cookie_fd {
   int fd;       /* The file descriptor we are using for actual output.  */
   int no_close; /* If set we won't close the file descriptor.  */
-  int nonblock; /* Non-blocking mode is enabled.  */
 } * estream_cookie_fd_t;
 
 /*
@@ -684,7 +683,6 @@ static int func_fd_create(void **cookie, int fd, unsigned int modeflags,
 #endif
     fd_cookie->fd = fd;
     fd_cookie->no_close = no_close;
-    fd_cookie->nonblock = !!(modeflags & O_NONBLOCK);
     *cookie = fd_cookie;
     err = 0;
   }
@@ -767,41 +765,6 @@ static int func_fd_seek(void *cookie, gpgrt_off_t *offset, int whence) {
 }
 
 /*
- * The IOCTL function for fd objects.
- */
-static int func_fd_ioctl(void *cookie, int cmd, void *ptr, size_t *len) {
-  estream_cookie_fd_t fd_cookie = (estream_cookie_fd_t)cookie;
-  int ret;
-
-  if (cmd == COOKIE_IOCTL_NONBLOCK && !len) {
-    fd_cookie->nonblock = !!ptr;
-    if (IS_INVALID_FD(fd_cookie->fd)) {
-      _set_errno(EINVAL);
-      ret = -1;
-    } else {
-#ifdef _WIN32
-      _set_errno(EOPNOTSUPP); /* FIXME: Implement for Windows.  */
-      ret = -1;
-#else
-      _set_errno(0);
-      ret = fcntl(fd_cookie->fd, F_GETFL, 0);
-      if (ret == -1 && errno)
-        ;
-      else if (fd_cookie->nonblock)
-        ret = fcntl(fd_cookie->fd, F_SETFL, (ret | O_NONBLOCK));
-      else
-        ret = fcntl(fd_cookie->fd, F_SETFL, (ret & ~O_NONBLOCK));
-#endif
-    }
-  } else {
-    _set_errno(EINVAL);
-    ret = -1;
-  }
-
-  return ret;
-}
-
-/*
  * The destroy function for fd objects.
  */
 static int func_fd_destroy(void *cookie) {
@@ -830,8 +793,7 @@ static struct cookie_io_functions_s estream_functions_fd = {
     {
         func_fd_read, func_fd_write, func_fd_seek, func_fd_destroy,
     },
-    func_fd_ioctl,
-};
+    NULL};
 
 /*
  * Implementation of W32 handle based I/O.
@@ -1217,10 +1179,6 @@ out:
   return err;
 }
 
-/* Flags used by parse_mode and friends.  */
-#define X_SYSOPEN (1 << 1)
-#define X_POLLABLE (1 << 2)
-
 /* Parse the mode flags of fopen et al.  In addition to the POSIX
  * defined mode flags keyword parameters are supported.  These are
  * key/value pairs delimited by comma and optional white spaces.
@@ -1239,24 +1197,6 @@ out:
  *    the mode when crating a file.  Example:
  *
  *       "wb,mode=-rw-r--"
- *
- * nonblock
- *
- *    The object is opened in non-blocking mode.
- *
- * sysopen
- *
- *    The object is opened in sysmode.  On POSIX this is a NOP but
- *    under Windows the direct W32 API functions (HANDLE) are used
- *    instead of their libc counterparts (fd).
- *    FIXME: The functionality is not yet implemented.
- *
- * pollable
- *
- *    The object is opened in a way suitable for use with es_poll.  On
- *    POSIX this is a NOP but under Windows we create up to two
- *    threads, one for reading and one for writing, do any I/O there,
- *    and synchronize with them in order to support es_poll.
  *
  * Note: R_CMODE is optional because is only required by functions
  * which are able to creat a file.
@@ -1332,31 +1272,6 @@ keyvalue:
         _set_errno(EINVAL);
         return -1;
       }
-    } else if (!strncmp(modestr, "nonblock", 8)) {
-      modestr += 8;
-      if (*modestr && !strchr(" \t,", *modestr)) {
-        _set_errno(EINVAL);
-        return -1;
-      }
-      oflags |= O_NONBLOCK;
-#if HAVE_W32_SYSTEM
-      /* Currently, nonblock implies pollable on Windows.  */
-      *r_xmode |= X_POLLABLE;
-#endif
-    } else if (!strncmp(modestr, "sysopen", 7)) {
-      modestr += 7;
-      if (*modestr && !strchr(" \t,", *modestr)) {
-        _set_errno(EINVAL);
-        return -1;
-      }
-      *r_xmode |= X_SYSOPEN;
-    } else if (!strncmp(modestr, "pollable", 8)) {
-      modestr += 8;
-      if (*modestr && !strchr(" \t,", *modestr)) {
-        _set_errno(EINVAL);
-        return -1;
-      }
-      *r_xmode |= X_POLLABLE;
     }
   }
   if (!got_cmode) cmode = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
@@ -1583,16 +1498,6 @@ static int create_stream(estream_t *r_stream, void *cookie, es_syshd_t *syshd,
   stream_new = NULL;
   stream_internal_new = NULL;
 
-#if HAVE_W32_SYSTEM
-  if ((xmode & X_POLLABLE) && kind != BACKEND_W32) {
-    /* We require the W32 backend, because only that allows us to
-     * write directly using the native W32 API.  */
-    _set_errno(EINVAL);
-    err = -1;
-    goto out;
-  }
-#endif /*HAVE_W32_SYSTEM*/
-
   stream_new = (estream_t)mem_alloc(sizeof(*stream_new));
   if (!stream_new) {
     err = -1;
@@ -1611,21 +1516,6 @@ static int create_stream(estream_t *r_stream, void *cookie, es_syshd_t *syshd,
   stream_new->unread_buffer = stream_internal_new->unread_buffer;
   stream_new->unread_buffer_size = sizeof(stream_internal_new->unread_buffer);
   stream_new->intern = stream_internal_new;
-
-#if HAVE_W32_SYSTEM
-  if ((xmode & X_POLLABLE)) {
-    void *new_cookie;
-
-    err = _gpgrt_w32_pollable_create(&new_cookie, modeflags, functions, cookie);
-    if (err) goto out;
-
-    modeflags &= ~O_NONBLOCK;
-    old_cookie = cookie;
-    cookie = new_cookie;
-    kind = BACKEND_W32_POLLABLE;
-    functions = _gpgrt_functions_w32_pollable;
-  }
-#endif /*HAVE_W32_SYSTEM*/
 
   init_stream_obj(stream_new, cookie, syshd, kind, functions, modeflags, xmode);
   init_stream_lock(stream_new);
@@ -2470,12 +2360,6 @@ static estream_t do_fdopen(int filedes, const char *mode, int no_close,
 
   err = parse_mode(mode, &modeflags, &xmode, NULL);
   if (err) goto out;
-  if ((xmode & X_SYSOPEN)) {
-    /* Not allowed for fdopen.  */
-    _set_errno(EINVAL);
-    err = -1;
-    goto out;
-  }
 
   err = func_fd_create(&cookie, filedes, modeflags, no_close);
   if (err) goto out;
@@ -2485,12 +2369,6 @@ static estream_t do_fdopen(int filedes, const char *mode, int no_close,
   create_called = 1;
   err = create_stream(&stream, cookie, &syshd, BACKEND_FD, estream_functions_fd,
                       modeflags, xmode, with_locked_list);
-
-  if (!err && stream) {
-    if ((modeflags & O_NONBLOCK))
-      err = stream->intern->func_ioctl(cookie, COOKIE_IOCTL_NONBLOCK,
-                                       (void *)"", NULL);
-  }
 
 out:
   if (err && create_called) (*estream_functions_fd.public_x.func_close)(cookie);
@@ -2518,12 +2396,6 @@ static estream_t do_fpopen(FILE *fp, const char *mode, int no_close,
 
   err = parse_mode(mode, &modeflags, &xmode, &cmode);
   if (err) goto out;
-  if ((xmode & X_SYSOPEN)) {
-    /* Not allowed for fpopen.  */
-    _set_errno(EINVAL);
-    err = -1;
-    goto out;
-  }
 
   if (fp) fflush(fp);
   err = func_fp_create(&cookie, fp, modeflags, no_close);
