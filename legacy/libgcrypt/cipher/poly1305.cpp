@@ -404,7 +404,6 @@ gpg_error_t _gcry_poly1305_init(poly1305_context_t *ctx, const byte *key,
   static int initialized;
   static const char *selftest_failed;
   poly1305_key_t keytmp;
-  unsigned int features = _gcry_get_hw_features();
 
   if (!initialized) {
     initialized = 1;
@@ -417,19 +416,7 @@ gpg_error_t _gcry_poly1305_init(poly1305_context_t *ctx, const byte *key,
 
   if (selftest_failed) return GPG_ERR_SELFTEST_FAILED;
 
-#ifdef POLY1305_USE_SSE2
-  ctx->ops = &poly1305_amd64_sse2_ops;
-#else
   ctx->ops = &poly1305_default_ops;
-#endif
-
-#ifdef POLY1305_USE_AVX2
-  if (features & HWF_INTEL_AVX2) ctx->ops = &poly1305_amd64_avx2_ops;
-#endif
-#ifdef POLY1305_USE_NEON
-  if (features & HWF_ARM_NEON) ctx->ops = &poly1305_armv7_neon_ops;
-#endif
-  (void)features;
 
   buf_cpy(keytmp.b, key, POLY1305_KEYLEN);
   poly1305_init(ctx, &keytmp);

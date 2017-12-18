@@ -642,10 +642,8 @@ static void keccak_write(void *context, const void *inbuf_arg, size_t inlen) {
 static void keccak_init(int algo, void *context, unsigned int flags) {
   KECCAK_CONTEXT *ctx = (KECCAK_CONTEXT *)context;
   KECCAK_STATE *hd = &ctx->state;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
-  (void)features;
 
   memset(hd, 0, sizeof *hd);
 
@@ -656,26 +654,6 @@ static void keccak_init(int algo, void *context, unsigned int flags) {
   ctx->ops = &keccak_generic64_ops;
 #elif defined USE_32BIT
   ctx->ops = &keccak_generic32bi_ops;
-#endif
-
-  /* Select optimized implementation based in hw features. */
-  if (0) {
-  }
-#ifdef USE_64BIT_ARM_NEON
-  else if (features & HWF_ARM_NEON)
-    ctx->ops = &keccak_armv7_neon_64_ops;
-#endif
-#ifdef USE_64BIT_BMI2
-  else if (features & HWF_INTEL_BMI2)
-    ctx->ops = &keccak_bmi2_64_ops;
-#endif
-#ifdef USE_32BIT_BMI2
-  else if (features & HWF_INTEL_BMI2)
-    ctx->ops = &keccak_bmi2_32bi_ops;
-#endif
-#ifdef USE_64BIT_SHLD
-  else if (features & HWF_INTEL_FAST_SHLD)
-    ctx->ops = &keccak_shld_64_ops;
 #endif
 
   /* Set input block size, in Keccak terms this is called 'rate'. */

@@ -696,19 +696,9 @@ static gpg_error_t do_twofish_setkey(TWOFISH_context *ctx, const byte *key,
 static gpg_error_t twofish_setkey(void *context, const byte *key,
                                   unsigned int keylen) {
   TWOFISH_context *ctx = (TWOFISH_context *)context;
-  unsigned int hwfeatures = _gcry_get_hw_features();
   int rc;
 
   rc = do_twofish_setkey(ctx, key, keylen);
-
-#ifdef USE_AVX2
-  ctx->use_avx2 = 0;
-  if ((hwfeatures & HWF_INTEL_AVX2) && (hwfeatures & HWF_INTEL_FAST_VPGATHER)) {
-    ctx->use_avx2 = 1;
-  }
-#endif
-
-  (void)hwfeatures;
 
   _gcry_burn_stack(23 + 6 * sizeof(void *));
   return rc;

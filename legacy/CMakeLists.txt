@@ -138,9 +138,6 @@ add_library(gcrypt
   libgcrypt/src/global.cpp
   libgcrypt/src/hmac256.cpp
   libgcrypt/src/hmac256.h
-  libgcrypt/src/hwf-common.h
-  libgcrypt/src/hwf-x86.cpp
-  libgcrypt/src/hwfeatures.cpp
   libgcrypt/src/misc.cpp
   libgcrypt/src/mpi.h
   libgcrypt/src/secmem.cpp

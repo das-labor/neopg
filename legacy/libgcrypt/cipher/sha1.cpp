@@ -103,7 +103,6 @@ static unsigned int transform(void *c, const unsigned char *data, size_t nblks);
 
 static void sha1_init(void *context, unsigned int flags) {
   SHA1_CONTEXT *hd = (SHA1_CONTEXT *)context;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
 
@@ -118,25 +117,6 @@ static void sha1_init(void *context, unsigned int flags) {
   hd->bctx.count = 0;
   hd->bctx.blocksize = 64;
   hd->bctx.bwrite = transform;
-
-#ifdef USE_SSSE3
-  hd->use_ssse3 = (features & HWF_INTEL_SSSE3) != 0;
-#endif
-#ifdef USE_AVX
-  /* AVX implementation uses SHLD which is known to be slow on non-Intel CPUs.
-   * Therefore use this implementation on Intel CPUs only. */
-  hd->use_avx = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD);
-#endif
-#ifdef USE_BMI2
-  hd->use_bmi2 = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_BMI2);
-#endif
-#ifdef USE_NEON
-  hd->use_neon = (features & HWF_ARM_NEON) != 0;
-#endif
-#ifdef USE_ARM_CE
-  hd->use_arm_ce = (features & HWF_ARM_SHA1) != 0;
-#endif
-  (void)features;
 }
 
 /*

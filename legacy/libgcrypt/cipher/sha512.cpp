@@ -121,7 +121,6 @@ static unsigned int transform(void *context, const unsigned char *data,
 static void sha512_init(void *context, unsigned int flags) {
   SHA512_CONTEXT *ctx = (SHA512_CONTEXT *)context;
   SHA512_STATE *hd = &ctx->state;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
 
@@ -139,27 +138,11 @@ static void sha512_init(void *context, unsigned int flags) {
   ctx->bctx.count = 0;
   ctx->bctx.blocksize = 128;
   ctx->bctx.bwrite = transform;
-
-#ifdef USE_ARM_NEON_ASM
-  ctx->use_neon = (features & HWF_ARM_NEON) != 0;
-#endif
-#ifdef USE_SSSE3
-  ctx->use_ssse3 = (features & HWF_INTEL_SSSE3) != 0;
-#endif
-#ifdef USE_AVX
-  ctx->use_avx = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD);
-#endif
-#ifdef USE_AVX2
-  ctx->use_avx2 = (features & HWF_INTEL_AVX2) && (features & HWF_INTEL_BMI2);
-#endif
-
-  (void)features;
 }
 
 static void sha384_init(void *context, unsigned int flags) {
   SHA512_CONTEXT *ctx = (SHA512_CONTEXT *)context;
   SHA512_STATE *hd = &ctx->state;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
 
@@ -177,21 +160,6 @@ static void sha384_init(void *context, unsigned int flags) {
   ctx->bctx.count = 0;
   ctx->bctx.blocksize = 128;
   ctx->bctx.bwrite = transform;
-
-#ifdef USE_ARM_NEON_ASM
-  ctx->use_neon = (features & HWF_ARM_NEON) != 0;
-#endif
-#ifdef USE_SSSE3
-  ctx->use_ssse3 = (features & HWF_INTEL_SSSE3) != 0;
-#endif
-#ifdef USE_AVX
-  ctx->use_avx = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD);
-#endif
-#ifdef USE_AVX2
-  ctx->use_avx2 = (features & HWF_INTEL_AVX2) && (features & HWF_INTEL_BMI2);
-#endif
-
-  (void)features;
 }
 
 static const u64 k[] = {U64_C(0x428a2f98d728ae22), U64_C(0x7137449123ef65cd),

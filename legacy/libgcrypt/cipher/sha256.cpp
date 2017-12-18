@@ -111,7 +111,6 @@ static unsigned int transform(void *c, const unsigned char *data, size_t nblks);
 
 static void sha256_init(void *context, unsigned int flags) {
   SHA256_CONTEXT *hd = (SHA256_CONTEXT *)context;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
 
@@ -129,27 +128,10 @@ static void sha256_init(void *context, unsigned int flags) {
   hd->bctx.count = 0;
   hd->bctx.blocksize = 64;
   hd->bctx.bwrite = transform;
-
-#ifdef USE_SSSE3
-  hd->use_ssse3 = (features & HWF_INTEL_SSSE3) != 0;
-#endif
-#ifdef USE_AVX
-  /* AVX implementation uses SHLD which is known to be slow on non-Intel CPUs.
-   * Therefore use this implementation on Intel CPUs only. */
-  hd->use_avx = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD);
-#endif
-#ifdef USE_AVX2
-  hd->use_avx2 = (features & HWF_INTEL_AVX2) && (features & HWF_INTEL_BMI2);
-#endif
-#ifdef USE_ARM_CE
-  hd->use_arm_ce = (features & HWF_ARM_SHA2) != 0;
-#endif
-  (void)features;
 }
 
 static void sha224_init(void *context, unsigned int flags) {
   SHA256_CONTEXT *hd = (SHA256_CONTEXT *)context;
-  unsigned int features = _gcry_get_hw_features();
 
   (void)flags;
 
@@ -167,22 +149,6 @@ static void sha224_init(void *context, unsigned int flags) {
   hd->bctx.count = 0;
   hd->bctx.blocksize = 64;
   hd->bctx.bwrite = transform;
-
-#ifdef USE_SSSE3
-  hd->use_ssse3 = (features & HWF_INTEL_SSSE3) != 0;
-#endif
-#ifdef USE_AVX
-  /* AVX implementation uses SHLD which is known to be slow on non-Intel CPUs.
-   * Therefore use this implementation on Intel CPUs only. */
-  hd->use_avx = (features & HWF_INTEL_AVX) && (features & HWF_INTEL_FAST_SHLD);
-#endif
-#ifdef USE_AVX2
-  hd->use_avx2 = (features & HWF_INTEL_AVX2) && (features & HWF_INTEL_BMI2);
-#endif
-#ifdef USE_ARM_CE
-  hd->use_arm_ce = (features & HWF_ARM_SHA2) != 0;
-#endif
-  (void)features;
 }
 
 /*

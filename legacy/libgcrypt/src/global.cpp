@@ -63,10 +63,6 @@ static void global_init(void) {
   if (any_init_done) return;
   any_init_done = 1;
 
-  /* Before we do any other initialization we need to test available
-     hardware features.  */
-  _gcry_detect_hw_features();
-
   /* Initialize the modules - this is mainly allocating some memory and
      creating mutexes.  */
   err = _gcry_primegen_init();
@@ -172,16 +168,6 @@ static void print_config(const char *what, gpgrt_stream_t fp) {
 
   if (!what || !strcmp(what, "mpi-asm"))
     gpgrt_fprintf(fp, "mpi-asm:%s:\n", _gcry_mpi_get_hw_config());
-
-  if (!what || !strcmp(what, "hwflist")) {
-    unsigned int hwfeatures, afeature;
-
-    hwfeatures = _gcry_get_hw_features();
-    gpgrt_fprintf(fp, "hwflist:");
-    for (i = 0; (s = _gcry_enum_hw_features(i, &afeature)); i++)
-      if ((hwfeatures & afeature)) gpgrt_fprintf(fp, "%s:", s);
-    gpgrt_fprintf(fp, "\n");
-  }
 }
 
 /* Command dispatcher function, acting as general control
@@ -282,11 +268,6 @@ gpg_error_t _gcry_vcontrol(enum gcry_ctl_cmds cmd, va_list arg_ptr) {
          library here. */
       global_init();
       break;
-
-    case GCRYCTL_DISABLE_HWF: {
-      const char *name = va_arg(arg_ptr, const char *);
-      rc = _gcry_disable_hw_feature(name);
-    } break;
 
     case GCRYCTL_DISABLE_LOCKED_SECMEM:
       _gcry_secmem_set_flags(
