@@ -27,7 +27,6 @@
 #include "packet.h"
 
 int parse_keyserver_options(char *options);
-void free_keyserver_spec(struct keyserver_spec *keyserver);
 struct keyserver_spec *keyserver_match(struct keyserver_spec *spec);
 struct keyserver_spec *parse_keyserver_uri(const char *string,
                                            int require_scheme);

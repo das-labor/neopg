@@ -1459,7 +1459,9 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
       free_public_key(pk);
       pk = NULL;
       glo_ctrl.in_auto_key_retrieve++;
-      res = keyserver_import_fprint(c->ctrl, p + 1, n - 1, opt.keyserver, 1);
+      res = keyserver_import_fprint(
+          c->ctrl, p + 1, n - 1,
+          opt.keyserver.empty() ? nullptr : opt.keyserver[0], 1);
       glo_ctrl.in_auto_key_retrieve--;
       if (!res) rc = do_check_sig(c, node, NULL, &is_expkey, &is_revkey, &pk);
     }
@@ -1475,7 +1477,9 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
     free_public_key(pk);
     pk = NULL;
     glo_ctrl.in_auto_key_retrieve++;
-    res = keyserver_import_keyid(c->ctrl, sig->keyid, opt.keyserver, 1);
+    res = keyserver_import_keyid(
+        c->ctrl, sig->keyid, opt.keyserver.empty() ? nullptr : opt.keyserver[0],
+        1);
     glo_ctrl.in_auto_key_retrieve--;
     if (!res) rc = do_check_sig(c, node, NULL, &is_expkey, &is_revkey, &pk);
   }

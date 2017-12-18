@@ -30,6 +30,10 @@
 #ifndef GNUPG_COMMON_KEYSERVER_H
 #define GNUPG_COMMON_KEYSERVER_H
 
+#include <neopg/proto/uri.h>
+#include <string>
+#include <vector>
+
 #include "strlist.h"
 
 #define KEYSERVER_PROTO_VERSION 1
@@ -50,23 +54,10 @@
 /* Must be 127 due to shell internal magic. */
 #define KEYSERVER_SCHEME_NOT_FOUND 127
 
-/* Object to hold information pertaining to a keyserver; it also
-   allows building a list of keyservers.  Note that g10/options.h has
-   a typedef for this.  FIXME: We should make use of the
-   parse_uri_t. */
 struct keyserver_spec {
-  struct keyserver_spec *next;
-  char *uri;
-  char *scheme;
-  char *auth;
-  char *host;
-  char *port;
-  char *path;
-  char *opaque;
-  strlist_t options;
-  struct {
-    unsigned int direct_uri : 1;
-  } flags;
+  NeoPG::Proto::URI uri;
+  std::vector<std::string> options;
+  bool direct_uri;
 };
 
 #endif /*GNUPG_COMMON_KEYSERVER_H*/

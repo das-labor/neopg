@@ -2230,8 +2230,9 @@ next_pass:
              config file first and then the command line
              arguments, the command line takes
              precedence.)  */
-          if (opt.keyserver) free_keyserver_spec(opt.keyserver);
-          opt.keyserver = keyserver;
+          for (auto &ks : opt.keyserver) delete ks;
+          opt.keyserver.clear();
+          opt.keyserver.emplace_back(keyserver);
         }
       } break;
       case oKeyServerOptions:
@@ -2405,7 +2406,7 @@ next_pass:
         if (!keyserver)
           log_error(_("could not parse keyserver URL\n"));
         else
-          free_keyserver_spec(keyserver);
+          delete keyserver;
 
         opt.def_keyserver_url = pargs.r.ret_str;
       } break;

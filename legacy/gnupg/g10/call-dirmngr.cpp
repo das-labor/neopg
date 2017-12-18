@@ -166,11 +166,15 @@ static gpg_error_t open_context(ctrl_t ctrl, assuan_context_t *r_ctx) {
            overrides keyservers possibly still configured in Dirmngr
            for the session (Note that the keyserver list of a
            session in Dirmngr survives a RESET. */
-        for (ksi = opt.keyserver; ksi; ksi = ksi->next) {
-          char *line;
+        bool first = true;
 
-          line = xtryasprintf("KEYSERVER%s %s",
-                              ksi == opt.keyserver ? " --clear" : "", ksi->uri);
+        for (auto &ksi : opt.keyserver) {
+          char *line;
+          std::string uri = ksi->uri.str();
+
+          line = xtryasprintf("KEYSERVER%s %s", first ? " --clear" : "",
+                              uri.c_str());
+          first = false;
           if (!line)
             err = gpg_error_from_syserror();
           else {
@@ -490,7 +494,8 @@ gpg_error_t gpg_dirmngr_ks_get(ctrl_t ctrl, char **pattern,
      them we send the override keyserver.  */
   if (override_keyserver) {
     clear_context_flags(ctrl, ctx);
-    line = xtryasprintf("KEYSERVER --clear %s", override_keyserver->uri);
+    std::string uri = override_keyserver->uri.str();
+    line = xtryasprintf("KEYSERVER --clear %s", uri.c_str());
     if (!line) {
       err = gpg_error_from_syserror();
       goto leave;

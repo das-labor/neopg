@@ -243,8 +243,9 @@ struct options {
   int s2k_digest_algo{0};
   int s2k_cipher_algo{DEFAULT_CIPHER_ALGO};
   /* This is the encoded form, not the raw count */
-  unsigned char s2k_count{0};          /* Auto-calibrate when needed.  */
-  keyserver_spec_t keyserver{nullptr}; /* The list of configured keyservers.  */
+  unsigned char s2k_count{0}; /* Auto-calibrate when needed.  */
+  std::vector<keyserver_spec_t>
+      keyserver; /* The list of configured keyservers.  */
   struct {
     unsigned int options{0};
     unsigned int import_options{

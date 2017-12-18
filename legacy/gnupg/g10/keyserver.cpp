@@ -164,31 +164,12 @@ int parse_keyserver_options(char *options) {
   return ret;
 }
 
-void free_keyserver_spec(struct keyserver_spec *keyserver) {
-  xfree(keyserver->uri);
-  xfree(keyserver->scheme);
-  xfree(keyserver->auth);
-  xfree(keyserver->host);
-  xfree(keyserver->port);
-  xfree(keyserver->path);
-  xfree(keyserver->opaque);
-  free_strlist(keyserver->options);
-  xfree(keyserver);
-}
-
 /* Return 0 for match */
 static int cmp_keyserver_spec(struct keyserver_spec *one,
                               struct keyserver_spec *two) {
-  if (ascii_strcasecmp(one->scheme, two->scheme) == 0) {
-    if (one->host && two->host && ascii_strcasecmp(one->host, two->host) == 0) {
-      if ((one->port && two->port &&
-           ascii_strcasecmp(one->port, two->port) == 0) ||
-          (!one->port && !two->port))
-        return 0;
-    } else if (one->opaque && two->opaque &&
-               ascii_strcasecmp(one->opaque, two->opaque) == 0)
-      return 0;
-  }
+  if (ascii_strcasecmp(one->uri.scheme.c_str(), two->uri.scheme.c_str()) == 0)
+    if (ascii_strcasecmp(one->uri.host.c_str(), two->uri.host.c_str()) == 0)
+      if (one->uri.port == two->uri.port) return 0;
 
   return 1;
 }
@@ -198,15 +179,11 @@ static int cmp_keyserver_spec(struct keyserver_spec *one,
 struct keyserver_spec *keyserver_match(struct keyserver_spec *spec) {
   struct keyserver_spec *ks;
 
-  for (ks = opt.keyserver; ks; ks = ks->next)
+  for (auto &ks : opt.keyserver)
     if (cmp_keyserver_spec(spec, ks) == 0) return ks;
 
   return spec;
 }
-
-/* TODO: once we cut over to an all-curl world, we don't need this
-   parser any longer so it can be removed, or at least moved to
-   keyserver/ksutil.c for limited use in gpgkeys_ldap or the like. */
 
 keyserver_spec_t parse_keyserver_uri(const char *string, int require_scheme) {
   int assume_hkp = 0;
@@ -217,10 +194,9 @@ keyserver_spec_t parse_keyserver_uri(const char *string, int require_scheme) {
 
   log_assert(string);
 
-  keyserver = (keyserver_spec *)xmalloc_clear(sizeof(struct keyserver_spec));
+  keyserver = new keyserver_spec;
 
-  duped_uri = uri = xstrdup(string);
-
+  uri = xstrdup(string);
   options = strchr(uri, ' ');
   if (options) {
     char *tok;
@@ -231,160 +207,24 @@ keyserver_spec_t parse_keyserver_uri(const char *string, int require_scheme) {
     while ((tok = optsep(&options))) warn_kshelper_option(tok, 0);
   }
 
-  /* Get the scheme */
+  keyserver->uri.set_uri(uri);
+  xfree(uri);
+  if (require_scheme && keyserver->uri.scheme.empty()) return NULL;
 
-  for (idx = uri, count = 0; *idx && *idx != ':'; idx++) {
-    count++;
+  /* Assume HKP if there is no scheme */
+  assume_hkp = 1;
+  keyserver->uri.scheme = "hkp";
 
-    /* Do we see the start of an RFC-2732 ipv6 address here?  If so,
-       there clearly isn't a scheme so get out early. */
-    if (*idx == '[') {
-      /* Was the '[' the first thing in the string?  If not, we
-         have a mangled scheme with a [ in it so fail. */
-      if (count == 1)
-        break;
-      else
-        goto fail;
-    }
-  }
-
-  if (count == 0) goto fail;
-
-  if (*idx == '\0' || *idx == '[') {
-    if (require_scheme) return NULL;
-
-    /* Assume HKP if there is no scheme */
-    assume_hkp = 1;
-    keyserver->scheme = xstrdup("hkp");
-
-    keyserver->uri =
-        (char *)xmalloc(strlen(keyserver->scheme) + 3 + strlen(uri) + 1);
-    strcpy(keyserver->uri, keyserver->scheme);
-    strcat(keyserver->uri, "://");
-    strcat(keyserver->uri, uri);
-  } else {
-    int i;
-
-    keyserver->uri = xstrdup(uri);
-
-    keyserver->scheme = (char *)xmalloc(count + 1);
-
-    /* Force to lowercase */
-    for (i = 0; i < count; i++) keyserver->scheme[i] = ascii_tolower(uri[i]);
-
-    keyserver->scheme[i] = '\0';
-
-    /* Skip past the scheme and colon */
-    uri += count + 1;
-  }
-
-  if (ascii_strcasecmp(keyserver->scheme, "x-broken-hkp") == 0) {
-    log_info("keyserver option '%s' is obsolete\n", "x-broken-hkp");
-  } else if (ascii_strcasecmp(keyserver->scheme, "x-hkp") == 0) {
+  if (ascii_strcasecmp(keyserver->uri.scheme.c_str(), "x-hkp") == 0) {
     /* Canonicalize this to "hkp" so it works with both the internal
        and external keyserver interface. */
-    xfree(keyserver->scheme);
-    keyserver->scheme = xstrdup("hkp");
+    keyserver->uri.scheme = "hkp";
   }
 
-  if (uri[0] == '/' && uri[1] == '/' && uri[2] == '/') {
-    /* Three slashes means network path with a default host name.
-       This is a hack because it does not crok all possible
-       combiantions.  We should better repalce all code bythe parser
-       from http.c.  */
-    keyserver->path = xstrdup(uri + 2);
-  } else if (assume_hkp || (uri[0] == '/' && uri[1] == '/')) {
-    /* Two slashes means network path. */
-
-    /* Skip over the "//", if any */
-    if (!assume_hkp) uri += 2;
-
-    /* Do we have userinfo auth data present? */
-    for (idx = uri, count = 0; *idx && *idx != '@' && *idx != '/'; idx++)
-      count++;
-
-    /* We found a @ before the slash, so that means everything
-       before the @ is auth data. */
-    if (*idx == '@') {
-      if (count == 0) goto fail;
-
-      keyserver->auth = (char *)xmalloc(count + 1);
-      strncpy(keyserver->auth, uri, count);
-      keyserver->auth[count] = '\0';
-      uri += count + 1;
-    }
-
-    /* Is it an RFC-2732 ipv6 [literal address] ? */
-    if (*uri == '[') {
-      for (idx = uri + 1, count = 1;
-           *idx &&
-           ((isascii(*idx) && isxdigit(*idx)) || *idx == ':' || *idx == '.');
-           idx++)
-        count++;
-
-      /* Is the ipv6 literal address terminated? */
-      if (*idx == ']')
-        count++;
-      else
-        goto fail;
-    } else
-      for (idx = uri, count = 0; *idx && *idx != ':' && *idx != '/'; idx++)
-        count++;
-
-    if (count == 0) goto fail;
-
-    keyserver->host = (char *)xmalloc(count + 1);
-    strncpy(keyserver->host, uri, count);
-    keyserver->host[count] = '\0';
-
-    /* Skip past the host */
-    uri += count;
-
-    if (*uri == ':') {
-      /* It would seem to be reasonable to limit the range of the
-         ports to values between 1-65535, but RFC 1738 and 1808
-         imply there is no limit.  Of course, the real world has
-         limits. */
-
-      for (idx = uri + 1, count = 0; *idx && *idx != '/'; idx++) {
-        count++;
-
-        /* Ports are digits only */
-        if (!digitp(idx)) goto fail;
-      }
-
-      keyserver->port = (char *)xmalloc(count + 1);
-      strncpy(keyserver->port, uri + 1, count);
-      keyserver->port[count] = '\0';
-
-      /* Skip past the colon and port number */
-      uri += 1 + count;
-    }
-
-    /* Everything else is the path */
-    if (*uri)
-      keyserver->path = xstrdup(uri);
-    else
-      keyserver->path = xstrdup("/");
-
-    if (keyserver->path[1]) keyserver->flags.direct_uri = 1;
-  } else if (uri[0] != '/') {
-    /* No slash means opaque.  Just record the opaque blob and get
-       out. */
-    keyserver->opaque = xstrdup(uri);
-  } else {
-    /* One slash means absolute path.  We don't need to support that
-       yet. */
-    goto fail;
-  }
-
-  xfree(duped_uri);
   return keyserver;
 
 fail:
-  free_keyserver_spec(keyserver);
-
-  xfree(duped_uri);
+  delete keyserver;
   return NULL;
 }
 
@@ -1139,8 +979,9 @@ gpg_error_t keyserver_refresh(ctrl_t ctrl,
      whether we should keep on supporting these ancient and broken
      keyservers.  */
   if ((opt.keyserver_options.options & KEYSERVER_ADD_FAKE_V3) &&
-      opt.keyserver && (ascii_strcasecmp(opt.keyserver->scheme, "hkp") == 0 ||
-                        ascii_strcasecmp(opt.keyserver->scheme, "mailto") == 0))
+      !opt.keyserver.empty() &&
+      (ascii_strcasecmp(opt.keyserver[0]->uri.scheme.c_str(), "hkp") == 0 ||
+       ascii_strcasecmp(opt.keyserver[0]->uri.scheme.c_str(), "mailto") == 0))
     fakev3 = 1;
 
   err = keyidlist(ctrl, users, &desc, &numdesc, fakev3);
@@ -1199,7 +1040,8 @@ gpg_error_t keyserver_search(ctrl_t ctrl,
   std::string searchstr = boost::algorithm::join(tokens, " ");
 
   /* FIXME: Enable the next line */
-  /* log_info (_("searching for \"%s\" from %s\n"), searchstr, keyserver->uri);
+  /* log_info (_("searching for \"%s\" from %s\n"), searchstr,
+   * keyserver->uri);
    */
 
   parm.ctrl = ctrl;
@@ -1362,13 +1204,16 @@ static gpg_error_t keyserver_get_chunk(
     }
 
     if (!quiet && override_keyserver) {
-      if (override_keyserver->host)
+      if (!override_keyserver->uri.host.empty())
         log_info(_("requesting key %s from %s server %s\n"),
-                 keystr_from_desc(&desc[idx]), override_keyserver->scheme,
-                 override_keyserver->host);
-      else
+                 keystr_from_desc(&desc[idx]),
+                 override_keyserver->uri.scheme.c_str(),
+                 override_keyserver->uri.host.c_str());
+      else {
+        std::string uri = override_keyserver->uri.str();
         log_info(_("requesting key %s from %s\n"), keystr_from_desc(&desc[idx]),
-                 override_keyserver->uri);
+                 uri.c_str());
+      }
     }
   }
 
@@ -1603,7 +1448,7 @@ int keyserver_import_ldap(ctrl_t ctrl, const char *name, unsigned char **fpr,
 
   free_strlist(list);
 
-  free_keyserver_spec(keyserver);
+  delete keyserver;
 
   return rc;
 #endif

@@ -1115,7 +1115,7 @@ int get_pubkey_byname(ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
       size_t fpr_len;
       int did_akl_local = 0;
       int no_fingerprint = 0;
-      const char *mechanism = "?";
+      std::string mechanism = "?";
 
       switch (akl->type) {
         case AKL_NODEFAULT:
@@ -1151,8 +1151,9 @@ int get_pubkey_byname(ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
           if (keyserver_any_configured(ctrl)) {
             mechanism = "keyserver";
             glo_ctrl.in_auto_key_retrieve++;
-            rc = keyserver_import_name(ctrl, name, &fpr, &fpr_len,
-                                       opt.keyserver);
+            rc = keyserver_import_name(
+                ctrl, name, &fpr, &fpr_len,
+                opt.keyserver.empty() ? nullptr : opt.keyserver[0]);
             glo_ctrl.in_auto_key_retrieve--;
           } else {
             mechanism = "Unconfigured keyserver";
@@ -1163,7 +1164,7 @@ int get_pubkey_byname(ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
         case AKL_SPEC: {
           struct keyserver_spec *keyserver;
 
-          mechanism = akl->spec->uri;
+          mechanism = akl->spec->uri.str();
           keyserver = keyserver_match(akl->spec);
           glo_ctrl.in_auto_key_retrieve++;
           rc = keyserver_import_name(ctrl, name, &fpr, &fpr_len, keyserver);
@@ -1217,11 +1218,13 @@ int get_pubkey_byname(ctrl_t ctrl, GETKEY_CTX *retctx, PKT_public_key *pk,
       }
       if (!rc) {
         /* Key found.  */
-        log_info(_("automatically retrieved '%s' via %s\n"), name, mechanism);
+        log_info(_("automatically retrieved '%s' via %s\n"), name,
+                 mechanism.c_str());
         break;
       }
       if (rc != GPG_ERR_NO_PUBKEY || opt.verbose || no_fingerprint)
-        log_info(_("error retrieving '%s' via %s: %s\n"), name, mechanism,
+        log_info(_("error retrieving '%s' via %s: %s\n"), name,
+                 mechanism.c_str(),
                  no_fingerprint ? _("No fingerprint") : gpg_strerror(rc));
     }
   }
@@ -3520,7 +3523,7 @@ get_ctx_handle(GETKEY_CTX ctx) { return ctx->kr_handle; }
 static void free_akl(struct akl *akl) {
   if (!akl) return;
 
-  if (akl->spec) free_keyserver_spec(akl->spec);
+  if (akl->spec) delete (akl->spec);
 
   xfree(akl);
 }
@@ -3574,7 +3577,7 @@ int parse_auto_key_locate(char *options) {
       if (check->type == akl->type &&
           (akl->type != AKL_SPEC ||
            (akl->type == AKL_SPEC &&
-            strcmp(check->spec->uri, akl->spec->uri) == 0))) {
+            check->spec->uri.str() == akl->spec->uri.str()))) {
         dupe = 1;
         free_akl(akl);
         break;

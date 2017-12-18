@@ -716,8 +716,9 @@ static int fetch_url(ctrl_t ctrl) {
       std::vector<std::string> urilist{info.pubkey_url};
       rc = keyserver_fetch(ctrl, urilist);
     } else if (info.fpr1valid) {
-      rc = keyserver_import_fprint(ctrl, (const byte *)(info.fpr1), 20,
-                                   opt.keyserver, 0);
+      rc = keyserver_import_fprint(
+          ctrl, (const byte *)(info.fpr1), 20,
+          opt.keyserver.empty() ? nullptr : opt.keyserver[0], 0);
     }
   }
 
