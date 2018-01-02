@@ -39,7 +39,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <gnutls/gnutls.h>
 #include <gpg-error.h>
 
 #define GNUPG_COMMON_NEED_AFLOCAL
@@ -80,7 +79,6 @@ enum cmd_and_opt_values {
   oDebugAll,
   oDebugWait,
   oDebugLevel,
-  oGnutlsDebug,
   oNoGreeting,
   oNoOptions,
   oHomedir,
@@ -174,8 +172,6 @@ static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_u(oFakedSystemTime, "faked-system-time", "@"), /*(epoch time)*/
     ARGPARSE_s_s(oDebug, "debug", "@"),
     ARGPARSE_s_n(oDebugAll, "debug-all", "@"),
-    ARGPARSE_s_i(oGnutlsDebug, "gnutls-debug", "@"),
-    ARGPARSE_s_i(oGnutlsDebug, "tls-debug", "@"),
     ARGPARSE_s_i(oDebugWait, "debug-wait", "@"),
     ARGPARSE_s_n(oNoGreeting, "no-greeting", "@"),
     ARGPARSE_s_s(oHomedir, "homedir", "@"),
@@ -217,9 +213,6 @@ static char *current_logfile;
 
 /* Helper to implement --debug-level. */
 static const char *debug_level;
-
-/* Helper to set the GNUTLS log level.  */
-static int opt_gnutls_debug = -1;
 
 /* Counter for the active connections.  */
 static int active_connections;
@@ -265,16 +258,6 @@ static const char *my_strusage(int level) {
   return p;
 }
 
-/* GNUTLS log function callback.  */
-static void my_gnutls_log(int level, const char *text) {
-  int n;
-
-  n = strlen(text);
-  while (n && text[n - 1] == '\n') n--;
-
-  log_debug("gnutls:L%d: %.*s\n", level, n, text);
-}
-
 /* Setup the debugging.  With a LEVEL of NULL only the active debug
    flags are propagated to the subsystems.  With LEVEL set, a specific
    set of debug flags is set; thus overriding all flags already
@@ -316,11 +299,6 @@ static void set_debug(void) {
   if (opt.debug && opt.quiet) opt.quiet = 0;
 
   if (opt.debug & DBG_CRYPTO_VALUE) gcry_control(GCRYCTL_SET_DEBUG_FLAGS, 1);
-
-  if (opt_gnutls_debug >= 0) {
-    gnutls_global_set_log_function(my_gnutls_log);
-    gnutls_global_set_log_level(opt_gnutls_debug);
-  }
 
   if (opt.debug) parse_debug_flag(NULL, &opt.debug, debug_flags);
 }
@@ -379,9 +357,6 @@ static int parse_rereadable_options(ARGPARSE_ARGS *pargs, int reread) {
       break;
     case oDebugLevel:
       debug_level = pargs->r.ret_str;
-      break;
-    case oGnutlsDebug:
-      opt_gnutls_debug = pargs->r.ret_int;
       break;
 
     case oLogFile:
@@ -448,9 +423,6 @@ static int parse_rereadable_options(ARGPARSE_ARGS *pargs, int reread) {
 
     case oHkpCaCert: {
       /* FIXME: We are not supporting this anymore, but could.  */
-
-      /* We need to register the filenames with gnutls (http.c) and
-       * also for our own cert cache.  */
       char *tmpname;
 
       /* Do tilde expansion and make path absolute.  */
@@ -523,10 +495,6 @@ int dirmngr_main(int argc, char **argv) {
   gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
 
   ksba_set_malloc_hooks(gcry_malloc, gcry_realloc, gcry_free);
-
-  /* Init TLS library.  */
-  rc = gnutls_global_init();
-  if (rc) log_fatal("gnutls_global_init failed: %s\n", gnutls_strerror(rc));
 
   /* Init Assuan. */
   malloc_hooks.malloc = gcry_malloc;
