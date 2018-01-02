@@ -245,6 +245,7 @@ ${BOTAN2_CFLAGS_OTHER}
 )
 
 set_target_properties(neopg-tool PROPERTIES OUTPUT_NAME "neopg")
+install(TARGETS neopg-tool RUNTIME DESTINATION bin)
 
 # Locale
 

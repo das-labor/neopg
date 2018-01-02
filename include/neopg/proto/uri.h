@@ -8,10 +8,12 @@
 
 #include <string>
 
+#include <neopg/common.h>
+
 namespace NeoPG {
 namespace Proto {
 
-class URI {
+class NEOPG_DLL URI {
  public:
   std::string scheme;
   std::string authority;

@@ -12,7 +12,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-struct Packet {
+struct NEOPG_UNSTABLE_API Packet {
   /*! Use this to overwrite the default header.
    */
   std::unique_ptr<PacketHeader> m_header;

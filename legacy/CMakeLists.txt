@@ -5,7 +5,7 @@
 
 # libgpg-error
 
-add_library(gpg-error
+add_library(gpg-error STATIC
   libgpg-error/src/gpg-error.h
   libgpg-error/src/b64dec.cpp
   libgpg-error/src/code-from-errno.cpp
@@ -61,7 +61,7 @@ add_test(GpgErrorTest gpg-error-test COMMAND gpg-error-test test_xml_output --gt
 
 # libassuan
 
-add_library(assuan
+add_library(assuan STATIC
   libassuan/src/assuan-buffer.cpp
   libassuan/src/assuan-defs.h
   libassuan/src/assuan-error.cpp
@@ -125,7 +125,7 @@ add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_outp
 
 # libgcrypt
 
-add_library(gcrypt
+add_library(gcrypt STATIC
   libgcrypt/src/cipher-proto.h
   libgcrypt/src/cipher.h
   libgcrypt/src/context.cpp
@@ -290,7 +290,7 @@ target_compile_options(gcrypt-secmem-test PRIVATE -fpermissive
 
 # libksba
 
-add_library(ksba
+add_library(ksba STATIC
   libksba/src/ksba.h
   libksba/src/reader.cpp
   libksba/src/writer.cpp

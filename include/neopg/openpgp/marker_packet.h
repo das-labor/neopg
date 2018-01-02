@@ -11,7 +11,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-struct MarkerPacket : Packet {
+struct NEOPG_UNSTABLE_API MarkerPacket : Packet {
   void write_body(std::ostream& out) const override;
   PacketType type() const override;
 };

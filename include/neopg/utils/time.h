@@ -14,6 +14,6 @@ namespace NeoPG {
 /**
    A replacement for timegm.
 */
-time_t NEOPG_DLL timegm(struct tm *tm);
+time_t NEOPG_UNSTABLE_API timegm(struct tm *tm);
 
 }  // namespace NeoPG

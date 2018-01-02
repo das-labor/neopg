@@ -1,20 +1,25 @@
-# NeoPG - tests
-#   Copyright 2017 The NeoPG developers
+# NeoPG - cmake file
+# Copyright 2017 The NeoPG developers
 #
 # NeoPG is released under the Simplified BSD License (see license.txt)
 
-# Cmake setup.
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+
+# Get version number before calling project().
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(GitVersion)
 set(NeoPG_VERSION_STRING "${GIT_VERSION_STRING}")
 set(NeoPG_VERSION_STRING_FULL "${GIT_VERSION_STRING_FULL}")
 
-project(NeoPG VERSION "${NeoPG_VERSION_STRING}")
+project(NeoPG VERSION "${NeoPG_VERSION_STRING}" LANGUAGES CXX)
 message(STATUS "${PROJECT_NAME} ${${PROJECT_NAME}_VERSION_STRING_FULL}")
 
-# targets: release, changelog
+# Add targets for maintainers: release, changelog
 include(GitRelease)
+
+# Add user-settable options.
+option(BUILD_SHARED_LIBS "Build shared libraries." ON)
+
 
 # Compiler setup.
 

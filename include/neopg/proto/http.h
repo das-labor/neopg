@@ -16,7 +16,7 @@
 namespace NeoPG {
 namespace Proto {
 
-class Http {
+class NEOPG_UNSTABLE_API Http {
   const long MAX_REDIRECTS_DEFAULT = 2;
   const long MAX_FILESIZE_DEFAULT = 2 * 1024 * 1024;
 

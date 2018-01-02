@@ -12,7 +12,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-enum class UserAttributeType : uint8_t {
+enum class NEOPG_UNSTABLE_API UserAttributeType : uint8_t {
   Image = 0x01,
   Private_100 = 0x64,
   Private_101 = 0x65,
@@ -27,7 +27,7 @@ enum class UserAttributeType : uint8_t {
   Private_110 = 0x6e,
 };
 
-struct UserAttributePacket : Packet {
+struct NEOPG_UNSTABLE_API UserAttributePacket : Packet {
   void write_body(std::ostream& out) const override;
   PacketType type() const override;
 
@@ -37,7 +37,7 @@ struct UserAttributePacket : Packet {
 
 /* Image Attribute Subpacket.  */
 
-enum class ImageEncoding : uint8_t {
+enum class NEOPG_UNSTABLE_API ImageEncoding : uint8_t {
   JPEG = 0x01,
   Private_100 = 0x64,
   Private_101 = 0x65,
@@ -52,7 +52,7 @@ enum class ImageEncoding : uint8_t {
   Private_110 = 0x6e,
 };
 
-struct ImageAttributeSubpacket : UserAttributePacket {
+struct NEOPG_UNSTABLE_API ImageAttributeSubpacket : UserAttributePacket {
   std::vector<uint8_t> m_data;
   void write_attribute(std::ostream& out) const override;
   UserAttributeType attribute_type() const override;

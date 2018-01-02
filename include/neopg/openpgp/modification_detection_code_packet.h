@@ -12,7 +12,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-struct ModificationDetectionCodePacket : Packet {
+struct NEOPG_UNSTABLE_API ModificationDetectionCodePacket : Packet {
   std::vector<uint8_t> m_data;
 
   void write_body(std::ostream& out) const override;

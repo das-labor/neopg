@@ -12,7 +12,8 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-struct SymmetricallyEncryptedIntegrityProtectedDataPacket : Packet {
+struct NEOPG_UNSTABLE_API SymmetricallyEncryptedIntegrityProtectedDataPacket
+    : Packet {
   std::vector<uint8_t> m_data;
 
   void write_body(std::ostream& out) const override;

@@ -12,9 +12,10 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-const std::string LITERAL_DATA_CONSOLE = "_CONSOLE";
+/* FIXME: Replace with function call.  */
+const NEOPG_UNSTABLE_API std::string LITERAL_DATA_CONSOLE = "_CONSOLE";
 
-enum class LiteralDataType : uint8_t {
+enum class NEOPG_UNSTABLE_API LiteralDataType : uint8_t {
   Binary = 0x62,
   Text = 0x74,
   Utf8 = 0x75,
@@ -22,7 +23,7 @@ enum class LiteralDataType : uint8_t {
   OldLocal = 0x31
 };
 
-struct LiteralDataPacket : Packet {
+struct NEOPG_UNSTABLE_API LiteralDataPacket : Packet {
   LiteralDataType m_data_type = LiteralDataType::Binary;
   std::string m_filename;
   uint32_t m_timestamp = 0;

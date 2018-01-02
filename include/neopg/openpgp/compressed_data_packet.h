@@ -12,7 +12,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-enum class CompressionAlgorithm : uint8_t {
+enum class NEOPG_UNSTABLE_API CompressionAlgorithm : uint8_t {
   Uncompressed = 0x00,
   Deflate = 0x01,
   Zlib = 0x02,
@@ -30,7 +30,7 @@ enum class CompressionAlgorithm : uint8_t {
   Private_110 = 0x6e,
 };
 
-struct CompressedDataPacket : Packet {
+struct NEOPG_UNSTABLE_API CompressedDataPacket : Packet {
   void write_body(std::ostream& out) const override;
   PacketType type() const override;
 
@@ -40,7 +40,7 @@ struct CompressedDataPacket : Packet {
 
 /* Uncompressed Data Packet.  */
 
-struct UncompressedDataPacket : CompressedDataPacket {
+struct NEOPG_UNSTABLE_API UncompressedDataPacket : CompressedDataPacket {
   std::vector<uint8_t> m_data;
   void write_compressed_data(std::ostream& out) const override;
   CompressionAlgorithm compression_algorithm() const override;
@@ -48,7 +48,7 @@ struct UncompressedDataPacket : CompressedDataPacket {
 
 /* Deflate Compressed Data Packet.  */
 
-struct DeflateCompressedDataPacket : CompressedDataPacket {
+struct NEOPG_UNSTABLE_API DeflateCompressedDataPacket : CompressedDataPacket {
   std::vector<uint8_t> m_data;
   void write_compressed_data(std::ostream& out) const override;
   CompressionAlgorithm compression_algorithm() const override;
@@ -56,7 +56,7 @@ struct DeflateCompressedDataPacket : CompressedDataPacket {
 
 /* Zlib Compressed Data Packet.  */
 
-struct ZlibCompressedDataPacket : CompressedDataPacket {
+struct NEOPG_UNSTABLE_API ZlibCompressedDataPacket : CompressedDataPacket {
   std::vector<uint8_t> m_data;
   void write_compressed_data(std::ostream& out) const override;
   CompressionAlgorithm compression_algorithm() const override;
@@ -64,7 +64,7 @@ struct ZlibCompressedDataPacket : CompressedDataPacket {
 
 /* Bzip2 Compressed Data Packet.  */
 
-struct Bzip2CompressedDataPacket : CompressedDataPacket {
+struct NEOPG_UNSTABLE_API Bzip2CompressedDataPacket : CompressedDataPacket {
   std::vector<uint8_t> m_data;
   void write_compressed_data(std::ostream& out) const override;
   CompressionAlgorithm compression_algorithm() const override;

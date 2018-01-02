@@ -8,10 +8,12 @@
 
 #include <botan/rng.h>
 
+#include <neopg/common.h>
+
 namespace NeoPG {
 namespace Crypto {
 
-Botan::RandomNumberGenerator* rng(void);
+NEOPG_DLL Botan::RandomNumberGenerator* rng(void);
 
 }  // Namespace CLI
 }  // Namespace NeoPG

@@ -10,10 +10,12 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <neopg/common.h>
+
 namespace NeoPG {
 namespace OpenPGP {
 
-enum class PacketType : uint8_t {
+enum class NEOPG_UNSTABLE_API PacketType : uint8_t {
   Reserved = 0,
   PublicKeyEncryptedSessionKey = 1,
   Signature = 2,
@@ -38,7 +40,7 @@ enum class PacketType : uint8_t {
   Private_63 = 63
 };
 
-enum class PacketLengthType : uint8_t {
+enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {
   OneOctet = 0,
   TwoOctet = 1,
   FiveOctet = 2,
@@ -48,11 +50,11 @@ enum class PacketLengthType : uint8_t {
   Default
 };
 
-struct PacketHeader {
+struct NEOPG_UNSTABLE_API PacketHeader {
   virtual void write(std::ostream& out) = 0;
 };
 
-struct OldPacketHeader : PacketHeader {
+struct NEOPG_UNSTABLE_API OldPacketHeader : PacketHeader {
   PacketType m_packet_type;
   PacketLengthType m_length_type;
   uint32_t m_length;
@@ -72,7 +74,7 @@ struct OldPacketHeader : PacketHeader {
   void write(std::ostream& out) override;
 };
 
-struct NewPacketTag {
+struct NEOPG_UNSTABLE_API NewPacketTag {
   PacketType m_packet_type;
 
   void set_packet_type(PacketType packet_type);
@@ -82,7 +84,7 @@ struct NewPacketTag {
   void write(std::ostream& out);
 };
 
-struct NewPacketLength {
+struct NEOPG_UNSTABLE_API NewPacketLength {
   PacketLengthType m_length_type;
   uint32_t m_length;
 
@@ -99,7 +101,7 @@ struct NewPacketLength {
   void write(std::ostream& out);
 };
 
-struct NewPacketHeader : PacketHeader {
+struct NEOPG_UNSTABLE_API NewPacketHeader : PacketHeader {
   NewPacketTag m_tag;
   NewPacketLength m_length;
 

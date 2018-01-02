@@ -11,7 +11,7 @@
 namespace NeoPG {
 namespace OpenPGP {
 
-struct UserIdPacket : Packet {
+struct NEOPG_UNSTABLE_API UserIdPacket : Packet {
   std::string m_content;
 
   void write_body(std::ostream& out) const override;

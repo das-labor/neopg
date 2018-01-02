@@ -13,7 +13,7 @@
 
 namespace NeoPG {
 
-class CountingStreamBuf : public std::streambuf {
+class NEOPG_UNSTABLE_API CountingStreamBuf : public std::streambuf {
  public:
   uint32_t bytes_written();
 
@@ -26,7 +26,7 @@ class CountingStreamBuf : public std::streambuf {
   FRIEND_TEST(NeoPGTest, utils_stream_test);
 };
 
-class CountingStream : public std::ostream {
+class NEOPG_UNSTABLE_API CountingStream : public std::ostream {
  public:
   CountingStream();
   uint32_t bytes_written();
