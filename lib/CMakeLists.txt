@@ -7,9 +7,9 @@ FIND_PACKAGE(Boost COMPONENTS date_time REQUIRED)
 
 # libneopg
 
-set(LIBNEOPG_INCLUDE ../include)
+set(NEOPG_INCLUDE ../include)
 
-add_library(libneopg
+add_library(neopg
   ../include/neopg/crypto/rng.h
   ../include/neopg/openpgp/header.h
   ../include/neopg/openpgp/literal_data_packet.h
@@ -44,14 +44,14 @@ add_library(libneopg
   proto/http.cpp
 )
 
-target_compile_options(libneopg
+target_compile_options(neopg
   PRIVATE
   -fvisibility=hidden
   ${BOTAN2_CFLAGS_OTHER}
 )
 
-target_include_directories(libneopg PUBLIC
-   ${LIBNEOPG_INCLUDE}
+target_include_directories(neopg PUBLIC
+   ${NEOPG_INCLUDE}
    ${PEGTL_INCLUDE_DIR}
    ${GTEST_INCLUDE_DIR}
    ${Boost_INCLUDE_DIR}
@@ -59,7 +59,7 @@ target_include_directories(libneopg PUBLIC
    ${CURL_INCLUDE_DIRS}
 )
 
-target_link_libraries(libneopg PUBLIC
+target_link_libraries(neopg PUBLIC
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${CURL_LDFLAGS} ${CURL_LIBRARIES}
 )

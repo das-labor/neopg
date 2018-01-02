@@ -28,7 +28,7 @@ target_compile_options(test-neopg
 
 target_link_libraries(test-neopg
   PRIVATE
-  libneopg
+  neopg
   GTest::GTest GTest::Main
 )
 

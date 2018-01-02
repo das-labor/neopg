@@ -253,7 +253,7 @@ target_compile_definitions(gcrypt PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gcrypt PRIVATE
   ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
-  libneopg)
+  neopg)
 target_compile_options(gcrypt PRIVATE
  -fpermissive
  ${BOTAN2_CFLAGS_OTHER})

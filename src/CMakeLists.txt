@@ -5,7 +5,7 @@
 
 FIND_PACKAGE(Boost COMPONENTS date_time locale REQUIRED)
 
-add_executable(neopg
+add_executable(neopg-tool
   ../legacy/gnupg/common/logging.h
   ../legacy/gnupg/common/logging.cpp
   ../legacy/gnupg/common/sysutils.h
@@ -209,7 +209,7 @@ add_executable(neopg
   cli/compress_command.cpp
   neopg.cpp
 )
-target_include_directories(neopg PRIVATE
+target_include_directories(neopg-tool PRIVATE
   ../legacy/libgpg-error/src
   ../legacy/libassuan/src
   ../legacy/libgcrypt/src
@@ -224,11 +224,11 @@ target_include_directories(neopg PRIVATE
   ${JSON_INCLUDE_DIR}
   ../include
 )
-target_compile_definitions(neopg PRIVATE
+target_compile_definitions(neopg-tool PRIVATE
   HAVE_CONFIG_H=1
   CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
-target_link_libraries(neopg PRIVATE
+target_link_libraries(neopg-tool PRIVATE
   gpg-error
   assuan
   gcrypt
@@ -237,12 +237,14 @@ ${Boost_LIBRARIES}
 ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
- libneopg
+ neopg
 )
-target_compile_options(neopg PUBLIC
+target_compile_options(neopg-tool PUBLIC
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER}
 )
+
+set_target_properties(neopg-tool PROPERTIES OUTPUT_NAME "neopg")
 
 # Locale
 
@@ -260,7 +262,7 @@ SET(_xgettext_option_list
   --keyword=_
 )
 
-# get_target_property(_src_list neopg SOURCES)
+# get_target_property(_src_list neopg-tool SOURCES)
 SET(_src_list neopg.cpp)
 
 ADD_CUSTOM_COMMAND(OUTPUT ${_potFile}
