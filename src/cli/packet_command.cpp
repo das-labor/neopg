@@ -8,11 +8,11 @@
 
 #include <CLI11.hpp>
 
-#include <neopg/cli/command.h>
-#include <neopg/cli/packet_command.h>
-
 #include <neopg/openpgp/marker_packet.h>
 #include <neopg/openpgp/user_id_packet.h>
+
+#include <neopg-tool/cli/command.h>
+#include <neopg-tool/cli/packet_command.h>
 
 using ::CLI::CallForHelp;
 

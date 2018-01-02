@@ -8,7 +8,7 @@
 
 #include <botan/filters.h>
 
-#include <neopg/cli/armor_command.h>
+#include <neopg-tool/cli/armor_command.h>
 
 namespace NeoPG {
 namespace CLI {

@@ -8,7 +8,7 @@
 
 #include <botan/filters.h>
 
-#include <neopg/cli/cat_command.h>
+#include <neopg-tool/cli/cat_command.h>
 
 namespace NeoPG {
 namespace CLI {

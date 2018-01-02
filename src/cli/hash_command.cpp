@@ -9,7 +9,7 @@
 #include <botan/filters.h>
 #include <botan/hash.h>
 
-#include <neopg/cli/hash_command.h>
+#include <neopg-tool/cli/hash_command.h>
 
 namespace NeoPG {
 namespace CLI {

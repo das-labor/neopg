@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <neopg/cli/command.h>
+#include <neopg-tool/cli/command.h>
 
 namespace NeoPG {
 namespace CLI {

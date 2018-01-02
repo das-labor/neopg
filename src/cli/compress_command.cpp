@@ -11,7 +11,7 @@
 #include <botan/compression.h>
 #include <botan/filters.h>
 
-#include <neopg/cli/compress_command.h>
+#include <neopg-tool/cli/compress_command.h>
 
 namespace NeoPG {
 namespace CLI {

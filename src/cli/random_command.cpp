@@ -6,8 +6,9 @@
 
 #include <iostream>
 
-#include <neopg/cli/random_command.h>
 #include <neopg/crypto/rng.h>
+
+#include <neopg-tool/cli/random_command.h>
 
 namespace NeoPG {
 namespace CLI {

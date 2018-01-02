@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include <neopg/cli/version_command.h>
+#include <neopg-tool/cli/version_command.h>
 
 namespace NeoPG {
 namespace CLI {

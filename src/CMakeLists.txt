@@ -191,14 +191,14 @@ add_executable(neopg
   ../legacy/gnupg/scd/command.cpp
   ../legacy/gnupg/scd/iso7816.cpp
 
-  ../include/neopg/cli/command.h
-  ../include/neopg/cli/version_command.h
-  ../include/neopg/cli/packet_command.h
-  ../include/neopg/cli/random_command.h
-  ../include/neopg/cli/hash_command.h
-  ../include/neopg/cli/armor_command.h
-  ../include/neopg/cli/cat_command.h
-  ../include/neopg/cli/compress_command.h
+  ../include/neopg-tool/cli/command.h
+  ../include/neopg-tool/cli/version_command.h
+  ../include/neopg-tool/cli/packet_command.h
+  ../include/neopg-tool/cli/random_command.h
+  ../include/neopg-tool/cli/hash_command.h
+  ../include/neopg-tool/cli/armor_command.h
+  ../include/neopg-tool/cli/cat_command.h
+  ../include/neopg-tool/cli/compress_command.h
   cli/command.cpp
   cli/version_command.cpp
   cli/packet_command.cpp
