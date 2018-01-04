@@ -455,7 +455,6 @@ PKT_plaintext *setup_plaintext_name(const char *filename, IOBUF iobuf);
 
 /*-- server.c --*/
 int gpg_server(ctrl_t);
-gpg_error_t gpg_proxy_pinentry_notify(ctrl_t ctrl, const unsigned char *line);
 
 #ifdef ENABLE_CARD_SUPPORT
 /*-- card-util.c --*/
@@ -467,8 +466,5 @@ int card_store_subkey(KBNODE node, int use);
 #endif
 
 #define S2K_DECODE_COUNT(_val) ((16ul + ((_val)&15)) << (((_val) >> 4) + 6))
-
-/*-- migrate.c --*/
-void migrate_secring(ctrl_t ctrl);
 
 #endif /*G10_MAIN_H*/
