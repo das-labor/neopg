@@ -31,6 +31,13 @@ You can run `make pretty` to reformat all source code lines.  Some
 legacy files are not stable under this operation, unfortunately.
 There is no CI for source formatting yet for this reason.
 
+## Directory Layout
+
+Header files and unit tests are located next to the source file.
+Header files are copied to `build/include/neopg` and
+`build/include/neopg-tool` in a flat directory.  This is a bit
+unorthodox, but makes it easier to edit them along with the source
+file.  Integration tests are located in the tests/ directory.
 
 ## Translations
 

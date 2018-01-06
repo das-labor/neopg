@@ -6,10 +6,9 @@
 
 #include <iostream>
 
-#include <neopg-tool/cli/command.h>
+#include <neopg-tool/command.h>
 
 namespace NeoPG {
-namespace CLI {
 
 Command::Command(CLI::App& app, const std::string& flag,
                  const std::string& description, const std::string& group_name)
@@ -36,5 +35,4 @@ void LegacyCommand::run() {
   m_main_fnc(args.size(), args.data());
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

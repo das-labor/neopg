@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <neopg/proto/http.h>
+#include <neopg/http.h>
 
 #include "dirmngr.h"
 #include "ks-engine.h"
@@ -69,7 +69,7 @@ gpg_error_t ks_http_fetch(ctrl_t ctrl, const char *url, std::string &response) {
 
   /* Note that we only use the system provided certificates.  */
   /* ctrl->http_no_crl support?  */
-  NeoPG::Proto::Http request;
+  NeoPG::Http request;
   request.set_url(url).forbid_reuse().set_timeout(ctrl->timeout).no_cache();
 
   if (opt.http_proxy)
@@ -78,9 +78,9 @@ gpg_error_t ks_http_fetch(ctrl_t ctrl, const char *url, std::string &response) {
     request.default_proxy(opt.honor_http_proxy);
 
   if (opt.disable_ipv6)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv4);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv4);
   else if (opt.disable_ipv4)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv6);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv6);
 
   try {
     response = request.fetch();

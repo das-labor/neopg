@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <neopg/proto/http.h>
+#include <neopg/http.h>
 
 #include "../common/userids.h"
 #include "dirmngr.h"
@@ -110,7 +110,7 @@ static gpg_error_t send_request(ctrl_t ctrl, const std::string &url,
     return GPG_ERR_NOT_SUPPORTED;
   }
 
-  NeoPG::Proto::Http request;
+  NeoPG::Http request;
   request.set_url(url).forbid_reuse().set_timeout(ctrl->timeout).no_cache();
 
   if (opt.http_proxy)
@@ -119,9 +119,9 @@ static gpg_error_t send_request(ctrl_t ctrl, const std::string &url,
     request.default_proxy(opt.honor_http_proxy);
 
   if (opt.disable_ipv6)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv4);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv4);
   else if (opt.disable_ipv4)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv6);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv6);
 
   if (post_data) /* x-www-form-urlencoded is default */
     request.set_post(post_data);
@@ -129,7 +129,7 @@ static gpg_error_t send_request(ctrl_t ctrl, const std::string &url,
   /* SSL Config.  It all boils down to a simple switch: Normally, we
      use the system CA list.  And for the SKS Poolserver, we take a
      baked in CA.  */
-  NeoPG::Proto::URI uri(url);
+  NeoPG::URI uri(url);
   if (uri.host == "hkps.pool.sks-keyservers.net") {
     char *pemname =
         make_filename_try(gnupg_datadir(), "sks-keyservers.netCA.pem", NULL);

@@ -5,10 +5,9 @@
 */
 
 #include <botan/auto_rng.h>
-#include <neopg/crypto/rng.h>
+#include <neopg/rng.h>
 
 namespace NeoPG {
-namespace Crypto {
 
 Botan::RandomNumberGenerator* rng(void) {
   static thread_local Botan::RandomNumberGenerator* rng_local;
@@ -19,5 +18,4 @@ Botan::RandomNumberGenerator* rng(void) {
   return rng_local;
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

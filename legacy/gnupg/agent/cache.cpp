@@ -28,7 +28,7 @@
 #include <time.h>
 
 #include <botan/rfc3394.h>
-#include <neopg/crypto/rng.h>
+#include <neopg/rng.h>
 
 #include "agent.h"
 
@@ -86,7 +86,7 @@ static gpg_error_t init_encryption(void) {
   if (encryption_handle) return 0;
 
   encryption_handle =
-      new Botan::SymmetricKey(*NeoPG::Crypto::rng(), ENCRYPTION_KEYSIZE);
+      new Botan::SymmetricKey(*NeoPG::rng(), ENCRYPTION_KEYSIZE);
 
   return 0;
 }

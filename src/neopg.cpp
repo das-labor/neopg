@@ -29,16 +29,16 @@ static void setup_locale() {
   std::cout.imbue(std::locale());
 }
 
-#include <neopg-tool/cli/armor_command.h>
-#include <neopg-tool/cli/cat_command.h>
-#include <neopg-tool/cli/command.h>
-#include <neopg-tool/cli/compress_command.h>
-#include <neopg-tool/cli/hash_command.h>
-#include <neopg-tool/cli/packet_command.h>
-#include <neopg-tool/cli/random_command.h>
-#include <neopg-tool/cli/version_command.h>
+#include <neopg-tool/armor_command.h>
+#include <neopg-tool/cat_command.h>
+#include <neopg-tool/command.h>
+#include <neopg-tool/compress_command.h>
+#include <neopg-tool/hash_command.h>
+#include <neopg-tool/packet_command.h>
+#include <neopg-tool/random_command.h>
+#include <neopg-tool/version_command.h>
 
-using namespace NeoPG::CLI;
+using namespace NeoPG;
 
 int gpg_main(int argc, char** argv);
 int agent_main(int argc, char** argv);

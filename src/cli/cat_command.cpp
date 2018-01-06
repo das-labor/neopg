@@ -8,10 +8,9 @@
 
 #include <botan/filters.h>
 
-#include <neopg-tool/cli/cat_command.h>
+#include <neopg-tool/cat_command.h>
 
 namespace NeoPG {
-namespace CLI {
 
 void CatCommand::run() {
   Botan::Pipe pipe(new Botan::DataSink_Stream(std::cout));
@@ -29,5 +28,4 @@ void CatCommand::run() {
   }
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

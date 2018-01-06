@@ -4,10 +4,9 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/user_id_packet.h>
+#include <neopg/user_id_packet.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void UserIdPacket::write_body(std::ostream& out) const {
   out.write(m_content.data(), m_content.size());
@@ -15,5 +14,4 @@ void UserIdPacket::write_body(std::ostream& out) const {
 
 PacketType UserIdPacket::type() const { return PacketType::UserID; }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

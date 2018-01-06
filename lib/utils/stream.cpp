@@ -4,7 +4,7 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/utils/stream.h>
+#include <neopg/stream.h>
 
 namespace NeoPG {
 

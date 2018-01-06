@@ -4,11 +4,10 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/header.h>
-#include <neopg/openpgp/literal_data_packet.h>
+#include <neopg/literal_data_packet.h>
+#include <neopg/packet_header.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void LiteralDataPacket::write_body(std::ostream& out) const {
   out << (uint8_t)m_data_type;
@@ -30,5 +29,4 @@ void LiteralDataPacket::write_body(std::ostream& out) const {
 
 PacketType LiteralDataPacket::type() const { return PacketType::LiteralData; }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

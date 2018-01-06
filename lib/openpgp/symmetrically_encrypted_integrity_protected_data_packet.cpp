@@ -4,11 +4,10 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/header.h>
-#include <neopg/openpgp/symmetrically_encrypted_integrity_protected_data_packet.h>
+#include <neopg/packet_header.h>
+#include <neopg/symmetrically_encrypted_integrity_protected_data_packet.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void SymmetricallyEncryptedIntegrityProtectedDataPacket::write_body(
     std::ostream& out) const {
@@ -20,5 +19,4 @@ PacketType SymmetricallyEncryptedIntegrityProtectedDataPacket::type() const {
   return PacketType::SymmetricallyEncryptedIntegrityProtectedData;
 }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

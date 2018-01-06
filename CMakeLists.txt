@@ -148,7 +148,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_BINAR
 add_subdirectory(${CMAKE_SOURCE_DIR}/legacy)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
-add_subdirectory(${CMAKE_SOURCE_DIR}/tests)
 
 
 # get all project files

@@ -9,10 +9,9 @@
 #include <botan/filters.h>
 #include <botan/hash.h>
 
-#include <neopg-tool/cli/hash_command.h>
+#include <neopg-tool/hash_command.h>
 
 namespace NeoPG {
-namespace CLI {
 
 void ListHashCommand::run() {
   std::cout << "Any Botan-compatible algorithm specifier can be used:\n\n";
@@ -136,5 +135,4 @@ void HashCommand::run() {
   }
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

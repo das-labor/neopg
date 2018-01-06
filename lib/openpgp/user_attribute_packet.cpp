@@ -4,12 +4,11 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/header.h>
-#include <neopg/openpgp/user_attribute_packet.h>
-#include <neopg/utils/stream.h>
+#include <neopg/packet_header.h>
+#include <neopg/stream.h>
+#include <neopg/user_attribute_packet.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void UserAttributePacket::write_body(std::ostream& out) const {
   CountingStream cnt;
@@ -46,5 +45,4 @@ UserAttributeType ImageAttributeSubpacket::attribute_type() const {
   return UserAttributeType::Image;
 }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

@@ -1,7 +1,7 @@
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <neopg/utils/time.h>
+#include <neopg/time.h>
 
 namespace NeoPG {
 

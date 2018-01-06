@@ -4,11 +4,10 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/packet.h>
-#include <neopg/utils/stream.h>
+#include <neopg/packet.h>
+#include <neopg/stream.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void Packet::write(std::ostream& out) const {
   if (m_header) {
@@ -23,5 +22,4 @@ void Packet::write(std::ostream& out) const {
   write_body(out);
 }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

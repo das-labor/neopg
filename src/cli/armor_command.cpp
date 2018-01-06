@@ -8,10 +8,9 @@
 
 #include <botan/filters.h>
 
-#include <neopg-tool/cli/armor_command.h>
+#include <neopg-tool/armor_command.h>
 
 namespace NeoPG {
-namespace CLI {
 
 void ArmorCommand::encode() {
   bool has_title = !m_title.empty();
@@ -71,5 +70,4 @@ void ArmorCommand::run() {
     encode();
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

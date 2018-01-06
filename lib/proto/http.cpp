@@ -4,12 +4,11 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/proto/http.h>
+#include <neopg/http.h>
 
 #include <iostream>
 
 namespace NeoPG {
-namespace Proto {
 
 Http::Http() : m_handle(curl_easy_init(), curl_easy_cleanup) {
   if (m_handle.get() == nullptr) throw std::bad_alloc();
@@ -190,5 +189,4 @@ std::string Http::fetch() {
   return response;
 }
 
-}  // Namespace Proto
 }  // Namespace NeoPG

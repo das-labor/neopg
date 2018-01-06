@@ -11,10 +11,9 @@
 #include <botan/compression.h>
 #include <botan/filters.h>
 
-#include <neopg-tool/cli/compress_command.h>
+#include <neopg-tool/compress_command.h>
 
 namespace NeoPG {
-namespace CLI {
 
 void ListCompressCommand::run() {
   std::cout << "Any Botan-compatible algorithm specifier can be used:\n\n";
@@ -68,5 +67,4 @@ void CompressCommand::run() {
   }
 }
 
-}  // Namespace CLI
 }  // Namespace NeoPG

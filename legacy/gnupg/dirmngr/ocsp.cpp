@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <neopg/proto/http.h>
+#include <neopg/http.h>
 
 #include "certcache.h"
 #include "dirmngr.h"
@@ -150,7 +150,7 @@ static gpg_error_t do_ocsp_request(ctrl_t ctrl, ksba_ocsp_t ocsp,
     return err;
   }
 
-  NeoPG::Proto::Http request;
+  NeoPG::Http request;
   request.set_url(url).forbid_reuse().set_timeout(ctrl->timeout).no_cache();
 
   if (opt.http_proxy)
@@ -159,9 +159,9 @@ static gpg_error_t do_ocsp_request(ctrl_t ctrl, ksba_ocsp_t ocsp,
     request.default_proxy(opt.honor_http_proxy);
 
   if (opt.disable_ipv6)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv4);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv4);
   else if (opt.disable_ipv4)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv6);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv6);
 
   request.m_header["Content-Type"] = "application/ocsp-request";
   request.set_post(post, postlen);

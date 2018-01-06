@@ -4,14 +4,13 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/proto/uri.h>
+#include <neopg/uri.h>
 #include <tao/pegtl/contrib/uri.hpp>
 #include <tao/pegtl/parse.hpp>
 
 #include <iostream>
 
 namespace NeoPG {
-namespace Proto {
 
 namespace pegtl = tao::TAOCPP_PEGTL_NAMESPACE;
 
@@ -119,5 +118,4 @@ std::string URI::str() {
   return uri;
 }
 
-}  // Namespace Proto
 }  // Namespace NeoPG

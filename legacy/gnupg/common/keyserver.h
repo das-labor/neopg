@@ -30,7 +30,7 @@
 #ifndef GNUPG_COMMON_KEYSERVER_H
 #define GNUPG_COMMON_KEYSERVER_H
 
-#include <neopg/proto/uri.h>
+#include <neopg/uri.h>
 #include <string>
 #include <vector>
 
@@ -55,7 +55,7 @@
 #define KEYSERVER_SCHEME_NOT_FOUND 127
 
 struct keyserver_spec {
-  NeoPG::Proto::URI uri;
+  NeoPG::URI uri;
   std::vector<std::string> options;
   bool direct_uri;
 };

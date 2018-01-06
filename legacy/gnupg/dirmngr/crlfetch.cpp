@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include <neopg/proto/http.h>
+#include <neopg/http.h>
 
 #include "crlfetch.h"
 
@@ -36,7 +36,7 @@ gpg_error_t crl_fetch(ctrl_t ctrl, const char *url, ksba_reader_t *reader) {
 
   if (!url) return GPG_ERR_INV_ARG;
 
-  NeoPG::Proto::URI uri(url);
+  NeoPG::URI uri(url);
   if (uri.scheme != "http")
     /* Let the LDAP code try other schemes. FIXME: We removed LDAP
        support.  But curl can speak LDAP, so maybe use that.  */
@@ -53,7 +53,7 @@ gpg_error_t crl_fetch(ctrl_t ctrl, const char *url, ksba_reader_t *reader) {
     return GPG_ERR_NOT_SUPPORTED;
   }
 
-  NeoPG::Proto::Http request;
+  NeoPG::Http request;
   request.set_url(url).forbid_reuse().set_timeout(ctrl->timeout).no_cache();
 
   if (opt.http_proxy)
@@ -62,9 +62,9 @@ gpg_error_t crl_fetch(ctrl_t ctrl, const char *url, ksba_reader_t *reader) {
     request.default_proxy(opt.honor_http_proxy);
 
   if (opt.disable_ipv6)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv4);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv4);
   else if (opt.disable_ipv4)
-    request.set_ipresolve(NeoPG::Proto::Http::Resolve::IPv6);
+    request.set_ipresolve(NeoPG::Http::Resolve::IPv6);
 
   try {
     response = request.fetch();

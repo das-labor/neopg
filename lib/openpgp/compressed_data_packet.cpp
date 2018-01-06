@@ -4,12 +4,11 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
-#include <neopg/openpgp/compressed_data_packet.h>
-#include <neopg/openpgp/header.h>
-#include <neopg/utils/stream.h>
+#include <neopg/compressed_data_packet.h>
+#include <neopg/packet_header.h>
+#include <neopg/stream.h>
 
 namespace NeoPG {
-namespace OpenPGP {
 
 void CompressedDataPacket::write_body(std::ostream& out) const {
   out << (uint8_t)compression_algorithm();
@@ -62,5 +61,4 @@ CompressionAlgorithm Bzip2CompressedDataPacket::compression_algorithm() const {
   return CompressionAlgorithm::Bzip2;
 }
 
-}  // namespace OpenPGP
 }  // namespace NeoPG

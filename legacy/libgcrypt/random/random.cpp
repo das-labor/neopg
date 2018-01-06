@@ -24,7 +24,7 @@
 
 #include <config.h>
 
-#include <neopg/crypto/rng.h>
+#include <neopg/rng.h>
 
 #include "g10lib.h"
 
@@ -32,12 +32,12 @@
 
 /* Add BUFLEN bytes from BUF to the internal random pool.  */
 gpg_error_t _gcry_random_add_bytes(const void *buf, size_t buflen) {
-  NeoPG::Crypto::rng()->add_entropy((Botan::byte *)buf, buflen);
+  NeoPG::rng()->add_entropy((Botan::byte *)buf, buflen);
   return 0;
 }
 
 static void do_randomize(void *buffer, size_t length) {
-  NeoPG::Crypto::rng()->randomize((Botan::byte *)buffer, length);
+  NeoPG::rng()->randomize((Botan::byte *)buffer, length);
 }
 
 /* The public function to return random data.

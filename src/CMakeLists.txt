@@ -1,11 +1,69 @@
-# NeoPG - tests
-#   Copyright 2017 The NeoPG developers
+# NeoPG - application
+# Copyright 2017 The NeoPG developers
 #
 # NeoPG is released under the Simplified BSD License (see license.txt)
 
 FIND_PACKAGE(Boost COMPONENTS date_time locale REQUIRED)
 
-add_executable(neopg-tool
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
+  ${CMAKE_BINARY_DIR}/include/neopg-tool/version.h)
+
+set(NeopgToolHeaders
+  cli/armor_command.h
+  cli/cat_command.h
+  cli/command.h
+  cli/compress_command.h
+  cli/hash_command.h
+  cli/packet_command.h
+  cli/random_command.h
+  cli/version_command.h
+)
+add_library(neopg-tool STATIC
+  cli/armor_command.cpp
+  cli/cat_command.cpp
+  cli/command.cpp
+  cli/compress_command.cpp
+  cli/hash_command.cpp
+  cli/packet_command.cpp
+  cli/random_command.cpp
+  cli/version_command.cpp
+)
+target_include_directories(neopg-tool PUBLIC
+  "${CMAKE_BINARY_DIR}/include"
+  ${BOTAN2_INCLUDE_DIRS}
+  ${CLI11_INCLUDE_DIR}
+  ../include
+)
+
+# Publish header files for the static neopg-tool "library".
+set(NeopgToolPublishedHeaders "")
+set(NeopgToolPublishedHeadersDir "${CMAKE_BINARY_DIR}/include/neopg-tool")
+
+foreach(Header IN LISTS NeopgToolHeaders)
+  get_filename_component(HeaderFilename "${Header}" NAME)
+  set(Output "${NeopgToolPublishedHeadersDir}/${HeaderFilename}")
+  list(APPEND NeopgToolPublishedHeaders "${Output}")
+  add_custom_command(
+    OUTPUT "${Output}"
+    COMMAND "${CMAKE_COMMAND}" -E
+      make_directory "${NeopgToolPublishedHeadersDir}"
+    COMMAND "${CMAKE_COMMAND}" -E
+      copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${Header}" "${Output}"
+    MAIN_DEPENDENCY "${Header}"
+    COMMENT "Publishing ${HeaderFilename}"
+    VERBATIM
+  )
+endforeach()
+add_custom_target(
+  neopg_tool_headers
+  DEPENDS ${NeopgToolPublishedHeaders}
+  SOURCES ${NeopgToolHeaders}
+)
+
+add_dependencies(neopg-tool neopg_tool_headers)
+
+# NeoPG tool (binary)
+add_executable(neopg-bin
   ../legacy/gnupg/common/logging.h
   ../legacy/gnupg/common/logging.cpp
   ../legacy/gnupg/common/sysutils.h
@@ -191,25 +249,9 @@ add_executable(neopg-tool
   ../legacy/gnupg/scd/command.cpp
   ../legacy/gnupg/scd/iso7816.cpp
 
-  ../include/neopg-tool/cli/command.h
-  ../include/neopg-tool/cli/version_command.h
-  ../include/neopg-tool/cli/packet_command.h
-  ../include/neopg-tool/cli/random_command.h
-  ../include/neopg-tool/cli/hash_command.h
-  ../include/neopg-tool/cli/armor_command.h
-  ../include/neopg-tool/cli/cat_command.h
-  ../include/neopg-tool/cli/compress_command.h
-  cli/command.cpp
-  cli/version_command.cpp
-  cli/packet_command.cpp
-  cli/random_command.cpp
-  cli/hash_command.cpp
-  cli/armor_command.cpp
-  cli/cat_command.cpp
-  cli/compress_command.cpp
   neopg.cpp
 )
-target_include_directories(neopg-tool PRIVATE
+target_include_directories(neopg-bin PRIVATE
   ../legacy/libgpg-error/src
   ../legacy/libassuan/src
   ../legacy/libgcrypt/src
@@ -224,11 +266,11 @@ target_include_directories(neopg-tool PRIVATE
   ${JSON_INCLUDE_DIR}
   ../include
 )
-target_compile_definitions(neopg-tool PRIVATE
+target_compile_definitions(neopg-bin PRIVATE
   HAVE_CONFIG_H=1
   CMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
-target_link_libraries(neopg-tool PRIVATE
+target_link_libraries(neopg-bin PRIVATE
   gpg-error
   assuan
   gcrypt
@@ -238,14 +280,15 @@ ${SQLITE3_LDFLAGS} ${SQLITE3_LIBRARIES}
 ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
 ${LIBUSB_LDFLAGS} ${LIBUSB_LIBRARIES}
  neopg
+ neopg-tool
 )
-target_compile_options(neopg-tool PUBLIC
+target_compile_options(neopg-bin PUBLIC
 ${SQLITE3_CFLAGS_OTHER}
 ${BOTAN2_CFLAGS_OTHER}
 )
 
-set_target_properties(neopg-tool PROPERTIES OUTPUT_NAME "neopg")
-install(TARGETS neopg-tool RUNTIME DESTINATION bin)
+set_target_properties(neopg-bin PROPERTIES OUTPUT_NAME "neopg")
+install(TARGETS neopg-bin RUNTIME DESTINATION bin)
 
 # Locale
 
