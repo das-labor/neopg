@@ -35,7 +35,6 @@
 
 #include "util.h" /* Make sure our readline typedef is available. */
 
-const char *tty_get_ttyname(void);
 int tty_batchmode(int onoff);
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5)
 void tty_printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

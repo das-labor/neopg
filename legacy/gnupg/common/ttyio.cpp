@@ -99,38 +99,6 @@ static void (*my_rl_init_stream)(FILE *);
 static char *(*my_rl_readline)(const char *);
 static void (*my_rl_add_history)(const char *);
 
-/* This is a wrapper around ttyname so that we can use it even when
-   the standard streams are redirected.  It figures the name out the
-   first time and returns it in a statically allocated buffer. */
-const char *tty_get_ttyname(void) {
-  static char *name;
-
-/* On a GNU system ctermid() always return /dev/tty, so this does
-   not make much sense - however if it is ever changed we do the
-   Right Thing now. */
-#ifdef HAVE_CTERMID
-  static int got_name;
-
-  if (!got_name) {
-    const char *s;
-/* Note that despite our checks for these macros the function is
-   not necessarily thread save.  We mainly do this for
-   portability reasons, in case L_ctermid is not defined. */
-#if defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(_POSIX_TRHEADS)
-    char buffer[L_ctermid];
-    s = ctermid(buffer);
-#else
-    s = ctermid(NULL);
-#endif
-    if (s) name = strdup(s);
-    got_name = 1;
-  }
-#endif /*HAVE_CTERMID*/
-  /* Assume the standard tty on memory error or when there is no
-     ctermid. */
-  return name ? name : "/dev/tty";
-}
-
 #ifdef HAVE_TCGETATTR
 static void cleanup(void) {
   if (restore_termios) {
@@ -168,13 +136,10 @@ static void init_ttyfp(void) {
   SetConsoleMode(con.in, DEF_INPMODE);
   SetConsoleMode(con.out, DEF_OUTMODE);
 
-#elif defined(__EMX__)
-  ttyfp = stdout; /* Fixme: replace by the real functions: see wklib */
-  if (my_rl_init_stream) my_rl_init_stream(ttyfp);
 #else
-  ttyfp = batchmode ? stderr : fopen(tty_get_ttyname(), "r+");
+  ttyfp = batchmode ? stderr : fopen("/dev/tty", "r+");
   if (!ttyfp) {
-    log_error("cannot open '%s': %s\n", tty_get_ttyname(), strerror(errno));
+    log_error("cannot open '/dev/tty': %s\n", strerror(errno));
     exit(2);
   }
   if (my_rl_init_stream) my_rl_init_stream(ttyfp);
