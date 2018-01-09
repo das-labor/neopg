@@ -57,7 +57,7 @@ target_link_libraries(gpg-error-test PRIVATE
   gpg-error
   GTest::GTest GTest::Main)
 add_test(GpgErrorTest gpg-error-test COMMAND gpg-error-test test_xml_output --gtest_output=xml:gpg-error-test.xml)
-
+add_dependencies(tests gpg-error-test)
 
 # libassuan
 
@@ -122,6 +122,7 @@ target_link_libraries(assuan-test PRIVATE
   assuan
   GTest::GTest GTest::Main)
 add_test(AssuanTest assuan-test COMMAND assuan-test test_xml_output --gtest_output=xml:assuan-test.xml)
+add_dependencies(tests assuan-test)
 
 # libgcrypt
 
@@ -272,6 +273,7 @@ target_link_libraries(gcrypt-test PRIVATE
   gpg-error
   GTest::GTest GTest::Main)
 add_test(GcryptTest gcrypt-test COMMAND gcrypt-test test_xml_output --gtest_output=xml:gcrypt-test.xml)
+add_dependencies(tests gcrypt-test)
 
 add_executable(gcrypt-secmem-test
   libgcrypt/tests/t-secmem.cpp
@@ -282,11 +284,12 @@ target_include_directories(gcrypt-secmem-test PRIVATE
     ${CMAKE_BINARY_DIR}/.)
 target_compile_options(gcrypt-secmem-test PRIVATE -fpermissive
 )
-  target_link_libraries(gcrypt-secmem-test PRIVATE
-    gcrypt
-    gpg-error
-    GTest::GTest GTest::Main)
-  add_test(GcryptSecmemTest gcrypt-secmem-test COMMAND gcrypt-secmem-test test_xml_output --gtest_output=xml:gcrypt-secmem-test.xml)
+target_link_libraries(gcrypt-secmem-test PRIVATE
+  gcrypt
+  gpg-error
+  GTest::GTest GTest::Main)
+add_test(GcryptSecmemTest gcrypt-secmem-test COMMAND gcrypt-secmem-test test_xml_output --gtest_output=xml:gcrypt-secmem-test.xml)
+add_dependencies(tests gcrypt-secmem-test)
 
 # libksba
 
@@ -349,3 +352,4 @@ target_link_libraries(ksba-test PRIVATE
   ksba
   GTest::GTest GTest::Main)
 add_test(KsbaTest ksba-test COMMAND ksba-test test_xml_output --gtest_output=xml:ksba-test.xml)
+add_dependencies(tests ksba-test)

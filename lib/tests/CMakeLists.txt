@@ -30,3 +30,4 @@ target_link_libraries(test-libneopg
 add_test(LibNeoPGTest test-libneopg
   COMMAND test-libneopg test_xml_output --gtest_output=xml:test-libneopg.xml
 )
+add_dependencies(tests test-libneopg)

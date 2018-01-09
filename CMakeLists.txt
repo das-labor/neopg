@@ -46,6 +46,10 @@ add_subdirectory(${GTEST_ROOT} EXCLUDE_FROM_ALL)
 add_library(GTest::GTest ALIAS gtest)
 add_library(GTest::Main ALIAS gtest_main)
 
+# Add all tests as dependencies to "tests" so the coverage target can
+# depend on them.
+add_custom_target(tests)
+
 enable_testing()
 
 # PEGTL
@@ -85,18 +89,18 @@ APPEND_COVERAGE_COMPILER_FLAGS()
 set(COVERAGE_EXCLUDES '*/3rdparty/*' '*/usr/*' '*/nix/store/*')
 SETUP_TARGET_FOR_COVERAGE(
      NAME coverage
-     EXECUTABLE test-neopg
-     DEPENDENCIES neopg
+     EXECUTABLE ctest
+     DEPENDENCIES tests
 )
 SETUP_TARGET_FOR_COVERAGE_HTML(
      NAME coverage-html
-     EXECUTABLE test-neopg
-     DEPENDENCIES neopg
+     EXECUTABLE ctest
+     DEPENDENCIES tests
 )
 SETUP_TARGET_FOR_COVERAGE_COBERTURA(
      NAME coverage-data
-     EXECUTABLE test-neopg
-     DEPENDENCIES neopg
+     EXECUTABLE ctest
+     DEPENDENCIES tests
 )
 endif(COVERAGE)
 
