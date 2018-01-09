@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <gtest/gtest_prod.h>
 #include <neopg/common.h>
 #include <iostream>
 #include <streambuf>
@@ -23,7 +22,6 @@ class NEOPG_UNSTABLE_API CountingStreamBuf : public std::streambuf {
 
  private:
   uint32_t m_bytes_written = 0;
-  FRIEND_TEST(NeoPGTest, utils_stream_test);
 };
 
 class NEOPG_UNSTABLE_API CountingStream : public std::ostream {

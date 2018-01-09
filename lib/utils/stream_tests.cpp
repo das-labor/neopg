@@ -17,10 +17,10 @@ TEST(NeoPGTest, utils_stream_test) {
     CountingStreamBuf::int_type result;
     CountingStreamBuf buf;
     ASSERT_EQ(buf.bytes_written(), 0);
-    result = buf.overflow(0x41);
+    result = buf.sputc(0x41);
     ASSERT_EQ(result, 1);
     ASSERT_EQ(buf.bytes_written(), 1);
-    result = buf.xsputn("Test", 4);
+    result = buf.sputn("Test", 4);
     ASSERT_EQ(result, 4);
     ASSERT_EQ(buf.bytes_written(), 5);
   }
