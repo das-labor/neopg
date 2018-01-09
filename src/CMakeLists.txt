@@ -17,6 +17,7 @@ set(NeopgToolHeaders
   cli/packet_command.h
   cli/random_command.h
   cli/version_command.h
+  io/streams.h
 )
 add_library(neopg-tool STATIC
   cli/armor_command.cpp
@@ -27,6 +28,7 @@ add_library(neopg-tool STATIC
   cli/packet_command.cpp
   cli/random_command.cpp
   cli/version_command.cpp
+  io/streams.cpp
 )
 target_include_directories(neopg-tool PUBLIC
   "${CMAKE_BINARY_DIR}/include"
@@ -289,6 +291,10 @@ ${BOTAN2_CFLAGS_OTHER}
 
 set_target_properties(neopg-bin PROPERTIES OUTPUT_NAME "neopg")
 install(TARGETS neopg-bin RUNTIME DESTINATION bin)
+
+# Tests
+
+add_subdirectory(tests)
 
 # Locale
 
