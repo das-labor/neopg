@@ -34,6 +34,12 @@ interpretation.  Thus, existing preferred key servers in signature and
 in user id signatures must be ignored and new ones must not be
 generated.
 
+5.6.  Compressed Data Packet
+
+* A Compressed Data Packet MUST contain exactly one Literal Data Packet.
+* Compressed Data Packets that contain anything else MUST be rejected.
+
+NOTE: https://nvd.nist.gov/vuln/detail/CVE-2013-4402
 
 5.7. Symmetrically Encrypted Data Packet
 
@@ -57,7 +63,8 @@ c.f. 5.13.
 
 5.10 Trust Packet
 
-(To be specified)
+* Trust Packets MUST not be emitted.
+* Trust Packets MUST be ignored.
 
 5.11 User ID Packet
 
@@ -79,6 +86,14 @@ will be usable after manual confirmation only.
 
 See 5.12.
 
+5.13.  Sym. Encrypted Integrity Protected Data Packet
+
+* After decryption, the plaintext MUST contain exactly one Compressed
+Data Packet or exactly one Literal Data Packet.
+
+NOTE: If there are more possibilities, move the constrain to section
+11 (Packet Composition).
+
 6. Radix-64 Conversions
 
 * Radix-64 MUST NOT be generated.
@@ -91,8 +106,6 @@ NOTE: Use Base64 instead if you need an ASCII transport.
 * Cleartext signatures MUST be ignored.
 
 NOTE: Use a detached signature instead.
-
-
 
 * Limit the size of all packets
 
