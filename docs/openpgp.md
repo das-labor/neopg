@@ -2,57 +2,123 @@
 layout: default
 title: OpenPGP Profile (RFC 4880) for NeoPG
 ---
-OpenPGP Profile (RFC 4880) for NeoPG
-====================================
+# OpenPGP Profile (RFC 4880) for NeoPG
 
 The following profile of RFC 4880 is used to aid the implementation of
 NeoPG.  It deprecates underspecified features of OpenPG, avoids
 ill-designed features and in general simplifies things to a tolerable
 level.
 
-4.2. Packet Headers
+## First principles
 
-* The old packet format MUST be supported for input.
-* The new packet format MUST be used for output.
+The following first principles will guide this OpenPGP profile.  We
+explain them here once and reference them in the rationale sections
+below.
 
-4.2.1. Old Format Packet Lengths
+* __Security__: RFC 4880 allows some unsafe mechanisms.  We avoid
+  these by forbidding their use.
+* __Strictness__: OpenPGP allows too much flexibility in the packet
+  composition.  This provides a larger attack vector.  We avoid this
+  by being more strict in what we accept.
+* __Enforced Deprecation__: OpenPGP has deprecated some bad practices in
+  2007, but was never updated to enforce this deprecation.  We enforce
+  deprecation even if the OpenPGP still allows or mandates
+  compatibility.
+* __Drop PGP 2.x__: RFC 4880 still allows for PGP 2.x compatibility,
+  which comes at significant cost of complexity, and increases the
+  attack vector.  We break PGP 2.x compatibilty to enable other
+  improvements.
+
+## 4. Packet Syntax
+
+### 4.2. Packet Headers
+
+* __output__: The new packet format MUST be used for all packets.
+* __input__: The old packet format MUST be supported.
+
+#### Rationale
+
+The old packet format is still in use, but we are deprecating it here.
+
+Principles: __Enforce Deprecation__, __Drop PGP 2.x__
+
+#### 4.2.1. Old Format Packet Lengths
 
 * Packets with indeterminate length MUST be rejected.
 
-4.3. Packet Tags
+### 4.3. Packet Tags
 
-5.2.3.18. Preferred Key Server
+FIXME
 
-* Preferred Key Server Packets MUST not be generatd.
-* Preferred Key Server Packets MUST be ignored.
+##### 5.2.3.18. Preferred Key Server
 
-NOTE: Preferred key servers have not seen wide adoption, and they can
-be used to violate the privacy of the recipient.  The standard allows
-to set multiple preferred key servers on multiple user ids, which is
+* Preferred Key Server Packets MUST not be generated.
+* Preferred Key Server Packets MUST be ignored (even if critical).
+
+###### Rationale
+
+Preferred key servers have not seen wide adoption, and they can be
+used to violate the privacy of the recipient.  The standard allows to
+set multiple preferred key servers on multiple user ids, which is
 ambiguous.  The meaning of the URI in the field is left open to
-interpretation.  Thus, existing preferred key servers in signature and
-in user id signatures must be ignored and new ones must not be
-generated.
+interpretation.  We are deprecating this subpacket here.
 
-5.6.  Compressed Data Packet
+Principles: __Security__
 
-* A Compressed Data Packet MUST contain exactly one Literal Data Packet.
-* Compressed Data Packets that contain anything else MUST be rejected.
+###### References
 
-NOTE: https://nvd.nist.gov/vuln/detail/CVE-2013-4402
+* [RFC 4880, Section 5.2.3.18](https://tools.ietf.org/html/rfc4880#section-5.2.3.18)
 
-5.7. Symmetrically Encrypted Data Packet
+### 5.6.  Compressed Data Packet
 
-* Symmetrically Encrypted Data Packets MUST not be generated.
-* Symmetrically Encrypted Data Packets MUST be rejected.
+* __output__: A Compressed Data Packet MUST contain exactly one Literal Data Packet.
+* __input__: Compressed Data Packets that contain anything else MUST be rejected.
 
-c.f. 5.13.
+#### Rationale
 
-5.8. Marker Packet
+Arbitrary nesting of OpenPGP packets increases the attack surface.
 
-* Marker Packets MUST NOT be generated.
+Principles: __Security__, __Strictness__
 
-5.9. Literal Data Packet
+#### References
+
+* [CVE-2013-4402](https://nvd.nist.gov/vuln/detail/CVE-2013-4402)
+
+### 5.7. Symmetrically Encrypted Data Packet
+
+* __output__: Symmetrically Encrypted Data Packets MUST not be generated.
+* __input__: Symmetrically Encrypted Data Packets MUST be rejected.
+
+#### Rationale
+
+Encryption without integrity protection is unsafe, and allows an
+attacker to modify the plaintext without detection.
+
+Principles: __Security__, __Enforced Deprecation__
+
+#### References
+
+* [RFC 4880, Section 5.7](https://tools.ietf.org/html/rfc4880#section-5.7)
+* c.f. 5.13.
+
+### 5.8. Marker Packet
+
+* __output__: Marker Packets MUST NOT be generated.
+* __input__: Marker Packets MUST be rejected.
+
+#### Rationale
+
+RFC 4880 mandates that marker packets "MUST be ignored when received."
+We disagree, because according to the same standard, no released
+version of PGP generated such packets.
+
+Principles: __Strictness__, __Enforced Deprecation__, __Drop PGP 2.x__
+
+#### References
+
+* [RFC 4880, Section 5.8](https://tools.ietf.org/html/rfc4880#section-5.8)
+
+### 5.9. Literal Data Packet
 
 * Generated Literal Data Packets MUST have data type 'b' (binary).
 * Generated Literal Data Packets MUST have a zero-length file name.
@@ -77,16 +143,28 @@ address, a (verifiable) twitter handle, or some other handle supported
 by a trust agency such as keybase.io.  Non-verifiable User ID Packets
 will be usable after manual confirmation only.
 
-5.12 User Attribute Packet
+### 5.12 User Attribute Packet
 
-* User Attribute Packets MUST NOT be generated.
-* All User Attribute Packets and its certificates MUST be ignored.
+* __output__: User Attribute Packets MUST NOT be generated.
+* __input__: All User Attribute Packets and its certificates MUST be ignored.
 
-5.12.1 Image Attribute Subpacket
+#### Rationale
+
+The only user attribute packet defined in RFC 4880 is the image for
+photo id.  No other user attribute packets were defined or are in
+widespread use, so we deprecate the fetaure here.
+
+Principles: __Enforced Deprecation__
+
+#### References
+
+* [RFC 4880, Section 5.12](https://tools.ietf.org/html/rfc4880#section-5.12)
+
+#### 5.12.1 Image Attribute Subpacket
 
 See 5.12.
 
-5.13.  Sym. Encrypted Integrity Protected Data Packet
+### 5.13.  Sym. Encrypted Integrity Protected Data Packet
 
 * After decryption, the plaintext MUST contain exactly one Compressed
 Data Packet or exactly one Literal Data Packet.
@@ -94,22 +172,24 @@ Data Packet or exactly one Literal Data Packet.
 NOTE: If there are more possibilities, move the constrain to section
 11 (Packet Composition).
 
-6. Radix-64 Conversions
+## 6. Radix-64 Conversions
 
-* Radix-64 MUST NOT be generated.
-
-NOTE: Use Base64 instead if you need an ASCII transport.
-
-7. Cleartext Signature Framework
+## 7. Cleartext Signature Framework
 
 * Cleartext signatures MUST NOT be generated.
 * Cleartext signatures MUST be ignored.
 
-NOTE: Use a detached signature instead.
+### Rationale
 
-* Limit the size of all packets
+Use a detached signature instead.
 
+## Further Requirements
+
+### Limit the size of all packets
+
+```
 /* Maximum length of packets to avoid excessive memory allocation.  */
 #define MAX_KEY_PACKET_LENGTH     (256 * 1024)
 #define MAX_COMMENT_PACKET_LENGTH ( 64 * 1024)
 #define MAX_ATTR_PACKET_LENGTH    ( 16 * 1024*1024)
+```
