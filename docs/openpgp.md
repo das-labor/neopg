@@ -127,21 +127,56 @@ Principles: __Strictness__, __Enforced Deprecation__, __Drop PGP 2.x__
 * All Literal Data Packets MUST be treated as if the file name is zero-length.
 * All Literal Data Packets MUST be treated as if the timestamp is 0.
 
-5.10 Trust Packet
+### 5.10 Trust Packet
 
-* Trust Packets MUST not be emitted.
-* Trust Packets MUST be ignored.
+* __output__: Trust Packets MUST not be emitted.
+* __input__: Trust Packets MUST be rejected.
 
-5.11 User ID Packet
+#### Rationale
+
+RFC 4880 mandates that trust packets are ignored when received, but it
+also says they should not be emitted.  The content of these packets is
+implementation defined.  Ignoring them provides a larger attack
+vector, so we disagree with the standard here and require that they
+are rejected.
+
+Principles: __Strictness__
+
+#### References
+
+* [RFC 4880, Section 5.10](https://tools.ietf.org/html/rfc4880#section-5.10)
+
+### 5.11 User ID Packet
 
 * Generated User ID Packets MUST have a payload less than or equal to 2 KB.
 * User ID Packets larger than 2 KB and their certificates MUST be rejected.
 
-NOTE: In the future, NeoPG will be strict about what a User ID Packet can
-contain.  Preferably, it will only contain a (verifiable) email
-address, a (verifiable) twitter handle, or some other handle supported
-by a trust agency such as keybase.io.  Non-verifiable User ID Packets
-will be usable after manual confirmation only.
+#### Rationale
+
+RFC 4880 does not restrict the length or content of user ID packets,
+so they can be up to 4 GB.  This provides a larger attack vector, so
+we disagree with the standard here and require that large user IDs are
+rejected.  GnuPG limits user ID packets to 2 KB.
+
+Principles: __Strictness__, __Security__
+
+#### References
+
+* [RFC 4880, Section 5.11](https://tools.ietf.org/html/rfc4880#section-5.11)
+
+#### Future Discussion
+
+Keys require a user ID packet, because certain meta-data is attached
+to user IDs only (and can not be attached to the key directly).
+
+With the web of trust, self-signed user IDs were used to bootstrap the
+key-signing process (making sure that everybody agreed on the same
+user ID format).  However, with the decline of the web of trust,
+unverified self-signed user IDs are of limited value.
+
+User ID packets signed by some authority (which may be the local
+user), even if they are not self-signed, will become more significant
+in NeoPG in the future.
 
 ### 5.12 User Attribute Packet
 
