@@ -30,6 +30,7 @@ set(NeopgHeaders
   utils/time.h
 )
 add_library(neopg
+  include/neopg/intern/cplusplus.h
   crypto/rng.cpp
   openpgp/compressed_data_packet.cpp
   openpgp/literal_data_packet.cpp
@@ -42,6 +43,7 @@ add_library(neopg
   openpgp/trust_packet.cpp
   openpgp/user_attribute_packet.cpp
   openpgp/user_id_packet.cpp
+  parser/openpgp.cpp
   proto/http.cpp
   proto/uri.cpp
   utils/stream.cpp
@@ -49,6 +51,7 @@ add_library(neopg
 )
 target_include_directories(neopg PUBLIC
   "${CMAKE_BINARY_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include"
   ${PEGTL_INCLUDE_DIR}
   ${Boost_INCLUDE_DIR}
   ${BOTAN2_INCLUDE_DIRS}
