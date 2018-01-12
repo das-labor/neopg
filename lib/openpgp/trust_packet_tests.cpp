@@ -1,10 +1,14 @@
-#include <sstream>
-
-#include "gtest/gtest.h"
+// Trust packet tests
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/trust_packet.h>
 
+#include <gtest/gtest.h>
+
 #include <memory>
+#include <sstream>
 
 using namespace NeoPG;
 

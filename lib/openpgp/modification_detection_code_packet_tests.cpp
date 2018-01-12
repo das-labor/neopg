@@ -1,15 +1,20 @@
-#include <sstream>
-
-#include "gtest/gtest.h"
+// OpenPGP MDC packet (tests)
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/modification_detection_code_packet.h>
 
+#include <gtest/gtest.h>
+
 #include <memory>
+#include <sstream>
 
 using namespace NeoPG;
 
 TEST(NeoPGTest, openpg_modification_detection_code_packet_test) {
   {
+    // Must be new packet header, so we don't test old.
     std::stringstream out;
     ModificationDetectionCodePacket packet;
     packet.m_data = std::vector<uint8_t>{
@@ -22,8 +27,8 @@ TEST(NeoPGTest, openpg_modification_detection_code_packet_test) {
                                      22));
   }
 
-  /* Failures.  */
   {
+    /* Failures.  */
     std::stringstream out;
     ModificationDetectionCodePacket packet;
     ASSERT_THROW(packet.write(out), std::logic_error);

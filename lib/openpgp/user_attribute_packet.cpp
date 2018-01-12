@@ -4,9 +4,10 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
+#include <neopg/user_attribute_packet.h>
+
 #include <neopg/packet_header.h>
 #include <neopg/stream.h>
-#include <neopg/user_attribute_packet.h>
 
 namespace NeoPG {
 

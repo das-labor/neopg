@@ -1,15 +1,20 @@
-#include <sstream>
-
-#include "gtest/gtest.h"
+// OpenPGP user ID packet (tests)
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/user_id_packet.h>
 
+#include <gtest/gtest.h>
+
 #include <memory>
+#include <sstream>
 
 using namespace NeoPG;
 
 TEST(NeoPGTest, openpg_user_id_packet_test) {
   {
+    // Test old packet header.
     std::stringstream out;
     UserIdPacket packet;
     packet.write(out);
@@ -17,6 +22,7 @@ TEST(NeoPGTest, openpg_user_id_packet_test) {
   }
 
   {
+    // Test new packet header.
     std::stringstream out;
     UserIdPacket packet;
     packet.m_content = "John Doe john.doe@example.com";

@@ -1,13 +1,13 @@
-/* OpenPGP format
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
+// OpenPGP format
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/packet.h>
+
 #include <neopg/stream.h>
 
-namespace NeoPG {
+using namespace NeoPG;
 
 void Packet::write(std::ostream& out) const {
   if (m_header) {
@@ -21,5 +21,3 @@ void Packet::write(std::ostream& out) const {
   }
   write_body(out);
 }
-
-}  // namespace NeoPG
