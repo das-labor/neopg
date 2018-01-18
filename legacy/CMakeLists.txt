@@ -40,7 +40,7 @@ target_compile_definitions(gpg-error PRIVATE
   HAVE_CONFIG_H=1)
 target_link_libraries(gpg-error PRIVATE pthread
   ${Intl_LDFLAGS} ${Intl_LIBRARIES})
-target_compile_options(gpg-error PRIVATE -fpermissive
+target_compile_options(gpg-error PRIVATE
 )
 
 add_executable(gpg-error-test
@@ -94,7 +94,7 @@ else()
 )
 endif()
 
-target_compile_options(assuan PRIVATE -fpermissive
+target_compile_options(assuan PRIVATE
 )
 
 add_library(neopg::assuan ALIAS assuan)
@@ -116,7 +116,7 @@ target_include_directories(assuan-test PRIVATE
   ${CMAKE_BINARY_DIR}/.)
 target_compile_definitions(assuan-test PRIVATE
 CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/legacy/libassuan/tests")
-target_compile_options(assuan-test PRIVATE -fpermissive
+target_compile_options(assuan-test PRIVATE
 )
 target_link_libraries(assuan-test PRIVATE
   assuan
@@ -256,7 +256,6 @@ target_link_libraries(gcrypt PRIVATE
   ${BOTAN2_LDFLAGS} ${BOTAN2_LIBRARIES}
   neopg)
 target_compile_options(gcrypt PRIVATE
- -fpermissive
  ${BOTAN2_CFLAGS_OTHER})
 
 add_executable(gcrypt-test
@@ -266,7 +265,7 @@ target_include_directories(gcrypt-test PRIVATE
   libgpg-error/src
   libgcrypt/src
   ${CMAKE_BINARY_DIR}/.)
-target_compile_options(gcrypt-test PRIVATE -fpermissive -Wnarrowing
+target_compile_options(gcrypt-test PRIVATE
 )
 target_link_libraries(gcrypt-test PRIVATE
   gcrypt
@@ -282,7 +281,7 @@ target_include_directories(gcrypt-secmem-test PRIVATE
     libgpg-error/src
     libgcrypt/src
     ${CMAKE_BINARY_DIR}/.)
-target_compile_options(gcrypt-secmem-test PRIVATE -fpermissive
+target_compile_options(gcrypt-secmem-test PRIVATE
 )
 target_link_libraries(gcrypt-secmem-test PRIVATE
   gcrypt
@@ -332,7 +331,7 @@ target_compile_definitions(ksba PRIVATE
   ${BOTAN2_CFLAGS_OTHER}
 )
 
-target_compile_options(ksba PRIVATE -fpermissive
+target_compile_options(ksba PRIVATE
 )
 
 add_executable(ksba-test
