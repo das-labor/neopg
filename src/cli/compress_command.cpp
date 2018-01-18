@@ -32,7 +32,7 @@ void ListCompressCommand::run() {
 #endif
 }
 
-const std::map<std::string, std::string> algo_to_suffix = {
+static const std::map<std::string, std::string> algo_to_suffix = {
     {"Deflate_Compression", ".zip"},
     {"Zlib_Compression", ".zlib"},
     {"Gzip_Compression", ".gz"},

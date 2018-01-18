@@ -5,6 +5,8 @@
 
 #pragma once
 
+// (The following comment makes things happen in Doxygen.)
+/// The NeoPG namespace.
 namespace NeoPG {
 
 // Allow byte literals such as 0xff_b.

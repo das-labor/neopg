@@ -1,16 +1,15 @@
-/* OpenPGP format
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
+// OpenPGP format
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #pragma once
+
+#include <neopg/common.h>
 
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
-
-#include <neopg/common.h>
 
 namespace NeoPG {
 
@@ -36,16 +35,22 @@ enum class NEOPG_UNSTABLE_API PacketType : uint8_t {
   Private_60 = 60,
   Private_61 = 61,
   Private_62 = 62,
-  Private_63 = 63
+  Private_63 = 63,
 };
 
 enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {
   OneOctet = 0,
   TwoOctet = 1,
+
+  // New packet format
   FiveOctet = 2,
-  FourOctet = 2,
   Partial = 3,
-  Indeterminate = 3, /* Old Format */
+
+  // Old packet format
+  FourOctet = 2,
+  Indeterminate = 3,
+
+  /// This picks the best encoding automatically.
   Default
 };
 

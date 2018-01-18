@@ -19,7 +19,7 @@ enum class NEOPG_UNSTABLE_API LiteralDataType : uint8_t {
   Text = 0x74,
   Utf8 = 0x75,
   Local = 0x6c,
-  OldLocal = 0x31
+  OldLocal = 0x31,
 };
 
 struct NEOPG_UNSTABLE_API LiteralDataPacket : Packet {
