@@ -5,10 +5,13 @@
 */
 
 #include <neopg/uri.h>
-#include <tao/pegtl/contrib/uri.hpp>
-#include <tao/pegtl/parse.hpp>
 
 #include <iostream>
+
+// Protect our use of PEGTL from other library users.
+#define TAOCPP_PEGTL_NAMESPACE neopg_pegtl
+#include <tao/pegtl/contrib/uri.hpp>
+#include <tao/pegtl/parse.hpp>
 
 namespace NeoPG {
 
@@ -29,7 +32,7 @@ struct bind {
 };
 
 template <typename Rule>
-struct action : tao::pegtl::nothing<Rule> {};
+struct action : pegtl::nothing<Rule> {};
 
 template <>
 struct action<pegtl::uri::scheme> : bind<&URI::scheme> {};
@@ -79,7 +82,7 @@ struct action<pegtl::uri::query> : bind<&URI::query> {};
 
 template <>
 struct action<pegtl::uri::fragment> : bind<&URI::fragment> {};
-};
+};  // namespace uri
 
 URI& URI::clear() {
   scheme.clear();
