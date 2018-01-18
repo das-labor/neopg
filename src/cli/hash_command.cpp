@@ -128,7 +128,7 @@ void HashCommand::run() {
       Botan::DataSource_Stream in{std::cin};
       pipe.process_msg(in);
     } else {
-      Botan::DataSource_Stream in{file};
+      Botan::DataSource_Stream in{file, true};
       pipe.process_msg(in);
     }
     if (multi_files) std::cout << " " << file << "\n";

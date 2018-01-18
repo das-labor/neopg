@@ -54,7 +54,7 @@ void CompressCommand::run() {
   for (auto& file : m_files) {
     std::unique_ptr<Botan::DataSource_Stream> source{
         (file == "-") ? new Botan::DataSource_Stream{std::cin}
-                      : new Botan::DataSource_Stream{file}};
+                      : new Botan::DataSource_Stream{file, true}};
     Botan::Filter* compress =
         m_decode
             ? (Botan::Filter*)new Botan::Decompression_Filter(m_algo)
