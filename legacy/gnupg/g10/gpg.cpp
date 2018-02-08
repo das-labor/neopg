@@ -230,9 +230,6 @@ enum cmd_and_opt_values {
   oCommandFile,
   oNoVerbose,
   oTrustDBName,
-  oNoSecmemWarn,
-  oRequireSecmem,
-  oNoRequireSecmem,
   oNoPermissionWarn,
   oNoArmor,
   oNoDefKeyring,
@@ -569,9 +566,6 @@ const static ARGPARSE_OPTS opts[] = {
     ARGPARSE_s_s(oForceOwnertrust, "force-ownertrust", "@"),
 #endif
 
-    ARGPARSE_s_n(oNoSecmemWarn, "no-secmem-warning", "@"),
-    ARGPARSE_s_n(oRequireSecmem, "require-secmem", "@"),
-    ARGPARSE_s_n(oNoRequireSecmem, "no-require-secmem", "@"),
     ARGPARSE_s_n(oNoPermissionWarn, "no-permission-warning", "@"),
     ARGPARSE_s_n(oNoArmor, "no-armor", "@"),
     ARGPARSE_s_n(oNoDefKeyring, "no-default-keyring", "@"),
@@ -1522,8 +1516,6 @@ int gpg_main(int argc, char **argv) {
   int ovrseskeyfd = -1;
   int fpr_maybe_cmd = 0; /* --fingerprint maybe a command.  */
   int any_explicit_recipient = 0;
-  bool require_secmem = false;
-  int got_secmem = 0;
   struct assuan_malloc_hooks malloc_hooks;
   ctrl_t ctrl;
 
@@ -1533,7 +1525,7 @@ int gpg_main(int argc, char **argv) {
   gnupg_reopen_std(GPG_NAME);
   gnupg_rl_initialize();
   set_strusage(my_strusage);
-  gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
+  gcry_control(GCRYCTL_DISABLE_SECMEM_WARN);
   log_set_prefix(GPG_NAME, GPGRT_LOG_WITH_PREFIX);
 
   /* Make sure that our subsystems are ready.  */
@@ -1597,7 +1589,7 @@ int gpg_main(int argc, char **argv) {
 #endif
 
   /* Initialize the secure memory. */
-  if (!gcry_control(GCRYCTL_INIT_SECMEM, SECMEM_BUFFER_SIZE, 0)) got_secmem = 1;
+  gcry_control(GCRYCTL_INIT_SECMEM, SECMEM_BUFFER_SIZE, 0);
 
   /* malloc hooks go here ... */
   malloc_hooks.malloc = gcry_malloc;
@@ -2202,18 +2194,6 @@ next_pass:
         cert_digest_string = xstrdup(pargs.r.ret_str);
         break;
 
-      case oNoSecmemWarn:
-        gcry_control(GCRYCTL_DISABLE_SECMEM_WARN);
-        break;
-
-      case oRequireSecmem:
-        require_secmem = true;
-        break;
-
-      case oNoRequireSecmem:
-        require_secmem = false;
-        break;
-
       case oNoPermissionWarn:
         opt.no_perm_warn = true;
         break;
@@ -2612,14 +2592,6 @@ next_pass:
     for (i = 0; i < argc; i++)
       if (argv[i][0] == '-' && argv[i][1] == '-')
         log_info(_("Note: '%s' is not considered an option\n"), argv[i]);
-  }
-
-  gcry_control(GCRYCTL_RESUME_SECMEM_WARN);
-
-  if (require_secmem && !got_secmem) {
-    log_info(_("will not run with insecure memory due to %s\n"),
-             "--require-secmem");
-    g10_exit(2);
   }
 
   set_debug(debug_level);
