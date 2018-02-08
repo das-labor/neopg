@@ -4641,6 +4641,7 @@ reloop: /* (must use this, because we are modifying the list) */
     rc = make_keysig_packet(ctrl, &sig, primary_pk, unode->pkt->pkt.user_id,
                             NULL, signerkey, 0x30, 0, 0, 0, sign_mk_attrib,
                             &attrib, NULL);
+    release_public_key_parts(signerkey);
     Botan::deallocate_memory(signerkey, 1, sizeof *signerkey);
     if (rc) {
       write_status_error("keysig", rc);

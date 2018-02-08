@@ -25,7 +25,7 @@
 #include "gpgsm.h"
 #include "passphrase.h"
 
-static char *fd_passwd = NULL;
+static std::unique_ptr<Botan::secure_vector<char>> fd_passwd;
 
 int sm_have_static_passphrase() { return !!fd_passwd; }
 
@@ -33,27 +33,26 @@ int sm_have_static_passphrase() { return !!fd_passwd; }
    long as no other passphrase related function is called.  NULL may
    be returned if no passphrase has been set; better use
    have_static_passphrase first.  */
-const char *sm_get_static_passphrase(void) { return fd_passwd; }
+const char *sm_get_static_passphrase(void) {
+  if (!fd_passwd)
+    return NULL;
+  else
+    return fd_passwd->data();
+}
 
 void sm_read_passphrase_from_fd(int fd) {
   int i, len;
-  char *pw;
 
-  for (pw = NULL, i = len = 100;; i++) {
-    if (i >= len - 1) {
-      char *pw2 = pw;
-      len += 100;
-      pw = (char *)xmalloc_secure(len);
-      if (pw2) {
-        memcpy(pw, pw2, i);
-        xfree(pw2);
-      } else
-        i = 0;
-    }
-    if (read(fd, pw + i, 1) != 1 || pw[i] == '\n') break;
+  auto pw = std::unique_ptr<Botan::secure_vector<char>>(new Botan::secure_vector<char>);
+  while (true) {
+    char next;
+    int res;
+    res = read(fd, &next, 1);
+    if (res != 1 || next == '\n')
+      break;
+    pw->push_back(next);
   }
-  pw[i] = 0;
-
-  xfree(fd_passwd);
-  fd_passwd = pw;
+  /* Build a C string.  */
+  pw->push_back(0);
+  fd_passwd = std::move(pw);
 }

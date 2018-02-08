@@ -791,8 +791,7 @@ static gpg_error_t convert_from_openpgp_main(
     struct pin_entry_info_s *pi;
     struct try_do_unprotect_arg_s pi_arg;
 
-    pi = (pin_entry_info_s *)xtrycalloc_secure(
-        1, sizeof(*pi) + MAX_PASSPHRASE_LEN + 1);
+    pi = (pin_entry_info_s *) Botan::allocate_memory(1, sizeof(*pi) + MAX_PASSPHRASE_LEN + 1);
     if (!pi) return gpg_error_from_syserror();
     pi->max_length = MAX_PASSPHRASE_LEN + 1;
     pi->min_digits = 0; /* We want a real passphrase.  */
@@ -840,7 +839,7 @@ static gpg_error_t convert_from_openpgp_main(
       *r_passphrase = xtrystrdup(pi->pin);
       if (!*r_passphrase) err = gpg_error_from_syserror();
     }
-    xfree(pi);
+    Botan::deallocate_memory(pi, 1, sizeof(*pi));
     if (err) goto leave;
   }
 

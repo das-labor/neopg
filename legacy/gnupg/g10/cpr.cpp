@@ -506,6 +506,7 @@ int cpr_get_answer_okay_cancel(const char *keyword, const char *prompt,
     trim_spaces(p); /* it is okay to do this here */
     tty_kill_prompt();
     yes = answer_is_okay_cancel(p, def_answer);
+    xfree(p);
     return yes;
   }
 }

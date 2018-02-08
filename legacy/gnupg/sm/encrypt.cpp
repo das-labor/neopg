@@ -31,6 +31,8 @@
 #include <ksba.h>
 #include "gpgsm.h"
 
+#include <botan/mem_ops.h>
+
 #include "../common/compliance.h"
 #include "keydb.h"
 
@@ -352,7 +354,7 @@ int gpgsm_encrypt(ctrl_t ctrl, certlist_t recplist, int data_fd,
   }
 
   /* Create a session key */
-  dek = (DEK)xtrycalloc_secure(1, sizeof *dek);
+  dek = (DEK)Botan::allocate_memory(1, sizeof *dek);
   if (!dek)
     rc = gpg_error_from_syserror();
   else {
@@ -466,7 +468,7 @@ leave:
   gnupg_ksba_destroy_writer(b64writer);
   ksba_reader_release(reader);
   sm_keydb_release(kh);
-  xfree(dek);
+  Botan::deallocate_memory(dek, 1, sizeof(*dek));
   es_fclose(data_fp);
   xfree(encparm.buffer);
   return rc;

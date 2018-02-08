@@ -82,15 +82,12 @@ typedef char **rl_completion_func_t(const char *, int, int);
 #define xfree_fnc gcry_free
 
 #define xmalloc(a) gcry_xmalloc((a))
-#define xmalloc_secure(a) gcry_xmalloc_secure((a))
 #define xcalloc(a, b) gcry_xcalloc((a), (b))
-#define xcalloc_secure(a, b) gcry_xcalloc_secure((a), (b))
 #define xrealloc(a, b) gcry_xrealloc((a), (b))
 #define xstrdup(a) gcry_xstrdup((a))
 
 /* For compatibility with gpg 1.4 we also define these: */
 #define xmalloc_clear(a) gcry_xcalloc(1, (a))
-#define xmalloc_secure_clear(a) gcry_xcalloc_secure(1, (a))
 
 /*-- yesno.c --*/
 int answer_is_yes(const char *s);

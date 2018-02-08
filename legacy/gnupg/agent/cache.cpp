@@ -98,6 +98,7 @@ static gpg_error_t new_data(const char *string, struct secret_data_s **r_data) {
   struct secret_data_s *d, *d_enc;
   size_t length;
   int total;
+  size_t d_len;
 
   *r_data = NULL;
 
@@ -113,14 +114,14 @@ static gpg_error_t new_data(const char *string, struct secret_data_s **r_data) {
      extra bytes as well. */
   total = (length + 8) + 32 - ((length + 8) % 32);
 
-  d = (secret_data_s *)xtrymalloc_secure(sizeof *d + total - 1);
-  if (!d) return gpg_error_from_syserror();
+  d_len = sizeof *d + total - 1;
+  d = (secret_data_s *) Botan::allocate_memory(1, d_len);
   memcpy(d->data, string, length);
 
   d_enc = (secret_data_s *)xtrymalloc(sizeof *d_enc + total - 1);
   if (!d_enc) {
     err = gpg_error_from_syserror();
-    xfree(d);
+    Botan::deallocate_memory(d, 1, d_len);
     return err;
   }
 
@@ -134,7 +135,7 @@ static gpg_error_t new_data(const char *string, struct secret_data_s **r_data) {
   memcpy(d_enc->data, enc.data(), total);
   err = 0;
 
-  xfree(d);
+  Botan::deallocate_memory(d, 1, d_len);
   if (err) {
     xfree(d_enc);
     return err;

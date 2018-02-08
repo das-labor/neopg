@@ -437,7 +437,6 @@ int encrypt_crypt(
 
   /* Create a session key. */
   cfx.dek = (DEK *)Botan::allocate_memory(1, sizeof(*cfx.dek));
-  memset(cfx.dek, 0, sizeof(*cfx.dek));
 
   if (!opt.def_cipher_algo) {
     /* Try to get it from the prefs.  */

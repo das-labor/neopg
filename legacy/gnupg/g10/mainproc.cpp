@@ -264,11 +264,9 @@ static void proc_symkey_enc(CTX c, PACKET *pkt) {
 
     if (!opt.override_session_key.empty()) {
       c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
-      memset(c->dek, 0, sizeof *c->dek);
       if (get_override_session_key(
               c->dek, (const char *)opt.override_session_key.data())) {
         Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
-        xfree(c->dek);
         c->dek = nullptr;
       }
     } else {
@@ -325,7 +323,6 @@ static void proc_pubkey_enc(ctrl_t ctrl, CTX c, PACKET *pkt) {
 
   if (!opt.list_only && !opt.override_session_key.empty()) {
     c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
-    memset(c->dek, 0, sizeof *c->dek);
     result = get_override_session_key(
         c->dek, (const char *)opt.override_session_key.data());
     if (result) {
@@ -350,7 +347,6 @@ static void proc_pubkey_enc(ctrl_t ctrl, CTX c, PACKET *pkt) {
         result = -1;
       else {
         c->dek = (DEK *)Botan::allocate_memory(1, sizeof(*c->dek));
-        memset(c->dek, 0, sizeof *c->dek);
         if ((result = get_session_key(ctrl, enc, c->dek))) {
           /* Error: Delete the DEK. */
           Botan::deallocate_memory(c->dek, 1, sizeof(*c->dek));
@@ -454,7 +450,6 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
 
     if (!opt.override_session_key.empty()) {
       c->dek = (DEK *)Botan::allocate_memory(1, sizeof *c->dek);
-      memset(c->dek, 0, sizeof *c->dek);
       result = get_override_session_key(
           c->dek, (const char *)opt.override_session_key.data());
       if (result) {

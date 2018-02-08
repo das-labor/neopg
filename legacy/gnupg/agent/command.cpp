@@ -35,6 +35,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <botan/secmem.h>
+
 #include <assuan.h>
 #include "../common/asshelp.h"
 #include "../common/server-help.h"
@@ -973,14 +975,9 @@ static int send_back_passphrase(assuan_context_t ctx, int via_data,
   if (via_data)
     rc = assuan_send_data(ctx, pw, n);
   else {
-    char *p = (char *)xtrymalloc_secure(n * 2 + 1);
-    if (!p)
-      rc = gpg_error_from_syserror();
-    else {
-      bin2hex(pw, n, p);
-      rc = assuan_set_okay_line(ctx, p);
-      xfree(p);
-    }
+    Botan::secure_vector<char> p(n * 2 + 1);
+    bin2hex(pw, n, p.data());
+    rc = assuan_set_okay_line(ctx, p.data());
   }
   return rc;
 }
@@ -1622,7 +1619,7 @@ static gpg_error_t cmd_keytocard(assuan_context_t ctx, char *line) {
   gpg_error_t err = 0;
   unsigned char grip[20];
   gcry_sexp_t s_skey = NULL;
-  unsigned char *keydata;
+  Botan::secure_vector<unsigned char> keydata;
   size_t keydatalen;
   const char *serialno, *timestamp_str, *id;
   unsigned char *shadow_info = NULL;
@@ -1684,25 +1681,19 @@ static gpg_error_t cmd_keytocard(assuan_context_t ctx, char *line) {
   }
 
   keydatalen = gcry_sexp_sprint(s_skey, GCRYSEXP_FMT_CANON, NULL, 0);
-  keydata = (unsigned char *)xtrymalloc_secure(keydatalen + 30);
-  if (keydata == NULL) {
-    err = gpg_error_from_syserror();
-    gcry_sexp_release(s_skey);
-    goto leave;
-  }
+  keydata.resize(keydatalen + 30);
 
-  gcry_sexp_sprint(s_skey, GCRYSEXP_FMT_CANON, keydata, keydatalen);
+  gcry_sexp_sprint(s_skey, GCRYSEXP_FMT_CANON, keydata.data(), keydatalen);
   gcry_sexp_release(s_skey);
   keydatalen--; /* Decrement for last '\0'.  */
   /* Add timestamp "created-at" in the private key */
-  snprintf((char *)(keydata + keydatalen - 1), 30, KEYTOCARD_TIMESTAMP_FORMAT,
+  snprintf((char *)(keydata.data() + keydatalen - 1), 30, KEYTOCARD_TIMESTAMP_FORMAT,
            timestamp);
   keydatalen += 10 + 19 - 1;
-  err = divert_writekey(ctrl, force, serialno, id, (const char *)(keydata),
+  err = divert_writekey(ctrl, force, serialno, id, (const char *)(keydata.data()),
                         keydatalen);
-  xfree(keydata);
 
-leave:
+ leave:
   return leave_cmd(ctx, err);
 }
 
