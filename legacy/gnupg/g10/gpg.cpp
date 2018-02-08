@@ -1424,7 +1424,6 @@ static void set_compliance_option(enum cmd_and_opt_values option) {
    assumed that this object has been zeroed out before calling this
    function. */
 static void gpg_init_default_ctrl(ctrl_t ctrl) {
-  ctrl->magic = SERVER_CONTROL_MAGIC;
 }
 
 /* This function is called to deinitialize a control object.  It is

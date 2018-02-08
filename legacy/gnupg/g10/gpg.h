@@ -53,19 +53,10 @@ typedef struct kbnode_struct *kbnode_t;
 /* The handle for keydb operations.  */
 typedef struct keydb_handle *KEYDB_HANDLE;
 
-#if SIZEOF_UNSIGNED_LONG == 8
-#define SERVER_CONTROL_MAGIC 0x53616c696e676572
-#else
-#define SERVER_CONTROL_MAGIC 0x53616c69
-#endif
-
 /* Session control object.  This object is passed to most functions to
    convey the status of a session.  Note that the defaults are set by
    gpg_init_default_ctrl(). */
 struct server_control_s {
-  /* Always has the value SERVER_CONTROL_MAGIC.  */
-  unsigned long magic;
-
   /* Local data for server.c  */
   struct server_local_s *server_local;
 
