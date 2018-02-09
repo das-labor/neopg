@@ -43,13 +43,13 @@ const char *sm_get_static_passphrase(void) {
 void sm_read_passphrase_from_fd(int fd) {
   int i, len;
 
-  auto pw = std::unique_ptr<Botan::secure_vector<char>>(new Botan::secure_vector<char>);
+  auto pw = std::unique_ptr<Botan::secure_vector<char>>(
+      new Botan::secure_vector<char>);
   while (true) {
     char next;
     int res;
     res = read(fd, &next, 1);
-    if (res != 1 || next == '\n')
-      break;
+    if (res != 1 || next == '\n') break;
     pw->push_back(next);
   }
   /* Build a C string.  */

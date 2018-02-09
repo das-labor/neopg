@@ -1417,8 +1417,7 @@ static void set_compliance_option(enum cmd_and_opt_values option) {
 /* This function called to initialized a new control object.  It is
    assumed that this object has been zeroed out before calling this
    function. */
-static void gpg_init_default_ctrl(ctrl_t ctrl) {
-}
+static void gpg_init_default_ctrl(ctrl_t ctrl) {}
 
 /* This function is called to deinitialize a control object.  It is
    not deallocated. */

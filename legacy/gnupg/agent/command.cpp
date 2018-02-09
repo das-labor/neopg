@@ -1687,13 +1687,13 @@ static gpg_error_t cmd_keytocard(assuan_context_t ctx, char *line) {
   gcry_sexp_release(s_skey);
   keydatalen--; /* Decrement for last '\0'.  */
   /* Add timestamp "created-at" in the private key */
-  snprintf((char *)(keydata.data() + keydatalen - 1), 30, KEYTOCARD_TIMESTAMP_FORMAT,
-           timestamp);
+  snprintf((char *)(keydata.data() + keydatalen - 1), 30,
+           KEYTOCARD_TIMESTAMP_FORMAT, timestamp);
   keydatalen += 10 + 19 - 1;
-  err = divert_writekey(ctrl, force, serialno, id, (const char *)(keydata.data()),
-                        keydatalen);
+  err = divert_writekey(ctrl, force, serialno, id,
+                        (const char *)(keydata.data()), keydatalen);
 
- leave:
+leave:
   return leave_cmd(ctx, err);
 }
 

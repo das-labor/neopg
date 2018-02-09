@@ -115,7 +115,7 @@ static gpg_error_t new_data(const char *string, struct secret_data_s **r_data) {
   total = (length + 8) + 32 - ((length + 8) % 32);
 
   d_len = sizeof *d + total - 1;
-  d = (secret_data_s *) Botan::allocate_memory(1, d_len);
+  d = (secret_data_s *)Botan::allocate_memory(1, d_len);
   memcpy(d->data, string, length);
 
   d_enc = (secret_data_s *)xtrymalloc(sizeof *d_enc + total - 1);
