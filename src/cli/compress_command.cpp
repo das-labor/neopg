@@ -1,17 +1,16 @@
-/* NeoPG
-   Copyright 2017 The NeoPG developers
+// NeoPG compress command (implementation)
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
-
-#include <iostream>
-#include <map>
+#include <neopg-tool/compress_command.h>
 
 #include <botan/comp_filter.h>
 #include <botan/compression.h>
 #include <botan/filters.h>
 
-#include <neopg-tool/compress_command.h>
+#include <iostream>
+#include <map>
 
 namespace NeoPG {
 
