@@ -33,11 +33,27 @@ class UserIdPacketCommand : public Command {
   void run();
 };
 
+class FilterPacketCommand : public Command {
+ public:
+  std::vector<std::string> m_files;
+
+  FilterPacketCommand(CLI::App& app, const std::string& flag,
+                      const std::string& description,
+                      const std::string& group_name = "")
+      : Command(app, flag, description, group_name) {
+    m_cmd.add_option("file", m_files, "file to process");
+  }
+  void run();
+};
+
 class PacketCommand : public Command {
  public:
-  const std::string group = "Write packet";
+  const std::string group_write = "Write packet";
+  const std::string group_process = "Process packet";
+
   MarkerPacketCommand cmd_marker;
   UserIdPacketCommand cmd_uid;
+  FilterPacketCommand cmd_filter;
 
   virtual void run();
 
