@@ -17,6 +17,7 @@ set(NeopgHeaders
   openpgp/modification_detection_code_packet.h
   openpgp/packet_header.h
   openpgp/packet.h
+  openpgp/raw_packet.h
   openpgp/symmetrically_encrypted_data_packet.h
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.h
   openpgp/trust_packet.h
@@ -38,6 +39,7 @@ add_library(neopg
   openpgp/modification_detection_code_packet.cpp
   openpgp/packet_header.cpp
   openpgp/packet.cpp
+  openpgp/raw_packet.cpp
   openpgp/symmetrically_encrypted_data_packet.cpp
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp
   openpgp/trust_packet.cpp
