@@ -21,6 +21,11 @@ add_executable(test-libneopg
   ../proto/http_tests.cpp
 )
 
+target_include_directories(test-libneopg
+  PRIVATE
+  ${JSON_INCLUDE_DIR}
+)
+
 target_link_libraries(test-libneopg
   PRIVATE
   neopg
