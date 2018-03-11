@@ -56,9 +56,11 @@ enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {
 
 struct NEOPG_UNSTABLE_API PacketHeader {
   virtual void write(std::ostream& out) = 0;
+  virtual PacketType type() = 0;
 };
 
-struct NEOPG_UNSTABLE_API OldPacketHeader : PacketHeader {
+class NEOPG_UNSTABLE_API OldPacketHeader : public PacketHeader {
+ public:
   PacketType m_packet_type;
   PacketLengthType m_length_type;
   uint32_t m_length;
@@ -76,9 +78,12 @@ struct NEOPG_UNSTABLE_API OldPacketHeader : PacketHeader {
                   PacketLengthType length_type = PacketLengthType::Default);
 
   void write(std::ostream& out) override;
+
+  PacketType type() override { return m_packet_type; }
 };
 
-struct NEOPG_UNSTABLE_API NewPacketTag {
+class NEOPG_UNSTABLE_API NewPacketTag {
+ public:
   PacketType m_packet_type;
 
   void set_packet_type(PacketType packet_type);
@@ -88,7 +93,8 @@ struct NEOPG_UNSTABLE_API NewPacketTag {
   void write(std::ostream& out);
 };
 
-struct NEOPG_UNSTABLE_API NewPacketLength {
+class NEOPG_UNSTABLE_API NewPacketLength {
+ public:
   PacketLengthType m_length_type;
   uint32_t m_length;
 
@@ -105,7 +111,8 @@ struct NEOPG_UNSTABLE_API NewPacketLength {
   void write(std::ostream& out);
 };
 
-struct NEOPG_UNSTABLE_API NewPacketHeader : PacketHeader {
+class NEOPG_UNSTABLE_API NewPacketHeader : public PacketHeader {
+ public:
   NewPacketTag m_tag;
   NewPacketLength m_length;
 
@@ -117,6 +124,8 @@ struct NEOPG_UNSTABLE_API NewPacketHeader : PacketHeader {
       : m_tag(packet_type), m_length(length, length_type) {}
 
   void write(std::ostream& out) override;
+
+  PacketType type() override { return m_tag.m_packet_type; }
 };
 
 }  // namespace NeoPG
