@@ -179,7 +179,7 @@ struct action<old_packet_length_one> {
   static void apply(const Input& in, state& state, RawPacketSink& sink) {
     std::string str = in.string();
     state.packet_len = (uint8_t)(str[0]);
-    state.header = make_unique<OldPacketHeader>(
+    state.header = NeoPG::make_unique<OldPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::OneOctet);
   }
 };
@@ -192,7 +192,7 @@ struct action<old_packet_length_two> {
     auto val0 = (uint8_t)str[0];
     auto val1 = (uint8_t)str[1];
     state.packet_len = (val0 << 8) + val1;
-    state.header = make_unique<OldPacketHeader>(
+    state.header = NeoPG::make_unique<OldPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::TwoOctet);
   }
 };
@@ -207,7 +207,7 @@ struct action<old_packet_length_four> {
     auto val2 = (uint8_t)str[2];
     auto val3 = (uint8_t)str[3];
     state.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
-    state.header = make_unique<OldPacketHeader>(
+    state.header = NeoPG::make_unique<OldPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::FourOctet);
   }
 };
@@ -219,7 +219,7 @@ struct action<old_packet_length_na> {
     std::string str = in.string();
     auto val0 = (uint8_t)str[0];
     state.packet_len = 8192;  // FIXME
-    state.header = make_unique<OldPacketHeader>(
+    state.header = NeoPG::make_unique<OldPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::Indeterminate);
     // Simulate a partial packet (we finish differently with packet_body_rest).
     state.partial = true;
@@ -243,7 +243,7 @@ struct action<new_packet_length_one> {
   static void apply(const Input& in, state& state, RawPacketSink& sink) {
     std::string str = in.string();
     state.packet_len = (uint8_t)(str[0]);
-    state.header = make_unique<NewPacketHeader>(
+    state.header = NeoPG::make_unique<NewPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::OneOctet);
     state.partial = false;
   }
@@ -257,7 +257,7 @@ struct action<new_packet_length_two> {
     auto val0 = (uint8_t)str[0];
     auto val1 = (uint8_t)str[1];
     state.packet_len = ((val0 - 0xc0) << 8) + val1 + 192;
-    state.header = make_unique<NewPacketHeader>(
+    state.header = NeoPG::make_unique<NewPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::TwoOctet);
     state.partial = false;
   }
@@ -273,7 +273,7 @@ struct action<new_packet_length_five> {
     auto val2 = (uint8_t)str[3];
     auto val3 = (uint8_t)str[4];
     state.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
-    state.header = make_unique<NewPacketHeader>(
+    state.header = NeoPG::make_unique<NewPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::FiveOctet);
     state.partial = false;
   }
@@ -287,7 +287,7 @@ struct action<new_packet_length_partial> {
     auto val0 = (uint8_t)str[0];
     state.packet_len = 1 << (val0 & 0x1f);
     // FIXME: Not necessary if started == true. Would save one allocation.
-    state.header = make_unique<NewPacketHeader>(
+    state.header = NeoPG::make_unique<NewPacketHeader>(
         state.packet_type, state.packet_len, PacketLengthType::Partial);
     state.partial = true;
   }
@@ -326,10 +326,11 @@ struct action<packet_body_data> {
       else {
         // FIXME: Use the one from header (requires dynamic cast which may be
         // 0).
-        sink.finish_packet(make_unique<NewPacketLength>(length), data, length);
+        sink.finish_packet(NeoPG::make_unique<NewPacketLength>(length), data,
+                           length);
       }
     }
-    // auto packet = NeoPG::make_unique<NeoPG::RawPacket>();
+    // auto packet = NeoPG::make_unique::make_unique<NeoPG::RawPacket>();
     // sink.next_packet(std::move(packet));
     // //sink.next_packet(NeoPG::make_unique<NeoPG::RawPacket>(state.packet_type));
   }

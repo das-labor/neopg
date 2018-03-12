@@ -38,8 +38,8 @@ class TestSink : public RawPacketSink {
 
   void next_packet(std::unique_ptr<PacketHeader> header, const char* data,
                    size_t length) {
-    auto packet =
-        make_unique<RawPacket>(header->type(), std::string(data, length));
+    auto packet = NeoPG::make_unique<RawPacket>(header->type(),
+                                                std::string(data, length));
 
     m_packets.emplace_back(std::move(packet));
   }
