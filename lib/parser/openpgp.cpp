@@ -7,6 +7,8 @@
 
 #include <neopg/openpgp.h>
 
+#include <functional>
+
 // Protect our use of PEGTL from other library users.
 #define TAOCPP_PEGTL_NAMESPACE neopg_pegtl
 #include <tao/pegtl.hpp>
