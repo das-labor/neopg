@@ -3,18 +3,15 @@
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
-#include <neopg/intern/cplusplus.h>
-
 #include <neopg/openpgp.h>
+
+#include <neopg/intern/cplusplus.h>
+#include <neopg/intern/pegtl.h>
 
 #include <functional>
 
-// Protect our use of PEGTL from other library users.
-#define TAOCPP_PEGTL_NAMESPACE neopg_pegtl
-#include <tao/pegtl.hpp>
-using namespace tao::neopg_pegtl;
-
 using namespace NeoPG;
+using namespace tao::neopg_pegtl;
 
 namespace openpgp {
 

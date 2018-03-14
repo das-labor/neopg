@@ -6,16 +6,14 @@
 
 #include <neopg/uri.h>
 
+#include <neopg/intern/pegtl.h>
+
+// Include this after neopg/intern/pegtl.h (due to namespace)!
+#include <tao/pegtl/contrib/uri.hpp>
+
 #include <iostream>
 
-// Protect our use of PEGTL from other library users.
-#define TAOCPP_PEGTL_NAMESPACE neopg_pegtl
-#include <tao/pegtl/contrib/uri.hpp>
-#include <tao/pegtl/parse.hpp>
-
 namespace NeoPG {
-
-namespace pegtl = tao::TAOCPP_PEGTL_NAMESPACE;
 
 namespace uri {
 struct grammar : pegtl::must<pegtl::uri::URI> {};
