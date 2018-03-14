@@ -1,6 +1,6 @@
 language: generic
 os: linux
-dist: trusty
+dist: xenial
 sudo: true
 
 addons:
