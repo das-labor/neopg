@@ -262,10 +262,10 @@ matrix:
         - git ls-files -- '*.cpp' '*.h' | grep -v ^3rdparty | xargs clang-format-4.0 -i -style=file
         - git diff --exit-code --color
 
-#  allow_failures:
-#    - env:
-#        - PRETTY=true
-#  fast_finish: true
+  allow_failures:
+   - env:
+       - PRETTY=true
+  fast_finish: true
 
 install:
   - |
