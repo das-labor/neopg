@@ -18,7 +18,7 @@ using namespace NeoPG;
 
 namespace openpgp {
 
-/* A new rule to match individual bits.  */
+// A custom rule to match individual bits.
 template <uint8_t Mask, uint8_t From, uint8_t To = 0>
 struct mask_cmp {
   static const uint8_t from = From;
@@ -37,65 +37,66 @@ struct mask_cmp {
   }
 };
 
-// A range rule suitable for binary data.
-template <uint8_t From, uint8_t To>
-struct bin_range {
-  template <typename Input>
-  static bool match(Input& in) {
-    if (!in.empty()) {
-      uint8_t val = in.peek_byte();
-      if (val >= From && val <= To) {
-        in.bump(1);
-        return true;
-      }
-    }
-    return false;
-  }
-};
+// A custom rule to match a range of binary bytes.
+template <uint8_t From, uint8_t To = 0>
+struct bin_range : mask_cmp<0xff, From, To> {};
 
-/* The OpenPGP parser is stateful (TLV), so the state, grammar and actions are
-   tightly coupled.  */
+// The OpenPGP parser is stateful (due to the length field), so the state,
+// grammar and actions are tightly coupled.
 struct state {
+  RawPacketSink& sink;
   PacketType packet_type;
+  size_t packet_pos;
   std::unique_ptr<PacketHeader> header;
+
+  // The length of the current packet body (or part of it).
   size_t packet_len;
 
-  // This indicates that we have a partial packet frame.
+  // This indicates that we have a partial packet data frame.
   bool partial;
 
   // This indicates that we have started a partial packet.
   bool started;
+
+  state(RawPacketSink& a_sink) : sink(a_sink) {}
 };
 
-/* A new (stateful) rule to match packet data. */
+// A custom rule to match packet data.  This is stateful, because it requires
+// the preceeding length information, and matches exactly st.packet_len bytes.
 struct packet_body_data {
   using analyze_t = analysis::generic<analysis::rule_type::ANY>;
   template <apply_mode A, rewind_mode M, template <typename...> class Action,
             template <typename...> class Control, typename Input>
-  static bool match(Input& in, state& state, RawPacketSink& sink) {
-    if (in.size(state.packet_len) >= state.packet_len) {
-      in.bump(state.packet_len);
+  static bool match(Input& in, state& st) {
+    if (in.size(st.packet_len) >= st.packet_len) {
+      in.bump(st.packet_len);
       return true;
     }
     return false;
   }
 };
 
-// For old packets of indeterminate length, we first return identically-sized
-// "partial" data packets and then finish with a final data packet (even if it
-// is of 0 length). This works identical to new partial packet data, but we can
-// not use the same rule as the length is unknown.
+// We discard the input buffer so that we do not need to account for the packet
+// or length header in the max buffer size calculation (so we can use a power of
+// two rather than a power of two plus a small number of bytes).
+struct packet_body : seq<discard, packet_body_data> {};
+
+// For old packets of indeterminate length, we set an arbitrary chunk size with
+// the packet_body rule, and finish up with packet_body_data_rest.
+#define INDETERMINATE_LENGTH_CHUNK_SIZE 8192
 
 // We do not discard the input buffer here, as we come here after back-tracking
 // from packet_body, and we want to preserve the data.
-struct packet_body_rest : until<eof> {};
+struct packet_body_data_rest : until<eof> {};
 
-struct packet_body : seq<discard, packet_body_data> {};
+struct packet_body_indeterminate
+    : seq<star<packet_body>, packet_body_data_rest> {};
 
 struct old_packet_length_one : bytes<1> {};
 struct old_packet_length_two : bytes<2> {};
 struct old_packet_length_four : bytes<4> {};
-struct old_packet_length_na : success {};  // Action sets default buffer size.
+// Action here sets the packet length to INDETERMINATE_LENGTH_CHUNK_SIZE.
+struct old_packet_length_na : success {};
 
 struct old_packet_tag : any {};
 
@@ -115,7 +116,7 @@ struct old_packet_with_length_four
           old_packet_length_four, packet_body> {};
 struct old_packet_with_length_na
     : seq<is_old_packet_with_length_na, old_packet_tag, old_packet_length_na,
-          star<packet_body>, packet_body_rest> {};
+          packet_body_indeterminate> {};
 
 // Old packets have bit 6 clear.
 struct is_old_packet : at<mask_cmp<0x40, 0x00>> {};
@@ -168,63 +169,63 @@ struct action : nothing<Rule> {};
 template <>
 struct action<old_packet_tag> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)((str[0] >> 2) & 0xf);
-    state.packet_type = (PacketType)val0;
+  static void apply(const Input& in, state& st) {
+    auto val0 = (in.peek_byte() >> 2) & 0xf;
+    st.packet_type = (PacketType)val0;
+    st.packet_pos = in.position().byte;
   }
 };
 
 template <>
 struct action<old_packet_length_one> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    state.packet_len = (uint8_t)(str[0]);
-    state.header = NeoPG::make_unique<OldPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::OneOctet);
+  static void apply(const Input& in, state& st) {
+    auto match = in.begin();
+    st.packet_len = in.peek_byte();
+    st.header = NeoPG::make_unique<OldPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::OneOctet);
+    st.header->m_offset = st.packet_pos;
   }
 };
 
 template <>
 struct action<old_packet_length_two> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
+  static void apply(const Input& in, state& st) {
     std::string str = in.string();
-    auto val0 = (uint8_t)str[0];
-    auto val1 = (uint8_t)str[1];
-    state.packet_len = (val0 << 8) + val1;
-    state.header = NeoPG::make_unique<OldPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::TwoOctet);
+    st.packet_len = (in.peek_byte(0) << 8) + in.peek_byte(1);
+    st.header = NeoPG::make_unique<OldPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::TwoOctet);
+    st.header->m_offset = st.packet_pos;
   }
 };
 
 template <>
 struct action<old_packet_length_four> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)str[0];
-    auto val1 = (uint8_t)str[1];
-    auto val2 = (uint8_t)str[2];
-    auto val3 = (uint8_t)str[3];
-    state.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
-    state.header = NeoPG::make_unique<OldPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::FourOctet);
+  static void apply(const Input& in, state& st) {
+    auto val0 = (uint32_t)in.peek_byte(0);
+    auto val1 = (uint32_t)in.peek_byte(1);
+    auto val2 = (uint32_t)in.peek_byte(2);
+    auto val3 = (uint32_t)in.peek_byte(3);
+    st.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
+    st.header = NeoPG::make_unique<OldPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::FourOctet);
+    st.header->m_offset = st.packet_pos;
   }
 };
 
 template <>
 struct action<old_packet_length_na> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)str[0];
-    state.packet_len = 8192;  // FIXME
-    state.header = NeoPG::make_unique<OldPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::Indeterminate);
-    // Simulate a partial packet (we finish differently with packet_body_rest).
-    state.partial = true;
+  static void apply(const Input& in, state& st) {
+    st.packet_len = INDETERMINATE_LENGTH_CHUNK_SIZE;
+    st.header = NeoPG::make_unique<OldPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::Indeterminate);
+    st.header->m_offset = st.packet_pos;
+    // Simulate a partial packet (we finish differently with
+    // packet_body_data_rest).
+    st.partial = true;
   }
 };
 
@@ -232,119 +233,115 @@ struct action<old_packet_length_na> {
 template <>
 struct action<new_packet_tag> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (str[0] & 0x3f);
-    state.packet_type = (PacketType)val0;
+  static void apply(const Input& in, state& st) {
+    auto val0 = in.peek_byte() & 0x3f;
+    st.packet_type = (PacketType)val0;
+    st.packet_pos = in.position().byte;
   }
 };
 
 template <>
 struct action<new_packet_length_one> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    state.packet_len = (uint8_t)(str[0]);
-    state.header = NeoPG::make_unique<NewPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::OneOctet);
-    state.partial = false;
+  static void apply(const Input& in, state& st) {
+    st.packet_len = in.peek_byte();
+    st.header = NeoPG::make_unique<NewPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::OneOctet);
+    st.header->m_offset = st.packet_pos;
+    st.partial = false;
   }
 };
 
 template <>
 struct action<new_packet_length_two> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)str[0];
-    auto val1 = (uint8_t)str[1];
-    state.packet_len = ((val0 - 0xc0) << 8) + val1 + 192;
-    state.header = NeoPG::make_unique<NewPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::TwoOctet);
-    state.partial = false;
+  static void apply(const Input& in, state& st) {
+    st.packet_len = ((in.peek_byte() - 0xc0) << 8) + in.peek_byte(1) + 192;
+    st.header = NeoPG::make_unique<NewPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::TwoOctet);
+    st.header->m_offset = st.packet_pos;
+    st.partial = false;
   }
 };
 
 template <>
 struct action<new_packet_length_five> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)str[1];
-    auto val1 = (uint8_t)str[2];
-    auto val2 = (uint8_t)str[3];
-    auto val3 = (uint8_t)str[4];
-    state.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
-    state.header = NeoPG::make_unique<NewPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::FiveOctet);
-    state.partial = false;
+  static void apply(const Input& in, state& st) {
+    auto val0 = (uint32_t)in.peek_byte(1);
+    auto val1 = (uint32_t)in.peek_byte(2);
+    auto val2 = (uint32_t)in.peek_byte(3);
+    auto val3 = (uint32_t)in.peek_byte(4);
+    st.packet_len = (val0 << 24) + (val1 << 16) + (val2 << 8) + val3;
+    st.header = NeoPG::make_unique<NewPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::FiveOctet);
+    st.header->m_offset = st.packet_pos;
+    st.partial = false;
   }
 };
 
 template <>
 struct action<new_packet_length_partial> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    auto val0 = (uint8_t)str[0];
-    state.packet_len = 1 << (val0 & 0x1f);
+  static void apply(const Input& in, state& st) {
+    st.packet_len = 1 << (in.peek_byte() & 0x1f);
     // FIXME: Not necessary if started == true. Would save one allocation.
-    state.header = NeoPG::make_unique<NewPacketHeader>(
-        state.packet_type, state.packet_len, PacketLengthType::Partial);
-    state.partial = true;
+    st.header = NeoPG::make_unique<NewPacketHeader>(
+        st.packet_type, st.packet_len, PacketLengthType::Partial);
+    st.header->m_offset = st.packet_pos;
+    st.partial = true;
   }
 };
 
 template <>
 struct action<is_packet> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
-    std::string str = in.string();
-    state.packet_type = PacketType::Reserved;
-    state.header.reset(nullptr);
-    state.partial = false;
-    state.started = false;
+  static void apply(const Input& in, state& st) {
+    st.packet_type = PacketType::Reserved;
+    st.header.reset(nullptr);
+    st.partial = false;
+    st.started = false;
   }
 };
 
 template <>
 struct action<packet_body_data> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
+  static void apply(const Input& in, state& st) {
     const char* data = in.begin();
-    size_t length = state.packet_len;
+    size_t length = st.packet_len;
 
-    if (!state.started) {
-      if (!state.partial) {
-        sink.next_packet(std::move(state.header), data, length);
+    if (!st.started) {
+      if (!st.partial) {
+        st.sink.next_packet(std::move(st.header), data, length);
       } else {
-        sink.start_packet(std::move(state.header));
-        sink.continue_packet(data, length);
+        st.sink.start_packet(std::move(st.header));
+        st.sink.continue_packet(data, length);
       }
-      state.started = true;
+      st.started = true;
     } else {
-      if (state.partial)
-        sink.continue_packet(data, length);
-      else {
+      if (st.partial) {
+        st.sink.continue_packet(data, length);
+      } else {
         // FIXME: Use the one from header (requires dynamic cast which may be
         // 0).
-        sink.finish_packet(NeoPG::make_unique<NewPacketLength>(length), data,
-                           length);
+        st.sink.finish_packet(NeoPG::make_unique<NewPacketLength>(length), data,
+                              length);
       }
     }
     // auto packet = NeoPG::make_unique::make_unique<NeoPG::RawPacket>();
-    // sink.next_packet(std::move(packet));
-    // //sink.next_packet(NeoPG::make_unique<NeoPG::RawPacket>(state.packet_type));
+    // st.sink.next_packet(std::move(packet));
+    // //st.sink.next_packet(NeoPG::make_unique<NeoPG::RawPacket>(st.packet_type));
   }
 };
 
 template <>
-struct action<packet_body_rest> {
+struct action<packet_body_data_rest> {
   template <typename Input>
-  static void apply(const Input& in, state& state, RawPacketSink& sink) {
+  static void apply(const Input& in, state& st) {
     const char* data = in.begin();
-    size_t length = state.packet_len;
-    sink.finish_packet(nullptr, data, length);
+    size_t length = st.packet_len;
+    st.sink.finish_packet(nullptr, data, length);
   }
 };
 
@@ -354,14 +351,15 @@ void RawPacketParser::process(Botan::DataSource& source) {
   using reader_t =
       std::function<std::size_t(char* buffer, const std::size_t length)>;
 
-  auto reader = [this, &source](char* buffer,
-                                const std::size_t length) mutable {
-    return source.read(reinterpret_cast<uint8_t*>(buffer), length);
+  auto state = openpgp::state{m_sink};
+  auto reader = [this, &source, &state](
+      char* buffer, const std::size_t length) mutable -> size_t {
+    size_t count = source.read(reinterpret_cast<uint8_t*>(buffer), length);
+    return count;
   };
   buffer_input<reader_t> input("reader", MAX_PARSER_BUFFER, reader);
 
-  openpgp::state state;
-  parse<openpgp::grammar, openpgp::action>(input, state, m_sink);
+  parse<openpgp::grammar, openpgp::action>(input, state);
 }
 
 void RawPacketParser::process(std::istream& source) {

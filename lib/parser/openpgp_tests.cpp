@@ -67,6 +67,6 @@ TEST(NeoPGTest, parser_openpgp_test) {
       ASSERT_EQ(*packets[0], packet);
     }
 
-    // parser.process(std::string{"abc"});
+    // Missing tests: offset, mixed new/old, partial, indeterminate.
   }
 }

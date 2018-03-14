@@ -55,6 +55,9 @@ enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {
 };
 
 struct NEOPG_UNSTABLE_API PacketHeader {
+ public:
+  size_t m_offset;
+
   virtual void write(std::ostream& out) = 0;
   virtual PacketType type() = 0;
 };

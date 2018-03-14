@@ -10,12 +10,15 @@
 #include <neopg/marker_packet.h>
 #include <neopg/openpgp.h>
 #include <neopg/raw_packet.h>
+#include <neopg/stream.h>
 #include <neopg/user_id_packet.h>
 
 #include <botan/data_snk.h>
 #include <botan/data_src.h>
 
 #include <CLI11.hpp>
+
+#include <boost/format.hpp>
 
 #include <iostream>
 
@@ -32,19 +35,24 @@ void UserIdPacketCommand::run() {
   packet.write(std::cout);
 }
 
-#if 0
-class PacketSink {
-  void next_packet(std::unique_ptr<NeoPG::RawPacket>& packet);
-};
-void PacketSink::next_packet(std::unique_ptr<NeoPG::RawPacket>& packet) {
-  std::cerr << "P"
-            << "\n";
-}
-#endif
-
-struct PacketSink : public RawPacketSink {
+struct LegacyPacketSink : public RawPacketSink {
   void next_packet(std::unique_ptr<PacketHeader> header, const char* data,
-                   size_t length) {}
+                   size_t length) {
+    // # off=0 ctb=99 tag=6 hlen=3 plen=525
+    // # off=229725 ctb=d1 tag=17 hlen=6 plen=3033 new-ctb
+
+    // FIXME: Use fmt library instead of boost, expand PacketHeader API.
+    std::stringstream head_ss;
+    header->write(head_ss);
+    auto head = head_ss.str();
+
+    auto new_header = dynamic_cast<NewPacketHeader*>(header.get());
+
+    std::cout << "# off=" << header->m_offset
+              << " ctb=" << (boost::format("%02x") % (int)(uint8_t)head[0])
+              << " tag=" << (int)header->type() << " hlen=" << head.length()
+              << " plen=" << length << (new_header ? " new-ctb" : "") << "\n";
+  }
   void start_packet(std::unique_ptr<PacketHeader> header){};
   void continue_packet(const char* data, size_t length){};
   void finish_packet(std::unique_ptr<NewPacketLength> length_info,
@@ -53,7 +61,7 @@ struct PacketSink : public RawPacketSink {
 
 static void process_msg(Botan::DataSource& source, Botan::DataSink& out) {
   out.start_msg();
-  PacketSink sink;
+  LegacyPacketSink sink;
   RawPacketParser parser(sink);
   parser.process(source);
 
