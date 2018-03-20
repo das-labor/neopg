@@ -1,8 +1,7 @@
-/* Tests for stream functions
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
+// Tests for stream functions
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/uri.h>
 #include "gtest/gtest.h"
@@ -52,6 +51,19 @@ TEST(NeoPGTest, proto_uri_test) {
     EXPECT_EQ(uri.query, "name=foo");
     EXPECT_EQ(uri.fragment, "chapter1");
     EXPECT_EQ(uri.str(), input);
+
+    // Avoid traps like https://github.com/nodejs/node/issues/19468
+    input = "http://brave.com%60x.code-fu.org";
+    uri.set_uri(input);
+    EXPECT_EQ(uri.scheme, "http");
+    EXPECT_EQ(uri.authority, "brave.com%60x.code-fu.org");
+    EXPECT_EQ(uri.userinfo, "");
+    EXPECT_EQ(uri.host, "brave.com%60x.code-fu.org");
+    EXPECT_EQ(uri.port, "");
+    EXPECT_EQ(uri.path, "");
+    EXPECT_EQ(uri.query, "");
+    EXPECT_EQ(uri.fragment, "");
+    EXPECT_EQ(uri.str(), input);
   }
 }
-}
+}  // namespace NeoPG
