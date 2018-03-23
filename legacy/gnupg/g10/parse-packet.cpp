@@ -1864,6 +1864,7 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
 
   pk = pkt->pkt.public_key; /* PK has been cleared. */
 
+  if (!pktlen) return GPG_ERR_INV_PACKET;
   version = iobuf_get_noeof(inp);
   pktlen--;
   if (version == 4) {
