@@ -29,6 +29,25 @@ legacy gnupg code and the TLS library linked to libcurl.  In the
 future, when libcurl supports Botan as TLS option, we might include a
 copy and link statically to make this easier.
 
+## Status
+
+Currently, NeoPG is under development, and in an exploratory phase.
+No promises are made about the stability, functionality, and security
+of the development releases "0.0.x".  I am actively seeking feedback
+and guidance for the API design and scope of functionality from users
+and application developers.
+
+From a purely practical point, the software should build and run, and
+a lot of legacy functionality is available through the "gpg2",
+"gpg-agent", "dirmngr" etc. subcommands.  New subcommands are introduced as
+functionality is added or replaced.
+
+From an organizational point of view, this is currently a one-man
+project without third-party funding.  A significant amount of time is
+spent on developing a more substantial basis for the project.  So you
+will see periods of coding activity, but also periods of
+organizational activity (such as talks, and grant application
+writing).
 
 ## Installation
 
