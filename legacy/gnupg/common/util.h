@@ -171,11 +171,11 @@ size_t percent_unescape_inplace(char *string, int nulrepl);
 
 /*-- openpgp-oid.c --*/
 gpg_error_t openpgp_oid_from_str(const char *string, gcry_mpi_t *r_mpi);
-char *openpgp_oid_to_str(gcry_mpi_t a);
+std::string openpgp_oid_to_str(gcry_mpi_t a);
 int openpgp_oid_is_ed25519(gcry_mpi_t a);
 int openpgp_oid_is_cv25519(gcry_mpi_t a);
 const char *openpgp_curve_to_oid(const char *name, unsigned int *r_nbits);
-const char *openpgp_oid_to_curve(const char *oid, int canon);
+const char *openpgp_oid_to_curve(const std::string &oid, int canon);
 const char *openpgp_enum_curves(int *idxp);
 const char *openpgp_is_curve_supported(const char *name, int *r_algo,
                                        unsigned int *r_nbits);

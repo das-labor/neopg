@@ -1587,15 +1587,14 @@ gpg_error_t transfer_secret_keys(ctrl_t ctrl, struct import_stats_s *stats,
         pk->pubkey_algo == PUBKEY_ALGO_EDDSA ||
         pk->pubkey_algo == PUBKEY_ALGO_ECDH) {
       /* The ECC case.  */
-      char *curvestr = openpgp_oid_to_str(pk->pkey[0]);
-      if (!curvestr)
+      std::string curvestr = openpgp_oid_to_str(pk->pkey[0]);
+      if (!curvestr.length())
         err = gpg_error_from_syserror();
       else {
         const char *curvename = openpgp_oid_to_curve(curvestr, 1);
         gcry_sexp_release(curve);
         err = gcry_sexp_build(&curve, NULL, "(curve %s)",
-                              curvename ? curvename : curvestr);
-        xfree(curvestr);
+                              curvename ? curvename : curvestr.c_str());
         if (!err) {
           j = 0;
           /* Append the public key element Q.  */

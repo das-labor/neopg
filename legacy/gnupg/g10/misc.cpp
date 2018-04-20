@@ -1336,7 +1336,7 @@ int path_access(const char *file, int mode) {
 #else
       || file[0] == '/'
 #endif
-          )
+  )
     return access(file, mode);
   else {
     /* At least as large as, but most often larger than we need. */
@@ -1474,13 +1474,12 @@ unsigned int pubkey_nbits(int algo, gcry_mpi_t *key) {
   } else if ((algo == PUBKEY_ALGO_ECDSA || algo == PUBKEY_ALGO_ECDH ||
               algo == PUBKEY_ALGO_EDDSA) &&
              key[0] && key[1]) {
-    char *curve = openpgp_oid_to_str(key[0]);
-    if (!curve)
+    std::string curve = openpgp_oid_to_str(key[0]);
+    if (curve.length() == 0)
       rc = gpg_error_from_syserror();
     else {
       rc = gcry_sexp_build(&sexp, NULL, "(public-key(ecc(curve%s)(q%m)))",
-                           curve, key[1]);
-      xfree(curve);
+                           curve.c_str(), key[1]);
     }
   } else
     return 0;

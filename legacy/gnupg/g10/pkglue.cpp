@@ -65,24 +65,22 @@ int pk_verify(pubkey_algo_t pkalgo, gcry_mpi_t hash, gcry_mpi_t *data,
     rc = gcry_sexp_build(&s_pkey, NULL, "(public-key(rsa(n%m)(e%m)))", pkey[0],
                          pkey[1]);
   } else if (pkalgo == PUBKEY_ALGO_ECDSA) {
-    char *curve = openpgp_oid_to_str(pkey[0]);
-    if (!curve)
+    std::string curve = openpgp_oid_to_str(pkey[0]);
+    if (!curve.length())
       rc = gpg_error_from_syserror();
     else {
       rc = gcry_sexp_build(&s_pkey, NULL, "(public-key(ecdsa(curve %s)(q%m)))",
-                           curve, pkey[1]);
-      xfree(curve);
+                           curve.c_str(), pkey[1]);
     }
   } else if (pkalgo == PUBKEY_ALGO_EDDSA) {
-    char *curve = openpgp_oid_to_str(pkey[0]);
-    if (!curve)
+    std::string curve = openpgp_oid_to_str(pkey[0]);
+    if (!curve.length())
       rc = gpg_error_from_syserror();
     else {
       rc = gcry_sexp_build(&s_pkey, NULL,
                            "(public-key(ecc(curve %s)"
                            "(flags eddsa)(q%m)))",
-                           curve, pkey[1]);
-      xfree(curve);
+                           curve.c_str(), pkey[1]);
     }
 
     if (openpgp_oid_is_ed25519(pkey[0])) neededfixedlen = 256 / 8;
@@ -214,10 +212,8 @@ int pk_encrypt(pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
 
     rc = pk_ecdh_generate_ephemeral_key(pkey, &k);
     if (!rc) {
-      char *curve;
-
-      curve = openpgp_oid_to_str(pkey[0]);
-      if (!curve)
+      std::string curve = openpgp_oid_to_str(pkey[0]);
+      if (!curve.length())
         rc = gpg_error_from_syserror();
       else {
         int with_djb_tweak_flag = openpgp_oid_is_cv25519(pkey[0]);
@@ -228,8 +224,7 @@ int pk_encrypt(pubkey_algo_t algo, gcry_mpi_t *resarr, gcry_mpi_t data,
             with_djb_tweak_flag
                 ? "(public-key(ecdh(curve%s)(flags djb-tweak)(q%m)))"
                 : "(public-key(ecdh(curve%s)(q%m)))",
-            curve, pkey[1]);
-        xfree(curve);
+            curve.c_str(), pkey[1]);
         /* Put K into a simplified S-expression.  */
         if (!rc) rc = gcry_sexp_build(&s_data, NULL, "%m", k);
       }
@@ -307,25 +302,23 @@ int pk_check_secret_key(pubkey_algo_t pkalgo, gcry_mpi_t *skey) {
                          "(private-key(rsa(n%m)(e%m)(d%m)(p%m)(q%m)(u%m)))",
                          skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
   } else if (pkalgo == PUBKEY_ALGO_ECDSA || pkalgo == PUBKEY_ALGO_ECDH) {
-    char *curve = openpgp_oid_to_str(skey[0]);
-    if (!curve)
+    std::string curve = openpgp_oid_to_str(skey[0]);
+    if (!curve.length())
       rc = gpg_error_from_syserror();
     else {
       rc = gcry_sexp_build(&s_skey, NULL,
-                           "(private-key(ecc(curve%s)(q%m)(d%m)))", curve,
-                           skey[1], skey[2]);
-      xfree(curve);
+                           "(private-key(ecc(curve%s)(q%m)(d%m)))",
+                           curve.c_str(), skey[1], skey[2]);
     }
   } else if (pkalgo == PUBKEY_ALGO_EDDSA) {
-    char *curve = openpgp_oid_to_str(skey[0]);
-    if (!curve)
+    std::string curve = openpgp_oid_to_str(skey[0]);
+    if (!curve.length())
       rc = gpg_error_from_syserror();
     else {
       rc = gcry_sexp_build(&s_skey, NULL,
                            "(private-key(ecc(curve %s)"
                            "(flags eddsa)(q%m)(d%m)))",
-                           curve, skey[1], skey[2]);
-      xfree(curve);
+                           curve.c_str(), skey[1], skey[2]);
     }
   } else
     return GPG_ERR_PUBKEY_ALGO;

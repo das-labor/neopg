@@ -34,6 +34,9 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <botan/ber_dec.h>
+#include <botan/oids.h>
+
 #include "openpgpdefs.h"
 #include "util.h"
 
@@ -161,15 +164,10 @@ gpg_error_t openpgp_oid_from_str(const char *string, gcry_mpi_t *r_mpi) {
 
 /* Return a malloced string represenation of the OID in the opaque MPI
    A.  In case of an error NULL is returned and ERRNO is set.  */
-char *openpgp_oid_to_str(gcry_mpi_t a) {
+std::string openpgp_oid_to_str(gcry_mpi_t a) {
   const unsigned char *buf;
   size_t length;
   unsigned int lengthi;
-  char *string, *p;
-  int n = 0;
-  unsigned long val, valmask;
-
-  valmask = (unsigned long)0xfe << (8 * (sizeof(valmask) - 1));
 
   if (!a || !gcry_mpi_get_flag(a, GCRYMPI_FLAG_OPAQUE) ||
       !(buf = (const unsigned char *)gcry_mpi_get_opaque(a, &lengthi))) {
@@ -189,54 +187,24 @@ char *openpgp_oid_to_str(gcry_mpi_t a) {
   length--;
   buf++;
 
-  /* To calculate the length of the string we can safely assume an
-     upper limit of 3 decimal characters per byte.  Two extra bytes
-     account for the special first octect */
-  string = p = (char *)xtrymalloc(length * (1 + 3) + 2 + 1);
-  if (!string) return NULL;
-  if (!length) {
-    *p = 0;
-    return string;
+  try {
+    std::vector<uint8_t> data;
+    data.emplace_back(static_cast<uint8_t>(0x06));
+    data.emplace_back(static_cast<uint8_t>(length));
+    data.insert(std::end(data), buf, buf + length);
+    Botan::BER_Decoder decoder(data);
+    Botan::OID oid;
+    oid.decode_from(decoder);
+    return oid.as_string();
+  } catch (std::exception e) {
   }
 
-  if (buf[0] < 40)
-    p += sprintf(p, "0.%d", buf[n]);
-  else if (buf[0] < 80)
-    p += sprintf(p, "1.%d", buf[n] - 40);
-  else {
-    val = buf[n] & 0x7f;
-    while ((buf[n] & 0x80) && ++n < length) {
-      if ((val & valmask)) goto badoid; /* Overflow.  */
-      val <<= 7;
-      val |= buf[n] & 0x7f;
-    }
-    if (val < 80) goto badoid;
-    val -= 80;
-    sprintf(p, "2.%lu", val);
-    p += strlen(p);
-  }
-  for (n++; n < length; n++) {
-    val = buf[n] & 0x7f;
-    while ((buf[n] & 0x80) && ++n < length) {
-      if ((val & valmask)) goto badoid; /* Overflow.  */
-      val <<= 7;
-      val |= buf[n] & 0x7f;
-    }
-    sprintf(p, ".%lu", val);
-    p += strlen(p);
-  }
-
-  *p = 0;
-  return string;
-
-badoid:
   /* Return a special OID (gnu.gnupg.badoid) to indicate the error
      case.  The OID is broken and thus we return one which can't do
      any harm.  Formally this does not need to be a bad OID but an OID
      with an arc that can't be represented in a 32 bit word is more
      than likely corrupt.  */
-  xfree(string);
-  return xtrystrdup("1.3.6.1.4.1.11591.2.12242973");
+  return "1.3.6.1.4.1.11591.2.12242973";
 }
 
 /* Return true if A represents the OID for Ed25519.  */
@@ -299,13 +267,11 @@ const char *openpgp_curve_to_oid(const char *name, unsigned int *r_nbits) {
 /* Map an OpenPGP OID to the Libgcrypt curve NAME.  Returns NULL for
    unknown curve names.  Unless CANON is set we prefer an alias name
    here which is more suitable for printing.  */
-const char *openpgp_oid_to_curve(const char *oidstr, int canon) {
+const char *openpgp_oid_to_curve(const std::string &oidstr, int canon) {
   int i;
 
-  if (!oidstr) return NULL;
-
   for (i = 0; oidtable[i].name; i++)
-    if (!strcmp(oidtable[i].oidstr, oidstr))
+    if (oidstr == oidtable[i].oidstr)
       return !canon && oidtable[i].alias ? oidtable[i].alias : oidtable[i].name;
 
   return NULL;

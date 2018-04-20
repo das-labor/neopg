@@ -946,7 +946,7 @@ static gpg_error_t transfer_format_to_openpgp(gcry_sexp_t s_pgp,
   pk->pkey[npkey] = skey[npkey];
   skey[npkey] = NULL;
 
-/* That's it.  */
+  /* That's it.  */
 
 leave:
   gcry_free(curve);
@@ -1745,11 +1745,11 @@ gpg_error_t export_ssh_key(ctrl_t ctrl, const char *userid) {
       break;
 
     case PUBKEY_ALGO_ECDSA: {
-      char *curveoid;
+      std::string curveoid;
       const char *curve;
 
       curveoid = openpgp_oid_to_str(pk->pkey[0]);
-      if (!curveoid)
+      if (!curveoid.length())
         err = gpg_error_from_syserror();
       else if (!(curve = openpgp_oid_to_curve(curveoid, 0)))
         err = GPG_ERR_UNKNOWN_CURVE;
@@ -1766,7 +1766,6 @@ gpg_error_t export_ssh_key(ctrl_t ctrl, const char *userid) {
         else
           err = key_to_sshblob(&mb, identifier, pk->pkey[1], NULL);
       }
-      xfree(curveoid);
     } break;
 
     case PUBKEY_ALGO_EDDSA:

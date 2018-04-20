@@ -1231,7 +1231,7 @@ static gpg_error_t ecc_read_pubkey(app_t app, ctrl_t ctrl, u32 created_at,
   gcry_mpi_t oid = NULL;
   int n;
   const char *curve;
-  const char *oidstr;
+  std::string oidstr;
   const unsigned char *oidbuf;
   size_t oid_len;
   int algo;
@@ -1245,7 +1245,7 @@ static gpg_error_t ecc_read_pubkey(app_t app, ctrl_t ctrl, u32 created_at,
 
   curve = app->app_local->keyattr[keyno].ecc.curve;
   oidstr = openpgp_curve_to_oid(curve, NULL);
-  err = openpgp_oid_from_str(oidstr, &oid);
+  err = openpgp_oid_from_str(oidstr.c_str(), &oid);
   if (err) return err;
   oidbuf =
       (const unsigned char *)gcry_mpi_get_opaque(oid, (unsigned int *)(&n));
@@ -2716,18 +2716,18 @@ static gpg_error_t change_keyattr_from_string(
       err = change_rsa_keyattr(app, keyno, nbits, pincb, pincb_arg);
   } else if (algo == PUBKEY_ALGO_ECDH || algo == PUBKEY_ALGO_ECDSA ||
              algo == PUBKEY_ALGO_EDDSA) {
-    const char *oidstr;
+    std::string oidstr;
     gcry_mpi_t oid;
     const unsigned char *oidbuf;
     size_t oid_len;
 
     oidstr = openpgp_curve_to_oid(string + n, NULL);
-    if (!oidstr) {
+    if (!oidstr.length()) {
       err = GPG_ERR_INV_DATA;
       goto leave;
     }
 
-    err = openpgp_oid_from_str(oidstr, &oid);
+    err = openpgp_oid_from_str(oidstr.c_str(), &oid);
     if (err) goto leave;
 
     oidbuf =
@@ -4079,10 +4079,9 @@ static void show_caps(struct app_local_s *s) {
   log_info("Algo-Attr-Change: %s\n", s->extcap.algo_attr_change ? "yes" : "no");
   log_info("SM-Support .....: %s", s->extcap.sm_supported ? "yes" : "no");
   if (s->extcap.sm_supported)
-    log_printf(" (%s)",
-               s->extcap.sm_algo == 2
-                   ? "3DES"
-                   : (s->extcap.sm_algo == 2 ? "AES-128" : "AES-256"));
+    log_printf(" (%s)", s->extcap.sm_algo == 2
+                            ? "3DES"
+                            : (s->extcap.sm_algo == 2 ? "AES-128" : "AES-256"));
   log_info("Max-Cert3-Len ..: %u\n", s->extcap.max_certlen_3);
   log_info("Cmd-Chaining ...: %s\n", s->cardcap.cmd_chaining ? "yes" : "no");
   log_info("Ext-Lc-Le ......: %s\n", s->cardcap.ext_lc_le ? "yes" : "no");
@@ -4143,7 +4142,6 @@ static void parse_historical(struct app_local_s *apploc,
  */
 static const char *ecc_curve(unsigned char *buf, size_t buflen) {
   gcry_mpi_t oid;
-  char *oidstr;
   const char *result;
   unsigned char *oidbuf;
 
@@ -4158,12 +4156,11 @@ static const char *ecc_curve(unsigned char *buf, size_t buflen) {
     return NULL;
   }
 
-  oidstr = openpgp_oid_to_str(oid);
+  std::string oidstr = openpgp_oid_to_str(oid);
   gcry_mpi_release(oid);
-  if (!oidstr) return NULL;
+  if (!oidstr.length()) return NULL;
 
   result = openpgp_oid_to_curve(oidstr, 1);
-  xfree(oidstr);
   return result;
 }
 

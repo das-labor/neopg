@@ -128,7 +128,7 @@ int gnupg_pk_is_compliant(enum gnupg_compliance_mode compliance, int algo,
   }
 
   if (compliance == CO_DE_VS) {
-    char *curve = NULL;
+    std::string curve;
 
     switch (algotype) {
       case is_pgp5:
@@ -151,7 +151,7 @@ int gnupg_pk_is_compliant(enum gnupg_compliance_mode compliance, int algo,
         if (!curvename && key) {
           curve = openpgp_oid_to_str(key[0]);
           curvename = openpgp_oid_to_curve(curve, 0);
-          if (!curvename) curvename = curve;
+          if (!curvename) curvename = curve.c_str();
         }
 
         result = (curvename &&
@@ -164,7 +164,6 @@ int gnupg_pk_is_compliant(enum gnupg_compliance_mode compliance, int algo,
       default:
         result = 0;
     }
-    xfree(curve);
   } else if (algotype == is_elg_sign) {
     /* An Elgamal signing key is only RFC-2440 compliant.  */
     result = 0;
@@ -225,12 +224,12 @@ int gnupg_pk_is_allowed(enum gnupg_compliance_mode compliance,
 
         case PUBKEY_ALGO_ECDSA: {
           int result = 0;
-          char *curve = NULL;
+          std::string curve;
 
           if (!curvename && key) {
             curve = openpgp_oid_to_str(key[0]);
             curvename = openpgp_oid_to_curve(curve, 0);
-            if (!curvename) curvename = curve;
+            if (!curvename) curvename = curve.c_str();
           }
 
           result = ((use == PK_USE_SIGNING && curvename &&
@@ -239,7 +238,6 @@ int gnupg_pk_is_allowed(enum gnupg_compliance_mode compliance,
                       !strcmp(curvename, "brainpoolP512r1"))) ||
                     use == PK_USE_VERIFICATION);
 
-          xfree(curve);
           return result;
         }
 

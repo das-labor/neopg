@@ -954,7 +954,7 @@ static void list_keyblock_colon(ctrl_t ctrl, kbnode_t keyblock, int secret,
   char *serialno = NULL;
   int stubkey;
   unsigned int keylength;
-  char *curve = NULL;
+  std::string curve;
   const char *curvename = NULL;
 
   /* Get the keyid from the keyblock.  */
@@ -1025,7 +1025,7 @@ static void list_keyblock_colon(ctrl_t ctrl, kbnode_t keyblock, int secret,
       pk->pubkey_algo == PUBKEY_ALGO_ECDH) {
     curve = openpgp_oid_to_str(pk->pkey[0]);
     curvename = openpgp_oid_to_curve(curve, 0);
-    if (!curvename) curvename = curve;
+    if (!curvename) curvename = curve.c_str();
     es_fputs(curvename, es_stdout);
   }
   es_putc(':', es_stdout); /* End of field 17. */
@@ -1132,10 +1132,9 @@ static void list_keyblock_colon(ctrl_t ctrl, kbnode_t keyblock, int secret,
       if (pk2->pubkey_algo == PUBKEY_ALGO_ECDSA ||
           pk2->pubkey_algo == PUBKEY_ALGO_EDDSA ||
           pk2->pubkey_algo == PUBKEY_ALGO_ECDH) {
-        xfree(curve);
         curve = openpgp_oid_to_str(pk2->pkey[0]);
         curvename = openpgp_oid_to_curve(curve, 0);
-        if (!curvename) curvename = curve;
+        if (!curvename) curvename = curve.c_str();
         es_fputs(curvename, es_stdout);
       }
       es_putc(':', es_stdout); /* End of field 17. */
@@ -1251,7 +1250,6 @@ static void list_keyblock_colon(ctrl_t ctrl, kbnode_t keyblock, int secret,
     }
   }
 
-  xfree(curve);
   xfree(hexgrip_buffer);
   xfree(serialno);
 }

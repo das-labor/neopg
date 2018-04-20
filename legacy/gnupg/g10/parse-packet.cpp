@@ -58,7 +58,7 @@ static int parse(parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts,
                  ,
                  const char *dbg_w, const char *dbg_f, int dbg_l
 #endif
-                 );
+);
 static int copy_packet(IOBUF inp, IOBUF out, int pkttype, unsigned long pktlen,
                        int partial);
 static void skip_packet(IOBUF inp, int pkttype, unsigned long pktlen,
@@ -461,7 +461,7 @@ static int parse(parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts,
                  ,
                  const char *dbg_w, const char *dbg_f, int dbg_l
 #endif
-                 ) {
+) {
   int rc = 0;
   iobuf_t inp;
   int c, ctb, pkttype, lenbytes;
@@ -1953,10 +1953,9 @@ static int parse_key(IOBUF inp, int pkttype, unsigned long pktlen, byte *hdr,
         if ((algorithm == PUBKEY_ALGO_ECDSA || algorithm == PUBKEY_ALGO_EDDSA ||
              algorithm == PUBKEY_ALGO_ECDH) &&
             i == 0) {
-          char *curve = openpgp_oid_to_str(pk->pkey[0]);
+          std::string curve = openpgp_oid_to_str(pk->pkey[0]);
           const char *name = openpgp_oid_to_curve(curve, 0);
           *listfp << boost::format(" %s (%s)") % (name ? name : "") % curve;
-          xfree(curve);
         }
         *listfp << '\n';
       }

@@ -117,16 +117,15 @@ char *pubkey_string(PKT_public_key *pk, char *buffer, size_t bufsize) {
   if (prefix && *prefix)
     snprintf(buffer, bufsize, "%s%u", prefix, nbits_from_pk(pk));
   else if (prefix) {
-    char *curve = openpgp_oid_to_str(pk->pkey[0]);
+    std::string curve = openpgp_oid_to_str(pk->pkey[0]);
     const char *name = openpgp_oid_to_curve(curve, 0);
 
     if (name)
       snprintf(buffer, bufsize, "%s", name);
-    else if (curve)
-      snprintf(buffer, bufsize, "E_%s", curve);
+    else if (curve.length())
+      snprintf(buffer, bufsize, "E_%s", curve.c_str());
     else
       snprintf(buffer, bufsize, "E_error");
-    xfree(curve);
   } else
     snprintf(buffer, bufsize, "unknown_%u", (unsigned int)pk->pubkey_algo);
 
@@ -686,10 +685,12 @@ char *format_hexfingerprint(const char *fingerprint, char *buffer,
   if (hexlen == 40) /* v4 fingerprint */
   {
     space = (/* The characters and the NUL.  */
-             40 + 1
+             40 +
+             1
              /* After every fourth character, we add a space (except
                 the last).  */
-             + 40 / 4 - 1
+             + 40 / 4 -
+             1
              /* Half way through we add a second space.  */
              + 1);
   } else /* Other fingerprint versions - print as is.  */
@@ -751,8 +752,8 @@ gpg_error_t keygrip_from_pk(PKT_public_key *pk, unsigned char *array) {
     case PUBKEY_ALGO_EDDSA:
     case PUBKEY_ALGO_ECDSA:
     case PUBKEY_ALGO_ECDH: {
-      char *curve = openpgp_oid_to_str(pk->pkey[0]);
-      if (!curve)
+      std::string curve = openpgp_oid_to_str(pk->pkey[0]);
+      if (!curve.length())
         err = gpg_error_from_syserror();
       else {
         err = gcry_sexp_build(
@@ -763,8 +764,7 @@ gpg_error_t keygrip_from_pk(PKT_public_key *pk, unsigned char *array) {
                    openpgp_oid_is_cv25519(pk->pkey[0]))
                       ? "(public-key(ecc(curve%s)(flags djb-tweak)(q%m)))"
                       : "(public-key(ecc(curve%s)(q%m)))",
-            curve, pk->pkey[1]);
-        xfree(curve);
+            curve.c_str(), pk->pkey[1]);
       }
     } break;
 
