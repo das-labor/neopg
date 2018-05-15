@@ -7,6 +7,8 @@ endif()
 
 set(version "v$ENV{v}")
 set(PROJECT_SOURCE_DIR "${s}")
+set(GitRelease_USER "${u}")
+set(GitRelease_PROJECT "${p}")
 
 MESSAGE("Version: ${version}")
 
@@ -15,7 +17,7 @@ file(WRITE ${PROJECT_SOURCE_DIR}/VERSION "${version}")
 MESSAGE("Generating changelog...")
 execute_process(
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  COMMAND ${GEN_CHANGELOG} --header-label "\# Changelog" --future-release=${version}
+  COMMAND ${GEN_CHANGELOG} --user ${GitRelease_USER} --project ${GitRelease_PROJECT} --header-label "\# Changelog" --future-release=${version}
 )
 
 execute_process(

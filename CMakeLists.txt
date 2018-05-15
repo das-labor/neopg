@@ -15,6 +15,8 @@ project(NeoPG VERSION "${NeoPG_VERSION_STRING}" LANGUAGES CXX)
 message(STATUS "${PROJECT_NAME} ${${PROJECT_NAME}_VERSION_STRING_FULL}")
 
 # Add targets for maintainers: release, changelog
+set(GitRelease_USER "das-labor")
+set(GitRelease_PROJECT "neopg")
 include(GitRelease)
 
 # Add user-settable options.
