@@ -1,6 +1,32 @@
 # Changelog
 
+## [v0.0.5](https://github.com/das-labor/neopg/tree/v0.0.5) (2018-05-15)
+
+[Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.4...v0.0.5)
+
+**Closed issues:**
+
+- Please summarize project "status" in the README [\#65](https://github.com/das-labor/neopg/issues/65)
+- ensure NeoPG::URI and NeoPG::Http agree on URL parsing. [\#61](https://github.com/das-labor/neopg/issues/61)
+- Interpret http timeout as milliseconds instead of seconds. [\#45](https://github.com/das-labor/neopg/issues/45)
+
+**Merged pull requests:**
+
+- Run a legacy subcommand directly if neopg is called through a program name that ends in that subcommand. [\#71](https://github.com/das-labor/neopg/pull/71) ([lambdafu](https://github.com/lambdafu))
+- Integrate taocpp::json [\#69](https://github.com/das-labor/neopg/pull/69) ([ColinH](https://github.com/ColinH))
+- Disable support for IDEA. [\#68](https://github.com/das-labor/neopg/pull/68) ([lambdafu](https://github.com/lambdafu))
+- Fix a logging message when starting the agent [\#67](https://github.com/das-labor/neopg/pull/67) ([romanz](https://github.com/romanz))
+- Add test case for URI parser for WHATWG compliance \(issue \#61\). [\#62](https://github.com/das-labor/neopg/pull/62) ([lambdafu](https://github.com/lambdafu))
+- Update PEGTL to 2.4.0. [\#59](https://github.com/das-labor/neopg/pull/59) ([lambdafu](https://github.com/lambdafu))
+- Reorganize header files and unit tests. [\#52](https://github.com/das-labor/neopg/pull/52) ([lambdafu](https://github.com/lambdafu))
+- Build libneopg as shared library, and fix interface visibility. [\#50](https://github.com/das-labor/neopg/pull/50) ([lambdafu](https://github.com/lambdafu))
+- mention force-linking of gettext tools on macOS for homebrew [\#49](https://github.com/das-labor/neopg/pull/49) ([fkr](https://github.com/fkr))
+- Remove support for fake v3 key IDs. [\#47](https://github.com/das-labor/neopg/pull/47) ([lambdafu](https://github.com/lambdafu))
+- Set maximum filesize for Http transfers. [\#40](https://github.com/das-labor/neopg/pull/40) ([lambdafu](https://github.com/lambdafu))
+- Remove use of es\_fopencookie from dirmngr. [\#38](https://github.com/das-labor/neopg/pull/38) ([lambdafu](https://github.com/lambdafu))
+
 ## [v0.0.4](https://github.com/das-labor/neopg/tree/v0.0.4) (2017-12-15)
+
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.3...v0.0.4)
 
 **Implemented enhancements:**
@@ -26,6 +52,7 @@
 - Fix travis, support more compilers, and check code formatting. [\#12](https://github.com/das-labor/neopg/pull/12) ([lambdafu](https://github.com/lambdafu))
 
 ## [v0.0.3](https://github.com/das-labor/neopg/tree/v0.0.3) (2017-11-25)
+
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.2...v0.0.3)
 
 **Merged pull requests:**
@@ -35,6 +62,7 @@
 - fixing missing include causing unknown 'unique\_ptr' in legacy/gnupg/g10/keyid.cpp [\#7](https://github.com/das-labor/neopg/pull/7) ([bitpick](https://github.com/bitpick))
 
 ## [v0.0.2](https://github.com/das-labor/neopg/tree/v0.0.2) (2017-10-29)
+
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.1...v0.0.2)
 
 **Merged pull requests:**
@@ -44,6 +72,9 @@
 - really fix gtest includes [\#3](https://github.com/das-labor/neopg/pull/3) ([flanfly](https://github.com/flanfly))
 
 ## [v0.0.1](https://github.com/das-labor/neopg/tree/v0.0.1) (2017-10-28)
+
+[Full Changelog](https://github.com/das-labor/neopg/compare/a087039e7a959b33f0edfd9319b585a6eabdab2c...v0.0.1)
+
 **Merged pull requests:**
 
 - fix gtest includes [\#2](https://github.com/das-labor/neopg/pull/2) ([flanfly](https://github.com/flanfly))
