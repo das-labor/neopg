@@ -19,6 +19,19 @@ set(NeopgHeaders
   openpgp/object_identifier.h
   openpgp/packet.h
   openpgp/packet_header.h
+  openpgp/public_key/data/v3_public_key_data.h
+  openpgp/public_key/data/v4_public_key_data.h
+  openpgp/public_key/material/dsa_public_key_material.h
+  openpgp/public_key/material/ecdh_public_key_material.h
+  openpgp/public_key/material/ecdsa_public_key_material.h
+  openpgp/public_key/material/eddsa_public_key_material.h
+  openpgp/public_key/material/elgamal_public_key_material.h
+  openpgp/public_key/material/raw_public_key_material.h
+  openpgp/public_key/material/rsa_public_key_material.h
+  openpgp/public_key/public_key_data.h
+  openpgp/public_key/public_key_material.h
+  openpgp/public_key_packet.h
+  openpgp/public_subkey_packet.h
   openpgp/raw_packet.h
   openpgp/symmetrically_encrypted_data_packet.h
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.h
@@ -46,6 +59,19 @@ add_library(neopg
   openpgp/object_identifier.cpp
   openpgp/packet.cpp
   openpgp/packet_header.cpp
+  openpgp/public_key_packet.cpp
+  openpgp/public_key/data/v3_public_key_data.cpp
+  openpgp/public_key/data/v4_public_key_data.cpp
+  openpgp/public_key/material/dsa_public_key_material.cpp
+  openpgp/public_key/material/ecdh_public_key_material.cpp
+  openpgp/public_key/material/ecdsa_public_key_material.cpp
+  openpgp/public_key/material/eddsa_public_key_material.cpp
+  openpgp/public_key/material/elgamal_public_key_material.cpp
+  openpgp/public_key/material/raw_public_key_material.cpp
+  openpgp/public_key/material/rsa_public_key_material.cpp
+  openpgp/public_key/public_key_data.cpp
+  openpgp/public_key/public_key_material.cpp
+  openpgp/public_subkey_packet.cpp
   openpgp/raw_packet.cpp
   openpgp/symmetrically_encrypted_data_packet.cpp
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp

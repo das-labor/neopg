@@ -12,6 +12,19 @@ add_executable(test-libneopg
   ../openpgp/multiprecision_integer_tests.cpp
   ../openpgp/object_identifier_tests.cpp
   ../openpgp/packet_header_tests.cpp
+  ../openpgp/public_key_packet_tests.cpp
+  ../openpgp/public_key/data/v3_public_key_data_tests.cpp
+  ../openpgp/public_key/data/v4_public_key_data_tests.cpp
+  ../openpgp/public_key/material/dsa_public_key_material_tests.cpp
+  ../openpgp/public_key/material/ecdh_public_key_material_tests.cpp
+  ../openpgp/public_key/material/ecdsa_public_key_material_tests.cpp
+  ../openpgp/public_key/material/eddsa_public_key_material_tests.cpp
+  ../openpgp/public_key/material/elgamal_public_key_material_tests.cpp
+  ../openpgp/public_key/material/raw_public_key_material_tests.cpp
+  ../openpgp/public_key/material/rsa_public_key_material_tests.cpp
+  ../openpgp/public_key/public_key_data_tests.cpp
+  ../openpgp/public_key/public_key_material_tests.cpp
+  ../openpgp/public_subkey_packet_tests.cpp
   ../openpgp/symmetrically_encrypted_data_packet_tests.cpp
   ../openpgp/symmetrically_encrypted_integrity_protected_data_packet_tests.cpp
   ../openpgp/trust_packet_tests.cpp
