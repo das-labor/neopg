@@ -16,6 +16,7 @@ set(NeopgHeaders
   openpgp/marker_packet.h
   openpgp/modification_detection_code_packet.h
   openpgp/multiprecision_integer.h
+  openpgp/object_identifier.h
   openpgp/packet_header.h
   openpgp/packet.h
   openpgp/raw_packet.h
@@ -42,6 +43,7 @@ add_library(neopg
   openpgp/marker_packet.cpp
   openpgp/modification_detection_code_packet.cpp
   openpgp/multiprecision_integer.cpp
+  openpgp/object_identifier.cpp
   openpgp/packet_header.cpp
   openpgp/packet.cpp
   openpgp/raw_packet.cpp
