@@ -17,8 +17,8 @@ set(NeopgHeaders
   openpgp/modification_detection_code_packet.h
   openpgp/multiprecision_integer.h
   openpgp/object_identifier.h
-  openpgp/packet_header.h
   openpgp/packet.h
+  openpgp/packet_header.h
   openpgp/raw_packet.h
   openpgp/symmetrically_encrypted_data_packet.h
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.h
@@ -36,16 +36,16 @@ set(NeopgHeaders
   utils/time.h
 )
 add_library(neopg
-  include/neopg/intern/cplusplus.h
   crypto/rng.cpp
+  include/neopg/intern/cplusplus.h
   openpgp/compressed_data_packet.cpp
   openpgp/literal_data_packet.cpp
   openpgp/marker_packet.cpp
   openpgp/modification_detection_code_packet.cpp
   openpgp/multiprecision_integer.cpp
   openpgp/object_identifier.cpp
-  openpgp/packet_header.cpp
   openpgp/packet.cpp
+  openpgp/packet_header.cpp
   openpgp/raw_packet.cpp
   openpgp/symmetrically_encrypted_data_packet.cpp
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp

@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpgp_object_identifier_test) {
+TEST(NeopgTest, openpgp_object_identifier_test) {
   {
     std::stringstream out;
     ObjectIdentifier oid;

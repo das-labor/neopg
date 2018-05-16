@@ -12,7 +12,7 @@ using namespace NeoPG;
 
 namespace NeoPG {
 
-TEST(NeoPGTest, proto_http_test) {
+TEST(NeopgTest, proto_http_test) {
   {
     Http request;
     request.set_url("http://www.example.com");
@@ -21,4 +21,4 @@ TEST(NeoPGTest, proto_http_test) {
     // request.fetch();
   }
 }
-}
+}  // namespace NeoPG

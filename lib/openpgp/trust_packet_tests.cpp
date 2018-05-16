@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_trust_packet_test) {
+TEST(NeopgTest, openpgp_trust_packet_test) {
   {
     std::stringstream out;
     TrustPacket packet;

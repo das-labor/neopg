@@ -1,14 +1,18 @@
-#include <sstream>
-
-#include "gtest/gtest.h"
+// OpenPGP compressed data packet (tests)
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/compressed_data_packet.h>
 
 #include <memory>
+#include <sstream>
+
+#include "gtest/gtest.h"
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_compressed_data_packet_test) {
+TEST(NeopgTest, openpgp_compressed_data_packet_test) {
   {
     std::stringstream out;
     UncompressedDataPacket packet;

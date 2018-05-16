@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpgp_multiprecision_integer_test) {
+TEST(NeopgTest, openpgp_multiprecision_integer_test) {
   {
     std::stringstream out;
     MultiprecisionInteger mpi;

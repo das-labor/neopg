@@ -1,14 +1,18 @@
-#include <sstream>
-
-#include "gtest/gtest.h"
+// OpenPGP packet header (tests)
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/packet_header.h>
 
+#include "gtest/gtest.h"
+
 #include <memory>
+#include <sstream>
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_header_test) {
+TEST(NeopgTest, openpgp_packet_header_test) {
   {
     std::stringstream out;
     NewPacketTag tag(PacketType::Marker);

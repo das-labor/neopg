@@ -18,4 +18,4 @@ TEST(NeopgToolTest, streams_test) {
     ASSERT_THROW(streams.m_console.in(), std::runtime_error);
   }
 }
-}
+}  // namespace NeoPG

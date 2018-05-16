@@ -1,5 +1,5 @@
-// OpenPGP format
-// Copyright 2017 The NeoPG developers
+// OpenPGP packet header
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 

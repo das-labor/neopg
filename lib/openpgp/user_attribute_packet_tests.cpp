@@ -1,9 +1,14 @@
-#include <memory>
-#include <sstream>
+// OpenPGP user attribute packet (tests)
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
+
+#include <neopg/user_attribute_packet.h>
 
 #include "gtest/gtest.h"
 
-#include <neopg/user_attribute_packet.h>
+#include <memory>
+#include <sstream>
 
 using namespace NeoPG;
 
@@ -18,7 +23,7 @@ const std::vector<uint8_t> small_jpeg{
     0xff, 0xcc, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xff, 0xda, 0x00, 0x08,
     0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20, 0xff, 0xd9};
 
-TEST(NeoPGTest, openpg_user_attribute_packet_test) {
+TEST(NeopgTest, openpgp_user_attribute_packet_test) {
   {
     std::stringstream out;
     ImageAttributeSubpacket packet;

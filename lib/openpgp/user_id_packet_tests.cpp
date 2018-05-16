@@ -1,5 +1,5 @@
 // OpenPGP user ID packet (tests)
-// Copyright 2017 The NeoPG developers
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_user_id_packet_test) {
+TEST(NeopgTest, openpgp_user_id_packet_test) {
   {
     // Test old packet header.
     std::stringstream out;

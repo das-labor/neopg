@@ -9,7 +9,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, parser_input_test) {
+TEST(NeopgTest, parser_input_test) {
   auto str = std::string{"foobar"};
   ParserInput in(str.data(), str.length());
   ASSERT_EQ(in.size(), str.length());
