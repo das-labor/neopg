@@ -1,11 +1,12 @@
-// OpenPGP format
-// Copyright 2017 The NeoPG developers
+// OpenPGP packet
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
 #pragma once
 
 #include <neopg/packet_header.h>
+#include <neopg/parser_input.h>
 
 #include <functional>
 #include <memory>
@@ -16,7 +17,12 @@ using packet_header_factory = std::function<std::unique_ptr<PacketHeader>(
     PacketType type, uint32_t length)>;
 
 struct NEOPG_UNSTABLE_API Packet {
+  static std::unique_ptr<Packet> create_or_throw(PacketType type,
+                                                 ParserInput& in);
+
   /// Use this to overwrite the default header.
+  // FIXME: Replace this with a header-generator that comes in different
+  // flavors, see issue #66.
   std::unique_ptr<PacketHeader> m_header;
 
   /// Write the packet to \p out. If \p m_header is set, use that. Otherwise,
