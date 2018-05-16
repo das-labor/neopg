@@ -1,13 +1,11 @@
-/* OpenPGP format
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
-
-#include <neopg/user_attribute_packet.h>
+// OpenPGP user attribute packet (implementation)
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/packet_header.h>
 #include <neopg/stream.h>
+#include <neopg/user_attribute_packet.h>
 
 namespace NeoPG {
 

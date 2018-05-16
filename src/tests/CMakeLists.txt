@@ -15,7 +15,7 @@ target_link_libraries(test-neopg
   GTest::GTest GTest::Main
 )
 
-add_test(NeoPGTest test-neopg
+add_test(NeopgToolTest test-neopg
   COMMAND test-neopg test_xml_output --gtest_output=xml:test-neopg.xml
 )
 add_dependencies(tests test-neopg)

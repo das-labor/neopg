@@ -12,7 +12,7 @@ using namespace NeoPG;
 
 namespace NeoPG {
 
-TEST(NeoPGTest, utils_stream_test) {
+TEST(NeopgTest, utils_stream_test) {
   {
     CountingStreamBuf::int_type result;
     CountingStreamBuf buf;
@@ -37,4 +37,4 @@ TEST(NeoPGTest, utils_stream_test) {
     ASSERT_EQ(out.bytes_written(), 11);
   }
 }
-}
+}  // namespace NeoPG

@@ -1,5 +1,5 @@
 // OpenPGP marker packet
-// Copyright 2017 The NeoPG developers
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
@@ -15,9 +15,12 @@ namespace NeoPG {
 /// Marker packets are obsolete.  NeoPG will never generate marker packets on
 /// its own, and will ignore all marker packets it receives.  They are provided
 /// here for completeness.
-struct NEOPG_UNSTABLE_API MarkerPacket : Packet {
+class NEOPG_UNSTABLE_API MarkerPacket : public Packet {
+ public:
   void write_body(std::ostream& out) const override;
   PacketType type() const override;
+
+  MarkerPacket() = default;
 };
 
 }  // namespace NeoPG

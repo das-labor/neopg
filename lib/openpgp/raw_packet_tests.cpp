@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_raw_packet_test) {
+TEST(NeopgTest, openpgp_raw_packet_test) {
   {
     std::stringstream out;
     RawPacket packet;

@@ -1,5 +1,5 @@
 // OpenPGP MDC packet (tests)
-// Copyright 2017 The NeoPG developers
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
@@ -12,7 +12,7 @@
 
 using namespace NeoPG;
 
-TEST(NeoPGTest, openpg_modification_detection_code_packet_test) {
+TEST(NeopgTest, openpgp_modification_detection_code_packet_test) {
   {
     // Must be new packet header, so we don't test old.
     std::stringstream out;
@@ -28,7 +28,7 @@ TEST(NeoPGTest, openpg_modification_detection_code_packet_test) {
   }
 
   {
-    /* Failures.  */
+    // Failures.
     std::stringstream out;
     ModificationDetectionCodePacket packet;
     ASSERT_THROW(packet.write(out), std::logic_error);

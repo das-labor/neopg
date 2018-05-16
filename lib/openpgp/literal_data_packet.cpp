@@ -1,8 +1,7 @@
-/* OpenPGP format
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
+// OpenPGP literal data packet (implementation)
+// Copyright 2017-2018 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include <neopg/literal_data_packet.h>
 #include <neopg/packet_header.h>

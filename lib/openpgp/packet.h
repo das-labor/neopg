@@ -19,6 +19,8 @@ struct NEOPG_UNSTABLE_API Packet {
   /// Use this to overwrite the default header.
   std::unique_ptr<PacketHeader> m_header;
 
+  /// Write the packet to \p out. If \p m_header is set, use that. Otherwise,
+  /// generate a default header using the provided factory.
   void write(std::ostream& out, packet_header_factory header_factory =
                                     NewPacketHeader::create_or_throw) const;
 

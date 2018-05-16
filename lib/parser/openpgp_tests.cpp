@@ -45,7 +45,7 @@ class TestSink : public RawPacketSink {
                      const char* data, size_t length){};
 };
 
-TEST(NeoPGTest, parser_openpgp_test) {
+TEST(NeopgTest, parser_openpgp_test) {
   {
     std::vector<std::unique_ptr<RawPacket>> packets;
     auto sink = TestSink{packets};

@@ -10,7 +10,7 @@ using namespace NeoPG;
 
 namespace NeoPG {
 
-TEST(NeoPGTest, proto_uri_test) {
+TEST(NeopgTest, proto_uri_test) {
   {
     URI uri;
     std::string input;

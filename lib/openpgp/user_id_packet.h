@@ -1,5 +1,5 @@
 // OpenPGP user ID packet
-// Copyright 2017 The NeoPG developers
+// Copyright 2017-2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
@@ -15,7 +15,9 @@ namespace NeoPG {
 /// User ID packets hold UTF-8 encoded text, often of the form "Name <Email>" or
 /// "Name (Comment) <Email>". RFC 4880 does not impose a limit on its length,
 /// GnuPG limits it to 2 KB.
-struct NEOPG_UNSTABLE_API UserIdPacket : Packet {
+class NEOPG_UNSTABLE_API UserIdPacket : public Packet {
+ public:
+
   /// The suggested limit for the size of #m_content.  This limit is not
   /// enforced in this class.
   const size_t MAX_LENGTH = 2048;
@@ -24,6 +26,8 @@ struct NEOPG_UNSTABLE_API UserIdPacket : Packet {
 
   void write_body(std::ostream& out) const override;
   PacketType type() const override;
+
+  UserIdPacket() = default;
 };
 
 }  // namespace NeoPG
