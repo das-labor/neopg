@@ -13,29 +13,33 @@
 
 namespace NeoPG {
 
+/// Represent an OpenPGP [packet
+/// type](https://tools.ietf.org/html/rfc4880#section-4.3).
 enum class NEOPG_UNSTABLE_API PacketType : uint8_t {
-  Reserved = 0,
-  PublicKeyEncryptedSessionKey = 1,
-  Signature = 2,
-  SymmetricKeyEncryptedSessionKey = 3,
-  OnePassSignature = 4,
-  SecretKey = 5,
-  PublicKey = 6,
-  SecretSubkey = 7,
-  CompressedData = 8,
-  SymmetricallyEncryptedData = 9,
-  Marker = 10,
-  LiteralData = 11,
-  Trust = 12,
-  UserID = 13,
-  PublicSubkey = 14,
-  UserAttribute = 17,
-  SymmetricallyEncryptedIntegrityProtectedData = 18,
-  ModificationDetectionCode = 19,
-  Private_60 = 60,
-  Private_61 = 61,
-  Private_62 = 62,
-  Private_63 = 63,
+  Reserved = 0,                      ///< Reserved (use RawPacket)
+  PublicKeyEncryptedSessionKey = 1,  ///< PublicKeyEncryptedSessionKeyPacket
+  Signature = 2,                     ///< SignaturePacket
+  SymmetricKeyEncryptedSessionKey =
+      3,                           ///< SymmetricKeyEncryptedSessionKeyPacket
+  OnePassSignature = 4,            ///< OnePassSignaturePacket
+  SecretKey = 5,                   ///< SecretKeyPacket
+  PublicKey = 6,                   ///< PublicKeyPacket
+  SecretSubkey = 7,                ///< SecretSubkeyPacket
+  CompressedData = 8,              ///< CompressedDataPacket
+  SymmetricallyEncryptedData = 9,  ///< SymmetricallyEncryptedDataPacket
+  Marker = 10,                     ///< MarkerPacket
+  LiteralData = 11,                ///< LiteralDataPacket
+  Trust = 12,                      ///< TrustPacket
+  UserId = 13,                     ///< UserIdPacket
+  PublicSubkey = 14,               ///< PublicSubkeyPacket
+  UserAttribute = 17,              ///< UserAttributePacket
+  SymmetricallyEncryptedIntegrityProtectedData =
+      18,  ///< SymmetricallyEncryptedIntegrityProtectedDataPacket
+  ModificationDetectionCode = 19,  ///< ModificationDetectionCodePacket
+  Private_60 = 60,  ///< Private or Experimental Value (use RawPaceket)
+  Private_61 = 61,  ///< Private or Experimental Value (use RawPaceket)
+  Private_62 = 62,  ///< Private or Experimental Value (use RawPaceket)
+  Private_63 = 63,  ///< Private or Experimental Value (use RawPaceket)
 };
 
 enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {

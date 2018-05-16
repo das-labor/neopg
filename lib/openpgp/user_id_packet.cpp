@@ -11,4 +11,4 @@ void UserIdPacket::write_body(std::ostream& out) const {
   out.write(m_content.data(), m_content.size());
 }
 
-PacketType UserIdPacket::type() const { return PacketType::UserID; }
+PacketType UserIdPacket::type() const { return PacketType::UserId; }
