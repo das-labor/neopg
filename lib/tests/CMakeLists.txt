@@ -17,6 +17,7 @@ add_executable(test-libneopg
   ../openpgp/trust_packet_tests.cpp
   ../utils/stream_tests.cpp
   ../parser/openpgp_tests.cpp
+  ../parser/parser_input_tests.cpp
   ../proto/uri_tests.cpp
   ../proto/http_tests.cpp
 )
