@@ -9,6 +9,10 @@
 #include <neopg/parser_input.h>
 #include <neopg/parser_position.h>
 
+#include <neopg/public_key_data.h>
+
+#include <botan/loadstor.h>
+
 #include <string>
 #include <vector>
 
@@ -89,6 +93,44 @@ struct bind<T, std::string, Field> {
   template <typename Input>
   static void apply(const Input& in, T& pkt) {
     (pkt.*Field).assign(in.begin(), in.end());
+  }
+};
+
+template <typename T, uint32_t T::*Field>
+struct bind<T, uint32_t, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    auto src = in.begin();
+    auto ptr = reinterpret_cast<const uint8_t*>(src);
+    static_assert(sizeof(*src) == sizeof(*ptr), "can't do pointer arithmetic");
+    pkt.*Field = Botan::load_be<uint32_t>(ptr, 0);
+  }
+};
+
+template <typename T, uint16_t T::*Field>
+struct bind<T, uint16_t, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    auto src = in.begin();
+    auto ptr = reinterpret_cast<const uint8_t*>(src);
+    static_assert(sizeof(*src) == sizeof(*ptr), "can't do pointer arithmetic");
+    pkt.*Field = Botan::load_be<uint16_t>(ptr, 0);
+  }
+};
+
+template <typename T, NeoPG::PublicKeyVersion T::*Field>
+struct bind<T, NeoPG::PublicKeyVersion, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::PublicKeyVersion>(in.peek_byte());
+  }
+};
+
+template <typename T, NeoPG::PublicKeyAlgorithm T::*Field>
+struct bind<T, NeoPG::PublicKeyAlgorithm, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::PublicKeyAlgorithm>(in.peek_byte());
   }
 };
 

@@ -13,6 +13,13 @@
 #include <neopg/stream.h>
 #include <neopg/user_id_packet.h>
 
+#include <neopg/dsa_public_key_material.h>
+#include <neopg/ecdh_public_key_material.h>
+#include <neopg/ecdsa_public_key_material.h>
+#include <neopg/eddsa_public_key_material.h>
+#include <neopg/elgamal_public_key_material.h>
+#include <neopg/rsa_public_key_material.h>
+
 #include <botan/data_snk.h>
 #include <botan/data_src.h>
 
