@@ -11,6 +11,7 @@ add_executable(test-libneopg
   ../openpgp/user_id_packet_tests.cpp
   ../openpgp/user_attribute_packet_tests.cpp
   ../openpgp/modification_detection_code_packet_tests.cpp
+  ../openpgp/multiprecision_integer_tests.cpp
   ../openpgp/symmetrically_encrypted_integrity_protected_data_packet_tests.cpp
   ../openpgp/symmetrically_encrypted_data_packet_tests.cpp
   ../openpgp/compressed_data_packet_tests.cpp
