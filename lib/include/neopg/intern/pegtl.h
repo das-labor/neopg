@@ -9,6 +9,7 @@
 #include <neopg/parser_input.h>
 #include <neopg/parser_position.h>
 
+#include <string>
 #include <vector>
 
 // Protect our use of PEGTL from other library users.
@@ -80,6 +81,14 @@ struct bind<T, std::vector<uint8_t>, Field> {
     auto ptr = reinterpret_cast<const uint8_t*>(src);
     static_assert(sizeof(*src) == sizeof(*ptr), "can't do pointer arithmetic");
     (pkt.*Field).assign(ptr, ptr + in.size());
+  }
+};
+
+template <typename T, std::string T::*Field>
+struct bind<T, std::string, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    (pkt.*Field).assign(in.begin(), in.end());
   }
 };
 

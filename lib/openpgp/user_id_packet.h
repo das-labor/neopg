@@ -3,9 +3,15 @@
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
 
+/// \file
+/// This file contains support for OpenPGP user id packets.
+
 #pragma once
 
 #include <neopg/packet.h>
+#include <neopg/parser_input.h>
+
+#include <vector>
 
 namespace NeoPG {
 
@@ -17,16 +23,40 @@ namespace NeoPG {
 /// GnuPG limits it to 2 KB.
 class NEOPG_UNSTABLE_API UserIdPacket : public Packet {
  public:
+  /// Create a new user ID packet from \p input.
+  ///
+  /// \param input the parser input to read from
+  ///
+  /// \return pointer to packet or nullptr on error
+  static std::unique_ptr<UserIdPacket> create(ParserInput& input);
 
-  /// The suggested limit for the size of #m_content.  This limit is not
-  /// enforced in this class.
-  const size_t MAX_LENGTH = 2048;
+  /// Create a new user ID packet from \p input. Throw an exception on error.
+  ///
+  /// \param input the parser input to read from
+  ///
+  /// \return pointer to packet
+  ///
+  /// \throws ParserError
+  static std::unique_ptr<UserIdPacket> create_or_throw(ParserInput& input);
+
+  /// The parser limit for the size of #m_content. Any packet larger than that
+  /// will cause a ParserError.
+  static const size_t MAX_LENGTH = 2048;
+
   /// The user ID.
   std::string m_content;
 
+  /// Write the packet body to the output stream.
+  ///
+  /// \param out the output stream to write to
   void write_body(std::ostream& out) const override;
-  PacketType type() const override;
 
+  /// Return the packet type.
+  ///
+  /// \return the value PacketType::UserId
+  PacketType type() const noexcept override { return PacketType::UserId; }
+
+  /// Construct a new trust packet.
   UserIdPacket() = default;
 };
 
