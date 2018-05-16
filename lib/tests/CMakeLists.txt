@@ -25,6 +25,42 @@ add_executable(test-libneopg
   ../openpgp/public_key/public_key_data_tests.cpp
   ../openpgp/public_key/public_key_material_tests.cpp
   ../openpgp/public_subkey_packet_tests.cpp
+  ../openpgp/signature_packet_tests.cpp
+  ../openpgp/signature/signature_data_tests.cpp
+  ../openpgp/signature/data/v3_signature_data_tests.cpp
+  ../openpgp/signature/data/v4_signature_data_tests.cpp
+  ../openpgp/signature/data/v4_signature_subpacket_data_tests.cpp
+  ../openpgp/signature/material/raw_signature_material_tests.cpp
+  ../openpgp/signature/material/rsa_signature_material_tests.cpp
+  ../openpgp/signature/material/dsa_signature_material_tests.cpp
+  ../openpgp/signature/material/ecdsa_signature_material_tests.cpp
+  ../openpgp/signature/material/eddsa_signature_material_tests.cpp
+  ../openpgp/signature/signature_material_tests.cpp
+  ../openpgp/signature/signature_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/embedded_signature_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/exportable_certification_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/features_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/issuer_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/key_expiration_time_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/key_flags_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/key_server_preferences_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/notation_data_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/policy_uri_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/preferred_compression_algorithms_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/preferred_hash_algorithms_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/preferred_key_server_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/preferred_symmetric_algorithms_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/primary_user_id_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/raw_signature_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/reason_for_revocation_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/regular_expression_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/revocable_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/revocation_key_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/signature_creation_time_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/signature_expiration_time_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/signature_target_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/signers_user_id_subpacket_tests.cpp
+  ../openpgp/signature/subpacket/trust_signature_subpacket_tests.cpp
   ../openpgp/symmetrically_encrypted_data_packet_tests.cpp
   ../openpgp/symmetrically_encrypted_integrity_protected_data_packet_tests.cpp
   ../openpgp/trust_packet_tests.cpp
