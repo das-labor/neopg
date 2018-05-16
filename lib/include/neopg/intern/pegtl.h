@@ -9,6 +9,8 @@
 #include <neopg/parser_input.h>
 #include <neopg/parser_position.h>
 
+#include <vector>
+
 // Protect our use of PEGTL from other library users.
 #define TAO_PEGTL_NAMESPACE neopg_pegtl
 #include <tao/pegtl.hpp>
@@ -58,5 +60,28 @@ struct rep_max_any {
     return true;
   }
 };
+
+// With C++17, we can derive the parameter T this way:
+// template <auto value>
+// struct bind {};
+// template <typename T, std::vector<uint8_t> T::*Field>
+// struct bind<Field> {
+// template <typename Input>
+// static void apply(const Input& in, T& pkt) {
+
+template <typename T, typename R, R T::*Field>
+struct bind {};
+
+template <typename T, std::vector<uint8_t> T::*Field>
+struct bind<T, std::vector<uint8_t>, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    auto src = in.begin();
+    auto ptr = reinterpret_cast<const uint8_t*>(src);
+    static_assert(sizeof(*src) == sizeof(*ptr), "can't do pointer arithmetic");
+    (pkt.*Field).assign(ptr, ptr + in.size());
+  }
+};
+
 }  // namespace TAO_PEGTL_NAMESPACE
 }  // namespace tao
