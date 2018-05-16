@@ -37,6 +37,8 @@ target_include_directories(neopg-tool PUBLIC
   ${CLI11_INCLUDE_DIR}
   ${RANG_INCLUDE_DIR}
   ${SPDLOG_INCLUDE_DIR}
+  ${JSON_INCLUDE_DIR}
+  ${SPDLOG_INCLUDE_DIR}
   ../include
 )
 
