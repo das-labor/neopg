@@ -10,6 +10,8 @@
 #include <neopg/parser_position.h>
 
 #include <neopg/public_key_data.h>
+#include <neopg/reason_for_revocation_subpacket.h>
+#include <neopg/signature_data.h>
 
 #include <botan/loadstor.h>
 
@@ -118,6 +120,14 @@ struct bind<T, uint16_t, Field> {
   }
 };
 
+template <typename T, uint8_t T::*Field>
+struct bind<T, uint8_t, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = in.peek_byte(0);
+  }
+};
+
 template <typename T, NeoPG::PublicKeyVersion T::*Field>
 struct bind<T, NeoPG::PublicKeyVersion, Field> {
   template <typename Input>
@@ -131,6 +141,38 @@ struct bind<T, NeoPG::PublicKeyAlgorithm, Field> {
   template <typename Input>
   static void apply(const Input& in, T& pkt) {
     pkt.*Field = static_cast<NeoPG::PublicKeyAlgorithm>(in.peek_byte());
+  }
+};
+
+template <typename T, NeoPG::HashAlgorithm T::*Field>
+struct bind<T, NeoPG::HashAlgorithm, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::HashAlgorithm>(in.peek_byte());
+  }
+};
+
+template <typename T, NeoPG::SignatureType T::*Field>
+struct bind<T, NeoPG::SignatureType, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::SignatureType>(in.peek_byte());
+  }
+};
+
+template <typename T, NeoPG::SignatureVersion T::*Field>
+struct bind<T, NeoPG::SignatureVersion, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::SignatureVersion>(in.peek_byte());
+  }
+};
+
+template <typename T, NeoPG::RevocationCode T::*Field>
+struct bind<T, NeoPG::RevocationCode, Field> {
+  template <typename Input>
+  static void apply(const Input& in, T& pkt) {
+    pkt.*Field = static_cast<NeoPG::RevocationCode>(in.peek_byte());
   }
 };
 
