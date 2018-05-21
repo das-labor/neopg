@@ -69,6 +69,10 @@ set(RANG_INCLUDE_DIR ${RANG_ROOT}/include)
 set(CLI11_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/CLI11)
 set(CLI11_INCLUDE_DIR ${CLI11_ROOT}/include)
 
+# Spdlog
+set(SPDLOG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/spdlog)
+set(SPDLOG_INCLUDE_DIR ${SPDLOG_ROOT}/include)
+
 # json
 set(JSON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/json)
 set(JSON_INCLUDE_DIR ${JSON_ROOT}/include)
