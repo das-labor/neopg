@@ -17,6 +17,7 @@ set(NeopgToolHeaders
   cli/packet_command.h
   cli/random_command.h
   cli/version_command.h
+  global_options.h
   io/streams.h
 )
 add_library(neopg-tool STATIC
@@ -34,6 +35,7 @@ target_include_directories(neopg-tool PUBLIC
   "${CMAKE_BINARY_DIR}/include"
   ${BOTAN2_INCLUDE_DIRS}
   ${CLI11_INCLUDE_DIR}
+  ${RANG_INCLUDE_DIR}
   ../include
 )
 
