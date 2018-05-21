@@ -4,9 +4,12 @@
    NeoPG is released under the Simplified BSD License (see license.txt)
 */
 
+#include "global_options.h"
+
 #include <iostream>
 
 #include <CLI11.hpp>
+#include <rang.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
@@ -125,6 +128,7 @@ int main(int argc, char* argv[]) {
     args.emplace(args.begin(), "dirmngr-client");
 
   CLI::App app{_("NeoPG implements the OpenPGP standard.")};
+  GlobalOptions options;
 
   /* Translators, please add a second line saying "Report translation bugs to
    <...>" with the address for translation bugs (typically your translation
@@ -151,6 +155,12 @@ int main(int argc, char* argv[]) {
       throw CLI::CallForHelp();
     }
   });
+
+  app.add_set("--color", options.color,
+              {rang::control::Auto, rang::control::Force, rang::control::Off},
+              "colorize the output (auto, always, or never)")
+      ->set_type_name("WHEN");
+  app.set_callback([&options]() { rang::setControlMode(options.color); });
 
   std::string legacy_group = "command to execute (GnuPG-compatible)";
   LegacyCommand cmd_gpg2(app, gpg_main, "gpg2", "invoke gpg2", legacy_group);
