@@ -36,6 +36,7 @@ target_include_directories(neopg-tool PUBLIC
   ${BOTAN2_INCLUDE_DIRS}
   ${CLI11_INCLUDE_DIR}
   ${RANG_INCLUDE_DIR}
+  ${SPDLOG_INCLUDE_DIR}
   ../include
 )
 
@@ -269,6 +270,7 @@ target_include_directories(neopg-bin PRIVATE
   ${CLI11_INCLUDE_DIR}
   ${SPDLOG_INCLUDE_DIR}
   ${JSON_INCLUDE_DIR}
+  ${SPDLOG_INCLUDE_DIR}
   ../include
 )
 target_compile_definitions(neopg-bin PRIVATE

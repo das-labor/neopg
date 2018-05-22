@@ -9,12 +9,13 @@
 
 #include <iostream>
 
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
+
 #include <CLI11.hpp>
 #include <rang.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/format.hpp>
 #include <boost/locale.hpp>
 
 #include <curl/curl.h>
@@ -135,9 +136,8 @@ int main(int argc, char* argv[]) {
   /* Translators, please add a second line saying "Report translation bugs to
    <...>" with the address for translation bugs (typically your translation
    team's web or email address).  */
-  app.set_footer((boost::format(_("Report bugs to %s")) %
-                  "https://github.com/das-labor/neopg")
-                     .str());
+  app.set_footer(fmt::format(_("Report bugs to {}"),
+                             "https://github.com/das-labor/neopg"));
   // app.require_subcommand(1);
   app.set_help_flag("--help", _("display help and exit"));
   app.add_subcommand("help", _("display help and exit"))
