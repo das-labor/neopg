@@ -18,7 +18,9 @@
 
 #include <CLI11.hpp>
 
-#include <boost/format.hpp>
+#include <spdlog/fmt/fmt.h>
+
+#include <rang.hpp>
 
 #include <iostream>
 
@@ -49,7 +51,7 @@ struct LegacyPacketSink : public RawPacketSink {
     auto new_header = dynamic_cast<NewPacketHeader*>(header.get());
 
     std::cout << "# off=" << header->m_offset
-              << " ctb=" << (boost::format("%02x") % (int)(uint8_t)head[0])
+              << " ctb=" << fmt::format("{:02x}", static_cast<int>((uint8_t)head[0]))
               << " tag=" << (int)header->type() << " hlen=" << head.length()
               << " plen=" << length << (new_header ? " new-ctb" : "") << "\n";
   }
