@@ -267,6 +267,7 @@ target_include_directories(neopg-bin PRIVATE
   ${LIBUSB_INCLUDE_DIRS}
   ${RANG_INCLUDE_DIR}
   ${CLI11_INCLUDE_DIR}
+  ${SPDLOG_INCLUDE_DIR}
   ${JSON_INCLUDE_DIR}
   ../include
 )

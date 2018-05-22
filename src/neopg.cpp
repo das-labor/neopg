@@ -1,13 +1,15 @@
-/* NeoPG
-   Copyright 2017 The NeoPG developers
-
-   NeoPG is released under the Simplified BSD License (see license.txt)
-*/
+// NeoPG
+// Copyright 2017 The NeoPG developers
+//
+// NeoPG is released under the Simplified BSD License (see license.txt)
 
 #include "global_options.h"
 
+#include <neopg-tool/version.h>
+
 #include <iostream>
 
+#include <spdlog/spdlog.h>
 #include <CLI11.hpp>
 #include <rang.hpp>
 
@@ -145,7 +147,40 @@ int main(int argc, char* argv[]) {
   app.add_flag("--version", oVersion, _("display version and exit"));
   VersionCommand cmd_version(app, "version", _("display version and exit"));
 
-  app.set_callback([&oVersion, &cmd_version, &app]() {
+  app.add_set("--color", options.color,
+              {rang::control::Auto, rang::control::Force, rang::control::Off},
+              "colorize the output (auto, always, or never)", true)
+      ->set_type_name("WHEN");
+
+  app.add_set("--log-level", options.log_level,
+              {spdlog::level::trace, spdlog::level::debug, spdlog::level::info,
+               spdlog::level::warn, spdlog::level::err, spdlog::level::critical,
+               spdlog::level::off},
+              "set minimum log level (trace, debug, info, warning, error, "
+              "critical, or off)",
+              true)
+      ->set_type_name("LEVEL");
+
+  app.add_flag_function("-v,--verbose",
+                        [&options](size_t count) {
+                          if (count == 1)
+                            options.log_level = spdlog::level::info;
+                          else if (count == 2)
+                            options.log_level = spdlog::level::debug;
+                          else
+                            options.log_level = spdlog::level::trace;
+                        },
+                        "enable more logging (can be used multiple times)");
+
+  app.set_callback([&options, &oVersion, &cmd_version, &app]() {
+    rang::setControlMode(options.color);
+
+    spdlog::set_level(options.log_level);
+
+    spdlog::set_pattern("%^[%l]%$ %v");
+    auto console = spdlog::stderr_color_mt("console");
+    console->info("Hello! This is NeoPG " NEOPG_VERSION);
+
     if (oVersion) {
       cmd_version.run();
       throw CLI::Success();
@@ -155,12 +190,6 @@ int main(int argc, char* argv[]) {
       throw CLI::CallForHelp();
     }
   });
-
-  app.add_set("--color", options.color,
-              {rang::control::Auto, rang::control::Force, rang::control::Off},
-              "colorize the output (auto, always, or never)")
-      ->set_type_name("WHEN");
-  app.set_callback([&options]() { rang::setControlMode(options.color); });
 
   std::string legacy_group = "command to execute (GnuPG-compatible)";
   LegacyCommand cmd_gpg2(app, gpg_main, "gpg2", "invoke gpg2", legacy_group);
@@ -191,7 +220,6 @@ int main(int argc, char* argv[]) {
   for (const auto& arg : args) argvec.emplace_back(arg.c_str());
 
   CLI11_PARSE(app, argvec.size(), const_cast<char**>(argvec.data()));
-  if (oVersion) cmd_version.run();
 
   return 0;
 }
