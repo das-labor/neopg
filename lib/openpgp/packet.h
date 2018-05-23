@@ -7,15 +7,20 @@
 
 #include <neopg/packet_header.h>
 
+#include <functional>
 #include <memory>
 
 namespace NeoPG {
+
+using packet_header_factory = std::function<std::unique_ptr<PacketHeader>(
+    PacketType type, uint32_t length)>;
 
 struct NEOPG_UNSTABLE_API Packet {
   /// Use this to overwrite the default header.
   std::unique_ptr<PacketHeader> m_header;
 
-  void write(std::ostream& out) const;
+  void write(std::ostream& out, packet_header_factory header_factory =
+                                    NewPacketHeader::create_or_throw) const;
 
   /// Write the body of the packet to \p out.
   ///
