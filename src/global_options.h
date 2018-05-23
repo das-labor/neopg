@@ -28,14 +28,14 @@ std::istream& operator>>(std::istream& in, rang::control& when) {
   return in;
 }
 
-std::ostream& operator<<(std::ostream& in, const rang::control& when) {
+std::ostream& operator<<(std::ostream& out, const rang::control& when) {
   switch (when) {
     case rang::control::Force:
-      return in << "always";
+      return out << "always";
     case rang::control::Off:
-      return in << "never";
+      return out << "never";
     default:
-      return in << "auto";
+      return out << "auto";
   }
 }
 }  // namespace rang
@@ -66,23 +66,23 @@ std::istream& operator>>(std::istream& in, spdlog::level::level_enum& level) {
   return in;
 }
 
-std::ostream& operator<<(std::ostream& in,
+std::ostream& operator<<(std::ostream& out,
                          const spdlog::level::level_enum& level) {
   switch (level) {
     case spdlog::level::trace:
-      return in << "trace";
+      return out << "trace";
     case spdlog::level::debug:
-      return in << "debug";
+      return out << "debug";
     case spdlog::level::info:
-      return in << "info";
+      return out << "info";
     case spdlog::level::warn:
-      return in << "warning";
+      return out << "warning";
     case spdlog::level::err:
-      return in << "error";
+      return out << "error";
     case spdlog::level::critical:
-      return in << "critical";
+      return out << "critical";
     case spdlog::level::off:
-      return in << "off";
+      return out << "off";
     default:
       throw std::logic_error("unknown logging level");
   }
