@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 namespace NeoPG {
@@ -72,6 +73,9 @@ class NEOPG_UNSTABLE_API OldPacketHeader : public PacketHeader {
   PacketLengthType m_length_type;
   uint32_t m_length;
 
+  static std::unique_ptr<OldPacketHeader> create_or_throw(PacketType type,
+                                                          uint32_t length);
+
   static void verify_length(uint32_t length, PacketLengthType length_type);
 
   static PacketLengthType best_length_type(uint32_t length);
@@ -122,6 +126,9 @@ class NEOPG_UNSTABLE_API NewPacketHeader : public PacketHeader {
  public:
   NewPacketTag m_tag;
   NewPacketLength m_length;
+
+  static std::unique_ptr<NewPacketHeader> create_or_throw(PacketType type,
+                                                          uint32_t length);
 
   NewPacketHeader(NewPacketTag tag, NewPacketLength length)
       : m_tag(tag), m_length(length) {}

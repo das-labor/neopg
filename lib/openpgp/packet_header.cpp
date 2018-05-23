@@ -6,7 +6,14 @@
 
 #include <neopg/packet_header.h>
 
+#include <neopg/intern/cplusplus.h>
+
 namespace NeoPG {
+
+std::unique_ptr<OldPacketHeader> OldPacketHeader::create_or_throw(
+    PacketType type, uint32_t length) {
+  return NeoPG::make_unique<OldPacketHeader>(type, length);
+}
 
 void OldPacketHeader::verify_length(uint32_t length,
                                     PacketLengthType length_type) {
@@ -78,6 +85,11 @@ void OldPacketHeader::write(std::ostream& out) {
           "Unspecific packet length type (shouldn't happen).");
       // LCOV_EXCL_STOP
   }
+}
+
+std::unique_ptr<NewPacketHeader> NewPacketHeader::create_or_throw(
+    PacketType type, uint32_t length) {
+  return NeoPG::make_unique<NewPacketHeader>(type, length);
 }
 
 void NewPacketTag::set_packet_type(PacketType packet_type) {
