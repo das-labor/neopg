@@ -41,3 +41,22 @@ ParserError parser_error(const std::string& msg, const Input& in) {
 }
 
 }  // namespace NeoPG
+
+namespace tao {
+namespace TAO_PEGTL_NAMESPACE {
+// Custom rule to match as many octets as are indicated by length.
+template <uint32_t max_length>
+struct rep_max_any {
+  using analyze_t = analysis::generic<analysis::rule_type::OPT>;
+  template <apply_mode A, rewind_mode M, template <typename...> class Action,
+            template <typename...> class Control, typename Input,
+            typename... States>
+  static bool match(Input& in, States&&... st) {
+    uint32_t length = in.size(max_length);
+    if (length > max_length) length = max_length;
+    in.bump(length);
+    return true;
+  }
+};
+}  // namespace TAO_PEGTL_NAMESPACE
+}  // namespace tao
