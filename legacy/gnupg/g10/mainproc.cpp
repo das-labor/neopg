@@ -565,6 +565,9 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
   free_packet(pkt, NULL);
   c->last_was_session_key = 0;
   write_status(STATUS_END_DECRYPTION);
+
+  /* We do not allow any literals after decryption.  */
+  literals_seen++;
 }
 
 static void proc_plaintext(CTX c, PACKET *pkt) {
