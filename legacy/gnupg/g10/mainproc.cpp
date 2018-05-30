@@ -424,7 +424,13 @@ static void print_pkenc_list(ctrl_t ctrl, struct kidlist_item *list,
 }
 
 static void proc_encrypted(CTX c, PACKET *pkt) {
+  bool fail = false;
   int result = 0;
+
+  if (literals_seen > 0) {
+    log_info(_("WARNING: plaintext seen before decryption\n"));
+    fail = true;
+  }
 
   if (!opt.quiet) {
     if (c->symkeys > 1)
@@ -436,7 +442,6 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
   }
 
   /* FIXME: Figure out the session key by looking at all pkenc packets. */
-
   write_status(STATUS_BEGIN_DECRYPTION);
 
   /*log_debug("dat: %sencrypted data\n", c->dek?"":"conventional ");*/
@@ -526,6 +531,9 @@ static void proc_encrypted(CTX c, PACKET *pkt) {
   }
 
   if (!result) result = decrypt_data(c->ctrl, c, pkt->pkt.encrypted, c->dek);
+
+  if (!result && fail)
+    result = GPG_ERR_UNEXPECTED;
 
   if (result == -1)
     ;
