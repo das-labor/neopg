@@ -64,6 +64,9 @@ add_executable(test-libneopg
   ../openpgp/symmetrically_encrypted_data_packet_tests.cpp
   ../openpgp/symmetrically_encrypted_integrity_protected_data_packet_tests.cpp
   ../openpgp/trust_packet_tests.cpp
+  ../openpgp/user_attribute/subpacket/image_attribute_subpacket_tests.cpp
+  ../openpgp/user_attribute/subpacket/raw_user_attribute_subpacket_tests.cpp
+  ../openpgp/user_attribute/user_attribute_subpacket_tests.cpp
   ../openpgp/user_attribute_packet_tests.cpp
   ../openpgp/user_id_packet_tests.cpp
   ../parser/openpgp_tests.cpp
