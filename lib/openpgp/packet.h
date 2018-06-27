@@ -39,6 +39,9 @@ struct NEOPG_UNSTABLE_API Packet {
   ///
   /// \return The tag of the packet.
   virtual PacketType type() const = 0;
+
+  // Prevent memory leak when upcasting in smart pointer containers.
+  virtual ~Packet() = default;
 };
 
 }  // namespace NeoPG

@@ -59,12 +59,16 @@ enum class NEOPG_UNSTABLE_API PacketLengthType : uint8_t {
   Default
 };
 
+/// Represent an OpenPGP packet header.
 struct NEOPG_UNSTABLE_API PacketHeader {
  public:
   size_t m_offset;
 
   virtual void write(std::ostream& out) = 0;
   virtual PacketType type() = 0;
+
+  // Prevent memory leak when upcasting in smart pointer containers.
+  virtual ~PacketHeader() = default;
 };
 
 class NEOPG_UNSTABLE_API OldPacketHeader : public PacketHeader {
