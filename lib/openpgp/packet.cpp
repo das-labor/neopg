@@ -64,15 +64,16 @@ std::unique_ptr<Packet> Packet::create_or_throw(PacketType type,
   /// exactly the same bytes as the original data.
   std::stringstream out;
   packet->write_body(out);
-  // std::cout << "ORIG: "
-  //           << Botan::hex_encode((const uint8_t*)orig_data.data(),
-  //                                orig_data.size())
-  //           << "\n";
-  // std::string o = out.str();
-  // std::cout << "PARS: " << Botan::hex_encode((const uint8_t*)o.data(),
-  // o.size())
-  //           << "\n";
-
+  // if (orig_data != out.str()) {
+  //   std::cout << "ORIG: "
+  //             << Botan::hex_encode((const uint8_t*)orig_data.data(),
+  //                                  orig_data.size())
+  //             << "\n";
+  //   std::string o = out.str();
+  //   std::cout << "PARS: "
+  //             << Botan::hex_encode((const uint8_t*)o.data(), o.size()) <<
+  //             "\n";
+  // }
   assert(orig_data == out.str());
 #endif
   return packet;
