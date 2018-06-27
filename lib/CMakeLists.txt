@@ -72,6 +72,9 @@ set(NeopgHeaders
   openpgp/symmetrically_encrypted_data_packet.h
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.h
   openpgp/trust_packet.h
+  openpgp/user_attribute/subpacket/image_attribute_subpacket.h
+  openpgp/user_attribute/subpacket/raw_user_attribute_subpacket.h
+  openpgp/user_attribute/user_attribute_subpacket.h
   openpgp/user_attribute_packet.h
   openpgp/user_id_packet.h
   parser/openpgp.h
@@ -148,6 +151,9 @@ add_library(neopg
   openpgp/symmetrically_encrypted_data_packet.cpp
   openpgp/symmetrically_encrypted_integrity_protected_data_packet.cpp
   openpgp/trust_packet.cpp
+  openpgp/user_attribute/subpacket/image_attribute_subpacket.cpp
+  openpgp/user_attribute/subpacket/raw_user_attribute_subpacket.cpp
+  openpgp/user_attribute/user_attribute_subpacket.cpp
   openpgp/user_attribute_packet.cpp
   openpgp/user_id_packet.cpp
   parser/openpgp.cpp
