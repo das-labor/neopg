@@ -54,7 +54,7 @@ struct value {
 struct flags : bytes<4> {};
 struct name_length : bytes<2> {};
 struct value_length : bytes<2> {};
-struct grammar : must<flags, name_length, value_length, name, value> {};
+struct grammar : must<flags, name_length, value_length, name, value, eof> {};
 
 // Action
 template <typename Rule>
