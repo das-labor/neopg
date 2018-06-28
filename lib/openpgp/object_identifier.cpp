@@ -53,6 +53,13 @@ struct action<oid> {
   static void apply(const Input& in, uint8_t& length, ObjectIdentifier& oid) {
     auto begin = reinterpret_cast<const uint8_t*>(in.begin());
     oid.m_data.assign(begin, begin + in.size());
+
+    try {
+      auto str = oid.as_string();
+    } catch (const Botan::Decoding_Error& exc) {
+      throw parser_error(std::string("oid decoding error (") + exc.what() + ")",
+                         in);
+    }
   }
 };
 
