@@ -67,6 +67,8 @@ struct NEOPG_UNSTABLE_API PacketHeader {
   virtual void write(std::ostream& out) = 0;
   virtual PacketType type() = 0;
 
+  virtual uint32_t length() = 0;
+
   // Prevent memory leak when upcasting in smart pointer containers.
   virtual ~PacketHeader() = default;
 };
@@ -95,6 +97,7 @@ class NEOPG_UNSTABLE_API OldPacketHeader : public PacketHeader {
   void write(std::ostream& out) override;
 
   PacketType type() override { return m_packet_type; }
+  uint32_t length() override { return m_length; }
 };
 
 class NEOPG_UNSTABLE_API NewPacketTag {
@@ -144,6 +147,7 @@ class NEOPG_UNSTABLE_API NewPacketHeader : public PacketHeader {
   void write(std::ostream& out) override;
 
   PacketType type() override { return m_tag.m_packet_type; }
+  uint32_t length() override { return m_length.m_length; }
 };
 
 }  // namespace NeoPG
