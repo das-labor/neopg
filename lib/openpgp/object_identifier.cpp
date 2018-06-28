@@ -55,7 +55,9 @@ struct action<oid> {
     oid.m_data.assign(begin, begin + in.size());
 
     try {
-      auto str = oid.as_string();
+      // Test suitability for parsing and printing.
+      auto oidstr = oid.as_string();
+      Botan::OID oid(oidstr);
     } catch (const Botan::Decoding_Error& exc) {
       throw parser_error(std::string("oid decoding error (") + exc.what() + ")",
                          in);
