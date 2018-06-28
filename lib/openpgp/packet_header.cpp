@@ -20,8 +20,6 @@ void OldPacketHeader::verify_length(uint32_t length,
     throw std::logic_error("Invalid packet length for one octet");
   if (length_type == PacketLengthType::TwoOctet and length > 0xffff)
     throw std::logic_error("Invalid packet length for two octets");
-  if (length_type == PacketLengthType::Indeterminate)
-    throw std::logic_error("Indeterminate packet length not supported");
 }
 
 PacketLengthType OldPacketHeader::best_length_type(uint32_t length) {
@@ -75,8 +73,8 @@ void OldPacketHeader::write(std::ostream& out) {
       break;
 
     case PacketLengthType::Indeterminate:
-      throw std::logic_error(
-          "Indeterminate packet length type (shouldn't happen).");
+      out << (uint8_t)(tag | 0x03);
+      break;
 
     // LCOV_EXCL_START
     case PacketLengthType::Default:
