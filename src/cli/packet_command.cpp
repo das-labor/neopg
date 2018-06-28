@@ -618,8 +618,14 @@ static void process_msg(Botan::DataSource& source, Botan::DataSink& out) {
   out.start_msg();
   LegacyPacketSink sink;
   RawPacketParser parser(sink);
-  parser.process(source);
 
+  try {
+    parser.process(source);
+  } catch (const ParserError& exc) {
+    std::cout << rang::style::bold << rang::fgB::red << "ERROR"
+              << rang::style::reset
+              << ":unrecoverable error:" << exc.as_string() << "\n";
+  }
   // Botan::secure_vector<uint8_t> buffer(Botan::DEFAULT_BUFFERSIZE);
   // while (!source.end_of_data()) {
   //   size_t got = source.read(buffer.data(), buffer.size());
