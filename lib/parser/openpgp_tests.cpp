@@ -39,10 +39,12 @@ class TestSink : public RawPacketSink {
     m_packets.emplace_back(std::move(packet));
   }
 
-  void start_packet(std::unique_ptr<PacketHeader> header){};
-  void continue_packet(const char* data, size_t length){};
+  void start_packet(std::unique_ptr<PacketHeader> header) {}
+  void continue_packet(const char* data, size_t length) {}
   void finish_packet(std::unique_ptr<NewPacketLength> length_info,
-                     const char* data, size_t length){};
+                     const char* data, size_t length) {}
+  void error_packet(std::unique_ptr<PacketHeader> header,
+                    std::unique_ptr<ParserError> exc) {}
 };
 
 TEST(NeopgTest, parser_openpgp_test) {
@@ -53,7 +55,7 @@ TEST(NeopgTest, parser_openpgp_test) {
 
     {
       std::stringstream data;
-      auto packet = RawPacket{PacketType::Reserved, "reserved"};
+      RawPacket packet{PacketType::Reserved, "reserved"};
       packet.write(data);
 
       packets.clear();
