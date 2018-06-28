@@ -107,7 +107,7 @@ struct action<subpacket_type> {
                     UserAttributeSubpacketType& type,
                     UserAttributePacket& packet) {
     auto val = (uint32_t)in.peek_byte(0);
-    type = static_cast<UserAttributeSubpacketType>(val & 0x7f);
+    type = static_cast<UserAttributeSubpacketType>(val);
   }
 };
 
