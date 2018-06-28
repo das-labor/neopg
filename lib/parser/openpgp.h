@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <neopg/parser_error.h>
 #include <neopg/raw_packet.h>
 
 #include <botan/data_snk.h>
@@ -31,6 +32,15 @@ class NEOPG_UNSTABLE_API RawPacketSink {
   // (only valid for new packet format)..
   virtual void finish_packet(std::unique_ptr<NewPacketLength> length_info,
                              const char* data, size_t length) = 0;
+
+  // Error while parsing a packet (usually if a packet is too large for the
+  // input buffer, or if the final packet is truncated). The packet content is
+  // skipped, and processing can continue. Takes ownership of HEADER.
+  virtual void error_packet(std::unique_ptr<PacketHeader> header,
+                            std::unique_ptr<ParserError> error) = 0;
+
+  // Prevent memory leak when upcasting in smart pointer containers.
+  virtual ~RawPacketSink() = default;
 };
 
 class NEOPG_UNSTABLE_API RawPacketParser {
@@ -44,7 +54,8 @@ class NEOPG_UNSTABLE_API RawPacketParser {
   // our own limits, see the NeoPG OpenPGP profile. Post-quantum cryptography
   // will require some large key packets, so this limit will go up eventually.
   // For partial length data packets, GnuPG emits at most 8KiB.
-  const size_t MAX_PARSER_BUFFER = 1024 * 1024;  // 1 MiB.
+  // Photo ids can be much larger.
+  static const size_t MAX_PARSER_BUFFER = 4 * 1024 * 1024;  // 4 MiB
 
   RawPacketParser(RawPacketSink& sink) : m_sink(sink) {}
 

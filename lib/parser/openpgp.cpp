@@ -23,6 +23,9 @@ struct state {
   size_t packet_pos;
   std::unique_ptr<PacketHeader> header;
 
+  // The exception object if a packet could not be parsed.
+  std::unique_ptr<ParserError> exc;
+
   // The length of the current packet body (or part of it).
   size_t packet_len;
 
@@ -42,25 +45,62 @@ struct packet_body_data {
   template <apply_mode A, rewind_mode M, template <typename...> class Action,
             template <typename...> class Control, typename Input>
   static bool match(Input& in, state& st) {
-    if (in.size(st.packet_len) >= st.packet_len) {
+    size_t available = in.size(st.packet_len);
+    if (available >= st.packet_len) {
       in.bump(st.packet_len);
       return true;
+    } else {
+      uint32_t max = RawPacketParser::MAX_PARSER_BUFFER;
+      available = in.size(max);
+      if (st.packet_len > max && available == max) {
+        // Best we can do at this point is to skip over the packet and set an
+        // error.
+        uint32_t skip = st.packet_len;
+        while (skip > 0) {
+          assert(skip >= available);
+          in.bump(available);
+          in.discard();
+          skip -= available;
+          uint32_t skip_this = max;
+          if (skip < skip_this) skip_this = skip;
+          available = in.size(skip_this);
+          if (available < skip_this) {
+            st.exc = NeoPG::make_unique<ParserError>(parser_error(
+                "packet too short (while skipping too large packet)", in));
+            skip = available;
+            // Fallthrough for one last iteration.
+          }
+        }
+        if (!st.exc)
+          st.exc = NeoPG::make_unique<ParserError>(
+              parser_error("packet too large", in));
+        st.packet_len = 0;
+        return true;
+      } else {
+        in.bump(available);
+        in.discard();
+        st.packet_len = 0;
+        st.exc = NeoPG::make_unique<ParserError>(
+            parser_error("packet too short", in));
+        return true;
+      }
     }
+    // Not reached.
     return false;
   }
-};
+};  // namespace openpgp
 
-// We discard the input buffer so that we do not need to account for the packet
-// or length header in the max buffer size calculation (so we can use a power of
-// two rather than a power of two plus a small number of bytes).
+// We discard the input buffer so that we do not need to account for the
+// packet or length header in the max buffer size calculation (so we can use a
+// power of two rather than a power of two plus a small number of bytes).
 struct packet_body : seq<discard, packet_body_data> {};
 
 // For old packets of indeterminate length, we set an arbitrary chunk size with
 // the packet_body rule, and finish up with packet_body_data_rest.
 #define INDETERMINATE_LENGTH_CHUNK_SIZE 8192
 
-// We do not discard the input buffer here, as we come here after back-tracking
-// from packet_body, and we want to preserve the data.
+// We do not discard the input buffer here, as we come here after
+// back-tracking from packet_body, and we want to preserve the data.
 struct packet_body_data_rest : until<eof> {};
 
 struct packet_body_indeterminate
@@ -114,8 +154,8 @@ struct new_packet_data_definite
               new_packet_length_five>,
           packet_body> {};
 
-// New packet data always ends with a definite length part, optionally preceeded
-// by an arbitrary number of partial data parts.
+// New packet data always ends with a definite length part, optionally
+// preceeded by an arbitrary number of partial data parts.
 struct new_packet_data
     : seq<star<new_packet_data_partial>, new_packet_data_definite> {};
 
@@ -135,7 +175,7 @@ struct is_packet : at<uint8::mask_one<0x80, 0x80>> {};
 struct packet : seq<discard, is_packet, sor<new_packet, old_packet>> {};
 
 // OpenPGP consists of a sequence of packets.
-struct grammar : until<eof, packet> {};
+struct grammar : seq<until<eof, packet>, must<eof>> {};
 
 template <typename Rule>
 struct action : nothing<Rule> {};
@@ -273,6 +313,7 @@ struct action<is_packet> {
   static void apply(const Input& in, state& st) {
     st.packet_type = PacketType::Reserved;
     st.header.reset(nullptr);
+    st.exc.reset(nullptr);
     st.partial = false;
     st.started = false;
   }
@@ -287,13 +328,24 @@ struct action<packet_body_data> {
 
     if (!st.started) {
       if (!st.partial) {
-        st.sink.next_packet(std::move(st.header), data, length);
+        if (st.exc)
+          st.sink.error_packet(std::move(st.header), std::move(st.exc));
+        else
+          st.sink.next_packet(std::move(st.header), data, length);
       } else {
+        // At this point, we don't support error packets for partial packets,
+        // because we can't skip them easily. The semantics would be unclear.
+        if (st.exc) throw *st.exc;
+
         st.sink.start_packet(std::move(st.header));
         st.sink.continue_packet(data, length);
       }
       st.started = true;
     } else {
+      // At this point, we don't support error packets for partial packets,
+      // because we can't skip them easily. The semantics would be unclear.
+      if (st.exc) throw *st.exc;
+
       if (st.partial) {
         st.sink.continue_packet(data, length);
       } else {
@@ -319,8 +371,23 @@ struct action<packet_body_data_rest> {
   }
 };
 
+// Control
+template <typename Rule>
+struct control : pegtl::normal<Rule> {
+  static const std::string error_message;
+
+  template <typename Input, typename... States>
+  static void raise(const Input& in, States&&...) {
+    throw parser_error(error_message, in);
+  }
+};
+
+template <>
+const std::string control<eof>::error_message = "input has trailing data";
+
 }  // namespace openpgp
 
+// FIXME: Pass filename to ParserInput (everywhere).
 void RawPacketParser::process(Botan::DataSource& source) {
   using reader_t =
       std::function<std::size_t(char* buffer, const std::size_t length)>;
@@ -333,7 +400,7 @@ void RawPacketParser::process(Botan::DataSource& source) {
   };
   buffer_input<reader_t> input("reader", MAX_PARSER_BUFFER, reader);
 
-  parse<openpgp::grammar, openpgp::action>(input, state);
+  parse<openpgp::grammar, openpgp::action, openpgp::control>(input, state);
 }
 
 void RawPacketParser::process(std::istream& source) {
