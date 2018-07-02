@@ -1271,9 +1271,6 @@ static void dump_sig_subpkt(int hashed, int type, int critical,
       for (i = 0; i < length; i++)
         *listfp << ' ' << Botan::hex_encode(&buffer[i], 1);
       break;
-    case SIGSUBPKT_SIGNERS_UID:
-      p = "signer's user ID";
-      break;
     case SIGSUBPKT_REVOC_REASON:
       if (length) {
         *listfp << boost::format("revocation reason 0x%02x (") % *buffer;
@@ -1701,15 +1698,6 @@ int parse_signature(IOBUF inp, int pkttype, unsigned long pktlen,
 
     p = parse_sig_subpkt(sig->hashed, SIGSUBPKT_POLICY, NULL);
     if (p) sig->flags.policy_url = 1;
-
-    p = parse_sig_subpkt(sig->hashed, SIGSUBPKT_SIGNERS_UID, &len);
-    if (p && len) {
-      sig->signers_uid = try_make_printable_string(p, len, 0);
-      if (!sig->signers_uid) {
-        rc = gpg_error_from_syserror();
-        goto leave;
-      }
-    }
 
     p = parse_sig_subpkt(sig->hashed, SIGSUBPKT_NOTATION, NULL);
     if (p) sig->flags.notation = 1;

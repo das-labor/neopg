@@ -60,8 +60,6 @@ void free_seckey_enc(PKT_signature *sig) {
   xfree(sig->hashed);
   xfree(sig->unhashed);
 
-  xfree(sig->signers_uid);
-
   xfree(sig);
 }
 
@@ -170,7 +168,6 @@ PKT_signature *copy_signature(PKT_signature *d, PKT_signature *s) {
   }
   d->hashed = cp_subpktarea(s->hashed);
   d->unhashed = cp_subpktarea(s->unhashed);
-  if (s->signers_uid) d->signers_uid = xstrdup(s->signers_uid);
   if (s->numrevkeys) {
     d->revkey = NULL;
     d->numrevkeys = 0;

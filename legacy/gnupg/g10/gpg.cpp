@@ -1983,10 +1983,6 @@ next_pass:
         opt.throw_keyids = false;
         break;
 
-      case oDisableSignerUID:
-        opt.flags.disable_signer_uid = true;
-        break;
-
       case oS2KMode:
         opt.s2k_mode = pargs.r.ret_int;
         break;
