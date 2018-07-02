@@ -1421,11 +1421,7 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
     }
   }
 
-  if (sig->signers_uid)
-    write_status_buffer(STATUS_NEWSIG, sig->signers_uid,
-                        strlen(sig->signers_uid), 0);
-  else
-    write_status_text(STATUS_NEWSIG, NULL);
+  write_status_text(STATUS_NEWSIG, NULL);
 
   astr = openpgp_pk_algo_name((pubkey_algo_t)(sig->pubkey_algo));
   if ((issuer_fpr = issuer_fpr_string(sig))) {
@@ -1442,10 +1438,6 @@ static int check_sig_and_print(CTX c, kbnode_t node) {
     log_info(_("Signature made %s using %s key ID %s\n"),
              asctimestamp(sig->timestamp), astr ? astr : "?",
              keystr(sig->keyid));
-
-  /* In verbose mode print the signers UID.  */
-  if (sig->signers_uid)
-    log_info(_("               issuer \"%s\"\n"), sig->signers_uid);
 
   rc = do_check_sig(c, node, NULL, &is_expkey, &is_revkey, &pk);
 

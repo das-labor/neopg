@@ -307,7 +307,6 @@ struct options {
     bool utf8_filename{false};
     bool dsa2{false};
     bool large_rsa{false};
-    bool disable_signer_uid{false};
     /* Flag to enbale experimental features from RFC4880bis.  */
     bool rfc4880bis{false};
   } flags;

@@ -214,9 +214,6 @@ typedef struct {
   const byte *trust_regexp;
   struct revocation_key *revkey;
   int numrevkeys;
-  char *signers_uid;      /* Malloced value of the SIGNERS_UID
-                           * subpacket or NULL.  This string has
-                           * already been sanitized.  */
   subpktarea_t *hashed;   /* All subpackets with hashed data (v4 only). */
   subpktarea_t *unhashed; /* Ditto for unhashed data. */
   /* First 2 bytes of the digest.  (Serialized.  Note: this is not
