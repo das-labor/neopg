@@ -1,4 +1,4 @@
-// legacy dump format
+// hex dump format
 // Copyright 2018 The NeoPG developers
 //
 // NeoPG is released under the Simplified BSD License (see license.txt)
@@ -9,9 +9,12 @@
 
 namespace NeoPG {
 
-/// Legacy dump format like GnuPG.
-class LegacyDump : public DumpPacketSink {
+/// Hex dump format like GnuPG.
+class HexDump : public DumpPacketSink {
  public:
+  class Formatter;
+  mutable std::unique_ptr<Formatter> m_fmt;
+
   /// Dispatcher.
   void dump(const Packet* packet) const override;
 
@@ -22,7 +25,8 @@ class LegacyDump : public DumpPacketSink {
   void dump(const PublicSubkeyPacket* packet) const override;
   void dump(const SignaturePacket* packet) const override;
 
-  LegacyDump(std::ostream& out) : DumpPacketSink(out) {}
+  HexDump(std::ostream& out);
+  ~HexDump();
 };
 
 }  // Namespace NeoPG

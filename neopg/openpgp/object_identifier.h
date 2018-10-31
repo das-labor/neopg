@@ -25,7 +25,7 @@ class NEOPG_UNSTABLE_API ObjectIdentifier {
   /// @return the length in bytes
   uint16_t length() const noexcept { return m_data.size(); }
 
-  /// @return the octed data
+  /// @return the octet data
   const std::vector<uint8_t>& data() const noexcept { return m_data; }
 
   /// Write the mpi to the output stream.

@@ -16,12 +16,15 @@ add_library(neopg-tool STATIC
   cli/command.cpp
   cli/compress_command.cpp
   cli/hash_command.cpp
+  cli/packet/dump/hex_dump.cpp
+  cli/packet/dump/json_dump.cpp
   cli/packet/dump/legacy_dump.cpp
   cli/packet/dump_packet_command.cpp
   cli/packet/dump_packet_sink.cpp
   cli/packet_command.cpp
   cli/random_command.cpp
   cli/version_command.cpp
+  io/hex_filter.cpp
   io/streams.cpp
 )
 add_library(neopg::neopg-tool ALIAS neopg-tool)

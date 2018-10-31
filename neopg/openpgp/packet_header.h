@@ -14,6 +14,9 @@
 
 namespace NeoPG {
 
+/// Represent the packet format (old or new).
+enum class NEOPG_UNSTABLE_API PacketFormat : uint8_t { Old = 0x00, New = 0x40 };
+
 /// Represent an OpenPGP [packet
 /// type](https://tools.ietf.org/html/rfc4880#section-4.3).
 enum class NEOPG_UNSTABLE_API PacketType : uint8_t {
@@ -67,6 +70,8 @@ struct NEOPG_UNSTABLE_API PacketHeader {
   virtual void write(std::ostream& out) const = 0;
   virtual PacketType type() const = 0;
 
+  virtual PacketFormat format() const noexcept = 0;
+
   virtual uint32_t length() const = 0;
 
   // Prevent memory leak when upcasting in smart pointer containers.
@@ -78,6 +83,8 @@ class NEOPG_UNSTABLE_API OldPacketHeader : public PacketHeader {
   PacketType m_packet_type;
   PacketLengthType m_length_type;
   uint32_t m_length;
+
+  PacketFormat format() const noexcept override { return PacketFormat::Old; }
 
   static std::unique_ptr<OldPacketHeader> create_or_throw(PacketType type,
                                                           uint32_t length);
@@ -133,6 +140,8 @@ class NEOPG_UNSTABLE_API NewPacketHeader : public PacketHeader {
  public:
   NewPacketTag m_tag;
   NewPacketLength m_length;
+
+  PacketFormat format() const noexcept override { return PacketFormat::New; }
 
   static std::unique_ptr<NewPacketHeader> create_or_throw(PacketType type,
                                                           uint32_t length);
