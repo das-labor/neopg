@@ -140,7 +140,7 @@ static gpg_error_t default_inq_cb(void *opaque, const char *line) {
       if ((*pw)[0] == CONTROL_D && !(*pw)[1])
         err = GPG_ERR_CANCELED;
       else
-        err = assuan_send_data(parm->ctx, pw, strlen(pw->data()));
+        err = assuan_send_data(parm->ctx, pw->data(), strlen(pw->data()));
       delete pw;
     }
   } else
