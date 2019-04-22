@@ -1,7 +1,38 @@
 # Changelog
 
-## [v0.0.5](https://github.com/das-labor/neopg/tree/v0.0.5) (2018-05-15)
+## [v0.0.6](https://github.com/das-labor/neopg/tree/v0.0.6) (2019-04-22)
+[Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.5...v0.0.6)
 
+**Implemented enhancements:**
+
+- Compatibility programs [\#27](https://github.com/das-labor/neopg/issues/27)
+- Add command "packet dump" to output packets. [\#88](https://github.com/das-labor/neopg/pull/88) ([lambdafu](https://github.com/lambdafu))
+
+**Fixed bugs:**
+
+- Prevent encryption spoof in legacy code. [\#78](https://github.com/das-labor/neopg/issues/78)
+
+**Closed issues:**
+
+- key generation failed when enter passphrase [\#94](https://github.com/das-labor/neopg/issues/94)
+- build or install broken on Ubuntu 18.04 [\#81](https://github.com/das-labor/neopg/issues/81)
+- Packet could use header strategy [\#66](https://github.com/das-labor/neopg/issues/66)
+
+**Merged pull requests:**
+
+- Fix key generation. [\#95](https://github.com/das-labor/neopg/pull/95) ([lambdafu](https://github.com/lambdafu))
+- Remove neopg-tool from install taget/cmake export [\#92](https://github.com/das-labor/neopg/pull/92) ([Bjoe](https://github.com/Bjoe))
+- Improve cmake build system [\#90](https://github.com/das-labor/neopg/pull/90) ([Bjoe](https://github.com/Bjoe))
+- Remove --disable-signers-uid and all support for signer's uid. [\#87](https://github.com/das-labor/neopg/pull/87) ([lambdafu](https://github.com/lambdafu))
+- README: update Fedora build instructions [\#84](https://github.com/das-labor/neopg/pull/84) ([bkircher](https://github.com/bkircher))
+- Allow to set header factory when writing packets. [\#76](https://github.com/das-labor/neopg/pull/76) ([lambdafu](https://github.com/lambdafu))
+- Use fmtlib instead of boost::format. [\#75](https://github.com/das-labor/neopg/pull/75) ([lambdafu](https://github.com/lambdafu))
+- Add spdlog and options for logging \(--verbose, --log-level\). [\#74](https://github.com/das-labor/neopg/pull/74) ([lambdafu](https://github.com/lambdafu))
+- Update rang to 3.1.0 and add global option --color=auto|always|never [\#73](https://github.com/das-labor/neopg/pull/73) ([lambdafu](https://github.com/lambdafu))
+- Update pegtl to 2.5.1 [\#72](https://github.com/das-labor/neopg/pull/72) ([lambdafu](https://github.com/lambdafu))
+- Openpgp parser for keyrings [\#60](https://github.com/das-labor/neopg/pull/60) ([lambdafu](https://github.com/lambdafu))
+
+## [v0.0.5](https://github.com/das-labor/neopg/tree/v0.0.5) (2018-05-15)
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.4...v0.0.5)
 
 **Closed issues:**
@@ -26,7 +57,6 @@
 - Remove use of es\_fopencookie from dirmngr. [\#38](https://github.com/das-labor/neopg/pull/38) ([lambdafu](https://github.com/lambdafu))
 
 ## [v0.0.4](https://github.com/das-labor/neopg/tree/v0.0.4) (2017-12-15)
-
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.3...v0.0.4)
 
 **Implemented enhancements:**
@@ -52,7 +82,6 @@
 - Fix travis, support more compilers, and check code formatting. [\#12](https://github.com/das-labor/neopg/pull/12) ([lambdafu](https://github.com/lambdafu))
 
 ## [v0.0.3](https://github.com/das-labor/neopg/tree/v0.0.3) (2017-11-25)
-
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.2...v0.0.3)
 
 **Merged pull requests:**
@@ -62,7 +91,6 @@
 - fixing missing include causing unknown 'unique\_ptr' in legacy/gnupg/g10/keyid.cpp [\#7](https://github.com/das-labor/neopg/pull/7) ([bitpick](https://github.com/bitpick))
 
 ## [v0.0.2](https://github.com/das-labor/neopg/tree/v0.0.2) (2017-10-29)
-
 [Full Changelog](https://github.com/das-labor/neopg/compare/v0.0.1...v0.0.2)
 
 **Merged pull requests:**
@@ -72,9 +100,6 @@
 - really fix gtest includes [\#3](https://github.com/das-labor/neopg/pull/3) ([flanfly](https://github.com/flanfly))
 
 ## [v0.0.1](https://github.com/das-labor/neopg/tree/v0.0.1) (2017-10-28)
-
-[Full Changelog](https://github.com/das-labor/neopg/compare/a087039e7a959b33f0edfd9319b585a6eabdab2c...v0.0.1)
-
 **Merged pull requests:**
 
 - fix gtest includes [\#2](https://github.com/das-labor/neopg/pull/2) ([flanfly](https://github.com/flanfly))
